@@ -1,0 +1,8 @@
+dist/
+test/resources/local_mode_lock
+.tox/
+.coverage
+*.egg-info/
+__pycache__/
+.idea/
+.DS_Store
