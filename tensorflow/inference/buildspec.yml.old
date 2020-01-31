@@ -1,0 +1,73 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - start-dockerd
+
+      # fix permissions dropped by CodePipeline
+      - chmod +x ./scripts/*.sh
+      - chmod +x ./docker/build_artifacts/sagemaker/serve
+  build:
+    commands:
+      # prepare the release (update versions, changelog etc.)
+      - if is-release-build; then git-release --prepare; fi
+
+      - tox -e jshint,flake8,pylint
+
+      # build images
+      - ./scripts/build-all.sh
+
+      # run local tests
+      - tox -e py36 -- test/integration/local --framework-version 1.15
+      - tox -e py36 -- test/integration/local --framework-version 2.0
+
+      # push docker images to ECR
+      - |
+        if is-release-build; then
+          ./scripts/publish-all.sh
+        fi
+
+      # run SageMaker tests
+      - |
+        if is-release-build; then
+          tox -e py36 -- -n 8 test/integration/sagemaker/test_tfs.py --versions 1.15.0
+          tox -e py36 -- -n 8 test/integration/sagemaker/test_tfs.py --versions 2.0.0
+        fi
+
+      # write deployment details to file
+      # todo sort out eia versioning
+      # todo add non-eia tests
+      - |
+        if is-release-build; then
+          echo '[{
+          "repository": "sagemaker-tensorflow-serving",
+          "tags": [{
+            "source": "1.15.0-cpu",
+            "dest": ["1.15.0-cpu", "1.15-cpu", "1.15.0-cpu-'${CODEBUILD_BUILD_ID#*:}'"]
+          },{
+            "source": "1.15.0-gpu",
+            "dest": ["1.15.0-gpu", "1.15-gpu", "1.15.0-gpu-'${CODEBUILD_BUILD_ID#*:}'"]
+          }],
+          "test": [
+            "tox -e py36 -- -n 8 test/integration/sagemaker/test_tfs.py::test_tfs_model --versions 1.15.0 --region {region} --registry {aws-id}"
+          ]
+        }, {
+          "repository": "sagemaker-tensorflow-serving-eia",
+          "tags": [{
+            "source": "1.14-cpu",
+            "dest": ["1.14.0-cpu", "1.14-cpu", "1.14.0-cpu-'${CODEBUILD_BUILD_ID#*:}'"]
+          }],
+          "test": [
+            "tox -e py36 -- test/integration/sagemaker/test_ei.py -n 8 --versions 1.14 --region {region} --registry {aws-id}"
+          ]
+        }]' > deployments.json
+        fi
+
+      # publish the release to github
+      - if is-release-build; then git-release --publish; fi
+
+artifacts:
+  files:
+    - deployments.json
+  name: ARTIFACT_1

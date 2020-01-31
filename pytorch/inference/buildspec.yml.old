@@ -1,0 +1,116 @@
+version: 0.2
+
+env:
+  variables:
+    FRAMEWORK_VERSION: '1.3.1'
+    CPU_PY2_VERSION: '2'
+    CPU_PY3_VERSION: '3'
+    CPU_INSTANCE_TYPE: 'ml.c4.xlarge'
+    GPU_PY2_VERSION: '2'
+    GPU_PY3_VERSION: '3'
+    GPU_INSTANCE_TYPE: 'ml.p2.xlarge'
+    LOCAL_BASE_REPO: 'pytorch-base'
+    ECR_REPO: 'sagemaker-test'
+    GITHUB_REPO: 'sagemaker-pytorch-serving-container'
+    SETUP_FILE: 'setup_cmds.sh'
+    SETUP_CMDS: '#!/bin/bash\npip install --upgrade pip\npip install -U -e .\npip install -U -e .[test]'
+
+
+phases:
+  pre_build:
+    commands:
+      - start-dockerd
+      - ACCOUNT=$(aws --region $AWS_DEFAULT_REGION sts --endpoint-url https://sts.$AWS_DEFAULT_REGION.amazonaws.com get-caller-identity --query 'Account' --output text)
+      - PREPROD_IMAGE="$ACCOUNT.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPO"
+      - PR_NUM=$(echo $CODEBUILD_SOURCE_VERSION | grep -o '[0-9]\+')
+      - BUILD_ID="$(echo $CODEBUILD_BUILD_ID | sed -e 's/:/-/g')"
+      - echo 'Pull request number:' $PR_NUM '. No value means this build is not from pull request.'
+
+  build:
+    commands:
+      - tox -e flake8
+
+      # install
+      - pip3 install -U -e .
+      - pip3 install -U -e .[test]
+
+      # run unit tests
+      - pytest test/unit
+
+      # create wheel in dist/
+      - python3 setup.py bdist_wheel
+      - whl_name=$(ls dist/sagemaker_pytorch_serving_container*.whl)
+      - cp $whl_name sagemaker_pytorch_serving_container-1.3-py2.py3-none-any.whl
+
+      - cpu_dockerfile="Dockerfile.cpu"
+      - gpu_dockerfile="Dockerfile.gpu"
+
+      # build py2 images
+      - build_dir="docker/$FRAMEWORK_VERSION/py$CPU_PY2_VERSION"
+      - cp sagemaker_pytorch_serving_container-1.3-py2.py3-none-any.whl $build_dir/
+      - cp -r docker/build_artifacts/* $build_dir/
+      - CPU_PY2_TAG="$FRAMEWORK_VERSION-cpu-py2-$BUILD_ID"
+      - GPU_PY2_TAG="$FRAMEWORK_VERSION-gpu-py2-$BUILD_ID"
+      - docker build -f "$build_dir/$cpu_dockerfile" -t $PREPROD_IMAGE:$CPU_PY2_TAG $build_dir
+      - docker build -f "$build_dir/$gpu_dockerfile" -t $PREPROD_IMAGE:$GPU_PY2_TAG $build_dir
+
+      # build py3 image
+      - build_dir="docker/$FRAMEWORK_VERSION/py$GPU_PY3_VERSION"
+      - cp sagemaker_pytorch_serving_container-1.3-py2.py3-none-any.whl $build_dir/
+      - cp -r docker/build_artifacts/* $build_dir/
+      - CPU_PY3_TAG="$FRAMEWORK_VERSION-cpu-py3-$BUILD_ID"
+      - GPU_PY3_TAG="$FRAMEWORK_VERSION-gpu-py3-$BUILD_ID"
+      - docker build -f "$build_dir/$cpu_dockerfile" -t $PREPROD_IMAGE:$CPU_PY3_TAG $build_dir
+      - docker build -f "$build_dir/$gpu_dockerfile" -t $PREPROD_IMAGE:$GPU_PY3_TAG $build_dir
+
+      # push images to ecr
+      - $(aws ecr get-login --registry-ids $ACCOUNT --no-include-email --region $AWS_DEFAULT_REGION)
+      - docker push $PREPROD_IMAGE:$CPU_PY2_TAG
+      - docker push $PREPROD_IMAGE:$CPU_PY3_TAG
+      - docker push $PREPROD_IMAGE:$GPU_PY2_TAG
+      - docker push $PREPROD_IMAGE:$GPU_PY3_TAG
+
+      # launch remote gpu instance
+      - prefix='ml.'
+      - instance_type=${GPU_INSTANCE_TYPE#"$prefix"}
+      - create-key-pair
+      - launch-ec2-instance --instance-type $instance_type --ami-name dlami-ubuntu
+
+      # run cpu integration tests
+      - py3_cmd="pytest test/integration/local --region $AWS_DEFAULT_REGION --docker-base-name $PREPROD_IMAGE --framework-version $FRAMEWORK_VERSION --py-version $CPU_PY3_VERSION --processor cpu --tag $CPU_PY3_TAG"
+      - py2_cmd="pytest test/integration/local --region $AWS_DEFAULT_REGION --docker-base-name $PREPROD_IMAGE --framework-version $FRAMEWORK_VERSION --py-version $CPU_PY2_VERSION --processor cpu --tag $CPU_PY2_TAG"
+      - execute-command-if-has-matching-changes "$py3_cmd" "test/" "src/*.py" "setup.py" "setup.cfg" "docker/*" "buildspec.yml"
+      - execute-command-if-has-matching-changes "$py2_cmd" "test/" "src/*.py" "setup.py" "setup.cfg" "docker/*" "buildspec.yml"
+
+      # run gpu integration tests
+      - printf "$SETUP_CMDS" > $SETUP_FILE
+      - py3_pytest_cmd="pytest test/integration/local --region $AWS_DEFAULT_REGION --docker-base-name $PREPROD_IMAGE --framework-version $FRAMEWORK_VERSION --py-version $GPU_PY3_VERSION --processor gpu --tag $GPU_PY3_TAG"
+      - py3_cmd="remote-test --github-repo $GITHUB_REPO --test-cmd \"$py3_pytest_cmd\" --setup-file $SETUP_FILE --pr-number \"$PR_NUM\""
+      - execute-command-if-has-matching-changes "$py3_cmd" "test/" "src/*.py" "setup.py" "setup.cfg" "docker/*" "buildspec.yml"
+
+      - py2_pytest_cmd="pytest test/integration/local --region $AWS_DEFAULT_REGION --docker-base-name $PREPROD_IMAGE --framework-version $FRAMEWORK_VERSION --py-version $GPU_PY2_VERSION --processor gpu --tag $GPU_PY2_TAG"
+      - py2_cmd="remote-test --github-repo $GITHUB_REPO --test-cmd \"$py2_pytest_cmd\" --setup-file $SETUP_FILE --pr-number \"$PR_NUM\" --skip-setup"
+      - execute-command-if-has-matching-changes "$py2_cmd" "test/" "src/*.py" "setup.py" "setup.cfg" "docker/*" "buildspec.yml"
+
+      # run cpu sagemaker tests
+      - py3_cmd="pytest test/integration/sagemaker --region $AWS_DEFAULT_REGION --docker-base-name $ECR_REPO --aws-id $ACCOUNT --framework-version $FRAMEWORK_VERSION --py-version $CPU_PY3_VERSION --processor cpu --instance-type $CPU_INSTANCE_TYPE --tag $CPU_PY3_TAG"
+      - py2_cmd="pytest test/integration/sagemaker --region $AWS_DEFAULT_REGION --docker-base-name $ECR_REPO --aws-id $ACCOUNT --framework-version $FRAMEWORK_VERSION --py-version $CPU_PY2_VERSION --processor cpu --instance-type $CPU_INSTANCE_TYPE --tag $CPU_PY2_TAG"
+      - execute-command-if-has-matching-changes "$py3_cmd" "test/" "src/*.py" "setup.py" "setup.cfg" "docker/*" "buildspec.yml"
+      - execute-command-if-has-matching-changes "$py2_cmd" "test/" "src/*.py" "setup.py" "setup.cfg" "docker/*" "buildspec.yml"
+
+      # run gpu sagemaker tests
+      - py3_cmd="pytest test/integration/sagemaker --region $AWS_DEFAULT_REGION --docker-base-name $ECR_REPO --aws-id $ACCOUNT --framework-version $FRAMEWORK_VERSION --py-version $GPU_PY3_VERSION --processor gpu --instance-type $GPU_INSTANCE_TYPE --tag $GPU_PY3_TAG"
+      - py2_cmd="pytest test/integration/sagemaker --region $AWS_DEFAULT_REGION --docker-base-name $ECR_REPO --aws-id $ACCOUNT --framework-version $FRAMEWORK_VERSION --py-version $CPU_PY2_VERSION --processor cpu --instance-type $CPU_INSTANCE_TYPE --tag $GPU_PY2_TAG"
+      - execute-command-if-has-matching-changes "$py3_cmd" "test/" "src/*.py" "setup.py" "setup.cfg" "docker/*" "buildspec.yml"
+      - execute-command-if-has-matching-changes "$py2_cmd" "test/" "src/*.py" "setup.py" "setup.cfg" "docker/*" "buildspec.yml"
+
+    finally:
+      # shut down remote gpu instance
+      - cleanup-gpu-instances
+      - cleanup-key-pairs
+
+      # remove ecr image
+      - aws ecr batch-delete-image --repository-name $ECR_REPO --region $AWS_DEFAULT_REGION --image-ids imageTag=$CPU_PY2_TAG
+      - aws ecr batch-delete-image --repository-name $ECR_REPO --region $AWS_DEFAULT_REGION --image-ids imageTag=$CPU_PY3_TAG
+      - aws ecr batch-delete-image --repository-name $ECR_REPO --region $AWS_DEFAULT_REGION --image-ids imageTag=$GPU_PY2_TAG
+      - aws ecr batch-delete-image --repository-name $ECR_REPO --region $AWS_DEFAULT_REGION --image-ids imageTag=$GPU_PY3_TAG

@@ -1,0 +1,20 @@
+[run]
+branch = True
+timid = True
+
+[report]
+exclude_lines =
+    pragma: no cover
+    pragma: py2 no cover
+    if six.PY3
+    elif six.PY3
+
+partial_branches =
+    pragma: no cover
+    pragma: py2 no cover
+    if six.PY3
+    elif six.PY3
+
+show_missing = True
+
+fail_under = 75
