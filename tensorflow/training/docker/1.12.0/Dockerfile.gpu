@@ -1,0 +1,133 @@
+FROM nvidia/cuda:9.0-base-ubuntu16.04
+
+LABEL maintainer="Amazon AI"
+
+ENV NCCL_VERSION=2.3.5-2+cuda9.0
+ENV CUDNN_VERSION=7.3.1.20-1+cuda9.0
+ENV TF_TENSORRT_VERSION=4.1.2
+
+RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
+        software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa -y && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
+        ca-certificates \
+        cuda-command-line-tools-9-0 \
+        cuda-cublas-dev-9-0 \
+        cuda-cudart-dev-9-0 \
+        cuda-cufft-dev-9-0 \
+        cuda-curand-dev-9-0 \
+        cuda-cusolver-dev-9-0 \
+        cuda-cusparse-dev-9-0 \
+        curl \
+        libcudnn7=${CUDNN_VERSION} \
+        libnccl2=${NCCL_VERSION} \
+        libnccl-dev=${NCCL_VERSION} \
+        libgomp1 \
+        wget \
+        openssh-client \
+        openssh-server \
+        build-essential && \
+    # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1604-4.0.1-ga-cuda9.0
+    # adds a new list which contains libnvinfer library, so it needs another
+    # 'apt-get update' to retrieve that list before it can actually install the
+    # library.
+    # We don't install libnvinfer-dev since we don't need to build against TensorRT,
+    # and libnvinfer4 doesn't contain libnvinfer.a static library.
+    apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
+        nvinfer-runtime-trt-repo-ubuntu1604-4.0.1-ga-cuda9.0 && \
+    apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
+        libnvinfer4=${TF_TENSORRT_VERSION}-1+cuda9.0 && \
+    rm /usr/lib/x86_64-linux-gnu/libnvinfer_plugin* && \
+    rm /usr/lib/x86_64-linux-gnu/libnvcaffe_parser* && \
+    rm /usr/lib/x86_64-linux-gnu/libnvparsers* && \
+    rm -rf /var/lib/apt/lists/*
+
+###########################################################################
+# Horovod & its dependencies
+###########################################################################
+
+# Install Open MPI
+RUN mkdir /tmp/openmpi && \
+    cd /tmp/openmpi && \
+    curl -fSsL -O https://www.open-mpi.org/software/ompi/v3.1/downloads/openmpi-3.1.2.tar.gz && \
+    tar zxf openmpi-3.1.2.tar.gz && \
+    cd openmpi-3.1.2 && \
+    ./configure --enable-orterun-prefix-by-default && \
+    make -j $(nproc) all && \
+    make install && \
+    ldconfig && \
+    rm -rf /tmp/openmpi
+
+ARG py_version
+
+RUN if [ $py_version -eq 3 ]; then PYTHON_VERSION=python3.6; else PYTHON_VERSION=python2.7; fi && \
+        apt-get update && apt-get install -y --no-install-recommends $PYTHON_VERSION-dev --allow-unauthenticated  && \
+        ln -s -f /usr/bin/$PYTHON_VERSION /usr/bin/python && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create a wrapper for OpenMPI to allow running as root by default
+RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real && \
+    echo '#!/bin/bash' > /usr/local/bin/mpirun && \
+    echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun && \
+    chmod a+x /usr/local/bin/mpirun
+
+# Configure OpenMPI to run good defaults:
+#   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0
+RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf && \
+    echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
+
+# Set default NCCL parameters
+RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
+
+ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
+ENV PATH /usr/local/openmpi/bin/:$PATH
+ENV PATH=/usr/local/nvidia/bin:$PATH
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN mkdir -p /var/run/sshd && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+# Create SSH key.
+RUN mkdir -p /root/.ssh/ && \
+  ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
+  cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys && \
+  printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
+
+###########################################################################
+# Python won’t try to write .pyc or .pyo files on the import of source modules
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONIOENCODING=UTF-8 LANG=C.UTF-8 LC_ALL=C.UTF-8
+
+RUN curl -fSsL -O https://bootstrap.pypa.io/get-pip.py && \
+    python get-pip.py --disable-pip-version-check --no-cache-dir "pip==18.1" && \
+    rm get-pip.py
+
+WORKDIR /
+
+ARG framework_installable
+ARG framework_support_installable=sagemaker_tensorflow_container-2.0.0.tar.gz
+
+COPY $framework_installable tensorflow-1.12.0-py2.py3-none-any.whl
+COPY $framework_support_installable .
+
+RUN pip install --no-cache-dir -U \
+    keras==2.2.4 \
+    mpi4py==3.0.1 \
+    $framework_support_installable \
+    "sagemaker-tensorflow>=1.12,<1.13" \
+    # Let's install TensorFlow separately in the end to avoid
+    # the library version to be overwritten
+    && pip install --force-reinstall --no-cache-dir -U tensorflow-1.12.0-py2.py3-none-any.whl  \
+    \
+    && rm -f tensorflow-1.12.0-py2.py3-none-any.whl  \
+    && rm -f $framework_support_installable \
+    && pip uninstall -y --no-cache-dir \
+    markdown \
+    tensorboard
+
+# Install Horovod, temporarily using CUDA stubs
+RUN ldconfig /usr/local/cuda-9.0/targets/x86_64-linux/lib/stubs && \
+    HOROVOD_GPU_ALLREDUCE=NCCL  HOROVOD_WITH_TENSORFLOW=1 pip install --no-cache-dir horovod && \
+    ldconfig
+
+ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
