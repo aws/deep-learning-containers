@@ -1,0 +1,13 @@
+.DS_Store
+.idea/
+*.iml
+.cache/
+__pycache__
+*.pyc
+dist
+*.egg-info
+.pytest_cache/
+build
+.coverage
+.tox/
+test/resources/local_mode_lock
