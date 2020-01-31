@@ -1,0 +1,90 @@
+version: 0.2
+
+env:
+  variables:
+    FRAMEWORK_FULL_VERSION: '1.6.0'
+    EI_FRAMEWORK_VERSION: '1.4.1'
+    AWS_DEFAULT_REGION: 'us-west-2'
+    ECR_REPO: 'sagemaker-test'
+    GITHUB_REPO: 'sagemaker-mxnet-serving-container'
+    GPU_INSTANCE_TYPE: 'p2.xlarge'
+    EI_ACCELERATOR_TYPE: 'ml.eia1.medium'
+    SETUP_FILE: 'setup_cmds.sh'
+    SETUP_CMDS: '#!/bin/bash\npip install --upgrade pip\npip install -U -e .\npip install -U -e .[test]'
+
+phases:
+  pre_build:
+    commands:
+      - start-dockerd
+
+      - ACCOUNT=$(aws --region $AWS_DEFAULT_REGION sts --endpoint-url https://sts.$AWS_DEFAULT_REGION.amazonaws.com get-caller-identity --query 'Account' --output text)
+
+  build:
+    commands:
+      # run linter
+      - tox -e flake8
+
+      # run unit tests
+      - tox -e py27,py36 test/unit
+
+      # create pip archive (tar name will be something like sagemaker_mxnet_serving_container-1.0.0.tar.gz, but the Dockerfiles expect sagemaker_mxnet_serving_container.tar.gz)
+      - python3 setup.py sdist
+      - mv dist/sagemaker_mxnet_serving_container-*.tar.gz dist/sagemaker_mxnet_serving_container.tar.gz
+      - cp dist/sagemaker_mxnet_serving_container.tar.gz docker/$FRAMEWORK_FULL_VERSION/py3/sagemaker_mxnet_serving_container.tar.gz
+      - cp dist/sagemaker_mxnet_serving_container.tar.gz docker/$FRAMEWORK_FULL_VERSION/py2/sagemaker_mxnet_serving_container.tar.gz
+      - cp dist/sagemaker_mxnet_serving_container.tar.gz docker/$EI_FRAMEWORK_VERSION/py3/sagemaker_mxnet_serving_container.tar.gz
+      - cp dist/sagemaker_mxnet_serving_container.tar.gz docker/$EI_FRAMEWORK_VERSION/py2/sagemaker_mxnet_serving_container.tar.gz
+      - cp -r docker/artifacts/* docker/$FRAMEWORK_FULL_VERSION/py3
+      - cp -r docker/artifacts/* docker/$FRAMEWORK_FULL_VERSION/py2
+
+      - CPU_PY2_TAG=$FRAMEWORK_FULL_VERSION-cpu-py2
+      - CPU_PY3_TAG=$FRAMEWORK_FULL_VERSION-cpu-py3
+      - GPU_PY2_TAG=$FRAMEWORK_FULL_VERSION-gpu-py2
+      - GPU_PY3_TAG=$FRAMEWORK_FULL_VERSION-gpu-py3
+
+      # build images
+      - python3 scripts/build_all.py --version $FRAMEWORK_FULL_VERSION --eia-version $EI_FRAMEWORK_VERSION --account $ACCOUNT --repo $ECR_REPO
+
+      # run cpu local integration tests
+      - test_cmd="IGNORE_COVERAGE=- tox -e py36 -- test/integration/local --py-version 2,3 --processor cpu --framework-version $FRAMEWORK_FULL_VERSION --region $AWS_DEFAULT_REGION --docker-base-name $ECR_REPO"
+      - execute-command-if-has-matching-changes "$test_cmd" "test/" "src/*.py" "setup.py" "setup.cfg" "docker/*" "buildspec.yml"
+
+      # push docker images to ECR
+      - python3 scripts/publish_all.py --version $FRAMEWORK_FULL_VERSION --eia-version $EI_FRAMEWORK_VERSION --account $ACCOUNT --repo $ECR_REPO
+
+      # launch remote gpu instance
+      - create-key-pair
+      - launch-ec2-instance --instance-type $GPU_INSTANCE_TYPE --ami-name dlami-ubuntu
+
+      # run gpu local integration tests
+      - printf "$SETUP_CMDS" > $SETUP_FILE
+      - ecr_image="$ACCOUNT.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPO"
+      - tox_cmd="IGNORE_COVERAGE=- tox -e py36 -- test/integration/local --processor gpu --py-version 2,3 --framework-version $FRAMEWORK_FULL_VERSION --region $AWS_DEFAULT_REGION --docker-base-name $ecr_image"
+      - test_cmd="remote-test --test-cmd \"$tox_cmd\" --github-repo $GITHUB_REPO --branch master --setup-file $SETUP_FILE"
+      - execute-command-if-has-matching-changes "$test_cmd" "test/" "src/*.py" "setup.py" "setup.cfg" "docker/*" "buildspec.yml"
+
+      # run sagemaker integration tests
+      - test_cmd="IGNORE_COVERAGE=- tox -e py36 -- test/integration/sagemaker -n 16 --py-version 2,3 --processor cpu,gpu --region $AWS_DEFAULT_REGION --docker-base-name $ECR_REPO --aws-id $ACCOUNT --framework-version $FRAMEWORK_FULL_VERSION --reruns 3 --reruns-delay 5"
+      - execute-command-if-has-matching-changes "$test_cmd" "test/" "src/*.py" "setup.py" "setup.cfg" "docker/*" "buildspec.yml"
+
+      # run eia tests
+      - test_cmd="IGNORE_COVERAGE=- tox -e py36 -- test/integration/sagemaker/test_elastic_inference.py -n 2 --py-version 2,3 --processor cpu --accelerator-type $EI_ACCELERATOR_TYPE --region $AWS_DEFAULT_REGION --docker-base-name \"$ECR_REPO-eia\" --aws-id $ACCOUNT --framework-version $EI_FRAMEWORK_VERSION"
+      - execute-command-if-has-matching-changes "$test_cmd" "test/" "src/*.py" "setup.py" "setup.cfg" "docker/*" "buildspec.yml"
+
+    finally:
+      # shut down remote gpu instance
+      - cleanup-gpu-instances
+      - cleanup-key-pairs
+
+      # remove ecr image
+      - aws ecr batch-delete-image --repository-name $ECR_REPO --region $AWS_DEFAULT_REGION --image-ids imageTag=$CPU_PY2_TAG
+      - aws ecr batch-delete-image --repository-name $ECR_REPO --region $AWS_DEFAULT_REGION --image-ids imageTag=$CPU_PY3_TAG
+      - aws ecr batch-delete-image --repository-name $ECR_REPO --region $AWS_DEFAULT_REGION --image-ids imageTag=$GPU_PY2_TAG
+      - aws ecr batch-delete-image --repository-name $ECR_REPO --region $AWS_DEFAULT_REGION --image-ids imageTag=$GPU_PY3_TAG
+      - aws ecr batch-delete-image --repository-name $ECR_REPO-eia --region $AWS_DEFAULT_REGION --image-ids imageTag=$CPU_PY2_TAG
+      - aws ecr batch-delete-image --repository-name $ECR_REPO-eia --region $AWS_DEFAULT_REGION --image-ids imageTag=$CPU_PY3_TAG
+
+artifacts:
+  files:
+    - deployments.json
+name: ARTIFACT_1

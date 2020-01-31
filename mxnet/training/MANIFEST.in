@@ -1,0 +1,10 @@
+recursive-include src/sagemaker_mxnet_container *
+
+include VERSION
+include LICENSE
+include README.rst
+
+prune test
+
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
