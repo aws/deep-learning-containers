@@ -1,0 +1,56 @@
+  account_id: '501576597925'
+  repository: beta-mxnet-training
+  region: us-west-2
+  framework: mxnet
+  version: 1.6.0
+  root: mxnet/training
+
+  # TODO: The context specifies the artifacts necessary for the
+  # docker build. Each artifact needs to be specified as follows:
+  # source: target
+  # Both source and target can be complete paths relative to the root path
+  # specified above. 
+  context:
+      dist/sagemaker_mxnet_container-3.1.5.dev0.tar.gz: sagemaker_mxnet_container.tar.gz
+      docker/artifacts/dockerd-entrypoint.py: dockerd-entrypoint.py
+      docker/artifacts/deep_learning_container.py: deep_learning_container.py
+      docker/artifacts/__init__.py: __init__.py
+
+  images:
+    BuildMXNetCPUPTTrainPy3DockerImage:
+      device_type: cpu
+      python_version: py3
+      image_type: training
+      image_size_baseline: 4899
+      docker_file: docker/1.6.0/py3/Dockerfile.cpu
+      tag: training-cpu-py3
+      example: false
+      build: true
+    BuildMXNetGPUPTTrainPy3DockerImage:
+      device_type: gpu
+      python_version: py3
+      image_type: training
+      image_size_baseline: 4899
+      docker_file: docker/1.6.0/py3/Dockerfile.gpu
+      tag: training-gpu-py3
+      example: false
+      build: true
+    BuildMXNetCPUPTTrainPy2DockerImage:
+      device_type: cpu
+      python_version: py2
+      image_type: training
+      image_size_baseline: 4899
+      docker_file: docker/1.6.0/py2/Dockerfile.cpu
+      tag: training-cpu-py2
+      example: false
+      build: true
+    BuildMXNetGPUPTTrainPy2DockerImage:
+      device_type: gpu
+      python_version: py2
+      image_type: training
+      image_size_baseline: 4899
+      docker_file: docker/1.6.0/py2/Dockerfile.gpu
+      tag: training-gpu-py2
+      example: false
+      build: true
+
