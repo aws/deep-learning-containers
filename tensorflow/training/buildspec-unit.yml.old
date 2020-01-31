@@ -1,0 +1,8 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+    - pip install --upgrade pip --quiet
+    - pip install tox --quiet
+    - tox -e ${TOX_ENVLIST} -- test/unit
