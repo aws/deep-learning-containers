@@ -1,0 +1,3 @@
+[flake8]
+application_import_names = local_mode_utils, sagemaker_mxnet_serving_container, test, timeout
+import-order-style = google
