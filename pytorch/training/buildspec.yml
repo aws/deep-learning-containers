@@ -6,7 +6,7 @@
   account_id: &ACCOUNT_ID '669063966089'
   region: &REGION us-west-2
   framework: &FRAMEWORK pytorch
-  version: &VERSION 1.13.1
+  version: &VERSION 1.3.1
   image_type: &IMAGE_TYPE training
   root: !join [ *FRAMEWORK, "/", *IMAGE_TYPE ]
   repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *IMAGE_TYPE]
@@ -20,7 +20,7 @@
   context:
       docker/build_artifacts/changehostname.c: changehostname.c
       docker/build_artifacts/start_with_right_hostname.sh: start_with_right_hostname.sh 
-      dist/sagemaker_pytorch_serving_container-1.3-py2.py3-none-any.whl: sagemaker_pytorch_serving_container-1.3-py2.py3-none-any.whl
+      dist/sagemaker_pytorch_container-1.3.1-py2.py3-none-any.whl: sagemaker_pytorch_container-1.3.1-py2.py3-none-any.whl
 
   images:
     BuildCPUPTTrainPy3DockerImage:
