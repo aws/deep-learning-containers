@@ -26,7 +26,7 @@ class Context:
         self.context_path = context_path
         self.artifact_root = artifact_root
 
-        directory = '/'.join(context_path.split('/')[:-1])
+        directory = "/".join(context_path.split("/")[:-1])
         if not os.path.isdir(directory):
             os.mkdir(directory)
 

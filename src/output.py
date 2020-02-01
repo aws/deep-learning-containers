@@ -1,7 +1,7 @@
-'''
+"""
 This file defines the output formatter class
 that has all functions for printing output to stdout
-'''
+"""
 import time
 import sys
 import shutil
@@ -11,14 +11,16 @@ import pyfiglet
 import reprint
 import constants
 
+
 class OutputFormatter:
-    '''
+    """
     This class is responsible for having a unified interface to print to stdout
-    '''
+    """
+
     def __init__(self, padding=0):
-        '''
+        """
         Constructor that defines the attributes of the formatter class
-        '''
+        """
         self.width = shutil.get_terminal_size().columns
         self.padding_length = padding
         self.max_line_length = self.width - ((self.padding_length + 1) * 2)
@@ -28,24 +30,24 @@ class OutputFormatter:
         self.right_padding = self.padding + "="
 
     def separator(self):
-        '''
+        """
         Print separator between blocks of output
-        '''
+        """
         # TODO: Make decorator
         # TODO: Make "=" dynamic
         print("=" * self.width)
 
     def title(self, title):
-        '''
+        """
         Print title for the block
-        '''
+        """
         title = title.center(self.width, "=")
         print(title)
 
     def banner(self, title):
-        '''
+        """
         Print banner (title for the program
-        '''
+        """
         title = pyfiglet.figlet_format(title)
         lines = title.split("\n")
         self.separator()
@@ -115,7 +117,7 @@ class OutputFormatter:
         print(line)
 
     def print_lines(self, lines):
-        '''
+        """
         Print multiple lines
-        '''
+        """
         self.print("\n".join(lines))

@@ -18,17 +18,17 @@ if __name__ == "__main__":
     ARGS = utils.parse_args()
 
     buildspec = Buildspec()
-    buildspec.load(ARGS.buildspec) 
+    buildspec.load(ARGS.buildspec)
 
     IMAGES = []
     ARTIFACTS = list(buildspec["context"].items())
 
     for image in buildspec["images"].items():
-        
-        if image[1].get('version') is not None:
-            if buildspec['version'] != image[1].get('version'):
-                continue     
-    
+
+        if image[1].get("version") is not None:
+            if buildspec["version"] != image[1].get("version"):
+                continue
+
         if image[1].get("context") is not None:
             ARTIFACTS += list(image[1]["context"])
 
@@ -36,21 +36,22 @@ if __name__ == "__main__":
 
         context = Context(ARTIFACTS, f"build/{image[0]}.tar.gz", buildspec["root"])
 
-        '''
+        """
         Override parameters from parent in child.
-        '''
+        """
 
-        info = { 'account_id': buildspec['account_id'],
-                 'region': buildspec['region'],
-                 'framework': buildspec['framework'],
-                 'version': buildspec['version'],
-                 'root': buildspec['root'],
-                 'name': image[0],
-                 'device_type': image[1]['device_type'],
-                 'python_version': image[1]['python_version'] ,
-                 'image_type': buildspec['image_type'],
-                 'image_size_baseline': image[1]['image_size_baseline'],
-                  }
+        info = {
+            "account_id": buildspec["account_id"],
+            "region": buildspec["region"],
+            "framework": buildspec["framework"],
+            "version": buildspec["version"],
+            "root": buildspec["root"],
+            "name": image[0],
+            "device_type": image[1]["device_type"],
+            "python_version": image[1]["python_version"],
+            "image_type": buildspec["image_type"],
+            "image_size_baseline": image[1]["image_size_baseline"],
+        }
 
         image_object = DockerImage(
             info=info,
@@ -58,7 +59,7 @@ if __name__ == "__main__":
             repository=buildspec["repository"],
             tag=image[1]["tag"],
             build=image[1]["build"],
-            context=context
+            context=context,
         )
 
         IMAGES.append(image_object)
@@ -88,14 +89,13 @@ if __name__ == "__main__":
             FORMATTER.print_lines(image.log)
             with open(f"logs/{image.name}", "w") as fp:
                 fp.write("/n".join(image.log))
-                image.summary['log'] = f"logs/{image.name}"
+                image.summary["log"] = f"logs/{image.name}"
 
         FORMATTER.title("Summary")
 
         for image in IMAGES:
             FORMATTER.title(image.name)
             FORMATTER.table(image.summary.items())
-
 
         FORMATTER.title("Errors")
         ANY_FAIL = False

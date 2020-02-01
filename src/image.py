@@ -15,13 +15,7 @@ class DockerImage:
     """
 
     def __init__(
-        self,
-        info,
-        dockerfile,
-        repository,
-        tag,
-        build,
-        context=None,
+        self, info, dockerfile, repository, tag, build, context=None,
     ):
         """
         The constructor for DockerImage class converts the buildspec parameters as class attributes
@@ -46,17 +40,17 @@ class DockerImage:
         self.client = APIClient(base_url=constants.DOCKER_URL)
         self.log = []
 
-    def __getattr__(self,name):
+    def __getattr__(self, name):
         return self.info[name]
 
     def build(self):
         """
         The build function builds the specified docker image
         """
-        self.summary['starttime'] = datetime.now()
+        self.summary["starttime"] = datetime.now()
 
         if not self.to_build:
-            self.log = [ "Not built" ]
+            self.log = ["Not built"]
             self.build_status = constants.SUCCESS
             self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
             return self.build_status
@@ -75,14 +69,14 @@ class DockerImage:
                 if line.get("error") is not None:
                     self.context.remove()
                     response.append(line["error"])
-                    
+
                     self.log = response
                     self.build_status = constants.FAIL
-                    self.summary['status'] = constants.STATUS_MESSAGE[self.build_status]
-                    self.summary['endtime'] = datetime.now()
+                    self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
+                    self.summary["endtime"] = datetime.now()
 
                     return self.build_status
- 
+
                 elif line.get("stream") is not None:
                     response.append(line["stream"])
                 elif line.get("status") is not None:
@@ -97,21 +91,21 @@ class DockerImage:
             ):
                 if line.get("error") is not None:
                     response.append(line["error"])
-                    
+
                     self.log = response
                     self.build_status = constants.FAIL
-                    self.summary['status'] = constants.STATUS_MESSAGE[self.build_status]
-                    self.summary['endtime'] = datetime.now()
+                    self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
+                    self.summary["endtime"] = datetime.now()
 
-                    return self.build_status 
+                    return self.build_status
                 elif line.get("stream") is not None:
                     response.append(line["stream"])
                 else:
                     response.append(str(line))
 
             self.build_status = constants.SUCCESS
-            self.summary['status'] = constants.STATUS_MESSAGE[self.build_status]
-            self.summary['endtime'] = datetime.now()
+            self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
+            self.summary["endtime"] = datetime.now()
             self.log = response
 
             return self.build_status
