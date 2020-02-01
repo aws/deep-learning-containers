@@ -58,7 +58,7 @@ class DockerImage:
         if not self.to_build:
             self.log = [ "Not built" ]
             self.build_status = constants.SUCCESS
-            self.summary["status"] = constants.status_code[self.build_status]
+            self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
             return self.build_status
 
         with open(self.context.context_path, "rb") as fp:
@@ -78,7 +78,7 @@ class DockerImage:
                     
                     self.log = response
                     self.build_status = constants.FAIL
-                    self.summary['status'] = constants.status_code[self.build_status]
+                    self.summary['status'] = constants.STATUS_MESSAGE[self.build_status]
                     self.summary['endtime'] = datetime.now()
 
                     return self.build_status
@@ -100,7 +100,7 @@ class DockerImage:
                     
                     self.log = response
                     self.build_status = constants.FAIL
-                    self.summary['status'] = constants.status_code[self.build_status]
+                    self.summary['status'] = constants.STATUS_MESSAGE[self.build_status]
                     self.summary['endtime'] = datetime.now()
 
                     return self.build_status 
@@ -110,7 +110,7 @@ class DockerImage:
                     response.append(str(line))
 
             self.build_status = constants.SUCCESS
-            self.summary['status'] = constants.status_code[self.build_status]
+            self.summary['status'] = constants.STATUS_MESSAGE[self.build_status]
             self.summary['endtime'] = datetime.now()
             self.log = response
 

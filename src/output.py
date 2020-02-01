@@ -9,7 +9,7 @@ from collections import defaultdict
 
 import pyfiglet
 import reprint
-
+import constants
 
 class OutputFormatter:
     '''
@@ -64,8 +64,6 @@ class OutputFormatter:
 
         done = defaultdict(bool)
 
-        status_code = {0: "S", 1: "F"}
-
         isatty = sys.stdout.isatty()
 
         with reprint.output(
@@ -86,7 +84,7 @@ class OutputFormatter:
                     output[i] = image
                     if thread.done():
                         output[i] += (
-                            "." * 10 + status_code[futures[image].result()]
+                            "." * 10 + constants.STATUS_MESSAGE[futures[image].result()]
                         )
                         done[image] = True
                     else:

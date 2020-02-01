@@ -11,3 +11,5 @@ PADDING = 1
 
 # Docker connections
 DOCKER_URL="unix://var/run/docker.sock"
+
+STATUS_MESSAGE = {SUCCESS: "Success", FAIL: "Failed"}
