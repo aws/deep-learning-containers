@@ -3,14 +3,14 @@
   # All anchors can be overriden by environment variables
   # All references to anchors must only be used after declaration
   # All keys can be overriden by environment variables
-  account_id: &ACCOUNT_ID '501576597925'
-  repository_name: &REPOSITORY_NAME beta-mxnet-training
+  account_id: &ACCOUNT_ID '669063966089'
   region: &REGION us-west-2
   framework: &FRAMEWORK mxnet
   version: &VERSION 1.6.0
   image_type: &IMAGE_TYPE training
-  root: mxnet/training
-  repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+  root: !join [ *FRAMEWORK, "/", *IMAGE_TYPE ]
+  repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *IMAGE_TYPE]
+  repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ] 
 
   # The context specifies the artifacts necessary for the
   # docker build. Each artifact needs to be specified as follows:
