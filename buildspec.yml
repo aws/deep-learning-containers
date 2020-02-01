@@ -17,4 +17,4 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - python src/build.py --buildspec $FRAMEWORK/$IMAGE_TYPE/buildspec.yml
+      - python src/main.py --buildspec $FRAMEWORK/$IMAGE_TYPE/buildspec.yml
