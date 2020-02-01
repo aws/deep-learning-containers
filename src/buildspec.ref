@@ -11,6 +11,7 @@
   image_type: &IMAGE_TYPE training
   root: mxnet/training
   repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+  #export REPOSITORY="!join [ *ACCOUNT_ID, saravsak, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]"
 
   # The context specifies the artifacts necessary for the
   # docker build. Each artifact needs to be specified as follows:

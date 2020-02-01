@@ -2,8 +2,6 @@
 Utillity functions for the building the docker images
 '''
 import argparse
-import yaml
-
 
 def parse_args():
     '''
@@ -14,15 +12,3 @@ def parse_args():
     args = parser.parse_args()
     print(args)
     return args
-
-
-def parse_buildspec(path):
-    '''
-    Parse the buildspec.yml file
-    '''
-    with open(path, "r") as buildspec_file:
-        try:
-            return yaml.safe_load(buildspec_file)
-        except yaml.YAMLError as err:
-            print(f"Error parsing buildspec: {err}")
-            raise err

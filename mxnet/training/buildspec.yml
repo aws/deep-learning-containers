@@ -1,11 +1,18 @@
-  account_id: '669063966089'
-  repository: beta-mxnet-training
-  region: us-west-2
-  framework: mxnet
-  version: 1.6.0
+  # Enforced constraints:
+  # All anchors must be upper case version of the key name
+  # All anchors can be overriden by environment variables
+  # All references to anchors must only be used after declaration
+  # All keys can be overriden by environment variables
+  account_id: &ACCOUNT_ID '501576597925'
+  repository_name: &REPOSITORY_NAME beta-mxnet-training
+  region: &REGION us-west-2
+  framework: &FRAMEWORK mxnet
+  version: &VERSION 1.6.0
+  image_type: &IMAGE_TYPE training
   root: mxnet/training
+  repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
-  # TODO: The context specifies the artifacts necessary for the
+  # The context specifies the artifacts necessary for the
   # docker build. Each artifact needs to be specified as follows:
   # source: target
   # Both source and target can be complete paths relative to the root path
@@ -18,39 +25,30 @@
 
   images:
     BuildMXNetCPUPTTrainPy3DockerImage:
-      device_type: cpu
-      python_version: py3
-      image_type: training
-      image_size_baseline: 4899
-      docker_file: docker/1.6.0/py3/Dockerfile.cpu
-      tag: training-cpu-py3
-      example: false
       build: true
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE cpu
+      python_version: &PYTHON_VERSION py3
+      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     BuildMXNetGPUPTTrainPy3DockerImage:
-      device_type: gpu
-      python_version: py3
-      image_type: training
-      image_size_baseline: 4899
-      docker_file: docker/1.6.0/py3/Dockerfile.gpu
-      tag: training-gpu-py3
-      example: false
       build: true
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE gpu
+      python_version: &PYTHON_VERSION py3
+      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     BuildMXNetCPUPTTrainPy2DockerImage:
-      device_type: cpu
-      python_version: py2
-      image_type: training
-      image_size_baseline: 4899
-      docker_file: docker/1.6.0/py2/Dockerfile.cpu
-      tag: training-cpu-py2
-      example: false
       build: true
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE cpu
+      python_version: &PYTHON_VERSION py2
+      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     BuildMXNetGPUPTTrainPy2DockerImage:
-      device_type: gpu
-      python_version: py2
-      image_type: training
-      image_size_baseline: 4899
-      docker_file: docker/1.6.0/py2/Dockerfile.gpu
-      tag: training-gpu-py2
-      example: false
       build: true
-
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE gpu
+      python_version: &PYTHON_VERSION py2
+      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]

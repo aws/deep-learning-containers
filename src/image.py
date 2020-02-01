@@ -16,64 +16,48 @@ class DockerImage:
 
     def __init__(
         self,
-        account_id,
-        repository,
-        region,
-        framework,
-        version,
-        root,
-        name,
-        device_type,
-        python_version,
-        image_type,
-        image_size_baseline,
+        info,
         dockerfile,
+        repository,
         tag,
-        example,
         build,
         context=None,
-        docker_url="unix://var/run/docker.sock",
     ):
         """
         The constructor for DockerImage class converts the buildspec parameters as class attributes
         """
 
-        self.account_id = account_id
-        self.repository = f"{account_id}.dkr.ecr.{region}.amazonaws.com/{repository}"
-        self.region = region
-        self.framework = framework
-        self.version = version
-        self.root = root
+        # Meta-data about the image should go to info.
+        # All keys in info are accessible as attributes
+        # of this class
+        self.info = info
+        self.summary = {}
 
-        self.name = name
-        self.device_type = device_type
-        self.python_version = python_version
-        self.image_type = image_type
-        self.image_size_baseline = image_size_baseline
         self.dockerfile = dockerfile
-
-        # TODO: Add ability to tag image with multiple tags
-        self.tag = tag
-        self.example = example
-        self.to_build = build
-
-        self.ecr_url = f"{self.repository}:{self.tag}"
-
         self.context = context
 
-        self.client = APIClient(base_url=docker_url)
+        # TODO: Add ability to tag image with multiple tags
+        self.repository = repository
+        self.tag = tag
+        self.ecr_url = f"{self.repository}:{self.tag}"
 
-        self.starttime = None
-        self.endtime = None
+        self.to_build = build
+
+        self.client = APIClient(base_url=constants.DOCKER_URL)
+
+    def __getattr__(self,name):
+        return self.info[name]
 
     def build(self):
         """
         The build function builds the specified docker image
         """
         if not self.to_build:
-            return {"status": constants.SUCCESS, "response": "Not built"}
+            self.summary["status"] = constants.SUCCESS
+            self.summary["response"] = "Not built"
+            return self.summary['status']
 
-        self.starttime = datetime.now()
+        self.summary['starttime'] = datetime.now()
         with open(self.context.context_path, "rb") as fp:
             response = []
 
@@ -90,7 +74,9 @@ class DockerImage:
                     self.context.remove()
                     response.append(line["error"])
                     self.endtime = datetime.now()
-                    return {"status": constants.FAIL, "response": response}
+                    self.summary['status'] = constants.FAIL
+                    self.summary['response'] = response
+                    return self.summary["status"] 
                 elif line.get("stream") is not None:
                     response.append(line["stream"])
                 elif line.get("status") is not None:
@@ -106,12 +92,17 @@ class DockerImage:
                 if line.get("error") is not None:
                     response.append(line["error"])
                     self.endtime = datetime.now()
-                    return {"status": constants.FAIL, "response": response}
+                    self.summary['status'] = constants.FAIL
+                    self.summary['response'] = response
+                    self.summary['endtime'] = datetime.now()
+                    return self.summary['status'] 
                 elif line.get("stream") is not None:
                     response.append(line["stream"])
                 else:
                     response.append(str(line))
 
-            self.endtime = datetime.now()
+            self.summary['status'] = constants.FAIL
+            self.summary['response'] = response
+            self.summary['endtime'] = datetime.now()
 
-            return {"status": constants.SUCCESS, "response": response}
+            return self.summary['status']

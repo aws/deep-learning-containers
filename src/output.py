@@ -86,7 +86,7 @@ class OutputFormatter:
                     output[i] = image
                     if thread.done():
                         output[i] += (
-                            "." * 10 + status_code[futures[image].result()["status"]]
+                            "." * 10 + status_code[futures[image].result()]
                         )
                         done[image] = True
                     else:
