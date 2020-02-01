@@ -101,7 +101,7 @@ class DockerImage:
                 else:
                     response.append(str(line))
 
-            self.summary['status'] = constants.FAIL
+            self.summary['status'] = constants.SUCCESS
             self.summary['response'] = response
             self.summary['endtime'] = datetime.now()
 
