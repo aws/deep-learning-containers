@@ -1,0 +1,53 @@
+  # Enforced constraints:
+  # All anchors must be upper case version of the key name
+  # All anchors can be overriden by environment variables
+  # All references to anchors must only be used after declaration
+  # All keys can be overriden by environment variables
+  account_id: &ACCOUNT_ID '669063966089'
+  region: &REGION us-west-2
+  framework: &FRAMEWORK pytorch
+  version: &VERSION 1.13.1
+  image_type: &IMAGE_TYPE training
+  root: !join [ *FRAMEWORK, "/", *IMAGE_TYPE ]
+  repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *IMAGE_TYPE]
+  repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ] 
+
+  # The context specifies the artifacts necessary for the
+  # docker build. Each artifact needs to be specified as follows:
+  # source: target
+  # Both source and target can be complete paths relative to the root path
+  # specified above. 
+  context:
+      docker/build_artifacts/changehostname.c: changehostname.c
+      docker/build_artifacts/start_with_right_hostname.sh: start_with_right_hostname.sh 
+      dist/sagemaker_pytorch_serving_container-1.3-py2.py3-none-any.whl: sagemaker_pytorch_serving_container-1.3-py2.py3-none-any.whl
+
+  images:
+    BuildCPUPTTrainPy3DockerImage:
+      build: true
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE cpu
+      python_version: &PYTHON_VERSION py3
+      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+    BuildGPUPTTrainPy3DockerImage:
+      build: true
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE gpu
+      python_version: &PYTHON_VERSION py3
+      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+    BuildCPUPTTrainPy2DockerImage:
+      build: true
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE cpu
+      python_version: &PYTHON_VERSION py2
+      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+    BuildGPUPTTrainPy2DockerImage:
+      build: true
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE gpu
+      python_version: &PYTHON_VERSION py2
+      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
