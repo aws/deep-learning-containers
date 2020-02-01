@@ -5,7 +5,6 @@ This file defines the Context class
 import os
 import tarfile
 
-# TODO: Make this a context manager
 class Context:
     """
     The context class encapsulates all required functions for
@@ -13,14 +12,19 @@ class Context:
     """
 
     def __init__(
-        self, artifacts=None, context_path="context.tar.gz", artifact_root="./"
+            self, artifacts=None, context_path="context.tar.gz", artifact_root="./"
     ):
         """
         The constructor for the Context class
+
         Parameters:
             artifacts: array of (source, destination) tuples
             context_path: path for the resulting tar.gz file
             artifact_root: root directory for all artifacts
+
+        Returns:
+            None
+
         """
         self.artifacts = []
         self.context_path = context_path
@@ -51,7 +55,11 @@ class Context:
     def remove(self):
         """
         Removes the context tar file
+
         Parameters:
+            None
+
+        Returns:
             None
         """
         os.remove(self.context_path)
