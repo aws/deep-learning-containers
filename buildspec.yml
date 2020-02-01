@@ -10,9 +10,7 @@ phases:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - pip install -r src/requirements.txt
-      - cd $FRAMEWORK/$IMAGE_TYPE
-      - python setup.py sdist
-      - cd ../../
+      - bash src/setup.sh $FRAMEWORK $IMAGE_TYPE
   build:
     commands:
       - echo Build started on `date`
