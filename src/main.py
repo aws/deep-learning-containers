@@ -85,9 +85,9 @@ if __name__ == "__main__":
             FORMATTER.title(image.name)
             FORMATTER.table(buildspec["images"][image.name].items())
             FORMATTER.separator()
-            FORMATTER.print_lines(image.summary["response"])
+            FORMATTER.print_lines(image.log)
             with open(f"logs/{image.name}", "w") as fp:
-                fp.write("/n".join(image.summary["response"]))
+                fp.write("/n".join(image.log))
 
         FORMATTER.title("Summary")
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         for image in IMAGES:
             if image.summary["status"] == constants.FAIL:
                 FORMATTER.title(image.name)
-                FORMATTER.print_lines(image.summary["response"][-10:])
+                FORMATTER.print_lines(image.log[-10:])
                 ANY_FAIL = True
 
         if ANY_FAIL:

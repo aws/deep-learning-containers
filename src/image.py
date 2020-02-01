@@ -44,6 +44,7 @@ class DockerImage:
         self.to_build = build
 
         self.client = APIClient(base_url=constants.DOCKER_URL)
+        self.log = []
 
     def __getattr__(self,name):
         return self.info[name]
@@ -54,7 +55,7 @@ class DockerImage:
         """
         if not self.to_build:
             self.summary["status"] = constants.SUCCESS
-            self.summary["response"] = "Not built"
+            self.log = [ "Not built" ]
             return self.summary['status']
 
         self.summary['starttime'] = datetime.now()
@@ -75,7 +76,7 @@ class DockerImage:
                     response.append(line["error"])
                     self.endtime = datetime.now()
                     self.summary['status'] = constants.FAIL
-                    self.summary['response'] = response
+                    self.log = response
                     return self.summary["status"] 
                 elif line.get("stream") is not None:
                     response.append(line["stream"])
@@ -93,7 +94,7 @@ class DockerImage:
                     response.append(line["error"])
                     self.endtime = datetime.now()
                     self.summary['status'] = constants.FAIL
-                    self.summary['response'] = response
+                    self.log = response
                     self.summary['endtime'] = datetime.now()
                     return self.summary['status'] 
                 elif line.get("stream") is not None:
@@ -102,7 +103,7 @@ class DockerImage:
                     response.append(str(line))
 
             self.summary['status'] = constants.SUCCESS
-            self.summary['response'] = response
             self.summary['endtime'] = datetime.now()
+            self.log = response
 
             return self.summary['status']
