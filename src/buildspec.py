@@ -23,13 +23,19 @@ class Buildspec(object):
             v = self._buildspec[k]
             if isinstance(v, ruamel.yaml.scalarstring.PlainScalarString):
                 if v.anchor is not None:
-                    self._buildspec[k] = os.environ.get(v.anchor.value, v)
+                    if v.anchor.value is not None:
+                         try:
+                             self._buildspec[k] = os.environ.get(v.anchor.value, v)
+                         except Exception as e:
+                             import pdb
+                             pdb.set_trace()
 
     def join(self, loader, node):
         seq = loader.construct_sequence(node)
         seq = ''.join([str(i) for i in seq])
         seq = ruamel.yaml.scalarstring.PlainScalarString(seq)
-        seq.anchor.value = node.anchor 
+        if node.anchor is not None:
+            seq.anchor.value = node.anchor
         return seq
 
     def __getitem__(self, name):
