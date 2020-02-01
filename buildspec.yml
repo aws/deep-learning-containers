@@ -9,7 +9,7 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
-      - pip install -r requirements.txt
+      - pip install -r src/requirements.txt
       - cd $FRAMEWORK/$IMAGE_TYPE
       - python setup.py sdist
       - cd ../../
