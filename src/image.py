@@ -15,11 +15,8 @@ class DockerImage:
     """
 
     def __init__(
-        self, info, dockerfile, repository, tag, build, context=None,
+            self, info, dockerfile, repository, tag, build, context=None,
     ):
-        """
-        The constructor for DockerImage class converts the buildspec parameters as class attributes
-        """
 
         # Meta-data about the image should go to info.
         # All keys in info are accessible as attributes
@@ -55,16 +52,16 @@ class DockerImage:
             self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
             return self.build_status
 
-        with open(self.context.context_path, "rb") as fp:
+        with open(self.context.context_path, "rb") as context_file:
             response = []
 
             for line in self.client.build(
-                fileobj=fp,
-                path=self.dockerfile,
-                custom_context=True,
-                rm=True,
-                decode=True,
-                tag=self.ecr_url,
+                    fileobj=context_file,
+                    path=self.dockerfile,
+                    custom_context=True,
+                    rm=True,
+                    decode=True,
+                    tag=self.ecr_url,
             ):
                 if line.get("error") is not None:
                     self.context.remove()
@@ -87,7 +84,7 @@ class DockerImage:
             self.context.remove()
 
             for line in self.client.push(
-                self.repository, self.tag, stream=True, decode=True
+                    self.repository, self.tag, stream=True, decode=True
             ):
                 if line.get("error") is not None:
                     response.append(line["error"])
