@@ -4,7 +4,6 @@ This script takes a buildspec as input and builds the docker images
 
 import os
 import concurrent.futures
-from collections import defaultdict
 
 import utils
 import constants
@@ -14,19 +13,20 @@ from context import Context
 from output import OutputFormatter
 from buildspec import Buildspec
 
+# TODO: Abstract away to ImageBuilder class
 if __name__ == "__main__":
     ARGS = utils.parse_args()
 
-    buildspec = Buildspec()
-    buildspec.load(ARGS.buildspec)
+    BUILDSPEC = Buildspec()
+    BUILDSPEC.load(ARGS.buildspec)
 
     IMAGES = []
-    ARTIFACTS = list(buildspec["context"].items())
+    ARTIFACTS = list(BUILDSPEC["context"].items())
 
-    for image in buildspec["images"].items():
+    for image in BUILDSPEC["images"].items():
 
         if image[1].get("version") is not None:
-            if buildspec["version"] != image[1].get("version"):
+            if BUILDSPEC["version"] != image[1].get("version"):
                 continue
 
         if image[1].get("context") is not None:
@@ -34,29 +34,29 @@ if __name__ == "__main__":
 
         ARTIFACTS.append([image[1]["docker_file"], "Dockerfile"])
 
-        context = Context(ARTIFACTS, f"build/{image[0]}.tar.gz", buildspec["root"])
+        context = Context(ARTIFACTS, f"build/{image[0]}.tar.gz", BUILDSPEC["root"])
 
         """
         Override parameters from parent in child.
         """
 
         info = {
-            "account_id": buildspec["account_id"],
-            "region": buildspec["region"],
-            "framework": buildspec["framework"],
-            "version": buildspec["version"],
-            "root": buildspec["root"],
+            "account_id": BUILDSPEC["account_id"],
+            "region": BUILDSPEC["region"],
+            "framework": BUILDSPEC["framework"],
+            "version": BUILDSPEC["version"],
+            "root": BUILDSPEC["root"],
             "name": image[0],
             "device_type": image[1]["device_type"],
             "python_version": image[1]["python_version"],
-            "image_type": buildspec["image_type"],
+            "image_type": BUILDSPEC["image_type"],
             "image_size_baseline": image[1]["image_size_baseline"],
         }
 
         image_object = DockerImage(
             info=info,
             dockerfile=image[1]["docker_file"],
-            repository=buildspec["repository"],
+            repository=BUILDSPEC["repository"],
             tag=image[1]["tag"],
             build=image[1]["build"],
             context=context,
