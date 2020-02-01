@@ -83,35 +83,24 @@ if __name__ == "__main__":
 
         for image in IMAGES:
             FORMATTER.title(image.name)
-            FORMATTER.table(buildspec["images"][image.name].items())
+            FORMATTER.table(image.info.items())
             FORMATTER.separator()
             FORMATTER.print_lines(image.log)
             with open(f"logs/{image.name}", "w") as fp:
                 fp.write("/n".join(image.log))
+                image.summary['log'] = f"logs/{image.name}"
 
         FORMATTER.title("Summary")
-
-        SUMMARY = defaultdict(dict)
-
-        STATUS_CODE = {constants.SUCCESS: "Success", constants.FAIL: "Failure"}
-
-        #for image in IMAGES:
-        #    SUMMARY[image.name]["status"] = STATUS_CODE[
-        #        image.summary["status"]
-        #    ]
-        #    SUMMARY[image.name]["buildtime"] = (
-        #        str((image.endtime - image.starttime).seconds) + "s"
-        #    )
-        #    if image.summary["status"] != constants.FAIL:
-        #        SUMMARY[image.name]["ECR"] = image.ecr_url
 
         for image in IMAGES:
             FORMATTER.title(image.name)
             FORMATTER.table(image.summary.items())
 
+
+        FORMATTER.title("Errors")
         ANY_FAIL = False
         for image in IMAGES:
-            if image.summary["status"] == constants.FAIL:
+            if image.build_status == constants.FAIL:
                 FORMATTER.title(image.name)
                 FORMATTER.print_lines(image.log[-10:])
                 ANY_FAIL = True
