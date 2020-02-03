@@ -1,6 +1,8 @@
 FRAMEWORK=$1
 IMAGE_TYPE=$2
 
+set -x
+
 cd ${FRAMEWORK}/${IMAGE_TYPE}
 pwd
 if [ "$FRAMEWORK" = "mxnet"  ]; then
