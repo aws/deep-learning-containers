@@ -38,6 +38,7 @@ if __name__ == "__main__":
         try:
             context = Context(IMAGE_ARTIFACTS, f"build/{image[0]}.tar.gz", image[1]["root"])
         except Exception as e:
+            print(e)
             import pdb
             pdb.set_trace()
 
