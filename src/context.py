@@ -46,12 +46,15 @@ class Context:
         # TODO: Add logic to untar and retar
         self.artifacts += artifacts
 
+        # TODO: Use glob to expand
+
         with tarfile.open(self.context_path, "w:gz") as tar:
             for artifact in artifacts:
                 source = os.path.join(self.artifact_root, artifact[0])
                 target = artifact[1]
                 if not isinstance(target, str):
-                    tar.add(source, arcname=target)
+                    continue
+                tar.add(source, arcname=target)
 
     def remove(self):
         """

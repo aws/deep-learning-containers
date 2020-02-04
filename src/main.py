@@ -24,17 +24,22 @@ if __name__ == "__main__":
     ARTIFACTS = list(BUILDSPEC["context"].items())
 
     for image in BUILDSPEC["images"].items():
+        IMAGE_ARTIFACTS = []
+        IMAGE_ARTIFACTS += ARTIFACTS
 
         if image[1].get("version") is not None:
             if BUILDSPEC["version"] != image[1].get("version"):
                 continue
 
         if image[1].get("context") is not None:
-            ARTIFACTS += list(image[1]["context"])
+            IMAGE_ARTIFACTS += list(image[1]["context"].items())
 
-        ARTIFACTS.append([image[1]["docker_file"], "Dockerfile"])
-
-        context = Context(ARTIFACTS, f"build/{image[0]}.tar.gz", BUILDSPEC["root"])
+        IMAGE_ARTIFACTS.append([image[1]["docker_file"], "Dockerfile"])
+        try:
+            context = Context(IMAGE_ARTIFACTS, f"build/{image[0]}.tar.gz", image[1]["root"])
+        except Exception as e:
+            import pdb
+            pdb.set_trace()
 
         """
         Override parameters from parent in child.
@@ -45,18 +50,18 @@ if __name__ == "__main__":
             "region": BUILDSPEC["region"],
             "framework": BUILDSPEC["framework"],
             "version": BUILDSPEC["version"],
-            "root": BUILDSPEC["root"],
+            "root": image[1]["root"],
             "name": image[0],
             "device_type": image[1]["device_type"],
             "python_version": image[1]["python_version"],
-            "image_type": BUILDSPEC["image_type"],
+            "image_type": image[1]["image_type"],
             "image_size_baseline": image[1]["image_size_baseline"],
         }
 
         image_object = DockerImage(
             info=info,
             dockerfile=image[1]["docker_file"],
-            repository=BUILDSPEC["repository"],
+            repository=image[1]["repository"],
             tag=image[1]["tag"],
             build=image[1]["build"],
             context=context,
