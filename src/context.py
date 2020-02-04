@@ -50,7 +50,8 @@ class Context:
             for artifact in artifacts:
                 source = os.path.join(self.artifact_root, artifact[0])
                 target = artifact[1]
-                tar.add(source, arcname=target)
+                if not isinstance(target, str):
+                    tar.add(source, arcname=target)
 
     def remove(self):
         """

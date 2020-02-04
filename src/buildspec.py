@@ -89,3 +89,13 @@ class Buildspec(object):
 
         '''
         return self._buildspec[name]
+
+
+if __name__ == "__main__":
+    buildspec = Buildspec()
+    buildspec.load("../mxnet/buildspec.yml")
+    import pdb
+    pdb.set_trace()
+
+
+
