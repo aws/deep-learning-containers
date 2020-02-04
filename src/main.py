@@ -67,7 +67,7 @@ if __name__ == "__main__":
             "device_type": image[1]["device_type"],
             "python_version": image[1]["python_version"],
             "image_type": image[1]["image_type"],
-            "image_size_baseline": image[1]["image_size_baseline"],
+            "image_size_baseline": int(image[1]["image_size_baseline"])
         }
 
         image_object = DockerImage(
@@ -124,3 +124,6 @@ if __name__ == "__main__":
 
         if ANY_FAIL:
             raise Exception("Build failed")
+        else:
+            FORMATTER.print("No errors")
+        FORMATTER.separator()
