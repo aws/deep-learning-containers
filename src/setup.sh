@@ -22,7 +22,6 @@ fi
 if [ "$FRAMEWORK" = "tensorflow"  ]; then
     cd training
     python setup.py sdist
-    
 fi
 
 

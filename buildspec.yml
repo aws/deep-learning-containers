@@ -10,9 +10,9 @@ phases:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - pip install -r src/requirements.txt
-      - bash src/setup.sh $FRAMEWORK $IMAGE_TYPE
+      - bash src/setup.sh $FRAMEWORK 
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - python src/main.py --buildspec $FRAMEWORK/$IMAGE_TYPE/buildspec.yml
+      - python src/main.py --buildspec $FRAMEWORK/buildspec.yml
