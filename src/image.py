@@ -93,6 +93,15 @@ class DockerImage:
 
             self.context.remove()
 
+            self.info['image_size'] = int(self.client.inspect_image(self.ecr_url)['Size'])
+            if self.info['image_size']/(1024 * 1024) > self.info['image_size_baseline'] * 1.20:
+                response.append("Image size baseline exceeded")
+                self.log = response
+                self.build_status = constants.FAIL
+                self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
+                self.summary["endtime"] = datetime.now()
+                return self.build_status
+
             for line in self.client.push(
                     self.repository, self.tag, stream=True, decode=True
             ):
@@ -113,6 +122,7 @@ class DockerImage:
             self.build_status = constants.SUCCESS
             self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
             self.summary["endtime"] = datetime.now()
+            self.summary["ecr_url"] = self.ecr_url
             self.log = response
 
             return self.build_status
