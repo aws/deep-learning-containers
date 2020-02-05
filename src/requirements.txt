@@ -3,3 +3,4 @@ docker
 pyfiglet
 reprint
 ruamel.yaml
+boto3
