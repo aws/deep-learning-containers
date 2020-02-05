@@ -41,9 +41,11 @@ class Context:
         self.context_path = context_path
         self.artifact_root = artifact_root 
 
-        # Ensure that the directory where the context
-        # will be stored exists
-        if not os.path.isdir(os.path.join(context_path.split("/")[:-1])):
+        # Check if the context path is just a filename,
+        # or includes a directory. If path includes a
+        # directory, create directory if it does not exist
+        directory = os.path.dirname(context_path)
+        if directory is not '' and not os.path.isdir(directory):
             os.mkdir(directory)
 
         if artifacts is not None:
