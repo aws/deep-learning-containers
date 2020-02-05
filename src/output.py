@@ -84,10 +84,10 @@ class OutputFormatter:
             num_iterations = 0
             if not isatty:
                 output = [""] * len(futures.items())
-                running_iterator = 0
-                for image, _ in futures.items():
-                    output[running_iterator] = f"{image}.........R"
-                    running_iterator += 1
+                #running_iterator = 0
+                #for image, _ in futures.items():
+                #    output[running_iterator] = f"{image}.........R"
+                #    running_iterator += 1
             self.print_lines(output)
             while True:
                 i = 0
