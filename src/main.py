@@ -23,6 +23,7 @@ from image import DockerImage
 from context import Context
 from output import OutputFormatter
 from buildspec import Buildspec
+from metrics import Metrics
 
 # TODO: Abstract away to ImageBuilder class
 if __name__ == "__main__":
@@ -116,11 +117,22 @@ if __name__ == "__main__":
 
         FORMATTER.title("Errors")
         ANY_FAIL = False
+        metrics = Metrics(context=constants.BUILD_CONTEXT, region=BUILDSPEC['region'],namespace=constants.METRICS_NAMESPACE)
         for image in IMAGES:
             if image.build_status == constants.FAIL:
                 FORMATTER.title(image.name)
                 FORMATTER.print_lines(image.log[-10:])
                 ANY_FAIL = True
+
+        FORMATTER.title("Uploading Metrics")
+        for image in IMAGES:
+            try:
+                metrics.push_image_metrics(image)
+            except Exception as e:
+                if ANY_FAIL:
+                    raise Exception(f"Build failed.{e}")
+                else:
+                    raise Exception(f"Build passed. {e}")
 
         if ANY_FAIL:
             raise Exception("Build failed")

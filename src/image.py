@@ -58,7 +58,7 @@ class DockerImage:
 
         if not self.to_build:
             self.log = ["Not built"]
-            self.build_status = constants.SUCCESS
+            self.build_status = constants.NOT_BUILT
             self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
             return self.build_status
 
@@ -93,8 +93,8 @@ class DockerImage:
 
             self.context.remove()
 
-            self.info['image_size'] = int(self.client.inspect_image(self.ecr_url)['Size'])
-            if self.info['image_size']/(1024 * 1024) > self.info['image_size_baseline'] * 1.20:
+            self.summary['image_size'] = int(self.client.inspect_image(self.ecr_url)['Size']) /(1024 * 1024)
+            if self.summary['image_size'] > self.info['image_size_baseline'] * 1.20:
                 response.append("Image size baseline exceeded")
                 self.log = response
                 self.build_status = constants.FAIL
