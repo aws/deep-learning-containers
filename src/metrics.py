@@ -43,7 +43,8 @@ class Metrics(object):
 		if image.build_status == constants.NOT_BUILT:
 			return None
 		build_time = (image.summary["endtime"] - image.summary["starttime"]).seconds
-		image_size = image.summary["image_size"]
+                if image.build_status == constants.FAIL:
+		    image_size = image.summary["image_size"]
 		build_status = image.build_status
 
 		self.push("build_time", "Seconds", build_time, info)
