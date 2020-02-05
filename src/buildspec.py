@@ -90,8 +90,3 @@ class Buildspec(object):
         '''
         return self._buildspec[name]
 
-buildspec = Buildspec()
-buildspec.load("../mxnet/buildspec.yml")
-import pdb
-pdb.set_trace()
-
