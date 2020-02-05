@@ -50,4 +50,4 @@ class Metrics(object):
 
         if image.build_status == constants.FAIL:
             image_size = image.summary["image_size"]
-        self.push("image_size", "Bytes", image_size, info)
+            self.push("image_size", "Bytes", image_size, info)
