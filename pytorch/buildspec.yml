@@ -81,7 +81,7 @@
     BuildGPUPTInferencePy3DockerImage:
       <<: *INFERENCE_REPOSITORY
       build: true
-      image_size_baseline: 4899
+      image_size_baseline: 9228
       device_type: &DEVICE_TYPE gpu
       python_version: &PYTHON_VERSION py3
       tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
@@ -101,7 +101,7 @@
     BuildGPUPTInferencePy2DockerImage:
       <<: *INFERENCE_REPOSITORY
       build: true
-      image_size_baseline: 4899
+      image_size_baseline: 9028
       device_type: &DEVICE_TYPE gpu
       python_version: &PYTHON_VERSION py2
       tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
