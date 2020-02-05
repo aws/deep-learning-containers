@@ -22,5 +22,4 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Program to build docker images")
     parser.add_argument("--buildspec", required=True, type=str)
     args = parser.parse_args()
-    print(args)
     return args
