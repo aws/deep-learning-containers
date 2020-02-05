@@ -39,10 +39,11 @@ class Context:
         """
         self.artifacts = []
         self.context_path = context_path
-        self.artifact_root = artifact_root
+        self.artifact_root = artifact_root 
 
-        directory = "/".join(context_path.split("/")[:-1])
-        if not os.path.isdir(directory):
+        # Ensure that the directory where the context
+        # will be stored exists
+        if not os.path.isdir(os.path.join(context_path.split("/")[:-1])):
             os.mkdir(directory)
 
         if artifacts is not None:
