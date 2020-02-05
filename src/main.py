@@ -59,15 +59,15 @@ if __name__ == "__main__":
         """
 
         info = {
-            "account_id": BUILDSPEC["account_id"],
-            "region": BUILDSPEC["region"],
-            "framework": BUILDSPEC["framework"],
-            "version": BUILDSPEC["version"],
-            "root": image[1]["root"],
-            "name": image[0],
-            "device_type": image[1]["device_type"],
-            "python_version": image[1]["python_version"],
-            "image_type": image[1]["image_type"],
+            "account_id": str(BUILDSPEC["account_id"]),
+            "region": str(BUILDSPEC["region"]),
+            "framework": str(BUILDSPEC["framework"]),
+            "version": str(BUILDSPEC["version"]),
+            "root": str(image[1]["root"]),
+            "name": str(image[0]),
+            "device_type": str(image[1]["device_type"]),
+            "python_version": str(image[1]["python_version"]),
+            "image_type": str(image[1]["image_type"]),
             "image_size_baseline": int(image[1]["image_size_baseline"])
         }
 
