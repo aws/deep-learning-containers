@@ -5,15 +5,15 @@
   
   repository_info:
     training_repository: &TRAINING_REPOSITORY
-      image_type: &IMAGE_TYPE training
-      root: !join [ *FRAMEWORK, "/", *IMAGE_TYPE ]
-      repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *IMAGE_TYPE]
+      image_type: &TRAINING_IMAGE_TYPE training
+      root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
+      repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
       repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ] 
     
     inference_repository: &INFERENCE_REPOSITORY
-      image_type: &IMAGE_TYPE inference
-      root: !join [ *FRAMEWORK, "/", *IMAGE_TYPE ]
-      repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *IMAGE_TYPE]
+      image_type: &INFERENCE_IMAGE_TYPE inference
+      root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
+      repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
       repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ] 
 
   context:
@@ -34,7 +34,7 @@
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
       python_version: &PYTHON_VERSION py3
-      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      tag: !join [ *TRAINING_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
@@ -44,7 +44,7 @@
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
       python_version: &PYTHON_VERSION py3
-      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      tag: !join [ *TRAINING_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
@@ -54,7 +54,7 @@
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
       python_version: &PYTHON_VERSION py2
-      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      tag: !join [ *TRAINING_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
@@ -64,7 +64,7 @@
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
       python_version: &PYTHON_VERSION py2
-      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      tag: !join [ *TRAINING_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
@@ -74,7 +74,7 @@
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
       python_version: &PYTHON_VERSION py3
-      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      tag: !join [ *INFERENCE_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *INFERENCE_CONTEXT
@@ -84,7 +84,7 @@
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
       python_version: &PYTHON_VERSION py3
-      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      tag: !join [ *INFERENCE_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *INFERENCE_CONTEXT
@@ -94,7 +94,7 @@
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
       python_version: &PYTHON_VERSION py2
-      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      tag: !join [ *INFERENCE_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *INFERENCE_CONTEXT
@@ -104,7 +104,7 @@
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
       python_version: &PYTHON_VERSION py2
-      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      tag: !join [ *INFERENCE_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *INFERENCE_CONTEXT
