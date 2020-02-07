@@ -1,5 +1,5 @@
-  account_id: &ACCOUNT_ID '669063966089'
-  region: &REGION us-west-2
+  account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+  region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK tensorflow
   version: &VERSION 1.15
   
