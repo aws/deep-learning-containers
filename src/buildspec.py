@@ -57,6 +57,9 @@ class Buildspec(object):
                     if val.anchor.value is not None:
                         self._buildspec[key] = os.environ.get(val.anchor.value, val)
 
+        print(self._buildspec)
+
+
     def join(self, loader, node):
         """
         This method is used to perform string concatenation
