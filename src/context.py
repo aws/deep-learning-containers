@@ -23,7 +23,9 @@ class Context:
     preparing, managing and removing the docker build context
     """
 
-    def __init__(self, artifacts=None, context_path="context.tar.gz", artifact_root="./"):
+    def __init__(
+        self, artifacts=None, context_path="context.tar.gz", artifact_root="./"
+    ):
         """
         The constructor for the Context class
 

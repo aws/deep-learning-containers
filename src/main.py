@@ -53,7 +53,9 @@ if __name__ == "__main__":
             IMAGE_ARTIFACTS += list(image_config["context"].items())
 
         IMAGE_ARTIFACTS.append([image_config["docker_file"], "Dockerfile"])
-        context = Context(IMAGE_ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
+        context = Context(
+            IMAGE_ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"]
+        )
 
         """
         Override parameters from parent in child.
@@ -77,7 +79,7 @@ if __name__ == "__main__":
             dockerfile=image_config["docker_file"],
             repository=image_config["repository"],
             tag=image_config["tag"],
-            build=image_config["build"],
+            to_build=image_config["build"],
             context=context,
         )
 
@@ -119,7 +121,9 @@ if __name__ == "__main__":
         FORMATTER.title("Errors")
         ANY_FAIL = False
         metrics = Metrics(
-            context=constants.BUILD_CONTEXT, region=BUILDSPEC["region"], namespace=constants.METRICS_NAMESPACE
+            context=constants.BUILD_CONTEXT,
+            region=BUILDSPEC["region"],
+            namespace=constants.METRICS_NAMESPACE,
         )
         for image in IMAGES:
             if image.build_status == constants.FAIL:

@@ -9,16 +9,23 @@ class Metrics(object):
         self.context = context
         self.namespace = namespace
 
-    def push(self, name, unit, value, info):
+    def push(self, name, unit, value, metrics_info):
 
         dimensions = [{"Name": "BuildContext", "Value": self.context}]
 
-        for k in info:
-            dimensions.append({"Name": k, "Value": info[k]})
+        for key in metrics_info:
+            dimensions.append({"Name": key, "Value": metrics_info[key]})
 
         try:
             response = self.client.put_metric_data(
-                MetricData=[{"MetricName": name, "Dimensions": dimensions, "Unit": unit, "Value": value},],
+                MetricData=[
+                    {
+                        "MetricName": name,
+                        "Dimensions": dimensions,
+                        "Unit": unit,
+                        "Value": value,
+                    },
+                ],
                 Namespace=self.namespace,
             )
         except Exception as e:
@@ -36,7 +43,7 @@ class Metrics(object):
         }
         if image.build_status == constants.NOT_BUILT:
             return None
-        build_time = (image.summary["endtime"] - image.summary["starttime"]).seconds
+        build_time = (image.summary["end_time"] - image.summary["start_time"]).seconds
         build_status = image.build_status
 
         self.push("build_time", "Seconds", build_time, info)

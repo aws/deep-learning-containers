@@ -25,7 +25,7 @@ class DockerImage:
     """
 
     def __init__(
-        self, info, dockerfile, repository, tag, build, context=None,
+        self, info, dockerfile, repository, tag, to_build, context=None,
     ):
 
         # Meta-data about the image should go to info.
@@ -42,7 +42,7 @@ class DockerImage:
         self.tag = tag
         self.ecr_url = f"{self.repository}:{self.tag}"
 
-        self.to_build = build
+        self.to_build = to_build
         self.build_status = None
         self.client = APIClient(base_url=constants.DOCKER_URL)
         self.log = []
@@ -54,7 +54,7 @@ class DockerImage:
         """
         The build function builds the specified docker image
         """
-        self.summary["starttime"] = datetime.now()
+        self.summary["start_time"] = datetime.now()
 
         if not self.to_build:
             self.log = ["Not built"]
@@ -66,7 +66,12 @@ class DockerImage:
             response = []
 
             for line in self.client.build(
-                fileobj=context_file, path=self.dockerfile, custom_context=True, rm=True, decode=True, tag=self.ecr_url,
+                fileobj=context_file,
+                path=self.dockerfile,
+                custom_context=True,
+                rm=True,
+                decode=True,
+                tag=self.ecr_url,
             ):
                 if line.get("error") is not None:
                     self.context.remove()
@@ -75,7 +80,7 @@ class DockerImage:
                     self.log = response
                     self.build_status = constants.FAIL
                     self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
-                    self.summary["endtime"] = datetime.now()
+                    self.summary["end_time"] = datetime.now()
 
                     return self.build_status
 
@@ -88,23 +93,27 @@ class DockerImage:
 
             self.context.remove()
 
-            self.summary["image_size"] = int(self.client.inspect_image(self.ecr_url)["Size"]) / (1024 * 1024)
+            self.summary["image_size"] = int(
+                self.client.inspect_image(self.ecr_url)["Size"]
+            ) / (1024 * 1024)
             if self.summary["image_size"] > self.info["image_size_baseline"] * 1.20:
                 response.append("Image size baseline exceeded")
                 self.log = response
                 self.build_status = constants.FAIL
                 self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
-                self.summary["endtime"] = datetime.now()
+                self.summary["end_time"] = datetime.now()
                 return self.build_status
 
-            for line in self.client.push(self.repository, self.tag, stream=True, decode=True):
+            for line in self.client.push(
+                self.repository, self.tag, stream=True, decode=True
+            ):
                 if line.get("error") is not None:
                     response.append(line["error"])
 
                     self.log = response
                     self.build_status = constants.FAIL
                     self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
-                    self.summary["endtime"] = datetime.now()
+                    self.summary["end_time"] = datetime.now()
 
                     return self.build_status
                 elif line.get("stream") is not None:
@@ -114,7 +123,7 @@ class DockerImage:
 
             self.build_status = constants.SUCCESS
             self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
-            self.summary["endtime"] = datetime.now()
+            self.summary["end_time"] = datetime.now()
             self.summary["ecr_url"] = self.ecr_url
             self.log = response
 
