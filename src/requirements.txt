@@ -4,3 +4,4 @@ pyfiglet
 reprint
 ruamel.yaml
 boto3
+black

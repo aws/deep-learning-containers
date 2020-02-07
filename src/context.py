@@ -1,4 +1,4 @@
-'''
+"""
 Copyright 2019-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License"). You
@@ -11,10 +11,11 @@ or in the "license" file accompanying this file. This file is
 distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
-'''
+"""
 
 import os
 import tarfile
+
 
 class Context:
     """
@@ -22,9 +23,7 @@ class Context:
     preparing, managing and removing the docker build context
     """
 
-    def __init__(
-            self, artifacts=None, context_path="context.tar.gz", artifact_root="./"
-    ):
+    def __init__(self, artifacts=None, context_path="context.tar.gz", artifact_root="./"):
         """
         The constructor for the Context class
 
@@ -39,13 +38,13 @@ class Context:
         """
         self.artifacts = []
         self.context_path = context_path
-        self.artifact_root = artifact_root 
+        self.artifact_root = artifact_root
 
         # Check if the context path is just a filename,
         # or includes a directory. If path includes a
         # directory, create directory if it does not exist
         directory = os.path.dirname(context_path)
-        if directory is not '' and not os.path.isdir(directory):
+        if directory is not "" and not os.path.isdir(directory):
             os.mkdir(directory)
 
         if artifacts is not None:

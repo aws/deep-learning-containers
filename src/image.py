@@ -1,4 +1,4 @@
-'''
+"""
 Copyright 2019-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License"). You
@@ -11,7 +11,7 @@ or in the "license" file accompanying this file. This file is
 distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
-'''
+"""
 from datetime import datetime
 
 from docker import APIClient
@@ -25,7 +25,7 @@ class DockerImage:
     """
 
     def __init__(
-            self, info, dockerfile, repository, tag, build, context=None,
+        self, info, dockerfile, repository, tag, build, context=None,
     ):
 
         # Meta-data about the image should go to info.
@@ -66,12 +66,7 @@ class DockerImage:
             response = []
 
             for line in self.client.build(
-                    fileobj=context_file,
-                    path=self.dockerfile,
-                    custom_context=True,
-                    rm=True,
-                    decode=True,
-                    tag=self.ecr_url,
+                fileobj=context_file, path=self.dockerfile, custom_context=True, rm=True, decode=True, tag=self.ecr_url,
             ):
                 if line.get("error") is not None:
                     self.context.remove()
@@ -93,8 +88,8 @@ class DockerImage:
 
             self.context.remove()
 
-            self.summary['image_size'] = int(self.client.inspect_image(self.ecr_url)['Size']) /(1024 * 1024)
-            if self.summary['image_size'] > self.info['image_size_baseline'] * 1.20:
+            self.summary["image_size"] = int(self.client.inspect_image(self.ecr_url)["Size"]) / (1024 * 1024)
+            if self.summary["image_size"] > self.info["image_size_baseline"] * 1.20:
                 response.append("Image size baseline exceeded")
                 self.log = response
                 self.build_status = constants.FAIL
@@ -102,9 +97,7 @@ class DockerImage:
                 self.summary["endtime"] = datetime.now()
                 return self.build_status
 
-            for line in self.client.push(
-                    self.repository, self.tag, stream=True, decode=True
-            ):
+            for line in self.client.push(self.repository, self.tag, stream=True, decode=True):
                 if line.get("error") is not None:
                     response.append(line["error"])
 

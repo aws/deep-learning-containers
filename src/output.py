@@ -1,4 +1,4 @@
-'''
+"""
 Copyright 2019-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License"). You
@@ -11,7 +11,7 @@ or in the "license" file accompanying this file. This file is
 distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
-'''
+"""
 import time
 import sys
 import shutil
@@ -78,9 +78,7 @@ class OutputFormatter:
 
         isatty = sys.stdout.isatty()
 
-        with reprint.output(
-            output_type="list", initial_len=len(futures.items()), interval=0
-        ) as output:
+        with reprint.output(output_type="list", initial_len=len(futures.items()), interval=0) as output:
             num_iterations = 0
             self.print_lines(output)
             while True:
@@ -89,9 +87,7 @@ class OutputFormatter:
                 for image, thread in futures.items():
                     output[i] = image
                     if thread.done():
-                        output[i] += (
-                            "." * 10 + constants.STATUS_MESSAGE[futures[image].result()]
-                        )
+                        output[i] += "." * 10 + constants.STATUS_MESSAGE[futures[image].result()]
                         done[image] = True
                     else:
                         output[i] += "." * (num_iterations % 10)

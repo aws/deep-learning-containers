@@ -1,4 +1,4 @@
-'''
+"""
 Copyright 2019-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License"). You
@@ -11,23 +11,26 @@ or in the "license" file accompanying this file. This file is
 distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
-'''
+"""
 
 import os
+import argparse
 import concurrent.futures
 
 import utils
 import constants
 
-from image import DockerImage
 from context import Context
-from output import OutputFormatter
-from buildspec import Buildspec
 from metrics import Metrics
+from image import DockerImage
+from buildspec import Buildspec
+from output import OutputFormatter
 
 # TODO: Abstract away to ImageBuilder class
 if __name__ == "__main__":
-    ARGS = utils.parse_args()
+    parser = argparse.ArgumentParser(description="Program to build docker images")
+    parser.add_argument("--buildspec", required=True, type=str)
+    ARGS = parser.parse_args()
 
     BUILDSPEC = Buildspec()
     BUILDSPEC.load(ARGS.buildspec)
@@ -39,20 +42,18 @@ if __name__ == "__main__":
         IMAGE_ARTIFACTS = []
         IMAGE_ARTIFACTS += ARTIFACTS
 
-        if image[1].get("version") is not None:
-            if BUILDSPEC["version"] != image[1].get("version"):
+        image_name = image[0]
+        image_config = image[1]
+
+        if image_config.get("version") is not None:
+            if BUILDSPEC["version"] != image_config.get("version"):
                 continue
 
-        if image[1].get("context") is not None:
-            IMAGE_ARTIFACTS += list(image[1]["context"].items())
+        if image_config.get("context") is not None:
+            IMAGE_ARTIFACTS += list(image_config["context"].items())
 
-        IMAGE_ARTIFACTS.append([image[1]["docker_file"], "Dockerfile"])
-        try:
-            context = Context(IMAGE_ARTIFACTS, f"build/{image[0]}.tar.gz", image[1]["root"])
-        except Exception as e:
-            print(e)
-            import pdb
-            pdb.set_trace()
+        IMAGE_ARTIFACTS.append([image_config["docker_file"], "Dockerfile"])
+        context = Context(IMAGE_ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
 
         """
         Override parameters from parent in child.
@@ -63,20 +64,20 @@ if __name__ == "__main__":
             "region": str(BUILDSPEC["region"]),
             "framework": str(BUILDSPEC["framework"]),
             "version": str(BUILDSPEC["version"]),
-            "root": str(image[1]["root"]),
-            "name": str(image[0]),
-            "device_type": str(image[1]["device_type"]),
-            "python_version": str(image[1]["python_version"]),
-            "image_type": str(image[1]["image_type"]),
-            "image_size_baseline": int(image[1]["image_size_baseline"])
+            "root": str(image_config["root"]),
+            "name": str(image_name),
+            "device_type": str(image_config["device_type"]),
+            "python_version": str(image_config["python_version"]),
+            "image_type": str(image_config["image_type"]),
+            "image_size_baseline": int(image_config["image_size_baseline"]),
         }
 
         image_object = DockerImage(
             info=info,
-            dockerfile=image[1]["docker_file"],
-            repository=image[1]["repository"],
-            tag=image[1]["tag"],
-            build=image[1]["build"],
+            dockerfile=image_config["docker_file"],
+            repository=image_config["repository"],
+            tag=image_config["tag"],
+            build=image_config["build"],
             context=context,
         )
 
@@ -117,7 +118,9 @@ if __name__ == "__main__":
 
         FORMATTER.title("Errors")
         ANY_FAIL = False
-        metrics = Metrics(context=constants.BUILD_CONTEXT, region=BUILDSPEC['region'],namespace=constants.METRICS_NAMESPACE)
+        metrics = Metrics(
+            context=constants.BUILD_CONTEXT, region=BUILDSPEC["region"], namespace=constants.METRICS_NAMESPACE
+        )
         for image in IMAGES:
             if image.build_status == constants.FAIL:
                 FORMATTER.title(image.name)
