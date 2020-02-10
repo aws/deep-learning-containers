@@ -120,11 +120,6 @@ if __name__ == "__main__":
 
         FORMATTER.title("Errors")
         ANY_FAIL = False
-        metrics = Metrics(
-            context=constants.BUILD_CONTEXT,
-            region=BUILDSPEC["region"],
-            namespace=constants.METRICS_NAMESPACE,
-        )
         for image in IMAGES:
             if image.build_status == constants.FAIL:
                 FORMATTER.title(image.name)
@@ -132,6 +127,11 @@ if __name__ == "__main__":
                 ANY_FAIL = True
 
         FORMATTER.title("Uploading Metrics")
+        metrics = Metrics(
+            context=constants.BUILD_CONTEXT,
+            region=BUILDSPEC["region"],
+            namespace=constants.METRICS_NAMESPACE,
+        )
         for image in IMAGES:
             try:
                 metrics.push_image_metrics(image)

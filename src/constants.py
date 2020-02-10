@@ -31,3 +31,8 @@ STATUS_MESSAGE = {SUCCESS: "Success", FAIL: "Failed", NOT_BUILT: "Not Built"}
 BUILD_CONTEXT = os.environ.get("BUILD_CONTEXT", "DEV")
 
 METRICS_NAMESPACE = "dlc-metrics-to-be-deleted"
+
+# Logging level
+INFO=1
+ERROR=2
+DEBUG=3

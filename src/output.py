@@ -15,6 +15,7 @@ language governing permissions and limitations under the License.
 import time
 import sys
 import shutil
+import logging
 from collections import defaultdict
 
 import pyfiglet
@@ -38,6 +39,19 @@ class OutputFormatter:
         self.padding = " " * self.padding_length
         self.left_padding = "=" + self.padding
         self.right_padding = self.padding + "="
+
+        logging.basicConfig(
+                level=logging.INFO,
+                format="[%(levelname)s] %(message)s"
+                )
+
+    def log(self,level,message):
+        if level==constants.INFO:
+            logging.info(message)
+        if level==constants.ERROR:
+            logging.error(message)
+        if level==constants.DEBUG:
+            logging.debug(message)
 
     def separator(self):
         """
