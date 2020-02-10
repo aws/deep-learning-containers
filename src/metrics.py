@@ -49,6 +49,6 @@ class Metrics(object):
         self.push("build_time", "Seconds", build_time, info)
         self.push("build_status", "None", build_status, info)
 
-        if image.build_status == constants.FAIL:
+        if image.build_status == constants.SUCCESS:
             image_size = image.summary["image_size"]
             self.push("image_size", "Bytes", image_size, info)
