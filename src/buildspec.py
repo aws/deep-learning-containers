@@ -113,7 +113,3 @@ class Buildspec(object):
 
         """
         return self._buildspec[name]
-
-
-bs = Buildspec()
-bs.load("../mxnet/buildspec.yml")
