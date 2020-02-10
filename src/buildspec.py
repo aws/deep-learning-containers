@@ -19,7 +19,7 @@ import warnings
 import ruamel.yaml
 
 
-class Buildspec(object):
+class Buildspec:
     """
     The Buildspec class is responsible for parsing the buildspec file.
     It is used to standardize the ruamel.yaml configurations, add
@@ -52,7 +52,6 @@ class Buildspec(object):
 
         for key in self._buildspec:
             self._buildspec[key] = self.override(self._buildspec[key])
-
 
     def override(self, yaml_object):
         """

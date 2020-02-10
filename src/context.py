@@ -24,7 +24,7 @@ class Context:
     """
 
     def __init__(
-        self, artifacts=None, context_path="context.tar.gz", artifact_root="./"
+            self, artifacts=None, context_path="context.tar.gz", artifact_root="./"
     ):
         """
         The constructor for the Context class
@@ -46,7 +46,7 @@ class Context:
         # or includes a directory. If path includes a
         # directory, create directory if it does not exist
         directory = os.path.dirname(context_path)
-        if directory is not "" and not os.path.isdir(directory):
+        if directory != "" and not os.path.isdir(directory):
             os.mkdir(directory)
 
         if artifacts is not None:

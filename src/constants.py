@@ -33,6 +33,6 @@ BUILD_CONTEXT = os.environ.get("BUILD_CONTEXT", "DEV")
 METRICS_NAMESPACE = "dlc-metrics-to-be-deleted"
 
 # Logging level
-INFO=1
-ERROR=2
-DEBUG=3
+INFO = 1
+ERROR = 2
+DEBUG = 3

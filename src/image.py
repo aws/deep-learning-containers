@@ -25,7 +25,7 @@ class DockerImage:
     """
 
     def __init__(
-        self, info, dockerfile, repository, tag, to_build, context=None,
+            self, info, dockerfile, repository, tag, to_build, context=None,
     ):
 
         # Meta-data about the image should go to info.
@@ -66,12 +66,12 @@ class DockerImage:
             response = []
 
             for line in self.client.build(
-                fileobj=context_file,
-                path=self.dockerfile,
-                custom_context=True,
-                rm=True,
-                decode=True,
-                tag=self.ecr_url,
+                    fileobj=context_file,
+                    path=self.dockerfile,
+                    custom_context=True,
+                    rm=True,
+                    decode=True,
+                    tag=self.ecr_url,
             ):
                 if line.get("error") is not None:
                     self.context.remove()
@@ -84,7 +84,7 @@ class DockerImage:
 
                     return self.build_status
 
-                elif line.get("stream") is not None:
+                if line.get("stream") is not None:
                     response.append(line["stream"])
                 elif line.get("status") is not None:
                     response.append(line["status"])
@@ -105,7 +105,7 @@ class DockerImage:
                 return self.build_status
 
             for line in self.client.push(
-                self.repository, self.tag, stream=True, decode=True
+                    self.repository, self.tag, stream=True, decode=True
             ):
                 if line.get("error") is not None:
                     response.append(line["error"])
@@ -116,7 +116,7 @@ class DockerImage:
                     self.summary["end_time"] = datetime.now()
 
                     return self.build_status
-                elif line.get("stream") is not None:
+                if line.get("stream") is not None:
                     response.append(line["stream"])
                 else:
                     response.append(str(line))

@@ -40,17 +40,14 @@ class OutputFormatter:
         self.left_padding = "=" + self.padding
         self.right_padding = self.padding + "="
 
-        logging.basicConfig(
-                level=logging.INFO,
-                format="[%(levelname)s] %(message)s"
-                )
+        logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
-    def log(self,level,message):
-        if level==constants.INFO:
+    def log(self, level, message):
+        if level == constants.INFO:
             logging.info(message)
-        if level==constants.ERROR:
+        if level == constants.ERROR:
             logging.error(message)
-        if level==constants.DEBUG:
+        if level == constants.DEBUG:
             logging.debug(message)
 
     def separator(self):
