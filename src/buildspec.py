@@ -51,14 +51,30 @@ class Buildspec(object):
                 self._buildspec = self.yaml.load(buildspec_file)
 
         for key in self._buildspec:
-            val = self._buildspec[key]
-            if isinstance(val, ruamel.yaml.scalarstring.PlainScalarString):
-                if val.anchor is not None:
-                    if val.anchor.value is not None:
-                        self._buildspec[key] = os.environ.get(val.anchor.value, val)
+            self._buildspec[key] = self.override(self._buildspec[key])
 
-        print(self._buildspec)
+        from pprint import pprint
 
+        pprint(self._buildspec)
+
+    def override(self, yaml_object):
+        """
+        This method overrides anchors in a scalar string with
+        values from the environment
+        """
+
+        # If the yaml object is a PlainScalarString and an environment variable
+        # with the same name exists, return the environment variable otherwise,
+        # return the original yaml_object
+        if isinstance(yaml_object, ruamel.yaml.scalarstring.PlainScalarString):
+            if yaml_object.anchor is not None:
+                if yaml_object.anchor.value is not None:
+                    yaml_object = os.environ.get(yaml_object.anchor.value, yaml_object)
+
+        # If the yaml object is not a PlainScalarString, does not have an anchor,
+        # or it's anchor does not have a value, return
+        # the original yaml object
+        return yaml_object
 
     def join(self, loader, node):
         """
@@ -74,8 +90,11 @@ class Buildspec(object):
             str
 
         """
-        seq = loader.construct_sequence(node)
-        seq = "".join([str(i) for i in seq])
+        seq = [
+            self.override(scalar_string)
+            for scalar_string in loader.construct_sequence(node)
+        ]
+        seq = "".join([str(scalar_string) for scalar_string in seq])
         seq = ruamel.yaml.scalarstring.PlainScalarString(seq)
         if node.anchor is not None:
             seq.anchor.value = node.anchor
@@ -94,3 +113,7 @@ class Buildspec(object):
 
         """
         return self._buildspec[name]
+
+
+bs = Buildspec()
+bs.load("../mxnet/buildspec.yml")
