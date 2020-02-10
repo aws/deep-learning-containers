@@ -53,9 +53,6 @@ class Buildspec(object):
         for key in self._buildspec:
             self._buildspec[key] = self.override(self._buildspec[key])
 
-        from pprint import pprint
-
-        pprint(self._buildspec)
 
     def override(self, yaml_object):
         """
