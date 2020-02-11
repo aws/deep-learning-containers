@@ -1,0 +1,111 @@
+  account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+  region: &REGION <set-$REGION-in-environment>
+  framework: &FRAMEWORK mxnet
+  version: &VERSION 1.6.0
+  
+  repository_info:
+    training_repository: &TRAINING_REPOSITORY
+      image_type: &TRAINING_IMAGE_TYPE training
+      root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
+      repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
+      repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ] 
+    
+    inference_repository: &INFERENCE_REPOSITORY
+      image_type: &INFERENCE_IMAGE_TYPE inference
+      root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
+      repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
+      repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ] 
+
+  context:
+      docker/artifacts/deep_learning_container.py: deep_learning_container.py
+      docker/artifacts/__init__.py: __init__.py 
+      training_context: &TRAINING_CONTEXT
+          dist/sagemaker_mxnet_container-3.1.5.dev0.tar.gz: sagemaker_mxnet_container.tar.gz
+          docker/artifacts/dockerd-entrypoint.py: dockerd-entrypoint.py
+      inference_context: &INFERENCE_CONTEXT
+          dist/sagemaker_mxnet_serving_container-1.1.6.dev0.tar.gz: sagemaker_mxnet_serving_container.tar.gz
+          docker/artifacts/config.properties: config.properties
+          docker/artifacts/mms-entrypoint.py: mms-entrypoint.py
+
+  images:
+    BuildMXNetCPUTrainPy3DockerImage:
+      <<: *TRAINING_REPOSITORY
+      build: &BUILD true
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE cpu
+      python_version: &DOCKER_PYTHON_VERSION py3
+      tag: !join [ *TRAINING_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+      context:
+        <<: *TRAINING_CONTEXT
+    BuildMXNetGPUTrainPy3DockerImage:
+      <<: *TRAINING_REPOSITORY
+      build: &BUILD true
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE gpu
+      python_version: &DOCKER_PYTHON_VERSION py3
+      tag: !join [ *TRAINING_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+      context:
+        <<: *TRAINING_CONTEXT
+    BuildMXNetCPUTrainPy2DockerImage:
+      <<: *TRAINING_REPOSITORY
+      build: true
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE cpu
+      python_version: &DOCKER_PYTHON_VERSION py2
+      tag: !join [ *TRAINING_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+      context:
+        <<: *TRAINING_CONTEXT
+    BuildMXNetGPUTrainPy2DockerImage:
+      <<: *TRAINING_REPOSITORY
+      build: true
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE gpu
+      python_version: &DOCKER_PYTHON_VERSION py2
+      tag: !join [ *TRAINING_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+      context:
+        <<: *TRAINING_CONTEXT
+    BuildMXNetCPUInferencePy3DockerImage:
+      <<: *INFERENCE_REPOSITORY
+      build: true
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE cpu
+      python_version: &DOCKER_PYTHON_VERSION py3
+      tag: !join [ *INFERENCE_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+      context:
+        <<: *INFERENCE_CONTEXT
+    BuildMXNetGPUInferencePy3DockerImage:
+      << : *INFERENCE_REPOSITORY
+      build: true
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE gpu
+      python_version: &DOCKER_PYTHON_VERSION py3
+      tag: !join [ *INFERENCE_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+      context:
+        <<: *INFERENCE_CONTEXT
+    BuildMXNetCPUInferencePy2DockerImage:
+      << : *INFERENCE_REPOSITORY
+      build: true
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE cpu
+      python_version: &DOCKER_PYTHON_VERSION py2
+      tag: !join [ *INFERENCE_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+      context:
+        <<: *INFERENCE_CONTEXT
+    BuildMXNetGPUInferencePy2DockerImage:
+      << : *INFERENCE_REPOSITORY
+      build: true
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE gpu
+      python_version: &DOCKER_PYTHON_VERSION py2
+      tag: !join [ *INFERENCE_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+      context:
+        <<: *INFERENCE_CONTEXT
+

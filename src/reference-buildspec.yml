@@ -1,0 +1,20 @@
+  account_id: &ACCOUNT_ID <account-id-for-local-build>
+  region: &REGION <ecr-region>
+  framework: &FRAMEWORK <framework-to-build>
+  version: &VERSION <framework-version>
+  image_type: &IMAGE_TYPE <training/inference>
+  root: !join [ *FRAMEWORK , "/", *IMAGE_TYPE ]
+  repository_name: &REPOSITORY_NAME !join [ beta, "-", *FRAMEWORK, "-", *IMAGE_TYPE ]
+  repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+
+  context:
+      <path-to-artifact>: <name-in-context> 
+
+  images:
+    <name-of-image>:
+      build: <should-this-be-built-for-PR?>
+      image_size_baseline: <max-image-size>
+      device_type: &DEVICE_TYPE <cpu/gpu>
+      python_version: &PYTHON_VERSION <py2/py3>
+      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
