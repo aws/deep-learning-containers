@@ -1,0 +1,9 @@
+https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_cu101mkl-1.6.0rc0-py2.py3-none-manylinux1_x86_64.whl
+# setuptools<45.0.0 because support for py2 stops with 45.0.0
+# https://github.com/pypa/setuptools/blob/master/CHANGES.rst#v4500
+setuptools<45.0.0"
+mxnet-model-server==$MMS_VERSION 
+keras-mxnet==2.2.4.1 
+numpy==1.16.5 
+onnx==1.4.1 
+/sagemaker_mxnet_serving_container.tar.gz 
