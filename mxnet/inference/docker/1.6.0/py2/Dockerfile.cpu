@@ -10,7 +10,6 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG MMS_VERSION=1.0.8
-ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_mkl-1.6.0rc0-py2.py3-none-manylinux1_x86_64.whl
 ARG PYTHON=python
 ARG PYTHON_PIP=python-pip
 ARG PIP=pip
@@ -49,18 +48,11 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 WORKDIR /
 
 COPY sagemaker_mxnet_serving_container.tar.gz /sagemaker_mxnet_serving_container.tar.gz
+COPY requirements.txt requirements.txt
 
-RUN ${PIP} install --no-cache-dir \
-    ${MX_URL} \
-    # setuptools<45.0.0 because support for py2 stops with 45.0.0
-    # https://github.com/pypa/setuptools/blob/master/CHANGES.rst#v4500
-    "setuptools<45.0.0" \
-    mxnet-model-server==$MMS_VERSION \
-    keras-mxnet==2.2.4.1 \
-    numpy==1.16.5 \
-    onnx==1.4.1 \
-    /sagemaker_mxnet_serving_container.tar.gz \
- && rm /sagemaker_mxnet_serving_container.tar.gz
+RUN ${PIP} install --no-cache-dir -r requirements.txt \
+ && rm /sagemaker_mxnet_serving_container.tar.gz \
+    requirements.txt
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
