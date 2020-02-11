@@ -52,10 +52,12 @@ if __name__ == "__main__":
         if image_config.get("context") is not None:
             IMAGE_ARTIFACTS += list(image_config["context"].items())
 
-        IMAGE_ARTIFACTS.append([image_config["docker_file"], "Dockerfile"])
+        dockerfile_artifact = {"dockerfile": {"source": image_config["docker_file"], "target": "Dockerfile"}}
+        IMAGE_ARTIFACTS.extend(list(dockerfile_artifact.items()))
         context = Context(
             IMAGE_ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"]
         )
+
 
         """
         Override parameters from parent in child.
