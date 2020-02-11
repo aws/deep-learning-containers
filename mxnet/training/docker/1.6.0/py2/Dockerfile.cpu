@@ -34,12 +34,18 @@ RUN apt-get update \
 
 WORKDIR /
 
+RUN pip install --no-cache --upgrade \
+    pip==19.3.1 \
+    setuptools
+
 # All the needed artifacts should be setup before docker build command.
 COPY sagemaker_mxnet_container.tar.gz /sagemaker_mxnet_container.tar.gz
+COPY requirements.txt requirements.txt
 
 # python-dateutil==2.8.0 to satisfy botocore
 RUN pip install --no-cache --upgrade -r requirements.txt \
- && rm /sagemaker_mxnet_container.tar.gz
+ && rm /sagemaker_mxnet_container.tar.gz \
+    requirements.txt
 
 # "channels first" is recommended for keras-mxnet
 # https://github.com/awslabs/keras-apache-mxnet/blob/master/docs/mxnet_backend/performance_guide.md#channels-first-image-data-format-for-cnn
