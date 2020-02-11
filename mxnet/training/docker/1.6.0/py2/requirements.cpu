@@ -1,0 +1,21 @@
+# MXNet requires pip 19.3.1 due to being backwards compatible
+# with python2
+pip==19.3.1
+setuptools
+keras-mxnet==2.2.4.2 
+h5py==2.10.0 
+# setuptools<45.0.0 because support for py2 stops with 45.0.0
+# https://github.com/pypa/setuptools/blob/master/CHANGES.rst#v4500
+"setuptools<45.0.0" 
+onnx==1.6.0 
+numpy==1.16.5 
+pandas==0.24.2 
+Pillow==6.2.0 
+requests==2.22.0 
+scikit-learn==0.20.4 
+scipy==1.2.2 
+urllib3==1.24
+# python-dateutil==2.8.0 to satisfy botocore
+python-dateutil==2.8.0 
+https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_mkl-1.6.0rc0-py2.py3-none-manylinux1_x86_64.whl
+/sagemaker_mxnet_container.tar.gz 
