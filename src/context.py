@@ -38,7 +38,7 @@ class Context:
             None
 
         """
-        self.artifacts = []
+        self.artifacts = {}
         self.context_path = context_path
         self.artifact_root = artifact_root
 
@@ -58,15 +58,13 @@ class Context:
         Parameters:
             artifacts: array of (source, destination) tuples
         """
-        # TODO: Add logic to untar and retar
-        self.artifacts += artifacts
+        self.artifacts.update(artifacts)
 
         # TODO: Use glob to expand
-
-
+        # TODO: Add logic to untar and retar
         with tarfile.open(self.context_path, "w:gz") as tar:
-            for artifact in artifacts:
-                artifact = artifact[1]
+            for artifact_name in artifacts:
+                artifact = artifacts[artifact_name]
                 if 'source' not in artifact or 'target' not in artifact:
                     continue
                 source = os.path.join(self.artifact_root, artifact['source'])

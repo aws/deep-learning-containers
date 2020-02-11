@@ -15,6 +15,7 @@ language governing permissions and limitations under the License.
 
 import os
 import argparse
+from copy import deepcopy
 import concurrent.futures
 
 # import utils
@@ -34,13 +35,10 @@ if __name__ == "__main__":
 
     BUILDSPEC = Buildspec()
     BUILDSPEC.load(ARGS.buildspec)
-
     IMAGES = []
-    ARTIFACTS = list(BUILDSPEC["context"].items())
 
     for image in BUILDSPEC["images"].items():
-        IMAGE_ARTIFACTS = []
-        IMAGE_ARTIFACTS += ARTIFACTS
+        ARTIFACTS = deepcopy(BUILDSPEC["context"])
 
         image_name = image[0]
         image_config = image[1]
@@ -50,14 +48,13 @@ if __name__ == "__main__":
                 continue
 
         if image_config.get("context") is not None:
-            IMAGE_ARTIFACTS += list(image_config["context"].items())
+            ARTIFACTS.update(image_config["context"])
 
-        dockerfile_artifact = {"dockerfile": {"source": image_config["docker_file"], "target": "Dockerfile"}}
-        IMAGE_ARTIFACTS.extend(list(dockerfile_artifact.items()))
+        ARTIFACTS.update({"dockerfile": {"source": image_config["docker_file"], "target": "Dockerfile"}})
+
         context = Context(
-            IMAGE_ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"]
+            ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"]
         )
-
 
         """
         Override parameters from parent in child.
@@ -129,6 +126,10 @@ if __name__ == "__main__":
                 FORMATTER.title(image.name)
                 FORMATTER.print_lines(image.log[-10:])
                 ANY_FAIL = True
+        if ANY_FAIL:
+            raise Exception("Build failed")
+        else:
+            FORMATTER.print("No errors")
 
         FORMATTER.title("Uploading Metrics")
         metrics = Metrics(
@@ -145,8 +146,4 @@ if __name__ == "__main__":
                 else:
                     raise Exception(f"Build passed. {e}")
 
-        if ANY_FAIL:
-            raise Exception("Build failed")
-        else:
-            FORMATTER.print("No errors")
         FORMATTER.separator()
