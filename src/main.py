@@ -92,6 +92,8 @@ if __name__ == "__main__":
 
     THREADS = {}
 
+    # In the context of the ThreadPoolExecutor each instance of image.build submitted 
+    # to it is executed concurrently in a separate thread. 
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         for image in IMAGES:
             THREADS[image.name] = executor.submit(image.build)
