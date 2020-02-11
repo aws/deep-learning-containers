@@ -1,0 +1,7 @@
+wheel==0.33.4
+docker==4.2.0
+pyfiglet==0.8.post1
+reprint==0.5.2
+ruamel.yaml==0.16.7
+boto3==1.11.11
+black==19.10b0
