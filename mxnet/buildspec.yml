@@ -49,6 +49,9 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
+        requirements:
+         source: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /requirements., *DEVICE_TYPE ]
+         target: requirements.txt
     BuildMXNetGPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &BUILD true
@@ -59,6 +62,9 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
+        requirements:
+         source: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /requirements., *DEVICE_TYPE ]
+         target: requirements.txt
     BuildMXNetCPUTrainPy2DockerImage:
       <<: *TRAINING_REPOSITORY
       build: true
@@ -69,6 +75,9 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
+        requirements:
+         source: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /requirements., *DEVICE_TYPE ]
+         target: requirements.txt
     BuildMXNetGPUTrainPy2DockerImage:
       <<: *TRAINING_REPOSITORY
       build: true
@@ -79,6 +88,9 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
+        requirements:
+         source: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /requirements., *DEVICE_TYPE ]
+         target: requirements.txt
     BuildMXNetCPUInferencePy3DockerImage:
       <<: *INFERENCE_REPOSITORY
       build: true
@@ -89,6 +101,9 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *INFERENCE_CONTEXT
+        requirements:
+         source: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /requirements., *DEVICE_TYPE ]
+         target: requirements.txt
     BuildMXNetGPUInferencePy3DockerImage:
       << : *INFERENCE_REPOSITORY
       build: true
@@ -99,6 +114,9 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *INFERENCE_CONTEXT
+        requirements:
+         source: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /requirements., *DEVICE_TYPE ]
+         target: requirements.txt
     BuildMXNetCPUInferencePy2DockerImage:
       << : *INFERENCE_REPOSITORY
       build: true
@@ -109,6 +127,9 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *INFERENCE_CONTEXT
+        requirements:
+         source: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /requirements., *DEVICE_TYPE ]
+         target: requirements.txt
     BuildMXNetGPUInferencePy2DockerImage:
       << : *INFERENCE_REPOSITORY
       build: true
@@ -119,4 +140,6 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *INFERENCE_CONTEXT
-
+        requirements:
+         source: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /requirements., *DEVICE_TYPE ]
+         target: requirements.txt
