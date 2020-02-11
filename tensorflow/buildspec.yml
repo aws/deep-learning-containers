@@ -30,6 +30,7 @@
   images:
     BuildTensorflowCPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
+      version: 1.15
       build: true
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
@@ -40,6 +41,7 @@
         <<: *TRAINING_CONTEXT
     BuildTensorflowGPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
+      version: 1.15
       build: true
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
@@ -50,6 +52,7 @@
         <<: *TRAINING_CONTEXT
     BuildTensorflowCPUTrainPy2DockerImage:
       <<: *TRAINING_REPOSITORY
+      version: 1.15
       build: true
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
@@ -60,6 +63,7 @@
         <<: *TRAINING_CONTEXT
     BuildTensorflowGPUTrainPy2DockerImage:
       <<: *TRAINING_REPOSITORY
+      version: 1.15
       build: true
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
