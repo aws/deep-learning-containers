@@ -59,10 +59,12 @@ class Buildspec:
         values from the environment
         """
 
-        # If the yaml object is a PlainScalarString and an environment variable
+        # If the yaml object is a PlainScalarString or ScalarFloat and an environment variable
         # with the same name exists, return the environment variable otherwise,
         # return the original yaml_object
-        if isinstance(yaml_object, ruamel.yaml.scalarstring.PlainScalarString):
+        string_type = ruamel.yaml.scalarstring.ScalarString
+        float_type = ruamel.yaml.scalarfloat.ScalarFloat
+        if isinstance(yaml_object, (string_type, float_type)):
             if yaml_object.anchor is not None:
                 if yaml_object.anchor.value is not None:
                     yaml_object = os.environ.get(yaml_object.anchor.value, yaml_object)
