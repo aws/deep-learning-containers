@@ -2,8 +2,6 @@ FROM ubuntu:16.04
 
 LABEL maintainer="Amazon AI"
 
-ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_mkl-1.6.0rc0-py2.py3-none-manylinux1_x86_64.whl
-
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib" \
