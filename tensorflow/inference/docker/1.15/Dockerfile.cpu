@@ -54,19 +54,11 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
+COPY requirements.txt requirements.txt
+
 # cython, falcon, gunicorn, grpc
-RUN ${PIP} install --no-cache-dir \
-    awscli==1.16.296 \
-    cython==0.29.12 \
-    falcon==2.0.0 \
-    gunicorn==19.9.0 \
-    gevent==1.4.0 \
-    requests==2.22.0 \
-    grpcio==1.24.1 \
-    protobuf==3.10.0 \
-# using --no-dependencies to avoid installing tensorflow binary
- && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api==1.15.0
+RUN ${PIP} install --no-cache-dir -r requirements.txt \
+ && rm requirements.txt
 
 COPY sagemaker /sagemaker
 

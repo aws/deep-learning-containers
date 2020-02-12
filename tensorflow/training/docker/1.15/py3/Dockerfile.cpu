@@ -23,7 +23,6 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
 # Define framework-related package sources
 ARG FRAMEWORK_SUPPORT_INSTALLABLE=sagemaker_tensorflow_container*.tar.gz
-ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15/AmazonLinux/cpu/final/tensorflow-1.15.0-cp36-cp36m-manylinux2010_x86_64.whl
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -88,32 +87,10 @@ RUN pip3 --no-cache-dir install --upgrade \
 RUN ln -s $(which python3) /usr/local/bin/python \
  && ln -s $(which pip3) /usr/bin/pip
 
-RUN pip install --no-cache-dir -U \
-    numpy==1.17.4 \
-    scipy==1.2.2 \
-    scikit-learn==0.20.3 \
-    pandas==0.24.2 \
-    Pillow==6.2.1 \
-    h5py==2.9.0 \
-    keras_applications==1.0.8 \
-    keras_preprocessing==1.1.0 \
-    keras==2.3.1 \
-    requests==2.22.0 \
-    smdebug==0.5.0.post0 \
-    sagemaker-experiments==0.1.3 \
-    mpi4py==3.0.2 \
-    "cryptography>=2.3" \
-    "sagemaker-tensorflow>=1.15,<1.16" \
-    # Let's install TensorFlow separately in the end to avoid
-    # the library version to be overwritten
- && pip install --force-reinstall --no-cache-dir -U \
-    ${TF_URL} \
- && pip install --force-reinstall --no-cache-dir -U \
-    horovod==0.18.2 \
- && pip install --no-cache-dir -U \
-    $FRAMEWORK_SUPPORT_INSTALLABLE \
-    awscli==1.17.7 \
- && rm -f $FRAMEWORK_SUPPORT_INSTALLABLE
+RUN pip install --no-cache-dir -U -r requirements.txt \
+ && rm -f \
+    requirements.txt \
+    $FRAMEWORK_SUPPORT_INSTALLABLE
 
 COPY dockerd-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py

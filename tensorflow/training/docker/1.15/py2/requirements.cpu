@@ -1,0 +1,18 @@
+numpy==1.16.5 
+scipy==1.2.2 
+scikit-learn==0.20.3 
+pandas==0.24.2 
+Pillow==6.2.1 
+h5py==2.9.0 
+keras_applications==1.0.8 
+keras_preprocessing==1.1.0 
+requests==2.22.0 
+keras==2.3.1 
+mpi4py==3.0.2 
+cryptography>=2.3 
+sagemaker-tensorflow>=1.15,<1.16 
+# Let's install TensorFlow separately in the end to avoid the library version to be overwritten
+https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15/AmazonLinux/cpu/final/tensorflow-1.15.0-cp27-cp27mu-manylinux2010_x86_64.whl --install-option='--force-reinstall' 
+sagemaker_tensorflow_container*.tar.gz
+awscli==1.17.7 
+horovod==0.18.2
