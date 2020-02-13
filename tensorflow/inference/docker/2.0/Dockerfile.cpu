@@ -53,6 +53,7 @@ COPY requirements.txt requirements.txt
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir -r requirements.txt \
+ && ${PIP} install --no-dependencies tensorflow-serving-api==2.0 \
  && rm requirements.txt
 
 COPY ./sagemaker /sagemaker
