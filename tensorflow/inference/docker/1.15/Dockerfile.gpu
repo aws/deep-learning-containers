@@ -94,7 +94,8 @@ COPY requirements.txt requirements.txt
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install -U --no-cache-dir -r requirements.txt \
-    rm requirements.txt
+ && ${PIP} install --no-dependencies tensorflow-serving-api-gpu==1.15.0 \
+ && rm requirements.txt
 
 COPY sagemaker /sagemaker
 

@@ -6,4 +6,3 @@ gevent==1.4.0
 requests==2.22.0 
 grpcio==1.24.1 
 protobuf==3.10.0 
-tensorflow-serving-api-gpu==1.15.0 --install-option='--no-dependencies'

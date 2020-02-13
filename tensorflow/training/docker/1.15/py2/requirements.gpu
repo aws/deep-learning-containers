@@ -13,5 +13,5 @@ cryptography>=2.3
 sagemaker-tensorflow>=1.15,<1.16 
 # Let's install TensorFlow separately in the end to avoid the library version to be overwritten
 https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15/AmazonLinux/gpu/final/tensorflow_gpu-1.15.0-cp27-cp27mu-manylinux2010_x86_64.whl --install-option='--force-reinstall'
-sagemaker_tensorflow_container*.tar.gz
+sagemaker_tensorflow_container-2.0.8.dev0.tar.gz
 awscli==1.17.7 
