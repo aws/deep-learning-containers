@@ -44,7 +44,7 @@ if __name__ == "__main__":
         image_config = image[1]
 
         if image_config.get("version") is not None:
-            if BUILDSPEC["version"] != image_config.get("version"):
+            if str(BUILDSPEC["version"]) != str(image_config.get("version")):
                 continue
 
         if image_config.get("context") is not None:
