@@ -52,6 +52,9 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
+        requirements:
+          source: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /requirements., *DEVICE_TYPE ]
+          target: requirements.txt
     BuildTensorflowGPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       version: 1.15
@@ -63,6 +66,9 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
+        requirements:
+          source: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /requirements., *DEVICE_TYPE ]
+          target: requirements.txt
     BuildTensorflowCPUTrainPy2DockerImage:
       <<: *TRAINING_REPOSITORY
       version: 1.15
@@ -74,6 +80,9 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
+        requirements:
+          source: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /requirements., *DEVICE_TYPE ]
+          target: requirements.txt
     BuildTensorflowGPUTrainPy2DockerImage:
       <<: *TRAINING_REPOSITORY
       version: 1.15
@@ -85,6 +94,9 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
+        requirements:
+          source: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /requirements., *DEVICE_TYPE ]
+          target: requirements.txt
     BuildTensorflowCPUInferenceDockerImage:
       <<: *INFERENCE_REPOSITORY
       build: true
@@ -95,6 +107,9 @@
       docker_file: !join [ docker/, *VERSION,  /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *INFERENCE_CONTEXT
+        requirements:
+          source: !join [ docker/, *VERSION, /requirements., *DEVICE_TYPE ]
+          target: requirements.txt
     BuildTensorflowGPUInferenceDockerImage:
       <<: *INFERENCE_REPOSITORY
       build: true
@@ -105,4 +120,6 @@
       docker_file: !join [ docker/, *VERSION,  /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *INFERENCE_CONTEXT
-
+        requirements:
+          source: !join [ docker/, *VERSION, /requirements., *DEVICE_TYPE ]
+          target: requirements.txt

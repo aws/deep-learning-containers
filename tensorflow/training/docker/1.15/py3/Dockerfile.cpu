@@ -78,6 +78,7 @@ RUN mkdir -p /root/.ssh/ \
 WORKDIR /
 
 COPY $FRAMEWORK_SUPPORT_INSTALLABLE .
+COPY requirements.txt requirements.txt
 
 RUN pip3 --no-cache-dir install --upgrade \
     pip \

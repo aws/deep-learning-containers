@@ -120,6 +120,7 @@ RUN pip --no-cache-dir install --upgrade \
 RUN ln -s $(which python) /usr/local/bin/python
 
 COPY $FRAMEWORK_SUPPORT_INSTALLABLE .
+COPY requirements.txt requirements.txt
 
 RUN pip install --no-cache-dir -U -r requirements.txt \
  && rm -f \
