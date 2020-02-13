@@ -125,7 +125,10 @@ RUN ln -s $(which python3) /usr/local/bin/python \
 COPY $FRAMEWORK_SUPPORT_INSTALLABLE .
 COPY requirements.txt requirements.txt
 
+# Let's install TensorFlow separately in the end to avoid
+# the library version to be overwritten
 RUN pip install --no-cache-dir -U -r requirements.txt \
+ && pip install --force-reinstall --no-cache-dir https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15/AmazonLinux/gpu/final/tensorflow_gpu-1.15.0-cp36-cp36m-manylinux2010_x86_64.whl \ 
  && rm -f $FRAMEWORK_SUPPORT_INSTALLABLE \
     requirements.txt
 

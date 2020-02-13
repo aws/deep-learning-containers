@@ -8,14 +8,12 @@ keras_applications==1.0.8
 keras_preprocessing==1.1.0 
 keras==2.3.1 
 requests==2.22.0 
-smdebug==0.5.0.post0 
+smdebug==0.5.0
 sagemaker-experiments==0.1.3 
 mpi4py==3.0.2 
 cryptography>=2.3 
 sagemaker-tensorflow>=1.15,<1.16 
 # Let's install TensorFlow separately in the end to avoid
 # the library version to be overwritten
-https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15/AmazonLinux/cpu/final/tensorflow-1.15.0-cp36-cp36m-manylinux2010_x86_64.whl --install-option='--force-reinstall'
-horovod==0.18.2 --install-option='--force-reinstall'
 sagemaker_tensorflow_container-2.0.8.dev0.tar.gz
 awscli==1.17.7 

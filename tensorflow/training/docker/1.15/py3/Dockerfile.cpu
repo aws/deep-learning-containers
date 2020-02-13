@@ -10,8 +10,6 @@ ENV DEBCONF_NONINTERACTIVE_SEEN=true
 ENV KMP_AFFINITY=granularity=fine,compact,1,0
 ENV KMP_BLOCKTIME=1
 ENV KMP_SETTINGS=0
-# Python won’t try to write .pyc or .pyo files on the import of source modules
-ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 # See http://bugs.python.org/issue19846
 ENV PYTHONIOENCODING=UTF-8
@@ -89,6 +87,9 @@ RUN ln -s $(which python3) /usr/local/bin/python \
  && ln -s $(which pip3) /usr/bin/pip
 
 RUN pip install --no-cache-dir -U -r requirements.txt \
+ && pip install --no-cache-dir -U --force-reinstall \
+    https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15/AmazonLinux/cpu/final/tensorflow-1.15.0-cp36-cp36m-manylinux2010_x86_64.whl \ 
+    horovod==0.18.2 \
  && rm -f \
     requirements.txt \
     $FRAMEWORK_SUPPORT_INSTALLABLE
