@@ -89,6 +89,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     python=$PYTHON_VERSION \
     numpy==1.16.4 \
     ipython==5.8.0 \
+    sphinxcontrib-websupport==1.1.2 \
     mkl==2019.4 \
     mkl-include==2019.4 \
     cython==0.29.12 \

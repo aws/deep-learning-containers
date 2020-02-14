@@ -17,15 +17,28 @@
 
   context:
     training_context: &TRAINING_CONTEXT
-      dist/sagemaker_tensorflow_container-2.0.8.dev0.tar.gz: sagemaker_tensorflow_container-2.0.8.dev0.tar.gz
-      docker/build_artifacts/dockerd-entrypoint.py: dockerd-entrypoint.py
-      docker/build_artifacts/deep_learning_container.py: deep_learning_container.py
+      sagemaker_package_name:
+        source: dist/sagemaker_tensorflow_container-2.0.8.dev0.tar.gz
+        target: sagemaker_tensorflow_container-2.0.8.dev0.tar.gz
+      dockerd-entrypoint:
+        source: docker/build_artifacts/dockerd-entrypoint.py
+        target: dockerd-entrypoint.py
+      deep_learning_container:
+        source: docker/build_artifacts/deep_learning_container.py
+        target: deep_learning_container.py
     inference_context: &INFERENCE_CONTEXT
-      docker/build_artifacts/sagemaker: sagemaker
-      docker/build_artifacts/deep_learning_container.py: deep_learning_container.py
-      docker/build_artifacts/__init__.py: __init__.py 
-      docker/build_artifacts/dockerd-entrypoint.py: dockerd-entrypoint.py
-
+      sagemaker_package_name:
+        source: docker/build_artifacts/sagemaker
+        target: sagemaker
+      deep_learning_container:
+        source: docker/build_artifacts/deep_learning_container.py
+        target: deep_learning_container.py
+      init:
+        source: docker/build_artifacts/__init__.py
+        target: __init__.py
+      dockerd-entrypoint:
+        source: docker/build_artifacts/dockerd-entrypoint.py
+        target: dockerd-entrypoint.py
 
   images:
     BuildTensorflowCPUTrainPy3DockerImage:
