@@ -40,7 +40,7 @@ def run_test_job(images, commit, codebuild_project):
     client = boto3.client("codebuild")
     client.start_build(
         projectName=codebuild_project,
-        environmentVariablesOverride=env_overrides,
+        environmentVariablesOverride=[env_overrides],
         sourceVersion=commit
     )
 
