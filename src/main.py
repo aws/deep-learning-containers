@@ -15,10 +15,10 @@ language governing permissions and limitations under the License.
 
 import os
 import argparse
+import boto3
 from copy import deepcopy
 import concurrent.futures
 
-# import utils
 import constants
 
 from context import Context
@@ -26,6 +26,24 @@ from metrics import Metrics
 from image import DockerImage
 from buildspec import Buildspec
 from output import OutputFormatter
+
+
+def run_test_job(images, commit, codebuild_project):
+    ecr_urls = []
+    for docker_image in images:
+        ecr_urls.append(docker_image.ecr_url)
+
+    images_arg = " ".join(ecr_urls)
+
+    env_overrides = {"name": "DLC_IMAGES", "value": images_arg, "type": "PLAINTEXT"}
+
+    client = boto3.client("codebuild")
+    client.start_build(
+        projectName=codebuild_project,
+        environmentVariablesOverride=env_overrides,
+        sourceVersion=commit
+    )
+
 
 # TODO: Abstract away to ImageBuilder class
 if __name__ == "__main__":
@@ -50,11 +68,16 @@ if __name__ == "__main__":
         if image_config.get("context") is not None:
             ARTIFACTS.update(image_config["context"])
 
-        ARTIFACTS.update({"dockerfile": {"source": image_config["docker_file"], "target": "Dockerfile"}})
-
-        context = Context(
-            ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"]
+        ARTIFACTS.update(
+            {
+                "dockerfile": {
+                    "source": image_config["docker_file"],
+                    "target": "Dockerfile",
+                }
+            }
         )
+
+        context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
 
         """
         Override parameters from parent in child.
@@ -91,8 +114,8 @@ if __name__ == "__main__":
 
     THREADS = {}
 
-    # In the context of the ThreadPoolExecutor each instance of image.build submitted 
-    # to it is executed concurrently in a separate thread. 
+    # In the context of the ThreadPoolExecutor each instance of image.build submitted
+    # to it is executed concurrently in a separate thread.
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         for image in IMAGES:
             THREADS[image.name] = executor.submit(image.build)
@@ -147,3 +170,7 @@ if __name__ == "__main__":
                     raise Exception(f"Build passed. {e}")
 
         FORMATTER.separator()
+
+    # Run sanity test job
+    commit_hash = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+    run_test_job(IMAGES, commit_hash, "dlc-sanity-tests")
