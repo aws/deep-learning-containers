@@ -173,4 +173,4 @@ if __name__ == "__main__":
 
     # Run sanity test job
     commit_hash = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
-    run_test_job(IMAGES, commit_hash, "dlc-sanity-tests")
+    run_test_job(IMAGES, commit_hash, "arjunake-dlc-sanity-checks")
