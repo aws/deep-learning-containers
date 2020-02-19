@@ -29,9 +29,36 @@ from output import OutputFormatter
 
 # TODO: Abstract away to ImageBuilder class
 if __name__ == "__main__":
+    FORMATTER = OutputFormatter(constants.PADDING)
     parser = argparse.ArgumentParser(description="Program to build docker images")
     parser.add_argument("--buildspec", required=True, type=str)
+    parser.add_argument("--frameworks", type=str, default=constants.ALL)
+    parser.add_argument("--device_types", type=str, default=constants.ALL)
+    parser.add_argument("--image_types", type=str, default=constants.ALL)
+    parser.add_argument("--python_versions", type=str, default=constants.ALL)
+
     ARGS = parser.parse_args()
+
+    # Set necessary environment variables
+    to_build = {'frameworks': constants.FRAMEWORKS,
+                'device_types': constants.DEVICE_TYPES,
+                'image_types': constants.IMAGE_TYPES,
+                'python_versions': constants.PYTHON_VERSIONS}
+    if ARGS.frameworks != constants.ALL:
+        to_build['frameworks'] = constants.FRAMEWORKS.intersection(set(ARGS.frameworks.split(',')))
+    if ARGS.device_types != constants.ALL:
+        to_build['device_types'] = constants.DEVICE_TYPES.intersection(set(ARGS.device_types.split(',')))
+    if ARGS.image_types != constants.ALL:
+        to_build['image_types'] = constants.IMAGE_TYPES.intersection(set(ARGS.image_types.split(',')))
+    if ARGS.python_versions != constants.ALL:
+        to_build['python_versions'] = constants.PYTHON_VERSIONS.intersection(set(ARGS.python_versions.split(',')))
+
+    for framework in to_build['frameworks']:
+        for device_type in to_build['device_types']:
+            for image_type in to_build['image_types']:
+                for python_version in to_build['python_versions']:
+                    env_variable = f"{framework.upper()}_{device_type.upper()}_{image_type.upper()}_{python_version.upper()}"
+                    os.environ[env_variable] = 'true'
 
     BUILDSPEC = Buildspec()
     BUILDSPEC.load(ARGS.buildspec)
@@ -84,7 +111,6 @@ if __name__ == "__main__":
 
         IMAGES.append(image_object)
 
-    FORMATTER = OutputFormatter(constants.PADDING)
 
     FORMATTER.banner("DLC")
     FORMATTER.title("Status")

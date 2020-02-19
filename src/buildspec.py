@@ -45,26 +45,34 @@ class Buildspec:
             None
 
         """
+
+
         with open(path, "r") as buildspec_file:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 self._buildspec = self.yaml.load(buildspec_file)
 
-        for key in self._buildspec:
-            self._buildspec[key] = self.override(self._buildspec[key])
+        self._buildspec = self.override(self._buildspec)
 
     def override(self, yaml_object):
         """
         This method overrides anchors in a scalar string with
         values from the environment
         """
-
         # If the yaml object is a PlainScalarString or ScalarFloat and an environment variable
         # with the same name exists, return the environment variable otherwise,
         # return the original yaml_object
-        string_type = ruamel.yaml.scalarstring.ScalarString
-        float_type = ruamel.yaml.scalarfloat.ScalarFloat
-        if isinstance(yaml_object, (string_type, float_type)):
+        scalar_types = (
+                        ruamel.yaml.scalarstring.ScalarString, 
+                        ruamel.yaml.scalarfloat.ScalarFloat,
+                        ruamel.yaml.scalarstring.PlainScalarString,
+                        ruamel.yaml.scalarbool.ScalarBoolean,
+                        )
+
+        if isinstance(yaml_object, ruamel.yaml.comments.CommentedMap):
+            for key in yaml_object:
+                yaml_object[key] = self.override(yaml_object[key])
+        elif isinstance(yaml_object, scalar_types):
             if yaml_object.anchor is not None:
                 if yaml_object.anchor.value is not None:
                     yaml_object = os.environ.get(yaml_object.anchor.value, yaml_object)
