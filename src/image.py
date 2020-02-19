@@ -42,6 +42,9 @@ class DockerImage:
         self.tag = tag
         self.ecr_url = f"{self.repository}:{self.tag}"
 
+        if not isinstance(to_build, bool):
+            to_build = True if to_build == 'true' else False
+
         self.to_build = to_build
         self.build_status = None
         self.client = APIClient(base_url=constants.DOCKER_URL)
