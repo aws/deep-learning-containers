@@ -12,41 +12,40 @@ distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
-import requests
+import os
+
 import json
+import requests
 
 
 class GitHubModerator:
     """
-    Methods to handle interacting with GitHub status for a given PR
+    Methods to handle interacting with GitHub
     """
+
     GITHUB_API_URL = "https://api.github.com"
 
     def __init__(self, user, repo, token):
         self.user = user
         self.repo = repo
         self.token = token
+        self.commit_hash = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')
 
     def get_authorization_header(self):
         return {"Authorization": "token {}".format(self.token)}
 
-    def set_status(self, state, pull_request, commit_hash=None, **kwargs):
+    def set_status(self, state, **kwargs):
         """
 
         Args:
             state: success, failure, pending, error
-            pull_request: PR number to send status to
-            commit_hash: hash of commit where status will be set. If not set, assume latest on the PR
             **kwargs: common parameters - target_url, description, context
 
         Returns:
             requests object
 
         """
-        if not commit_hash:
-            commit_hash = self.get_latest_sha(pull_request)
-
-        url = f"{self.GITHUB_API_URL}/repos/{self.user}/{self.repo}/statuses/{commit_hash}"
+        url = f"{self.GITHUB_API_URL}/repos/{self.user}/{self.repo}/statuses/{self.commit_hash}"
         data = {"state": state}
 
         for key, value in kwargs.items():
@@ -63,7 +62,7 @@ class GitHubModerator:
         Returns: <str> sha ID of commit
         """
         pr_status = self.get_pr_status(pull_request)
-        return pr_status.json()['head']['sha']
+        return pr_status.json()["head"]["sha"]
 
     def get_pr_status(self, pull_request):
         """
@@ -71,5 +70,7 @@ class GitHubModerator:
 
         Returns: full response object from PR
         """
-        url = f"{self.GITHUB_API_URL}/repos/{self.user}/{self.repo}/pulls/{pull_request}"
+        url = (
+            f"{self.GITHUB_API_URL}/repos/{self.user}/{self.repo}/pulls/{pull_request}"
+        )
         return requests.get(url)
