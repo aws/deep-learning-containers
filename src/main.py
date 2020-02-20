@@ -38,7 +38,7 @@ def run_test_job(images, commit, codebuild_project):
     env_overrides = {"name": "DLC_IMAGES", "value": images_arg, "type": "PLAINTEXT"}
 
     client = boto3.client("codebuild")
-    client.start_build(
+    return client.start_build(
         projectName=codebuild_project,
         environmentVariablesOverride=[env_overrides],
         sourceVersion=commit
