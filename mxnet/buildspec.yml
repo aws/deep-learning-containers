@@ -7,13 +7,13 @@
     training_repository: &TRAINING_REPOSITORY
       image_type: &TRAINING_IMAGE_TYPE training
       root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
-      repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
+      repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
       repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ] 
     
     inference_repository: &INFERENCE_REPOSITORY
       image_type: &INFERENCE_IMAGE_TYPE inference
       root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
-      repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
+      repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
       repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ] 
 
   context:
