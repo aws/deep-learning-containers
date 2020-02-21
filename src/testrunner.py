@@ -17,7 +17,7 @@ import json
 
 import boto3
 
-from constants
+import constants
 
 
 def run_test_job(commit, codebuild_project):
