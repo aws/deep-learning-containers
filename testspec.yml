@@ -10,4 +10,5 @@ phases:
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - pip install -r test/requirements.txt
       - echo Running pytest sanity tests...
-      - pytest --images $DLC_IMAGES test/sanity/
+      - cd test
+      - pytest --images $DLC_IMAGES sanity/
