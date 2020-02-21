@@ -35,8 +35,8 @@ def main():
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
 
     # Start sanity test job
-    run_test_job(images, commit, "arjunake-dlc-sanity-checks")
+    run_test_job(images, commit, "dlc-sanity-test")
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     main()
