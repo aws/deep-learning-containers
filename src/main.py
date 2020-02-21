@@ -18,8 +18,7 @@ import argparse
 from copy import deepcopy
 import concurrent.futures
 
-import constants
-
+import constants, utils
 from context import Context
 from metrics import Metrics
 from image import DockerImage
@@ -27,24 +26,6 @@ from buildspec import Buildspec
 from output import OutputFormatter
 
 
-def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
-    """
-    Set environment variables necessary for tests
-
-    :param images: List of image objects
-    :param images_env: Name for the images environment variable
-    :param kwargs: other environment variables to set
-    """
-    ecr_urls = []
-    for docker_image in images:
-        ecr_urls.append(docker_image.ecr_url)
-
-    images_arg = " ".join(ecr_urls)
-    os.environ[images_env] = images_arg
-
-    if kwargs:
-        for key, value in kwargs:
-            os.environ[key] = value
 
 
 # TODO: Abstract away to ImageBuilder class
@@ -174,4 +155,4 @@ if __name__ == "__main__":
         FORMATTER.separator()
 
     # Set environment variables to be consumed by test jobs
-    set_test_env(IMAGES)
+    utils.set_test_env(IMAGES)

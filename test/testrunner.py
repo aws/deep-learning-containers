@@ -13,29 +13,29 @@ ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
 import os
+import json
 
 import boto3
 
+from src import constants
 
-def run_test_job(images, commit, codebuild_project):
-    env_overrides = {"name": "DLC_IMAGES", "value": images, "type": "PLAINTEXT"}
+
+def run_test_job(commit, codebuild_project):
+    with open(constants.TEST_ENV) as test_env_file:
+        env_overrides = json.load(test_env_file)
 
     client = boto3.client("codebuild")
     return client.start_build(
         projectName=codebuild_project,
-        environmentVariablesOverride=[env_overrides],
+        environmentVariablesOverride=env_overrides,
         sourceVersion=commit
     )
 
 
 def main():
-
-    # Currently, all test codebuild jobs require these two environment variables
-    images = os.getenv("DLC_IMAGES")
-    commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
-
     # Start sanity test job
-    run_test_job(images, commit, "dlc-sanity-test")
+    commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+    run_test_job(commit, "dlc-sanity-test")
 
 
 if __name__ == "__main__":
