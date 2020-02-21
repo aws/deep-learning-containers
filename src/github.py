@@ -18,7 +18,7 @@ import json
 import requests
 
 
-class GitHubModerator:
+class GitHubHandler:
     """
     Methods to handle interacting with GitHub
     """
