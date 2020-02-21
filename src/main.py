@@ -15,7 +15,6 @@ language governing permissions and limitations under the License.
 
 import os
 import argparse
-import boto3
 from copy import deepcopy
 import concurrent.futures
 
@@ -28,21 +27,24 @@ from buildspec import Buildspec
 from output import OutputFormatter
 
 
-def run_test_job(images, commit, codebuild_project):
+def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
+    """
+    Set environment variables necessary for tests
+
+    :param images: List of image objects
+    :param images_env: Name for the images environment variable
+    :param kwargs: other environment variables to set
+    """
     ecr_urls = []
     for docker_image in images:
         ecr_urls.append(docker_image.ecr_url)
 
     images_arg = " ".join(ecr_urls)
+    os.environ[images_env] = images_arg
 
-    env_overrides = {"name": "DLC_IMAGES", "value": images_arg, "type": "PLAINTEXT"}
-
-    client = boto3.client("codebuild")
-    return client.start_build(
-        projectName=codebuild_project,
-        environmentVariablesOverride=[env_overrides],
-        sourceVersion=commit
-    )
+    if kwargs:
+        for key, value in kwargs:
+            os.environ[key] = value
 
 
 # TODO: Abstract away to ImageBuilder class
@@ -171,6 +173,5 @@ if __name__ == "__main__":
 
         FORMATTER.separator()
 
-    # Run sanity test job
-    commit_hash = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
-    run_test_job(IMAGES, commit_hash, "arjunake-dlc-sanity-checks")
+    # Set environment variables to be consumed by test jobs
+    set_test_env(IMAGES)
