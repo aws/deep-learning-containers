@@ -21,7 +21,7 @@ def run_test_job(images, commit, codebuild_project):
     env_overrides = {"name": "DLC_IMAGES", "value": images, "type": "PLAINTEXT"}
 
     client = boto3.client("codebuild")
-    client.start_build(
+    return client.start_build(
         projectName=codebuild_project,
         environmentVariablesOverride=[env_overrides],
         sourceVersion=commit
@@ -35,7 +35,7 @@ def main():
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
 
     # Start sanity test job
-    run_test_job(images, commit, "dlc-sanity-test")
+    run_test_job(images, commit, "arjunake-dlc-sanity-checks")
 
 
 if __name__ == "main":
