@@ -26,8 +26,6 @@ from buildspec import Buildspec
 from output import OutputFormatter
 
 
-
-
 # TODO: Abstract away to ImageBuilder class
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Program to build docker images")

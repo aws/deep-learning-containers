@@ -40,6 +40,5 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
         for key, value in kwargs:
             test_envs.append({"name": key, "value": value, "type": "PLAINTEXT"})
 
-    with open(constants.TEST_ENV, 'w') as ef:
+    with open(constants.TEST_ENV, "w") as ef:
         json.dump(test_envs, ef)
-

@@ -15,6 +15,7 @@ language governing permissions and limitations under the License.
 
 import os
 
+
 # Function Status Codes
 SUCCESS = 0
 FAIL = 1
@@ -38,4 +39,4 @@ ERROR = 2
 DEBUG = 3
 
 # Test environment file
-TEST_ENV = os.path.join(os.path.expanduser('~'), 'testenv.json')
+TEST_ENV = os.path.join(os.path.expanduser("~"), "testenv.json")

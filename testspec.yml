@@ -6,4 +6,8 @@ phases:
       docker: 18
   build:
     commands:
-      - echo Empty testspec
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - pip install -r test/requirements.txt
+      - echo Running pytest sanity tests...
+      - pytest --images $DLC_IMAGES test/sanity/

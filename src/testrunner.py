@@ -28,7 +28,7 @@ def run_test_job(commit, codebuild_project):
     return client.start_build(
         projectName=codebuild_project,
         environmentVariablesOverride=env_overrides,
-        sourceVersion=commit
+        sourceVersion=commit,
     )
 
 
