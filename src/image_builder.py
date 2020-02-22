@@ -48,11 +48,16 @@ def image_builder(buildspec):
         if image_config.get("context") is not None:
             ARTIFACTS.update(image_config["context"])
 
-        ARTIFACTS.update({"dockerfile": {"source": image_config["docker_file"], "target": "Dockerfile"}})
-
-        context = Context(
-            ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"]
+        ARTIFACTS.update(
+            {
+                "dockerfile": {
+                    "source": image_config["docker_file"],
+                    "target": "Dockerfile",
+                }
+            }
         )
+
+        context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
 
         """
         Override parameters from parent in child.
@@ -82,14 +87,13 @@ def image_builder(buildspec):
 
         IMAGES.append(image_object)
 
-
     FORMATTER.banner("DLC")
     FORMATTER.title("Status")
 
     THREADS = {}
 
-    # In the context of the ThreadPoolExecutor each instance of image.build submitted 
-    # to it is executed concurrently in a separate thread. 
+    # In the context of the ThreadPoolExecutor each instance of image.build submitted
+    # to it is executed concurrently in a separate thread.
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         for image in IMAGES:
             THREADS[image.name] = executor.submit(image.build)

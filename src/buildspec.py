@@ -46,7 +46,6 @@ class Buildspec:
 
         """
 
-
         with open(path, "r") as buildspec_file:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
@@ -63,11 +62,11 @@ class Buildspec:
         # with the same name exists, return the environment variable otherwise,
         # return the original yaml_object
         scalar_types = (
-                        ruamel.yaml.scalarstring.ScalarString, 
-                        ruamel.yaml.scalarfloat.ScalarFloat,
-                        ruamel.yaml.scalarstring.PlainScalarString,
-                        ruamel.yaml.scalarbool.ScalarBoolean,
-                        )
+            ruamel.yaml.scalarstring.ScalarString,
+            ruamel.yaml.scalarfloat.ScalarFloat,
+            ruamel.yaml.scalarstring.PlainScalarString,
+            ruamel.yaml.scalarbool.ScalarBoolean,
+        )
 
         if isinstance(yaml_object, ruamel.yaml.comments.CommentedMap):
             for key in yaml_object:

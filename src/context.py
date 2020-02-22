@@ -65,10 +65,10 @@ class Context:
         with tarfile.open(self.context_path, "w:gz") as tar:
             for artifact_name in artifacts:
                 artifact = artifacts[artifact_name]
-                if 'source' not in artifact or 'target' not in artifact:
+                if "source" not in artifact or "target" not in artifact:
                     continue
-                source = os.path.join(self.artifact_root, artifact['source'])
-                target = artifact['target']
+                source = os.path.join(self.artifact_root, artifact["source"])
+                target = artifact["target"]
                 tar.add(source, arcname=target)
 
     def remove(self):

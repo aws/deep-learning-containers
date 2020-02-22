@@ -16,11 +16,11 @@ language governing permissions and limitations under the License.
 import os
 
 # Environment settings
-FRAMEWORKS={"mxnet", "tensorflow", "pytorch"}
-DEVICE_TYPES={"cpu", "gpu"}
-IMAGE_TYPES={"train", "inference"}
-PYTHON_VERSIONS={"py2", "py3"}
-ALL = 'all'
+FRAMEWORKS = {"mxnet", "tensorflow", "pytorch"}
+DEVICE_TYPES = {"cpu", "gpu"}
+IMAGE_TYPES = {"train", "inference"}
+PYTHON_VERSIONS = {"py2", "py3"}
+ALL = "all"
 
 # Function Status Codes
 SUCCESS = 0
