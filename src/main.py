@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     if os.environ.get('BUILD_CONTEXT') == 'PR':
         g = GitHubHandler("aws", "deep-learning-containers")
-        PR_NUMBER = os.getenv("CODEBUILD_SOURCE_VERSION")
+        PR_NUMBER = os.getenv("CODEBUILD_SOURCE_VERSION").split('/')[-1]
         files = '\n'.join(g.get_pr_files_changed(PR_NUMBER))
 
         dockerfile_match = re.findall("\S+Dockerfile\S+", files) 
