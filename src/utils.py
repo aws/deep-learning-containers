@@ -61,11 +61,6 @@ def pr_build_setup(pr_number, framework):
         image_types.append(image_type)
         py_versions.append(py_version)
 
-    # If no dockerfiles have changed in this framework, do nothing
-    device_types = []
-    image_types = []
-    py_versions = []
-
     # Rule 2: If the buildspec file for a framework changes, build all images for that framework
     rule = re.findall(r"\S+\/buildspec.yml", files)
     for buildspec in rule:

@@ -21,7 +21,6 @@ DEVICE_TYPES = {"cpu", "gpu"}
 IMAGE_TYPES = {"train", "inference"}
 PYTHON_VERSIONS = {"py2", "py3"}
 ALL = "all"
-NONE = "none"
 
 # Function Status Codes
 SUCCESS = 0
