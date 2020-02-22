@@ -2,6 +2,8 @@ FROM ubuntu:16.04
 
 LABEL maintainer="Amazon AI"
 
+# Add some comment to test PR build
+
 ARG PYTHON=python3
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.6.8
