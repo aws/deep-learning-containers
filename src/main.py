@@ -36,7 +36,7 @@ if __name__ == "__main__":
     )
     python_versions = (
         args.python_versions.split(",")
-        if not args.python_version == contstants.ALL
+        if not args.python_versions == contstants.ALL
         else args.python_versions
     )
 
