@@ -46,25 +46,20 @@ def pr_build_setup(pr_number, framework):
     for dockerfile in rule:
 
         dockerfile = dockerfile.split('/')
-        print(dockerfile)
         framework_change = dockerfile[0]
        
         # If the modified dockerfile belongs to a different
         # framework, do nothing
-        print(f"{framework}:{framework_change}")
         if framework_change != framework:
             continue
 
         image_type = dockerfile[1]
         py_version = dockerfile[4]
         device_type = dockerfile[-1].split(".")[-1]
-        print(image_type)
         device_types.append(device_type)
         image_types.append(image_type)
         py_versions.append(py_version)
 
-    print(device_types)
-    print(image_types)
 
     # Rule 2: If the buildspec file for a framework changes, build all images for that framework
     rule = re.findall(r"\S+\/buildspec.yml", files)
@@ -108,7 +103,7 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
     }
 
     if os.environ.get("BUILD_CONTEXT") == "PR":
-        pr_number = "pr/16" #os.getenv("CODEBUILD_SOURCE_VERSION")
+        pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
         if pr_number is not None:
             pr_number = int(pr_number.split("/")[-1])
         device_types, image_types, py_versions = pr_build_setup(
@@ -119,15 +114,12 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
         to_build["device_types"] = constants.DEVICE_TYPES.intersection(
             set(device_types)
         )
-        print(f"{constants.DEVICE_TYPES}:{device_types}")
     if image_types != constants.ALL:
         to_build["image_types"] = constants.IMAGE_TYPES.intersection(set(image_types))
-        print(f"{constants.IMAGE_TYPES}:{image_types}")
     if py_versions != constants.ALL:
         to_build["py_versions"] = constants.PYTHON_VERSIONS.intersection(
             set(py_versions)
         )
-    print(to_build)
     for device_type in to_build["device_types"]:
         for image_type in to_build["image_types"]:
             for py_version in to_build["py_versions"]:
