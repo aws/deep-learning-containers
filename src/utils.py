@@ -46,13 +46,25 @@ def pr_build_setup(pr_number, framework):
     for dockerfile in rule:
 
         dockerfile = dockerfile.split('/')
+        framework_change = dockerfile[0]
+       
+        # If the modified dockerfile belongs to a different
+        # framework, do nothing
+        if framework_change != framework:
+            continue
+
         image_type = dockerfile[1]
         py_version = dockerfile[4]
-        device_type = dockerfile[-1].split(".")
+        device_type = dockerfile[-1].split(".")[-1]
 
         device_types.append(device_type)
         image_types.append(image_type)
         py_versions.append(py_version)
+
+    # If no dockerfiles have changed in this framework, do nothing
+    device_types = []
+    image_types = []
+    py_versions = []
 
     # Rule 2: If the buildspec file for a framework changes, build all images for that framework
     rule = re.findall(r"\S+\/buildspec.yml", files)
