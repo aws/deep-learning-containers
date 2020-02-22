@@ -1,4 +1,4 @@
-from github import GitHubStatusHandler
+from github import GitHubHandler
 import os
 from image_builder import image_builder
 import argparse
@@ -36,8 +36,9 @@ if __name__ == "__main__":
     python_versions = []
 
     if os.environ.get('BUILD_CONTEXT') == 'PR':
-        # g = GitHubStatusHandler("aws", "deep-learning-containers", "11")
-        files = '\n'.join(g.get_pr_changeset())
+        g = GitHubHandler("aws", "deep-learning-containers")
+        PR_NUMBER = os.getenv("CODEBUILD_SOURCE_VERSION")
+        files = '\n'.join(g.get_pr_files_changed(PR_NUMBER))
 
         dockerfile_match = re.findall("\S+Dockerfile\S+", files) 
         buildspec_match = re.findall("\S+\/buildspec.yml", files)

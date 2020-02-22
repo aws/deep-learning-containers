@@ -81,3 +81,21 @@ class GitHubHandler:
             f"{self.GITHUB_API_URL}/repos/{self.user}/{self.repo}/pulls/{pull_request}"
         )
         return requests.get(url)
+
+    def get_pr_files_changed(self, pull_request):
+        """
+        Get the list of files changed in a PR
+
+        Returns: List of filenames
+        """
+
+        url = (
+            f"{self.GITHUB_API_URL}/repos/{self.user}/{self.repo}/pulls/{pull_request}/files"
+        )
+
+
+        response = requests.get(url)
+        files_changed = json.loads(response.text)
+        return [_file['filename'] for _file in files_changed]
+
+
