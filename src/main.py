@@ -153,4 +153,4 @@ if __name__ == "__main__":
         FORMATTER.separator()
 
     # Set environment variables to be consumed by test jobs
-    utils.set_test_env(IMAGES)
+    utils.set_test_env(IMAGES, BUILD_CONTEXT=os.getenv('BUILD_CONTEXT'))
