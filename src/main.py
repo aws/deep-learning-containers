@@ -1,18 +1,9 @@
-from github import GitHubHandler
-import os
-from image_builder import image_builder
 import argparse
-import constants
-import re
 
 import utils
 import constants
 
-from context import Context
-from metrics import Metrics
-from image import DockerImage
-from buildspec import Buildspec
-from output import OutputFormatter
+from image_builder import image_builder
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Program to build docker images")
@@ -36,7 +27,7 @@ if __name__ == "__main__":
     )
     python_versions = (
         args.python_versions.split(",")
-        if not args.python_versions == contstants.ALL
+        if not args.python_versions == constants.ALL
         else args.python_versions
     )
 
@@ -44,6 +35,6 @@ if __name__ == "__main__":
         args.framework,
         device_types=device_types,
         image_types=image_types,
-        python_versions=python_versions,
+        py=python_versions,
     )
     image_builder(args.buildspec)
