@@ -70,7 +70,7 @@ def pr_build_setup(pr_number, framework):
         image_types = constants.ALL
         py_versions = constants.ALL
 
-    return device_types, image_types, py_version
+    return device_types, image_types, py_versions
 
 
 def build_setup(framework, device_types=None, image_types=None, py_versions=None):
