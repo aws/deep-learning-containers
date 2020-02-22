@@ -8,24 +8,38 @@
     training_repository: &TRAINING_REPOSITORY
         image_type: &IMAGE_TYPE training
         root: !join [ *FRAMEWORK, "/", *IMAGE_TYPE ]
-        repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *IMAGE_TYPE]
+        repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *IMAGE_TYPE]
         repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ] 
     inference_repository: &INFERENCE_REPOSITORY
         image_type: &IMAGE_TYPE inference
         root: !join [ *FRAMEWORK, "/", *IMAGE_TYPE ]
-        repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *IMAGE_TYPE]
+        repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *IMAGE_TYPE]
         repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
   context:
     training_context: &TRAINING_CONTEXT
-      docker/build_artifacts/changehostname.c: changehostname.c
-      docker/build_artifacts/start_with_right_hostname.sh: start_with_right_hostname.sh 
-      dist/sagemaker_pytorch_container-1.3.1-py2.py3-none-any.whl: sagemaker_pytorch_container-1.3.1-py2.py3-none-any.whl
+      changehostname:
+        source: docker/build_artifacts/changehostname.c
+        target: changehostname.c
+      start_with_right_hostname:
+        source: docker/build_artifacts/start_with_right_hostname.sh
+        target: start_with_right_hostname.sh
+      sagemaker_package_name:
+        source: dist/sagemaker_pytorch_container-1.3.1-py2.py3-none-any.whl
+        target: sagemaker_pytorch_container-1.3.1-py2.py3-none-any.whl
     inference_context: &INFERENCE_CONTEXT
-      docker/build_artifacts/mms-entrypoint.py: mms-entrypoint.py
-      docker/build_artifacts/config.properties: config.properties
-      docker/build_artifacts/deep_learning_container.py: deep_learning_container.py
-      dist/sagemaker_pytorch_serving_container-1.3-py2.py3-none-any.whl: sagemaker_pytorch_serving_container-1.3-py2.py3-none-any.whl
+      mms-entrypoint:
+        source: docker/build_artifacts/mms-entrypoint.py
+        target: mms-entrypoint.py
+      config:
+        source: docker/build_artifacts/config.properties
+        target: config.properties
+      deep_learning_container:
+        source: docker/build_artifacts/deep_learning_container.py
+        target: deep_learning_container.py
+      sagemaker_package_name:
+        source: dist/sagemaker_pytorch_serving_container-1.3-py2.py3-none-any.whl
+        target: sagemaker_pytorch_serving_container-1.3-py2.py3-none-any.whl
 
   images:
     BuildCPUPTTrainPy3DockerImage:

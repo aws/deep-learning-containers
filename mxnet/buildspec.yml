@@ -7,25 +7,36 @@
     training_repository: &TRAINING_REPOSITORY
       image_type: &TRAINING_IMAGE_TYPE training
       root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
-      repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
+      repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
       repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ] 
     
     inference_repository: &INFERENCE_REPOSITORY
       image_type: &INFERENCE_IMAGE_TYPE inference
       root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
-      repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
+      repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
       repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ] 
 
   context:
-      docker/artifacts/deep_learning_container.py: deep_learning_container.py
-      docker/artifacts/__init__.py: __init__.py 
+      deep_learning_container.py:
+        source: docker/artifacts/deep_learning_container.py
+        target: deep_learning_container.py
       training_context: &TRAINING_CONTEXT
-          dist/sagemaker_mxnet_container-3.1.5.dev0.tar.gz: sagemaker_mxnet_container.tar.gz
-          docker/artifacts/dockerd-entrypoint.py: dockerd-entrypoint.py
+        sagamaker_package:
+          source: dist/sagemaker_mxnet_container-3.1.5.dev0.tar.gz
+          target: sagemaker_mxnet_container.tar.gz
+        entrypoint:
+          source: docker/artifacts/dockerd-entrypoint.py
+          target: dockerd-entrypoint.py
       inference_context: &INFERENCE_CONTEXT
-          dist/sagemaker_mxnet_serving_container-1.1.6.dev0.tar.gz: sagemaker_mxnet_serving_container.tar.gz
-          docker/artifacts/config.properties: config.properties
-          docker/artifacts/mms-entrypoint.py: mms-entrypoint.py
+        sagemaker_package:
+          source: dist/sagemaker_mxnet_serving_container-1.1.6.dev0.tar.gz
+          target: sagemaker_mxnet_serving_container.tar.gz
+        config:
+          source: docker/artifacts/config.properties
+          target: config.properties
+        entrypoint:
+          source: docker/artifacts/mms-entrypoint.py
+          target:  mms-entrypoint.py
 
   images:
     BuildMXNetCPUTrainPy3DockerImage:
