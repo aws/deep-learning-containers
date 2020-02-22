@@ -16,6 +16,7 @@ import os
 
 import json
 import requests
+import boto3
 
 
 class GitHubHandler:
@@ -24,15 +25,21 @@ class GitHubHandler:
     """
 
     GITHUB_API_URL = "https://api.github.com"
+    OAUTH_TOKEN = "/codebuild/github/oauth"
 
-    def __init__(self, user, repo, token):
+    def __init__(self, user='aws', repo='deep-learning-containers'):
         self.user = user
         self.repo = repo
-        self.token = token
         self.commit_hash = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')
 
+    def get_auth_token(self):
+        client = boto3.client("secretsmanager")
+        resp = client.get_secret_value(SecretId=self.OAUTH_TOKEN)
+        return resp['SecretString']
+
     def get_authorization_header(self):
-        return {"Authorization": "token {}".format(self.token)}
+        token = self.get_auth_token()
+        return {"Authorization": "token {}".format(token)}
 
     def set_status(self, state, **kwargs):
         """
