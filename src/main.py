@@ -35,7 +35,7 @@ from github import GitHubHandler
 if __name__ == "__main__":
     # TEST
     handler = GitHubHandler()
-    handler.set_status('success', context="HEYIMATEST")
+    handler.set_status('success', context="HEYIMATEST", description="Sup nikhil")
 
     parser = argparse.ArgumentParser(description="Program to build docker images")
     parser.add_argument("--buildspec", required=True, type=str)
