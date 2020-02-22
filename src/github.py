@@ -98,6 +98,7 @@ class GitHubHandler:
 
         response = requests.get(url)
         files_changed = json.loads(response.text)
+        print(files_changed)
         return [_file['filename'] for _file in files_changed]
 
 
