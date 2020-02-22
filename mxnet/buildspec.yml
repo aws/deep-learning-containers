@@ -41,7 +41,7 @@
   images:
     BuildMXNetCPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
-      build: &MXNET_CPU_TRAIN_PY3 true
+      build: &MXNET_CPU_TRAINING_PY3 true
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
       python_version: &DOCKER_PYTHON_VERSION py3
@@ -51,7 +51,7 @@
         <<: *TRAINING_CONTEXT
     BuildMXNetGPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
-      build: &MXNET_GPU_TRAIN_PY3 false
+      build: &MXNET_GPU_TRAINING_PY3 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
@@ -61,7 +61,7 @@
         <<: *TRAINING_CONTEXT
     BuildMXNetCPUTrainPy2DockerImage:
       <<: *TRAINING_REPOSITORY
-      build: &MXNET_CPU_TRAIN_PY2 false
+      build: &MXNET_CPU_TRAINING_PY2 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
       python_version: &DOCKER_PYTHON_VERSION py2
@@ -71,7 +71,7 @@
         <<: *TRAINING_CONTEXT
     BuildMXNetGPUTrainPy2DockerImage:
       <<: *TRAINING_REPOSITORY
-      build: &MXNET_GPU_TRAIN_PY2 false
+      build: &MXNET_GPU_TRAINING_PY2 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py2

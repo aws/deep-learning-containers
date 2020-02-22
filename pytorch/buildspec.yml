@@ -44,7 +44,7 @@
   images:
     BuildCPUPTTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
-      build: &PYTORCH_CPU_TRAIN_PY3 false
+      build: &PYTORCH_CPU_TRAINING_PY3 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
       python_version: &DOCKER_PYTHON_VERSION py3
@@ -54,7 +54,7 @@
         <<: *TRAINING_CONTEXT
     BuildGPUPTTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
-      build: &PYTORCH_GPU_TRAIN_PY3 false
+      build: &PYTORCH_GPU_TRAINING_PY3 false
       image_size_baseline: 9228
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
@@ -64,7 +64,7 @@
         <<: *TRAINING_CONTEXT
     BuildCPUPTTrainPy2DockerImage:
       <<: *TRAINING_REPOSITORY
-      build: &PYTORCH_CPU_TRAIN_PY2 false
+      build: &PYTORCH_CPU_TRAINING_PY2 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
       python_version: &DOCKER_PYTHON_VERSION py2
@@ -74,7 +74,7 @@
         <<: *TRAINING_CONTEXT
     BuildGPUPTTrainPy2DockerImage:
       <<: *TRAINING_REPOSITORY
-      build: &PYTORCH_GPU_TRAIN_PY2 false
+      build: &PYTORCH_GPU_TRAINING_PY2 false
       image_size_baseline: 9028
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py2
