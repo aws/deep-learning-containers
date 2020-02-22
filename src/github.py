@@ -37,6 +37,7 @@ class GitHubHandler:
         resp = client.get_secret_value(SecretId=self.OAUTH_TOKEN)
         return resp['SecretString']
 
+
     def get_authorization_header(self):
         token = self.get_auth_token()
         return {"Authorization": "token {}".format(token)}
@@ -96,7 +97,7 @@ class GitHubHandler:
         )
 
 
-        response = requests.get(url)
+        response = requests.get(url, headers=self.get_authorization_header())
         files_changed = json.loads(response.text)
         print(url)
         print(files_changed)
