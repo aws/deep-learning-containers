@@ -121,6 +121,8 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
         )
         print(f"{constants.DEVICE_TYPES}:{device_types}")
     if image_types != constants.ALL:
+        import pdb
+        pdb.set_trace()
         to_build["image_types"] = constants.IMAGE_TYPES.intersection(set(image_types))
         print(f"{constants.IMAGE_TYPES}:{image_types}")
     if py_versions != constants.ALL:
