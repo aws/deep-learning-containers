@@ -34,7 +34,7 @@ class GitHubHandler:
 
     def get_auth_token(self):
         client = boto3.client("secretsmanager")
-        resp = client.get_secret_value(self.OAUTH_TOKEN)
+        resp = client.get_secret_value(SecretId=self.OAUTH_TOKEN)
         return resp['SecretString']
 
     def get_authorization_header(self):
