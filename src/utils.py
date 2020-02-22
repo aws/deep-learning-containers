@@ -118,7 +118,7 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
         to_build["device_types"] = constants.DEVICE_TYPES.intersection(
             set(device_types)
         )
-        print(f"{constant.DEVICE_TYPES}:{device_types}")
+        print(f"{constants.DEVICE_TYPES}:{device_types}")
     if image_types != constants.ALL:
         to_build["image_types"] = constants.IMAGE_TYPES.intersection(set(image_types))
     if py_versions != constants.ALL:
