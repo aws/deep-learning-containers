@@ -11,7 +11,7 @@ if __name__ == "__main__":
     parser.add_argument("--framework", type=str)
     parser.add_argument("--device_types", type=str, default=constants.ALL)
     parser.add_argument("--image_types", type=str, default=constants.ALL)
-    parser.add_argument("--python_versions", type=str, default=constants.ALL)
+    parser.add_argument("--py_versions", type=str, default=constants.ALL)
 
     args = parser.parse_args()
 
@@ -25,16 +25,16 @@ if __name__ == "__main__":
         if not args.image_types == constants.ALL
         else args.image_types
     )
-    python_versions = (
-        args.python_versions.split(",")
-        if not args.python_versions == constants.ALL
-        else args.python_versions
+    py_versions = (
+        args.py_versions.split(",")
+        if not args.py_versions == constants.ALL
+        else args.py_versions
     )
 
     utils.build_setup(
         args.framework,
         device_types=device_types,
         image_types=image_types,
-        py=python_versions,
+        py_versions=py_versions,
     )
     image_builder(args.buildspec)
