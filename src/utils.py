@@ -50,6 +50,7 @@ def pr_build_setup(pr_number, framework):
        
         # If the modified dockerfile belongs to a different
         # framework, do nothing
+        print(f"{framework}:{framework_changed}")
         if framework_change != framework:
             continue
 
