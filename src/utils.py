@@ -125,7 +125,7 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
         to_build["py_versions"] = constants.PYTHON_VERSIONS.intersection(
             set(py_versions)
         )
-
+    print(to_build)
     for device_type in to_build["device_types"]:
         for image_type in to_build["image_types"]:
             for py_version in to_build["py_versions"]:
