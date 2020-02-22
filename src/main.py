@@ -77,6 +77,10 @@ if __name__ == "__main__":
     for device_type in to_build['device_types']:
         for image_type in to_build['image_types']:
             for python_version in to_build['python_versions']:
+                print(framework)
+                print(device_type)
+                print(image_type)
+                print(python_version)
                 env_variable = f"{framework.upper()}_{device_type.upper()}_{image_type.upper()}_{python_version.upper()}"
                 os.environ[env_variable] = 'true'
 
