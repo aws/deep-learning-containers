@@ -24,10 +24,26 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    device_types = (
+        args.device_types.split(",")
+        if not args.device_types == constants.ALL
+        else args.device_types
+    )
+    image_types = (
+        args.image_types.split(",")
+        if not args.image_types == constants.ALL
+        else args.image_types
+    )
+    python_versions = (
+        args.python_versions.split(",")
+        if not args.python_version == contstants.ALL
+        else args.python_versions
+    )
+
     utils.build_setup(
-        framework,
-        device_types=args.device_types,
-        image_types=args.image_types,
-        python_versions=args.python_versions,
+        args.framework,
+        device_types=device_types,
+        image_types=image_types,
+        python_versions=python_versions,
     )
     image_builder(args.buildspec)
