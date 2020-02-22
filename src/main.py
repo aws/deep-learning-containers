@@ -17,6 +17,7 @@ from output import OutputFormatter
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Program to build docker images")
     parser.add_argument("--buildspec", type=str)
+    parser.add_argument("--framework", type=str)
     parser.add_argument("--device_types", type=str, default=constants.ALL)
     parser.add_argument("--image_types", type=str, default=constants.ALL)
     parser.add_argument("--python_versions", type=str, default=constants.ALL)
