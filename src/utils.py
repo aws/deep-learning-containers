@@ -50,7 +50,7 @@ def pr_build_setup(pr_number, framework):
        
         # If the modified dockerfile belongs to a different
         # framework, do nothing
-        print(f"{framework}:{framework_changed}")
+        print(f"{framework}:{framework_change}")
         if framework_change != framework:
             continue
 
@@ -121,8 +121,6 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
         to_build["py_versions"] = constants.PYTHON_VERSIONS.intersection(
             set(py_versions)
         )
-
-    print(to_build)
 
     for device_type in to_build["device_types"]:
         for image_type in to_build["image_types"]:
