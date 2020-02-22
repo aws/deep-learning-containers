@@ -48,7 +48,7 @@ def pr_build_setup(pr_number, framework):
         dockerfile = dockerfile.split('/')
         image_type = dockerfile[1]
         py_version = dockerfile[4]
-        device_type = dockerfile.split(".")[-1]
+        device_type = dockerfile[-1].split(".")
 
         device_types.append(device_type)
         image_types.append(image_type)
