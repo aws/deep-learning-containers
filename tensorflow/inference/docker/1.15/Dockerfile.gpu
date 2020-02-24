@@ -8,7 +8,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 # Add arguments to achieve the version, python and url
 ARG PYTHON=python3
 ARG PIP=pip3
-ARG TFS_SHORT_VERSION=1.15
+ARG TFS_SHORT_VERSION=1.15.2
 ARG TF_MODEL_SERVER_SOURCE=https://tensorflow-aws.s3-us-west-2.amazonaws.com/${TFS_SHORT_VERSION}/Serving/GPU/tensorflow_model_server
 
 # See http://bugs.python.org/issue19846
@@ -125,13 +125,6 @@ RUN echo '#!/bin/bash \n\n' > /usr/bin/tf_serving_entrypoint.sh \
  && echo '/usr/bin/tensorflow_model_server --port=8500 --rest_api_port=8501 --model_name=${MODEL_NAME} --model_base_path=${MODEL_BASE_PATH}/${MODEL_NAME} "$@"' >> /usr/bin/tf_serving_entrypoint.sh \
  && chmod +x /usr/bin/tf_serving_entrypoint.sh
 
-COPY dockerd-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py \
- && chmod +x /usr/local/bin/deep_learning_container.py
-
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 
-ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
