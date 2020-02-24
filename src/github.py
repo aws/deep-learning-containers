@@ -107,8 +107,6 @@ class GitHubHandler:
         Returns: List of filenames
         """
 
-        print(f"PR: {pull_request}")
-
         url = f"{self.GITHUB_API_URL}/repos/{self.user}/{self.repo}/pulls/{pull_request}/files"
 
         response = requests.get(url, headers=self.get_authorization_header())
