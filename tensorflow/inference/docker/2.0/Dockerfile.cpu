@@ -2,12 +2,11 @@ FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
-LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON=python3
 ARG PIP=pip3
-ARG TFS_SHORT_VERSION=2.0
-ARG TFS_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0/Serving/CPU-WITH-MKL/tensorflow_model_server
+ARG TFS_SHORT_VERSION=2.0.1
+ARG TFS_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/${TFS_SHORT_VERSION}/Serving/CPU-WITH-MKL/tensorflow_model_server
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
@@ -63,7 +62,6 @@ RUN ${PIP} install --no-cache-dir \
 
 COPY ./sagemaker /sagemaker
 
-
 # put tensorflow library (with only error_codes) to python dist-packages
 WORKDIR /
 RUN mv /sagemaker/tensorflow/ /usr/local/lib/python3.*/dist-packages/
@@ -90,13 +88,6 @@ RUN echo '#!/bin/bash \n\n' > /usr/bin/tf_serving_entrypoint.sh \
  && echo '/usr/bin/tensorflow_model_server --port=8500 --rest_api_port=8501 --model_name=${MODEL_NAME} --model_base_path=${MODEL_BASE_PATH}/${MODEL_NAME} "$@"' >> /usr/bin/tf_serving_entrypoint.sh \
  && chmod +x /usr/bin/tf_serving_entrypoint.sh
 
-COPY dockerd-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0.1/license.txt -o /license.txt
 
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py \
- && chmod +x /usr/local/bin/deep_learning_container.py
-
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0/license.txt -o /license.txt
-
-ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
