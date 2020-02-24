@@ -20,4 +20,4 @@ phases:
     commands:
       - echo Build step finished on `date`
       - echo Starting test jobs
-      - python src/testrunner.py
+      - python src/start_testbuilds.py

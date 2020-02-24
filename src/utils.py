@@ -37,7 +37,7 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     test_envs.append({"name": images_env, "value": images_arg, "type": "PLAINTEXT"})
 
     if kwargs:
-        for key, value in kwargs:
+        for key, value in kwargs.items():
             test_envs.append({"name": key, "value": value, "type": "PLAINTEXT"})
 
     with open(constants.TEST_ENV, "w") as ef:
