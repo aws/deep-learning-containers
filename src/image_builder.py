@@ -150,4 +150,5 @@ def image_builder(buildspec):
         FORMATTER.separator()
 
         # Set environment variables to be consumed by test jobs
-        utils.set_test_env(IMAGES, BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"))
+        test_trigger_job = os.getenv("CODEBUILD_BUILD_ID").split(':')[0]
+        utils.set_test_env(IMAGES, BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"), TEST_TRIGGER=test_trigger_job)
