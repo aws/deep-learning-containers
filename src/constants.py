@@ -43,3 +43,6 @@ METRICS_NAMESPACE = "dlc-metrics-to-be-deleted"
 INFO = 1
 ERROR = 2
 DEBUG = 3
+
+# Test environment file
+TEST_ENV = os.path.join(os.path.expanduser("~"), "testenv.json")
