@@ -4,9 +4,7 @@ import os
 
 if __name__ == "__main__":
     print('*************************')
-    print(os.getenv('TEST_TRIGGER'))
-    context = "dlc-sanity-test-{}".format(os.getenv("TEST_TRIGGER"))
-    print(context)
+    print(os.getenv('CODEBUILD_LOG_PATH'))
     #handler = GitHubHandler()
     #handler.set_status(state="success", context=context, description="test")
     print('*************************')
