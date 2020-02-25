@@ -1,5 +1,4 @@
 FRAMEWORK=$1
-IMAGE_TYPE=$2
 
 set -x
 
