@@ -85,24 +85,44 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
-    BuildTensorflowCPUInferenceDockerImage:
+    BuildTensorflowCPUInferencePy3DockerImage:
       <<: *INFERENCE_REPOSITORY
       build: &TENSORFLOW_CPU_INFERENCE_PY3 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
       python_version: &DOCKER_PYTHON_VERSION py3
       tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION ]
-      docker_file: !join [ docker/, *VERSION,  /Dockerfile., *DEVICE_TYPE ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *INFERENCE_CONTEXT
-    BuildTensorflowGPUInferenceDockerImage:
+    BuildTensorflowGPUInferencePy3DockerImage:
       <<: *INFERENCE_REPOSITORY
       build: &TENSORFLOW_GPU_INFERENCE_PY3 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
       tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION ]
-      docker_file: !join [ docker/, *VERSION,  /Dockerfile., *DEVICE_TYPE ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+      context:
+        <<: *INFERENCE_CONTEXT
+    BuildTensorflowCPUInferencePy2DockerImage:
+      <<: *INFERENCE_REPOSITORY
+      build: &TENSORFLOW_CPU_INFERENCE_PY2 false
+      image_size_baseline: 661
+      device_type: &DEVICE_TYPE cpu
+      python_version: &DOCKER_PYTHON_VERSION py2
+      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+      context:
+        <<: *INFERENCE_CONTEXT
+    BuildTensorflowGPUInferencePy2DockerImage:
+      <<: *INFERENCE_REPOSITORY
+      build: &TENSORFLOW_GPU_INFERENCE_PY2 false
+      image_size_baseline: 2870
+      device_type: &DEVICE_TYPE gpu
+      python_version: &DOCKER_PYTHON_VERSION py2
+      tag: !join [ *IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *INFERENCE_CONTEXT
 
