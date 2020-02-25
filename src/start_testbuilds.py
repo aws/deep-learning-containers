@@ -28,6 +28,17 @@ def run_test_job(commit, codebuild_project):
     with open(constants.TEST_ENV) as test_env_file:
         env_overrides = json.load(test_env_file)
 
+    # Make sure DLC_IMAGES exists. If not, don't execute job.
+    images_present = False
+    overrides = env_overrides
+    while overrides and not images_present:
+        env = overrides.pop()
+        if env.get('DLC_IMAGES'):
+            images_present = True
+    if not images_present:
+        logger.info(f"Skipping test {codebuild_project} as no images were built.")
+        return
+
     client = boto3.client("codebuild")
     return client.start_build(
         projectName=codebuild_project,
