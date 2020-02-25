@@ -65,7 +65,9 @@ RUN conda install -c \
     torchvision==$TORCHVISION_VERSION cpuonly -c pytorch \
  && conda clean -ya \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && pip install mxnet-model-server==$MMS_VERSION
+ && pip install \
+    mxnet-model-server==$MMS_VERSION \
+    sagemaker-pytorch-inference
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
@@ -75,11 +77,6 @@ COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
-
-COPY sagemaker_pytorch_inference.tar.gz /sagemaker_pytorch_inference.tar.gz
-RUN pip install --no-cache-dir \
-    /sagemaker_pytorch_inference.tar.gz \
- && rm /sagemaker_pytorch_inference.tar.gz
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.4.0/license.txt -o /license.txt
 

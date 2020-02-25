@@ -80,7 +80,8 @@ RUN conda install -c \
  && conda clean -ya \
  && /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && pip install mxnet-model-server==$MMS_VERSION
+ && pip install mxnet-model-server==$MMS_VERSION \
+    sagemaker-pytorch-inference
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
@@ -100,11 +101,6 @@ RUN apt-get install -y --no-install-recommends \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
 
 # RUN pip install --no-cache-dir 'opencv-python>=4.0,<4.1'
-
-COPY sagemaker_pytorch_inference.tar.gz /sagemaker_pytorch_inference.tar.gz
-RUN pip install --no-cache-dir \
-    /sagemaker_pytorch_inference.tar.gz \
- && rm /sagemaker_pytorch_inference.tar.gz
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.4.0/license.txt -o /license.txt
 
