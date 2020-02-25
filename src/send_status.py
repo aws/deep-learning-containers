@@ -28,7 +28,7 @@ def get_args():
 def get_target_url(project):
     region = os.getenv("AWS_REGION")
     logpath = os.getenv("CODEBUILD_LOG_PATH")
-    return f"https://{region}.console.aws.com/codesuite/codebuild/projects/{project}/build/{project}%3A{logpath}" \
+    return f"https://{region}.console.aws.amazon.com/codesuite/codebuild/projects/{project}/build/{project}%3A{logpath}" \
            f"/log?region={region}"
 
 
