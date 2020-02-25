@@ -14,17 +14,18 @@ language governing permissions and limitations under the License.
 """
 
 import os
-import argparse
 from copy import deepcopy
 import concurrent.futures
 
 import constants
+import utils
 
 from context import Context
 from metrics import Metrics
 from image import DockerImage
 from buildspec import Buildspec
 from output import OutputFormatter
+
 
 # TODO: Abstract away to ImageBuilder class
 def image_builder(buildspec):
@@ -147,3 +148,6 @@ def image_builder(buildspec):
                     raise Exception(f"Build passed. {e}")
 
         FORMATTER.separator()
+
+        # Set environment variables to be consumed by test jobs
+        utils.set_test_env(IMAGES, BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"))
