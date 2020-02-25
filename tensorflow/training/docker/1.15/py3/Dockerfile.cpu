@@ -78,8 +78,6 @@ RUN mkdir -p /root/.ssh/ \
 
 WORKDIR /
 
-COPY $FRAMEWORK_SUPPORT_INSTALLABLE .
-
 RUN pip3 --no-cache-dir install --upgrade \
     pip \
     setuptools
@@ -108,12 +106,10 @@ RUN pip install --no-cache-dir -U \
     # the library version to be overwritten
  && pip install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
+    sagemaker-tensorflow-training \
+    awscli \
  && pip install --force-reinstall --no-cache-dir -U \
-    horovod==0.18.2 \
- && pip install --no-cache-dir -U \
-    $FRAMEWORK_SUPPORT_INSTALLABLE \
-    awscli\
- && rm -f $FRAMEWORK_SUPPORT_INSTALLABLE
+    horovod==0.18.2
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 

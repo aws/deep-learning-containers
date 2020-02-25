@@ -120,8 +120,6 @@ RUN pip --no-cache-dir install --upgrade \
 # Some TF tools expect a "python" binary
 RUN ln -s $(which python) /usr/local/bin/python
 
-COPY $FRAMEWORK_SUPPORT_INSTALLABLE .
-
 RUN pip install --no-cache-dir -U \
     numpy==1.16.5 \
     scipy==1.2.2 \
@@ -139,10 +137,8 @@ RUN pip install --no-cache-dir -U \
     # Let's install TensorFlow separately in the end to avoid the library version to be overwritten
  && pip install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
- && pip install --no-cache-dir -U \
-    $FRAMEWORK_SUPPORT_INSTALLABLE \
-    awscli\
- && rm -f $FRAMEWORK_SUPPORT_INSTALLABLE
+    sagemaker-tensorflow-training \
+    awscli
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs \

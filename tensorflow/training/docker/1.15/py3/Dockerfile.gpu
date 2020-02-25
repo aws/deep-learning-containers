@@ -145,10 +145,8 @@ RUN pip install --no-cache-dir -U \
     # the library version to be overwritten
  && pip install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
- && pip install --no-cache-dir -U \
-    $FRAMEWORK_SUPPORT_INSTALLABLE \
-    awscli\
- && rm -f $FRAMEWORK_SUPPORT_INSTALLABLE
+    sagemaker-tensorflow-training \
+    awscli
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs \
