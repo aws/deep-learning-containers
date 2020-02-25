@@ -12,7 +12,7 @@ def get_args():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--status",
-                        choices=[0, 1, 2],
+                        choices=['0', '1', '2'],
                         help="Github status to set. 0 is fail, 1 is success, 2 is pending")
     parser.add_argument("--description",
                         default="I'm a PR build",
@@ -23,9 +23,9 @@ def get_args():
 
 def main():
     codebuild_statuses = {
-        0: 'failure',
-        1: 'success',
-        2: 'pending'
+        '0': 'failure',
+        '1': 'success',
+        '2': 'pending'
     }
     args = get_args()
 
