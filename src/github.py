@@ -27,17 +27,35 @@ class GitHubHandler:
     GITHUB_API_URL = "https://api.github.com"
     OAUTH_TOKEN = "/codebuild/github/oauth"
 
-    def __init__(self, user='aws', repo='deep-learning-containers'):
+    def __init__(self, user="aws", repo="deep-learning-containers"):
         self.user = user
         self.repo = repo
-        self.commit_hash = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')
+        self.commit_hash = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
 
     def get_auth_token(self):
+        """
+
+        Args:
+            None
+
+        Return:
+            str
+
+        """
         client = boto3.client("secretsmanager")
         resp = client.get_secret_value(SecretId=self.OAUTH_TOKEN)
-        return resp['SecretString']
+        return resp["SecretString"]
 
     def get_authorization_header(self):
+        """
+
+        Args:
+            None
+
+        Returns:
+            dict
+
+        """
         token = self.get_auth_token()
         return {"Authorization": "token {}".format(token)}
 
@@ -81,3 +99,16 @@ class GitHubHandler:
             f"{self.GITHUB_API_URL}/repos/{self.user}/{self.repo}/pulls/{pull_request}"
         )
         return requests.get(url)
+
+    def get_pr_files_changed(self, pull_request):
+        """
+        Get the list of files changed in a PR
+
+        Returns: List of filenames
+        """
+
+        url = f"{self.GITHUB_API_URL}/repos/{self.user}/{self.repo}/pulls/{pull_request}/files"
+
+        response = requests.get(url, headers=self.get_authorization_header())
+        files_changed = json.loads(response.text)
+        return [_file["filename"] for _file in files_changed]
