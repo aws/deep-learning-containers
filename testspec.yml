@@ -16,6 +16,7 @@ phases:
       - echo Running pytest sanity tests...
       - cd test
       - pytest sanity/ --images $DLC_IMAGES
+      - cd ..
   post_build:
     commands:
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
