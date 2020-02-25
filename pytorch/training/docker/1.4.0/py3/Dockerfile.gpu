@@ -126,7 +126,8 @@ RUN pip install \
  && pip install --no-cache-dir -U https://pytorch-aws.s3.amazonaws.com/pytorch-1.4.0/py3/gpu/torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl \
  && pip uninstall -y torchvision \
  && pip install --no-cache-dir -U \
-    https://torchvision-build.s3.amazonaws.com/1.4.0/py3/gpu/torchvision-0.5.0-cp36-cp36m-linux_x86_64.whl
+    https://torchvision-build.s3.amazonaws.com/1.4.0/py3/gpu/torchvision-0.5.0-cp36-cp36m-linux_x86_64.whl \
+    sagemaker-pytorch-training
 
 # Install Horovod
 RUN ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
@@ -152,11 +153,6 @@ RUN apt-get install -y --no-install-recommends openssh-client openssh-server \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
 
 WORKDIR /
-
-COPY sagemaker_pytorch_training.tar.gz /sagemaker_pytorch_training.tar.gz
-
-RUN pip install --no-cache-dir /sagemaker_pytorch_training.tar.gz \
- && rm /sagemaker_pytorch_training.tar.gz
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
