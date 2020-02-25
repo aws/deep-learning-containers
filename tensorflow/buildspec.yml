@@ -7,12 +7,12 @@
     training_repository: &TRAINING_REPOSITORY
       image_type: &IMAGE_TYPE training
       root: !join [ *FRAMEWORK, "/", *IMAGE_TYPE ]
-      repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *IMAGE_TYPE]
+      repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *IMAGE_TYPE]
       repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
     inference_repository: &INFERENCE_REPOSITORY
       image_type: &IMAGE_TYPE inference
       root: !join [ *FRAMEWORK, "/", *IMAGE_TYPE ]
-      repository_name: &REPOSITORY_NAME !join [beta, "-", *FRAMEWORK, "-", *IMAGE_TYPE]
+      repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *IMAGE_TYPE]
       repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
   context:
@@ -44,7 +44,7 @@
     BuildTensorflowCPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       version: 1.15
-      build: true
+      build: &TENSORFLOW_CPU_TRAINING_PY3 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
       python_version: &DOCKER_PYTHON_VERSION py3
@@ -55,7 +55,7 @@
     BuildTensorflowGPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       version: 1.15
-      build: true
+      build: &TENSORFLOW_GPU_TRAINING_PY3 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
@@ -66,7 +66,7 @@
     BuildTensorflowCPUTrainPy2DockerImage:
       <<: *TRAINING_REPOSITORY
       version: 1.15
-      build: true
+      build: &TENSORFLOW_CPU_TRAINING_PY2 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
       python_version: &DOCKER_PYTHON_VERSION py2
@@ -77,7 +77,7 @@
     BuildTensorflowGPUTrainPy2DockerImage:
       <<: *TRAINING_REPOSITORY
       version: 1.15
-      build: true
+      build: &TENSORFLOW_GPU_TRAINING_PY2 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py2
@@ -87,7 +87,7 @@
         <<: *TRAINING_CONTEXT
     BuildTensorflowCPUInferenceDockerImage:
       <<: *INFERENCE_REPOSITORY
-      build: true
+      build: &TENSORFLOW_CPU_INFERENCE_PY3 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
       python_version: &DOCKER_PYTHON_VERSION py3
@@ -97,7 +97,7 @@
         <<: *INFERENCE_CONTEXT
     BuildTensorflowGPUInferenceDockerImage:
       <<: *INFERENCE_REPOSITORY
-      build: true
+      build: &TENSORFLOW_GPU_INFERENCE_PY3 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
