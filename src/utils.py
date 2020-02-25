@@ -12,9 +12,9 @@ distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
-
 import os
 import re
+import json
 
 import constants
 from github import GitHubHandler
@@ -45,9 +45,9 @@ def pr_build_setup(pr_number, framework):
     rule = re.findall(r"\S+Dockerfile\S+", files)
     for dockerfile in rule:
 
-        dockerfile = dockerfile.split('/')
+        dockerfile = dockerfile.split("/")
         framework_change = dockerfile[0]
-       
+
         # If the modified dockerfile belongs to a different
         # framework, do nothing
         if framework_change != framework:
@@ -59,7 +59,6 @@ def pr_build_setup(pr_number, framework):
         device_types.append(device_type)
         image_types.append(image_type)
         py_versions.append(py_version)
-
 
     # Rule 2: If the buildspec file for a framework changes, build all images for that framework
     rule = re.findall(r"\S+\/buildspec.yml", files)
@@ -106,9 +105,7 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
         pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
         if pr_number is not None:
             pr_number = int(pr_number.split("/")[-1])
-        device_types, image_types, py_versions = pr_build_setup(
-            pr_number, framework
-        )
+        device_types, image_types, py_versions = pr_build_setup(pr_number, framework)
 
     if device_types != constants.ALL:
         to_build["device_types"] = constants.DEVICE_TYPES.intersection(
@@ -125,3 +122,30 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
             for py_version in to_build["py_versions"]:
                 env_variable = f"{framework.upper()}_{device_type.upper()}_{image_type.upper()}_{py_version.upper()}"
                 os.environ[env_variable] = "true"
+
+
+def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
+    """
+    Util function to write a file to be consumed by test env with necessary environment variables
+
+    ENV variables set by os do not persist, as a new shell is instantiated for post_build steps
+
+    :param images: List of image objects
+    :param images_env: Name for the images environment variable
+    :param env_file: File to write environment variables to
+    :param kwargs: other environment variables to set
+    """
+    test_envs = []
+    ecr_urls = []
+    for docker_image in images:
+        ecr_urls.append(docker_image.ecr_url)
+
+    images_arg = " ".join(ecr_urls)
+    test_envs.append({"name": images_env, "value": images_arg, "type": "PLAINTEXT"})
+
+    if kwargs:
+        for key, value in kwargs.items():
+            test_envs.append({"name": key, "value": value, "type": "PLAINTEXT"})
+
+    with open(constants.TEST_ENV, "w") as ef:
+        json.dump(test_envs, ef)
