@@ -5,7 +5,7 @@ import docker
 
 
 # Ignore legacy test collection
-collect_ignore = [os.path.join('legacy_tests', '*')]
+collect_ignore = [os.path.join('container_tests', '*')]
 
 
 def pytest_addoption(parser):
