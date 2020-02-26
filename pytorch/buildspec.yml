@@ -1,7 +1,7 @@
   account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK pytorch
-  version: &VERSION 1.3.1
+  version: &VERSION 1.4.0
   
 
   repository_info:

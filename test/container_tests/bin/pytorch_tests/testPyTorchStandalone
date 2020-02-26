@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+from __future__ import print_function
+import sys
+import subprocess
+from subprocess import PIPE
+
+import logging
+import torch, torchvision
+
+LOGGER = logging.getLogger(__name__)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
+def main():
+    check_pytorch()
+
+def check_pytorch():
+    try:
+        process = subprocess.Popen(["bash", "-c", "nvidia-smi"], stdout=PIPE)
+        process.communicate()
+        ret_val = process.wait()
+        is_gpu = not ret_val
+        assert torch.version.__version__ is not None, \
+            "Error: PyTorch package torch sanity test failed."
+        assert torchvision.version.__version__ is not None, \
+            "Error: PyTorch package torchvision sanity test failed."
+        assert torch.tensor([[1., -1.], [1., -1.]]) is not None, \
+            "Error: PyTorch operator tensor sanity test failed."
+        assert torch.randn(2, 3).to_sparse().requires_grad_(True) is not None, \
+            "Error: PyTorch operator to_sparse sanity test failed."
+        assert torch.nn.Conv2d(1, 20, 5) is not None, \
+            "Error: PyTorch package neural network sanity test failed."
+        assert torch.nn.functional.conv1d(\
+            torch.randn(20, 16, 50), torch.randn(33, 16, 3)) is not None, \
+            "Error: PyTorch package neural network functional sanity test failed."
+        assert torch.nn.init.calculate_gain('leaky_relu', 0.2) is not None, \
+            "Error: PyTorch package neural network init sanity test failed."
+        assert torchvision.models.resnet18() is not None, \
+            "Error: PyTorch pretrained model sanity test failed."
+        assert torch.optim.SGD(\
+            torchvision.models.resnet18().parameters(), lr=0.01, momentum=0.9) is not None, \
+            "Error: PyTorch package optim sanity test failed."
+        assert torch.multiprocessing.get_all_sharing_strategies() is not None, \
+            "Error: PyTorch package multiprocessing sanity test failed."
+        assert torch.random.get_rng_state() is not None, \
+            "Error: PyTorch package random sanity test failed."
+
+        if is_gpu:
+            assert torch.cuda.is_available(), \
+                "Error: PyTorch Cuda support sanity test failed."
+            assert torch.backends.cudnn.version() is not None, \
+                "Error: PyTorch Cuda version sanity test failed."
+            assert torch.distributed.is_available(), \
+                "Error: PyTorch distributed sanity test failed."
+            assert torch.distributed.is_nccl_available(), \
+                "Error: PyTorch nccl backend sanity test failed."
+            assert torch.distributed.is_gloo_available(), \
+                "Error: PyTorch gloo backend sanity test failed."
+            assert torch.rand(10).cuda().requires_grad_().is_leaf, \
+                "Error: PyTorch autograd sanity test failed."
+
+        else:
+            assert torch.rand(5, 3) is not None, \
+                "Error: PyTorch CPU basic operator sanity test failed."
+
+
+    except Exception as excp:
+        LOGGER.debug("Error: check_pytorch test failed.")
+        LOGGER.debug("Exception: {}".format(excp))
+        raise
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        pass
