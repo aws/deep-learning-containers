@@ -1,0 +1,65 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+TRAINING_LOG=${LOG_DIR}/tensorflow_horovod_test.log
+HOVOROD_DIR=${BIN_DIR}/examples/Horovod
+set -e
+
+echo "Simply verify if Horovod works well. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
+set +e
+nvidia-smi
+RETURN_VAL=`echo $?`
+set -e
+
+if [ ${RETURN_VAL} -eq 0 ]; then
+  python ${BIN_DIR}/testHVD.py 2> ${TRAINING_LOG}
+else
+  python ${BIN_DIR}/testHVD.py --no-cuda 2> ${TRAINING_LOG}
+fi
+
+if grep "loss =" $TRAINING_LOG; then
+  echo "Successfully verified Horovod works with mpi."
+else
+  echo "Horovod training failed with mpi."
+  cat ${TRAINING_LOG}
+  exit 1
+fi
+
+echo "Train a resnet model using Horovod with Tensorflow on synthetic data. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
+
+if [ ${RETURN_VAL} -eq 0 ]; then
+  GPU_AMOUNT=`nvidia-smi -L | wc -l`
+  if [ $GPU_AMOUNT -ge 8 ]; then GPU_AMOUNT=8; fi
+  INSTANCE_TYPE=`curl http://169.254.169.254/latest/meta-data/instance-type 2>>/var/tmp/${CONDA_DEFAULT_ENV}.err`
+  # We only have Ubuntu16.04 image now. The only EIA it support is etho0.
+  INTERFACE=eth0
+  # Train
+
+  /usr/local/bin/mpirun -np $GPU_AMOUNT -hostfile ${HOVOROD_DIR}/hosts -mca plm_rsh_no_tree_spawn 1 \
+        -bind-to socket -map-by slot \
+        -x HOROVOD_HIERARCHICAL_ALLREDUCE=1 -x HOROVOD_FUSION_THRESHOLD=16777216 \
+        -x NCCL_MIN_NRINGS=4 -x LD_LIBRARY_PATH -x PATH -mca pml ob1 -mca btl ^openib \
+        -x NCCL_SOCKET_IFNAME=$INTERFACE -mca btl_tcp_if_exclude lo,docker0 \
+        -x TF_CPP_MIN_LOG_LEVEL=0 \
+        python -W ignore ${HOVOROD_DIR}/tf_train_imagenet_resnet_hvd.py \
+        --synthetic --batch_size 128 --num_batches 100 --clear_log 2> ${TRAINING_LOG}
+else
+  python -W ignore ${HOVOROD_DIR}/tensorflow_synthetic_benchmark.py --no-cuda > ${TRAINING_LOG}
+fi
+
+if grep "Total img/sec on" $TRAINING_LOG; then
+  echo "Horovod sanity test using resnet50 model on synthetic data successful."
+  exit 0
+elif grep "Finished in" $TRAINING_LOG; then
+  echo "Horovod sanity test using resnet50 model on synthetic data successful."
+  exit 0
+else
+  echo "Horovod sanity test using resnet50 model on synthetic data failed."
+  echo "Training output: "
+  cat ${TRAINING_LOG}
+  exit 1
+fi
+
+exit 0
