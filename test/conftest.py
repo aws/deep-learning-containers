@@ -4,7 +4,7 @@ import pytest
 import docker
 
 
-# Ignore legacy test collection
+# Ignore container_tests collection, as they will be called separately from test functions
 collect_ignore = [os.path.join('container_tests', '*')]
 
 
