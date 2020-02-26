@@ -1,0 +1,10 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+
+git clone https://github.com/dmlc/dgl.git ${HOME_DIR}/artifacts/dgl
+${BIN_DIR}/dgl_tests/testDGLHelper python mxnet || exit 1
+
+exit 0

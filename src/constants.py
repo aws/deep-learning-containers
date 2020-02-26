@@ -15,6 +15,13 @@ language governing permissions and limitations under the License.
 
 import os
 
+# Environment settings
+FRAMEWORKS = {"mxnet", "tensorflow", "pytorch"}
+DEVICE_TYPES = {"cpu", "gpu"}
+IMAGE_TYPES = {"training", "inference"}
+PYTHON_VERSIONS = {"py2", "py3"}
+ALL = "all"
+
 # Function Status Codes
 SUCCESS = 0
 FAIL = 1
@@ -36,3 +43,6 @@ METRICS_NAMESPACE = "dlc-metrics-to-be-deleted"
 INFO = 1
 ERROR = 2
 DEBUG = 3
+
+# Test environment file
+TEST_ENV = os.path.join(os.path.expanduser("~"), "testenv.json")

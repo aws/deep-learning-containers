@@ -1,0 +1,44 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+
+EXAMPLESDIR=${HOME_DIR}/artifacts/horovod
+set -e
+cd ${EXAMPLESDIR}
+
+TRAINING_LOG=${LOG_DIR}/pytorch_train_mnist_with_horovod.log
+
+echo "Training mnist using PyTorch with Horovod... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
+set +e
+python examples/pytorch_mnist.py >$TRAINING_LOG 2>&1
+RETURN_VAL=`echo $?`
+set -e
+
+if [ ${RETURN_VAL} -eq 0 ]; then
+    echo "Training mnist Complete using PyTorch with Horovod."
+else
+    echo "Training mnist Failed using PyTorch with Horovod."
+    cat $TRAINING_LOG
+    exit 1
+fi
+
+TRAINING_LOG=${LOG_DIR}/pytorch_test_synthetic_benchmark.log
+
+echo "Testing synthetic benchmark using PyTorch with Horovod... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
+set +e
+python examples/pytorch_synthetic_benchmark.py >$TRAINING_LOG 2>&1
+RETURN_VAL=`echo $?`
+set -e
+
+if [ ${RETURN_VAL} -eq 0 ]; then
+    echo "Testing synthetic benchmark Complete using PyTorch with Horovod."
+else
+    echo "Testing synthetic benchmark Failed using PyTorch with Horovod."
+    cat $TRAINING_LOG
+    exit 1
+fi
+
+
+exit 0
