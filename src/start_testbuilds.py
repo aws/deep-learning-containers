@@ -25,8 +25,15 @@ logger = logging.getLogger(__name__)
 
 
 def run_test_job(commit, codebuild_project):
-    with open(constants.TEST_ENV) as test_env_file:
+    test_env_file = constants.TEST_ENV
+    if not os.path.exists(test_env_file):
+        raise FileNotFoundError(f"{test_env_file} not found. This is required to set test environment variables"
+                                f" for test jobs. Failing the build.")
+
+    with open(test_env_file) as test_env_file:
         env_overrides = json.load(test_env_file)
+
+    print(f"******************** {env_overrides} ***********************")
 
     # # Make sure DLC_IMAGES exists. If not, don't execute job.
     # images_present = False
