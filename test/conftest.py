@@ -1,5 +1,11 @@
+import os
+
 import pytest
 import docker
+
+
+# Ignore container_tests collection, as they will be called separately from test functions
+collect_ignore = [os.path.join('container_tests', '*')]
 
 
 def pytest_addoption(parser):
