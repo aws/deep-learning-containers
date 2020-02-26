@@ -1,0 +1,38 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+
+TRAINING_LOG=${LOG_DIR}/keras_mxnet_cifar10_test.log
+set -e
+
+
+echo "Simply verify if mxnet keras well. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
+#PYTHON_BIN=$1
+
+python ${BIN_DIR}/examples/KerasMXNet/cifar10_resnet.py 2>&1 | tee ${TRAINING_LOG}
+
+if grep "loss:" $TRAINING_LOG; then
+  echo "Successfully verified"
+else
+  echo "mxnet keras on cifar10 failed"
+  exit 1
+fi
+
+TRAINING_LOG=${HOME_DIR}/keras_mxnet_imdb_test.log
+
+python ${BIN_DIR}/examples/KerasMXNet/imdb_lstm.py 2>&1 | tee ${TRAINING_LOG}
+
+if grep "loss:" $TRAINING_LOG; then
+  echo "Successfully verified"
+  exit 0
+else
+  echo "mxnet keras on imdb_lstm failed"
+  echo "Training Log: "
+  cat $TRAINING_LOG
+  exit 1
+fi
+
+
+exit 0
