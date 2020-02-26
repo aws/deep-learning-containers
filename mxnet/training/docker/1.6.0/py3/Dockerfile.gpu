@@ -1,28 +1,30 @@
-# Note: We do not need install nccl or cudnn, which were already installed in runtime container.
-# The tag for this base image is: nvidia/cuda:10.1-cudnn7-runtime-ubuntu16.04
-FROM nvidia/cuda@sha256:b98156ec626001de2168e28a667d044e1d642ce2db7fad25e89a81977f862267
+# Note: We need to install NCCL, cuDNN, and CUDA libraries since we are using base container.
+FROM nvidia/cuda:10.1-base-ubuntu16.04
 
 LABEL maintainer="Amazon AI"
 
 ARG PYTHON=python3
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.6.8
-ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_cu101mkl-1.6.0rc0-py2.py3-none-manylinux1_x86_64.whl
+ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
-ENV PYTHONIOENCODING=UTF-8
-ENV LANG=C.UTF-8
-ENV LC_ALL=C.UTF-8
-ENV SAGEMAKER_TRAINING_MODULE sagemaker_mxnet_container.training:main
-ENV DGLBACKEND=mxnet
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib" \
+    PYTHONIOENCODING=UTF-8 \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    SAGEMAKER_TRAINING_MODULE=sagemaker_mxnet_container.training:main \
+    DGLBACKEND=mxnet \
+    CUDNN_VERSION=7.6.0.64-1+cuda10.1 \
+    NCCL_VERSION=2.4.8-1+cuda10.1
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     software-properties-common \
     build-essential \
     ca-certificates \
+    libcudnn7=${CUDNN_VERSION} \
     cuda-command-line-tools-10-1 \
     cuda-cufft-10-1 \
     cuda-curand-10-1 \
@@ -32,7 +34,9 @@ RUN apt-get update \
     git \
     libatlas-base-dev \
     libcurl4-openssl-dev \
+    libnccl2=${NCCL_VERSION} \
     libgomp1 \
+    libnccl-dev=${NCCL_VERSION} \
     libopencv-dev \
     openssh-client \
     openssh-server \
@@ -42,11 +46,61 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/libcublas10_10.2.1.243-1_amd64.deb \
+# Install cuda-dev libraries as a dependency for Horovod with MXNet backend
+ENV CUDA_LIB_URL=https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64
+RUN wget ${CUDA_LIB_URL}/libcublas10_10.2.1.243-1_amd64.deb \
+    ${CUDA_LIB_URL}/libcublas-dev_10.2.1.243-1_amd64.deb \
+    ${CUDA_LIB_URL}/cuda-curand-dev-10-1_10.1.243-1_amd64.deb \
+    ${CUDA_LIB_URL}/cuda-cusolver-dev-10-1_10.1.243-1_amd64.deb \
+    ${CUDA_LIB_URL}/cuda-nvrtc-10-1_10.1.243-1_amd64.deb \
+    ${CUDA_LIB_URL}/cuda-nvrtc-dev-10-1_10.1.243-1_amd64.deb \
  && dpkg -i libcublas10_10.2.1.243-1_amd64.deb \
+    libcublas-dev_10.2.1.243-1_amd64.deb \
+    cuda-curand-dev-10-1_10.1.243-1_amd64.deb \
+    cuda-cusolver-dev-10-1_10.1.243-1_amd64.deb \
+    cuda-nvrtc-10-1_10.1.243-1_amd64.deb \
+    cuda-nvrtc-dev-10-1_10.1.243-1_amd64.deb \
  && apt-get install -f \
- && rm libcublas10_10.2.1.243-1_amd64.deb
+ && rm libcublas10_10.2.1.243-1_amd64.deb \
+    libcublas-dev_10.2.1.243-1_amd64.deb \
+    cuda-curand-dev-10-1_10.1.243-1_amd64.deb \
+    cuda-cusolver-dev-10-1_10.1.243-1_amd64.deb \
+    cuda-nvrtc-10-1_10.1.243-1_amd64.deb \
+    cuda-nvrtc-dev-10-1_10.1.243-1_amd64.deb
 
+###########################################################################
+# Horovod dependencies
+###########################################################################
+
+# Install Open MPI
+RUN mkdir /tmp/openmpi \
+ && cd /tmp/openmpi \
+ && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.1.tar.gz \
+ && tar zxf openmpi-4.0.1.tar.gz \
+ && cd openmpi-4.0.1 \
+ && ./configure --enable-orterun-prefix-by-default \
+ && make -j $(nproc) all \
+ && make install \
+ && ldconfig \
+ && rm -rf /tmp/openmpi
+
+# Create a wrapper for OpenMPI to allow running as root by default
+RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real \
+ && echo '#!/bin/bash' > /usr/local/bin/mpirun \
+ && echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun \
+ && chmod a+x /usr/local/bin/mpirun
+
+# Configure OpenMPI to run good defaults:
+#   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0
+RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
+
+# Set default NCCL parameters
+RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
+
+ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
+ENV PATH=/usr/local/openmpi/bin/:$PATH
+ENV PATH=/usr/local/nvidia/bin:$PATH
 
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
@@ -72,7 +126,6 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && ln -s /usr/local/bin/pip3 /usr/bin/pip \
  && ln -s $(which ${PYTHON}) /usr/local/bin/python
 
-
 # MXNet requires pip 19.3.1 due to being backwards compatible
 # with python2
 RUN ${PIP} --no-cache-dir install --upgrade \
@@ -80,9 +133,6 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     setuptools
 
 WORKDIR /
-
-# All the needed artifacts should be setup before docker build command.
-COPY sagemaker_mxnet_container.tar.gz /sagemaker_mxnet_container.tar.gz
 
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
@@ -97,16 +147,29 @@ RUN ${PIP} install --no-cache --upgrade \
     scikit-learn==0.20.4 \
     scipy==1.2.2 \
     dgl-cu101==0.4.1 \
+    git+git://github.com/dmlc/gluon-nlp.git@v0.9.0 \
     urllib3==1.24 \
     python-dateutil==2.8.0 \
     tqdm==4.39.0 \
     smdebug==0.5.0.post0 \
     sagemaker-experiments==0.1.3 \
     PyYAML==5.1.2 \
-    /sagemaker_mxnet_container.tar.gz \
+    mpi4py==3.0.2 \
+    sagemaker-mxnet-training \
     ${MX_URL} \
-    awscli \
- && rm /sagemaker_mxnet_container.tar.gz
+    awscli
+
+# Install Horovod, temporarily using CUDA stubs
+RUN ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITHOUT_TENSORFLOW=1 \
+    HOROVOD_WITHOUT_PYTORCH=1 HOROVOD_WITH_MXNET=1 pip install --no-cache-dir \
+    horovod==0.19.0 \
+ && ldconfig
+
+# Allow OpenSSH to talk to containers without asking for confirmation
+RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
 
 # "channels first" is recommended for keras-mxnet
 # https://github.com/awslabs/keras-apache-mxnet/blob/master/docs/mxnet_backend/performance_guide.md#channels-first-image-data-format-for-cnn
@@ -119,12 +182,10 @@ RUN mkdir /root/.keras \
 RUN ln -s /dev/null /dev/raw1394
 
 COPY dockerd-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py \
- && chmod +x /usr/local/bin/deep_learning_container.py
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/mxnet/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/aws-mxnet-1.6.0/license.txt
 
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["/bin/bash"]
