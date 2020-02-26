@@ -1,0 +1,162 @@
+FROM nvidia/cuda:10.0-base-ubuntu18.04
+
+LABEL maintainer="Amazon AI"
+
+# prevent stopping by user interaction
+ENV DEBIAN_FRONTEND noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN true
+ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
+
+ENV PYTHONDONTWRITEBYTECODE=1 
+ENV PYTHONUNBUFFERED=1 
+ENV PYTHONIOENCODING=UTF-8 
+ENV LANG=C.UTF-8 
+ENV LC_ALL=C.UTF-8
+
+ARG FRAMEWORK_SUPPORT_INSTALLABLE=sagemaker_tensorflow_training*.tar.gz
+ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.1/AmazonLinux/gpu/final/tensorflow_gpu-2.0.1-cp27-cp27mu-manylinux2010_x86_64.whl
+
+ARG PYTHON=python
+ARG PYTHON_PIP=python-pip
+ARG PIP=pip
+
+RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
+    ca-certificates \
+    cuda-command-line-tools-10-0 \
+    cuda-cublas-dev-10-0 \
+    cuda-cudart-dev-10-0 \
+    cuda-cufft-dev-10-0 \
+    cuda-curand-dev-10-0 \
+    cuda-cusolver-dev-10-0 \
+    cuda-cusparse-dev-10-0 \
+    curl \
+    libcudnn7=7.5.1.10-1+cuda10.0 \
+    # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
+    libnccl2=2.4.7-1+cuda10.0 \
+    libgomp1 \
+    libnccl-dev=2.4.7-1+cuda10.0 \
+    libfreetype6-dev \
+    libhdf5-serial-dev \
+    libpng-dev \
+    libzmq3-dev \
+    git \
+    wget \
+    vim \
+    build-essential \
+    openssh-client \
+    openssh-server \
+    zlib1g-dev \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
+    # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0
+    # adds a new list which contains libnvinfer library, so it needs another
+    # 'apt-get update' to retrieve that list before it can actually install the
+    # library.
+    # We don't install libnvinfer-dev since we don't need to build against TensorRT,
+    # and libnvinfer4 doesn't contain libnvinfer.a static library.
+ && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
+    nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0 \
+ && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
+    libnvinfer5=5.0.2-1+cuda10.0 \
+ && rm /usr/lib/x86_64-linux-gnu/libnvinfer_plugin* \
+ && rm /usr/lib/x86_64-linux-gnu/libnvcaffe_parser* \
+ && rm /usr/lib/x86_64-linux-gnu/libnvparsers* \
+ && rm -rf /var/lib/apt/lists/* \
+ && mkdir -p /var/run/sshd
+
+# Install Open MPI
+RUN mkdir /tmp/openmpi \
+ && cd /tmp/openmpi \
+ && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.1.tar.gz \
+ && tar zxf openmpi-4.0.1.tar.gz \
+ && cd openmpi-4.0.1 \
+ && ./configure --enable-orterun-prefix-by-default \
+ && make -j $(nproc) all \
+ && make install \
+ && ldconfig \
+ && rm -rf /tmp/openmpi
+
+RUN apt-get update && apt-get install -y \
+    ${PYTHON} \
+    ${PYTHON_PIP}
+
+# Create a wrapper for OpenMPI to allow running as root by default
+RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real \
+ && echo '#!/bin/bash' > /usr/local/bin/mpirun \
+ && echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun \
+ && chmod a+x /usr/local/bin/mpirun
+
+# Configure OpenMPI to run good defaults:
+#   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0
+RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
+
+# Set default NCCL parameters
+RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
+
+ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
+ENV PATH /usr/local/openmpi/bin/:$PATH
+ENV PATH=/usr/local/nvidia/bin:$PATH
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN mkdir -p /var/run/sshd \
+ && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+# Create SSH key.
+RUN mkdir -p /root/.ssh/ \
+ && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
+ && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+ && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
+
+WORKDIR /
+
+RUN ${PIP} --no-cache-dir install --upgrade \
+    pip \
+    setuptools
+
+# Some TF tools expect a "python" binary
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
+
+COPY $FRAMEWORK_SUPPORT_INSTALLABLE .
+
+# install PyYAML==5.1.2 to avoid conflict with latest awscli
+# # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
+RUN ${PIP} install --no-cache-dir -U \
+    numpy==1.16.5 \
+    scipy==1.2.2 \
+    scikit-learn==0.20.4 \
+    pandas==0.24.2 \
+    Pillow==6.2.1 \
+    h5py==2.10.0 \
+    keras_applications==1.0.8 \
+    keras_preprocessing==1.1.0 \
+    requests==2.22.0 \
+    keras==2.3.1 \
+    python-dateutil==2.8.0 \
+    PyYAML==5.1.2 \
+    awscli \
+    mpi4py==3.0.3 \
+    opencv-python==4.2.0.32 \
+    "cryptography>=2.3" \
+    "sagemaker-tensorflow>=2.0,<2.1" \
+    # Let's install TensorFlow separately in the end to avoid
+    # the library version to be overwritten
+ && ${PIP} install --no-cache-dir -U \
+    ${TF_URL} \
+ && ${PIP} install --no-cache-dir -U \
+    $FRAMEWORK_SUPPORT_INSTALLABLE \
+ && rm -f $FRAMEWORK_SUPPORT_INSTALLABLE 
+
+# Install Horovod, temporarily using CUDA stubs
+RUN ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.18.2 \
+ && ldconfig
+
+# Allow OpenSSH to talk to containers without asking for confirmation
+RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
+
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0.1/license.txt -o /license.txt
+
+CMD ["bin/bash"]
