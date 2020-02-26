@@ -1,0 +1,47 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin/dgl_tests
+LOG_DIR=${HOME_DIR}/logs
+
+DGLTESTDIR=${HOME_DIR}/artifacts/dgl
+TRAINING_LOG=${LOG_DIR}/dgl_train_gcn.log
+
+set -e
+
+cd ${DGLTESTDIR}
+
+echo "Training gcn using DGL... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
+
+# Check to see if nvidia-smi fails, if so we are assuming a CPU test
+set +e
+nvidia-smi
+RETURN_VAL=$?
+set -e
+
+PYTHON_BIN=$1
+FRAMEWORK=$2
+
+cd ./examples/${FRAMEWORK}/gcn
+
+set +e
+if [ ${RETURN_VAL} -eq 0 ]; then
+    echo "Running DGL training script..."
+    $PYTHON_BIN ./train.py --dataset cora --gpu 0 >> ${TRAINING_LOG} 2>&1
+else
+    echo "Running DGL training script..."
+    $PYTHON_BIN ./train.py --dataset cora --gpu -1 >> ${TRAINING_LOG} 2>&1
+fi
+RETURN_VAL=$?
+set -e
+
+if [ ${RETURN_VAL} -eq 0 ]; then
+    echo "Training GCN complete using DGL."
+    $PYTHON_BIN ${BIN_DIR}/parse_dgl_results.py $TRAINING_LOG
+else
+    echo "Training failed"
+    cat $TRAINING_LOG
+    exit 1
+fi
+
+exit 0
