@@ -10,4 +10,4 @@ dist
 build
 .coverage
 .tox/
-test/resources/local_mode_lock
+../../test/sagemaker_tests/pytorch/training/resources/local_mode_lock
