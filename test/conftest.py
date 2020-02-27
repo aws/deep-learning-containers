@@ -17,7 +17,7 @@ def pytest_addoption(parser):
         help="Specify image(s) to run"
     )
     parser.addoption(
-        "--ec2-instance-types",
+        "--ec2-instance-type",
         required=False,
         nargs='+',
         help="Specify image(s) to run"
@@ -32,6 +32,11 @@ def docker_client():
 @pytest.fixture(scope="session")
 def ec2_client():
     return boto3.client('ec2')
+
+
+@pytest.fixture(scope="session")
+def ec2_instance_type(request):
+    return request.config.getoption("--ec2-instance-type")
 
 
 @pytest.mark.timeout(300)
