@@ -41,6 +41,7 @@ def run_test_job(commit, codebuild_project):
         print(f"Skipping test {codebuild_project} as no images were built.")
         return
 
+    print(env_overrides)
     client = boto3.client("codebuild")
     return client.start_build(
         projectName=codebuild_project,
