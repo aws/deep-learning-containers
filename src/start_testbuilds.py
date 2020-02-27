@@ -57,8 +57,7 @@ def main():
 
     # Start sanity test job
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
-    a = run_test_job(commit, "dlc-sanity-test")
-    print(a)
+    run_test_job(commit, "dlc-sanity-test")
 
 
 if __name__ == "__main__":
