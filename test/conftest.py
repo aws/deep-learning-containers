@@ -29,7 +29,8 @@ def dlc_images(request):
 
 @pytest.fixture(scope="session")
 def pull_images(docker_client, dlc_images):
-    docker_client.images.pull(dlc_images)
+    for image in dlc_images:
+        docker_client.images.pull(image)
 
 
 def pytest_generate_tests(metafunc, dlc_images):

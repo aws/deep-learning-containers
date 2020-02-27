@@ -3,7 +3,8 @@ import subprocess
 import pytest
 
 
-def test_pip_check(pull_images, image):
+@pytest.mark.usefixtures("pull_images")
+def test_pip_check(image):
     """
     Test to run pip sanity tests
     """
