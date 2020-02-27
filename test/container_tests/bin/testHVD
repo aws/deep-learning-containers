@@ -1,0 +1,14 @@
+#!/bin/bash
+INSTANCE_TYPE=`curl http://169.254.169.254/latest/meta-data/instance-type`
+if [[ $INSTANCE_TYPE == g2* ]]; then
+  echo "This is g2* instance. Skipped."
+  exit 0
+fi
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+
+${BIN_DIR}/testTFHVDHelper || exit 1
+
+exit 0

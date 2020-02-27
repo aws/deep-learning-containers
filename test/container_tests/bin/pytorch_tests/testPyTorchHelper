@@ -1,0 +1,28 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+
+EXAMPLESDIR=${HOME_DIR}/artifacts/examples
+set -e
+cd ${EXAMPLESDIR}
+
+TRAINING_LOG=${LOG_DIR}/pytorch_train_mnist.log
+
+echo "Training mnist using PyTorch... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
+set +e
+python mnist/main.py >$TRAINING_LOG 2>&1
+RETURN_VAL=`echo $?`
+set -e
+
+if [ ${RETURN_VAL} -eq 0 ]; then
+    echo "Training mnist Complete using PyTorch."
+else
+    echo "Training mnist Failed using PyTorch."
+    cat $TRAINING_LOG
+    exit 1
+fi
+
+
+exit 0
