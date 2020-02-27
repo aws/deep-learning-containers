@@ -12,4 +12,4 @@ def test_pip_check(image):
                             'tensorflow in serving containers.')
 
     # Add null entrypoint to ensure command exits immediately
-    subprocess.run(f"docker run -it --entrypoint='' {image} pip check", capture_output=True, check=True)
+    subprocess.run(["docker", "run", "-it", "--entrypoint=''", image, 'pip', 'check'], capture_output=True, check=True)
