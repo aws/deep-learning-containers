@@ -3,7 +3,7 @@ import subprocess
 import pytest
 
 
-def test_pip_check(image):
+def test_pip_check(pull_images, image):
     """
     Test to run pip sanity tests
     """

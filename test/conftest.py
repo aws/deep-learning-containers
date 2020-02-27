@@ -22,6 +22,16 @@ def docker_client():
     return docker.from_env()
 
 
-def pytest_generate_tests(metafunc):
+@pytest.fixture(scope="session")
+def dlc_images(request):
+    return request.config.getoption("--images")
+
+
+@pytest.fixture(scope="session")
+def pull_images(docker_client, dlc_images):
+    docker_client.images.pull(dlc_images)
+
+
+def pytest_generate_tests(metafunc, dlc_images):
     if "image" in metafunc.fixturenames:
-        metafunc.parametrize("image", metafunc.config.getoption("--images"))
+        metafunc.parametrize("image", dlc_images)
