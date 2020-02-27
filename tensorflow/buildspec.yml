@@ -125,4 +125,3 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *INFERENCE_CONTEXT
-
