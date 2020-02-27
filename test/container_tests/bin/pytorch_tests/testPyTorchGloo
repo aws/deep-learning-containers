@@ -1,0 +1,34 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+
+set -e
+cd ${HOME_DIR}
+cd ./dlbs && source ./scripts/environment.sh && cd ..
+NUM_GPU=$(nvidia-smi -L | wc -l)
+export OMP_NUM_THREADS=${NUM_GPU}
+
+TRAINING_LOG=${LOG_DIR}/pytorch_train_gloo.log
+
+echo "Training resnet18 using PyTorch Gloo... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
+set +e
+
+python -m torch.distributed.launch --nproc_per_node=${NUM_GPU} \
+dlcookbook-dlbs/python/pytorch_benchmarks/benchmarks.py \
+--model resnet18 --batch_size=32 --device gpu --cudnn_fastest --dist_backend=gloo > $TRAINING_LOG 2>&1
+
+RETURN_VAL=`echo $?`
+set -e
+
+if [ ${RETURN_VAL} -eq 0 ]; then
+    echo "Training resnet18 Complete using PyTorch Gloo."
+else
+    echo "Training resnet18 Failed using PyTorch Gloo."
+    cat $TRAINING_LOG
+    exit 1
+fi
+
+
+exit 0
