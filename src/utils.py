@@ -63,7 +63,7 @@ def pr_build_setup(pr_number, framework):
     # Rule 2: If the buildspec file for a framework changes, build all images for that framework
     rule = re.findall(r"\S+\/buildspec.yml", files)
     for buildspec in rule:
-        buildspec_framework, _ = buildspec.split("/")
+        buildspec_framework = buildspec.split("/")[0]
         if buildspec_framework == framework:
             device_types = constants.ALL
             image_types = constants.ALL
