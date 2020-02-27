@@ -34,11 +34,9 @@ def run_test_job(commit, codebuild_project):
     overrides = env_overrides
     while overrides and not images_present:
         env = overrides.pop()
-        print(env)
         if env.get('name') == "DLC_IMAGES" and env.get('value', '').strip():
             images_present = True
 
-    print(images_present)
     if not images_present:
         print(f"Skipping test {codebuild_project} as no images were built.")
         return
@@ -59,7 +57,8 @@ def main():
 
     # Start sanity test job
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
-    run_test_job(commit, "dlc-sanity-test")
+    a = run_test_job(commit, "dlc-sanity-test")
+    print(a)
 
 
 if __name__ == "__main__":
