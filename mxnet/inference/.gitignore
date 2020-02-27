@@ -5,7 +5,7 @@ dist
 **/*.pyc
 .tox/*
 .coverage
-test/resources/local_mode_lock
+../../test/sagemaker_tests/mxnet/inference/resources/local_mode_lock
 .idea/*
 *~
 .DS_Store
