@@ -1,7 +1,9 @@
+import subprocess
+
 import pytest
 
 
-def test_pip_check(image, docker_client):
+def test_pip_check(image):
     """
     Test to run pip sanity tests
     """
@@ -10,4 +12,4 @@ def test_pip_check(image, docker_client):
                             'tensorflow in serving containers.')
 
     # Add null entrypoint to ensure command exits immediately
-    docker_client.containers.run(image, command="pip check", entrypoint='')
+    subprocess.run(f"docker run --entrypoint='' -it {image} pip check", capture_output=True, check=True)
