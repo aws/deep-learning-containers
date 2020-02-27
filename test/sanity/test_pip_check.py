@@ -12,4 +12,6 @@ def test_pip_check(image):
                             'tensorflow in serving containers.')
 
     # Add null entrypoint to ensure command exits immediately
-    subprocess.run(f"docker run -it --entrypoint='' {image} pip check", shell=True, capture_output=True, check=True)
+    cmd = subprocess.run(f"docker run -it --entrypoint='' {image} pip check", capture_output=True)
+    if cmd.returncode:
+        pytest.fail(f"{cmd.stderr}")
