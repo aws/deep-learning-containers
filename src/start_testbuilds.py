@@ -37,6 +37,8 @@ def run_test_job(commit, codebuild_project):
         print(env)
         if env.get('name') == "DLC_IMAGES" and env.get('value', '').strip():
             images_present = True
+
+    print(images_present)
     if not images_present:
         print(f"Skipping test {codebuild_project} as no images were built.")
         return
