@@ -21,6 +21,6 @@ phases:
       - cd ..
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
 reports:
-  sanity_reports
+  sanity_reports:
     base-directory: test/sanity_reports
     file-format: JunitXml
