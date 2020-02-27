@@ -14,19 +14,31 @@ language governing permissions and limitations under the License.
 """
 import os
 import json
-import logging
 
 import boto3
 
 import constants
 
 
-logger = logging.getLogger(__name__)
-
-
 def run_test_job(commit, codebuild_project):
-    with open(constants.TEST_ENV) as test_env_file:
+    test_env_file = constants.TEST_ENV
+    if not os.path.exists(test_env_file):
+        raise FileNotFoundError(f"{test_env_file} not found. This is required to set test environment variables"
+                                f" for test jobs. Failing the build.")
+
+    with open(test_env_file) as test_env_file:
         env_overrides = json.load(test_env_file)
+
+    # Make sure DLC_IMAGES exists. If not, don't execute job.
+    images_present = False
+    for override in env_overrides:
+        if override.get('name') == "DLC_IMAGES" and override.get('value', '').strip():
+            images_present = True
+            break
+
+    if not images_present:
+        print(f"Skipping test {codebuild_project} as no images were built.")
+        return
 
     client = boto3.client("codebuild")
     return client.start_build(
@@ -39,7 +51,7 @@ def run_test_job(commit, codebuild_project):
 def main():
     build_context = os.getenv("BUILD_CONTEXT")
     if build_context != "PR":
-        logger.info(f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}")
+        print(f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}")
         return
 
     # Start sanity test job
