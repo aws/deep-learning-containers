@@ -63,6 +63,16 @@ def start_ec2_instance(ec2_client, ec2_instance_type):
 #     ec2 = boto3.client('ec2')
 #     return request.config.getoption("--ec2-instance-type")
 
+@pytest.fixture(scope="session")
+def dlc_images(request):
+    return request.config.getoption("--images")
+
+
+@pytest.fixture(scope="session")
+def pull_images(docker_client, dlc_images):
+    for image in dlc_images:
+        docker_client.images.pull(image)
+
 
 def pytest_generate_tests(metafunc):
     if "image" in metafunc.fixturenames:
