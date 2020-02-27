@@ -31,17 +31,15 @@ def run_test_job(commit, codebuild_project):
 
     # Make sure DLC_IMAGES exists. If not, don't execute job.
     images_present = False
-    overrides = env_overrides
-    while overrides and not images_present:
-        env = overrides.pop()
-        if env.get('name') == "DLC_IMAGES" and env.get('value', '').strip():
+    for override in env_overrides:
+        if override.get('name') == "DLC_IMAGES" and override.get('value', '').strip():
             images_present = True
+            break
 
     if not images_present:
         print(f"Skipping test {codebuild_project} as no images were built.")
         return
 
-    print(env_overrides)
     client = boto3.client("codebuild")
     return client.start_build(
         projectName=codebuild_project,
