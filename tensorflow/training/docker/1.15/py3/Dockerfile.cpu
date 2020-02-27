@@ -22,8 +22,8 @@ ENV LC_ALL=C.UTF-8
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
 # Define framework-related package sources
-ARG FRAMEWORK_SUPPORT_INSTALLABLE=sagemaker_tensorflow_container*.tar.gz
-ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15/AmazonLinux/cpu/final/tensorflow-1.15.0-cp36-cp36m-manylinux2010_x86_64.whl
+ARG FRAMEWORK_SUPPORT_INSTALLABLE=sagemaker_tensorflow_training*.tar.gz
+ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.2/AmazonLinux/cpu/final/tensorflow-1.15.2-cp36-cp36m-manylinux2010_x86_64.whl
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -78,8 +78,6 @@ RUN mkdir -p /root/.ssh/ \
 
 WORKDIR /
 
-COPY $FRAMEWORK_SUPPORT_INSTALLABLE .
-
 RUN pip3 --no-cache-dir install --upgrade \
     pip \
     setuptools
@@ -108,20 +106,11 @@ RUN pip install --no-cache-dir -U \
     # the library version to be overwritten
  && pip install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
+    sagemaker-tensorflow-training \
+    awscli \
  && pip install --force-reinstall --no-cache-dir -U \
-    horovod==0.18.2 \
- && pip install --no-cache-dir -U \
-    $FRAMEWORK_SUPPORT_INSTALLABLE \
-    awscli==1.17.7 \
- && rm -f $FRAMEWORK_SUPPORT_INSTALLABLE
-
-COPY dockerd-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py \
- && chmod +x /usr/local/bin/deep_learning_container.py
+    horovod==0.18.2
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 
-ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["bin/bash"]
