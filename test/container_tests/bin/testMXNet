@@ -1,0 +1,10 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+
+git clone -b 1.4.0 https://github.com/apache/incubator-mxnet.git ${HOME_DIR}/artifacts/mxnet
+${BIN_DIR}/testMXNetHelper python || exit 1
+
+exit 0
