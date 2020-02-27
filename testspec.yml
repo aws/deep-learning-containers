@@ -15,13 +15,8 @@ phases:
       - pip install -r test/requirements.txt
       - echo Running pytest sanity tests...
       - cd test
-      - pytest sanity/ --images $DLC_IMAGES --junitxml=sanity_reports.xml
+      - pytest sanity/ --images $DLC_IMAGES -n auto
   post_build:
     commands:
       - cd ..
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
-reports:
-  sanity_reports:
-    files:
-      - test/sanity_reports.xml
-    file-format: JunitXml

@@ -14,4 +14,4 @@ def test_pip_check(image):
     # Add null entrypoint to ensure command exits immediately
     cmd = subprocess.run(f"docker run --entrypoint='' {image} pip check", capture_output=True, shell=True)
     if cmd.returncode:
-        pytest.fail(f"{cmd.stderr}")
+        pytest.fail(f"{cmd.stdout}")
