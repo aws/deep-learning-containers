@@ -14,14 +14,10 @@ language governing permissions and limitations under the License.
 """
 import os
 import json
-import logging
 
 import boto3
 
 import constants
-
-
-logger = logging.getLogger(__name__)
 
 
 def run_test_job(commit, codebuild_project):
@@ -38,10 +34,11 @@ def run_test_job(commit, codebuild_project):
     overrides = env_overrides
     while overrides and not images_present:
         env = overrides.pop()
-        if env.get('name') == "DLC_IMAGES" and env.get('value').strip():
+        print(env)
+        if env.get('name') == "DLC_IMAGES" and env.get('value', '').strip():
             images_present = True
     if not images_present:
-        logger.info(f"Skipping test {codebuild_project} as no images were built.")
+        print(f"Skipping test {codebuild_project} as no images were built.")
         return
 
     client = boto3.client("codebuild")
@@ -55,7 +52,7 @@ def run_test_job(commit, codebuild_project):
 def main():
     build_context = os.getenv("BUILD_CONTEXT")
     if build_context != "PR":
-        logger.info(f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}")
+        print(f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}")
         return
 
     # Start sanity test job
