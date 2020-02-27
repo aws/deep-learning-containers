@@ -35,4 +35,4 @@ def pull_images(docker_client, dlc_images):
 
 def pytest_generate_tests(metafunc, dlc_images):
     if "image" in metafunc.fixturenames:
-        metafunc.parametrize("image", dlc_images)
+        metafunc.parametrize("image", metafunc.config.getoption("--images"))
