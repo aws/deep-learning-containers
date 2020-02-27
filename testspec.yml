@@ -4,6 +4,10 @@ phases:
   install:
     runtime-versions:
       docker: 18
+  pre_build:
+    commands:
+      - pip install -r src/requirements.txt
+      - python src/send_status.py --status 2
   build:
     commands:
       - echo Logging in to Amazon ECR...
@@ -12,3 +16,7 @@ phases:
       - echo Running pytest sanity tests...
       - cd test
       - pytest sanity/ --images $DLC_IMAGES --ec2-instance-type p3.8xlarge
+  post_build:
+    commands:
+      - cd ..
+      - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING

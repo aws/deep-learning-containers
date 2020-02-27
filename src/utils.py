@@ -149,3 +149,7 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
 
     with open(constants.TEST_ENV, "w") as ef:
         json.dump(test_envs, ef)
+
+
+def get_codebuild_project_name():
+    return os.getenv("CODEBUILD_BUILD_ID").split(':')[0]
