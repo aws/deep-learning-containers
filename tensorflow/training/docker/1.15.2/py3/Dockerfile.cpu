@@ -22,7 +22,6 @@ ENV LC_ALL=C.UTF-8
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
 # Define framework-related package sources
-ARG FRAMEWORK_SUPPORT_INSTALLABLE=sagemaker_tensorflow_training*.tar.gz
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.2/AmazonLinux/cpu/final/tensorflow-1.15.2-cp36-cp36m-manylinux2010_x86_64.whl
 
 RUN apt-get update \
@@ -106,7 +105,7 @@ RUN pip install --no-cache-dir -U \
     # the library version to be overwritten
  && pip install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
-    sagemaker-tensorflow-training \
+    "sagemaker-tensorflow-training>=2.0<3.0" \
     awscli \
  && pip install --force-reinstall --no-cache-dir -U \
     horovod==0.18.2

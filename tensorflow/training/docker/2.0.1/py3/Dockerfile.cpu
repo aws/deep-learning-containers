@@ -24,7 +24,6 @@ ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 
-ARG FRAMEWORK_SUPPORT_INSTALLABLE=sagemaker_tensorflow_training*.tar.gz 
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.1/AmazonLinux/cpu/final/tensorflow-2.0.1-cp36-cp36m-manylinux2010_x86_64.whl
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -81,8 +80,6 @@ RUN mkdir -p /root/.ssh/ \
 
 WORKDIR /
 
-COPY $FRAMEWORK_SUPPORT_INSTALLABLE .
-
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
@@ -115,9 +112,7 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     horovod==0.18.2 \
- && ${PIP} install --no-cache-dir -U \
-    $FRAMEWORK_SUPPORT_INSTALLABLE \
- && rm -f $FRAMEWORK_SUPPORT_INSTALLABLE 
+    "sagemaker-tensorflow-training>=3.0<4.0"
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0.1/license.txt -o /license.txt
 
