@@ -62,7 +62,7 @@ def start_ec2_instance(request, ec2_client, ec2_instance_type, ec2_resource):
 
     waiter = ec2_client.get_waiter('instance_running')
     waiter.wait(InstanceIds=[instance_id])
-    return instance_id
+    return instances[0]
 
 
 @pytest.fixture(scope="session")
