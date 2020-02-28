@@ -69,7 +69,6 @@ RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-la
     /opt/conda/bin/conda clean -ya
 
 RUN conda install -c conda-forge \
-    awscli \
     opencv==4.0.1 \
  && conda install -y \
     scikit-learn==0.20.3 \
@@ -84,16 +83,14 @@ RUN conda install -c conda-forge \
 COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
-# The following section uninstalls torch and torchvision before installing the
-# custom versions from an S3 bucket. This will need to be removed in the future
 RUN pip install --no-cache-dir \
     scipy==1.2.2 \
     sphinxcontrib-websupport==1.1.2 \
     future \
+ && pip install -U --no-cache-dir \
+    awscli \
     sagemaker-pytorch-training \
- && pip uninstall -y torch \
  && pip install -U --no-cache-dir https://pytorch-aws.s3.amazonaws.com/pytorch-1.4.0/py2/cpu/torch-1.4.0-cp27-cp27mu-manylinux1_x86_64.whl \
- && pip uninstall -y torchvision \
  && pip install --no-cache-dir \
     https://torchvision-build.s3.amazonaws.com/1.4.0/py2/cpu/torchvision-0.5.0%2Bcpu-cp27-cp27mu-linux_x86_64.whl
 

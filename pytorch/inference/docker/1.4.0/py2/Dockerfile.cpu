@@ -52,7 +52,6 @@ RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-la
 
 RUN conda install -c \
     conda-forge \
-    awscli \
     opencv==4.0.1 \
  && conda install -y \
     scikit-learn==0.20.3 \
@@ -65,8 +64,9 @@ RUN conda install -c \
     torchvision==$TORCHVISION_VERSION cpuonly -c pytorch \
  && conda clean -ya \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && pip install \
+ && pip install -U \
     mxnet-model-server==$MMS_VERSION \
+    awscli \
     sagemaker-pytorch-inference
 
 RUN useradd -m model-server \

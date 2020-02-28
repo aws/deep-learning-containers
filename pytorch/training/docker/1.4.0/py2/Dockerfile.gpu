@@ -97,7 +97,6 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
 
 RUN conda install -c pytorch magma-cuda101==2.5.1 \
  && conda install -c conda-forge \
-    awscli \
     opencv==4.0.1 \
  && conda install -y \
     scikit-learn==0.20.3 \
@@ -113,15 +112,12 @@ RUN conda install -c pytorch magma-cuda101==2.5.1 \
  && pip uninstall -y QDarkStyle \
  && conda clean -ya
 
-# The following section uninstalls torch and torchvision before installing the
-# custom versions from an S3 bucket. This will need to be removed in the future
 RUN /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
     sagemaker-pytorch-training \
- && pip uninstall torch -y \
+    awscli \
  && pip install -U --no-cache-dir \
     https://pytorch-aws.s3.amazonaws.com/pytorch-1.4.0/py2/gpu/torch-1.4.0-cp27-cp27mu-manylinux1_x86_64.whl \
- && pip uninstall -y torchvision \
  && pip install --no-cache-dir \
     https://torchvision-build.s3.amazonaws.com/1.4.0/py2/gpu/torchvision-0.5.0-cp27-cp27mu-linux_x86_64.whl
 

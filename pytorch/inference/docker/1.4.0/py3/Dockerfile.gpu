@@ -65,7 +65,6 @@ RUN conda install -c \
     pytorch magma-cuda101==2.5.1 \
  && conda install -c \
     conda-forge \
-    awscli \
     opencv==4.0.1 \
  && conda install -y \
     scikit-learn==0.21.2 \
@@ -82,7 +81,9 @@ RUN conda install -c \
  && /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install mxnet-model-server==$MMS_VERSION \
+ && pip install -U \
+    mxnet-model-server==$MMS_VERSION \
+    awscli \
     sagemaker-pytorch-inference
 
 RUN useradd -m model-server \
