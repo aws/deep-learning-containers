@@ -125,3 +125,10 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
     no_p3 = region in NO_P3_REGIONS and instance_type.startswith('ml.p3')
     if no_p2 or no_p3:
         pytest.skip('Skipping GPU test in region {} to avoid insufficient capacity'.format(region))
+
+
+@pytest.fixture(autouse=True)
+def skip_py2_containers(request, tag):
+    if request.node.get_closest_marker('skip_py2_containers'):
+        if 'py2' in tag:
+            pytest.skip('Skipping python2 container with tag {}'.format(tag))

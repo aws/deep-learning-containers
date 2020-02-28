@@ -48,10 +48,12 @@ def pytest_addoption(parser):
     parser.addoption('--build-base-image', '-B', action='store_true')
     parser.addoption('--aws-id')
     parser.addoption('--instance-type')
+    parser.addoption('--accelerator-type')
     parser.addoption('--docker-base-name', default='pytorch')
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default=PyTorch.LATEST_VERSION)
     parser.addoption('--py-version', choices=['2', '3'], default=str(sys.version_info.major))
+    # Processor is still "cpu" for EIA tests
     parser.addoption('--processor', choices=['gpu', 'cpu'], default='cpu')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
@@ -162,6 +164,11 @@ def fixture_instance_type(request, processor):
     return provided_instance_type or default_instance_type
 
 
+@pytest.fixture(name='accelerator_type', scope='session')
+def fixture_accelerator_type(request):
+    return request.config.getoption('--accelerator-type')
+
+
 @pytest.fixture(name='docker_registry', scope='session')
 def fixture_docker_registry(aws_id, region):
     return '{}.dkr.ecr.{}.amazonaws.com'.format(aws_id, region)
@@ -173,10 +180,22 @@ def fixture_ecr_image(docker_registry, docker_base_name, tag):
 
 
 @pytest.fixture(autouse=True)
-def skip_by_device_type(request, use_gpu, instance_type):
+def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
     is_gpu = use_gpu or instance_type[3] in ['g', 'p']
-    if (request.node.get_closest_marker('skip_gpu') and is_gpu) or \
-            (request.node.get_closest_marker('skip_cpu') and not is_gpu):
+    is_eia = accelerator_type is not None
+
+    # Separate out cases for clearer logic.
+    # When running GPU test, skip CPU test. When running CPU test, skip GPU test.
+    if (request.node.get_closest_marker('gpu_test') and not is_gpu) or \
+            (request.node.get_closest_marker('cpu_test') and is_gpu):
+        pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
+
+    # When running EIA test, skip the CPU and GPU functions
+    elif (request.node.get_closest_marker('gpu_test') or request.node.get_closest_marker('cpu_test')) and is_eia:
+        pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
+
+    # When running CPU or GPU test, skip EIA test.
+    elif request.node.get_closest_marker('eia_test') and not is_eia:
         pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
 
 
@@ -191,3 +210,11 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
     if (region in NO_P2_REGIONS and instance_type.startswith('ml.p2')) \
        or (region in NO_P3_REGIONS and instance_type.startswith('ml.p3')):
         pytest.skip('Skipping GPU test in region {}'.format(region))
+
+
+@pytest.fixture(autouse=True)
+def skip_gpu_py2(request, use_gpu, instance_type, py_version, framework_version):
+    is_gpu = use_gpu or instance_type[3] in ['g', 'p']
+    if request.node.get_closest_marker('skip_gpu_py2') and is_gpu and py_version != 'py3' \
+            and framework_version == '1.4.0':
+        pytest.skip('Skipping the test until mms issue resolved.')
