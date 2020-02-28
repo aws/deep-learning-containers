@@ -35,15 +35,20 @@ def ec2_client():
 
 
 @pytest.fixture(scope="session")
+def ec2_resource():
+    return boto3.resource('ec2')
+
+
+@pytest.fixture(scope="session")
 def ec2_instance_type(request):
     return request.config.getoption("--ec2-instance-type")
 
 
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="session")
-def start_ec2_instance(ec2_client, ec2_instance_type):
+def start_ec2_instance(ec2_client, ec2_instance_type, ec2_resource):
     key = ec2_client.create_key_pair(KeyName="pytest.pem")
-    instances = ec2_client.create_instances(
+    instances = ec2_resource.create_instances(
         KeyName=key.get('KeyName'),
         ImageId='ami-025ed45832b817a35',
         InstanceType=ec2_instance_type,
