@@ -58,7 +58,10 @@ def start_ec2_instance(ec2_client, ec2_instance_type, ec2_resource):
     running = False
     while not running:
         resp = ec2_client.describe_instances(InstanceIds=[instance_id])
-        if resp.get('InstanceStatuses', {})[0].get('InstanceState', {}).get('Name') == 'running':
+        status = resp.get('InstanceStatuses')
+        if not status:
+            continue
+        if status[0].get('InstanceState', {}).get('Name') == 'running':
             return instance_id
 
 
