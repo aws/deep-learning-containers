@@ -45,8 +45,7 @@ def ec2_instance_type(request):
 
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="session")
-def start_ec2_instance(ec2_client, ec2_instance_type, ec2_resource):
-    #key = ec2_client.create_key_pair(KeyName="pytest.pem")
+def start_ec2_instance(request, ec2_client, ec2_instance_type, ec2_resource):
     instances = ec2_resource.create_instances(
         KeyName="pytest.pem",
         ImageId='ami-0e57002aaafd42113',
@@ -55,20 +54,21 @@ def start_ec2_instance(ec2_client, ec2_instance_type, ec2_resource):
         MinCount=1
     )
     instance_id = instances[0].id
-    running = False
-    while not running:
-        resp = ec2_client.describe_instances(InstanceIds=[instance_id])
-        status = resp.get('InstanceStatuses')
-        if not status:
-            continue
-        if status[0].get('InstanceState', {}).get('Name') == 'running':
-            return instance_id
+
+    # Define finalizer to terminate instance after this fixture completes
+    def terminate():
+        ec2_client.terminate_instances(InstanceIds=[instance_id])
+    request.addfinalizer(terminate)
+
+    waiter = ec2_client.get_waiter('instance_running')
+    waiter.wait(InstanceIds=[instance_id])
+    return instance_id
 
 
-# @pytest.fixture(scope="session")
-# def run_on_ec2_instance(request, start_ec2_instance):
-#     ec2 = boto3.client('ec2')
-#     return request.config.getoption("--ec2-instance-type")
+@pytest.fixture(scope="session")
+def run_on_ec2_instance(request, start_ec2_instance):
+    pass
+
 
 @pytest.fixture(scope="session")
 def dlc_images(request):
