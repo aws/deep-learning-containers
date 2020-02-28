@@ -3,6 +3,7 @@ import subprocess
 import pytest
 
 
+@pytest.mark.skip
 @pytest.mark.usefixtures("pull_images")
 def test_pip_check(image):
     """
