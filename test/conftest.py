@@ -19,7 +19,6 @@ def pytest_addoption(parser):
     parser.addoption(
         "--ec2-instance-type",
         required=False,
-        nargs='+',
         help="Specify image(s) to run"
     )
 
@@ -56,9 +55,9 @@ def start_ec2_instance(ec2_client, ec2_instance_type, ec2_resource):
         MinCount=1
     )
     instance_id = instances[0].id
-    resp = ec2_client.describe_instances(InstanceIds=[instance_id])
     running = False
     while not running:
+        resp = ec2_client.describe_instances(InstanceIds=[instance_id])
         if resp.get('InstanceStatuses', {})[0].get('InstanceState', {}).get('Name') == 'running':
             return instance_id
 
