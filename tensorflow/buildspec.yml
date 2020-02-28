@@ -1,7 +1,7 @@
   account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK tensorflow
-  version: &VERSION 1.15.2
+  version: &VERSION 2.1.0
   
   repository_info:
     training_repository: &TRAINING_REPOSITORY
