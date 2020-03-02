@@ -31,10 +31,10 @@ def run_sagemaker_tests(images):
     :param images: list of ECR urls
     """
     region = os.getenv('AWS_REGION', 'us-west-2')
+    integration_path = os.path.join("integration", "sagemaker")
     for image in images:
         sm_test_args, path = parse_sagemaker_image_tags(image)
-        os.chdir(path)
-        cmd = ["--region", region] + sm_test_args
+        cmd = [f"--rootdir={path}", integration_path, "--region", region] + sm_test_args
         pytest.main(cmd)
 
 
