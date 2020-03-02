@@ -15,7 +15,7 @@ phases:
       - pip install -r test/requirements.txt
       - echo Running pytest sanity tests...
       - cd test
-      - pytest sanity/ --images $DLC_IMAGES
+      - python testrunner.py --images $DLC_IMAGES --test-type $TEST_TYPE
   post_build:
     commands:
       - cd ..
