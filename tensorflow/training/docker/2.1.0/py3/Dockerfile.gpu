@@ -24,7 +24,6 @@ ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 
-ARG FRAMEWORK_SUPPORT_INSTALLABLE=sagemaker_tensorflow_training*.tar.gz
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.1/AmazonLinux/gpu/final/tensorflow_gpu-2.1.0-cp36-cp36m-manylinux2010_x86_64.whl
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
@@ -133,8 +132,6 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
-COPY $FRAMEWORK_SUPPORT_INSTALLABLE .
-
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
@@ -158,9 +155,7 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
- && ${PIP} install --no-cache-dir -U \
-    $FRAMEWORK_SUPPORT_INSTALLABLE \
- && rm -f $FRAMEWORK_SUPPORT_INSTALLABLE 
+    "sagemaker-tensorflow-training>=3.0<4.0"
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
