@@ -19,7 +19,6 @@ ENV LC_ALL=C.UTF-8
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
 # Define framework-related package sources
-ARG FRAMEWORK_SUPPORT_INSTALLABLE=sagemaker_tensorflow_training*.tar.gz
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.2/AmazonLinux/gpu/final/tensorflow_gpu-1.15.2-cp36-cp36m-manylinux2010_x86_64.whl
 
 RUN apt-get update \
@@ -123,8 +122,6 @@ RUN pip3 --no-cache-dir install --upgrade \
 RUN ln -s $(which python3) /usr/local/bin/python \
  && ln -s $(which pip3) /usr/bin/pip
 
-COPY $FRAMEWORK_SUPPORT_INSTALLABLE .
-
 RUN pip install --no-cache-dir -U \
     numpy==1.17.4 \
     scipy==1.2.2 \
@@ -145,7 +142,7 @@ RUN pip install --no-cache-dir -U \
     # the library version to be overwritten
  && pip install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
-    sagemaker-tensorflow-training \
+    "sagemaker-tensorflow-training>=2.0<3.0" \
     awscli
 
 # Install Horovod, temporarily using CUDA stubs
