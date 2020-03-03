@@ -12,6 +12,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--images",
         required=True,
+        default=os.getenv('DLC_IMAGES'),
         nargs='+',
         help="Specify image(s) to run"
     )

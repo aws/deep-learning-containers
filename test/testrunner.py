@@ -65,7 +65,7 @@ def main():
     dlc_images = os.getenv("DLC_IMAGES")
 
     if test_type == "sanity":
-        sys.exit(pytest.main([test_type, "--images", dlc_images]))
+        sys.exit(pytest.main([test_type]))
     elif test_type == "sagemaker":
         run_sagemaker_tests(dlc_images.split(" "))
     else:
