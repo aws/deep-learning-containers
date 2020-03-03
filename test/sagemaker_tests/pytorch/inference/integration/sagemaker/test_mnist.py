@@ -19,8 +19,8 @@ import pytest
 import sagemaker
 from sagemaker.pytorch import PyTorchModel
 
-from test.integration import model_cpu_dir, mnist_cpu_script, mnist_gpu_script, model_eia_dir, mnist_eia_script
-from test.integration.sagemaker.timeout import timeout_and_delete_endpoint
+from ...integration import model_cpu_dir, mnist_cpu_script, mnist_gpu_script, model_eia_dir, mnist_eia_script
+from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
 @pytest.mark.cpu_test

@@ -17,7 +17,7 @@ import os
 import sagemaker
 from sagemaker.tensorflow import TensorFlow
 
-from test.integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
+from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 

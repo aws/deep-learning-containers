@@ -18,8 +18,8 @@ import pytest
 from sagemaker import utils
 from sagemaker.pytorch import PyTorch
 
-from test.integration import resources_path, DEFAULT_TIMEOUT
-from test.integration.sagemaker.timeout import timeout
+from ...integration import resources_path, DEFAULT_TIMEOUT
+from ...integration.sagemaker.timeout import timeout
 
 DGL_DATA_PATH = os.path.join(resources_path, 'dgl-gcn')
 DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, 'gcn.py')

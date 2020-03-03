@@ -24,7 +24,7 @@ import tempfile
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
-from test.utils import image_utils
+from .utils import image_utils
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)

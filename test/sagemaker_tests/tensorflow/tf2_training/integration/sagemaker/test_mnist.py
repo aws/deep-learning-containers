@@ -20,8 +20,8 @@ from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 from six.moves.urllib.parse import urlparse
 
-from test.integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
-from timeout import timeout
+from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
+from .timeout import timeout
 
 
 @pytest.mark.deploy_test

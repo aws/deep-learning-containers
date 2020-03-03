@@ -18,7 +18,7 @@ import pytest
 from sagemaker import utils
 from sagemaker.mxnet.estimator import MXNet
 
-from test.integration import RESOURCE_PATH
+from ...integration import RESOURCE_PATH
 
 NLP_DATA_PATH = os.path.join(RESOURCE_PATH, 'nlp')
 NLP_SCRIPT_PATH = os.path.join(NLP_DATA_PATH, 'word_embedding.py')

@@ -19,8 +19,8 @@ import pytest
 from sagemaker import utils
 from sagemaker.mxnet.model import MXNetModel
 
-from test.integration import RESOURCE_PATH
-from test.integration.sagemaker import timeout
+from ...integration import RESOURCE_PATH
+from ...integration.sagemaker import timeout
 
 GLUONNLP_PATH = os.path.join(RESOURCE_PATH, 'gluonnlp')
 SCRIPT_PATH = os.path.join(GLUONNLP_PATH, 'bert.py')

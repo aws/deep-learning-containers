@@ -11,7 +11,7 @@ collect_ignore = [os.path.join('container_tests', '*')]
 def pytest_addoption(parser):
     parser.addoption(
         "--images",
-        required=True,
+        required=False,
         nargs='+',
         help="Specify image(s) to run"
     )

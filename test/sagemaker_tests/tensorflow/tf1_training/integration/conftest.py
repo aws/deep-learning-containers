@@ -20,7 +20,7 @@ import pytest
 from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
 
-from test.integration import NO_P2_REGIONS, NO_P3_REGIONS
+from ..integration import NO_P2_REGIONS, NO_P3_REGIONS
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
