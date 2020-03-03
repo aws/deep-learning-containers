@@ -70,8 +70,8 @@ def run_sagemaker_tests(images):
     sagemaker_instance_types = ("ml.p3.16xlarge", "ml.c5.18xlarge")
     sagemaker_params = []
     for image in images:
-        sagemaker_params.append((image, sagemaker_instance_types[0]))
-        sagemaker_params.append((image, sagemaker_instance_types[1]))
+        sagemaker_params.append([image, sagemaker_instance_types[0]])
+        sagemaker_params.append([image, sagemaker_instance_types[1]])
 
     pool_number = len(sagemaker_params)
     p = Pool(pool_number)
@@ -86,7 +86,7 @@ def main():
     dlc_images = args.images
 
     if test_type == "sanity":
-        pytest.main([test_type, "--images", dlc_images])
+        pytest.main([test_type, f"--images={dlc_images}"])
     elif test_type == "sagemaker":
         run_sagemaker_tests(dlc_images)
     else:
