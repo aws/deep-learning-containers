@@ -12,7 +12,7 @@ collect_ignore = [os.path.join('container_tests', '*')]
 def pytest_addoption(parser):
     parser.addoption(
         "--images",
-        default=os.getenv('DLC_IMAGES'),
+        default=os.getenv('DLC_IMAGES').split(' '),
         nargs='+',
         help="Specify image(s) to run"
     )
