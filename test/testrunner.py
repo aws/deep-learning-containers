@@ -7,26 +7,6 @@ from multiprocessing import Pool
 import pytest
 
 
-def get_args():
-    """
-    Manage arguments to this script when called directly
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--images",
-        nargs="+",
-        required=True,
-        help="DLC_IMAGES env variable -- list of space separated ECR urls",
-    )
-    parser.add_argument(
-        "--test-type",
-        required=True,
-        choices=["sagemaker", "sanity", "ecs", "ec2", "eks"],
-        help="Type of test to run -- will indicate which CodeBuild job to run",
-    )
-    return parser.parse_args()
-
-
 def run_sagemaker_pytest_cmd(image, instance_type):
     """
     Function to determine the correct pytest command to run for SageMaker tests
@@ -71,20 +51,18 @@ def run_sagemaker_tests(images):
     sagemaker_instance_types = ("ml.p3.16xlarge", "ml.c5.18xlarge")
     sagemaker_params = []
     for image in images:
-        sagemaker_params.append([image, sagemaker_instance_types[0]])
-        sagemaker_params.append([image, sagemaker_instance_types[1]])
+        sagemaker_params.append((image, sagemaker_instance_types[0]))
+        sagemaker_params.append((image, sagemaker_instance_types[1]))
 
     pool_number = len(sagemaker_params)
-    p = Pool(pool_number)
-    p.map(run_sagemaker_pytest_cmd, sagemaker_params)
+    with Pool(pool_number) as p:
+        p.starmap(run_sagemaker_pytest_cmd, sagemaker_params)
 
 
 def main():
-    args = get_args()
-
     # Define constants
-    test_type = args.test_type
-    dlc_images = args.images
+    test_type = os.getenv('TEST_TYPE')
+    dlc_images = os.getenv("DLC_IMAGES")
 
     if test_type == "sanity":
         sys.exit(pytest.main([test_type, f"--images={dlc_images}"]))
