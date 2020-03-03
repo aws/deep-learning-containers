@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 
 from multiprocessing import Pool
 
@@ -86,7 +87,7 @@ def main():
     dlc_images = args.images
 
     if test_type == "sanity":
-        pytest.main([test_type, f"--images={dlc_images}"])
+        sys.exit(pytest.main([test_type, f"--images={dlc_images}"]))
     elif test_type == "sagemaker":
         run_sagemaker_tests(dlc_images)
     else:
