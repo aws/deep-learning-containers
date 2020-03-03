@@ -65,9 +65,9 @@ def main():
     dlc_images = os.getenv("DLC_IMAGES")
 
     if test_type == "sanity":
-        sys.exit(pytest.main([test_type, f"--images={dlc_images}"]))
+        sys.exit(pytest.main([test_type, "--images", dlc_images]))
     elif test_type == "sagemaker":
-        run_sagemaker_tests(dlc_images)
+        run_sagemaker_tests(dlc_images.split(" "))
     else:
         raise NotImplementedError("Tests only support sagemaker and sanity currently")
 
