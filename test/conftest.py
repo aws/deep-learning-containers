@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 import pytest
 import docker
@@ -19,6 +20,11 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope="session")
 def docker_client():
+    cmd = subprocess.run(f"$(aws ecr get-login --no-include-email --region {os.getenv('AWS_REGION', 'us-west-2')})",
+                         stdout=subprocess.PIPE,
+                         shell=True)
+    if cmd.returncode:
+        pytest.fail(f"Failed to log into ECR. Error log:\n{cmd.stdout.decode()}")
     return docker.from_env()
 
 

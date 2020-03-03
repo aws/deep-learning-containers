@@ -1,4 +1,3 @@
-import argparse
 import os
 import sys
 
@@ -17,7 +16,7 @@ def run_sagemaker_pytest_cmd(image, instance_type):
     region = os.getenv("AWS_REGION", "us-west-2")
     integration_path = os.path.join("integration", "sagemaker")
 
-    account_id = image.split(".")[0]
+    account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
     docker_base_name, tag = image.split("/")[1].split(":")
     # Get path to test directory
     find_path = docker_base_name.split("-")
