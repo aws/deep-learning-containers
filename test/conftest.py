@@ -6,25 +6,31 @@ import docker
 
 
 # Ignore container_tests collection, as they will be called separately from test functions
-collect_ignore = [os.path.join('container_tests', '*')]
+collect_ignore = [os.path.join("container_tests", "*")]
 
 
 def pytest_addoption(parser):
     parser.addoption(
         "--images",
-        default=os.getenv('DLC_IMAGES').split(' '),
-        nargs='+',
-        help="Specify image(s) to run"
+        default=os.getenv("DLC_IMAGES").split(" "),
+        nargs="+",
+        help="Specify image(s) to run",
     )
 
 
 @pytest.fixture(scope="session")
-def docker_client():
-    cmd = subprocess.run(f"$(aws ecr get-login --no-include-email --region {os.getenv('AWS_REGION', 'us-west-2')})",
-                         stdout=subprocess.PIPE,
-                         shell=True)
-    if cmd.returncode:
-        pytest.fail(f"Failed to log into ECR. Error log:\n{cmd.stdout.decode()}")
+def run_subprocess_cmd(cmd, failure="Command failed"):
+    command = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
+    if command.returncode:
+        pytest.fail(f"{failure}. Error log:\n{command.stdout.decode()}")
+
+
+@pytest.fixture(scope="session")
+def docker_client(run_subprocess_cmd):
+    run_subprocess_cmd(
+        f"$(aws ecr get-login --no-include-email --region {os.getenv('AWS_REGION', 'us-west-2')})",
+        failure="Failed to log into ECR.",
+    )
     return docker.from_env()
 
 

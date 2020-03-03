@@ -60,7 +60,7 @@ def run_sagemaker_tests(images):
 
 def main():
     # Define constants
-    test_type = os.getenv('TEST_TYPE')
+    test_type = os.getenv("TEST_TYPE")
     dlc_images = os.getenv("DLC_IMAGES")
 
     if test_type == "sanity":
