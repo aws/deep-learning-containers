@@ -6,7 +6,7 @@ from multiprocessing import Pool
 import pytest
 
 
-def run_sagemaker_pytest_cmd(image, instance_type):
+def run_sagemaker_pytest_cmd(image):
     """
     Function to determine the correct pytest command to run for SageMaker tests
 
@@ -18,6 +18,10 @@ def run_sagemaker_pytest_cmd(image, instance_type):
 
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
     docker_base_name, tag = image.split("/")[1].split(":")
+
+    # Assign instance type
+    instance_type = "ml.p3.16xlarge" if "gpu" in tag else "ml.c5.18xlarge"
+
     # Get path to test directory
     find_path = docker_base_name.split("-")
     path = os.path.join("sagemaker", find_path[1], find_path[2])
@@ -47,15 +51,9 @@ def run_sagemaker_tests(images):
     :param images:
     :return:
     """
-    sagemaker_instance_types = ("ml.p3.16xlarge", "ml.c5.18xlarge")
-    sagemaker_params = []
-    for image in images:
-        sagemaker_params.append((image, sagemaker_instance_types[0]))
-        sagemaker_params.append((image, sagemaker_instance_types[1]))
-
-    pool_number = len(sagemaker_params)
+    pool_number = len(images)
     with Pool(pool_number) as p:
-        p.starmap(run_sagemaker_pytest_cmd, sagemaker_params)
+        p.map(run_sagemaker_pytest_cmd, images)
 
 
 def main():
