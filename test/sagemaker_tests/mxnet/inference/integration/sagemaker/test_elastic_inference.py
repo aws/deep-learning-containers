@@ -18,8 +18,8 @@ import pytest
 from sagemaker import utils
 from sagemaker.mxnet import MXNetModel
 
-from test.integration import EI_SUPPORTED_REGIONS, RESOURCE_PATH
-from test.integration.sagemaker.timeout import timeout_and_delete_endpoint_by_name
+from ...integration import EI_SUPPORTED_REGIONS, RESOURCE_PATH
+from ...integration.sagemaker.timeout import timeout_and_delete_endpoint_by_name
 
 DEFAULT_HANDLER_PATH = os.path.join(RESOURCE_PATH, 'default_handlers')
 MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model.tar.gz')
