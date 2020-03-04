@@ -13,9 +13,9 @@ phases:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - pip install -r test/requirements.txt
-      - echo Running pytest sanity tests...
+      - echo Running pytest $TEST_TYPE tests on $DLC_IMAGES...
       - cd test
-      - pytest sanity/ --images $DLC_IMAGES
+      - python testrunner.py
   post_build:
     commands:
       - cd ..
