@@ -4,7 +4,7 @@ from test.test_utils import utils
 
 
 @pytest.mark.usefixtures("pull_images")
-def test_pip_check(image, run_subprocess_cmd):
+def test_pip_check(image):
     """
     Test to run pip sanity tests
     """
