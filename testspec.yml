@@ -15,7 +15,7 @@ phases:
       - pip install -r test/requirements.txt
       - echo Running pytest sanity tests...
       - cd test
-      - pytest sanity/ --images $DLC_IMAGES
+      - pytest --rootdir=dlc_tests/ sanity/ --images $DLC_IMAGES
   post_build:
     commands:
       - cd ..
