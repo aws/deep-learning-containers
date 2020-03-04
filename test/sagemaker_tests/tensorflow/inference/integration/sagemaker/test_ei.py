@@ -15,7 +15,7 @@ import random
 
 import pytest
 
-import util
+from ..sagemaker import util
 
 EI_SUPPORTED_REGIONS = ['us-east-1', 'us-east-2', 'us-west-2',
                         'eu-west-1', 'ap-northeast-1', 'ap-northeast-2']
