@@ -1,6 +1,6 @@
 import pytest
 
-from test.test_utils import utils
+from test.test_utils import run_subprocess_cmd
 
 
 @pytest.mark.usefixtures("pull_images")
@@ -15,4 +15,4 @@ def test_pip_check(image):
         )
 
     # Add null entrypoint to ensure command exits immediately
-    utils.run_subprocess_cmd(f"docker run --entrypoint='' {image} pip check")
+    run_subprocess_cmd(f"docker run --entrypoint='' {image} pip check")

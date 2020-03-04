@@ -3,7 +3,7 @@ import os
 import pytest
 import docker
 
-from test.test_utils import utils
+from test.test_utils import run_subprocess_cmd
 
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -21,7 +21,7 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope="session")
 def docker_client():
-    utils.run_subprocess_cmd(
+    run_subprocess_cmd(
         f"$(aws ecr get-login --no-include-email --region {os.getenv('AWS_REGION', 'us-west-2')})",
         failure="Failed to log into ECR.",
     )
