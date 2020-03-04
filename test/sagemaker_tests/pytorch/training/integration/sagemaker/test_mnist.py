@@ -15,8 +15,8 @@ from __future__ import absolute_import
 import pytest
 from sagemaker.pytorch import PyTorch
 
-from test.integration import training_dir, mnist_script, DEFAULT_TIMEOUT
-from test.integration.sagemaker.timeout import timeout
+from ...integration import training_dir, mnist_script, DEFAULT_TIMEOUT
+from ...integration.sagemaker.timeout import timeout
 
 
 @pytest.mark.skip_gpu

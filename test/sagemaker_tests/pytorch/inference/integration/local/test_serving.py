@@ -71,6 +71,7 @@ def test_serve_cpu_model_on_gpu(test_loader, docker_image, sagemaker_local_sessi
         _assert_prediction_npy_json(predictor, test_loader, content_types.NPY, content_types.JSON)
 
 
+@pytest.mark.skip_gpu_py2
 def test_serving_calls_model_fn_once(docker_image, sagemaker_local_session, instance_type):
     with _predictor(model_cpu_dir, call_model_fn_once_script, docker_image, sagemaker_local_session,
                     instance_type, model_server_workers=2) as predictor:
