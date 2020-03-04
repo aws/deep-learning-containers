@@ -48,10 +48,6 @@ def run_sagemaker_pytest_cmd(image):
 
 
     try:
-        subprocess.run(f"pwd", shell=True)
-        print(f"virtualenv {framework}_{job_type}")
-        print(f"source {framework}_{job_type}/bin/activate")
-        print(f"pip install -r requirements.txt")
         subprocess.run(f"virtualenv {framework}_{job_type}", shell=True)
         subprocess.run(f"source {framework}_{job_type}/bin/activate && pip install -r requirements.txt && deactivate", shell=True)
 
