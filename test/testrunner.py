@@ -1,11 +1,12 @@
 import os
-import subprocess
 import sys
 
 from multiprocessing import Pool
 
 import pytest
+import invoke
 
+from invoke.context import Context
 
 class SageMakerPytestError(Exception):
     """
@@ -45,7 +46,6 @@ def run_sagemaker_pytest_cmd(image):
         tf_major_version = tag.split("-")[-1].split('.')[0]
         path = os.path.join("sagemaker_tests", framework, f"{framework}{tf_major_version}_training")
         print("path", path)
-    os.chdir(path)
     cmd = [
         integration_path,
         "--region",
@@ -59,15 +59,11 @@ def run_sagemaker_pytest_cmd(image):
         "--instance-type",
         instance_type,
     ]
-
-    try:
-        bash_exec = os.path.join(os.sep, 'bin', 'bash')
-        subprocess.run(f"virtualenv {tag}", shell=True, executable=bash_exec, check=True)
-        subprocess.run(f"source {tag}/bin/activate && pip install -r requirements.txt && deactivate", shell=True,
-                       executable=bash_exec, check=True)
-
-    except subprocess.CalledProcessError as e:
-        raise SageMakerPytestError(f"Pytest commands for {image} failed. Error:\n{e}")
+    context = Context()
+    with context.cd(path):
+        context.run(f"virtualenv {tag}")
+        with context.prefix(f"source {tag}/bin/activate"):
+            context.run("pip install -r requirements.txt", warn=True)
 
     return "Not running pytest until DLC-529 is implemented"
 

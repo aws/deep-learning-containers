@@ -4,7 +4,8 @@ flake8
 pytest==4.5.0
 pytest-cov
 pytest-xdist
-mock sagemaker==1.28.1
+mock
+sagemaker==1.28.1
 docker-compose
 boto3==1.10.14
 six==1.13.0
