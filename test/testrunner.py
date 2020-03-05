@@ -2,7 +2,6 @@ import os
 import sys
 
 from multiprocessing import Pool
-
 import pytest
 import subprocess
 
@@ -31,6 +30,13 @@ def run_sagemaker_pytest_cmd(image):
     framework = find_path[1]
     job_type = find_path[2]
     path = os.path.join("sagemaker_tests", framework, job_type)
+    if framework == "tensorflow" and job_type == "training":
+
+        # This code fetches the tag from the ecr repo with the framework version at the end.
+        # NOTE: If tagging method changes, this will break
+        tf_major_version = tag.split("-")[-1].split('.')[0]
+        path = os.path.join("sagemaker_tests", framework, f"{framework}{tf_major_version}_training")
+        print("path", path)
     os.chdir(path)
     cmd = [
         integration_path,
@@ -48,8 +54,10 @@ def run_sagemaker_pytest_cmd(image):
 
 
     try:
-        subprocess.run(f"virtualenv {tag}", shell=True)
-        subprocess.run(f"source {tag}/bin/activate && pip install -r requirements.txt && deactivate", shell=True)
+        bash_exec = os.path.join(os.sep, 'bin', 'bash')
+        subprocess.run(f"virtualenv {tag}", shell=True, executable=bash_exec)
+        subprocess.run(f"source {tag}/bin/activate && pip install -r requirements.txt && deactivate", shell=True,
+                       executable=bash_exec)
 
     except subprocess.CalledProcessError as e:
         raise EnvironmentError("Can't activate the virtual env for running pytest commands")
