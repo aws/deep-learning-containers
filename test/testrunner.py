@@ -5,6 +5,8 @@ from multiprocessing import Pool
 
 import pytest
 
+from invoke.context import Context
+
 
 def run_sagemaker_pytest_cmd(image):
     """
@@ -13,6 +15,7 @@ def run_sagemaker_pytest_cmd(image):
     :param image: ECR url
     :param instance_type: ml instance type to run on. Ex: ml.p3.16xlarge
     """
+
     region = os.getenv("AWS_REGION", "us-west-2")
     integration_path = os.path.join("integration", "sagemaker")
 
@@ -24,10 +27,21 @@ def run_sagemaker_pytest_cmd(image):
 
     # Get path to test directory
     find_path = docker_base_name.split("-")
-    path = os.path.join("sagemaker", find_path[1], find_path[2])
 
+    # We are relying on the fact that repos are defined as <context>-<framework>-<job_type> in our infrastructure
+    framework = find_path[1]
+    job_type = find_path[2]
+    path = os.path.join("sagemaker_tests", framework, job_type)
+    if framework == "tensorflow" and job_type == "training":
+
+        # This code fetches the tag from the ecr repo with the framework version at the end.
+        # NOTE: If tagging method changes, this will break
+        tf_major_version = tag.split("-")[-1].split(".")[0]
+        path = os.path.join(
+            "sagemaker_tests", framework, f"{framework}{tf_major_version}_training"
+        )
+        print("path", path)
     cmd = [
-        f"--rootdir={path}",
         integration_path,
         "--region",
         region,
@@ -40,7 +54,12 @@ def run_sagemaker_pytest_cmd(image):
         "--instance-type",
         instance_type,
     ]
-    # pytest.main(cmd)
+    context = Context()
+    with context.cd(path):
+        context.run(f"virtualenv {tag}")
+        with context.prefix(f"source {tag}/bin/activate"):
+            context.run("pip install -r requirements.txt", warn=True)
+
     return "Not running pytest until DLC-529 is implemented"
 
 
