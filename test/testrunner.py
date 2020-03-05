@@ -4,15 +4,8 @@ import sys
 from multiprocessing import Pool
 
 import pytest
-import invoke
 
 from invoke.context import Context
-
-class SageMakerPytestError(Exception):
-    """
-    Custom exception for SM pytest erros
-    """
-    pass
 
 
 def run_sagemaker_pytest_cmd(image):
@@ -43,8 +36,10 @@ def run_sagemaker_pytest_cmd(image):
 
         # This code fetches the tag from the ecr repo with the framework version at the end.
         # NOTE: If tagging method changes, this will break
-        tf_major_version = tag.split("-")[-1].split('.')[0]
-        path = os.path.join("sagemaker_tests", framework, f"{framework}{tf_major_version}_training")
+        tf_major_version = tag.split("-")[-1].split(".")[0]
+        path = os.path.join(
+            "sagemaker_tests", framework, f"{framework}{tf_major_version}_training"
+        )
         print("path", path)
     cmd = [
         integration_path,
