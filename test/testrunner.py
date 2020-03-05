@@ -1,9 +1,17 @@
 import os
+import subprocess
 import sys
 
 from multiprocessing import Pool
+
 import pytest
-import subprocess
+
+
+class SageMakerPytestError(Exception):
+    """
+    Custom exception for SM pytest erros
+    """
+    pass
 
 
 def run_sagemaker_pytest_cmd(image):
@@ -52,7 +60,6 @@ def run_sagemaker_pytest_cmd(image):
         instance_type,
     ]
 
-
     try:
         bash_exec = os.path.join(os.sep, 'bin', 'bash')
         subprocess.run(f"virtualenv {tag}", shell=True, executable=bash_exec, check=True)
@@ -60,8 +67,7 @@ def run_sagemaker_pytest_cmd(image):
                        executable=bash_exec, check=True)
 
     except subprocess.CalledProcessError as e:
-        raise EnvironmentError("Can't activate the virtual env for running pytest commands")
-    # pytest.main(cmd)
+        raise SageMakerPytestError(f"Pytest commands for {image} failed. Error:\n{e}")
 
     return "Not running pytest until DLC-529 is implemented"
 
