@@ -4,6 +4,7 @@ import sys
 from multiprocessing import Pool
 
 import pytest
+import subprocess
 
 
 def run_sagemaker_pytest_cmd(image):
@@ -13,6 +14,7 @@ def run_sagemaker_pytest_cmd(image):
     :param image: ECR url
     :param instance_type: ml instance type to run on. Ex: ml.p3.16xlarge
     """
+
     region = os.getenv("AWS_REGION", "us-west-2")
     integration_path = os.path.join("integration", "sagemaker")
 
@@ -24,10 +26,13 @@ def run_sagemaker_pytest_cmd(image):
 
     # Get path to test directory
     find_path = docker_base_name.split("-")
-    path = os.path.join("sagemaker", find_path[1], find_path[2])
 
+    # We are relying on the fact that repos are defined as <context>-<framework>-<job_type> in our infrastructure
+    framework = find_path[1]
+    job_type = find_path[2]
+    path = os.path.join("sagemaker_tests", framework, job_type)
+    os.chdir(path)
     cmd = [
-        f"--rootdir={path}",
         integration_path,
         "--region",
         region,
@@ -40,7 +45,16 @@ def run_sagemaker_pytest_cmd(image):
         "--instance-type",
         instance_type,
     ]
+
+
+    try:
+        subprocess.run(f"virtualenv {tag}", shell=True)
+        subprocess.run(f"source {tag}/bin/activate && pip install -r requirements.txt && deactivate", shell=True)
+
+    except subprocess.CalledProcessError as e:
+        raise EnvironmentError("Can't activate the virtual env for running pytest commands")
     # pytest.main(cmd)
+
     return "Not running pytest until DLC-529 is implemented"
 
 
