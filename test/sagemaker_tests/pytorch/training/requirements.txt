@@ -7,7 +7,7 @@ mock==2.0.0
 pytest==4.4.0
 pytest-cov==2.7.1
 pytest-xdist==1.28.0
-PyYAML==3.10
+PyYAML==5.3
 sagemaker==1.28.1
 torch==1.4.0
 torchvision==0.5.0
