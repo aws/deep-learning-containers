@@ -40,27 +40,17 @@ def run_sagemaker_pytest_cmd(image):
         path = os.path.join(
             "sagemaker_tests", framework, f"{framework}{tf_major_version}_training"
         )
-        print("path", path)
-    cmd = [
-        integration_path,
-        "--region",
-        region,
-        "--docker-base-name",
-        docker_base_name,
-        "--tag",
-        tag,
-        "--aws-id",
-        account_id,
-        "--instance-type",
-        instance_type,
-    ]
+
+    mx_pytest_command = f"pytest {integration_path} --region {region} --docker-base-name " \
+                        f"{docker_base_name} --tag {tag} --aws-id {account_id} --instance-type ml.c4.8xlarge"
+
     context = Context()
     with context.cd(path):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
-
-    return "Not running pytest until DLC-529 is implemented"
+            if framework == "mxnet":
+                context.run(mx_pytest_command)
 
 
 def run_sagemaker_tests(images):
