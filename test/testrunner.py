@@ -10,10 +10,11 @@ from invoke.context import Context
 
 def run_sagemaker_pytest_cmd(image):
     """
-    Function to determine the correct pytest command to run for SageMaker tests
+    Run pytest in a virtual env for a particular image
+
+    Expected to run via multiprocessing
 
     :param image: ECR url
-    :param instance_type: ml instance type to run on. Ex: ml.p3.16xlarge
     """
 
     region = os.getenv("AWS_REGION", "us-west-2")
@@ -42,7 +43,7 @@ def run_sagemaker_pytest_cmd(image):
         )
 
     test_report = os.path.join(os.getcwd(), f"{tag}.xml")
-    mx_pytest_command = f"pytest {integration_path} --region {region} --docker-base-name " \
+    pytest_command = f"pytest {integration_path} --region {region} --docker-base-name " \
                         f"{docker_base_name} --tag {tag} --aws-id {account_id} --instance-type {instance_type} " \
                         f"--junitxml {test_report}"
 
@@ -51,8 +52,8 @@ def run_sagemaker_pytest_cmd(image):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
-            if framework == "mxnet" and "cpu" in tag:
-                context.run(mx_pytest_command)
+            if framework != "tensorflow" and "cpu" in tag:
+                context.run(pytest_command)
 
 
 def run_sagemaker_tests(images):
