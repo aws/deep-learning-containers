@@ -1,6 +1,6 @@
 boto3==1.12.14
 coverage==4.5.3
-docker-compose==1.25.0
+docker-compose==1.25.4
 flake8==3.7.7
 Flask==1.1.1
 mock==2.0.0
