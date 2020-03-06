@@ -20,3 +20,8 @@ phases:
     commands:
       - cd ..
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
+reports:
+  test_reports:
+    files:
+      - test/*.xml
+    file-format: JunitXml

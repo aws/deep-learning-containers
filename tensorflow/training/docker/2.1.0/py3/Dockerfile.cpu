@@ -112,7 +112,9 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     horovod==0.18.2 \
-    "sagemaker-tensorflow-training>=3.0<4.0"
+    "sagemaker-tensorflow-training>=3.0<4.0" \
+    werkzeug==0.15.5 \
+    psutil==5.4.8
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.1/license.txt -o /license.txt
 

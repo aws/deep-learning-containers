@@ -81,7 +81,9 @@ RUN conda install -c \
  && /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install mxnet-model-server==$MMS_VERSION \
-    sagemaker-pytorch-inference
+    sagemaker-pytorch-inference \
+    psutil==5.4.8 \
+    Pillow==6.2.0
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
