@@ -9,6 +9,7 @@ pytest-cov==2.7.1
 pytest-xdist==1.28.0
 PyYAML==5.3
 sagemaker==1.48.0
+requests==2.20
 torch==1.4.0
 torchvision==0.5.0
 tox==3.7.0
