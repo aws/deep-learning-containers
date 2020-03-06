@@ -1,7 +1,5 @@
 import os
 
-from multiprocessing import Pool
-
 import pytest
 import docker
 
