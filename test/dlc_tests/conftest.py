@@ -37,9 +37,8 @@ def dlc_images(request):
 
 @pytest.fixture(scope="session")
 def pull_images(docker_client, dlc_images):
-    pool_number = len(dlc_images)
-    with Pool(pool_number) as p:
-        p.map(docker_client.images.pull, dlc_images)
+    for image in dlc_images:
+        docker_client.images.pull(image)
 
 
 def pytest_generate_tests(metafunc):
