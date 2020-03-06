@@ -106,7 +106,7 @@ RUN pip install --no-cache-dir -U \
     "sagemaker-tensorflow-training>=2.0<3.0" \
     awscli \
     werkzeug==0.15.5 \
-    psutil==5.4.8
+    psutil==5.4.8a \
  && pip install --no-cache-dir -U \
     horovod==0.18.2
 

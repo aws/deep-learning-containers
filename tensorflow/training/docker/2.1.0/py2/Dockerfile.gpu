@@ -145,7 +145,8 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    "sagemaker-tensorflow-training>=3.0<4.0"
+    "sagemaker-tensorflow-training>=3.0<4.0" \
+    werkzeug==0.15.5
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs \
