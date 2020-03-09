@@ -7,6 +7,10 @@ import pytest
 from test.test_utils import run_subprocess_cmd
 
 
+# Constant to represent AMI Id used to spin up EC2 instances
+UBUNTU_16_BASE_DLAMI = 'ami-0e57002aaafd42113'
+
+
 # Ignore container_tests collection, as they will be called separately from test functions
 collect_ignore = [os.path.join("container_tests", "*")]
 
@@ -54,7 +58,7 @@ def ec2_instance_type(request):
 def ec2_instance(request, ec2_client, ec2_instance_type, ec2_resource):
     instances = ec2_resource.create_instances(
         KeyName="pytest.pem",
-        ImageId='ami-0e57002aaafd42113',
+        ImageId=UBUNTU_16_BASE_DLAMI,
         InstanceType=ec2_instance_type,
         MaxCount=1,
         MinCount=1
