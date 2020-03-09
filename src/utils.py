@@ -96,8 +96,10 @@ def pr_test_setup(pr_number):
     files = "\n".join(files)
     framework = os.environ.get("FRAMEWORK")
     framework_version =  os.environ.get("VERSION")
+    framework_change = ""
     image_types = []
     test_types = []
+
 
     # Rule 1: find the files which are change under sagemaker tests
     rule = re.findall(r"\S+sagemaker_tests\S+", files)
@@ -187,8 +189,8 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
         pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
         if pr_number is not None:
             pr_number = int(pr_number.split("/")[-1])
-        framework, image_types, test_type = pr_test_setup(pr_number)
-        print("inside setup_testenv", framework, image_types, test_type)
+        framework, image_types, test_types = pr_test_setup(pr_number)
+        print("inside setup_testenv", framework, image_types, test_types)
 
     for docker_image in images:
         print("docker_image dict", docker_image.__dict__)
@@ -202,6 +204,11 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
 
     images_arg = " ".join(ecr_urls)
     test_envs.append({"name": images_env, "value": images_arg, "type": "PLAINTEXT"})
+
+    test_types_arg = " ".join(test_types)
+    test_envs.append({"name": "TEST_TYPE", "value": test_types_arg, "type": "PLAINTEXT"})
+
+
 
     if kwargs:
         for key, value in kwargs.items():
