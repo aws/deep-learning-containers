@@ -1,9 +1,14 @@
 import os
 
-import pytest
+import boto3
 import docker
+import pytest
 
 from test.test_utils import run_subprocess_cmd
+
+
+# Constant to represent AMI Id used to spin up EC2 instances
+UBUNTU_16_BASE_DLAMI = 'ami-0e57002aaafd42113'
 
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -17,6 +22,11 @@ def pytest_addoption(parser):
         nargs="+",
         help="Specify image(s) to run",
     )
+    parser.addoption(
+        "--ec2-instance-type",
+        required=False,
+        help="Specify image(s) to run"
+    )
 
 
 @pytest.fixture(scope="session")
@@ -26,6 +36,56 @@ def docker_client():
         failure="Failed to log into ECR.",
     )
     return docker.from_env()
+
+
+@pytest.fixture(scope="session")
+def ec2_client():
+    return boto3.client('ec2')
+
+
+@pytest.fixture(scope="session")
+def ec2_resource():
+    return boto3.resource('ec2')
+
+
+@pytest.fixture(scope="session")
+def ec2_instance_type(request):
+    return request.config.getoption("--ec2-instance-type")
+
+
+@pytest.mark.timeout(300)
+@pytest.fixture(scope="session")
+def ec2_instance(request, ec2_client, ec2_instance_type, ec2_resource):
+    instances = ec2_resource.create_instances(
+        KeyName="pytest.pem",
+        ImageId=UBUNTU_16_BASE_DLAMI,
+        InstanceType=ec2_instance_type,
+        MaxCount=1,
+        MinCount=1
+    )
+    instance_id = instances[0].id
+
+    # Define finalizer to terminate instance after this fixture completes
+    def terminate():
+        ec2_client.terminate_instances(InstanceIds=[instance_id])
+    request.addfinalizer(terminate)
+
+    waiter = ec2_client.get_waiter('instance_running')
+    waiter.wait(InstanceIds=[instance_id])
+    return instances[0]
+
+
+@pytest.fixture(scope="session")
+def ec2_connection(ec2_instance):
+    """
+    Not implemented fixture to establish connection with EC2 instance if necessary
+
+    :param ec2_instance: ec2_instance pytest fixture
+    :return: Fabric connection object
+    """
+    # With Connection(ec2_instance.public_ip_address_ as c:
+    #     yield c
+    pass
 
 
 @pytest.fixture(scope="session")
