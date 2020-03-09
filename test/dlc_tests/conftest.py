@@ -8,7 +8,7 @@ from test.test_utils import run_subprocess_cmd
 
 
 # Constant to represent AMI Id used to spin up EC2 instances
-UBUNTU_16_BASE_DLAMI = 'ami-0e57002aaafd42113'
+UBUNTU_16_BASE_DLAMI = "ami-0e57002aaafd42113"
 
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -23,9 +23,7 @@ def pytest_addoption(parser):
         help="Specify image(s) to run",
     )
     parser.addoption(
-        "--ec2-instance-type",
-        required=False,
-        help="Specify image(s) to run"
+        "--ec2-instance-type", required=False, help="Specify image(s) to run"
     )
 
 
@@ -40,12 +38,12 @@ def docker_client():
 
 @pytest.fixture(scope="session")
 def ec2_client():
-    return boto3.client('ec2')
+    return boto3.client("ec2")
 
 
 @pytest.fixture(scope="session")
 def ec2_resource():
-    return boto3.resource('ec2')
+    return boto3.resource("ec2")
 
 
 @pytest.fixture(scope="session")
@@ -61,16 +59,17 @@ def ec2_instance(request, ec2_client, ec2_instance_type, ec2_resource):
         ImageId=UBUNTU_16_BASE_DLAMI,
         InstanceType=ec2_instance_type,
         MaxCount=1,
-        MinCount=1
+        MinCount=1,
     )
     instance_id = instances[0].id
 
     # Define finalizer to terminate instance after this fixture completes
     def terminate():
         ec2_client.terminate_instances(InstanceIds=[instance_id])
+
     request.addfinalizer(terminate)
 
-    waiter = ec2_client.get_waiter('instance_running')
+    waiter = ec2_client.get_waiter("instance_running")
     waiter.wait(InstanceIds=[instance_id])
     return instances[0]
 
@@ -99,6 +98,31 @@ def pull_images(docker_client, dlc_images):
         docker_client.images.pull(image)
 
 
-def pytest_generate_tests(metafunc):
+@pytest.fixture(scope="session")
+def framework_fixtures(dlc_images):
+    return [
+        "pytorch_inference",
+        "pytorch_training",
+        "mxnet_inference",
+        "mxnet_training",
+        "tensorflow_inference",
+        "tensorflow_training",
+    ]
+
+
+def pytest_generate_tests(metafunc, framework_fixtures):
+    images = metafunc.config.getoption("--images")
+
+    # Parametrize framework specific tests
+    for fixture in framework_fixtures:
+        if fixture in metafunc.fixturenames:
+            lookup = fixture.replace('_', '-')
+            images_to_parametrize = []
+            for image in images:
+                if lookup in image:
+                    images_to_parametrize.append(image)
+            metafunc.parametrize(fixture, images_to_parametrize)
+
+    # Parametrize for framework agnostic tests, i.e. sanity
     if "image" in metafunc.fixturenames:
-        metafunc.parametrize("image", metafunc.config.getoption("--images"))
+        metafunc.parametrize("image", images)
