@@ -78,7 +78,7 @@ def pr_build_setup(pr_number, framework):
 
     return device_types, image_types, py_versions
 
-def pr_test_setup(pr_number):
+def pr_test_setup(pr_number, framework):
     """
        Identify the PR changeset and set the appropriate environment
        variables
@@ -91,7 +91,31 @@ def pr_test_setup(pr_number):
            image_types: [str]
            py_versions: [str]
        """
-    pass
+    github_handler = GitHubHandler("aws", "deep-learning-containers")
+    files = github_handler.get_pr_files_changed(pr_number)
+    files = "\n".join(files)
+
+    image_types = []
+    test_types = []
+
+    # Rule 1: find the files which are change under sagemaker tests
+    rule = re.findall(r"\S+sagemaker_tests\S+", files)
+    for test_file in rule:
+        print("test_file", test_file)
+        test_file = test_file.split("/")
+        framework_change = test_file[2]
+
+        # If the modified dockerfile belongs to a different
+        # framework, do nothing
+        if framework_change != framework:
+            continue
+
+        image_type = test_file[3]
+        if image_type not in image_types:
+            image_types.append(image_type)
+        if constants.SAGEMAKER_TESTS not in test_types:
+            test_types.append(constants.SAGEMAKER_TESTS)
+    return framework_change, image_types, test_types
 
 
 
@@ -154,8 +178,16 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     """
     test_envs = []
     ecr_urls = []
+
+    if os.environ.get("BUILD_CONTEXT") == "PR":
+        pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
+        if pr_number is not None:
+            pr_number = int(pr_number.split("/")[-1])
+        framework, image_types, test_type = pr_test_setup(pr_number)
+        print("inside setup_testenv", framework, image_types, test_type)
+
     for docker_image in images:
-        print("docker_image ",docker_image)
+        print("docker_image dict", docker_image.__dict__)
         if docker_image.build_status == constants.SUCCESS:
             ecr_urls.append(docker_image.ecr_url)
 
