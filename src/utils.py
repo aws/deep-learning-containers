@@ -78,7 +78,7 @@ def pr_build_setup(pr_number, framework):
 
     return device_types, image_types, py_versions
 
-def pr_test_setup(pr_number, framework):
+def pr_test_setup(pr_number):
     """
        Identify the PR changeset and set the appropriate environment
        variables
@@ -94,7 +94,8 @@ def pr_test_setup(pr_number, framework):
     github_handler = GitHubHandler("aws", "deep-learning-containers")
     files = github_handler.get_pr_files_changed(pr_number)
     files = "\n".join(files)
-
+    framework = os.environ.get("FRAMEWORK")
+    framework_version =  os.environ.get("VERSION")
     image_types = []
     test_types = []
 
@@ -105,14 +106,17 @@ def pr_test_setup(pr_number, framework):
         test_file = test_file.split("/")
         framework_change = test_file[2]
 
-        # If the modified dockerfile belongs to a different
+        # If the modified test_file belongs to a different
         # framework, do nothing
         if framework_change != framework:
             continue
 
         image_type = test_file[3]
         if image_type not in image_types:
+            if framework == "tensorflow" and "training" in image_type:
+                    image_type = image_type.split("_")[1]
             image_types.append(image_type)
+
         if constants.SAGEMAKER_TESTS not in test_types:
             test_types.append(constants.SAGEMAKER_TESTS)
     return framework_change, image_types, test_types
