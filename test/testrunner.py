@@ -32,6 +32,7 @@ def generate_sagemaker_pytest_cmd(image):
     path = os.path.join("sagemaker_tests", framework, job_type)
     aws_id_arg = "--aws-id"
     docker_base_arg = "--docker-base-name"
+    instance_type_arg = "--instance-type"
 
     # Conditions for modifying tensorflow SageMaker pytest commands
     if framework == "tensorflow":
@@ -46,11 +47,13 @@ def generate_sagemaker_pytest_cmd(image):
         else:
             aws_id_arg = "--registry"
             docker_base_arg = "--repo"
+            integration_path = os.path.join(integration_path, "test_tfs.py")
+            instance_type_arg = "--instance-types"
 
     test_report = os.path.join(os.getcwd(), f"{tag}.xml")
     return (
         f"pytest {integration_path} --region {region} {docker_base_arg} "
-        f"{docker_base_name} --tag {tag} {aws_id_arg} {account_id} --instance-type {instance_type} "
+        f"{docker_base_name} --tag {tag} {aws_id_arg} {account_id} {instance_type_arg} {instance_type} "
         f"--junitxml {test_report}",
         path,
         tag,

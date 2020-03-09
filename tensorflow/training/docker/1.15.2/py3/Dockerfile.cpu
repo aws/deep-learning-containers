@@ -108,9 +108,9 @@ RUN pip install --no-cache-dir -U \
     "sagemaker-tensorflow-training>=2.0<3.0" \
     awscli \
     werkzeug==0.15.5 \
-    psutil==5.4.8 \
  && pip install --force-reinstall --no-cache-dir -U \
-    horovod==0.18.2
+    horovod==0.18.2 \
+    psutil==5.4.8
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 
