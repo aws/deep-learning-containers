@@ -78,6 +78,23 @@ def pr_build_setup(pr_number, framework):
 
     return device_types, image_types, py_versions
 
+def pr_test_setup(pr_number):
+    """
+       Identify the PR changeset and set the appropriate environment
+       variables
+
+       Parameters:
+           pr_number: int
+
+       Returns:
+           device_types: [str]
+           image_types: [str]
+           py_versions: [str]
+       """
+    pass
+
+
+
 
 def build_setup(framework, device_types=None, image_types=None, py_versions=None):
     """
@@ -138,7 +155,10 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     test_envs = []
     ecr_urls = []
     for docker_image in images:
-        ecr_urls.append(docker_image.ecr_url)
+        print("docker_image ",docker_image)
+        if docker_image.build_status == constants.SUCCESS:
+            ecr_urls.append(docker_image.ecr_url)
+
 
     images_arg = " ".join(ecr_urls)
     test_envs.append({"name": images_env, "value": images_arg, "type": "PLAINTEXT"})
