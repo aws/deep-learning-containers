@@ -58,21 +58,21 @@ def accelerator_type():
 def tfs_model(region, boto_session):
     return util.find_or_put_model_data(region,
                                        boto_session,
-                                       'test/data/tfs-model.tar.gz')
+                                       'data/tfs-model.tar.gz')
 
 
 @pytest.fixture(scope='session')
 def python_model_with_requirements(region, boto_session):
     return util.find_or_put_model_data(region,
                                        boto_session,
-                                       'test/data/python-with-requirements.tar.gz')
+                                       'data/python-with-requirements.tar.gz')
 
 
 @pytest.fixture(scope='session')
 def python_model_with_lib(region, boto_session):
     return util.find_or_put_model_data(region,
                                        boto_session,
-                                       'test/data/python-with-lib.tar.gz')
+                                       'data/python-with-lib.tar.gz')
 
 
 def test_tfs_model(boto_session, sagemaker_client,
