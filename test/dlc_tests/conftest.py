@@ -11,6 +11,17 @@ from test.test_utils import run_subprocess_cmd
 UBUNTU_16_BASE_DLAMI = "ami-0e57002aaafd42113"
 
 
+# Immutable constant for framework specific image fixtures
+FRAMEWORK_FIXTURES = (
+    "pytorch_inference",
+    "pytorch_training",
+    "mxnet_inference",
+    "mxnet_training",
+    "tensorflow_inference",
+    "tensorflow_training",
+)
+
+
 # Ignore container_tests collection, as they will be called separately from test functions
 collect_ignore = [os.path.join("container_tests", "*")]
 
@@ -98,25 +109,13 @@ def pull_images(docker_client, dlc_images):
         docker_client.images.pull(image)
 
 
-@pytest.fixture(scope="session")
-def framework_fixtures(dlc_images):
-    return [
-        "pytorch_inference",
-        "pytorch_training",
-        "mxnet_inference",
-        "mxnet_training",
-        "tensorflow_inference",
-        "tensorflow_training",
-    ]
-
-
-def pytest_generate_tests(metafunc, framework_fixtures):
+def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
     # Parametrize framework specific tests
-    for fixture in framework_fixtures:
+    for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
-            lookup = fixture.replace('_', '-')
+            lookup = fixture.replace("_", "-")
             images_to_parametrize = []
             for image in images:
                 if lookup in image:
