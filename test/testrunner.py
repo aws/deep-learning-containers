@@ -90,6 +90,61 @@ def run_sagemaker_tests(images):
         p.map(run_sagemaker_pytest_cmd, images)
 
 
+def generate_ecs_pytest_cmd(image):
+    """
+    Parses the image ECR url and returns appropriate pytest command
+
+    :param image: ECR url of image
+    :return: <tuple> pytest command to be run, path where it should be executed, image tag
+    """
+    docker_base_name, tag = image.split("/")[1].split(":")
+    # Get path to test directory
+    find_path = docker_base_name.split("-")
+
+    # NOTE: We are relying on the fact that repos are defined as <context>-<framework>-<job_type> in our infrastructure
+    framework = find_path[1]
+    job_type = find_path[2]
+    integration_test_path = os.path.join("ecs_tests", framework, job_type)
+
+    test_report = os.path.join(os.getcwd(), f"{tag}.xml")
+    return (
+        f"pytest {integration_test_path}"
+        f"--junitxml {test_report}",
+        integration_test_path,
+        tag,
+    )
+
+
+def run_ecs_pytest_cmd(image):
+    """
+    Run pytest in a virtual env for a particular image
+
+    Expected to run via multiprocessing
+
+    :param image: ECR url
+    """
+
+    pytest_command, path, tag = generate_ecs_pytest_cmd(image)
+
+    context = Context()
+    with context.cd(path):
+        context.run(f"virtualenv {tag}")
+        with context.prefix(f"source {tag}/bin/activate"):
+            context.run("pip install -r requirements.txt", warn=True)
+            context.run(pytest_command)
+
+
+def run_ecs_tests(images):
+    """
+    Function to set up multiprocessing for SageMaker tests
+
+    :param images:
+    """
+    pool_number = len(images)
+    with Pool(pool_number) as p:
+        p.map(run_ecs_pytest_cmd, images)
+
+
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
@@ -101,6 +156,8 @@ def main():
         sys.exit(pytest.main([test_type, f"--junitxml={report}"]))
     elif test_type == "sagemaker":
         run_sagemaker_tests(dlc_images.split(" "))
+    elif test_type == "ecs":
+        run_ecs_tests(dlc_images.split(" "))
     else:
         raise NotImplementedError("Tests only support sagemaker and sanity currently")
 
