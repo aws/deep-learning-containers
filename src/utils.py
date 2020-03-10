@@ -120,9 +120,14 @@ def pr_test_setup(pr_number):
             job_name = test_file.split("/")[4]
             if framework_changed != framework:
                 continue
-            run_test_types.append(
-                constants.ECS_TESTS
-            ) if test_name == "ecs" else run_test_types.append(constants.EKS_TESTS)
+
+            if test_name == "ecs":
+                run_test_types.append(constants.ECS_TESTS)
+            elif test_name == "eks":
+                run_test_types.append(constants.EKS_TESTS)
+             # Assumes that changes are made in dlc_tests but not under ecs or eks folders so we run both the tests
+            else:
+                run_test_types.extend([constants.EKS_TESTS, constants.ECS_TESTS])
             image_types.append(job_name)
 
         else:
@@ -203,6 +208,8 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
         pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
         if pr_number is not None:
             pr_number = int(pr_number.split("/")[-1])
+        else:
+            raise ValueError ("Empty code commit value found for PR build")
         framework, image_types, run_test_types = pr_test_setup(pr_number)
         print(f"{run_test_types} should be triggered for {framework} and {image_types} ")
 
