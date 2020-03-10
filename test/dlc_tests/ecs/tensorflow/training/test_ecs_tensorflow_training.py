@@ -1,3 +1,2 @@
-def test_dummy():
-    print('TensorFlow Training Dummy Test Triggered')
-    return
+def test_dummy(tensorflow_training):
+    print(tensorflow_training)

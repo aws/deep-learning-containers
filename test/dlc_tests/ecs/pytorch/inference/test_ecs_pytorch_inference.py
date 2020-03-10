@@ -1,3 +1,2 @@
-def test_dummy():
-    print('PyTorch Inference Dummy Test Triggered')
-    return
+def test_dummy(pytorch_inference):
+    print(pytorch_inference)
