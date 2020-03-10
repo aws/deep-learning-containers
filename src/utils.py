@@ -95,8 +95,8 @@ def pr_test_setup(pr_number):
     github_handler = GitHubHandler("aws", "deep-learning-containers")
     files = github_handler.get_pr_files_changed(pr_number)
     files = "\n".join(files)
-    framework = os.environ.get("FRAMEWORK")
-    framework_version = os.environ.get("VERSION")
+    framework = constants.JOB_FRAMEWORK
+    framework_version = constants.JOB_FRAMEWORK_VERSION
     framework_changed = ""
     image_types = []
     run_test_types = []
