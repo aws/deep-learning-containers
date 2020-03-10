@@ -95,10 +95,10 @@ def main():
     test_type = os.getenv("TEST_TYPE")
     dlc_images = os.getenv("DLC_IMAGES")
 
-    if test_type == "sanity":
-        report = os.path.join(os.getcwd(), "sanity.xml")
+    if test_type in ["sanity", "ecs"]:
+        report = os.path.join(os.getcwd(), f"{test_type}.xml")
         os.chdir("dlc_tests")
-        sys.exit(pytest.main([test_type, f"--junitxml={report}"]))
+        sys.exit(pytest.main(["-s", test_type, f"--junitxml={report}"]))
     elif test_type == "sagemaker":
         run_sagemaker_tests(dlc_images.split(" "))
     else:
