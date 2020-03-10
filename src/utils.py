@@ -78,6 +78,7 @@ def pr_build_setup(pr_number, framework):
 
     return device_types, image_types, py_versions
 
+
 def pr_test_setup(pr_number):
     """
        Identify the PR changeset and set the appropriate environment
@@ -95,35 +96,42 @@ def pr_test_setup(pr_number):
     files = github_handler.get_pr_files_changed(pr_number)
     files = "\n".join(files)
     framework = os.environ.get("FRAMEWORK")
-    framework_version =  os.environ.get("VERSION")
-    framework_change = ""
+    framework_version = os.environ.get("VERSION")
+    framework_changed = ""
     image_types = []
-    test_types = []
+    run_test_types = []
 
-
-    # Rule 1: find the files which are change under sagemaker tests
-    rule = re.findall(r"\S+sagemaker_tests\S+", files)
+    rule = re.findall(r"\S+[\r\n]+test\S+", files)
     for test_file in rule:
-        print("test_file", test_file)
-        test_file = test_file.split("/")
-        framework_change = test_file[2]
+        test_folder = test_file.split("/")[1]
 
-        # If the modified test_file belongs to a different
-        # framework, do nothing
-        if framework_change != framework:
-            continue
+        if test_folder == "sagemaker_tests":
+            framework_changed = test_file.split("/")[2]
+            job_name = test_file.split("/")[3]
+            if framework_changed != framework:
+                continue
+            run_test_types.append(constants.SAGEMAKER_TESTS)
+            image_types.append(job_name)
 
-        image_type = test_file[3]
-        if image_type not in image_types:
-            if framework == "tensorflow" and "training" in image_type:
-                    image_type = image_type.split("_")[1]
-            image_types.append(image_type)
+        elif test_folder == "dlc_tests":
+            framework_changed = test_file.split("/")[3]
+            test_name = test_file.split("/")[2]
+            job_name = test_file.split("/")[4]
+            if framework_changed != framework:
+                continue
+            run_test_types.append(
+                constants.ECS_TESTS
+            ) if test_name == "ecs" else run_test_types.append(constants.EKS_TESTS)
+            image_types.append(job_name)
 
-        if constants.SAGEMAKER_TESTS not in test_types:
-            test_types.append(constants.SAGEMAKER_TESTS)
-    return framework_change, image_types, test_types
+        else:
+            image_types = [constants.ALL]
+            run_test_types = [constants.ALL]
 
+    image_types = list(set(image_types))
+    run_test_types = list(set(run_test_types))
 
+    return framework_changed, image_types, run_test_types
 
 
 def build_setup(framework, device_types=None, image_types=None, py_versions=None):
@@ -189,26 +197,29 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
         pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
         if pr_number is not None:
             pr_number = int(pr_number.split("/")[-1])
-        framework, image_types, test_types = pr_test_setup(pr_number)
-        print("inside setup_testenv", framework, image_types, test_types)
+        framework, image_types, run_test_types = pr_test_setup(pr_number)
+        print("inside setup_testenv", framework, image_types, run_test_types)
 
     for docker_image in images:
         docker_image_type = docker_image.repository.split("-")[-1]
-        if docker_image.build_status == constants.SUCCESS:
+        if docker_image.build_status == constants.SUCCESS or constants.ALL in image_types:
             ecr_urls.append(docker_image.ecr_url)
+            run_test_types = [constants.ALL]
         elif framework in docker_image.repository and docker_image_type in image_types:
             ecr_urls.append(docker_image.ecr_url)
         else:
-            print(f"skipping tests for {docker_image.ecr_url} as there are no build and test changes")
+            print(
+                f"skipping tests for {docker_image.ecr_url} as there are no build and test changes"
+            )
 
     images_arg = " ".join(ecr_urls)
     test_envs.append({"name": images_env, "value": images_arg, "type": "PLAINTEXT"})
 
-    if len(test_types) > 0:
-        test_types_arg = " ".join(test_types)
-        test_envs.append({"name": "TEST_TYPE", "value": test_types_arg, "type": "PLAINTEXT"})
-
-
+    if len(run_test_types) > 0:
+        test_types_arg = " ".join(run_test_types)
+        test_envs.append(
+            {"name": "RUN_TESTS", "value": test_types_arg, "type": "PLAINTEXT"}
+        )
 
     if kwargs:
         for key, value in kwargs.items():
@@ -219,4 +230,4 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
 
 
 def get_codebuild_project_name():
-    return os.getenv("CODEBUILD_BUILD_ID").split(':')[0]
+    return os.getenv("CODEBUILD_BUILD_ID").split(":")[0]
