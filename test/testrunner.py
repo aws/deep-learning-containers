@@ -95,6 +95,7 @@ def main():
     test_type = os.getenv("TEST_TYPE")
     dlc_images = os.getenv("DLC_IMAGES")
 
+    print('test type value:', test_type)
     if test_type == "sanity":
         report = os.path.join(os.getcwd(), "sanity.xml")
         os.chdir("dlc_tests")

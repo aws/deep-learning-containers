@@ -48,6 +48,6 @@ DEBUG = 3
 TEST_ENV = os.path.join(os.path.expanduser("~"), "testenv.json")
 
 #Test Type variables
-SAGEMAKER_TESTS = "sagemaker_tests"
-ECS_TESTS = "ecs_tests"
-EKS_TESTS = "eks_tests"
+SAGEMAKER_TESTS = "sagemaker"
+ECS_TESTS = "ecs"
+EKS_TESTS = "eks"

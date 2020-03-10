@@ -193,20 +193,20 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
         print("inside setup_testenv", framework, image_types, test_types)
 
     for docker_image in images:
-        print("docker_image dict", docker_image.__dict__)
-        docker_image_type = docker_image.split("-")[-1]
+        docker_image_type = docker_image.repository.split("-")[-1]
         if docker_image.build_status == constants.SUCCESS:
             ecr_urls.append(docker_image.ecr_url)
         elif framework in docker_image.repository and docker_image_type in image_types:
             ecr_urls.append(docker_image.ecr_url)
         else:
-            print(f"skipping tests for {docker_image.ecr_url} as there not build and test changes")
+            print(f"skipping tests for {docker_image.ecr_url} as there are no build and test changes")
 
     images_arg = " ".join(ecr_urls)
     test_envs.append({"name": images_env, "value": images_arg, "type": "PLAINTEXT"})
 
-    test_types_arg = " ".join(test_types)
-    test_envs.append({"name": "TEST_TYPE", "value": test_types_arg, "type": "PLAINTEXT"})
+    if len(test_types) > 0:
+        test_types_arg = " ".join(test_types)
+        test_envs.append({"name": "TEST_TYPE", "value": test_types_arg, "type": "PLAINTEXT"})
 
 
 
