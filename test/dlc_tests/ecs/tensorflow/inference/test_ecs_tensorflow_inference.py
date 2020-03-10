@@ -1,3 +1,2 @@
-def test_dummy():
-    print('TensorFlow Inference Dummy Test Triggered')
-    return
+def test_dummy(tensorflow_inference):
+    print(tensorflow_inference)

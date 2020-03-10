@@ -1,3 +1,2 @@
-def test_dummy():
-    print('MXNet Training Dummy Test Triggered')
-    return
+def test_dummy(mxnet_training):
+    print(mxnet_training)

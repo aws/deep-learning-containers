@@ -1,3 +1,2 @@
-def test_dummy():
-    print('PyTorch Training Dummy Test Triggered')
-    return
+def test_dummy(pytorch_training):
+    print(pytorch_training)

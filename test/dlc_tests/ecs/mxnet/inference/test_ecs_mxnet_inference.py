@@ -1,3 +1,2 @@
-def test_dummy():
-    print('MXNet Inference Dummy Test Triggered')
-    return
+def test_dummy(mxnet_inference):
+    print(mxnet_inference)
