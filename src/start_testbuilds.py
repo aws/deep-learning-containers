@@ -56,7 +56,8 @@ def main():
 
     # Start sanity test job
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
-    run_tests = os.getenv("RUN_TESTS")
+    with open(constants.RUN_TESTS_ENV, 'r') as f:
+        run_tests = [line.rstrip('\n') for line in f]
     run_test_job(commit, "dlc-sanity-test")
     if constants.ALL in run_tests or constants.SAGEMAKER_TESTS in run_tests:
         run_test_job(commit, "dlc-sagemaker-test")

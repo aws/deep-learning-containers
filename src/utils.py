@@ -88,9 +88,9 @@ def pr_test_setup(pr_number):
            pr_number: int
 
        Returns:
-           device_types: [str]
-           image_types: [str]
-           py_versions: [str]
+           framwork_changed: [str]
+           image_types: [str] possible values ["training","inference"]
+           py_versions: [str] possible values ["sagemaker","ecs","eks"]
        """
     github_handler = GitHubHandler("aws", "deep-learning-containers")
     files = github_handler.get_pr_files_changed(pr_number)
@@ -101,7 +101,8 @@ def pr_test_setup(pr_number):
     image_types = []
     run_test_types = []
 
-    rule = re.findall(r"\S+[\r\n]+test\S+", files)
+    # Rule 1: run  only the tests where the test_files are changed
+    rule = re.findall(r"[\r\n]+test\S+", files)
     for test_file in rule:
         test_folder = test_file.split("/")[1]
 
@@ -127,6 +128,11 @@ def pr_test_setup(pr_number):
         else:
             image_types = [constants.ALL]
             run_test_types = [constants.ALL]
+
+    rule1 = re.findall(r"testspec.yml", files)
+    if len(rule1) > 0:
+        image_types = [constants.ALL]
+        run_test_types = [constants.ALL]
 
     image_types = list(set(image_types))
     run_test_types = list(set(run_test_types))
@@ -198,14 +204,22 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
         if pr_number is not None:
             pr_number = int(pr_number.split("/")[-1])
         framework, image_types, run_test_types = pr_test_setup(pr_number)
-        print("inside setup_testenv", framework, image_types, run_test_types)
+        print(f"{run_test_types} should be triggered for {framework} and {image_types} ")
 
     for docker_image in images:
         docker_image_type = docker_image.repository.split("-")[-1]
-        if docker_image.build_status == constants.SUCCESS or constants.ALL in image_types:
+        if (
+            docker_image.build_status == constants.SUCCESS
+            or constants.ALL in image_types
+        ):
             ecr_urls.append(docker_image.ecr_url)
             run_test_types = [constants.ALL]
-        elif framework in docker_image.repository and docker_image_type in image_types:
+        elif (
+            framework
+            and len(image_types) > 0
+            and framework in docker_image.repository
+            and docker_image_type in image_types
+        ):
             ecr_urls.append(docker_image.ecr_url)
         else:
             print(
@@ -216,7 +230,9 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     test_envs.append({"name": images_env, "value": images_arg, "type": "PLAINTEXT"})
 
     if len(run_test_types) > 0:
-        os.environ["RUN_TESTS"] = run_test_types
+        with open(constants.RUN_TESTS_ENV, "w") as f:
+            for test in run_test_types:
+                f.write(test + "\n")
 
     if kwargs:
         for key, value in kwargs.items():
