@@ -72,14 +72,14 @@ def get_modifed_buidspec_yml_info(files, framework, device_types=None, image_typ
     return device_types, image_types, py_versions
 
 # Rule 3: If any file in the build code changes, build all images
-def get_modifed_src_files_info(files, device_types=None, image_types=None, py_versions=None):
+def get_modifed_root_files_info(files, device_types=None, image_types=None, py_versions=None, pattern=""):
     if py_versions is None:
         py_versions = []
     if image_types is None:
         image_types = []
     if device_types is None:
         device_types = []
-    rule = re.findall(r"src\/\S+", files)
+    rule = re.findall(rf"{pattern}", files)
     if rule:
         device_types = constants.ALL
         image_types = constants.ALL
@@ -88,11 +88,8 @@ def get_modifed_src_files_info(files, device_types=None, image_types=None, py_ve
 
 
 
-def get_modified_test_files_info(files, framework, device_types=None, image_types=None, py_versions=None,
-                                 run_test_types=None):
+def get_modified_test_files_info(files, framework, device_types=None, image_types=None, py_versions=None):
     # Rule 1: run  only the tests where the test_files are changed
-    if run_test_types is None:
-        run_test_types = []
     if py_versions is None:
         py_versions = []
     if image_types is None:
@@ -100,7 +97,6 @@ def get_modified_test_files_info(files, framework, device_types=None, image_type
     if device_types is None:
         device_types = []
     rule = re.findall(r"[\r\n]+test\S+", files)
-
     for test_file in rule:
         test_folder = test_file.split("/")[1]
 
@@ -112,42 +108,52 @@ def get_modified_test_files_info(files, framework, device_types=None, image_type
                     job_name = "training"
                 if job_name in constants.IMAGE_TYPES:
                     image_types.append(job_name)
+                    device_types = constants.ALL
+                    py_versions = constants.ALL
                 else:
                     image_types = constants.ALL
-                    run_test_types = constants.ALL
+                    device_types = constants.ALL
+                    py_versions = constants.ALL
+                    break
             elif framework_changed not in constants.FRAMEWORKS:
                 image_types = constants.ALL
-                run_test_types.append(constants.SAGEMAKER_TESTS)
+                device_types = constants.ALL
+                py_versions = constants.ALL
+                break
 
         elif test_folder == "dlc_tests":
             test_name = test_file.split("/")[2]
-            if test_name == "ecs":
+            if test_name in ["ecs", "eks", "ec2"]:
                 framework_changed = test_file.split("/")[3]
                 if framework_changed == framework:
                     job_name = test_file.split("/")[4]
                     if job_name in constants.IMAGE_TYPES:
                         image_types.append(job_name)
+                        device_types = constants.ALL
+                        py_versions = constants.ALL
                     else:
                         image_types = constants.ALL
-                    image_types.append(job_name)
-                else
-                run_test_types.append(constants.ECS_TESTS)
-            elif test_name == "eks":
-                run_test_types.append(constants.EKS_TESTS)
+                        device_types = constants.ALL
+                        py_versions = constants.ALL
+                        break
+                elif framework_changed not in constants.FRAMEWORKS:
+                    image_types = constants.ALL
+                    device_types = constants.ALL
+                    py_versions = constants.ALL
+                    break
              # Assumes that changes are made in dlc_tests but not under ecs or eks folders so we run both the tests
             else:
-                run_test_types.extend([constants.EKS_TESTS, constants.ECS_TESTS])
                 image_types = constants.ALL
+                device_types = constants.ALL
+                py_versions = constants.ALL
+                break
 
         else:
             image_types = constants.ALL
-            run_test_types = [constants.ALL]
-            device_types = constants.ALL
-            py_versions = constants.ALL
-            break
 
 
-    return device_types, image_types, py_versions, run_test_types
+
+    return device_types, image_types, py_versions
 
 
 def pr_build_setup(pr_number, framework):
@@ -175,49 +181,18 @@ def pr_build_setup(pr_number, framework):
     device_types, image_types, py_versions = get_modified_docker_files_info(files, framework, device_types,
                                                                             image_types, py_versions)
 
-    device_types, image_types, py_versions, run_test_types = get_modified_test_files_info(files, framework, device_types,
-                                                                            image_types, py_versions)
+    device_types, image_types, py_versions = get_modified_test_files_info(files, framework,
+                                                                           device_types, image_types, py_versions)
 
     # This below code currently overides the device_types, image_types, py_versions with constants.ALL
     device_types, image_types, py_versions = get_modifed_buidspec_yml_info(files, framework, device_types,
                                                                            image_types, py_versions)
 
-    device_types, image_types, py_versions = get_modifed_src_files_info(files,device_types, image_types,
-                                                                        py_versions)
+    device_types, image_types, py_versions = get_modifed_root_files_info(files, device_types, image_types,
+                                                                        py_versions, pattern="src\/\S+")
 
     return device_types, image_types, py_versions
 
-
-def pr_test_setup(pr_number):
-    """
-       Identify the PR changeset and set the appropriate environment
-       variables
-
-       Parameters:
-           pr_number: int
-
-       Returns:
-           framwork_changed: [str]
-           image_types: [str] possible values ["training","inference"]
-           py_versions: [str] possible values ["sagemaker","ecs","eks"]
-       """
-    github_handler = GitHubHandler("aws", "deep-learning-containers")
-    files = github_handler.get_pr_files_changed(pr_number)
-    files = "\n".join(files)
-    framework = constants.JOB_FRAMEWORK
-    framework_version = constants.JOB_FRAMEWORK_VERSION
-
-    device_types, image_types, py_versions, run_test_types = get_modified_test_files_info(files, framework)
-
-    rule1 = re.findall(r"testspec.yml", files)
-    if len(rule1) > 0:
-        image_types = [constants.ALL]
-        run_test_types = [constants.ALL]
-
-    image_types = list(set(image_types))
-    run_test_types = list(set(run_test_types))
-
-    return framework, image_types, run_test_types
 
 
 def build_setup(framework, device_types=None, image_types=None, py_versions=None):
@@ -279,29 +254,8 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     test_envs = []
     ecr_urls = []
 
-    if os.environ.get("BUILD_CONTEXT") == "PR":
-        pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
-        if pr_number is not None:
-            pr_number = int(pr_number.split("/")[-1])
-        else:
-            raise ValueError ("Empty code commit value found for PR build")
-        framework, image_types, run_test_types = pr_test_setup(pr_number)
-        print(f"{run_test_types} should be triggered for {framework} and {image_types} ")
-
     for docker_image in images:
-        docker_image_type = docker_image.repository.split("-")[-1]
-        if (
-            docker_image.build_status == constants.SUCCESS
-            or constants.ALL in image_types
-        ):
-            ecr_urls.append(docker_image.ecr_url)
-            run_test_types = [constants.ALL]
-        elif (
-            framework
-            and len(image_types) > 0
-            and framework in docker_image.repository
-            and docker_image_type in image_types
-        ):
+        if docker_image.build_status == constants.SUCCESS:
             ecr_urls.append(docker_image.ecr_url)
         else:
             print(
@@ -310,11 +264,6 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
 
     images_arg = " ".join(ecr_urls)
     test_envs.append({"name": images_env, "value": images_arg, "type": "PLAINTEXT"})
-
-    if len(run_test_types) > 0:
-        with open(constants.RUN_TESTS_ENV, "w") as f:
-            for test in run_test_types:
-                f.write(f"{test}\n")
 
     if kwargs:
         for key, value in kwargs.items():
