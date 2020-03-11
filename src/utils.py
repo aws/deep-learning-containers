@@ -80,7 +80,7 @@ def get_modifed_src_files_info(files, device_types=None, image_types=None, py_ve
     if device_types is None:
         device_types = []
     rule = re.findall(r"src\/\S+", files)
-    if len(rule) != 0:
+    if rule:
         device_types = constants.ALL
         image_types = constants.ALL
         py_versions = constants.ALL
