@@ -30,7 +30,13 @@ def get_pr_modified_files(pr_number):
     files = "\n".join(files)
     return files
 
-def get_modified_docker_files_info(files, framework, device_types=[], image_types=[], py_versions=[]):
+def get_modified_docker_files_info(files, framework, device_types=None, image_types=None, py_versions=None):
+    if py_versions is None:
+        py_versions = []
+    if image_types is None:
+        image_types = []
+    if device_types is None:
+        device_types = []
     rule = re.findall(r"\S+Dockerfile\S+", files)
     for dockerfile in rule:
 
@@ -49,7 +55,13 @@ def get_modified_docker_files_info(files, framework, device_types=[], image_type
         py_versions.append(py_version)
     return  device_types, image_types, py_versions
 
-def get_modifed_buidspec_yml_info(files, framework, device_types=[], image_types=[], py_versions=[]):
+def get_modifed_buidspec_yml_info(files, framework, device_types=None, image_types=None, py_versions=None):
+    if py_versions is None:
+        py_versions = []
+    if image_types is None:
+        image_types = []
+    if device_types is None:
+        device_types = []
     rule = re.findall(r"\S+\/buildspec.yml", files)
     for buildspec in rule:
         buildspec_framework = buildspec.split("/")[0]
@@ -60,7 +72,13 @@ def get_modifed_buidspec_yml_info(files, framework, device_types=[], image_types
     return device_types, image_types, py_versions
 
 # Rule 3: If any file in the build code changes, build all images
-def get_modifed_src_files_info(files, device_types=[], image_types=[], py_versions=[]):
+def get_modifed_src_files_info(files, device_types=None, image_types=None, py_versions=None):
+    if py_versions is None:
+        py_versions = []
+    if image_types is None:
+        image_types = []
+    if device_types is None:
+        device_types = []
     rule = re.findall(r"src\/\S+", files)
     if len(rule) != 0:
         device_types = constants.ALL
@@ -68,8 +86,17 @@ def get_modifed_src_files_info(files, device_types=[], image_types=[], py_versio
         py_versions = constants.ALL
     return device_types, image_types, py_versions
 
-def get_modified_test_files_info(files, framework, device_types=[], image_types=[],  py_versions=[], run_test_types=[]):
+def get_modified_test_files_info(files, framework, device_types=None, image_types=None, py_versions=None,
+                                 run_test_types=None):
     # Rule 1: run  only the tests where the test_files are changed
+    if run_test_types is None:
+        run_test_types = []
+    if py_versions is None:
+        py_versions = []
+    if image_types is None:
+        image_types = []
+    if device_types is None:
+        device_types = []
     rule = re.findall(r"[\r\n]+test\S+", files)
     for test_file in rule:
         test_folder = test_file.split("/")[1]
