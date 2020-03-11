@@ -86,6 +86,8 @@ def get_modifed_src_files_info(files, device_types=None, image_types=None, py_ve
         py_versions = constants.ALL
     return device_types, image_types, py_versions
 
+
+
 def get_modified_test_files_info(files, framework, device_types=None, image_types=None, py_versions=None,
                                  run_test_types=None):
     # Rule 1: run  only the tests where the test_files are changed
@@ -98,42 +100,52 @@ def get_modified_test_files_info(files, framework, device_types=None, image_type
     if device_types is None:
         device_types = []
     rule = re.findall(r"[\r\n]+test\S+", files)
+
     for test_file in rule:
         test_folder = test_file.split("/")[1]
 
         if test_folder == "sagemaker_tests":
             framework_changed = test_file.split("/")[2]
-            job_name = test_file.split("/")[3]
-            if framework_changed != framework:
-                continue
-            run_test_types.append(constants.SAGEMAKER_TESTS)
-            image_types.append(job_name)
-            device_types = constants.ALL
-            py_versions = constants.ALL
+            if framework_changed == framework:
+                job_name = test_file.split("/")[3]
+                if framework_changed == "tensorflow" and "training" in job_name:
+                    job_name = "training"
+                if job_name in constants.IMAGE_TYPES:
+                    image_types.append(job_name)
+                else:
+                    image_types = constants.ALL
+                    run_test_types = constants.ALL
+            elif framework_changed not in constants.FRAMEWORKS:
+                image_types = constants.ALL
+                run_test_types.append(constants.SAGEMAKER_TESTS)
 
         elif test_folder == "dlc_tests":
-            framework_changed = test_file.split("/")[3]
             test_name = test_file.split("/")[2]
-            job_name = test_file.split("/")[4]
-            if framework_changed != framework:
-                continue
-            image_types.append(job_name)
             if test_name == "ecs":
+                framework_changed = test_file.split("/")[3]
+                if framework_changed == framework:
+                    job_name = test_file.split("/")[4]
+                    if job_name in constants.IMAGE_TYPES:
+                        image_types.append(job_name)
+                    else:
+                        image_types = constants.ALL
+                    image_types.append(job_name)
+                else
                 run_test_types.append(constants.ECS_TESTS)
             elif test_name == "eks":
                 run_test_types.append(constants.EKS_TESTS)
              # Assumes that changes are made in dlc_tests but not under ecs or eks folders so we run both the tests
             else:
                 run_test_types.extend([constants.EKS_TESTS, constants.ECS_TESTS])
-            device_types = constants.ALL
-            py_versions = constants.ALL
-
+                image_types = constants.ALL
 
         else:
-            image_types = [constants.ALL]
+            image_types = constants.ALL
             run_test_types = [constants.ALL]
             device_types = constants.ALL
             py_versions = constants.ALL
+            break
+
 
     return device_types, image_types, py_versions, run_test_types
 
