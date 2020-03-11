@@ -3,7 +3,8 @@ Helper functions for ECS Integration Tests
 """
 from retrying import retry
 import boto3
-import test.dlc_tests.ecs.ec2_utils as ec2_utils
+import test.dlc_tests.test_utils.ec2 as ec2_utils
+from test.dlc_tests.test_utils.general import get_mms_run_command
 
 ECS_AMI_ID = {
     "cpu": "ami-0fb71e703258ab7eb",
@@ -42,6 +43,7 @@ ECS_MXNET_PYTORCH_INFERENCE_PORT_MAPPINGS = [
 ]
 
 ECS_INSTANCE_ROLE_ARN = "arn:aws:iam::669063966089:instance-profile/ecsInstanceRole"
+ECS_S3_TEST_BUCKET = "s3://dlcinfra-ecs-testscripts/container_tests"
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
 
@@ -165,11 +167,8 @@ def attach_ecs_worker_node(worker_instance_type, ami_id, cluster_name, cluster_a
     ecs_user_data = f"""#!/bin/bash
     echo ECS_CLUSTER={cluster_name} >> /etc/ecs/ecs.config"""
 
-    instc = ec2_utils.launch_instance(ami_id,
-                                      region=region,
-                                      instance_type=worker_instance_type,
-                                      user_data=ecs_user_data,
-                                      iam_instance_profile_arn=ECS_INSTANCE_ROLE_ARN)
+    instc = ec2_utils.launch_instance(ami_id, region=region, instance_type=worker_instance_type,
+                                      user_data=ecs_user_data, iam_instance_profile_arn=ECS_INSTANCE_ROLE_ARN)
 
     instance_id = instc['InstanceId']
     public_ip_address = instc['PublicIpAddress']
@@ -645,3 +644,108 @@ def get_ecs_tensorflow_environment_variables(processor, model_name):
     ]
 
     return ecs_tensorflow_inference_environment
+
+
+def build_ecs_training_command(test_string):
+    """Construct the command to send to the container for running scripts in ECS automation
+
+    Args:
+         Required - test_string (Scripts should contain absolute path of test file in /test. E.g.
+    /test/bin/testTensorflow): str
+    Returns:
+         command to send to the container
+    """
+    return [f"pip install -U awscli && mkdir -p /test/logs && aws s3 cp {ECS_S3_TEST_BUCKET} /test/ --recursive "
+            f"&& chmod +x -R /test/ && {test_string}"]
+
+
+# TODO: Move this to testspec.yml for ecs tests
+"""
+def upload_tests_for_ecs(datetime_suffix):
+    aws_access_key_id, aws_secret_access_key = utils.get_private_key(test_helper.AMI_MATERIALSET)
+    with hide('running'):
+        run("aws configure set aws_access_key_id {}".format(aws_access_key_id))
+        run("aws configure set aws_secret_access_key {}".format(aws_secret_access_key))
+        run("aws configure set region {}".format(cfg.iad_region))
+    global ECS_S3_TEST_BUCKET
+    ECS_S3_TEST_BUCKET = ECS_S3_TEST_BUCKET.format(datetime_suffix)
+    run("aws s3 rm {}/ --recursive".format(ECS_S3_TEST_BUCKET), warn_only=True)
+    run("aws s3 cp {}/container_tests/ {} --recursive".format(test_helper.SRC_DIR, ECS_S3_TEST_BUCKET,
+                                                              datetime_suffix))
+"""
+
+
+def ecs_inference_test_executor(docker_image_uri, framework, job, processor, cluster_name, cluster_arn, datetime_suffix,
+                                model_name, num_cpus, memory, num_gpus, test_args):
+    """Create a service in an existing cluster, run the test using the arguments passed in
+    *test_args and scales down and deletes the service
+    This is a helper function to run help run ECS inference tests. Cluster can be reused to run N
+    number of tests but each model will need a new service
+
+    Args:
+        Required - cluster_name, cluster_arn, datetime_suffix, model_name, test_args (a list of test function to and
+        arguments to be passed for the test): str
+    Returns:
+        Bool, True if test passed else False
+    """
+    service_name = task_family = revision = None
+    try:
+        service_name, task_family, revision = setup_ecs_inference_service(docker_image_uri, framework, job, processor,
+                                                                          cluster_name, cluster_arn, datetime_suffix,
+                                                                          model_name, num_cpus, memory, num_gpus)
+        return_codes = []
+        for args in test_args:
+            test_function, test_function_arguments = args[0], args[1:]
+            return_codes.append(test_function(*test_function_arguments))
+        return return_codes
+    finally:
+        tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revision)
+
+
+def setup_ecs_inference_service(docker_image_uri, framework, job, processor, cluster_name, cluster_arn, datetime_suffix,
+                                model_name, num_cpus, memory, num_gpus):
+    """Function to setup Inference service on ECS
+
+    Args:
+        Required - docker_image_uri, framework, job, processor, cluster_name, cluster_arn, datetime_suffix: str
+        Required - model_name, num_cpus, memory, num_gpus: str
+    Returns:
+        service_name, task_family, revision if all steps passed else Exception
+        Cleans up the resources if any step fails
+    """
+    service_name = task_family = revision = None
+    try:
+        port_mappings = get_ecs_port_mappings(framework)
+        log_group_name = "/ecs/{}-{}-{}".format(framework, job, processor)
+        # Below values here are just for sanity
+        arguments_dict = {
+            "family_name": cluster_name,
+            "image": docker_image_uri,
+            "log_group_name": log_group_name,
+            "log_stream_prefix": datetime_suffix,
+            "port_mappings": port_mappings,
+            "num_cpu": num_cpus,
+            "memory": memory
+        }
+
+        if processor == "gpu" and num_gpus:
+            arguments_dict["num_gpu"] = num_gpus
+        if processor == "tensorflow":
+            arguments_dict["environment"] = get_ecs_tensorflow_environment_variables(processor, model_name)
+        elif framework in ["mxnet", "pytorch"]:
+            arguments_dict["container_command"] = [get_mms_run_command(model_name, processor)]
+
+        task_family, revision = register_ecs_task_definition(**arguments_dict)
+        print(f"Created Task definition - {task_family}:{revision}")
+
+        service_name = create_ecs_service(cluster_name, f"service-{cluster_name}", f"{task_family}:{revision}")
+        print(f"Created ECS service - {service_name} with cloudwatch log group - {log_group_name} "
+              f"log stream prefix - {datetime_suffix}/{cluster_name}")
+        if check_running_task_for_ecs_service(cluster_name, service_name):
+            print("Service status verified as running. Running inference ...")
+        else:
+            raise Exception(f"No task running in the service: {service_name}")
+        return service_name, task_family, revision
+    except Exception as e:
+        print(f"Setup failure Exception - {e}")
+        tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revision)

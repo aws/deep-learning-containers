@@ -120,7 +120,7 @@ def check_system_state(instance_id,
 
 def terminate_instance(instance_id, region='us-west-2'):
     """Terminate instances
-        """
+    """
     if not instance_id:
         raise Exception("No instance id provided")
     client = boto3.Session(region_name=region).client('ec2')
@@ -132,3 +132,44 @@ def terminate_instance(instance_id, region='us-west-2'):
         raise Exception("Failed to terminate instance.")
     if instances_terminated[0]['InstanceId'] != instance_id:
         raise Exception("Failed to terminate instance. Unknown error.")
+
+
+def get_instance_details(instance_id, region='us-west-2'):
+    """Helper function to format run command for MMS
+    Args:
+        Required - instance_id: str
+        Optional - region: str
+    Returns:
+        num_cpus: int
+    """
+    if not instance_id:
+        raise Exception("No instance id provided")
+    instance = get_instance_from_id(instance_id, region='us-west-2')
+    if not instance:
+        raise Exception("Could not find instance")
+    client = boto3.Session(region_name=region).client('ec2')
+    response = client.describe_instance_types(InstanceTypes=instance.instance_type)
+    if not response or not response['InstanceTypes']:
+        raise Exception("Unable to get instance details. No response received.")
+    if response['InstanceTypes'][0]['InstanceType'] != instance.instance_type:
+        raise Exception(f"Bad response received. Requested {instance.instance_type} "
+                        f"but got {response['InstanceTypes'][0]['InstanceType']}")
+    return response['InstanceTypes'][0]
+
+
+@retry(stop_max_attempt_number=30, wait_fixed=10000)
+def get_instance_num_cpus(instance_id, region='us-west-2'):
+    instance_info = get_instance_details(instance_id, region=region)
+    return instance_info['VCpuInfo']['DefaultVCpus']
+
+
+@retry(stop_max_attempt_number=30, wait_fixed=10000)
+def get_instance_memory(instance_id, region='us-west-2'):
+    instance_info = get_instance_details(instance_id, region=region)
+    return instance_info['MemoryInfo']
+
+
+@retry(stop_max_attempt_number=30, wait_fixed=10000)
+def get_instance_num_gpus(instance_id, region='us-west-2'):
+    instance_info = get_instance_details(instance_id, region=region)
+    return sum(gpu_type['Count'] for gpu_type in instance_info['GpuInfo']['Gpus'])
