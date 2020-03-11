@@ -44,5 +44,17 @@ INFO = 1
 ERROR = 2
 DEBUG = 3
 
+# Env variables for the code build PR jobs
+JOB_FRAMEWORK = os.environ.get("FRAMEWORK")
+JOB_FRAMEWORK_VERSION = os.environ.get("VERSION")
+
 # Test environment file
 TEST_ENV = os.path.join(os.path.expanduser("~"), "testenv.json")
+
+# Run Tests file
+RUN_TESTS_ENV = os.path.join(os.path.expanduser("~"), "run_tests.txt")
+
+# Run Test Type variables
+SAGEMAKER_TESTS = "sagemaker"
+ECS_TESTS = "ecs"
+EKS_TESTS = "eks"
