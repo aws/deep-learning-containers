@@ -157,12 +157,16 @@ def pr_build_setup(pr_number, framework):
     image_types = []
     py_versions = []
 
+    # This below code currently appends the values to device_types, image_types, py_versions for files changed
+    # if there are no changes in the files then functions return same lists
+    # TODO: use a class to define these lists and use getter setter methods
     device_types, image_types, py_versions = get_modified_docker_files_info(files, framework, device_types,
                                                                             image_types, py_versions)
 
     device_types, image_types, py_versions, run_test_types = get_modified_test_files_info(files, framework, device_types,
                                                                             image_types, py_versions)
 
+    # This below code currently overides the device_types, image_types, py_versions with constants.ALL
     device_types, image_types, py_versions = get_modifed_buidspec_yml_info(files, framework, device_types,
                                                                            image_types, py_versions)
 
@@ -298,7 +302,7 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     if len(run_test_types) > 0:
         with open(constants.RUN_TESTS_ENV, "w") as f:
             for test in run_test_types:
-                f.write(test + "\n")
+                f.write(f"{test}\n")
 
     if kwargs:
         for key, value in kwargs.items():
