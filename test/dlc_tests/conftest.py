@@ -49,11 +49,6 @@ def ec2_client():
 
 
 @pytest.fixture(scope="session")
-def ecs_client():
-    return boto3.client("ecs")
-
-
-@pytest.fixture(scope="session")
 def ec2_resource():
     return boto3.resource("ec2")
 

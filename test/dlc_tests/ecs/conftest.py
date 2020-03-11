@@ -1,8 +1,14 @@
 import time
 
 import pytest
+import boto3
 
 from test.test_utils import UBUNTU_16_BASE_DLAMI
+
+
+@pytest.fixture(scope="session")
+def ecs_client():
+    return boto3.client("ecs")
 
 
 @pytest.fixture(scope="session")
@@ -15,9 +21,10 @@ def ecs_cluster(request, ecs_client):
     :return:
     """
     cluster_name = f"{request.node.name}-ecs-cluster"
-    ecs_client.create_cluster(
+    create_cluster_resp = ecs_client.create_cluster(
         clusterName=cluster_name
     )
+    print(f"***********{create_cluster_resp}************")
 
     def delete_ecs_cluster():
         ecs_client.delete_cluster(cluster=cluster_name)
@@ -31,6 +38,7 @@ def ecs_cluster(request, ecs_client):
         if time.time() > timeout:
             raise TimeoutError(f"ECS cluster {cluster_name} timed out on creation")
         response = ecs_client.describe_clusters(clusters=[cluster_name])
+        print(f"***********{response}************")
         if response.get('clusters', [{}])[0].get('status') == 'ACTIVE':
             is_active = True
 
