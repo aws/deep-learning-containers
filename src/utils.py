@@ -191,6 +191,9 @@ def pr_build_setup(pr_number, framework):
     device_types, image_types, py_versions = get_modifed_root_files_info(files, device_types, image_types,
                                                                         py_versions, pattern="src\/\S+")
 
+    device_types, image_types, py_versions = get_modifed_root_files_info(files, device_types, image_types,
+                                                                         py_versions, pattern="testspec.yml")
+
     return device_types, image_types, py_versions
 
 
