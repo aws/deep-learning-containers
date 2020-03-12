@@ -168,7 +168,8 @@ def attach_ecs_worker_node(worker_instance_type, ami_id, cluster_name, cluster_a
     echo ECS_CLUSTER={cluster_name} >> /etc/ecs/ecs.config"""
 
     instc = ec2_utils.launch_instance(ami_id, region=region, instance_type=worker_instance_type,
-                                      user_data=ecs_user_data, iam_instance_profile_arn=ECS_INSTANCE_ROLE_ARN)
+                                      user_data=ecs_user_data, iam_instance_profile_arn=ECS_INSTANCE_ROLE_ARN,
+                                      instance_name=f'ecs worker {cluster_name}')
 
     instance_id = instc['InstanceId']
     public_ip_address = ec2_utils.get_public_ip(instance_id, region=region)

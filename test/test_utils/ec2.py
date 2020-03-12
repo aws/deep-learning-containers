@@ -22,7 +22,7 @@ def launch_instance(ami_id, instance_type, region='us-west-2', user_data=None, i
                 'Tags': [
                     {
                         'Key': 'Name',
-                        'Value': f'CI-CD-instance {instance_name}'
+                        'Value': f'CI-CD {instance_name}'
                     }
                 ]
             },
@@ -148,7 +148,7 @@ def get_instance_details(instance_id, region='us-west-2'):
     if not instance:
         raise Exception("Could not find instance")
     client = boto3.Session(region_name=region).client('ec2')
-    response = client.describe_instance_types(InstanceTypes=instance['InstanceType'])
+    response = client.describe_instance_types(InstanceTypes=[instance['InstanceType']])
     if not response or not response['InstanceTypes']:
         raise Exception("Unable to get instance details. No response received.")
     if response['InstanceTypes'][0]['InstanceType'] != instance['InstanceType']:
