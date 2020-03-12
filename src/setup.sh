@@ -21,9 +21,6 @@ fi
 if [ "$FRAMEWORK" = "tensorflow"  ]; then
     cd training
     python setup.py sdist
-    cd ../inference
-    chmod +x ./scripts/*.sh
-    chmod +x ./docker/build_artifacts/sagemaker/serve
 fi
 
 
