@@ -13,7 +13,7 @@ def test_ecs_mxnet_inference(mxnet_inference, framework, job, processor, region)
     worker_instance_type = 'p3.8xlarge' if processor == 'gpu' else 'c5.18xlarge'
     cluster_arn = worker_instance_id = None
     try:
-        cluster_name = 'saimidu-cicd-test-cluster'
+        cluster_name = 'mxnet-inference-test-cluster'
         datetime_suffix = datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')
 
         cluster_arn = ecs_utils.create_ecs_cluster(cluster_name, region=region)
