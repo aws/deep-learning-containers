@@ -171,7 +171,7 @@ def attach_ecs_worker_node(worker_instance_type, ami_id, cluster_name, cluster_a
                                       user_data=ecs_user_data, iam_instance_profile_arn=ECS_INSTANCE_ROLE_ARN)
 
     instance_id = instc['InstanceId']
-    public_ip_address = instc['PublicIpAddress']
+    public_ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
     ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
 

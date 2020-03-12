@@ -49,24 +49,24 @@ def get_instance_from_id(instance_id, region='us-west-2'):
     if not instance_id:
         raise Exception("No instance id provided")
     client = boto3.Session(region_name=region).client('ec2')
-    instance = client.Instance(instance_id)
+    instance = client.describe_instances(InstanceIds=[instance_id])
     if not instance:
         raise Exception("Unable to launch the instance. \
                          Did not return any reservations object")
-    return instance
+    return instance['Reservations'][0]['Instances'][0]
 
 
 @retry(stop_max_attempt_number=8, wait_fixed=120000)
 def get_public_ip(instance_id, region='us-west-2'):
     instance = get_instance_from_id(instance_id, region)
-    if not instance.public_ip_address:
+    if not instance['PublicIpAddress']:
         raise Exception("IP address not yet available")
-    return instance.public_ip_address
+    return instance['PublicIpAddress']
 
 
 def get_instance_state(instance_id, region='us-west-2'):
     instance = get_instance_from_id(instance_id, region)
-    return instance.state['Name']
+    return instance['State']['Name']
 
 
 @retry(stop_max_attempt_number=8, wait_fixed=120000)
@@ -148,11 +148,11 @@ def get_instance_details(instance_id, region='us-west-2'):
     if not instance:
         raise Exception("Could not find instance")
     client = boto3.Session(region_name=region).client('ec2')
-    response = client.describe_instance_types(InstanceTypes=instance.instance_type)
+    response = client.describe_instance_types(InstanceTypes=instance['InstanceType'])
     if not response or not response['InstanceTypes']:
         raise Exception("Unable to get instance details. No response received.")
-    if response['InstanceTypes'][0]['InstanceType'] != instance.instance_type:
-        raise Exception(f"Bad response received. Requested {instance.instance_type} "
+    if response['InstanceTypes'][0]['InstanceType'] != instance['InstanceType']:
+        raise Exception(f"Bad response received. Requested {instance['InstanceType']} "
                         f"but got {response['InstanceTypes'][0]['InstanceType']}")
     return response['InstanceTypes'][0]
 
