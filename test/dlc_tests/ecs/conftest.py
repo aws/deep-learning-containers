@@ -91,6 +91,8 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_instance_type, 
     # Define finalizer to terminate instance after this fixture completes
     def terminate_ec2_instance():
         ec2_client.terminate_instances(InstanceIds=[instance_id])
+        term_waiter = ec2_client.get_waiter("instance_terminated")
+        term_waiter.wait(InstanceIds=[instance_id])
 
     request.addfinalizer(terminate_ec2_instance)
 
