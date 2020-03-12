@@ -218,9 +218,11 @@ def pr_build_setup(pr_number, framework):
 
     parse_modifed_root_files_info(files, pattern="src\/\S+")
 
-    parse_modifed_root_files_info(
-        files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
-    )
+    # TODO we have re enable this logic after test migration is done
+    # parse_modifed_root_files_info(
+    #     files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
+    # )
+
     # TODO we have re enable this logic after test migration is done
     # parse_modifed_root_files_info(files, pattern="testspec\.yml")
 
