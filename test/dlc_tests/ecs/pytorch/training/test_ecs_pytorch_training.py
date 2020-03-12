@@ -3,7 +3,7 @@ ECS tests for PyTorch Training
 """
 
 
-def test_ecs_pytorch_training(request, pytorch_training, ecs_container_instance, ecs_client):
+def test_ecs_pytorch_training_mnist(request, pytorch_training, ecs_container_instance, ecs_client):
     print(pytorch_training)
     print(ecs_container_instance)
 
