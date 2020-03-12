@@ -201,14 +201,15 @@ def pr_build_setup(pr_number, framework):
 
     # This below code currently appends the values to device_types, image_types, py_versions for files changed
     # if there are no changes in the files then functions return same lists
-    # TODO: use a class to define these lists and use getter setter methods
     parse_modified_docker_files_info(files, framework, pattern="\S+Dockerfile\S+")
 
-    parse_modified_sagemaker_test_files(
-        files, framework, pattern="\S+sagemaker_tests\/\S+"
-    )
+    # TODO we have re enable this logic to parse test files once test migration is done
+    # parse_modified_sagemaker_test_files(
+    #     files, framework, pattern="\S+sagemaker_tests\/\S+"
+    # )
 
     # The below functions are only run if all JobParameters variables are not set with constants.ALL
+    # TODO we have re enable this logic to parse test files once test migration is done
     # parse_modified_dlc_test_files_info(files, framework, pattern="\S+dlc_tests\/\S+")
 
     # The below code currently overides the device_types, image_types, py_versions with constants.ALL
@@ -220,7 +221,7 @@ def pr_build_setup(pr_number, framework):
     parse_modifed_root_files_info(
         files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
     )
-
+    # TODO we have re enable this logic after test migration is done
     # parse_modifed_root_files_info(files, pattern="testspec\.yml")
 
     return (
@@ -290,6 +291,7 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     ecr_urls = []
 
     for docker_image in images:
+        # TODO we have change this logic after to append urls only for new builds after test migration is done
         ecr_urls.append(docker_image.ecr_url)
 
 
