@@ -109,17 +109,36 @@ def pull_images(docker_client, dlc_images):
         docker_client.images.pull(image)
 
 
+@pytest.fixture(scope="session")
+def cpu_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def gpu_only():
+    pass
+
+
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
     # Parametrize framework specific tests
+    print("before", metafunc.fixturenames)
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
             lookup = fixture.replace("_", "-")
             images_to_parametrize = []
             for image in images:
                 if lookup in image:
-                    images_to_parametrize.append(image)
+                    if "cpu_only" in metafunc.fixturenames and "cpu" in image:
+                        images_to_parametrize.append(image)
+                    elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
+                        images_to_parametrize.append(image)
+                    elif (
+                        "cpu_only" not in metafunc.fixturenames
+                        and "gpu_only" not in metafunc.fixturenames
+                    ):
+                        images_to_parametrize.append(image)
             metafunc.parametrize(fixture, images_to_parametrize)
 
     # Parametrize for framework agnostic tests, i.e. sanity
