@@ -3,8 +3,8 @@ Helper functions for ECS Integration Tests
 """
 from retrying import retry
 import boto3
-import test.dlc_tests.test_utils.ec2 as ec2_utils
-from test.dlc_tests.test_utils.general import get_mms_run_command
+import test.test_utils.ec2 as ec2_utils
+from test.test_utils.general import get_mms_run_command
 
 ECS_AMI_ID = {
     "cpu": "ami-0fb71e703258ab7eb",

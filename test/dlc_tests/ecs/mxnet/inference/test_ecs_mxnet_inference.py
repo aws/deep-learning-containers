@@ -1,8 +1,8 @@
 import datetime
 
-import test.dlc_tests.test_utils.ecs as ecs_utils
-import test.dlc_tests.test_utils.ec2 as ec2_utils
-from test.dlc_tests.test_utils.general import test_mxnet_inference_squeezenet
+import test.test_utils.ecs as ecs_utils
+import test.test_utils.ec2 as ec2_utils
+from test.test_utils.general import test_mxnet_inference_squeezenet
 
 
 def test_dummy(mxnet_inference):

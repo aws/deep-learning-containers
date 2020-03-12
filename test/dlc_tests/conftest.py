@@ -4,7 +4,7 @@ import boto3
 import docker
 import pytest
 
-from test.dlc_tests.test_utils.general import run_subprocess_cmd
+from test.test_utils.general import run_subprocess_cmd
 
 
 # Constant to represent AMI Id used to spin up EC2 instances

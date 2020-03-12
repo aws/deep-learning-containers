@@ -1,6 +1,6 @@
 import pytest
 
-from test.dlc_tests.test_utils.general import run_subprocess_cmd
+from test.test_utils.general import run_subprocess_cmd
 
 
 @pytest.mark.usefixtures("pull_images")
