@@ -61,7 +61,7 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ec2_resource, ec2_i
     with open(user_data, 'w') as user_data_file:
         user_data_file.write(f"#!/bin/bash\necho ECS_CLUSTER={ecs_cluster} >> /etc/ecs/ecs.config")
 
-    instances = ec2_resource.create_instances(
+    instances = ec2_resource.run_instances(
         KeyName="pytest.pem",
         ImageId=UBUNTU_16_BASE_DLAMI,
         # hard coding for now
