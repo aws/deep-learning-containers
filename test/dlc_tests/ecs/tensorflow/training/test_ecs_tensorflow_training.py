@@ -1,4 +1,5 @@
 import os
+import time
 
 import pytest
 
@@ -53,6 +54,9 @@ def test_ecs_tf_training_mnist(request, tensorflow_training, ecs_container_insta
         placementConstraints=[],
         family=family,
     )
+
+    time.sleep(150)
+
     task = ecs_client.run_task(cluster=cluster, taskDefinition=family)
     task_arn = task.get("tasks", [{}])[0].get("taskArn")
     waiter = ecs_client.get_waiter("tasks_stopped")
