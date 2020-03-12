@@ -39,6 +39,11 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture(scope="session")
+def region():
+    return os.getenv('AWS_REGION', 'us-west-2')
+
+
+@pytest.fixture(scope="session")
 def docker_client():
     run_subprocess_cmd(
         f"$(aws ecr get-login --no-include-email --region {os.getenv('AWS_REGION', 'us-west-2')})",

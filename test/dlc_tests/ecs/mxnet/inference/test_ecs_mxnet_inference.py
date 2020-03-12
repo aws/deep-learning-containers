@@ -9,7 +9,7 @@ def test_dummy(mxnet_inference):
     print(mxnet_inference)
 
 
-def test_ecs_mxnet_inference(mxnet_inference, framework, job, processor, region):
+def test_ecs_mxnet_inference(mxnet_inference, processor, region):
     worker_instance_type = 'p3.8xlarge' if processor == 'gpu' else 'c5.18xlarge'
     cluster_arn = worker_instance_id = None
     try:
@@ -26,7 +26,7 @@ def test_ecs_mxnet_inference(mxnet_inference, framework, job, processor, region)
         memory = ec2_utils.get_instance_memory(worker_instance_id, region=region)
         squeezenet_test_args = [test_mxnet_inference_squeezenet, public_ip_address]
 
-        tests_results = ecs_utils.ecs_inference_test_executor(mxnet_inference, framework, job, processor,
+        tests_results = ecs_utils.ecs_inference_test_executor(mxnet_inference, 'mxnet', 'inference', processor,
                                                               cluster_name, cluster_arn, datetime_suffix, model_names,
                                                               num_cpus*1024, memory, num_gpus, [squeezenet_test_args])
 
