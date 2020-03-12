@@ -46,14 +46,13 @@ def ecs_cluster(request, ecs_client):
 
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="session")
-def ecs_container_instance(request, ecs_cluster, ec2_client, ec2_resource, ec2_instance_type):
+def ecs_container_instance(request, ecs_cluster, ec2_client, ec2_instance_type):
     """
     Fixture to handle spin up and tear down of ECS container instance
 
     :param request: pytest request object
     :param ecs_cluster: ecs cluster fixture
     :param ec2_client: boto3 ec2 client
-    :param ec2_resource: boto3 ec2 resource
     :param ec2_instance_type: eventually to be used
     :return:
     """
@@ -61,7 +60,7 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ec2_resource, ec2_i
     with open(user_data, 'w') as user_data_file:
         user_data_file.write(f"#!/bin/bash\necho ECS_CLUSTER={ecs_cluster} >> /etc/ecs/ecs.config")
 
-    instances = ec2_resource.run_instances(
+    instances = ec2_client.run_instances(
         KeyName="pytest.pem",
         ImageId=UBUNTU_16_BASE_DLAMI,
         # hard coding for now
