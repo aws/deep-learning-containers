@@ -14,8 +14,8 @@ def test_ecs_mxnet_inference(mxnet_inference, region):
     worker_instance_type = 'p3.8xlarge' if processor == 'gpu' else 'c5.18xlarge'
     cluster_arn = worker_instance_id = None
     try:
-        cluster_name = 'mxnet-inference-test-cluster'
         datetime_suffix = datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')
+        cluster_name = f'mxnet-inference-{processor}-test-cluster-{datetime_suffix}'
 
         cluster_arn = ecs_utils.create_ecs_cluster(cluster_name, region=region)
         worker_instance_id, public_ip_address = ecs_utils.attach_ecs_worker_node(
