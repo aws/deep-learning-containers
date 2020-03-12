@@ -70,7 +70,7 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ec2_instance_type):
         UserData=f"file://{user_data}",
         IamInstanceProfile={"Name": "ecsInstanceRole"}
     )
-    instance_id = instances[0].id
+    instance_id = instances.get('Instances')[0].get('InstanceId')
 
     # Define finalizer to terminate instance after this fixture completes
     def terminate_ec2_instance():
@@ -80,4 +80,4 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ec2_instance_type):
 
     waiter = ec2_client.get_waiter("instance_running")
     waiter.wait(InstanceIds=[instance_id])
-    return instances[0], ecs_cluster
+    return instance_id, ecs_cluster
