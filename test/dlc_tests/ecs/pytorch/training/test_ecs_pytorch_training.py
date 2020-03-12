@@ -7,7 +7,7 @@ def test_ecs_pytorch_training(request, pytorch_training, ecs_container_instance,
     print(pytorch_training)
     print(ecs_container_instance)
 
-    instance_id, cluster = ecs_container_instance
+    _instance_id, cluster = ecs_container_instance
 
     family = request.node.name.split('[')[0]
     print(f"*************{family}***********")
@@ -46,3 +46,6 @@ def test_ecs_pytorch_training(request, pytorch_training, ecs_container_instance,
     )
 
     task = ecs_client.run_task(cluster=cluster, taskDefinition=family)
+    task_arn = task.get('tasks', [{}])[0].get('taskArn')
+    waiter = ecs_client.get_waiter('tasks_stopped')
+    waiter.wait(cluster=cluster, tasks=[task_arn])
