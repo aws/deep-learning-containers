@@ -5,8 +5,9 @@ import pytest
 from test.test_utils import ECS_AML2_GPU_USWEST2
 
 
-@pytest.mark.parametrize("ecs_cluster", "pytorch-train-mnist-cluster", indirect=True)
-@pytest.mark.parametrize("ecs_container_instance", ("p2.8xlarge", ECS_AML2_GPU_USWEST2), indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
+@pytest.mark.parametrize("ecs_cluster_name", ["pt-train-mnist-cluster"], indirect=True)
 def test_ecs_pytorch_training_mnist(request, pytorch_training, ecs_container_instance, ecs_client):
     _instance_id, cluster = ecs_container_instance
 

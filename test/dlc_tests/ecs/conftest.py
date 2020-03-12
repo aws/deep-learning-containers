@@ -1,8 +1,9 @@
-import datetime
 import time
 
 import pytest
 import boto3
+
+from test.test_utils import ECS_AML2_GPU_USWEST2
 
 
 @pytest.fixture(scope="session")
@@ -10,8 +11,13 @@ def ecs_client():
     return boto3.client("ecs")
 
 
+@pytest.fixture
+def ecs_cluster_name(request):
+    return request.param
+
+
 @pytest.fixture(scope="session")
-def ecs_cluster(request, ecs_client):
+def ecs_cluster(request, ecs_client, ecs_cluster_name):
     """
     Fixture to handle spin up and tear down of ecs cluster
 
@@ -19,7 +25,7 @@ def ecs_cluster(request, ecs_client):
     :param ecs_client:
     :return:
     """
-    cluster_name = request.param
+    cluster_name = ecs_cluster_name
     ecs_client.create_cluster(
         clusterName=cluster_name
     )
@@ -43,9 +49,19 @@ def ecs_cluster(request, ecs_client):
     return cluster_name
 
 
+@pytest.fixture
+def ecs_ami(request):
+    return request.param
+
+
+@pytest.fixture
+def ecs_instance_type(request):
+    return request.param
+
+
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="session")
-def ecs_container_instance(request, ecs_cluster, ec2_client):
+def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_instance_type, ecs_ami):
     """
     Fixture to handle spin up and tear down of ECS container instance
 
@@ -56,7 +72,8 @@ def ecs_container_instance(request, ecs_cluster, ec2_client):
     :return:
     """
     # Get these from params on the test
-    instance_type, image_id = request.param
+    instance_type = ecs_instance_type
+    image_id = ecs_ami
 
     user_data = f"#!/bin/bash\necho ECS_CLUSTER={ecs_cluster} >> /etc/ecs/ecs.config"
 
