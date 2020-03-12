@@ -4,8 +4,6 @@ import time
 import pytest
 import boto3
 
-from test.test_utils import ECS_AML2_GPU_USWEST2
-
 
 @pytest.fixture(scope="session")
 def ecs_client():
@@ -21,7 +19,7 @@ def ecs_cluster(request, ecs_client):
     :param ecs_client:
     :return:
     """
-    cluster_name = f"ecs-cluster{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    cluster_name = request.param
     ecs_client.create_cluster(
         clusterName=cluster_name
     )
@@ -57,12 +55,8 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ec2_instance_type):
     :param ec2_instance_type: eventually to be used
     :return:
     """
-    instance_type, image_id = request.param
-
-    if not instance_type:
-        instance_type = "p2.8xlarge"
-    elif not image_id:
-        image_id = ECS_AML2_GPU_USWEST2
+    # Get these from params on the test
+    instance_type, instance_id = request.param
 
     user_data = f"#!/bin/bash\necho ECS_CLUSTER={ecs_cluster} >> /etc/ecs/ecs.config"
 
