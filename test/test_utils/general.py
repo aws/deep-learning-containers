@@ -17,7 +17,7 @@ def retry_if_result_is_false(result):
 
 
 @retry(stop_max_attempt_number=10, wait_fixed=2000, retry_on_result=retry_if_result_is_false)
-def test_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80"):
+def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80"):
     run_subprocess_cmd("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg")
     run_out = run_subprocess_cmd(f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg")
 

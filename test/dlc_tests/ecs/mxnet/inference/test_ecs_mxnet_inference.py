@@ -2,7 +2,7 @@ import datetime
 
 import test.test_utils.ecs as ecs_utils
 import test.test_utils.ec2 as ec2_utils
-from test.test_utils.general import test_mxnet_inference_squeezenet
+from test.test_utils.general import request_mxnet_inference_squeezenet
 
 
 def test_dummy(mxnet_inference):
@@ -25,7 +25,7 @@ def test_ecs_mxnet_inference(mxnet_inference, region):
         num_cpus = ec2_utils.get_instance_num_cpus(worker_instance_id, region=region)
         num_gpus = ec2_utils.get_instance_num_gpus(worker_instance_id, region=region) if processor == 'gpu' else None
         memory = ec2_utils.get_instance_memory(worker_instance_id, region=region)
-        squeezenet_test_args = [test_mxnet_inference_squeezenet, public_ip_address]
+        squeezenet_test_args = [request_mxnet_inference_squeezenet, public_ip_address]
 
         tests_results = ecs_utils.ecs_inference_test_executor(mxnet_inference, 'mxnet', 'inference', processor,
                                                               cluster_name, cluster_arn, datetime_suffix, model_names,
