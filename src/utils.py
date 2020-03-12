@@ -19,32 +19,36 @@ import json
 import constants
 from github import GitHubHandler
 
+
 class JobParameters:
     image_types = []
     device_types = []
     py_versions = []
+
     @staticmethod
     def build_for_all_images():
         JobParameters.image_types = constants.ALL
         JobParameters.device_types = constants.ALL
         JobParameters.py_versions = constants.ALL
+
     @staticmethod
     def build_for_all_device_types_py_versions():
         JobParameters.device_types = constants.ALL
         JobParameters.py_versions = constants.ALL
+
     @staticmethod
     def do_build_all_images():
         return (
-            JobParameters.device_types == constants.ALL and
-            JobParameters.image_types == constants.ALL and
-            JobParameters.py_versions == constants.ALL
+            JobParameters.device_types == constants.ALL
+            and JobParameters.image_types == constants.ALL
+            and JobParameters.py_versions == constants.ALL
         )
 
 
 def get_pr_modified_files(pr_number):
     """
-    Fetches all the files modified for a git pull request and return them as a string
-    :param pr_number:
+    Fetch all the files modified for a git pull request and return them as a string
+    :param pr_number: int
     :return: str with all the modified files
     """
     github_handler = GitHubHandler("aws", "deep-learning-containers")
@@ -52,7 +56,17 @@ def get_pr_modified_files(pr_number):
     files = "\n".join(files)
     return files
 
+
 def parse_modified_docker_files_info(files, framework, pattern=""):
+    """
+    Parse all the files in PR to find docker file related changes for any framework
+    triggers an image build matching the image_type(training/testing), device_type(cpu_gpu)
+    and python version(py2 and py3) of the changed docker files
+    :param files: str
+    :param framework: str
+    :param pattern: str
+    :return: None
+    """
     rule = re.findall(rf"{pattern}", files)
     for dockerfile in rule:
         dockerfile = dockerfile.split("/")
@@ -70,7 +84,15 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
         JobParameters.image_types.append(image_type)
         JobParameters.py_versions.append(py_version)
 
+
 def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
+    """
+    trigger a build for all the images related to a framework when there is change in framework/buildspec.yml
+    :param files: str
+    :param framework: str
+    :param pattern: str
+    :return: None
+    """
     rule = re.findall(rf"{pattern}", files)
     if not JobParameters.do_build_all_images():
         for buildspec in rule:
@@ -81,12 +103,28 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
 
 # Rule 3: If any file in the build code changes, build all images
 def parse_modifed_root_files_info(files, pattern=""):
+    """
+    trigger a build for all the images for all the frameworks when there is change in src, test, testspec.yml files
+    :param files: str
+    :param pattern: str
+    :return: None
+    """
     rule = re.findall(rf"{pattern}", files)
     if not JobParameters.do_build_all_images():
         if rule:
             JobParameters.build_for_all_images()
 
+
 def parse_modified_sagemaker_test_files(files, framework, pattern=""):
+    """
+    Parse all the files in PR to find sagemaker tests related changes for any framework
+    to trigger an image build matching the image_type(training/testing) for all the device_types(cpu,gpu)
+    and python_versions(py2,py3)
+    :param files: str
+    :param framework: str
+    :param pattern: str
+    :return: None
+    """
     rule = re.findall(rf"{pattern}", files)
     for test_file in rule:
         test_folder = test_file.split("/")[1]
@@ -110,7 +148,17 @@ def parse_modified_sagemaker_test_files(files, framework, pattern=""):
                 JobParameters.build_for_all_images()
                 break
 
-def parse_modified_dlc_test_files_info(files, framework,  pattern=""):
+
+def parse_modified_dlc_test_files_info(files, framework, pattern=""):
+    """
+    Parse all the files in PR to find ecs/eks/ec2 tests related changes for any framework
+    to trigger an image build matching the image_type(training/testing) for all the device_types(cpu,gpu)
+    and python_versions(py2,py3)
+    :param files:
+    :param framework:
+    :param pattern:
+    :return: None
+    """
     rule = re.findall(rf"{pattern}", files)
     # JobParameters variables are not set with constants.ALL
     if not JobParameters.do_build_all_images():
@@ -126,11 +174,12 @@ def parse_modified_dlc_test_files_info(files, framework,  pattern=""):
                         if job_name in constants.IMAGE_TYPES:
                             JobParameters.image_types.append(job_name)
                             JobParameters.build_for_all_device_types_py_versions()
-                # If file changed is under /test/sagemaker_tests/(ecs|eks|ec2) but not in (mxnet|pytorch|tensorflow) dirs
+                        # If file changed is under /test/sagemaker_tests/(ecs|eks|ec2)
+                        # but not in (mxnet|pytorch|tensorflow) dirs
                         else:
                             JobParameters.build_for_all_images()
                             break
-                # If file changed is under /test/dlc_tests but not in (ecs|eks|ec2) dirs
+                    # If file changed is under /test/dlc_tests but not in (ecs|eks|ec2) dirs
                     elif framework_changed not in constants.FRAMEWORKS:
                         JobParameters.build_for_all_images()
                         break
@@ -140,7 +189,6 @@ def pr_build_setup(pr_number, framework):
     """
     Identify the PR changeset and set the appropriate environment
     variables
-
     Parameters:
         pr_number: int
 
@@ -156,7 +204,9 @@ def pr_build_setup(pr_number, framework):
     # TODO: use a class to define these lists and use getter setter methods
     parse_modified_docker_files_info(files, framework, pattern="\S+Dockerfile\S+")
 
-    parse_modified_sagemaker_test_files(files, framework, pattern="\S+sagemaker_tests\/\S+")
+    parse_modified_sagemaker_test_files(
+        files, framework, pattern="\S+sagemaker_tests\/\S+"
+    )
 
     # The below functions are only run if all JobParameters variables are not set with constants.ALL
     parse_modified_dlc_test_files_info(files, framework, pattern="\S+dlc_tests\/\S+")
@@ -167,11 +217,17 @@ def pr_build_setup(pr_number, framework):
 
     parse_modifed_root_files_info(files, pattern="src\/\S+")
 
-    parse_modifed_root_files_info(files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)")
+    parse_modifed_root_files_info(
+        files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
+    )
 
     parse_modifed_root_files_info(files, pattern="testspec\.yml")
 
-    return JobParameters.device_types, JobParameters.image_types, JobParameters.py_versions
+    return (
+        JobParameters.device_types,
+        JobParameters.image_types,
+        JobParameters.py_versions,
+    )
 
 
 def build_setup(framework, device_types=None, image_types=None, py_versions=None):
