@@ -74,4 +74,4 @@ def ecs_cluster(request, ecs_client, ecs_cluster_name, ec2_client, ecs_instance_
 
     waiter = ec2_client.get_waiter("instance_running")
     waiter.wait(InstanceIds=[instance_id])
-    return instance_id, ecs_cluster
+    return instance_id, cluster_name
