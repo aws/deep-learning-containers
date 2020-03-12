@@ -23,7 +23,7 @@ def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80"):
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
-    if run_out.returncode != 0 or 'probability' not in run_out.stdout:
+    if run_out.returncode != 0 or 'probability' not in run_out.stdout.decode():
         return False
 
     return True

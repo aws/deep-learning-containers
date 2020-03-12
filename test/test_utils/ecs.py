@@ -218,7 +218,7 @@ def register_ecs_task_definition(family_name, image, log_group_name, log_stream_
                         'logDriver': 'awslogs',
                         'options': {
                             "awslogs-group": log_group_name,
-                            f"awslogs-region": "{region}",
+                            "awslogs-region": region,
                             "awslogs-stream-prefix": log_stream_prefix,
                             "awslogs-create-group": "true"
                         }
