@@ -56,9 +56,7 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ec2_instance_type):
     :param ec2_instance_type: eventually to be used
     :return:
     """
-    user_data = f"{ecs_cluster}.txt"
-    with open(user_data, 'w') as user_data_file:
-        user_data_file.write(f"#!/bin/bash\necho ECS_CLUSTER={ecs_cluster} >> /etc/ecs/ecs.config")
+    user_data = f"#!/bin/bash\necho ECS_CLUSTER={ecs_cluster} >> /etc/ecs/ecs.config"
 
     instances = ec2_client.run_instances(
         KeyName="pytest.pem",
@@ -67,7 +65,7 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ec2_instance_type):
         InstanceType="p2.8xlarge",
         MaxCount=1,
         MinCount=1,
-        UserData=f"file://{user_data}",
+        UserData=user_data,
         IamInstanceProfile={"Name": "ecsInstanceRole"}
     )
     instance_id = instances.get('Instances')[0].get('InstanceId')
