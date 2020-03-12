@@ -45,7 +45,7 @@ def ecs_cluster(request, ecs_client):
 
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="session")
-def ecs_container_instance(request, ecs_cluster, ec2_client, ec2_instance_type):
+def ecs_container_instance(request, ecs_cluster, ec2_client):
     """
     Fixture to handle spin up and tear down of ECS container instance
 
@@ -56,7 +56,7 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ec2_instance_type):
     :return:
     """
     # Get these from params on the test
-    instance_type, instance_id = request.param
+    instance_type, image_id = request.param
 
     user_data = f"#!/bin/bash\necho ECS_CLUSTER={ecs_cluster} >> /etc/ecs/ecs.config"
 
