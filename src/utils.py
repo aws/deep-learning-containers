@@ -209,7 +209,7 @@ def pr_build_setup(pr_number, framework):
     )
 
     # The below functions are only run if all JobParameters variables are not set with constants.ALL
-    parse_modified_dlc_test_files_info(files, framework, pattern="\S+dlc_tests\/\S+")
+    # parse_modified_dlc_test_files_info(files, framework, pattern="\S+dlc_tests\/\S+")
 
     # The below code currently overides the device_types, image_types, py_versions with constants.ALL
     # when there is a change in any the below files
@@ -221,7 +221,7 @@ def pr_build_setup(pr_number, framework):
         files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
     )
 
-    parse_modifed_root_files_info(files, pattern="testspec\.yml")
+    # parse_modifed_root_files_info(files, pattern="testspec\.yml")
 
     return (
         JobParameters.device_types,
@@ -290,12 +290,8 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     ecr_urls = []
 
     for docker_image in images:
-        if docker_image.build_status == constants.SUCCESS:
-            ecr_urls.append(docker_image.ecr_url)
-        else:
-            print(
-                f"skipping tests for {docker_image.ecr_url} as there are no build and test changes"
-            )
+        ecr_urls.append(docker_image.ecr_url)
+
 
     images_arg = " ".join(ecr_urls)
     test_envs.append({"name": images_env, "value": images_arg, "type": "PLAINTEXT"})
