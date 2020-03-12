@@ -60,7 +60,8 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ec2_instance_type):
 
     instances = ec2_client.run_instances(
         KeyName="pytest.pem",
-        ImageId="ami-014a2e30da708ee8b",
+        # hard coding as i test
+        ImageId="ami-09ef8c43fa060063d",
         # hard coding for now
         InstanceType="p2.8xlarge",
         MaxCount=1,

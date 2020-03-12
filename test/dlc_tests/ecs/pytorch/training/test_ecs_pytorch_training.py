@@ -1,6 +1,7 @@
 """
 ECS tests for PyTorch Training
 """
+import time
 
 
 def test_ecs_pytorch_training_mnist(request, pytorch_training, ecs_container_instance, ecs_client):
@@ -44,6 +45,8 @@ def test_ecs_pytorch_training_mnist(request, pytorch_training, ecs_container_ins
         placementConstraints=[],
         family=family,
     )
+
+    time.sleep(300)
 
     task = ecs_client.run_task(cluster=cluster, taskDefinition=family)
     task_arn = task.get('tasks', [{}])[0].get('taskArn')
