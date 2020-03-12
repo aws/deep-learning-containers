@@ -218,9 +218,11 @@ def pr_build_setup(pr_number, framework):
 
     parse_modifed_root_files_info(files, pattern="src\/\S+")
 
-    parse_modifed_root_files_info(
-        files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
-    )
+    # TODO we have re enable this logic after test migration is done
+    # parse_modifed_root_files_info(
+    #     files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
+    # )
+
     # TODO we have re enable this logic after test migration is done
     # parse_modifed_root_files_info(files, pattern="testspec\.yml")
 
@@ -293,7 +295,6 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     for docker_image in images:
         # TODO we have change this logic after to append urls only for new builds after test migration is done
         ecr_urls.append(docker_image.ecr_url)
-
 
     images_arg = " ".join(ecr_urls)
     test_envs.append({"name": images_env, "value": images_arg, "type": "PLAINTEXT"})
