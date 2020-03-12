@@ -6,10 +6,10 @@ import pytest
 from test.test_utils import ECS_AML2_GPU_USWEST2
 
 
-@pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 @pytest.mark.parametrize("ecs_cluster_name", [f"tf-train-mnist-cluster-{os.getenv('TEST_TRIGGER')}"], indirect=True)
-def test_ecs_tf_training_mnist(request, tensorflow_training, ecs_container_instance, ecs_client):
+def test_ecs_tf_training_mnist_cpu(request, tensorflow_training, ecs_container_instance, ecs_client):
     """
     TF training MNIST ECS test
 
@@ -19,6 +19,10 @@ def test_ecs_tf_training_mnist(request, tensorflow_training, ecs_container_insta
     :param ecs_client:
     :return:
     """
+    # Skipping GPU tests for now
+    if 'gpu' in tensorflow_training:
+        return
+
     _instance_id, cluster = ecs_container_instance
     # Naming the family after the test name, which is in this format
     family = request.node.name.split("[")[0]
