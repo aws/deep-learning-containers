@@ -11,12 +11,12 @@ def ecs_client():
     return boto3.client("ecs")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def ecs_cluster_name(request):
     return request.param
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def ecs_cluster(request, ecs_client, ecs_cluster_name):
     """
     Fixture to handle spin up and tear down of ecs cluster
@@ -49,18 +49,18 @@ def ecs_cluster(request, ecs_client, ecs_cluster_name):
     return cluster_name
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def ecs_ami(request):
     return request.param
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def ecs_instance_type(request):
     return request.param
 
 
 @pytest.mark.timeout(300)
-@pytest.fixture
+@pytest.fixture(scope="session")
 def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_instance_type, ecs_ami):
     """
     Fixture to handle spin up and tear down of ECS container instance
