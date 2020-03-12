@@ -1,16 +1,24 @@
-"""
-ECS tests for PyTorch Training
-"""
 import pytest
 from test.test_utils import ECS_AML2_GPU_USWEST2
 
 
-# Skipping for now while we debug
-@pytest.mark.skip
-@pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["c5.9xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 @pytest.mark.parametrize("ecs_cluster_name", ["pt-train-mnist-cluster"], indirect=True)
-def test_ecs_pytorch_training_mnist(request, pytorch_training, ecs_container_instance, ecs_client):
+def test_ecs_pytorch_training_mnist_cpu(request, pytorch_training, ecs_container_instance, ecs_client):
+    """
+    ECS test for PT training mnist on CPU
+
+    :param request:
+    :param pytorch_training:
+    :param ecs_container_instance:
+    :param ecs_client:
+    :return:
+    """
+    # Will remove when gpu fixture is available
+    if 'gpu' in pytorch_training:
+        return
+
     _instance_id, cluster = ecs_container_instance
 
     # Naming the family after the test name, which is in this format
