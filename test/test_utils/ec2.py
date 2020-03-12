@@ -166,7 +166,7 @@ def get_instance_num_cpus(instance_id, region='us-west-2'):
 @retry(stop_max_attempt_number=30, wait_fixed=10000)
 def get_instance_memory(instance_id, region='us-west-2'):
     instance_info = get_instance_details(instance_id, region=region)
-    return instance_info['MemoryInfo']
+    return instance_info['MemoryInfo']['SizeInMiB']
 
 
 @retry(stop_max_attempt_number=30, wait_fixed=10000)
