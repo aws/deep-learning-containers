@@ -9,7 +9,8 @@ def test_dummy(mxnet_inference):
     print(mxnet_inference)
 
 
-def test_ecs_mxnet_inference(mxnet_inference, processor, region):
+def test_ecs_mxnet_inference(mxnet_inference, region):
+    processor = 'gpu' if 'gpu' in mxnet_inference else 'cpu'
     worker_instance_type = 'p3.8xlarge' if processor == 'gpu' else 'c5.18xlarge'
     cluster_arn = worker_instance_id = None
     try:
