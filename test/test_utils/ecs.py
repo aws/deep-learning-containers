@@ -694,6 +694,8 @@ def ecs_inference_test_executor(docker_image_uri, framework, job, processor, clu
         service_name, task_family, revision = setup_ecs_inference_service(docker_image_uri, framework, job, processor,
                                                                           cluster_name, cluster_arn, datetime_suffix,
                                                                           model_name, num_cpus, memory, num_gpus)
+        if service_name is None:
+            return [False]
         return_codes = []
         for args in test_args:
             test_function, test_function_arguments = args[0], args[1:]
@@ -750,3 +752,4 @@ def setup_ecs_inference_service(docker_image_uri, framework, job, processor, clu
     except Exception as e:
         print(f"Setup failure Exception - {e}")
         tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revision)
+    return None, None, None
