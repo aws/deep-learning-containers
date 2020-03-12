@@ -50,7 +50,7 @@ def ecs_cluster(request, ecs_client, ecs_cluster_name, ec2_client, ecs_instance_
     instance_type = ecs_instance_type
     image_id = ecs_ami
 
-    user_data = f"#!/bin/bash\necho ECS_CLUSTER={ecs_cluster_name} >> /etc/ecs/ecs.config"
+    user_data = f"#!/bin/bash\necho ECS_CLUSTER={cluster_name} >> /etc/ecs/ecs.config"
 
     instances = ec2_client.run_instances(
         KeyName="pytest.pem",
@@ -74,4 +74,13 @@ def ecs_cluster(request, ecs_client, ecs_cluster_name, ec2_client, ecs_instance_
 
     waiter = ec2_client.get_waiter("instance_running")
     waiter.wait(InstanceIds=[instance_id])
+    is_attached = False
+    attach_timeout = time.time() + 300
+    while not is_attached:
+        if time.time() > attach_timeout:
+            raise TimeoutError(f"Instance {instance_id} not attached to cluster {cluster_name}")
+        response = ecs_client.describe_clusters(cluster=[cluster_name])
+        if response.get('clusters', [{}])[0].get('registeredContainerInstancesCount'):
+            is_attached = True
+
     return instance_id, cluster_name
