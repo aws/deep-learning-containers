@@ -9,7 +9,7 @@ def test_ecs_pytorch_training(request, pytorch_training, ecs_container_instance,
 
     instance_id, cluster = ecs_container_instance
 
-    family = request.node.name
+    family = str(request.node.name)
 
     container_definitions = [
         {
