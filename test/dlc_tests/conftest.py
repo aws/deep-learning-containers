@@ -123,7 +123,6 @@ def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
     # Parametrize framework specific tests
-    print("before", metafunc.fixturenames)
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
             lookup = fixture.replace("_", "-")
