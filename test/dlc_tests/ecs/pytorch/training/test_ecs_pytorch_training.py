@@ -62,4 +62,4 @@ def test_ecs_pytorch_training_mnist_cpu(request, cpu_only, pytorch_training, ecs
     task = ecs_client.run_task(cluster=cluster, taskDefinition=family)
     task_arn = task.get("tasks", [{}])[0].get("taskArn")
     waiter = ecs_client.get_waiter("tasks_stopped")
-    waiter.wait(cluster=cluster, tasks=[task_arn])
+    waiter.wait(cluster=cluster, tasks=[task_arn], WaiterConfig={"Delay": 15})
