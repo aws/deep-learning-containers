@@ -96,4 +96,13 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_instance_type, 
 
     waiter = ec2_client.get_waiter("instance_running")
     waiter.wait(InstanceIds=[instance_id])
+    is_attached = False
+    attach_timeout = time.time() + 300
+    while not is_attached:
+        time.sleep(12)
+        if time.time() > attach_timeout:
+            raise TimeoutError(f"Instance {instance_id} not attached to cluster {ecs_cluster}")
+        response = ecs_client.describe_clusters(clusters=[ecs_cluster])
+        if response.get('clusters', [{}])[0].get('registeredContainerInstancesCount'):
+            is_attached = True
     return instance_id, ecs_cluster
