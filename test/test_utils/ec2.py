@@ -1,8 +1,10 @@
 import boto3
 from retrying import retry
 
+from test.test_utils import DEFAULT_REGION
 
-def launch_instance(ami_id, instance_type, region='us-west-2', user_data=None, iam_instance_profile_arn=None,
+
+def launch_instance(ami_id, instance_type, region=DEFAULT_REGION, user_data=None, iam_instance_profile_arn=None,
                     instance_name=''):
     """Launch an instance
     """
@@ -43,7 +45,7 @@ def launch_instance(ami_id, instance_type, region='us-west-2', user_data=None, i
     return response['Instances'][0]
 
 
-def get_instance_from_id(instance_id, region='us-west-2'):
+def get_instance_from_id(instance_id, region=DEFAULT_REGION):
     """get instance id from instance
     """
     if not instance_id:
@@ -57,20 +59,20 @@ def get_instance_from_id(instance_id, region='us-west-2'):
 
 
 @retry(stop_max_attempt_number=8, wait_fixed=120000)
-def get_public_ip(instance_id, region='us-west-2'):
+def get_public_ip(instance_id, region=DEFAULT_REGION):
     instance = get_instance_from_id(instance_id, region)
     if not instance['PublicIpAddress']:
         raise Exception("IP address not yet available")
     return instance['PublicIpAddress']
 
 
-def get_instance_state(instance_id, region='us-west-2'):
+def get_instance_state(instance_id, region=DEFAULT_REGION):
     instance = get_instance_from_id(instance_id, region)
     return instance['State']['Name']
 
 
 @retry(stop_max_attempt_number=8, wait_fixed=120000)
-def check_instance_state(instance_id, state="running", region='us-west-2'):
+def check_instance_state(instance_id, state="running", region=DEFAULT_REGION):
     """Compares the instance state with the state argument.
        Retries 8 times with 120 seconds gap between retries
     """
@@ -80,7 +82,7 @@ def check_instance_state(instance_id, state="running", region='us-west-2'):
     return instance_state
 
 
-def get_system_state(instance_id, region='us-west-2'):
+def get_system_state(instance_id, region=DEFAULT_REGION):
     """Returns health checks state for instances
     """
     if not instance_id:
@@ -107,7 +109,7 @@ def get_system_state(instance_id, region='us-west-2'):
 def check_system_state(instance_id,
                        system_status="ok",
                        instance_status="ok",
-                       region="us-west-2"):
+                       region=DEFAULT_REGION):
     """Compares the system state (Health Checks).
        Retries 96 times with 10 seconds gap between retries
     """
@@ -118,7 +120,7 @@ def check_system_state(instance_id,
     return instance_state
 
 
-def terminate_instance(instance_id, region='us-west-2'):
+def terminate_instance(instance_id, region=DEFAULT_REGION):
     """Terminate instances
     """
     if not instance_id:
@@ -134,17 +136,17 @@ def terminate_instance(instance_id, region='us-west-2'):
         raise Exception("Failed to terminate instance. Unknown error.")
 
 
-def get_instance_details(instance_id, region='us-west-2'):
+def get_instance_details(instance_id, region=DEFAULT_REGION):
     """Helper function to format run command for MMS
     Args:
         Required - instance_id: str
         Optional - region: str
     Returns:
-        num_cpus: int
+        instance_details: dict
     """
     if not instance_id:
         raise Exception("No instance id provided")
-    instance = get_instance_from_id(instance_id, region='us-west-2')
+    instance = get_instance_from_id(instance_id, region=DEFAULT_REGION)
     if not instance:
         raise Exception("Could not find instance")
     client = boto3.Session(region_name=region).client('ec2')
@@ -158,18 +160,18 @@ def get_instance_details(instance_id, region='us-west-2'):
 
 
 @retry(stop_max_attempt_number=30, wait_fixed=10000)
-def get_instance_num_cpus(instance_id, region='us-west-2'):
+def get_instance_num_cpus(instance_id, region=DEFAULT_REGION):
     instance_info = get_instance_details(instance_id, region=region)
     return instance_info['VCpuInfo']['DefaultVCpus']
 
 
 @retry(stop_max_attempt_number=30, wait_fixed=10000)
-def get_instance_memory(instance_id, region='us-west-2'):
+def get_instance_memory(instance_id, region=DEFAULT_REGION):
     instance_info = get_instance_details(instance_id, region=region)
     return instance_info['MemoryInfo']['SizeInMiB']
 
 
 @retry(stop_max_attempt_number=30, wait_fixed=10000)
-def get_instance_num_gpus(instance_id, region='us-west-2'):
+def get_instance_num_gpus(instance_id, region=DEFAULT_REGION):
     instance_info = get_instance_details(instance_id, region=region)
     return sum(gpu_type['Count'] for gpu_type in instance_info['GpuInfo']['Gpus'])

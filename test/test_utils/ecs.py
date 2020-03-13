@@ -3,8 +3,10 @@ Helper functions for ECS Integration Tests
 """
 from retrying import retry
 import boto3
+
+from test.test_utils import DEFAULT_REGION
 import test.test_utils.ec2 as ec2_utils
-from test.test_utils.general import get_mms_run_command
+from test.test_utils import get_mms_run_command
 
 ECS_AMI_ID = {
     "cpu": "ami-0fb71e703258ab7eb",
@@ -21,7 +23,6 @@ ECS_TENSORFLOW_INFERENCE_PORT_MAPPINGS = [
         "containerPort": 8501,
         "hostPort": 8501,
         "protocol": "tcp",
-
     },
     {
         "containerPort": 80,
@@ -77,7 +78,7 @@ def get_tensorflow_model_name(processor, model_name):
 
 
 @retry(stop_max_attempt_number=12, wait_fixed=10000, retry_on_exception=retry_if_value_error)
-def check_ecs_cluster_status(cluster_arn_or_name, status, region='us-west-2'):
+def check_ecs_cluster_status(cluster_arn_or_name, status, region=DEFAULT_REGION):
     """Compares the cluster state (Health Checks).
     Retries 12 times with 10 seconds gap between retries
 
@@ -105,7 +106,7 @@ def check_ecs_cluster_status(cluster_arn_or_name, status, region='us-west-2'):
         raise Exception(e)
 
 
-def create_ecs_cluster(cluster_name, region='us-west-2'):
+def create_ecs_cluster(cluster_name, region=DEFAULT_REGION):
     """Create an ecs cluster
 
     Args:
@@ -129,7 +130,7 @@ def create_ecs_cluster(cluster_name, region='us-west-2'):
 
 
 def list_ecs_container_instances(cluster_arn_or_name, filter_value=None, status=None,
-                                 region='us-west-2'):
+                                 region=DEFAULT_REGION):
     """List container instances in a cluster.
 
     Args:
@@ -155,7 +156,7 @@ def list_ecs_container_instances(cluster_arn_or_name, filter_value=None, status=
 
 
 def attach_ecs_worker_node(worker_instance_type, ami_id, cluster_name, cluster_arn=None,
-                           region='us-west-2'):
+                           region=DEFAULT_REGION):
     """Launch a worker instance in a cluster.
 
     Args:
@@ -190,7 +191,7 @@ def register_ecs_task_definition(family_name, image, log_group_name, log_stream_
                                  num_cpu, memory, entrypoint=None, container_command=None,
                                  health_check=None, inference_accelerators=None,
                                  port_mappings=None, environment=None, num_gpu=None,
-                                 region='us-west-2'):
+                                 region=DEFAULT_REGION):
     """Register a task definition
 
     Args:
@@ -270,7 +271,7 @@ def register_ecs_task_definition(family_name, image, log_group_name, log_stream_
         raise Exception(f"Failed to register task definition {family_name}. Exception - {e}")
 
 
-def create_ecs_service(cluster_name, service_name, task_definition, region='us-west-2'):
+def create_ecs_service(cluster_name, service_name, task_definition, region=DEFAULT_REGION):
     """Create an ECS service with EC2 launch type and REPLICA scheduling strategy.
     Wait till the service gets into RUNNING state
     Args:
@@ -305,7 +306,7 @@ def create_ecs_service(cluster_name, service_name, task_definition, region='us-w
 
 
 @retry(stop_max_attempt_number=15, wait_fixed=20000)
-def check_running_task_for_ecs_service(cluster_arn_or_name, service_name, region='us-west-2'):
+def check_running_task_for_ecs_service(cluster_arn_or_name, service_name, region=DEFAULT_REGION):
     """Check for running tasks in the service.
     Retries 15 times with 20 seconds gap between retries
     Args:
@@ -332,7 +333,7 @@ def check_running_task_for_ecs_service(cluster_arn_or_name, service_name, region
         raise Exception(f"Failed to list task. Exception - {e}")
 
 
-def update_ecs_service(cluster_arn_or_name, service_name, desired_count, region='us-west-2'):
+def update_ecs_service(cluster_arn_or_name, service_name, desired_count, region=DEFAULT_REGION):
     """Update desired count of tasks in a service
     Args:
         Required - cluster_arn_or_name, service_name: str
@@ -351,7 +352,7 @@ def update_ecs_service(cluster_arn_or_name, service_name, desired_count, region=
         raise Exception(f"Failed to update desired count for service {service_name} to {desired_count}. Exception {e}")
 
 
-def create_ecs_task(cluster_arn_or_name, task_definition, region='us-west-2'):
+def create_ecs_task(cluster_arn_or_name, task_definition, region=DEFAULT_REGION):
     """Create an ECS task with EC2 launch type in given cluster.
     Wait till the task gets into RUNNING state
 
@@ -380,7 +381,7 @@ def create_ecs_task(cluster_arn_or_name, task_definition, region='us-west-2'):
 
 
 def ecs_task_waiter(cluster_arn_or_name, task_arns, status, waiter_delay=30, waiter_max_attempts=100,
-                    region='us-west-2'):
+                    region=DEFAULT_REGION):
     """Waiter for ECS tasks to get into status defined by "status" parameter.
     Retries "waiter_max_attempts" times with "waiter_delay" seconds gap between retries
 
@@ -409,7 +410,7 @@ def ecs_task_waiter(cluster_arn_or_name, task_arns, status, waiter_delay=30, wai
         raise Exception(f"Tasks {task_arns} not in {status} state. Exception - {e}")
 
 
-def describe_ecs_task_exit_status(cluster_arn_or_name, task_arn, region='us-west-2'):
+def describe_ecs_task_exit_status(cluster_arn_or_name, task_arn, region=DEFAULT_REGION):
     """Describes a specified task and checks for the exit code returned from the containers in the task is equal to
     zero
 
@@ -438,7 +439,7 @@ def describe_ecs_task_exit_status(cluster_arn_or_name, task_arn, region='us-west
         raise Exception(f"Failed to describe task {task_arn} in cluster {cluster_arn_or_name}. Exception - {e}")
 
 
-def stop_ecs_task(cluster_arn_or_name, task_arn, region='us-west-2'):
+def stop_ecs_task(cluster_arn_or_name, task_arn, region=DEFAULT_REGION):
     """Stops a running task
 
     Args:
@@ -457,7 +458,7 @@ def stop_ecs_task(cluster_arn_or_name, task_arn, region='us-west-2'):
         raise Exception(f"Failed to stop task {task_arn} in cluster {cluster_arn_or_name}. Exception - {e}")
 
 
-def delete_ecs_service(cluster_arn_or_name, service_name, region='us-west-2'):
+def delete_ecs_service(cluster_arn_or_name, service_name, region=DEFAULT_REGION):
     """Delete a service
 
     Args:
@@ -477,7 +478,7 @@ def delete_ecs_service(cluster_arn_or_name, service_name, region='us-west-2'):
         raise Exception(f"Failed to delete service {service_name}. Exception {e}")
 
 
-def deregister_ecs_task_definition(task_family, revision, region='us-west-2'):
+def deregister_ecs_task_definition(task_family, revision, region=DEFAULT_REGION):
     """De-register a task definition
 
     Args:
@@ -496,7 +497,7 @@ def deregister_ecs_task_definition(task_family, revision, region='us-west-2'):
 
 
 def deregister_ecs_container_instances(cluster_arn_or_name, container_instances,
-                                       region='us-west-2'):
+                                       region=DEFAULT_REGION):
     """De-register all container instances in a cluster
 
     Args:
@@ -518,7 +519,7 @@ def deregister_ecs_container_instances(cluster_arn_or_name, container_instances,
         raise Exception(f"Failed to delete cluster. Exception - {e}")
 
 
-def delete_ecs_cluster(cluster_arn, region='us-west-2'):
+def delete_ecs_cluster(cluster_arn, region=DEFAULT_REGION):
     """Delete ECS cluster.
     Deregister all container instances from this cluster before deleting it (This is must).
 

@@ -4,7 +4,7 @@ import boto3
 import docker
 import pytest
 
-from test.test_utils.general import run_subprocess_cmd
+from test.test_utils import run_subprocess_cmd, DEFAULT_REGION
 
 
 # Constant to represent AMI Id used to spin up EC2 instances
@@ -40,13 +40,13 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope="session")
 def region():
-    return os.getenv('AWS_REGION', 'us-west-2')
+    return os.getenv('AWS_REGION', DEFAULT_REGION)
 
 
 @pytest.fixture(scope="session")
-def docker_client():
+def docker_client(region):
     run_subprocess_cmd(
-        f"$(aws ecr get-login --no-include-email --region {os.getenv('AWS_REGION', 'us-west-2')})",
+        f"$(aws ecr get-login --no-include-email --region {region})",
         failure="Failed to log into ECR.",
     )
     return docker.from_env()

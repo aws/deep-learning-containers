@@ -2,7 +2,7 @@ import datetime
 
 import test.test_utils.ecs as ecs_utils
 import test.test_utils.ec2 as ec2_utils
-from test.test_utils.general import request_mxnet_inference_squeezenet
+from test.test_utils import request_mxnet_inference_squeezenet
 
 
 def test_dummy(mxnet_inference):
@@ -11,11 +11,13 @@ def test_dummy(mxnet_inference):
 
 def test_ecs_mxnet_inference(mxnet_inference, region):
     processor = 'gpu' if 'gpu' in mxnet_inference else 'cpu'
+    framework = 'mxnet'
+    job = 'inference'
     worker_instance_type = 'p3.8xlarge' if processor == 'gpu' else 'c5.18xlarge'
     cluster_arn = worker_instance_id = None
     try:
         datetime_suffix = datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')
-        cluster_name = f'mxnet-inference-{processor}-test-cluster-{datetime_suffix}'
+        cluster_name = f'{framework}-{job}-{processor}-test-cluster-{datetime_suffix}'
 
         cluster_arn = ecs_utils.create_ecs_cluster(cluster_name, region=region)
         worker_instance_id, public_ip_address = ecs_utils.attach_ecs_worker_node(
@@ -30,7 +32,7 @@ def test_ecs_mxnet_inference(mxnet_inference, region):
         memory = int(ec2_utils.get_instance_memory(worker_instance_id, region=region) * 0.8)
         squeezenet_test_args = [request_mxnet_inference_squeezenet, public_ip_address]
 
-        tests_results = ecs_utils.ecs_inference_test_executor(mxnet_inference, 'mxnet', 'inference', processor,
+        tests_results = ecs_utils.ecs_inference_test_executor(mxnet_inference, framework, job, processor,
                                                               cluster_name, cluster_arn, datetime_suffix, model_names,
                                                               num_cpus*1024, memory, num_gpus, [squeezenet_test_args])
 
