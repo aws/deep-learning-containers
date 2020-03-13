@@ -7,32 +7,32 @@ from test.test_utils import request_mxnet_inference_squeezenet
 from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2
 
 
-@pytest.mark.parametrize(
-    "ecs_cluster_name",
-    [f"mxnet-inference-cluster-{datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')}"],
-    indirect=True,
-)
-def test_ecs_mxnet_inference(mxnet_inference, region, ecs_cluster_name, ecs_cluster):
+def test_ecs_mxnet_inference(mxnet_inference, region):
     processor = "gpu" if "gpu" in mxnet_inference else "cpu"
     framework = "mxnet"
     job = "inference"
-    cluster_arn = ecs_cluster
+    python_version = "py2" if "py2" in mxnet_inference else "py3"
     worker_ami_id = ECS_AML2_GPU_USWEST2 if processor == 'gpu' else ECS_AML2_CPU_USWEST2
     worker_instance_type = 'p3.8xlarge' if processor == 'gpu' else 'c5.18xlarge'
-    datetime_suffix = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
-    worker_instance_id, public_ip_address = ecs_utils.attach_ecs_worker_node(
-        worker_instance_type, worker_ami_id, ecs_cluster_name, cluster_arn, region=region
-    )
-
-    model_names = ["squeezenet"]
-    num_cpus = ec2_utils.get_instance_num_cpus(worker_instance_id, region=region)
-    num_gpus = str(ec2_utils.get_instance_num_gpus(worker_instance_id, region=region)) if processor == "gpu" else None
-    # We assume that about 80% of RAM is free on the instance, since we are not directly querying it to find out
-    # what the memory utilization is.
-    memory = int(ec2_utils.get_instance_memory(worker_instance_id, region=region) * 0.8)
-
+    cluster_arn = worker_instance_id = None
     service_name = task_family = revision = None
     try:
+        datetime_suffix = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
+        ecs_cluster_name = f'mxnet-inference-{processor}-{python_version}-test-cluster-{datetime_suffix}'
+
+        cluster_arn = ecs_utils.create_ecs_cluster(ecs_cluster_name, region=region)
+        worker_instance_id, public_ip_address = ecs_utils.attach_ecs_worker_node(
+            worker_instance_type, worker_ami_id, ecs_cluster_name, cluster_arn, region=region
+        )
+
+        model_names = ["squeezenet"]
+        num_cpus = ec2_utils.get_instance_num_cpus(worker_instance_id, region=region)
+        num_gpus = (str(ec2_utils.get_instance_num_gpus(worker_instance_id, region=region)) if processor == "gpu"
+                    else None)
+        # We assume that about 80% of RAM is free on the instance, since we are not directly querying it to find out
+        # what the memory utilization is.
+        memory = int(ec2_utils.get_instance_memory(worker_instance_id, region=region) * 0.8)
+
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
             mxnet_inference,
             framework,
@@ -51,3 +51,4 @@ def test_ecs_mxnet_inference(mxnet_inference, region, ecs_cluster_name, ecs_clus
         assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
     finally:
         ecs_utils.tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revision)
+        ecs_utils.cleanup_worker_node_cluster(worker_instance_id, cluster_arn)
