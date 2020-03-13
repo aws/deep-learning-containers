@@ -12,16 +12,14 @@ from test.test_utils import ECS_AML2_CPU_USWEST2
     [f"pt-train-mnist-cluster-{datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')}"],
     indirect=True,
 )
-def test_ecs_pytorch_training_mnist_cpu(request, pytorch_training, ecs_container_instance, ecs_client):
+
+def test_ecs_pytorch_training_mnist_cpu(request, cpu_only, pytorch_training, ecs_container_instance, ecs_client):
     """
     This is a direct test of our ECS PT training documentation.
 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
     """
-    # Will remove when gpu fixture is available
-    if "gpu" in pytorch_training:
-        return
 
     _instance_id, cluster = ecs_container_instance
 
@@ -64,4 +62,4 @@ def test_ecs_pytorch_training_mnist_cpu(request, pytorch_training, ecs_container
     task = ecs_client.run_task(cluster=cluster, taskDefinition=family)
     task_arn = task.get("tasks", [{}])[0].get("taskArn")
     waiter = ecs_client.get_waiter("tasks_stopped")
-    waiter.wait(cluster=cluster, tasks=[task_arn])
+    waiter.wait(cluster=cluster, tasks=[task_arn], WaiterConfig={"Delay": 15})
