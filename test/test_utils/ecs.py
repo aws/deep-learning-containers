@@ -12,7 +12,7 @@ ECS_AMI_ID = {"cpu": "ami-0fb71e703258ab7eb", "gpu": "ami-0a36be2e955646bb2"}
 
 ECS_TENSORFLOW_INFERENCE_PORT_MAPPINGS = [
     {"containerPort": 8500, "hostPort": 8500, "protocol": "tcp"},
-    {"containerPort": 8501, "hostPort": 8501, "protocol": "tcp",},
+    {"containerPort": 8501, "hostPort": 8501, "protocol": "tcp"},
     {"containerPort": 80, "protocol": "tcp"},
 ]
 
@@ -27,17 +27,20 @@ TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
 
 def retry_if_value_error(exception):
-    """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
+    """
+    Helper to let retry know whether to re-run
+    :param exception: Type of exception received
+    :return: <bool> True if test failed with ValueError
+    """
     return isinstance(exception, ValueError)
 
 
 def get_tensorflow_model_name(processor, model_name):
-    """Helper function to get tensorflow model name
-
-    Args:
-        Required - processor, model_name (must have an entry in tensorflow_models dict): str
-    Returns:
-        model_name to serve
+    """
+    Helper function to get tensorflow model name
+    :param processor: Processor Type
+    :param model_name: Name of model to be used
+    :return: File name for model being used
     """
     tensorflow_models = {
         "saved_model_half_plus_two": {
@@ -59,18 +62,17 @@ def get_tensorflow_model_name(processor, model_name):
     retry_on_exception=retry_if_value_error,
 )
 def check_ecs_cluster_status(cluster_arn_or_name, status, region=DEFAULT_REGION):
-    """Compares the cluster state (Health Checks).
+    """
+    Compares the cluster state (Health Checks).
     Retries 12 times with 10 seconds gap between retries
-
-    Args:
-        Required - cluster_arn_or_name, status: str
-        Optional - region: str
-    Returns:
-        True if Cluster state = "status"
+    :param cluster_arn_or_name: Cluster ARN or Cluster Name
+    :param status: Expected status
+    :param region: Region where cluster is located
+    :return: <bool> True if cluster status matches expected status, else Exception
     """
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
-        response = ecs_client.describe_clusters(clusters=[cluster_arn_or_name,])
+        response = ecs_client.describe_clusters(clusters=[cluster_arn_or_name])
         if response["failures"]:
             raise Exception(
                 f"Failures in describe cluster. Error - Expected {status} but got {response['failures']}"
@@ -87,13 +89,11 @@ def check_ecs_cluster_status(cluster_arn_or_name, status, region=DEFAULT_REGION)
 
 
 def create_ecs_cluster(cluster_name, region=DEFAULT_REGION):
-    """Create an ecs cluster
-
-    Args:
-        Required - cluster_name: str
-        Optional - region: str
-    Returns:
-        cluster_arn if cluster created and is in ACTIVE state else throw Exception
+    """
+    Create an ecs cluster
+    :param cluster_name: Cluster Name
+    :param region: Region where cluster is located
+    :return: Cluster ARN if cluster created and is in ACTIVE state else throw Exception
     """
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
@@ -104,16 +104,14 @@ def create_ecs_cluster(cluster_name, region=DEFAULT_REGION):
         raise Exception(f"Failed to launch cluster - {e}")
 
 
-def list_ecs_container_instances(
-    cluster_arn_or_name, filter_value=None, status=None, region=DEFAULT_REGION
-):
-    """List container instances in a cluster.
-
-    Args:
-        Required - cluster_arn_or_name: str
-        Optional - Filter, status, region: str
-    Returns:
-        List of container instances
+def list_ecs_container_instances(cluster_arn_or_name, filter_value=None, status=None, region=DEFAULT_REGION):
+    """
+    List container instances in a cluster.
+    :param cluster_arn_or_name: Cluster ARN or Cluster Name
+    :param filter_value:
+    :param status:
+    :param region: Region where cluster is located
+    :return: <list> List of container instances
     """
     ecs_client = boto3.Session(region_name=region).client("ecs")
     try:
@@ -129,16 +127,15 @@ def list_ecs_container_instances(
         raise Exception(f"Failed list instances with given arguments. Exception - {e}")
 
 
-def attach_ecs_worker_node(
-    worker_instance_type, ami_id, cluster_name, cluster_arn=None, region=DEFAULT_REGION
-):
-    """Launch a worker instance in a cluster.
-
-    Args:
-        Required - worker_instance_type, ami_id, cluster_name: str
-        Optional - cluster_arn, region: str
-    Returns:
-        instance_id, public_ip_address
+def attach_ecs_worker_node(worker_instance_type, ami_id, cluster_name, cluster_arn=None, region=DEFAULT_REGION):
+    """
+    Launch a worker instance in a cluster.
+    :param worker_instance_type:
+    :param ami_id:
+    :param cluster_name:
+    :param cluster_arn:
+    :param region:
+    :return: <tuple> instance_id, public_ip_address
     """
     ecs_user_data = f"""#!/bin/bash
     echo ECS_CLUSTER={cluster_name} >> /etc/ecs/ecs.config"""
@@ -191,16 +188,23 @@ def register_ecs_task_definition(
     num_gpu=None,
     region=DEFAULT_REGION,
 ):
-    """Register a task definition
-
-    Args:
-        Required - family_name, image, log_group_name, log_stream_prefix: str
-        num_cpu, memory: int
-
-        Optional - port_mappings, environment: json
-        container_command, num_gpu, region(for cloudwatch logs): str
-    Returns:
-        task_definition - family:revision
+    """
+    Register a task definition
+    :param family_name: Cluster Name
+    :param image: ECR URI for docker image to be used
+    :param log_group_name:
+    :param log_stream_prefix:
+    :param num_cpu:
+    :param memory:
+    :param entrypoint: Entrypoint to be run by ECS Task
+    :param container_command: Container command to be executed
+    :param health_check: Health check command that can be executed
+    :param inference_accelerators: EI accelerator type
+    :param port_mappings:
+    :param environment:
+    :param num_gpu:
+    :param region:
+    :return: <tuple> task_family, task_revision
     """
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
@@ -227,7 +231,7 @@ def register_ecs_task_definition(
             ],
             "volumes": [],
             "placementConstraints": [],
-            "requiresCompatibilities": ["EC2",],
+            "requiresCompatibilities": ["EC2"],
         }
         if port_mappings:
             arguments_dict["containerDefinitions"][0]["portMappings"] = port_mappings
@@ -272,16 +276,15 @@ def register_ecs_task_definition(
         )
 
 
-def create_ecs_service(
-    cluster_name, service_name, task_definition, region=DEFAULT_REGION
-):
-    """Create an ECS service with EC2 launch type and REPLICA scheduling strategy.
+def create_ecs_service(cluster_name, service_name, task_definition, region=DEFAULT_REGION):
+    """
+    Create an ECS service with EC2 launch type and REPLICA scheduling strategy.
     Wait till the service gets into RUNNING state
-    Args:
-        Required - cluster_name, service_name, task_definition(family:revision): str
-        Optional - region: str
-    Return:
-        service_name
+    :param cluster_name:
+    :param service_name:
+    :param task_definition:
+    :param region:
+    :return: service name
     """
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
@@ -296,9 +299,7 @@ def create_ecs_service(
         )
         # Wait for the service to get into ACTIVE state
         waiter = ecs_client.get_waiter("services_stable")
-        waiter.wait(
-            cluster=cluster_name, services=[response["service"]["serviceName"],]
-        )
+        waiter.wait(cluster=cluster_name, services=[response["service"]["serviceName"]])
         return response["service"]["serviceName"]
     except Exception as e:
         raise Exception(
@@ -308,16 +309,14 @@ def create_ecs_service(
 
 
 @retry(stop_max_attempt_number=15, wait_fixed=20000)
-def check_running_task_for_ecs_service(
-    cluster_arn_or_name, service_name, region=DEFAULT_REGION
-):
-    """Check for running tasks in the service.
+def check_running_task_for_ecs_service(cluster_arn_or_name, service_name, region=DEFAULT_REGION):
+    """
+    Check for running tasks in the service.
     Retries 15 times with 20 seconds gap between retries
-    Args:
-        Required - cluster_name, service_name: str
-        Optional - region: str
-    Return:
-        True if service has RUNNING tasks else throws Exception
+    :param cluster_arn_or_name:
+    :param service_name:
+    :param region:
+    :return: True if service has RUNNING tasks else throws Exception
     """
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
@@ -339,15 +338,14 @@ def check_running_task_for_ecs_service(
         raise Exception(f"Failed to list task. Exception - {e}")
 
 
-def update_ecs_service(
-    cluster_arn_or_name, service_name, desired_count, region=DEFAULT_REGION
-):
-    """Update desired count of tasks in a service
-    Args:
-        Required - cluster_arn_or_name, service_name: str
-        Required - desired_count: int
-    Returns:
-        Exception if API call fails
+def update_ecs_service(cluster_arn_or_name, service_name, desired_count, region=DEFAULT_REGION):
+    """
+    Update desired count of tasks in a service
+    :param cluster_arn_or_name:
+    :param service_name:
+    :param desired_count:
+    :param region:
+    :return: Exception if API call fails
     """
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
@@ -363,14 +361,13 @@ def update_ecs_service(
 
 
 def create_ecs_task(cluster_arn_or_name, task_definition, region=DEFAULT_REGION):
-    """Create an ECS task with EC2 launch type in given cluster.
+    """
+    Create an ECS task with EC2 launch type in given cluster.
     Wait till the task gets into RUNNING state
-
-    Args:
-        Required - cluster_arn_or_name, task_definition(family:revision): str
-        Optional - region: str
-    Returns:
-        task_arn if task gets into RUNNING state
+    :param cluster_arn_or_name:
+    :param task_definition:
+    :param region:
+    :return: task_arn if task gets into RUNNING state
     """
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
@@ -398,23 +395,18 @@ def create_ecs_task(cluster_arn_or_name, task_definition, region=DEFAULT_REGION)
 
 
 def ecs_task_waiter(
-    cluster_arn_or_name,
-    task_arns,
-    status,
-    waiter_delay=30,
-    waiter_max_attempts=100,
-    region=DEFAULT_REGION,
+        cluster_arn_or_name, task_arns, status, waiter_delay=30, waiter_max_attempts=100, region=DEFAULT_REGION,
 ):
-    """Waiter for ECS tasks to get into status defined by "status" parameter.
+    """
+    Waiter for ECS tasks to get into status defined by "status" parameter.
     Retries "waiter_max_attempts" times with "waiter_delay" seconds gap between retries
-
-    Args:
-        Required - cluster_arn_or_name, status (Check ECS.Waiter.Tasks* documentation for valid types): str
-        Required - task_arns: list
-        Optional - waiter_delay, waiter_max_attempts: int
-        Optional - region: str
-    Returns:
-        True or Exception if status is not met in given time
+    :param cluster_arn_or_name:
+    :param task_arns:
+    :param status:
+    :param waiter_delay:
+    :param waiter_max_attempts:
+    :param region:
+    :return: True or Exception if status is not met in given time
     """
 
     try:
@@ -431,20 +423,16 @@ def ecs_task_waiter(
 
 
 def describe_ecs_task_exit_status(cluster_arn_or_name, task_arn, region=DEFAULT_REGION):
-    """Describes a specified task and checks for the exit code returned from the containers in the task is equal to
-    zero
-
-    Args:
-        Required - cluster_arn_or_name, task_arn: str
-        Optional - region: str
-    Returns:
-        True if exit code is zero, else False
+    """
+    Describes a specified task and checks for the exit code returned from the containers in the task is equal to zero
+    :param cluster_arn_or_name:
+    :param task_arn:
+    :param region:
+    :return: True if exit code is zero, else False
     """
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
-        response = ecs_client.describe_tasks(
-            cluster=cluster_arn_or_name, tasks=[task_arn,]
-        )
+        response = ecs_client.describe_tasks(cluster=cluster_arn_or_name, tasks=[task_arn])
         return_code = []
         if response["failures"]:
             raise Exception(f"Failures in describe tasks - {response['failures']}")
@@ -459,13 +447,11 @@ def describe_ecs_task_exit_status(cluster_arn_or_name, task_arn, region=DEFAULT_
 
 
 def stop_ecs_task(cluster_arn_or_name, task_arn, region=DEFAULT_REGION):
-    """Stops a running task
-
-    Args:
-        Required - cluster_arn_or_name, task_arn: str
-        Optional - region: str
-    Return:
-        Exception if API call fails
+    """
+    Stops a running task
+    :param cluster_arn_or_name:
+    :param task_arn:
+    :param region:
     """
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
@@ -477,13 +463,11 @@ def stop_ecs_task(cluster_arn_or_name, task_arn, region=DEFAULT_REGION):
 
 
 def delete_ecs_service(cluster_arn_or_name, service_name, region=DEFAULT_REGION):
-    """Delete a service
-
-    Args:
-        Required - cluster_arn_or_name, service_name: str
-        Optional - region: str
-    Returns:
-        Exception if API call fails
+    """
+    Delete a service
+    :param cluster_arn_or_name:
+    :param service_name:
+    :param region:
     """
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
@@ -495,13 +479,11 @@ def delete_ecs_service(cluster_arn_or_name, service_name, region=DEFAULT_REGION)
 
 
 def deregister_ecs_task_definition(task_family, revision, region=DEFAULT_REGION):
-    """De-register a task definition
-
-    Args:
-        Required - task_family, revision: str
-        Optional - region: str
-    Returns:
-        Exception if there are failures in API calls
+    """
+    De-register a task definition
+    :param task_family:
+    :param revision:
+    :param region:
     """
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
@@ -514,17 +496,12 @@ def deregister_ecs_task_definition(task_family, revision, region=DEFAULT_REGION)
         )
 
 
-def deregister_ecs_container_instances(
-    cluster_arn_or_name, container_instances, region=DEFAULT_REGION
-):
-    """De-register all container instances in a cluster
-
-    Args:
-        Required - cluster_arn_or_name: str
-        Required - container_instances: list
-        Optional - region: str
-    Returns:
-        Exception is API call fails
+def deregister_ecs_container_instances(cluster_arn_or_name, container_instances, region=DEFAULT_REGION):
+    """
+    De-register all container instances in a cluster
+    :param cluster_arn_or_name:
+    :param container_instances:
+    :param region:
     """
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
@@ -539,14 +516,12 @@ def deregister_ecs_container_instances(
 
 
 def delete_ecs_cluster(cluster_arn, region=DEFAULT_REGION):
-    """Delete ECS cluster.
+    """
+    Delete ECS cluster.
     Deregister all container instances from this cluster before deleting it (This is must).
-
-    Args:
-        Required - cluster_arn (delete cluster only accepts ARN): str
-        Optional - region: str
-    Returns:
-        True if cluster INACTIVE after deletion else Exception
+    :param cluster_arn:
+    :param region:
+    :return: True if cluster INACTIVE after deletion else Exception
     """
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
@@ -565,12 +540,12 @@ def delete_ecs_cluster(cluster_arn, region=DEFAULT_REGION):
 
 
 def tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revision):
-    """Function to clean up ECS task definition, service resources if exist
-
-    Args:
-        Required - cluster_arn, service_name, task_family, revision: str
-    Returns:
-        N/A
+    """
+    Function to clean up ECS task definition, service resources if exist
+    :param cluster_arn:
+    :param service_name:
+    :param task_family:
+    :param revision:
     """
 
     if task_family and revision:
@@ -587,12 +562,12 @@ def tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revi
 
 
 def tear_down_ecs_training_task(cluster_arn, task_arn, task_family, revision):
-    """Function to clean up ECS training task resources - task and task definition if exists
-
-    Args:
-        Required - cluster_arn, task_arn, task_family, revision: str
-    Returns:
-        N/A
+    """
+    Function to clean up ECS training task resources - task and task definition if exists
+    :param cluster_arn:
+    :param task_arn:
+    :param task_family:
+    :param revision:
     """
 
     if task_family and revision:
@@ -607,12 +582,10 @@ def tear_down_ecs_training_task(cluster_arn, task_arn, task_family, revision):
 
 
 def cleanup_worker_node_cluster(worker_instance_id, cluster_arn):
-    """Function to clean up ECS worker node and cluster
-
-    Args:
-        Required - worker_instance_id, cluster_arn: str
-    Returns:
-        N/A
+    """
+    Function to clean up ECS worker node and cluster
+    :param worker_instance_id:
+    :param cluster_arn:
     """
     if worker_instance_id:
         ec2_utils.terminate_instance(worker_instance_id)
@@ -625,12 +598,10 @@ def cleanup_worker_node_cluster(worker_instance_id, cluster_arn):
 
 
 def get_ecs_port_mappings(framework):
-    """Get method for ECS inference port mapping parameter
-
-    Args:
-        Required - framework: str
-    Returns:
-        JSON containing the port mappings for ECS inference
+    """
+    Get method for ECS inference port mapping parameter
+    :param framework:
+    :return: <list> JSON containing the port mappings for ECS inference
         Exception if framework port mappings not available
     """
     if framework == "tensorflow":
@@ -642,13 +613,12 @@ def get_ecs_port_mappings(framework):
 
 
 def get_ecs_tensorflow_environment_variables(processor, model_name):
-    """Get method for environment variables for tensorflow inference via S3 on ECS
+    """
+    Get method for environment variables for tensorflow inference via S3 on ECS
     Requirement: Model should be hosted in S3 location defined in TENSORFLOW_MODELS_PATH
-
-    Args:
-        Required - processor, model_name: str
-    Returns:
-        JSON
+    :param processor:
+    :param model_name:
+    :return: <list> JSON
     """
     model_name = get_tensorflow_model_name(processor, model_name)
     ecs_tensorflow_inference_environment = [
@@ -660,13 +630,10 @@ def get_ecs_tensorflow_environment_variables(processor, model_name):
 
 
 def build_ecs_training_command(test_string):
-    """Construct the command to send to the container for running scripts in ECS automation
-
-    Args:
-         Required - test_string (Scripts should contain absolute path of test file in /test. E.g.
-    /test/bin/testTensorflow): str
-    Returns:
-         command to send to the container
+    """
+    Construct the command to send to the container for running scripts in ECS automation
+    :param test_string:
+    :return: <list> command to send to the container
     """
     return [
         f"pip install -U awscli && mkdir -p /test/logs && aws s3 cp {ECS_S3_TEST_BUCKET} /test/ --recursive "
@@ -704,16 +671,24 @@ def ecs_inference_test_executor(
     num_gpus,
     test_args,
 ):
-    """Create a service in an existing cluster, run the test using the arguments passed in
+    """
+    Create a service in an existing cluster, run the test using the arguments passed in
     *test_args and scales down and deletes the service
     This is a helper function to run help run ECS inference tests. Cluster can be reused to run N
     number of tests but each model will need a new service
-
-    Args:
-        Required - cluster_name, cluster_arn, datetime_suffix, model_name, test_args (a list of test function to and
-        arguments to be passed for the test): str
-    Returns:
-        Bool, True if test passed else False
+    :param docker_image_uri:
+    :param framework:
+    :param job:
+    :param processor:
+    :param cluster_name:
+    :param cluster_arn:
+    :param datetime_suffix:
+    :param model_name:
+    :param num_cpus:
+    :param memory:
+    :param num_gpus:
+    :param test_args:
+    :return: <bool> True if test passed else False
     """
     service_name = task_family = revision = None
     try:
@@ -756,13 +731,20 @@ def setup_ecs_inference_service(
     memory,
     num_gpus,
 ):
-    """Function to setup Inference service on ECS
-
-    Args:
-        Required - docker_image_uri, framework, job, processor, cluster_name, cluster_arn, datetime_suffix: str
-        Required - model_name, num_cpus, memory, num_gpus: str
-    Returns:
-        service_name, task_family, revision if all steps passed else Exception
+    """
+    Function to setup Inference service on ECS
+    :param docker_image_uri:
+    :param framework:
+    :param job:
+    :param processor:
+    :param cluster_name:
+    :param cluster_arn:
+    :param datetime_suffix:
+    :param model_name:
+    :param num_cpus:
+    :param memory:
+    :param num_gpus:
+    :return: <tuple> service_name, task_family, revision if all steps passed else Exception
         Cleans up the resources if any step fails
     """
     service_name = task_family = revision = None

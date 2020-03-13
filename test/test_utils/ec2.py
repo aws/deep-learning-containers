@@ -12,7 +12,15 @@ def launch_instance(
     iam_instance_profile_arn=None,
     instance_name="",
 ):
-    """Launch an instance
+    """
+    Launch an instance
+    :param ami_id: AMI ID to be used for launched instance
+    :param instance_type: Instance type of launched instance
+    :param region: Region where instance will be launched
+    :param user_data: Script to run when instance is launched as a str
+    :param iam_instance_profile_arn: EC2 Role to be attached
+    :param instance_name: Tag to display as Name on EC2 Console
+    :return: <dict> Information about the instance that was launched
     """
     if not ami_id:
         raise Exception("No ami_id provided")
@@ -47,7 +55,11 @@ def launch_instance(
 
 
 def get_instance_from_id(instance_id, region=DEFAULT_REGION):
-    """get instance id from instance
+    """
+    Get instance information using instance ID
+    :param instance_id: Instance ID to be queried
+    :param region: Region where query will be performed
+    :return: <dict> Information about instance with matching instance ID
     """
     if not instance_id:
         raise Exception("No instance id provided")
@@ -63,6 +75,12 @@ def get_instance_from_id(instance_id, region=DEFAULT_REGION):
 
 @retry(stop_max_attempt_number=8, wait_fixed=120000)
 def get_public_ip(instance_id, region=DEFAULT_REGION):
+    """
+    Get Public IP of instance using instance ID
+    :param instance_id: Instance ID to be queried
+    :param region: Region where query will be performed
+    :return: <str> IP Address of instance with matching instance ID
+    """
     instance = get_instance_from_id(instance_id, region)
     if not instance["PublicIpAddress"]:
         raise Exception("IP address not yet available")
@@ -70,14 +88,25 @@ def get_public_ip(instance_id, region=DEFAULT_REGION):
 
 
 def get_instance_state(instance_id, region=DEFAULT_REGION):
+    """
+    Get state of instance using instance ID
+    :param instance_id: Instance ID to be queried
+    :param region: Region where query will be performed
+    :return: <str> State of instance with matching instance ID
+    """
     instance = get_instance_from_id(instance_id, region)
     return instance["State"]["Name"]
 
 
 @retry(stop_max_attempt_number=8, wait_fixed=120000)
 def check_instance_state(instance_id, state="running", region=DEFAULT_REGION):
-    """Compares the instance state with the state argument.
-       Retries 8 times with 120 seconds gap between retries
+    """
+    Compares the instance state with the state argument.
+    Retries 8 times with 120 seconds gap between retries.
+    :param instance_id: Instance ID to be queried
+    :param state: Expected instance state
+    :param region: Region where query will be performed
+    :return: <str> State of instance with matching instance ID
     """
     instance_state = get_instance_state(instance_id, region)
     if state != instance_state:
@@ -86,7 +115,11 @@ def check_instance_state(instance_id, state="running", region=DEFAULT_REGION):
 
 
 def get_system_state(instance_id, region=DEFAULT_REGION):
-    """Returns health checks state for instances
+    """
+    Returns health checks state for instances
+    :param instance_id: Instance ID to be queried
+    :param region: Region where query will be performed
+    :return: <tuple> System state and Instance state of instance with matching instance ID
     """
     if not instance_id:
         raise Exception("No instance id provided")
@@ -119,11 +152,15 @@ def get_system_state(instance_id, region=DEFAULT_REGION):
 
 
 @retry(stop_max_attempt_number=96, wait_fixed=10000)
-def check_system_state(
-    instance_id, system_status="ok", instance_status="ok", region=DEFAULT_REGION
-):
-    """Compares the system state (Health Checks).
-       Retries 96 times with 10 seconds gap between retries
+def check_system_state(instance_id, system_status="ok", instance_status="ok", region=DEFAULT_REGION):
+    """
+    Compares the system state (Health Checks).
+    Retries 96 times with 10 seconds gap between retries
+    :param instance_id: Instance ID to be queried
+    :param system_status: Expected system state
+    :param instance_status: Expected instance state
+    :param region: Region where query will be performed
+    :return: <tuple> System state and Instance state of instance with matching instance ID
     """
     instance_state = get_system_state(instance_id, region=region)
     if system_status != instance_state[0] or instance_status != instance_state[1]:
@@ -137,7 +174,10 @@ def check_system_state(
 
 
 def terminate_instance(instance_id, region=DEFAULT_REGION):
-    """Terminate instances
+    """
+    Terminate EC2 instances with matching instance ID
+    :param instance_id: Instance ID to be terminated
+    :param region: Region where instance is located
     """
     if not instance_id:
         raise Exception("No instance id provided")
@@ -153,12 +193,11 @@ def terminate_instance(instance_id, region=DEFAULT_REGION):
 
 
 def get_instance_details(instance_id, region=DEFAULT_REGION):
-    """Helper function to format run command for MMS
-    Args:
-        Required - instance_id: str
-        Optional - region: str
-    Returns:
-        instance_details: dict
+    """
+    Get instance details for instance with given instance ID
+    :param instance_id: Instance ID to be queried
+    :param region: Region where query will be performed
+    :return: <dict> Information about instance with matching instance ID
     """
     if not instance_id:
         raise Exception("No instance id provided")
@@ -179,17 +218,35 @@ def get_instance_details(instance_id, region=DEFAULT_REGION):
 
 @retry(stop_max_attempt_number=30, wait_fixed=10000)
 def get_instance_num_cpus(instance_id, region=DEFAULT_REGION):
+    """
+    Get number of VCPUs on instance with given instance ID
+    :param instance_id: Instance ID to be queried
+    :param region: Region where query will be performed
+    :return: <int> Number of VCPUs on instance with matching instance ID
+    """
     instance_info = get_instance_details(instance_id, region=region)
     return instance_info["VCpuInfo"]["DefaultVCpus"]
 
 
 @retry(stop_max_attempt_number=30, wait_fixed=10000)
 def get_instance_memory(instance_id, region=DEFAULT_REGION):
+    """
+    Get total RAM available on instance with given instance ID
+    :param instance_id: Instance ID to be queried
+    :param region: Region where query will be performed
+    :return: <int> Total RAM available on instance with matching instance ID
+    """
     instance_info = get_instance_details(instance_id, region=region)
     return instance_info["MemoryInfo"]["SizeInMiB"]
 
 
 @retry(stop_max_attempt_number=30, wait_fixed=10000)
 def get_instance_num_gpus(instance_id, region=DEFAULT_REGION):
+    """
+    Get total number of GPUs on instance with given instance ID
+    :param instance_id: Instance ID to be queried
+    :param region: Region where query will be performed
+    :return: <int> Number of GPUs on instance with matching instance ID
+    """
     instance_info = get_instance_details(instance_id, region=region)
     return sum(gpu_type["Count"] for gpu_type in instance_info["GpuInfo"]["Gpus"])

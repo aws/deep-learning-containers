@@ -31,6 +31,12 @@ def retry_if_result_is_false(result):
     retry_on_result=retry_if_result_is_false,
 )
 def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80"):
+    """
+    Send request to container to test inference on kitten.jpg
+    :param ip_address:
+    :param port:
+    :return: <bool> True/False based on result of inference
+    """
     run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg")
     run_out = run(
         f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg"
@@ -45,12 +51,11 @@ def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80"):
 
 
 def get_mms_run_command(model_names, processor="cpu"):
-    """Helper function to format run command for MMS
-
-    Args:
-        Required - model_names (must have an entry in mxnet_model_location dict): str or list of str
-    Returns:
-        Command to start MMS server with given model
+    """
+    Helper function to format run command for MMS
+    :param model_names:
+    :param processor:
+    :return: <str> Command to start MMS server with given model
     """
     if processor != "eia":
         mxnet_model_location = {
