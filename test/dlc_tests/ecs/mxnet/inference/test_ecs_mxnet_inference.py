@@ -23,7 +23,8 @@ def test_ecs_mxnet_inference(mxnet_inference, region):
 
         model_names = ["squeezenet"]
         num_cpus = ec2_utils.get_instance_num_cpus(worker_instance_id, region=region)
-        num_gpus = ec2_utils.get_instance_num_gpus(worker_instance_id, region=region) if processor == 'gpu' else None
+        num_gpus = (str(ec2_utils.get_instance_num_gpus(worker_instance_id, region=region)) if processor == 'gpu'
+                    else None)
         # We assume that about 80% of RAM is free on the instance, since we are not directly querying it to find out
         # what the memory utilization is.
         memory = int(ec2_utils.get_instance_memory(worker_instance_id, region=region) * 0.8)
