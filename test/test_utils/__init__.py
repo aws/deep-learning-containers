@@ -37,14 +37,17 @@ def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80"):
     :param port:
     :return: <bool> True/False based on result of inference
     """
-    run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg")
-    run_out = run(
-        f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg"
-    )
+    run_out = run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg")
+    if run_out.return_code != 0:
+        print('Download failed -')
+        print(run_out.stderr)
+    run_out = run(f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg")
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
     if run_out.return_code != 0 or "probability" not in run_out.stdout:
+        print('Test failed because of error in making request -')
+        print(run_out.stderr)
         return False
 
     return True
