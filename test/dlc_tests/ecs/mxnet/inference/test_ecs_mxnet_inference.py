@@ -7,6 +7,14 @@ from test.test_utils import request_mxnet_inference_squeezenet
 from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2
 
 
+def test_gpu_dummy(mxnet_inference, gpu_only):
+    print(mxnet_inference)
+
+
+def test_cpu_dummy(mxnet_inference, cpu_only):
+    print(mxnet_inference)
+
+
 def test_ecs_mxnet_inference(mxnet_inference, region):
     processor = "gpu" if "gpu" in mxnet_inference else "cpu"
     framework = "mxnet"
