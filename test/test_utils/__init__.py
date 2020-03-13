@@ -4,7 +4,9 @@ import pytest
 from retrying import retry
 
 
+# Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
+# Constant to represent AMI Id used to spin up EC2 instances
 UBUNTU_16_BASE_DLAMI = "ami-0e57002aaafd42113"
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"

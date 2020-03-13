@@ -44,5 +44,10 @@ INFO = 1
 ERROR = 2
 DEBUG = 3
 
+# Env variables for the code build PR jobs
+JOB_FRAMEWORK = os.environ.get("FRAMEWORK")
+JOB_FRAMEWORK_VERSION = os.environ.get("VERSION")
+
 # Test environment file
 TEST_ENV = os.path.join(os.path.expanduser("~"), "testenv.json")
+

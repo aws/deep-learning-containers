@@ -4,11 +4,7 @@ import boto3
 import docker
 import pytest
 
-from test.test_utils import run_subprocess_cmd, DEFAULT_REGION
-
-
-# Constant to represent AMI Id used to spin up EC2 instances
-UBUNTU_16_BASE_DLAMI = "ami-0e57002aaafd42113"
+from test.test_utils import run_subprocess_cmd, UBUNTU_16_BASE_DLAMI, DEFAULT_REGION
 
 
 # Immutable constant for framework specific image fixtures
@@ -32,9 +28,6 @@ def pytest_addoption(parser):
         default=os.getenv("DLC_IMAGES").split(" "),
         nargs="+",
         help="Specify image(s) to run",
-    )
-    parser.addoption(
-        "--ec2-instance-type", required=False, help="Specify image(s) to run"
     )
 
 
@@ -64,7 +57,7 @@ def ec2_resource():
 
 @pytest.fixture(scope="session")
 def ec2_instance_type(request):
-    return request.config.getoption("--ec2-instance-type")
+    return request.param
 
 
 @pytest.mark.timeout(300)
@@ -80,10 +73,10 @@ def ec2_instance(request, ec2_client, ec2_instance_type, ec2_resource):
     instance_id = instances[0].id
 
     # Define finalizer to terminate instance after this fixture completes
-    def terminate():
+    def terminate_ec2_instance():
         ec2_client.terminate_instances(InstanceIds=[instance_id])
 
-    request.addfinalizer(terminate)
+    request.addfinalizer(terminate_ec2_instance)
 
     waiter = ec2_client.get_waiter("instance_running")
     waiter.wait(InstanceIds=[instance_id])

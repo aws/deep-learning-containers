@@ -20,11 +20,175 @@ import constants
 from github import GitHubHandler
 
 
+class JobParameters:
+    image_types = []
+    device_types = []
+    py_versions = []
+
+    @staticmethod
+    def build_for_all_images():
+        JobParameters.image_types = constants.ALL
+        JobParameters.device_types = constants.ALL
+        JobParameters.py_versions = constants.ALL
+
+    @staticmethod
+    def build_for_all_device_types_py_versions():
+        JobParameters.device_types = constants.ALL
+        JobParameters.py_versions = constants.ALL
+
+    @staticmethod
+    def do_build_all_images():
+        return (
+            JobParameters.device_types == constants.ALL
+            and JobParameters.image_types == constants.ALL
+            and JobParameters.py_versions == constants.ALL
+        )
+
+
+def get_pr_modified_files(pr_number):
+    """
+    Fetch all the files modified for a git pull request and return them as a string
+    :param pr_number: int
+    :return: str with all the modified files
+    """
+    github_handler = GitHubHandler("aws", "deep-learning-containers")
+    files = github_handler.get_pr_files_changed(pr_number)
+    files = "\n".join(files)
+    return files
+
+
+def parse_modified_docker_files_info(files, framework, pattern=""):
+    """
+    Parse all the files in PR to find docker file related changes for any framework
+    triggers an image build matching the image_type(training/testing), device_type(cpu_gpu)
+    and python version(py2 and py3) of the changed docker files
+    :param files: str
+    :param framework: str
+    :param pattern: str
+    :return: None
+    """
+    rule = re.findall(rf"{pattern}", files)
+    for dockerfile in rule:
+        dockerfile = dockerfile.split("/")
+        framework_change = dockerfile[0]
+
+        # If the modified dockerfile belongs to a different
+        # framework, do nothing
+        if framework_change != framework:
+            continue
+        image_type = dockerfile[1]
+        py_version = dockerfile[4]
+        device_type = dockerfile[-1].split(".")[-1]
+        # Use class static variables to avoid passing, returning the varibles from all functions
+        JobParameters.device_types.append(device_type)
+        JobParameters.image_types.append(image_type)
+        JobParameters.py_versions.append(py_version)
+
+
+def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
+    """
+    trigger a build for all the images related to a framework when there is change in framework/buildspec.yml
+    :param files: str
+    :param framework: str
+    :param pattern: str
+    :return: None
+    """
+    rule = re.findall(rf"{pattern}", files)
+    if not JobParameters.do_build_all_images():
+        for buildspec in rule:
+            buildspec_framework = buildspec.split("/")[0]
+            if buildspec_framework == framework:
+                JobParameters.build_for_all_images()
+
+
+# Rule 3: If any file in the build code changes, build all images
+def parse_modifed_root_files_info(files, pattern=""):
+    """
+    trigger a build for all the images for all the frameworks when there is change in src, test, testspec.yml files
+    :param files: str
+    :param pattern: str
+    :return: None
+    """
+    rule = re.findall(rf"{pattern}", files)
+    if not JobParameters.do_build_all_images():
+        if rule:
+            JobParameters.build_for_all_images()
+
+
+def parse_modified_sagemaker_test_files(files, framework, pattern=""):
+    """
+    Parse all the files in PR to find sagemaker tests related changes for any framework
+    to trigger an image build matching the image_type(training/testing) for all the device_types(cpu,gpu)
+    and python_versions(py2,py3)
+    :param files: str
+    :param framework: str
+    :param pattern: str
+    :return: None
+    """
+    rule = re.findall(rf"{pattern}", files)
+    for test_file in rule:
+        test_folder = test_file.split("/")[1]
+        if test_folder == "sagemaker_tests":
+            framework_changed = test_file.split("/")[2]
+            # The below code looks for file changes in /test/sagemaker_tests/(mxnet|pytorch|tensorflow) directory
+            if framework_changed == framework:
+                job_name = test_file.split("/")[3]
+                # The training folder structure for tensorflow is tensorflow1_training(1.x), tensorflow2_training(2.x)
+                # so we are stripping the tensrflow1 from the name
+                if framework_changed == "tensorflow" and "training" in job_name:
+                    job_name = "training"
+                if job_name in constants.IMAGE_TYPES:
+                    JobParameters.image_types.append(job_name)
+                    JobParameters.build_for_all_device_types_py_versions()
+                else:
+                    JobParameters.build_for_all_images()
+                    break
+            # If file changed is under /test/sagemaker_tests but not in (mxnet|pytorch|tensorflow) dirs
+            elif framework_changed not in constants.FRAMEWORKS:
+                JobParameters.build_for_all_images()
+                break
+
+
+def parse_modified_dlc_test_files_info(files, framework, pattern=""):
+    """
+    Parse all the files in PR to find ecs/eks/ec2 tests related changes for any framework
+    to trigger an image build matching the image_type(training/testing) for all the device_types(cpu,gpu)
+    and python_versions(py2,py3)
+    :param files:
+    :param framework:
+    :param pattern:
+    :return: None
+    """
+    rule = re.findall(rf"{pattern}", files)
+    # JobParameters variables are not set with constants.ALL
+    if not JobParameters.do_build_all_images():
+        for test_file in rule:
+            test_folder = test_file.split("/")[1]
+            if test_folder == "dlc_tests":
+                test_name = test_file.split("/")[2]
+                # The below code looks for file changes in /test/dlc_tests/(ecs|eks|ec2) directory
+                if test_name in ["ecs", "eks", "ec2"]:
+                    framework_changed = test_file.split("/")[3]
+                    if framework_changed == framework:
+                        job_name = test_file.split("/")[4]
+                        if job_name in constants.IMAGE_TYPES:
+                            JobParameters.image_types.append(job_name)
+                            JobParameters.build_for_all_device_types_py_versions()
+                        # If file changed is under /test/sagemaker_tests/(ecs|eks|ec2)
+                        # but not in (mxnet|pytorch|tensorflow) dirs
+                        else:
+                            JobParameters.build_for_all_images()
+                            break
+                    # If file changed is under /test/dlc_tests but not in (ecs|eks|ec2) dirs
+                    elif framework_changed not in constants.FRAMEWORKS:
+                        JobParameters.build_for_all_images()
+                        break
+
+
 def pr_build_setup(pr_number, framework):
     """
     Identify the PR changeset and set the appropriate environment
     variables
-
     Parameters:
         pr_number: int
 
@@ -33,50 +197,40 @@ def pr_build_setup(pr_number, framework):
         image_types: [str]
         py_versions: [str]
     """
-    github_handler = GitHubHandler("aws", "deep-learning-containers")
-    files = github_handler.get_pr_files_changed(pr_number)
-    files = "\n".join(files)
+    files = get_pr_modified_files(pr_number)
 
-    device_types = []
-    image_types = []
-    py_versions = []
+    # This below code currently appends the values to device_types, image_types, py_versions for files changed
+    # if there are no changes in the files then functions return same lists
+    parse_modified_docker_files_info(files, framework, pattern="\S+Dockerfile\S+")
 
-    # Rule 1: Build only those images whose dockerfiles have changed
-    rule = re.findall(r"\S+Dockerfile\S+", files)
-    for dockerfile in rule:
+    # TODO we have re enable this logic to parse test files once test migration is done
+    # parse_modified_sagemaker_test_files(
+    #     files, framework, pattern="\S+sagemaker_tests\/\S+"
+    # )
 
-        dockerfile = dockerfile.split("/")
-        framework_change = dockerfile[0]
+    # The below functions are only run if all JobParameters variables are not set with constants.ALL
+    # TODO we have re enable this logic to parse test files once test migration is done
+    # parse_modified_dlc_test_files_info(files, framework, pattern="\S+dlc_tests\/\S+")
 
-        # If the modified dockerfile belongs to a different
-        # framework, do nothing
-        if framework_change != framework:
-            continue
+    # The below code currently overides the device_types, image_types, py_versions with constants.ALL
+    # when there is a change in any the below files
+    parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.yml")
 
-        image_type = dockerfile[1]
-        py_version = dockerfile[4]
-        device_type = dockerfile[-1].split(".")[-1]
-        device_types.append(device_type)
-        image_types.append(image_type)
-        py_versions.append(py_version)
+    parse_modifed_root_files_info(files, pattern="src\/\S+")
 
-    # Rule 2: If the buildspec file for a framework changes, build all images for that framework
-    rule = re.findall(r"\S+\/buildspec.yml", files)
-    for buildspec in rule:
-        buildspec_framework = buildspec.split("/")[0]
-        if buildspec_framework == framework:
-            device_types = constants.ALL
-            image_types = constants.ALL
-            py_versions = constants.ALL
+    # TODO we have re enable this logic after test migration is done
+    # parse_modifed_root_files_info(
+    #     files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
+    # )
 
-    # Rule 3: If any file in the build code changes, build all images
-    rule = re.findall(r"src\/\S+", files)
-    if len(rule) != 0:
-        device_types = constants.ALL
-        image_types = constants.ALL
-        py_versions = constants.ALL
+    # TODO we have re enable this logic after test migration is done
+    # parse_modifed_root_files_info(files, pattern="testspec\.yml")
 
-    return device_types, image_types, py_versions
+    return (
+        JobParameters.device_types,
+        JobParameters.image_types,
+        JobParameters.py_versions,
+    )
 
 
 def build_setup(framework, device_types=None, image_types=None, py_versions=None):
@@ -137,7 +291,9 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     """
     test_envs = []
     ecr_urls = []
+
     for docker_image in images:
+        # TODO we have change this logic after to append urls only for new builds after test migration is done
         ecr_urls.append(docker_image.ecr_url)
 
     images_arg = " ".join(ecr_urls)
@@ -152,4 +308,4 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
 
 
 def get_codebuild_project_name():
-    return os.getenv("CODEBUILD_BUILD_ID").split(':')[0]
+    return os.getenv("CODEBUILD_BUILD_ID").split(":")[0]
