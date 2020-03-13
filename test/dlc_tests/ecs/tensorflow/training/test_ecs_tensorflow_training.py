@@ -1,25 +1,29 @@
 import os
+import datetime
 
 import pytest
 
-from test.test_utils import ECS_AML2_GPU_USWEST2
+from test.test_utils import ECS_AML2_CPU_USWEST2
 
 
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
-@pytest.mark.parametrize("ecs_cluster_name", [f"tf-train-mnist-cluster-{os.getenv('TEST_TRIGGER')}"], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
+@pytest.mark.parametrize(
+    "ecs_cluster_name",
+    [
+        f"tf-train-mnist-cluster-{os.getenv('TEST_TRIGGER', '')}{datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')}"
+    ],
+    indirect=True,
+)
 def test_ecs_tf_training_mnist_cpu(request, tensorflow_training, ecs_container_instance, ecs_client):
     """
-    TF training MNIST ECS test
+    This is a direct test of our ECS TF training documentation.
 
-    :param request:
-    :param tensorflow_training:
-    :param ecs_container_instance:
-    :param ecs_client:
-    :return:
+    Given above parameters, registers a task with family named after this test, runs the task, and waits for
+    the task to be stopped before doing teardown operations of instance and cluster.
     """
     # Skipping GPU tests for now
-    if 'gpu' in tensorflow_training:
+    if "gpu" in tensorflow_training:
         return
 
     _instance_id, cluster = ecs_container_instance

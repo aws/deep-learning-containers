@@ -29,9 +29,6 @@ def pytest_addoption(parser):
         nargs="+",
         help="Specify image(s) to run",
     )
-    parser.addoption(
-        "--ec2-instance-type", required=False, help="Specify image(s) to run"
-    )
 
 
 @pytest.fixture(scope="session")
@@ -55,7 +52,7 @@ def ec2_resource():
 
 @pytest.fixture(scope="session")
 def ec2_instance_type(request):
-    return request.config.getoption("--ec2-instance-type")
+    return request.param
 
 
 @pytest.mark.timeout(300)

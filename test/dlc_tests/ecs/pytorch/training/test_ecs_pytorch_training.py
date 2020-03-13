@@ -1,28 +1,32 @@
+import datetime
+
 import pytest
-from test.test_utils import ECS_AML2_GPU_USWEST2
+
+from test.test_utils import ECS_AML2_CPU_USWEST2
 
 
 @pytest.mark.parametrize("ecs_instance_type", ["c5.9xlarge"], indirect=True)
-@pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
-@pytest.mark.parametrize("ecs_cluster_name", ["pt-train-mnist-cluster"], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
+@pytest.mark.parametrize(
+    "ecs_cluster_name",
+    [f"pt-train-mnist-cluster-{datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')}"],
+    indirect=True,
+)
 def test_ecs_pytorch_training_mnist_cpu(request, pytorch_training, ecs_container_instance, ecs_client):
     """
-    ECS test for PT training mnist on CPU
+    This is a direct test of our ECS PT training documentation.
 
-    :param request:
-    :param pytorch_training:
-    :param ecs_container_instance:
-    :param ecs_client:
-    :return:
+    Given above parameters, registers a task with family named after this test, runs the task, and waits for
+    the task to be stopped before doing teardown operations of instance and cluster.
     """
     # Will remove when gpu fixture is available
-    if 'gpu' in pytorch_training:
+    if "gpu" in pytorch_training:
         return
 
     _instance_id, cluster = ecs_container_instance
 
     # Naming the family after the test name, which is in this format
-    family = request.node.name.split('[')[0]
+    family = request.node.name.split("[")[0]
 
     container_definitions = [
         {
@@ -58,6 +62,6 @@ def test_ecs_pytorch_training_mnist_cpu(request, pytorch_training, ecs_container
     )
 
     task = ecs_client.run_task(cluster=cluster, taskDefinition=family)
-    task_arn = task.get('tasks', [{}])[0].get('taskArn')
-    waiter = ecs_client.get_waiter('tasks_stopped')
+    task_arn = task.get("tasks", [{}])[0].get("taskArn")
+    waiter = ecs_client.get_waiter("tasks_stopped")
     waiter.wait(cluster=cluster, tasks=[task_arn])

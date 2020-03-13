@@ -14,6 +14,7 @@ def ecs_cluster_name(request):
     return request.param
 
 
+@pytest.mark.timeout(300)
 @pytest.fixture(scope="session")
 def ecs_cluster(request, ecs_client, ecs_cluster_name):
     """
@@ -24,9 +25,7 @@ def ecs_cluster(request, ecs_client, ecs_cluster_name):
     :return:
     """
     cluster_name = ecs_cluster_name
-    ecs_client.create_cluster(
-        clusterName=cluster_name
-    )
+    ecs_client.create_cluster(clusterName=cluster_name)
 
     # Finalizer to delete the ecs cluster
     def delete_ecs_cluster():
@@ -34,14 +33,11 @@ def ecs_cluster(request, ecs_client, ecs_cluster_name):
 
     request.addfinalizer(delete_ecs_cluster)
 
-    # Wait for max 10 minutes for cluster status to be active
-    timeout = time.time() + 600
+    # Wait for cluster status to be active
     is_active = False
     while not is_active:
-        if time.time() > timeout:
-            raise TimeoutError(f"ECS cluster {cluster_name} timed out on creation")
         response = ecs_client.describe_clusters(clusters=[cluster_name])
-        if response.get('clusters', [{}])[0].get('status') == 'ACTIVE':
+        if response.get("clusters", [{}])[0].get("status") == "ACTIVE":
             is_active = True
 
     return cluster_name
@@ -59,7 +55,9 @@ def ecs_instance_type(request):
 
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="module")
-def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_instance_type, ecs_ami):
+def ecs_container_instance(
+    request, ecs_cluster, ec2_client, ecs_client, ecs_instance_type, ecs_ami
+):
     """
     Fixture to handle spin up and tear down of ECS container instance
 
@@ -82,14 +80,14 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_ins
         MaxCount=1,
         MinCount=1,
         UserData=user_data,
-        IamInstanceProfile={"Name": "ecsInstanceRole"}
+        IamInstanceProfile={"Name": "ecsInstanceRole"},
     )
-    instance_id = instances.get('Instances')[0].get('InstanceId')
+    instance_id = instances.get("Instances")[0].get("InstanceId")
 
     # Define finalizer to terminate instance after this fixture completes
     def terminate_ec2_instance():
         ec2_client.terminate_instances(InstanceIds=[instance_id])
-        terminate_waiter = ec2_client.get_waiter('instance_terminated')
+        terminate_waiter = ec2_client.get_waiter("instance_terminated")
         terminate_waiter.wait(InstanceIds=[instance_id])
 
     request.addfinalizer(terminate_ec2_instance)
@@ -97,12 +95,13 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_ins
     waiter = ec2_client.get_waiter("instance_running")
     waiter.wait(InstanceIds=[instance_id])
     is_attached = False
-    attach_timeout = time.time() + 300
+
+    # Check to see if instance is attached
     while not is_attached:
+        # Add sleep to avoid throttling limit
         time.sleep(12)
-        if time.time() > attach_timeout:
-            raise TimeoutError(f"Instance {instance_id} not attached to cluster {ecs_cluster}")
         response = ecs_client.describe_clusters(clusters=[ecs_cluster])
-        if response.get('clusters', [{}])[0].get('registeredContainerInstancesCount'):
+        if response.get("clusters", [{}])[0].get("registeredContainerInstancesCount"):
             is_attached = True
+
     return instance_id, ecs_cluster
