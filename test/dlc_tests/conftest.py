@@ -4,7 +4,7 @@ import boto3
 import docker
 import pytest
 
-from test.test_utils import run_subprocess_cmd, UBUNTU_16_BASE_DLAMI
+from test.test_utils import run_subprocess_cmd, UBUNTU_16_BASE_DLAMI, DEFAULT_REGION
 
 
 # Immutable constant for framework specific image fixtures
@@ -32,9 +32,14 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture(scope="session")
-def docker_client():
+def region():
+    return os.getenv('AWS_REGION', DEFAULT_REGION)
+
+
+@pytest.fixture(scope="session")
+def docker_client(region):
     run_subprocess_cmd(
-        f"$(aws ecr get-login --no-include-email --region {os.getenv('AWS_REGION', 'us-west-2')})",
+        f"$(aws ecr get-login --no-include-email --region {region})",
         failure="Failed to log into ECR.",
     )
     return docker.from_env()
