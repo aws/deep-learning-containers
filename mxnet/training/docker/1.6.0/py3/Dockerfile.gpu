@@ -46,6 +46,8 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+COPY README.rst README.rst
+
 # Install cuda-dev libraries as a dependency for Horovod with MXNet backend
 ENV CUDA_LIB_URL=https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64
 RUN wget ${CUDA_LIB_URL}/libcublas10_10.2.1.243-1_amd64.deb \
@@ -157,7 +159,8 @@ RUN ${PIP} install --no-cache --upgrade \
     mpi4py==3.0.2 \
     sagemaker-mxnet-training \
     ${MX_URL} \
-    awscli
+    awscli \
+    octopush
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
