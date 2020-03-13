@@ -79,7 +79,7 @@ def ecs_cluster(request, ecs_client, ecs_cluster_name, ec2_client, ecs_instance_
     while not is_attached:
         if time.time() > attach_timeout:
             raise TimeoutError(f"Instance {instance_id} not attached to cluster {cluster_name}")
-        response = ecs_client.describe_clusters(cluster=[cluster_name])
+        response = ecs_client.describe_clusters(clusters=[cluster_name])
         if response.get('clusters', [{}])[0].get('registeredContainerInstancesCount'):
             is_attached = True
 
