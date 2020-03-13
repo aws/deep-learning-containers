@@ -1,5 +1,6 @@
 import subprocess
 
+from invoke import run
 import pytest
 from retrying import retry
 
@@ -24,14 +25,20 @@ def retry_if_result_is_false(result):
     return result is False
 
 
-@retry(stop_max_attempt_number=10, wait_fixed=2000, retry_on_result=retry_if_result_is_false)
+@retry(
+    stop_max_attempt_number=10,
+    wait_fixed=2000,
+    retry_on_result=retry_if_result_is_false,
+)
 def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80"):
-    run_subprocess_cmd("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg")
-    run_out = run_subprocess_cmd(f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg")
+    run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg")
+    run_out = run(
+        f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg"
+    )
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
-    if run_out.returncode != 0 or 'probability' not in run_out.stdout.decode():
+    if run_out.return_code != 0 or "probability" not in run_out.stdout:
         return False
 
     return True
@@ -45,20 +52,30 @@ def get_mms_run_command(model_names, processor="cpu"):
     Returns:
         Command to start MMS server with given model
     """
-    mxnet_model_location = {
-        "squeezenet": "https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model",
-        "pytorch-densenet": "https://asimov-multi-model-server.s3.amazonaws.com/pytorch/densenet/densenet.mar",
-        "bert_sst": "https://aws-dlc-sample-models.s3.amazonaws.com/bert_sst/bert_sst.mar"
-    }
+    if processor != "eia":
+        mxnet_model_location = {
+            "squeezenet": "https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model",
+            "pytorch-densenet": "https://asimov-multi-model-server.s3.amazonaws.com/pytorch/densenet/densenet.mar",
+        }
+    else:
+        mxnet_model_location = {
+            "squeezenet": "https://tushar-public.s3-us-west-2.amazonaws.com/squeezenet_v1.1_eia.mar"
+        }
 
     if not isinstance(model_names, list):
         model_names = [model_names]
 
     for model_name in model_names:
         if model_name not in mxnet_model_location:
-            raise Exception("No entry found for model {} in dictionary".format(model_name))
+            raise Exception(
+                "No entry found for model {} in dictionary".format(model_name)
+            )
 
-    parameters = ["{}={}".format(name, mxnet_model_location[name]) for name in model_names]
-    mms_command = ("mxnet-model-server --start --mms-config /home/model-server/config.properties "
-                   "--models " + " ".join(parameters))
+    parameters = [
+        "{}={}".format(name, mxnet_model_location[name]) for name in model_names
+    ]
+    mms_command = (
+        "mxnet-model-server --start --mms-config /home/model-server/config.properties --models "
+        + " ".join(parameters)
+    )
     return mms_command
