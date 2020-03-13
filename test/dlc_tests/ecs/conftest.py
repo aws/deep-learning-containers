@@ -39,7 +39,7 @@ def ecs_cluster(request, ecs_client, ecs_cluster_name, region):
     # Wait for cluster status to be active
     if ecs_utils.check_ecs_cluster_status(cluster_arn, "ACTIVE"):
         return cluster_arn
-    return None
+    raise ecs_utils.ECSClusterCreationException(f'Failed to create ECS cluster - {cluster_name}')
 
 
 @pytest.fixture(scope="session")

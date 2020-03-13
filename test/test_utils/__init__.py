@@ -84,3 +84,24 @@ def get_mms_run_command(model_names, processor="cpu"):
         + " ".join(parameters)
     )
     return mms_command
+
+
+def get_tensorflow_model_name(processor, model_name):
+    """
+    Helper function to get tensorflow model name
+    :param processor: Processor Type
+    :param model_name: Name of model to be used
+    :return: File name for model being used
+    """
+    tensorflow_models = {
+        "saved_model_half_plus_two": {
+            "cpu": "saved_model_half_plus_two_cpu",
+            "gpu": "saved_model_half_plus_two_gpu",
+            "eia": "saved_model_half_plus_two",
+        },
+        "saved_model_half_plus_three": {"eia": "saved_model_half_plus_three"},
+    }
+    if model_name in tensorflow_models:
+        return tensorflow_models[model_name][processor]
+    else:
+        raise Exception(f"No entry found for model {model_name} in dictionary")

@@ -6,7 +6,8 @@ import boto3
 
 from test.test_utils import DEFAULT_REGION
 import test.test_utils.ec2 as ec2_utils
-from test.test_utils import get_mms_run_command
+from test.test_utils import get_mms_run_command, get_tensorflow_model_name
+
 
 ECS_AMI_ID = {"cpu": "ami-0fb71e703258ab7eb", "gpu": "ami-0a36be2e955646bb2"}
 
@@ -26,6 +27,16 @@ ECS_S3_TEST_BUCKET = "s3://dlcinfra-ecs-testscripts/container_tests"
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
 
+class ECSException(Exception):
+    """Base class for other exceptions"""
+    pass
+
+
+class ECSClusterCreationException(ECSException):
+    """Raised when cluster creation failed"""
+    pass
+
+
 def retry_if_value_error(exception):
     """
     Helper to let retry know whether to re-run
@@ -33,27 +44,6 @@ def retry_if_value_error(exception):
     :return: <bool> True if test failed with ValueError
     """
     return isinstance(exception, ValueError)
-
-
-def get_tensorflow_model_name(processor, model_name):
-    """
-    Helper function to get tensorflow model name
-    :param processor: Processor Type
-    :param model_name: Name of model to be used
-    :return: File name for model being used
-    """
-    tensorflow_models = {
-        "saved_model_half_plus_two": {
-            "cpu": "saved_model_half_plus_two_cpu",
-            "gpu": "saved_model_half_plus_two_gpu",
-            "eia": "saved_model_half_plus_two",
-        },
-        "saved_model_half_plus_three": {"eia": "saved_model_half_plus_three"},
-    }
-    if model_name in tensorflow_models:
-        return tensorflow_models[model_name][processor]
-    else:
-        raise Exception(f"No entry found for model {model_name} in dictionary")
 
 
 @retry(
