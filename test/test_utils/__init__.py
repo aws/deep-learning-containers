@@ -27,7 +27,7 @@ def retry_if_result_is_false(result):
 
 @retry(
     stop_max_attempt_number=10,
-    wait_fixed=2000,
+    wait_fixed=10000,
     retry_on_result=retry_if_result_is_false,
 )
 def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80"):
