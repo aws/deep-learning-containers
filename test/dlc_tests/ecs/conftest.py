@@ -10,7 +10,7 @@ def ecs_client():
     return boto3.client("ecs")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def ecs_cluster_name(request):
     return request.param
 

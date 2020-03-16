@@ -22,8 +22,6 @@ def test_ecs_tf_training_mnist_cpu(request, cpu_only, ecs_container_instance, ec
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
     """
-
-
     _instance_id, cluster = ecs_container_instance
     # Naming the family after the test name, which is in this format
     family = request.node.name.split("[")[0]
