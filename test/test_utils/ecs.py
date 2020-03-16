@@ -39,6 +39,11 @@ class ECSClusterCreationException(ECSException):
     pass
 
 
+class ECSTestArtifactCopyException(ECSException):
+    """Raised when copying test artifacts fails"""
+    pass
+
+
 def retry_if_value_error(exception):
     """
     Helper to let retry know whether to re-run
@@ -643,15 +648,20 @@ def upload_tests_for_ecs(testname_datetime_suffix):
     :return: <bool> True if upload was successful, False if any failure during upload
     """
     s3_test_location = os.path.join(ECS_S3_TEST_BUCKET, testname_datetime_suffix)
-    # Test if s3_test_location already exists. If it does, then don't overwrite it. Exit with failure.
     run_out = run(f"aws s3 ls {s3_test_location}", warn=True)
     if run_out.return_code == 0:
-        print(f"{s3_test_location} already exists. Skipping upload and failing the test.")
-        return ''
-    run_out = run(f"aws s3 cp test/container_tests/ {s3_test_location}/ --recursive")
-    if run_out.return_code != 0:
-        return ''
+        raise ECSTestArtifactCopyException(f"{s3_test_location} already exists. Skipping upload and failing the test.")
+    run(f"aws s3 cp --recursive test/container_tests/ {s3_test_location}/")
     return s3_test_location
+
+
+def delete_uploaded_tests_for_ecs(s3_test_location):
+    """
+    Delete s3 bucket data related to current test after test is completed
+    :param s3_test_location: S3 URI for test artifacts to be removed
+    :return: <bool> True/False based on success/failure of removal
+    """
+    run(f"aws s3 rm --recursive {s3_test_location}")
 
 
 def ecs_inference_test_executor(
