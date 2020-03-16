@@ -12,8 +12,7 @@ from test.test_utils import ECS_AML2_CPU_USWEST2
     [f"pt-train-mnist-cluster-{datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')}"],
     indirect=True,
 )
-
-def test_ecs_pytorch_training_mnist_cpu(request, cpu_only, pytorch_training, ecs_container_instance, ecs_client):
+def test_ecs_pytorch_training_mnist_cpu(request, cpu_only, ecs_container_instance, ecs_client, pytorch_training):
     """
     This is a direct test of our ECS PT training documentation.
 
