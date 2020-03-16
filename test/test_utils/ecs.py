@@ -3,6 +3,8 @@ Helper functions for ECS Integration Tests
 """
 from retrying import retry
 import boto3
+import os
+from invoke import run
 
 from test.test_utils import DEFAULT_REGION
 import test.test_utils.ec2 as ec2_utils
@@ -23,7 +25,7 @@ ECS_MXNET_PYTORCH_INFERENCE_PORT_MAPPINGS = [
 ]
 
 ECS_INSTANCE_ROLE_ARN = "arn:aws:iam::669063966089:instance-profile/ecsInstanceRole"
-ECS_S3_TEST_BUCKET = "s3://dlcinfra-ecs-testscripts/container_tests"
+ECS_S3_TEST_BUCKET = "s3://dlcinfra-ecs-testscripts"
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
 
@@ -619,32 +621,37 @@ def get_ecs_tensorflow_environment_variables(processor, model_name):
     return ecs_tensorflow_inference_environment
 
 
-def build_ecs_training_command(test_string):
+def build_ecs_training_command(s3_test_location, test_string):
     """
     Construct the command to send to the container for running scripts in ECS automation
-    :param test_string:
+    :param s3_test_location: S3 URI for test-related artifacts
+    :param test_string: command to execute test script
     :return: <list> command to send to the container
     """
     return [
-        f"pip install -U awscli && mkdir -p /test/logs && aws s3 cp {ECS_S3_TEST_BUCKET} /test/ --recursive "
+        f"pip install -U awscli && mkdir -p /test/logs && aws s3 cp {s3_test_location}/ /test/ --recursive "
         f"&& chmod +x -R /test/ && {test_string}"
     ]
 
 
-# TODO: Move this to testspec.yml for ecs tests
-"""
-def upload_tests_for_ecs(datetime_suffix):
-    aws_access_key_id, aws_secret_access_key = utils.get_private_key(test_helper.AMI_MATERIALSET)
-    with hide('running'):
-        run("aws configure set aws_access_key_id {}".format(aws_access_key_id))
-        run("aws configure set aws_secret_access_key {}".format(aws_secret_access_key))
-        run("aws configure set region {}".format(cfg.iad_region))
-    global ECS_S3_TEST_BUCKET
-    ECS_S3_TEST_BUCKET = ECS_S3_TEST_BUCKET.format(datetime_suffix)
-    run("aws s3 rm {}/ --recursive".format(ECS_S3_TEST_BUCKET), warn_only=True)
-    run("aws s3 cp {}/container_tests/ {} --recursive".format(test_helper.SRC_DIR, ECS_S3_TEST_BUCKET,
-                                                              datetime_suffix))
-"""
+def upload_tests_for_ecs(testname_datetime_suffix):
+    """
+    Upload test-related artifacts to unique s3 location.
+    Allows each test to have a unique remote location for test scripts and files.
+    These uploaded files and folders are copied into a container running an ECS test.
+    :param testname_datetime_suffix: test name and datetime suffix that is unique to a test
+    :return: <bool> True if upload was successful, False if any failure during upload
+    """
+    s3_test_location = os.path.join(ECS_S3_TEST_BUCKET, testname_datetime_suffix)
+    # Test if s3_test_location already exists. If it does, then don't overwrite it. Exit with failure.
+    run_out = run(f"aws s3 ls {s3_test_location}", warn=True)
+    if run_out.return_code == 0:
+        print(f"{s3_test_location} already exists. Skipping upload and failing the test.")
+        return ''
+    run_out = run(f"aws s3 cp test/container_tests/ {s3_test_location}/ --recursive")
+    if run_out.return_code != 0:
+        return ''
+    return s3_test_location
 
 
 def ecs_inference_test_executor(
