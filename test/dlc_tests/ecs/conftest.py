@@ -16,7 +16,7 @@ def ecs_cluster_name(request):
 
 
 @pytest.mark.timeout(300)
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def ecs_cluster(request, ecs_client, ecs_cluster_name, region):
     """
     Fixture to handle spin up and tear down of ecs cluster
@@ -53,7 +53,7 @@ def ecs_instance_type(request):
 
 
 @pytest.mark.timeout(300)
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_instance_type, ecs_ami):
     """
     Fixture to handle spin up and tear down of ECS container instance
