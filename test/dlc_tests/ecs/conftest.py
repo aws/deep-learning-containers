@@ -15,19 +15,6 @@ def ecs_cluster_name(request):
     return request.param
 
 
-@pytest.fixture(scope="session")
-def s3_test_artifact_copy(request, ecs_cluster_name):
-    testname_datetime_suffix = ecs_cluster_name
-    s3_test_artifact_location = ecs_utils.upload_tests_for_ecs(testname_datetime_suffix)
-
-    def delete_s3_test_artifact_copy():
-        ecs_utils.delete_uploaded_tests_for_ecs(s3_test_artifact_location)
-
-    request.addfinalizer(delete_s3_test_artifact_copy)
-
-    return s3_test_artifact_location
-
-
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="session")
 def ecs_cluster(request, ecs_client, ecs_cluster_name, region):
