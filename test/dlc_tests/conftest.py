@@ -138,7 +138,7 @@ def pytest_generate_tests(metafunc):
                         images_to_parametrize.append(image)
 
             # Parametrize tests that spin up an ecs cluster with unique name
-            if images_to_parametrize and "ecs_cluster_name" in metafunc.fixturenames:
+            if images_to_parametrize and "ecs_container_instance" in metafunc.fixturenames:
                 ecs_parametrization = []
                 for index, image in enumerate(images_to_parametrize):
                     ecs_parametrization.append(

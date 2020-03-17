@@ -7,7 +7,7 @@ from test.test_utils import ECS_AML2_CPU_USWEST2
 
 @pytest.mark.parametrize("ecs_instance_type", ["c5.9xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
-def test_ecs_pytorch_training_mnist_cpu(request, cpu_only, ecs_container_instance, ecs_client, pytorch_training, ecs_cluster_name):
+def test_ecs_pytorch_training_mnist_cpu(request, cpu_only, ecs_container_instance, ecs_client, pytorch_training):
     """
     This is a direct test of our ECS PT training documentation.
 
