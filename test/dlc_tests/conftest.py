@@ -118,7 +118,6 @@ def pytest_generate_tests(metafunc):
             lookup = fixture.replace("_", "-")
             images_to_parametrize = []
             for image in images:
-                image_tag = image.split(":")[-1]
                 if lookup in image:
                     if "cpu_only" in metafunc.fixturenames and "cpu" in image:
                         images_to_parametrize.append(image)
@@ -134,7 +133,7 @@ def pytest_generate_tests(metafunc):
             ):
                 ecs_parametrization = []
                 for image in images_to_parametrize:
-                    image_tag = image.split(":")
+                    image_tag = image.split(":")[-1]
                     ecs_parametrization.append((image, f"{metafunc.function.__name__}-{image_tag}"))
                 metafunc.parametrize(f"{fixture},ecs_cluster_name", ecs_parametrization)
             else:
