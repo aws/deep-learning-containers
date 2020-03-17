@@ -138,7 +138,7 @@ def pytest_generate_tests(metafunc):
                     ):
                         images_to_parametrize.append(image)
 
-            if os.getenv("TEST_TYPE") == "ECS" and images_to_parametrize:
+            if os.getenv("TEST_TYPE") == "ecs" and images_to_parametrize:
                 ecs_parametrization = []
                 for image in images_to_parametrize:
                     image_tag = image.split(':')
