@@ -126,6 +126,7 @@ def pytest_generate_tests(metafunc):
             lookup = fixture.replace("_", "-")
             images_to_parametrize = []
             for image in images:
+                image_tag = image.split(':')[-1]
                 if lookup in image:
                     if "cpu_only" in metafunc.fixturenames and "cpu" in image:
                         images_to_parametrize.append(image)
@@ -136,7 +137,15 @@ def pytest_generate_tests(metafunc):
                         and "gpu_only" not in metafunc.fixturenames
                     ):
                         images_to_parametrize.append(image)
-            metafunc.parametrize(fixture, images_to_parametrize)
+
+            if os.getenv("TEST_TYPE") == "ECS" and images_to_parametrize:
+                ecs_parametrization = []
+                for image in images_to_parametrize:
+                    image_tag = image.split(':')
+                    ecs_parametrization.append((image, f"{metafunc.function.__name__}-{image_tag}"))
+                metafunc.parametrize(f"{fixture},ecs_cluster_name", ecs_parametrization)
+            else:
+                metafunc.parametrize(fixture, images_to_parametrize)
 
     # Parametrize for framework agnostic tests, i.e. sanity
     if "image" in metafunc.fixturenames:
