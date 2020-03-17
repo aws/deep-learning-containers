@@ -24,10 +24,7 @@ collect_ignore = [os.path.join("container_tests", "*")]
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--images",
-        default=os.getenv("DLC_IMAGES").split(" "),
-        nargs="+",
-        help="Specify image(s) to run",
+        "--images", default=os.getenv("DLC_IMAGES").split(" "), nargs="+", help="Specify image(s) to run",
     )
 
 
@@ -39,8 +36,7 @@ def region():
 @pytest.fixture(scope="session")
 def docker_client(region):
     run_subprocess_cmd(
-        f"$(aws ecr get-login --no-include-email --region {region})",
-        failure="Failed to log into ECR.",
+        f"$(aws ecr get-login --no-include-email --region {region})", failure="Failed to log into ECR.",
     )
     return docker.from_env()
 
@@ -64,11 +60,7 @@ def ec2_instance_type(request):
 @pytest.fixture(scope="session")
 def ec2_instance(request, ec2_client, ec2_instance_type, ec2_resource):
     instances = ec2_resource.create_instances(
-        KeyName="pytest.pem",
-        ImageId=UBUNTU_16_BASE_DLAMI,
-        InstanceType=ec2_instance_type,
-        MaxCount=1,
-        MinCount=1,
+        KeyName="pytest.pem", ImageId=UBUNTU_16_BASE_DLAMI, InstanceType=ec2_instance_type, MaxCount=1, MinCount=1,
     )
     instance_id = instances[0].id
 
@@ -131,20 +123,19 @@ def pytest_generate_tests(metafunc):
                         images_to_parametrize.append(image)
                     elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                         images_to_parametrize.append(image)
-                    elif (
-                        "cpu_only" not in metafunc.fixturenames
-                        and "gpu_only" not in metafunc.fixturenames
-                    ):
+                    elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames:
                         images_to_parametrize.append(image)
 
             # Parametrize tests that spin up an ecs cluster with unique name
             if images_to_parametrize and "ecs_container_instance" in metafunc.fixturenames:
                 ecs_parametrization = []
                 for index, image in enumerate(images_to_parametrize):
+                    image_tag = image.split(":")[-1].replace(".", "-")
                     ecs_parametrization.append(
                         (
                             image,
-                            f"{metafunc.function.__name__}-{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}",
+                            f"{metafunc.function.__name__}-{image_tag}-"
+                            f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}",
                         )
                     )
                 metafunc.parametrize(f"{fixture},ecs_cluster_name", ecs_parametrization)
