@@ -98,7 +98,10 @@ def main():
     if test_type in ["sanity", "ecs"]:
         report = os.path.join(os.getcwd(), f"{test_type}.xml")
         os.chdir("dlc_tests")
-        sys.exit(pytest.main(["-s", test_type, f"--junitxml={report}"]))
+        pytest_cmd = ["-s", test_type, f"--junitxml={report}"]
+        if test_type == "ecs":
+            pytest_cmd.append('-n')
+        sys.exit(pytest.main(pytest_cmd))
     elif test_type == "sagemaker":
         run_sagemaker_tests(dlc_images.split(" "))
     else:
