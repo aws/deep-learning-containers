@@ -651,7 +651,6 @@ def upload_tests_for_ecs(testname_datetime_suffix):
     run_out = run(f"aws s3 ls {s3_test_location}", warn=True)
     if run_out.return_code == 0:
         raise ECSTestArtifactCopyException(f"{s3_test_location} already exists. Skipping upload and failing the test.")
-    print(run_out.stdout)
     run(f"aws s3 cp --recursive container_tests/ {s3_test_location}/")
     return s3_test_location
 
