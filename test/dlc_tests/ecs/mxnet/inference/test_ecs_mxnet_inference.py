@@ -15,7 +15,7 @@ def test_cpu_dummy(mxnet_inference, cpu_only):
     print(mxnet_inference)
 
 
-def test_ecs_mxnet_inference(mxnet_inference, ecs_cluster_name, region):
+def test_ecs_mxnet_inference(mxnet_inference, region):
     processor = "gpu" if "gpu" in mxnet_inference else "cpu"
     framework = "mxnet"
     job = "inference"
