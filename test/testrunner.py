@@ -100,7 +100,7 @@ def main():
         os.chdir("dlc_tests")
         pytest_cmd = ["-s", test_type, f"--junitxml={report}"]
         if test_type == "ecs":
-            pytest_cmd.append('-n')
+            pytest_cmd.append('-n=8')
         sys.exit(pytest.main(pytest_cmd))
     elif test_type == "sagemaker":
         run_sagemaker_tests(dlc_images.split(" "))
