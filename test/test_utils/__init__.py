@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 from invoke import run
@@ -11,6 +12,9 @@ DEFAULT_REGION = "us-west-2"
 UBUNTU_16_BASE_DLAMI = "ami-0e57002aaafd42113"
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
+
+# Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
+CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
