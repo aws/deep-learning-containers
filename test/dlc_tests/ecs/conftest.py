@@ -48,7 +48,7 @@ def s3_artifact_copy(request, ecs_cluster_name):
     s3_test_artifact_location = ecs_utils.upload_tests_for_ecs(artifact_folder)
 
     def delete_s3_artifact_copy():
-        ecs_utils.delete_ecs_cluster(s3_test_artifact_location)
+        ecs_utils.delete_uploaded_tests_for_ecs(s3_test_artifact_location)
 
     request.addfinalizer(delete_s3_artifact_copy)
 
