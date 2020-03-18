@@ -1,14 +1,16 @@
 """
 Helper functions for ECS Integration Tests
 """
-from retrying import retry
-import boto3
+import datetime
 import os
+
+import boto3
+
+from retrying import retry
 from invoke import run
 
-from test.test_utils import DEFAULT_REGION
-import test.test_utils.ec2 as ec2_utils
-from test.test_utils import get_mms_run_command, get_tensorflow_model_name
+from test.test_utils import DEFAULT_REGION, get_mms_run_command, get_tensorflow_model_name
+from test.test_utils import ec2 as ec2_utils
 
 
 ECS_AMI_ID = {"cpu": "ami-0fb71e703258ab7eb", "gpu": "ami-0a36be2e955646bb2"}
@@ -775,8 +777,7 @@ def ecs_inference_test_executor(
         )
 
 
-def ecs_training_test_executor(cluster_name, cluster_arn, datetime_suffix, training_command, image,
-                               instance_id, num_gpus=None):
+def ecs_training_test_executor(cluster_name, cluster_arn, training_command, image_uri, instance_id, num_gpus=None):
     """
     Function to run training task on ECS; Cleans up the resources after each execution
 
@@ -784,7 +785,7 @@ def ecs_training_test_executor(cluster_name, cluster_arn, datetime_suffix, train
     :param cluster_arn:
     :param datetime_suffix:
     :param training_command:
-    :param image:
+    :param image_uri:
     :param instance_id:
     :param num_gpus:
     :return:
@@ -795,14 +796,15 @@ def ecs_training_test_executor(cluster_name, cluster_arn, datetime_suffix, train
     revision = None
 
     # Define constants for arguments to be sent to task def
-    image_tag = image.split(':')[-1]
+    image_tag = image_uri.split(':')[-1]
     log_group_name = os.path.join(os.sep, 'ecs', image_tag)
+    datetime_suffix = datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')
     num_cpus = ec2_utils.get_instance_num_cpus(instance_id)
     memory = int(ec2_utils.get_instance_memory(instance_id) * 0.8)
 
     arguments_dict = {
         "family_name": cluster_name,
-        "image": image,
+        "image": image_uri,
         "log_group_name": log_group_name,
         "log_stream_prefix": datetime_suffix,
         "num_cpu": num_cpus,

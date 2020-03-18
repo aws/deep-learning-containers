@@ -1,4 +1,3 @@
-import datetime
 import os
 
 import pytest
@@ -26,12 +25,9 @@ def test_ecs_pytorch_training_mnist_cpu(cpu_only, ecs_container_instance, pytorc
         s3_test_artifact_location, os.path.join(os.sep, "test", "bin", "pytorch_tests", "testPyTorch")
     )
 
-    instance_id, cluster = ecs_container_instance
+    instance_id, cluster_arn = ecs_container_instance
 
-    datestr = datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')
-
-    ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster, datestr, training_cmd, pytorch_training,
-                                         instance_id)
+    ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id)
 
 
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
@@ -52,10 +48,9 @@ def test_ecs_pytorch_training_mnist_gpu(gpu_only, ecs_container_instance, pytorc
         s3_test_artifact_location, os.path.join(os.sep, "test", "bin", "pytorch_tests", "testPyTorch")
     )
 
-    instance_id, cluster = ecs_container_instance
+    instance_id, cluster_arn = ecs_container_instance
 
-    datestr = datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')
     num_gpus = ec2_utils.get_instance_num_gpus(instance_id)
 
-    ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster, datestr, training_cmd, pytorch_training,
-                                         instance_id, num_gpus=num_gpus)
+    ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id,
+                                         num_gpus=num_gpus)
