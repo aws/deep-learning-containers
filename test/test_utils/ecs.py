@@ -108,7 +108,9 @@ def create_ecs_cluster(cluster_name, region=DEFAULT_REGION):
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
         response = ecs_client.create_cluster(clusterName=cluster_name)
+        print(f"CLUSTER NAME {cluster_name}")
         cluster_arn = response["cluster"]["clusterArn"]
+        print(f"CLUSTER ARN {cluster_arn}")
         return cluster_arn
     except Exception as e:
         raise Exception(f"Failed to launch cluster - {e}")
