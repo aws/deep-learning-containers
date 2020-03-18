@@ -1,17 +1,60 @@
 import datetime
+import os
 
-from invoke import run
+import pytest
 
+from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2
 from test.test_utils import ecs as ecs_utils
+from test.test_utils import ec2 as ec2_utils
 
 
-def test_s3_artifact_copy(mxnet_training):
-    print(mxnet_training)
-    tag = mxnet_training.split(":")[-1]
-    testname_datetime_suffix = f"mxnet-training-{tag}-{datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')}"
-    s3_test_artifact_location = ecs_utils.upload_tests_for_ecs(testname_datetime_suffix)
+@pytest.mark.parametrize("ecs_instance_type", ["c4.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
+def test_ecs_mxnet_training_mnist_cpu(cpu_only, ecs_container_instance, mxnet_training, s3_artifact_copy,
+                                      ecs_cluster_name):
+    """
+    CPU mnist test for MXNet Training
 
-    run_out = run(f"aws s3 ls --recursive {s3_test_artifact_location}/")
-    assert run_out.return_code == 0, "Failed to copy test scripts"
+    Instance Type - c4.8xlarge
 
-    ecs_utils.delete_uploaded_tests_for_ecs(s3_test_artifact_location)
+    Given above parameters, registers a task with family named after this test, runs the task, and waits for
+    the task to be stopped before doing teardown operations of instance and cluster.
+    """
+    s3_test_artifact_location = s3_artifact_copy
+
+    training_cmd = ecs_utils.build_ecs_training_command(
+        s3_test_artifact_location, os.path.join(os.sep, "test", "bin", "testMXNet")
+    )
+
+    instance_id, cluster = ecs_container_instance
+
+    datestr = datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')
+
+    ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster, datestr, training_cmd, mxnet_training, instance_id)
+
+
+@pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
+def test_ecs_mxnet_training_mnist_gpu(gpu_only, ecs_container_instance, mxnet_training, s3_artifact_copy,
+                                      ecs_cluster_name):
+    """
+    GPU mnist test for MXNet Training
+
+    Instance Type - p2.8xlarge
+
+    Given above parameters, registers a task with family named after this test, runs the task, and waits for
+    the task to be stopped before doing teardown operations of instance and cluster.
+    """
+    s3_test_artifact_location = s3_artifact_copy
+
+    training_cmd = ecs_utils.build_ecs_training_command(
+        s3_test_artifact_location, os.path.join(os.sep, "test", "bin", "testMXNet")
+    )
+
+    instance_id, cluster = ecs_container_instance
+
+    datestr = datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')
+    num_gpus = ec2_utils.get_instance_num_gpus(instance_id)
+
+    ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster, datestr, training_cmd, mxnet_training, instance_id,
+                                         num_gpus=num_gpus)
