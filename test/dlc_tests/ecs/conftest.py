@@ -43,7 +43,17 @@ def ecs_cluster(request, ecs_client, ecs_cluster_name, region):
 
 
 @pytest.fixture(scope="function")
-def s3_artifact_copy(request, ecs_cluster_name):
+def training_script(request):
+    """
+    Path that container is expecting training script to be in
+
+    i.e. /test/bin/testTensorFlow
+    """
+    return request.param
+
+
+@pytest.fixture(scope="function")
+def training_cmd(request, ecs_cluster_name, training_script):
     artifact_folder = f"{ecs_cluster_name}-folder"
     s3_test_artifact_location = ecs_utils.upload_tests_for_ecs(artifact_folder)
 
@@ -52,7 +62,7 @@ def s3_artifact_copy(request, ecs_cluster_name):
 
     request.addfinalizer(delete_s3_artifact_copy)
 
-    return s3_test_artifact_location
+    return ecs_utils.build_ecs_training_command(s3_test_artifact_location, training_script)
 
 
 @pytest.fixture(scope="session")
