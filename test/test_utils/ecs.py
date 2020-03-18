@@ -768,7 +768,7 @@ def ecs_training_test_executor(cluster_name, cluster_arn, datetime_suffix, train
         }
 
         if "gpu" in image_tag:
-            arguments_dict["num_gpu"] = num_gpus
+            arguments_dict["num_gpu"] = str(num_gpus)
 
         task_family, revision = register_ecs_task_definition(**arguments_dict)
         print(f"Created Task definition - {task_family}:{revision}")
