@@ -562,13 +562,14 @@ def delete_ecs_cluster(cluster_arn, region=DEFAULT_REGION):
         raise Exception(f"Failed to delete cluster. Exception - {e}")
 
 
-def tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revision):
+def tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revision, region=DEFAULT_REGION):
     """
     Function to clean up ECS task definition, service resources if exist
     :param cluster_arn:
     :param service_name:
     :param task_family:
     :param revision:
+    :param region:
     """
 
     if task_family and revision:
@@ -581,7 +582,13 @@ def tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revi
         update_ecs_service(cluster_arn, service_name, 0)
         delete_ecs_service(cluster_arn, service_name)
     else:
-        print("Skipped - Service and cluster deletion")
+        ecs_client = boto3.Session(region_name=region).client("ecs")
+        response = ecs_client.list_services(cluster=cluster_arn)
+        services_list = response["serviceArns"]
+        for service in services_list:
+            update_ecs_service(cluster_arn, service, 0)
+            delete_ecs_service(cluster_arn, service)
+        print(f"Deleted all services in {cluster_arn}")
 
 
 def tear_down_ecs_training_task(cluster_arn, task_arn, task_family, revision):

@@ -58,5 +58,5 @@ def test_ecs_mxnet_inference(mxnet_inference, region):
         inference_result = request_mxnet_inference_squeezenet(public_ip_address)
         assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
     finally:
-        ecs_utils.tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revision)
+        ecs_utils.tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revision, region=region)
         ecs_utils.cleanup_worker_node_cluster(worker_instance_id, cluster_arn)
