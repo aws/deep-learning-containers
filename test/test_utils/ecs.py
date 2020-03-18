@@ -118,13 +118,10 @@ def get_ecs_cluster_name(ecs_cluster_arn, region=DEFAULT_REGION):
     :param region:
     :return: <str> ecs cluster name
     """
-    try:
-        ecs_client = boto3.Session(region_name=region).client("ecs")
-        response = ecs_client.describe_clusters(clusters=[ecs_cluster_arn])
-        cluster_name = response["clusters"][0]["clusterName"]
-        return cluster_name
-    except Exception as e:
-        raise ECSDescribeClusterException(f"Failed to get cluster name - {e}")
+    ecs_client = boto3.Session(region_name=region).client("ecs")
+    response = ecs_client.describe_clusters(clusters=[ecs_cluster_arn])
+    cluster_name = response["clusters"][0]["clusterName"]
+    return cluster_name
 
 
 def list_ecs_container_instances(cluster_arn_or_name, filter_value=None, status=None, region=DEFAULT_REGION):
@@ -281,13 +278,14 @@ def register_ecs_task_definition(
             ]
         if num_gpu:
             if not isinstance(num_gpu, str):
-                raise Exception(
-                    f"Invalid type for argument num_gpu, type: {num_gpu}. valid type: <string>"
-                )
-            else:
-                arguments_dict["containerDefinitions"][0]["resourceRequirements"] = [
-                    {"value": num_gpu, "type": "GPU"},
-                ]
+                if not isinstance(num_gpu, int):
+                    raise Exception(
+                        f"Invalid type for argument num_gpu, type: {num_gpu}. valid type: <int/str>"
+                    )
+                num_gpu = str(num_gpu)
+            arguments_dict["containerDefinitions"][0]["resourceRequirements"] = [
+                {"value": num_gpu, "type": "GPU"},
+            ]
         response = ecs_client.register_task_definition(**arguments_dict)
         return (
             response["taskDefinition"]["family"],

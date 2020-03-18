@@ -50,7 +50,7 @@ def test_ecs_pytorch_inference_gpu(pytorch_inference, ecs_container_instance, re
     ecs_cluster_name = ecs_utils.get_ecs_cluster_name(ecs_cluster_arn, region=region)
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
     num_cpus = ec2_utils.get_instance_num_cpus(worker_instance_id, region=region)
-    num_gpus = str(ec2_utils.get_instance_num_gpus(worker_instance_id, region=region))
+    num_gpus = ec2_utils.get_instance_num_gpus(worker_instance_id, region=region)
     # We assume that about 80% of RAM is free on the instance, since we are not directly querying it to find out
     # what the memory utilization is.
     memory = int(ec2_utils.get_instance_memory(worker_instance_id, region=region) * 0.8)
