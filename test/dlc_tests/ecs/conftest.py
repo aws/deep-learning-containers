@@ -45,7 +45,7 @@ def ecs_cluster(request, ecs_client, ecs_cluster_name, region):
 
 @pytest.fixture(scope="function")
 def s3_artifact_copy(request, ecs_cluster_name):
-    artifact_folder = copy.copy(ecs_cluster_name)
+    artifact_folder = copy.deepcopy(ecs_cluster_name)
     s3_test_artifact_location = ecs_utils.upload_tests_for_ecs(artifact_folder)
 
     def delete_s3_artifact_copy():
