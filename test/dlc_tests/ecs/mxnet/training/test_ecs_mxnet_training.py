@@ -1,7 +1,8 @@
 import datetime
 
 from invoke import run
-import test.test_utils.ecs as ecs_utils
+
+from test.test_utils import ecs as ecs_utils
 
 
 def test_s3_artifact_copy(mxnet_training):

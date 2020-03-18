@@ -42,6 +42,19 @@ def ecs_cluster(request, ecs_client, ecs_cluster_name, region):
     raise ecs_utils.ECSClusterCreationException(f'Failed to create ECS cluster - {cluster_name}')
 
 
+@pytest.fixture(scope="function")
+def s3_artifact_copy(request, ecs_cluster_name):
+    artifact_folder = f"{ecs_cluster_name}-folder"
+    s3_test_artifact_location = ecs_utils.upload_tests_for_ecs(artifact_folder)
+
+    def delete_s3_artifact_copy():
+        ecs_utils.delete_uploaded_tests_for_ecs(s3_test_artifact_location)
+
+    request.addfinalizer(delete_s3_artifact_copy)
+
+    return s3_test_artifact_location
+
+
 @pytest.fixture(scope="session")
 def ecs_ami(request):
     return request.param
