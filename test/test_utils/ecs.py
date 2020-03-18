@@ -30,17 +30,30 @@ TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
 
 class ECSException(Exception):
-    """Base class for other exceptions"""
+    """
+    Base class for other exceptions
+    """
     pass
 
 
 class ECSClusterCreationException(ECSException):
-    """Raised when cluster creation failed"""
+    """
+    Raised when cluster creation failed
+    """
     pass
 
 
 class ECSTestArtifactCopyException(ECSException):
-    """Raised when copying test artifacts fails"""
+    """
+    Raised when copying test artifacts fails
+    """
+    pass
+
+
+class TaskNotStoppedError(ECSException):
+    """
+    Raise when ECS task is not in a stopped state
+    """
     pass
 
 
@@ -134,8 +147,7 @@ def attach_ecs_worker_node(worker_instance_type, ami_id, cluster_name, cluster_a
     :param region:
     :return: <tuple> instance_id, public_ip_address
     """
-    ecs_user_data = f"""#!/bin/bash
-    echo ECS_CLUSTER={cluster_name} >> /etc/ecs/ecs.config"""
+    ecs_user_data = f"#!/bin/bash\necho ECS_CLUSTER={cluster_name} >> /etc/ecs/ecs.config"
 
     instc = ec2_utils.launch_instance(
         ami_id,
@@ -723,6 +735,55 @@ def ecs_inference_test_executor(
         tear_down_ecs_inference_service(
             cluster_arn, service_name, task_family, revision
         )
+
+
+def ecs_training_test_executor(cluster_arn, family_name, datetime_suffix, training_command, num_cpus,
+                               memory, image, num_gpus=None):
+    """Function to run training task on ECS
+
+    Args:
+        Required - cluster_name, cluster_arn, datetime_suffix, training_command, test_name: str
+    Returns:
+        Bool, True if test passed else False
+
+    Cleans up the resources after each execution
+    """
+
+    task_arn = None
+    task_family = None
+    revision = None
+    try:
+        image_tag = image.split(':')[-1]
+        log_group_name = os.path.join(os.sep, 'ecs', image_tag)
+
+        arguments_dict = {
+            "family_name": family_name,
+            "image": image,
+            "log_group_name": log_group_name,
+            "log_stream_prefix": datetime_suffix,
+            "num_cpu": num_cpus,
+            "memory": memory,
+            "entrypoint" : ["sh", "-c"],
+            "container_command": training_command
+        }
+
+        if "gpu" in image_tag:
+            arguments_dict["num_gpu"] = num_gpus
+
+        task_family, revision = register_ecs_task_definition(**arguments_dict)
+        print(f"Created Task definition - {task_family}:{revision}")
+
+        task_arn = create_ecs_task(cluster_arn, f"{task_family}:{revision}")
+        print(f"Created ECS task - {task_arn} with cloudwatch log group - {log_group_name} log stream prefix - "
+              f"{os.path.join(datetime_suffix, cluster_arn)}")
+        print("Waiting for task to stop ...")
+
+        if ecs_task_waiter(cluster_arn, [task_arn], "tasks_stopped"):
+            ret_code = describe_ecs_task_exit_status(cluster_arn, task_arn)
+            return ret_code
+        raise TaskNotStoppedError(f"Task not stopped {task_arn}")
+    finally:
+        tear_down_ecs_training_task(cluster_arn, task_arn, task_family, revision)
 
 
 def setup_ecs_inference_service(
