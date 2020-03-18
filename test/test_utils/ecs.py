@@ -1,14 +1,16 @@
 """
 Helper functions for ECS Integration Tests
 """
-from retrying import retry
-import boto3
+import datetime
 import os
+
+import boto3
+
+from retrying import retry
 from invoke import run
 
-from test.test_utils import DEFAULT_REGION
-import test.test_utils.ec2 as ec2_utils
-from test.test_utils import get_mms_run_command, get_tensorflow_model_name
+from test.test_utils import DEFAULT_REGION, get_mms_run_command, get_tensorflow_model_name
+from test.test_utils import ec2 as ec2_utils
 
 
 ECS_AMI_ID = {"cpu": "ami-0fb71e703258ab7eb", "gpu": "ami-0a36be2e955646bb2"}
@@ -775,8 +777,7 @@ def ecs_inference_test_executor(
         )
 
 
-def ecs_training_test_executor(cluster_name, cluster_arn, datetime_suffix, training_command, num_cpus,
-                               memory, image, num_gpus=None):
+def ecs_training_test_executor(cluster_name, cluster_arn, training_command, image_uri, instance_id, num_gpus=None):
     """
     Function to run training task on ECS; Cleans up the resources after each execution
 
@@ -784,33 +785,37 @@ def ecs_training_test_executor(cluster_name, cluster_arn, datetime_suffix, train
     :param cluster_arn:
     :param datetime_suffix:
     :param training_command:
-    :param num_cpus:
-    :param memory:
-    :param image:
+    :param image_uri:
+    :param instance_id:
     :param num_gpus:
     :return:
     """
+    # Set defaults to satisfy finally case
     task_arn = None
     task_family = None
     revision = None
+
+    # Define constants for arguments to be sent to task def
+    image_tag = image_uri.split(':')[-1]
+    log_group_name = os.path.join(os.sep, 'ecs', image_tag)
+    datetime_suffix = datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')
+    num_cpus = ec2_utils.get_instance_num_cpus(instance_id)
+    memory = int(ec2_utils.get_instance_memory(instance_id) * 0.8)
+
+    arguments_dict = {
+        "family_name": cluster_name,
+        "image": image_uri,
+        "log_group_name": log_group_name,
+        "log_stream_prefix": datetime_suffix,
+        "num_cpu": num_cpus,
+        "memory": memory,
+        "entrypoint" : ["sh", "-c"],
+        "container_command": training_command
+    }
+
+    if "gpu" in image_tag and num_gpus:
+        arguments_dict["num_gpu"] = str(num_gpus)
     try:
-        image_tag = image.split(':')[-1]
-        log_group_name = os.path.join(os.sep, 'ecs', image_tag)
-
-        arguments_dict = {
-            "family_name": cluster_name,
-            "image": image,
-            "log_group_name": log_group_name,
-            "log_stream_prefix": datetime_suffix,
-            "num_cpu": num_cpus,
-            "memory": memory,
-            "entrypoint" : ["sh", "-c"],
-            "container_command": training_command
-        }
-
-        if "gpu" in image_tag and num_gpus:
-            arguments_dict["num_gpu"] = str(num_gpus)
-
         task_family, revision = register_ecs_task_definition(**arguments_dict)
         print(f"Created Task definition - {task_family}:{revision}")
 
