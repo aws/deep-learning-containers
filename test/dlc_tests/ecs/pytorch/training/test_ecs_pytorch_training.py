@@ -21,8 +21,7 @@ def test_ecs_pytorch_training_mnist_cpu(cpu_only, ecs_container_instance, pytorc
     s3_test_artifact_location = s3_artifact_copy
 
     training_cmd = ecs_utils.build_ecs_training_command(
-        s3_test_artifact_location, os.path.join('.', os.sep, "test", "bin", "pytorch_tests", "pytorch_tests",
-                                                "testPyTorch")
+        s3_test_artifact_location, os.path.join('.', os.sep, "test", "bin", "pytorch_tests", "testPyTorch")
     )
 
     # Naming the family after the test name, which is in this format
