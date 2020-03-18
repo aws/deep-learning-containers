@@ -40,11 +40,34 @@ def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80"):
     run_out = run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg")
     if run_out.return_code != 0:
         return False
-    run_out = run(f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg")
+    run_out = run(f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg", warn=True)
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
     if run_out.return_code != 0 or "probability" not in run_out.stdout:
+        return False
+
+    return True
+
+
+@retry(
+    stop_max_attempt_number=10,
+    wait_fixed=10000,
+    retry_on_result=retry_if_result_is_false,
+)
+def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80"):
+    """
+    Send request to container to test inference on flower.jpg
+    :param ip_address:
+    :param port:
+    :return: <bool> True/False based on result of inference
+    """
+    run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg")
+    run_out = run(f"curl -X POST http://{ip_address}:{port}/predictions/pytorch-densenet -T flower.jpg", warn=True)
+
+    # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
+    # is 404. Hence the extra check.
+    if run_out.return_code != 0 or 'flowerpot' not in run_out.stdout:
         return False
 
     return True
@@ -64,7 +87,7 @@ def get_mms_run_command(model_names, processor="cpu"):
         }
     else:
         mxnet_model_location = {
-            "squeezenet": "https://tushar-public.s3-us-west-2.amazonaws.com/squeezenet_v1.1_eia.mar"
+            "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar"
         }
 
     if not isinstance(model_names, list):
