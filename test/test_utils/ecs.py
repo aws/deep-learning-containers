@@ -38,7 +38,14 @@ class ECSException(Exception):
 
 class ECSClusterCreationException(ECSException):
     """
-    Raised when cluster creation failed
+    Raised when cluster creation fails
+    """
+    pass
+
+
+class ECSDescribeClusterException(ECSException):
+    """
+    Raised when describe cluster fails
     """
     pass
 
@@ -61,6 +68,11 @@ class ECSTrainingTestFailure(ECSException):
     """
     Raise when an ECS training test fails
     """
+    pass
+
+
+class ECSServiceCreationException(ECSException):
+    """Raised when create service on ECS fails"""
     pass
 
 
@@ -91,7 +103,7 @@ def check_ecs_cluster_status(cluster_arn_or_name, status, region=DEFAULT_REGION)
         ecs_client = boto3.Session(region_name=region).client("ecs")
         response = ecs_client.describe_clusters(clusters=[cluster_arn_or_name])
         if response["failures"]:
-            raise Exception(
+            raise ECSDescribeClusterException(
                 f"Failures in describe cluster. Error - Expected {status} but got {response['failures']}"
             )
         elif (
@@ -102,7 +114,7 @@ def check_ecs_cluster_status(cluster_arn_or_name, status, region=DEFAULT_REGION)
         else:
             raise ValueError(f"Cluster status is not {status}")
     except Exception as e:
-        raise Exception(e)
+        raise ECSDescribeClusterException(e)
 
 
 def create_ecs_cluster(cluster_name, region=DEFAULT_REGION):
@@ -119,6 +131,19 @@ def create_ecs_cluster(cluster_name, region=DEFAULT_REGION):
         return cluster_arn
     except Exception as e:
         raise Exception(f"Failed to launch cluster - {e}")
+
+
+def get_ecs_cluster_name(ecs_cluster_arn, region=DEFAULT_REGION):
+    """
+    Get ecs cluster name from a known ecs cluster ARN
+    :param ecs_cluster_arn:
+    :param region:
+    :return: <str> ecs cluster name
+    """
+    ecs_client = boto3.Session(region_name=region).client("ecs")
+    response = ecs_client.describe_clusters(clusters=[ecs_cluster_arn])
+    cluster_name = response["clusters"][0]["clusterName"]
+    return cluster_name
 
 
 def list_ecs_container_instances(cluster_arn_or_name, filter_value=None, status=None, region=DEFAULT_REGION):
@@ -274,13 +299,14 @@ def register_ecs_task_definition(
             ]
         if num_gpu:
             if not isinstance(num_gpu, str):
-                raise Exception(
-                    f"Invalid type for argument num_gpu, type: {num_gpu}. valid type: <string>"
-                )
-            else:
-                arguments_dict["containerDefinitions"][0]["resourceRequirements"] = [
-                    {"value": num_gpu, "type": "GPU"},
-                ]
+                if not isinstance(num_gpu, int):
+                    raise Exception(
+                        f"Invalid type for argument num_gpu, type: {num_gpu}. valid type: <int/str>"
+                    )
+                num_gpu = str(num_gpu)
+            arguments_dict["containerDefinitions"][0]["resourceRequirements"] = [
+                {"value": num_gpu, "type": "GPU"},
+            ]
         response = ecs_client.register_task_definition(**arguments_dict)
         return (
             response["taskDefinition"]["family"],
@@ -318,7 +344,7 @@ def create_ecs_service(cluster_name, service_name, task_definition, region=DEFAU
         waiter.wait(cluster=cluster_name, services=[response["service"]["serviceName"]])
         return response["service"]["serviceName"]
     except Exception as e:
-        raise Exception(
+        raise ECSServiceCreationException(
             f"Failed to create service: {service_name} with task definition: {task_definition}. "
             f"Exception - {e}"
         )
@@ -553,13 +579,14 @@ def delete_ecs_cluster(cluster_arn, region=DEFAULT_REGION):
         raise Exception(f"Failed to delete cluster. Exception - {e}")
 
 
-def tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revision):
+def tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revision, region=DEFAULT_REGION):
     """
     Function to clean up ECS task definition, service resources if exist
     :param cluster_arn:
     :param service_name:
     :param task_family:
     :param revision:
+    :param region:
     """
 
     if task_family and revision:
@@ -572,7 +599,13 @@ def tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revi
         update_ecs_service(cluster_arn, service_name, 0)
         delete_ecs_service(cluster_arn, service_name)
     else:
-        print("Skipped - Service and cluster deletion")
+        ecs_client = boto3.Session(region_name=region).client("ecs")
+        response = ecs_client.list_services(cluster=cluster_arn)
+        services_list = response["serviceArns"]
+        for service in services_list:
+            update_ecs_service(cluster_arn, service, 0)
+            delete_ecs_service(cluster_arn, service)
+        print(f"Deleted all services in {cluster_arn}")
 
 
 def tear_down_ecs_training_task(cluster_arn, task_arn, task_family, revision):
@@ -837,7 +870,6 @@ def setup_ecs_inference_service(
     :return: <tuple> service_name, task_family, revision if all steps passed else Exception
         Cleans up the resources if any step fails
     """
-    service_name = task_family = revision = None
     try:
         port_mappings = get_ecs_port_mappings(framework)
         log_group_name = "/ecs/{}-{}-{}".format(framework, job, processor)
@@ -879,8 +911,4 @@ def setup_ecs_inference_service(
             raise Exception(f"No task running in the service: {service_name}")
         return service_name, task_family, revision
     except Exception as e:
-        print(f"Setup failure Exception - {e}")
-        tear_down_ecs_inference_service(
-            cluster_arn, service_name, task_family, revision
-        )
-    return None, None, None
+        raise ECSServiceCreationException(f"Setup Inference Service Exception - {e}")
