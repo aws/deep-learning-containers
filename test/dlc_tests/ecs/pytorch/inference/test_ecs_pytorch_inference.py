@@ -21,24 +21,26 @@ def test_ecs_pytorch_inference_cpu(pytorch_inference, ecs_container_instance, re
 
     datetime_suffix = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
     model_name = "pytorch-densenet"
+    service_name = task_family = revision = None
+    try:
+        service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
+            pytorch_inference,
+            "pytorch",
+            "inference",
+            "cpu",
+            ecs_cluster_name,
+            ecs_cluster_arn,
+            datetime_suffix,
+            model_name,
+            num_cpus,
+            memory,
+            num_gpus,
+        )
+        inference_result = request_pytorch_inference_densenet(public_ip_address)
+        assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
 
-    service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
-        pytorch_inference,
-        "pytorch",
-        "inference",
-        "cpu",
-        ecs_cluster_name,
-        ecs_cluster_arn,
-        datetime_suffix,
-        model_name,
-        num_cpus,
-        memory,
-        num_gpus,
-    )
-    inference_result = request_pytorch_inference_densenet(public_ip_address)
-    ecs_utils.tear_down_ecs_inference_service(ecs_cluster_arn, service_name, task_family, revision)
-
-    assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
+    finally:
+        ecs_utils.tear_down_ecs_inference_service(ecs_cluster_arn, service_name, task_family, revision)
 
 
 @pytest.mark.parametrize("ecs_instance_type", ["p3.2xlarge"], indirect=True)
@@ -55,21 +57,23 @@ def test_ecs_pytorch_inference_gpu(pytorch_inference, ecs_container_instance, re
 
     datetime_suffix = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
     model_name = "pytorch-densenet"
+    service_name = task_family = revision = None
+    try:
+        service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
+            pytorch_inference,
+            "pytorch",
+            "inference",
+            "gpu",
+            ecs_cluster_name,
+            ecs_cluster_arn,
+            datetime_suffix,
+            model_name,
+            num_cpus,
+            memory,
+            num_gpus,
+        )
+        inference_result = request_pytorch_inference_densenet(public_ip_address)
+        assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
 
-    service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
-        pytorch_inference,
-        "pytorch",
-        "inference",
-        "gpu",
-        ecs_cluster_name,
-        ecs_cluster_arn,
-        datetime_suffix,
-        model_name,
-        num_cpus,
-        memory,
-        num_gpus,
-    )
-    inference_result = request_pytorch_inference_densenet(public_ip_address)
-    ecs_utils.tear_down_ecs_inference_service(ecs_cluster_arn, service_name, task_family, revision)
-
-    assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
+    finally:
+        ecs_utils.tear_down_ecs_inference_service(ecs_cluster_arn, service_name, task_family, revision)
