@@ -55,7 +55,7 @@ def test_ecs_mxnet_training_dgl_cpu(cpu_only, ecs_container_instance, mxnet_trai
     """
     CPU DGL test for MXNet Training
 
-    Instance Type - c4.8xlarge
+    Instance Type - c4.2xlarge
 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
@@ -68,14 +68,14 @@ def test_ecs_mxnet_training_dgl_cpu(cpu_only, ecs_container_instance, mxnet_trai
     ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, mxnet_training, instance_id)
 
 
-@pytest.mark.parametrize("training_script", [MX_MNIST_TRAINING_SCRIPT], indirect=True)
+@pytest.mark.parametrize("training_script", [MX_DGL_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p2.xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_mxnet_training_dgl_gpu(gpu_only, ecs_container_instance, mxnet_training, training_cmd, ecs_cluster_name):
     """
     GPU DGL test for MXNet Training
 
-    Instance Type - p2.8xlarge
+    Instance Type - p2.xlarge
 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.

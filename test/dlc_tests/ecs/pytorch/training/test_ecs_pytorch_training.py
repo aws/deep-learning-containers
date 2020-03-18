@@ -58,7 +58,7 @@ def test_ecs_pytorch_training_dgl_cpu(cpu_only, ecs_container_instance, pytorch_
     """
     CPU DGL test for PyTorch Training
 
-    Instance Type - c5.9xlarge
+    Instance Type - c4.xlarge
 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
@@ -79,7 +79,7 @@ def test_ecs_pytorch_training_dgl_gpu(gpu_only, ecs_container_instance, pytorch_
     """
     GPU DGL test for PyTorch Training
 
-    Instance Type - p3.8xlarge
+    Instance Type - p2.xlarge
 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.

@@ -31,7 +31,6 @@ ECS_S3_TEST_BUCKET = "s3://dlcinfra-ecs-testscripts"
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
 
-
 class ECSException(Exception):
     """
     Base class for other exceptions
