@@ -891,7 +891,7 @@ def setup_ecs_inference_service(
 
         if processor == "gpu" and num_gpus:
             arguments_dict["num_gpu"] = num_gpus
-        if processor == "tensorflow":
+        if framework == "tensorflow":
             arguments_dict["environment"] = get_ecs_tensorflow_environment_variables(
                 processor, model_name
             )
