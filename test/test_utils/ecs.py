@@ -108,9 +108,7 @@ def create_ecs_cluster(cluster_name, region=DEFAULT_REGION):
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
         response = ecs_client.create_cluster(clusterName=cluster_name)
-        print(f"CLUSTER NAME {cluster_name}")
         cluster_arn = response["cluster"]["clusterArn"]
-        print(f"CLUSTER ARN {cluster_arn}")
         return cluster_arn
     except Exception as e:
         raise Exception(f"Failed to launch cluster - {e}")
@@ -739,7 +737,7 @@ def ecs_inference_test_executor(
         )
 
 
-def ecs_training_test_executor(cluster_arn, family_name, datetime_suffix, training_command, num_cpus,
+def ecs_training_test_executor(cluster_name, cluster_arn, datetime_suffix, training_command, num_cpus,
                                memory, image, num_gpus=None):
     """Function to run training task on ECS
 
@@ -759,7 +757,7 @@ def ecs_training_test_executor(cluster_arn, family_name, datetime_suffix, traini
         log_group_name = os.path.join(os.sep, 'ecs', image_tag)
 
         arguments_dict = {
-            "family_name": family_name,
+            "family_name": cluster_name,
             "image": image,
             "log_group_name": log_group_name,
             "log_stream_prefix": datetime_suffix,
@@ -775,13 +773,13 @@ def ecs_training_test_executor(cluster_arn, family_name, datetime_suffix, traini
         task_family, revision = register_ecs_task_definition(**arguments_dict)
         print(f"Created Task definition - {task_family}:{revision}")
 
-        task_arn = create_ecs_task(cluster_arn, f"{task_family}:{revision}")
+        task_arn = create_ecs_task(cluster_name, f"{task_family}:{revision}")
         print(f"Created ECS task - {task_arn} with cloudwatch log group - {log_group_name} log stream prefix - "
-              f"{os.path.join(datetime_suffix, cluster_arn)}")
+              f"{os.path.join(datetime_suffix, cluster_name)}")
         print("Waiting for task to stop ...")
 
-        if ecs_task_waiter(cluster_arn, [task_arn], "tasks_stopped"):
-            ret_code = describe_ecs_task_exit_status(cluster_arn, task_arn)
+        if ecs_task_waiter(cluster_name, [task_arn], "tasks_stopped"):
+            ret_code = describe_ecs_task_exit_status(cluster_name, task_arn)
             return ret_code
         raise TaskNotStoppedError(f"Task not stopped {task_arn}")
     finally:
