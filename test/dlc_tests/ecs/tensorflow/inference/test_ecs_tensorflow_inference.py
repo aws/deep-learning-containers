@@ -20,7 +20,7 @@ def test_ecs_tensorflow_inference_cpu(tensorflow_inference, ecs_container_instan
     memory = int(ec2_utils.get_instance_memory(worker_instance_id, region=region) * 0.8)
 
     datetime_suffix = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
-    model_name = get_tensorflow_model_name("cpu", "saved_model_half_plus_two")
+    model_name = "saved_model_half_plus_two"
     service_name = task_family = revision = None
     try:
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
@@ -56,7 +56,7 @@ def test_ecs_tensorflow_inference_gpu(tensorflow_inference, ecs_container_instan
     memory = int(ec2_utils.get_instance_memory(worker_instance_id, region=region) * 0.8)
 
     datetime_suffix = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
-    model_name = get_tensorflow_model_name("gpu", "saved_model_half_plus_two")
+    model_name = "saved_model_half_plus_two"
     service_name = task_family = revision = None
     try:
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
