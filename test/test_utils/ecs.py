@@ -50,9 +50,16 @@ class ECSTestArtifactCopyException(ECSException):
     pass
 
 
-class TaskNotStoppedError(ECSException):
+class ECSTaskNotStoppedError(ECSException):
     """
     Raise when ECS task is not in a stopped state
+    """
+    pass
+
+
+class ECSTrainingTestFailure(ECSException):
+    """
+    Raise when an ECS training test fails
     """
     pass
 
@@ -437,22 +444,20 @@ def describe_ecs_task_exit_status(cluster_arn_or_name, task_arn, region=DEFAULT_
     :param cluster_arn_or_name:
     :param task_arn:
     :param region:
-    :return: True if exit code is zero, else False
+    :return: empty list if no nonzero return codes, else a list of dicts with debug info
     """
-    try:
-        ecs_client = boto3.Session(region_name=region).client("ecs")
-        response = ecs_client.describe_tasks(cluster=cluster_arn_or_name, tasks=[task_arn])
-        return_code = []
-        if response["failures"]:
-            raise Exception(f"Failures in describe tasks - {response['failures']}")
-        else:
-            for container in response["tasks"][0]["containers"]:
-                return_code.append(container["exitCode"] == 0)
-            return all(return_code)
-    except Exception as e:
-        raise Exception(
-            f"Failed to describe task {task_arn} in cluster {cluster_arn_or_name}. Exception - {e}"
-        )
+    ecs_client = boto3.Session(region_name=region).client("ecs")
+    response = ecs_client.describe_tasks(cluster=cluster_arn_or_name, tasks=[task_arn])
+    return_codes = []
+    if response["failures"]:
+        raise RuntimeError(f"Failures in describe tasks - {response['failures']}")
+    for container in response["tasks"][0]["containers"]:
+        if container["exitCode"] != 0:
+            return_codes.append({"container_arn": container['containerArn'],
+                                 "exit_code": container['exitCode'],
+                                 "reason": container['reason']})
+
+    return return_codes
 
 
 def stop_ecs_task(cluster_arn_or_name, task_arn, region=DEFAULT_REGION):
@@ -739,16 +744,19 @@ def ecs_inference_test_executor(
 
 def ecs_training_test_executor(cluster_name, cluster_arn, datetime_suffix, training_command, num_cpus,
                                memory, image, num_gpus=None):
-    """Function to run training task on ECS
-
-    Args:
-        Required - cluster_name, cluster_arn, datetime_suffix, training_command, test_name: str
-    Returns:
-        Bool, True if test passed else False
-
-    Cleans up the resources after each execution
     """
+    Function to run training task on ECS; Cleans up the resources after each execution
 
+    :param cluster_name:
+    :param cluster_arn:
+    :param datetime_suffix:
+    :param training_command:
+    :param num_cpus:
+    :param memory:
+    :param image:
+    :param num_gpus:
+    :return:
+    """
     task_arn = None
     task_family = None
     revision = None
@@ -767,7 +775,7 @@ def ecs_training_test_executor(cluster_name, cluster_arn, datetime_suffix, train
             "container_command": training_command
         }
 
-        if "gpu" in image_tag:
+        if "gpu" in image_tag and num_gpus:
             arguments_dict["num_gpu"] = str(num_gpus)
 
         task_family, revision = register_ecs_task_definition(**arguments_dict)
@@ -779,9 +787,23 @@ def ecs_training_test_executor(cluster_name, cluster_arn, datetime_suffix, train
         print("Waiting for task to stop ...")
 
         if ecs_task_waiter(cluster_name, [task_arn], "tasks_stopped"):
-            ret_code = describe_ecs_task_exit_status(cluster_name, task_arn)
-            return ret_code
-        raise TaskNotStoppedError(f"Task not stopped {task_arn}")
+            ret_codes = describe_ecs_task_exit_status(cluster_name, task_arn)
+            if ret_codes:
+
+                # Assemble error message if we have nonzero return codes
+                error_msg = "Failures:\n"
+                for code in ret_codes:
+                    add_on = "------------------\n"
+                    for key, value in code.items():
+                        add_on += f"{key}: {value}\n"
+                    error_msg += add_on
+                raise ECSTrainingTestFailure(error_msg)
+
+            # Return gracefully if task stops
+            return
+
+        # Raise error if the task does not stop
+        raise ECSTaskNotStoppedError(f"Task not stopped {task_arn}")
     finally:
         tear_down_ecs_training_task(cluster_arn, task_arn, task_family, revision)
 
