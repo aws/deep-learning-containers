@@ -2,12 +2,12 @@ import os
 
 import pytest
 
-from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2
+from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2, CONTAINER_TESTS_PREFIX
 from test.test_utils import ecs as ecs_utils
 from test.test_utils import ec2 as ec2_utils
 
 
-TF_MNIST_TRAINING_SCRIPT = os.path.join(os.sep, "test", "bin", "testTensorFlow")
+TF_MNIST_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorFlow")
 
 
 @pytest.mark.parametrize("training_script", [TF_MNIST_TRAINING_SCRIPT], indirect=True)
