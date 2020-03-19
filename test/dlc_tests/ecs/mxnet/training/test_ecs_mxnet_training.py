@@ -9,7 +9,6 @@ from test.test_utils import ec2 as ec2_utils
 
 MX_MNIST_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testMXNet")
 MX_DGL_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testMXNetDGL")
-MX_GLUONNLP_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "gluonnlp_tests", "testNLP")
 
 
 @pytest.mark.parametrize("training_script", [MX_MNIST_TRAINING_SCRIPT], indirect=True)
