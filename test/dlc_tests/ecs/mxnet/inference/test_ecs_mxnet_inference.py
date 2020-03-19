@@ -15,7 +15,6 @@ def test_cpu_dummy(mxnet_inference, cpu_only):
     print(mxnet_inference)
 
 
-@pytest.mark.skip('Not testing this')
 def test_ecs_mxnet_inference(mxnet_inference, region):
     processor = "gpu" if "gpu" in mxnet_inference else "cpu"
     framework = "mxnet"
