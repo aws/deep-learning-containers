@@ -36,6 +36,7 @@ def test_ecs_tensorflow_inference_cpu(tensorflow_inference, ecs_container_instan
             memory,
             num_gpus
         )
+        model_name = get_tensorflow_model_name("cpu", model_name)
         inference_result = request_tensorflow_inference(model_name, ip_address=public_ip_address)
         assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
 
@@ -72,6 +73,7 @@ def test_ecs_tensorflow_inference_gpu(tensorflow_inference, ecs_container_instan
             memory,
             num_gpus
         )
+        model_name = get_tensorflow_model_name("gpu", model_name)
         inference_result = request_tensorflow_inference(model_name, ip_address=public_ip_address)
         assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
 

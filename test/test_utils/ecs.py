@@ -17,7 +17,8 @@ ECS_AMI_ID = {"cpu": "ami-0fb71e703258ab7eb", "gpu": "ami-0a36be2e955646bb2"}
 
 ECS_TENSORFLOW_INFERENCE_PORT_MAPPINGS = [
     {"containerPort": 8500, "hostPort": 8500, "protocol": "tcp"},
-    {"containerPort": 8501, "hostPort": 80, "protocol": "tcp"}
+    {"containerPort": 8501, "hostPort": 8501, "protocol": "tcp"},
+    {"containerPort": 80, "protocol": "tcp"},
 ]
 
 ECS_MXNET_PYTORCH_INFERENCE_PORT_MAPPINGS = [
