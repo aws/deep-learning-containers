@@ -63,7 +63,7 @@ def test_ecs_tensorflow_inference_gpu(tensorflow_inference, ecs_container_instan
             tensorflow_inference,
             "tensorflow",
             "inference",
-            "cpu",
+            "gpu",
             ecs_cluster_name,
             ecs_cluster_arn,
             datetime_suffix,
