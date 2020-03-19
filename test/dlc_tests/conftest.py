@@ -109,6 +109,11 @@ def gpu_only():
     pass
 
 
+@pytest.fixture(scope="session")
+def py3_only():
+    pass
+
+
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
@@ -125,6 +130,10 @@ def pytest_generate_tests(metafunc):
                         images_to_parametrize.append(image)
                     elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames:
                         images_to_parametrize.append(image)
+
+            # Remove all images tagged as "py2" if py3_only is a fixture
+            if images_to_parametrize and "py3_only" in metafunc.fixturenames:
+                images_to_parametrize = [py3_image for py3_image in images_to_parametrize if 'py2' not in py3_image]
 
             # Parametrize tests that spin up an ecs cluster with unique name
             if images_to_parametrize and "ecs_container_instance" in metafunc.fixturenames:
