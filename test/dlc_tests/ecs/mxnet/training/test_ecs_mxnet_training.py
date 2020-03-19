@@ -12,6 +12,7 @@ MX_DGL_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "test
 MX_GLUONNLP_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "gluonnlp_tests", "testNLP")
 
 
+@pytest.mark.skip('Not testing this')
 @pytest.mark.parametrize("training_script", [MX_MNIST_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["c4.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
@@ -29,6 +30,7 @@ def test_ecs_mxnet_training_mnist_cpu(cpu_only, ecs_container_instance, mxnet_tr
     ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, mxnet_training, instance_id)
 
 
+@pytest.mark.skip('Not testing this')
 @pytest.mark.parametrize("training_script", [MX_MNIST_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
@@ -49,6 +51,7 @@ def test_ecs_mxnet_training_mnist_gpu(gpu_only, ecs_container_instance, mxnet_tr
                                          num_gpus=num_gpus)
 
 
+@pytest.mark.skip('Not testing this')
 @pytest.mark.parametrize("training_script", [MX_DGL_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["c4.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
@@ -70,6 +73,7 @@ def test_ecs_mxnet_training_dgl_cpu(cpu_only, py3_only, ecs_container_instance, 
     ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, mxnet_training, instance_id)
 
 
+@pytest.mark.skip('Not testing this')
 @pytest.mark.parametrize("training_script", [MX_DGL_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p2.xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)

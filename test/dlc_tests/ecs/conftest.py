@@ -34,7 +34,7 @@ def ecs_cluster(request, ecs_client, ecs_cluster_name, region):
     def delete_ecs_cluster():
         ecs_utils.delete_ecs_cluster(cluster_arn, region=region)
 
-    request.addfinalizer(delete_ecs_cluster)
+    # request.addfinalizer(delete_ecs_cluster)
 
     # Wait for cluster status to be active
     if ecs_utils.check_ecs_cluster_status(cluster_arn, "ACTIVE"):
@@ -60,7 +60,7 @@ def training_cmd(request, ecs_cluster_name, training_script):
     def delete_s3_artifact_copy():
         ecs_utils.delete_uploaded_tests_for_ecs(s3_test_artifact_location)
 
-    request.addfinalizer(delete_s3_artifact_copy)
+    # request.addfinalizer(delete_s3_artifact_copy)
 
     return ecs_utils.build_ecs_training_command(s3_test_artifact_location, training_script)
 
@@ -124,7 +124,7 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_ins
         terminate_waiter = ec2_client.get_waiter("instance_terminated")
         terminate_waiter.wait(InstanceIds=[instance_id])
 
-    request.addfinalizer(terminate_ec2_instance)
+    # request.addfinalizer(terminate_ec2_instance)
 
     waiter = ec2_client.get_waiter("instance_running")
     waiter.wait(InstanceIds=[instance_id])
