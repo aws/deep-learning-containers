@@ -77,6 +77,28 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80"):
     return True
 
 
+@retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"):
+    """
+    Method to run tensorflow inference on half_plus_two model using CURL command
+    :param model_name:
+    :param ip_address:
+    :param port:
+    :return:
+    """
+    inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"
+    run_out = run(
+        f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
+    )
+
+    # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
+    # is 404. Hence the extra check.
+    if run_out.return_code != 0 or 'predictions' not in run_out.stdout:
+        return False
+
+    return True
+
+
 def get_mms_run_command(model_names, processor="cpu"):
     """
     Helper function to format run command for MMS

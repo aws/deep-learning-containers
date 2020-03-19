@@ -891,10 +891,9 @@ def setup_ecs_inference_service(
 
         if processor == "gpu" and num_gpus:
             arguments_dict["num_gpu"] = num_gpus
-        if processor == "tensorflow":
-            arguments_dict["environment"] = get_ecs_tensorflow_environment_variables(
-                processor, model_name
-            )
+        if framework == "tensorflow":
+            arguments_dict["environment"] = get_ecs_tensorflow_environment_variables(processor, model_name)
+            print(f"Added environment variables: {arguments_dict['environment']}")
         elif framework in ["mxnet", "pytorch"]:
             arguments_dict["container_command"] = [
                 get_mms_run_command(model_name, processor)
@@ -903,9 +902,7 @@ def setup_ecs_inference_service(
         task_family, revision = register_ecs_task_definition(**arguments_dict)
         print(f"Created Task definition - {task_family}:{revision}")
 
-        service_name = create_ecs_service(
-            cluster_name, f"service-{cluster_name}", f"{task_family}:{revision}"
-        )
+        service_name = create_ecs_service(cluster_name, f"service-{cluster_name}", f"{task_family}:{revision}")
         print(
             f"Created ECS service - {service_name} with cloudwatch log group - {log_group_name} "
             f"log stream prefix - {datetime_suffix}/{cluster_name}"
