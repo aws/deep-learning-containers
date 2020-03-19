@@ -65,7 +65,7 @@ def test_ecs_mxnet_inference(mxnet_inference, region):
 
 @pytest.mark.parametrize("ecs_instance_type", ["c5.large"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
-def test_ecs_mxnet_inference_gluonnlp_cpu(pytorch_inference, ecs_container_instance, region, cpu_only, py3_only):
+def test_ecs_mxnet_inference_gluonnlp_cpu(mxnet_inference, ecs_container_instance, region, cpu_only, py3_only):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     ecs_cluster_name = ecs_utils.get_ecs_cluster_name(ecs_cluster_arn, region=region)
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
@@ -80,8 +80,8 @@ def test_ecs_mxnet_inference_gluonnlp_cpu(pytorch_inference, ecs_container_insta
     service_name = task_family = revision = None
     try:
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
-            pytorch_inference,
-            "pytorch",
+            mxnet_inference,
+            "mxnet",
             "inference",
             "cpu",
             ecs_cluster_name,
@@ -101,7 +101,7 @@ def test_ecs_mxnet_inference_gluonnlp_cpu(pytorch_inference, ecs_container_insta
 
 @pytest.mark.parametrize("ecs_instance_type", ["g3.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
-def test_ecs_mxnet_inference_gluonnlp_gpu(pytorch_inference, ecs_container_instance, region, gpu_only, py3_only):
+def test_ecs_mxnet_inference_gluonnlp_gpu(mxnet_inference, ecs_container_instance, region, gpu_only, py3_only):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     ecs_cluster_name = ecs_utils.get_ecs_cluster_name(ecs_cluster_arn, region=region)
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
@@ -116,8 +116,8 @@ def test_ecs_mxnet_inference_gluonnlp_gpu(pytorch_inference, ecs_container_insta
     service_name = task_family = revision = None
     try:
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
-            pytorch_inference,
-            "pytorch",
+            mxnet_inference,
+            "mxnet",
             "inference",
             "gpu",
             ecs_cluster_name,
