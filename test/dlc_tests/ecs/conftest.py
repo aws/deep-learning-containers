@@ -92,6 +92,7 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_ins
     # Get these from params on the test
     instance_type = ecs_instance_type
     image_id = ecs_ami
+    cluster_name = ecs_utils.get_ecs_cluster_name(ecs_cluster)
 
     user_data = f"#!/bin/bash\necho ECS_CLUSTER={ecs_cluster} >> /etc/ecs/ecs.config"
 
@@ -103,6 +104,17 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_ins
         MinCount=1,
         UserData=user_data,
         IamInstanceProfile={"Name": "ecsInstanceRole"},
+        TagSpecifications=[
+            {
+                "ResourceType": "instance",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": f"CI-CD ecs worker {cluster_name}"
+                    }
+                ]
+            }
+        ]
     )
     instance_id = instances.get("Instances")[0].get("InstanceId")
 
