@@ -31,10 +31,10 @@ def ecs_cluster(request, ecs_client, ecs_cluster_name, region):
     cluster_arn = ecs_utils.create_ecs_cluster(cluster_name, region=region)
 
     # Finalizer to delete the ecs cluster
-    # def delete_ecs_cluster():
-    #     ecs_utils.delete_ecs_cluster(cluster_arn, region=region)
-    #
-    # request.addfinalizer(delete_ecs_cluster)
+    def delete_ecs_cluster():
+        ecs_utils.delete_ecs_cluster(cluster_arn, region=region)
+
+    request.addfinalizer(delete_ecs_cluster)
 
     # Wait for cluster status to be active
     if ecs_utils.check_ecs_cluster_status(cluster_arn, "ACTIVE"):
@@ -57,10 +57,10 @@ def training_cmd(request, ecs_cluster_name, training_script):
     artifact_folder = f"{ecs_cluster_name}-folder"
     s3_test_artifact_location = ecs_utils.upload_tests_for_ecs(artifact_folder)
 
-    # def delete_s3_artifact_copy():
-    #     ecs_utils.delete_uploaded_tests_for_ecs(s3_test_artifact_location)
-    #
-    # request.addfinalizer(delete_s3_artifact_copy)
+    def delete_s3_artifact_copy():
+        ecs_utils.delete_uploaded_tests_for_ecs(s3_test_artifact_location)
+
+    request.addfinalizer(delete_s3_artifact_copy)
 
     return ecs_utils.build_ecs_training_command(s3_test_artifact_location, training_script)
 
@@ -119,12 +119,12 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_ins
     instance_id = instances.get("Instances")[0].get("InstanceId")
 
     # Define finalizer to terminate instance after this fixture completes
-    # def terminate_ec2_instance():
-    #     ec2_client.terminate_instances(InstanceIds=[instance_id])
-    #     terminate_waiter = ec2_client.get_waiter("instance_terminated")
-    #     terminate_waiter.wait(InstanceIds=[instance_id])
-    #
-    # request.addfinalizer(terminate_ec2_instance)
+    def terminate_ec2_instance():
+        ec2_client.terminate_instances(InstanceIds=[instance_id])
+        terminate_waiter = ec2_client.get_waiter("instance_terminated")
+        terminate_waiter.wait(InstanceIds=[instance_id])
+
+    request.addfinalizer(terminate_ec2_instance)
 
     waiter = ec2_client.get_waiter("instance_running")
     waiter.wait(InstanceIds=[instance_id])
