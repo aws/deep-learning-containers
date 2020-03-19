@@ -847,7 +847,8 @@ def ecs_training_test_executor(cluster_name, cluster_arn, training_command, imag
         # Raise error if the task does not stop
         raise ECSTaskNotStoppedError(f"Task not stopped {task_arn}")
     finally:
-        tear_down_ecs_training_task(cluster_arn, task_arn, task_family, revision)
+        # tear_down_ecs_training_task(cluster_arn, task_arn, task_family, revision)
+        return
 
 
 def setup_ecs_inference_service(
