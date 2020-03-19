@@ -481,20 +481,13 @@ def describe_ecs_task_exit_status(cluster_arn_or_name, task_arn, region=DEFAULT_
         raise RuntimeError(f"Failures in describe tasks - {response['failures']}")
     for container in response["tasks"][0]["containers"]:
         if container["exitCode"] != 0:
-            try:
-                return_codes.append(
-                    {
-                        "container_arn": container['containerArn'],
-                        "exit_code": container['exitCode'],
-                        "reason": container['reason']
-                    }
-                )
-            except KeyError as e:
-                raise ECSException(
-                    "Failed to get exit information for failed container test so printing everything:\n"
-                    f"Actual exception = {e}\n"
-                    f"{container}"
-                )
+            return_codes.append(
+                {
+                    "container_arn": container['containerArn'],
+                    "exit_code": container['exitCode'],
+                    "reason": container.get('reason', 'UnknownFailureReason')
+                }
+            )
 
     return return_codes
 
