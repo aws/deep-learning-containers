@@ -485,7 +485,7 @@ def describe_ecs_task_exit_status(cluster_arn_or_name, task_arn, region=DEFAULT_
                 {
                     "container_arn": container['containerArn'],
                     "exit_code": container['exitCode'],
-                    "reason": container.get('reason', 'UnknownFailureReason')
+                    "reason": container.get('reason', f'UnknownFailureReason - see response: {container}')
                 }
             )
 
