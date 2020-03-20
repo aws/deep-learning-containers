@@ -790,13 +790,13 @@ def ecs_training_test_executor(cluster_name, cluster_arn, training_command, imag
 
 
 def setup_ecs_inference_service(
-        docker_image_uri, framework, cluster_name, model_name, worker_instance_id, num_gpus=None, region=DEFAULT_REGION
+        docker_image_uri, framework, cluster_arn, model_name, worker_instance_id, num_gpus=None, region=DEFAULT_REGION
 ):
     """
     Function to setup Inference service on ECS
     :param docker_image_uri:
     :param framework:
-    :param cluster_name:
+    :param cluster_arn:
     :param model_name:
     :param worker_instance_id:
     :param num_gpus:
@@ -812,6 +812,7 @@ def setup_ecs_inference_service(
     # We assume that about 80% of RAM is free on the instance, since we are not directly querying it to find out
     # what the memory utilization is.
     memory = int(ec2_utils.get_instance_memory(worker_instance_id, region=region) * 0.8)
+    cluster_name = get_ecs_cluster_name(cluster_arn, region=region)
     # Below values here are just for sanity
     arguments_dict = {
         "family_name": cluster_name,
@@ -821,6 +822,7 @@ def setup_ecs_inference_service(
         "port_mappings": port_mappings,
         "num_cpu": num_cpus,
         "memory": memory,
+        "region": region
     }
 
     if processor == "gpu" and num_gpus:
