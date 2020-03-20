@@ -8,6 +8,13 @@ import pytest
 from invoke.context import Context
 
 
+def assign_sagemaker_instance_type(image):
+    if "tensorflow" in image:
+        return "ml.p3.8xlarge" if "gpu" in image else "ml.c4.4xlarge"
+    else:
+        return "ml.p2.8xlarge" if "gpu" in image else "ml.c4.8xlarge"
+
+
 def generate_sagemaker_pytest_cmd(image):
     """
     Parses the image ECR url and returns appropriate pytest command
@@ -21,7 +28,7 @@ def generate_sagemaker_pytest_cmd(image):
     docker_base_name, tag = image.split("/")[1].split(":")
 
     # Assign instance type
-    instance_type = "ml.p2.8xlarge" if "gpu" in tag else "ml.c4.8xlarge"
+    instance_type = assign_sagemaker_instance_type(image)
 
     # Get path to test directory
     find_path = docker_base_name.split("-")
