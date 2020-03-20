@@ -98,11 +98,11 @@ def test_ecs_mxnet_training_dgl_gpu(gpu_only, py3_only, ecs_container_instance, 
 @pytest.mark.parametrize("ecs_instance_type", ["c5.9xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 def test_ecs_mxnet_training_gluonnlp_cpu(cpu_only, py3_only, ecs_container_instance, mxnet_training, training_cmd,
-                                    ecs_cluster_name):
+                                         ecs_cluster_name):
     """
     CPU Gluon NLP for MXNet Training
 
-    Instance Type - c5.xlarge
+    Instance Type - c5.9xlarge
 
     DGL is only supported in py3, hence we have used the "py3_only" fixture to ensure py2 images don't run
     on this function.
@@ -119,7 +119,7 @@ def test_ecs_mxnet_training_gluonnlp_cpu(cpu_only, py3_only, ecs_container_insta
 @pytest.mark.parametrize("ecs_instance_type", ["p2.16xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_mxnet_training_gluonnlp_gpu(gpu_only, py3_only, ecs_container_instance, mxnet_training, training_cmd,
-                                    ecs_cluster_name):
+                                         ecs_cluster_name):
     """
     GPU Gluon NLP test for MXNet Training
 
