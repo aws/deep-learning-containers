@@ -95,7 +95,7 @@ def test_ecs_mxnet_training_dgl_gpu(gpu_only, py3_only, ecs_container_instance, 
 
 
 @pytest.mark.parametrize("training_script", [MX_GLUON_NLP_TRAINING_SCRIPT], indirect=True)
-@pytest.mark.parametrize("ecs_instance_type", ["c5.xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["c5.9xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 def test_ecs_mxnet_training_gluonnlp_cpu(cpu_only, py3_only, ecs_container_instance, mxnet_training, training_cmd,
                                     ecs_cluster_name):
