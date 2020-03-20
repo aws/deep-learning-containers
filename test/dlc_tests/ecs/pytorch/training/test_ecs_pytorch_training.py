@@ -51,14 +51,14 @@ def test_ecs_pytorch_training_mnist_gpu(gpu_only, ecs_container_instance, pytorc
 
 
 @pytest.mark.parametrize("training_script", [PT_DGL_TRAINING_SCRIPT], indirect=True)
-@pytest.mark.parametrize("ecs_instance_type", ["c4.xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["c5.12xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 def test_ecs_pytorch_training_dgl_cpu(cpu_only, py3_only, ecs_container_instance, pytorch_training, training_cmd,
                                       ecs_cluster_name):
     """
     CPU DGL test for PyTorch Training
 
-    Instance Type - c4.xlarge
+    Instance Type - c5.12xlarge
 
     DGL is only supported in py3, hence we have used the "py3_only" fixture to ensure py2 images don't run
     on this function.
