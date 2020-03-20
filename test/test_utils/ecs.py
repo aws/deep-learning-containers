@@ -804,36 +804,35 @@ def setup_ecs_inference_service(
     :return: <tuple> service_name, task_family, revision if all steps passed else Exception
         Cleans up the resources if any step fails
     """
+    datetime_suffix = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
+    processor = "gpu" if "gpu" in docker_image_uri else "eia" if "eia" in docker_image_uri else "cpu"
+    port_mappings = get_ecs_port_mappings(framework)
+    log_group_name = f"/ecs/{framework}-inference-{processor}"
+    num_cpus = ec2_utils.get_instance_num_cpus(worker_instance_id, region=region)
+    # We assume that about 80% of RAM is free on the instance, since we are not directly querying it to find out
+    # what the memory utilization is.
+    memory = int(ec2_utils.get_instance_memory(worker_instance_id, region=region) * 0.8)
+    # Below values here are just for sanity
+    arguments_dict = {
+        "family_name": cluster_name,
+        "image": docker_image_uri,
+        "log_group_name": log_group_name,
+        "log_stream_prefix": datetime_suffix,
+        "port_mappings": port_mappings,
+        "num_cpu": num_cpus,
+        "memory": memory,
+    }
+
+    if processor == "gpu" and num_gpus:
+        arguments_dict["num_gpu"] = num_gpus
+    if framework == "tensorflow":
+        arguments_dict["environment"] = get_ecs_tensorflow_environment_variables(processor, model_name)
+        print(f"Added environment variables: {arguments_dict['environment']}")
+    elif framework in ["mxnet", "pytorch"]:
+        arguments_dict["container_command"] = [
+            get_mms_run_command(model_name, processor)
+        ]
     try:
-        datetime_suffix = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
-        processor = "gpu" if "gpu" in docker_image_uri else "eia" if "eia" in docker_image_uri else "cpu"
-        port_mappings = get_ecs_port_mappings(framework)
-        log_group_name = f"/ecs/{framework}-inference-{processor}"
-        num_cpus = ec2_utils.get_instance_num_cpus(worker_instance_id, region=region)
-        # We assume that about 80% of RAM is free on the instance, since we are not directly querying it to find out
-        # what the memory utilization is.
-        memory = int(ec2_utils.get_instance_memory(worker_instance_id, region=region) * 0.8)
-        # Below values here are just for sanity
-        arguments_dict = {
-            "family_name": cluster_name,
-            "image": docker_image_uri,
-            "log_group_name": log_group_name,
-            "log_stream_prefix": datetime_suffix,
-            "port_mappings": port_mappings,
-            "num_cpu": num_cpus,
-            "memory": memory,
-        }
-
-        if processor == "gpu" and num_gpus:
-            arguments_dict["num_gpu"] = num_gpus
-        if framework == "tensorflow":
-            arguments_dict["environment"] = get_ecs_tensorflow_environment_variables(processor, model_name)
-            print(f"Added environment variables: {arguments_dict['environment']}")
-        elif framework in ["mxnet", "pytorch"]:
-            arguments_dict["container_command"] = [
-                get_mms_run_command(model_name, processor)
-            ]
-
         task_family, revision = register_ecs_task_definition(**arguments_dict)
         print(f"Created Task definition - {task_family}:{revision}")
 
