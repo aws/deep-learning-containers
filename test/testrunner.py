@@ -85,6 +85,8 @@ def run_sagemaker_tests(images):
 
     :param images:
     """
+    # TODO: TFS tests are causing failed endpoints in account. Disabling as we debug to avoid extra SM cost.
+    images = [image for image in images if "tensorflow-inference" not in image]
     pool_number = len(images)
     with Pool(pool_number) as p:
         p.map(run_sagemaker_pytest_cmd, images)
