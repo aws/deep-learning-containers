@@ -4,6 +4,8 @@ import boto3
 import docker
 import pytest
 
+from botocore.config import Config
+
 from test.test_utils import run_subprocess_cmd, UBUNTU_16_BASE_DLAMI, DEFAULT_REGION
 
 
@@ -43,7 +45,7 @@ def docker_client(region):
 
 @pytest.fixture(scope="session")
 def ec2_client():
-    return boto3.client("ec2")
+    return boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
 
 
 @pytest.fixture(scope="session")
