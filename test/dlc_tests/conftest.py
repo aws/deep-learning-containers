@@ -4,6 +4,8 @@ import boto3
 import docker
 import pytest
 
+from botocore.config import Config
+
 from test.test_utils import run_subprocess_cmd, UBUNTU_16_BASE_DLAMI, DEFAULT_REGION
 
 
@@ -24,30 +26,26 @@ collect_ignore = [os.path.join("container_tests", "*")]
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--images",
-        default=os.getenv("DLC_IMAGES").split(" "),
-        nargs="+",
-        help="Specify image(s) to run",
+        "--images", default=os.getenv("DLC_IMAGES").split(" "), nargs="+", help="Specify image(s) to run",
     )
 
 
 @pytest.fixture(scope="session")
 def region():
-    return os.getenv('AWS_REGION', DEFAULT_REGION)
+    return os.getenv("AWS_REGION", DEFAULT_REGION)
 
 
 @pytest.fixture(scope="session")
 def docker_client(region):
     run_subprocess_cmd(
-        f"$(aws ecr get-login --no-include-email --region {region})",
-        failure="Failed to log into ECR.",
+        f"$(aws ecr get-login --no-include-email --region {region})", failure="Failed to log into ECR.",
     )
     return docker.from_env()
 
 
 @pytest.fixture(scope="session")
 def ec2_client():
-    return boto3.client("ec2")
+    return boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
 
 
 @pytest.fixture(scope="session")
@@ -64,11 +62,7 @@ def ec2_instance_type(request):
 @pytest.fixture(scope="session")
 def ec2_instance(request, ec2_client, ec2_instance_type, ec2_resource):
     instances = ec2_resource.create_instances(
-        KeyName="pytest.pem",
-        ImageId=UBUNTU_16_BASE_DLAMI,
-        InstanceType=ec2_instance_type,
-        MaxCount=1,
-        MinCount=1,
+        KeyName="pytest.pem", ImageId=UBUNTU_16_BASE_DLAMI, InstanceType=ec2_instance_type, MaxCount=1, MinCount=1,
     )
     instance_id = instances[0].id
 
@@ -117,6 +111,11 @@ def gpu_only():
     pass
 
 
+@pytest.fixture(scope="session")
+def py3_only():
+    pass
+
+
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
@@ -131,12 +130,28 @@ def pytest_generate_tests(metafunc):
                         images_to_parametrize.append(image)
                     elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                         images_to_parametrize.append(image)
-                    elif (
-                        "cpu_only" not in metafunc.fixturenames
-                        and "gpu_only" not in metafunc.fixturenames
-                    ):
+                    elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames:
                         images_to_parametrize.append(image)
-            metafunc.parametrize(fixture, images_to_parametrize)
+
+            # Remove all images tagged as "py2" if py3_only is a fixture
+            if images_to_parametrize and "py3_only" in metafunc.fixturenames:
+                images_to_parametrize = [py3_image for py3_image in images_to_parametrize if 'py2' not in py3_image]
+
+            # Parametrize tests that spin up an ecs cluster with unique name
+            if images_to_parametrize and "ecs_container_instance" in metafunc.fixturenames:
+                ecs_parametrization = []
+                for index, image in enumerate(images_to_parametrize):
+                    image_tag = image.split(":")[-1].replace(".", "-")
+                    ecs_parametrization.append(
+                        (
+                            image,
+                            f"{metafunc.function.__name__}-{image_tag}-"
+                            f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}",
+                        )
+                    )
+                metafunc.parametrize(f"{fixture},ecs_cluster_name", ecs_parametrization)
+            else:
+                metafunc.parametrize(fixture, images_to_parametrize)
 
     # Parametrize for framework agnostic tests, i.e. sanity
     if "image" in metafunc.fixturenames:

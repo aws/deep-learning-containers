@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 from invoke import run
@@ -11,6 +12,9 @@ DEFAULT_REGION = "us-west-2"
 UBUNTU_16_BASE_DLAMI = "ami-0e57002aaafd42113"
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
+
+# Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
+CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
@@ -40,11 +44,72 @@ def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80"):
     run_out = run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg")
     if run_out.return_code != 0:
         return False
-    run_out = run(f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg")
+    run_out = run(f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg", warn=True)
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
     if run_out.return_code != 0 or "probability" not in run_out.stdout:
+        return False
+
+    return True
+
+
+@retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80"):
+    run_out = run(
+        (f"curl -X POST http://{ip_address}:{port}/predictions/bert_sst/predict -F "
+         "'data=[\"Positive sentiment\", \"Negative sentiment\"]'"),
+        warn=True
+    )
+
+    # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
+    # is 404. Hence the extra check.
+    if run_out.return_code != 0 or '1' not in run_out.stdout:
+        return False
+
+    return True
+
+
+@retry(
+    stop_max_attempt_number=10,
+    wait_fixed=10000,
+    retry_on_result=retry_if_result_is_false,
+)
+def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80"):
+    """
+    Send request to container to test inference on flower.jpg
+    :param ip_address:
+    :param port:
+    :return: <bool> True/False based on result of inference
+    """
+    run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg")
+    run_out = run(f"curl -X POST http://{ip_address}:{port}/predictions/pytorch-densenet -T flower.jpg", warn=True)
+
+    # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
+    # is 404. Hence the extra check.
+    if run_out.return_code != 0 or 'flowerpot' not in run_out.stdout:
+        return False
+
+    return True
+
+
+@retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"):
+    """
+    Method to run tensorflow inference on half_plus_two model using CURL command
+    :param model_name:
+    :param ip_address:
+    :param port:
+    :return:
+    """
+    inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"
+    run_out = run(
+        f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
+    )
+
+    # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
+    # is 404. Hence the extra check.
+    if run_out.return_code != 0 or 'predictions' not in run_out.stdout:
         return False
 
     return True
@@ -61,10 +126,11 @@ def get_mms_run_command(model_names, processor="cpu"):
         mxnet_model_location = {
             "squeezenet": "https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model",
             "pytorch-densenet": "https://asimov-multi-model-server.s3.amazonaws.com/pytorch/densenet/densenet.mar",
+            "bert_sst": "https://aws-dlc-sample-models.s3.amazonaws.com/bert_sst/bert_sst.mar"
         }
     else:
         mxnet_model_location = {
-            "squeezenet": "https://tushar-public.s3-us-west-2.amazonaws.com/squeezenet_v1.1_eia.mar"
+            "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar"
         }
 
     if not isinstance(model_names, list):

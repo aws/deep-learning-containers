@@ -1,12 +1,16 @@
 """
 Helper functions for ECS Integration Tests
 """
-from retrying import retry
+import datetime
+import os
+
 import boto3
 
-from test.test_utils import DEFAULT_REGION
-import test.test_utils.ec2 as ec2_utils
-from test.test_utils import get_mms_run_command, get_tensorflow_model_name
+from retrying import retry
+from invoke import run
+
+from test.test_utils import DEFAULT_REGION, get_mms_run_command, get_tensorflow_model_name
+from test.test_utils import ec2 as ec2_utils
 
 
 ECS_AMI_ID = {"cpu": "ami-0fb71e703258ab7eb", "gpu": "ami-0a36be2e955646bb2"}
@@ -23,17 +27,54 @@ ECS_MXNET_PYTORCH_INFERENCE_PORT_MAPPINGS = [
 ]
 
 ECS_INSTANCE_ROLE_ARN = "arn:aws:iam::669063966089:instance-profile/ecsInstanceRole"
-ECS_S3_TEST_BUCKET = "s3://dlcinfra-ecs-testscripts/container_tests"
+ECS_S3_TEST_BUCKET = "s3://dlcinfra-ecs-testscripts"
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
 
 class ECSException(Exception):
-    """Base class for other exceptions"""
+    """
+    Base class for other exceptions
+    """
     pass
 
 
 class ECSClusterCreationException(ECSException):
-    """Raised when cluster creation failed"""
+    """
+    Raised when cluster creation fails
+    """
+    pass
+
+
+class ECSDescribeClusterException(ECSException):
+    """
+    Raised when describe cluster fails
+    """
+    pass
+
+
+class ECSTestArtifactCopyException(ECSException):
+    """
+    Raised when copying test artifacts fails
+    """
+    pass
+
+
+class ECSTaskNotStoppedError(ECSException):
+    """
+    Raise when ECS task is not in a stopped state
+    """
+    pass
+
+
+class ECSTrainingTestFailure(ECSException):
+    """
+    Raise when an ECS training test fails
+    """
+    pass
+
+
+class ECSServiceCreationException(ECSException):
+    """Raised when create service on ECS fails"""
     pass
 
 
@@ -64,7 +105,7 @@ def check_ecs_cluster_status(cluster_arn_or_name, status, region=DEFAULT_REGION)
         ecs_client = boto3.Session(region_name=region).client("ecs")
         response = ecs_client.describe_clusters(clusters=[cluster_arn_or_name])
         if response["failures"]:
-            raise Exception(
+            raise ECSDescribeClusterException(
                 f"Failures in describe cluster. Error - Expected {status} but got {response['failures']}"
             )
         elif (
@@ -75,7 +116,7 @@ def check_ecs_cluster_status(cluster_arn_or_name, status, region=DEFAULT_REGION)
         else:
             raise ValueError(f"Cluster status is not {status}")
     except Exception as e:
-        raise Exception(e)
+        raise ECSDescribeClusterException(e)
 
 
 def create_ecs_cluster(cluster_name, region=DEFAULT_REGION):
@@ -92,6 +133,19 @@ def create_ecs_cluster(cluster_name, region=DEFAULT_REGION):
         return cluster_arn
     except Exception as e:
         raise Exception(f"Failed to launch cluster - {e}")
+
+
+def get_ecs_cluster_name(ecs_cluster_arn, region=DEFAULT_REGION):
+    """
+    Get ecs cluster name from a known ecs cluster ARN
+    :param ecs_cluster_arn:
+    :param region:
+    :return: <str> ecs cluster name
+    """
+    ecs_client = boto3.Session(region_name=region).client("ecs")
+    response = ecs_client.describe_clusters(clusters=[ecs_cluster_arn])
+    cluster_name = response["clusters"][0]["clusterName"]
+    return cluster_name
 
 
 def list_ecs_container_instances(cluster_arn_or_name, filter_value=None, status=None, region=DEFAULT_REGION):
@@ -127,8 +181,7 @@ def attach_ecs_worker_node(worker_instance_type, ami_id, cluster_name, cluster_a
     :param region:
     :return: <tuple> instance_id, public_ip_address
     """
-    ecs_user_data = f"""#!/bin/bash
-    echo ECS_CLUSTER={cluster_name} >> /etc/ecs/ecs.config"""
+    ecs_user_data = f"#!/bin/bash\necho ECS_CLUSTER={cluster_name} >> /etc/ecs/ecs.config"
 
     instc = ec2_utils.launch_instance(
         ami_id,
@@ -248,13 +301,14 @@ def register_ecs_task_definition(
             ]
         if num_gpu:
             if not isinstance(num_gpu, str):
-                raise Exception(
-                    f"Invalid type for argument num_gpu, type: {num_gpu}. valid type: <string>"
-                )
-            else:
-                arguments_dict["containerDefinitions"][0]["resourceRequirements"] = [
-                    {"value": num_gpu, "type": "GPU"},
-                ]
+                if not isinstance(num_gpu, int):
+                    raise Exception(
+                        f"Invalid type for argument num_gpu, type: {num_gpu}. valid type: <int/str>"
+                    )
+                num_gpu = str(num_gpu)
+            arguments_dict["containerDefinitions"][0]["resourceRequirements"] = [
+                {"value": num_gpu, "type": "GPU"},
+            ]
         response = ecs_client.register_task_definition(**arguments_dict)
         return (
             response["taskDefinition"]["family"],
@@ -292,7 +346,7 @@ def create_ecs_service(cluster_name, service_name, task_definition, region=DEFAU
         waiter.wait(cluster=cluster_name, services=[response["service"]["serviceName"]])
         return response["service"]["serviceName"]
     except Exception as e:
-        raise Exception(
+        raise ECSServiceCreationException(
             f"Failed to create service: {service_name} with task definition: {task_definition}. "
             f"Exception - {e}"
         )
@@ -418,22 +472,24 @@ def describe_ecs_task_exit_status(cluster_arn_or_name, task_arn, region=DEFAULT_
     :param cluster_arn_or_name:
     :param task_arn:
     :param region:
-    :return: True if exit code is zero, else False
+    :return: empty list if no nonzero return codes, else a list of dicts with debug info
     """
-    try:
-        ecs_client = boto3.Session(region_name=region).client("ecs")
-        response = ecs_client.describe_tasks(cluster=cluster_arn_or_name, tasks=[task_arn])
-        return_code = []
-        if response["failures"]:
-            raise Exception(f"Failures in describe tasks - {response['failures']}")
-        else:
-            for container in response["tasks"][0]["containers"]:
-                return_code.append(container["exitCode"] == 0)
-            return all(return_code)
-    except Exception as e:
-        raise Exception(
-            f"Failed to describe task {task_arn} in cluster {cluster_arn_or_name}. Exception - {e}"
-        )
+    ecs_client = boto3.Session(region_name=region).client("ecs")
+    response = ecs_client.describe_tasks(cluster=cluster_arn_or_name, tasks=[task_arn])
+    return_codes = []
+    if response["failures"]:
+        raise RuntimeError(f"Failures in describe tasks - {response['failures']}")
+    for container in response["tasks"][0]["containers"]:
+        if container["exitCode"] != 0:
+            return_codes.append(
+                {
+                    "container_arn": container['containerArn'],
+                    "exit_code": container['exitCode'],
+                    "reason": container.get('reason', 'UnknownFailureReason')
+                }
+            )
+
+    return return_codes
 
 
 def stop_ecs_task(cluster_arn_or_name, task_arn, region=DEFAULT_REGION):
@@ -529,13 +585,14 @@ def delete_ecs_cluster(cluster_arn, region=DEFAULT_REGION):
         raise Exception(f"Failed to delete cluster. Exception - {e}")
 
 
-def tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revision):
+def tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revision, region=DEFAULT_REGION):
     """
     Function to clean up ECS task definition, service resources if exist
     :param cluster_arn:
     :param service_name:
     :param task_family:
     :param revision:
+    :param region:
     """
 
     if task_family and revision:
@@ -548,7 +605,13 @@ def tear_down_ecs_inference_service(cluster_arn, service_name, task_family, revi
         update_ecs_service(cluster_arn, service_name, 0)
         delete_ecs_service(cluster_arn, service_name)
     else:
-        print("Skipped - Service and cluster deletion")
+        ecs_client = boto3.Session(region_name=region).client("ecs")
+        response = ecs_client.list_services(cluster=cluster_arn)
+        services_list = response["serviceArns"]
+        for service in services_list:
+            update_ecs_service(cluster_arn, service, 0)
+            delete_ecs_service(cluster_arn, service)
+        print(f"Deleted all services in {cluster_arn}")
 
 
 def tear_down_ecs_training_task(cluster_arn, task_arn, task_family, revision):
@@ -619,32 +682,42 @@ def get_ecs_tensorflow_environment_variables(processor, model_name):
     return ecs_tensorflow_inference_environment
 
 
-def build_ecs_training_command(test_string):
+def build_ecs_training_command(s3_test_location, test_string):
     """
     Construct the command to send to the container for running scripts in ECS automation
-    :param test_string:
+    :param s3_test_location: S3 URI for test-related artifacts
+    :param test_string: command to execute test script
     :return: <list> command to send to the container
     """
     return [
-        f"pip install -U awscli && mkdir -p /test/logs && aws s3 cp {ECS_S3_TEST_BUCKET} /test/ --recursive "
+        f"pip install -U awscli && mkdir -p /test/logs && aws s3 cp {s3_test_location}/ /test/ --recursive "
         f"&& chmod +x -R /test/ && {test_string}"
     ]
 
 
-# TODO: Move this to testspec.yml for ecs tests
-"""
-def upload_tests_for_ecs(datetime_suffix):
-    aws_access_key_id, aws_secret_access_key = utils.get_private_key(test_helper.AMI_MATERIALSET)
-    with hide('running'):
-        run("aws configure set aws_access_key_id {}".format(aws_access_key_id))
-        run("aws configure set aws_secret_access_key {}".format(aws_secret_access_key))
-        run("aws configure set region {}".format(cfg.iad_region))
-    global ECS_S3_TEST_BUCKET
-    ECS_S3_TEST_BUCKET = ECS_S3_TEST_BUCKET.format(datetime_suffix)
-    run("aws s3 rm {}/ --recursive".format(ECS_S3_TEST_BUCKET), warn_only=True)
-    run("aws s3 cp {}/container_tests/ {} --recursive".format(test_helper.SRC_DIR, ECS_S3_TEST_BUCKET,
-                                                              datetime_suffix))
-"""
+def upload_tests_for_ecs(testname_datetime_suffix):
+    """
+    Upload test-related artifacts to unique s3 location.
+    Allows each test to have a unique remote location for test scripts and files.
+    These uploaded files and folders are copied into a container running an ECS test.
+    :param testname_datetime_suffix: test name and datetime suffix that is unique to a test
+    :return: <bool> True if upload was successful, False if any failure during upload
+    """
+    s3_test_location = os.path.join(ECS_S3_TEST_BUCKET, testname_datetime_suffix)
+    run_out = run(f"aws s3 ls {s3_test_location}", warn=True)
+    if run_out.return_code == 0:
+        raise ECSTestArtifactCopyException(f"{s3_test_location} already exists. Skipping upload and failing the test.")
+    run(f"aws s3 cp --recursive container_tests/ {s3_test_location}/")
+    return s3_test_location
+
+
+def delete_uploaded_tests_for_ecs(s3_test_location):
+    """
+    Delete s3 bucket data related to current test after test is completed
+    :param s3_test_location: S3 URI for test artifacts to be removed
+    :return: <bool> True/False based on success/failure of removal
+    """
+    run(f"aws s3 rm --recursive {s3_test_location}")
 
 
 def ecs_inference_test_executor(
@@ -708,6 +781,75 @@ def ecs_inference_test_executor(
         )
 
 
+def ecs_training_test_executor(cluster_name, cluster_arn, training_command, image_uri, instance_id, num_gpus=None):
+    """
+    Function to run training task on ECS; Cleans up the resources after each execution
+
+    :param cluster_name:
+    :param cluster_arn:
+    :param datetime_suffix:
+    :param training_command:
+    :param image_uri:
+    :param instance_id:
+    :param num_gpus:
+    :return:
+    """
+    # Set defaults to satisfy finally case
+    task_arn = None
+    task_family = None
+    revision = None
+
+    # Define constants for arguments to be sent to task def
+    image_tag = image_uri.split(':')[-1]
+    log_group_name = os.path.join(os.sep, 'ecs', image_tag)
+    datetime_suffix = datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')
+    num_cpus = ec2_utils.get_instance_num_cpus(instance_id)
+    memory = int(ec2_utils.get_instance_memory(instance_id) * 0.8)
+
+    arguments_dict = {
+        "family_name": cluster_name,
+        "image": image_uri,
+        "log_group_name": log_group_name,
+        "log_stream_prefix": datetime_suffix,
+        "num_cpu": num_cpus,
+        "memory": memory,
+        "entrypoint" : ["sh", "-c"],
+        "container_command": training_command
+    }
+
+    if "gpu" in image_tag and num_gpus:
+        arguments_dict["num_gpu"] = str(num_gpus)
+    try:
+        task_family, revision = register_ecs_task_definition(**arguments_dict)
+        print(f"Created Task definition - {task_family}:{revision}")
+
+        task_arn = create_ecs_task(cluster_name, f"{task_family}:{revision}")
+        print(f"Created ECS task - {task_arn} with cloudwatch log group - {log_group_name} log stream prefix - "
+              f"{os.path.join(datetime_suffix, cluster_name)}")
+        print("Waiting for task to stop ...")
+
+        if ecs_task_waiter(cluster_name, [task_arn], "tasks_stopped"):
+            ret_codes = describe_ecs_task_exit_status(cluster_name, task_arn)
+            if ret_codes:
+
+                # Assemble error message if we have nonzero return codes
+                error_msg = "Failures:\n"
+                for code in ret_codes:
+                    add_on = "------------------\n"
+                    for key, value in code.items():
+                        add_on += f"{key}: {value}\n"
+                    error_msg += add_on
+                raise ECSTrainingTestFailure(error_msg)
+
+            # Return gracefully if task stops
+            return
+
+        # Raise error if the task does not stop
+        raise ECSTaskNotStoppedError(f"Task not stopped {task_arn}")
+    finally:
+        tear_down_ecs_training_task(cluster_arn, task_arn, task_family, revision)
+
+
 def setup_ecs_inference_service(
     docker_image_uri,
     framework,
@@ -737,7 +879,6 @@ def setup_ecs_inference_service(
     :return: <tuple> service_name, task_family, revision if all steps passed else Exception
         Cleans up the resources if any step fails
     """
-    service_name = task_family = revision = None
     try:
         port_mappings = get_ecs_port_mappings(framework)
         log_group_name = "/ecs/{}-{}-{}".format(framework, job, processor)
@@ -754,10 +895,9 @@ def setup_ecs_inference_service(
 
         if processor == "gpu" and num_gpus:
             arguments_dict["num_gpu"] = num_gpus
-        if processor == "tensorflow":
-            arguments_dict["environment"] = get_ecs_tensorflow_environment_variables(
-                processor, model_name
-            )
+        if framework == "tensorflow":
+            arguments_dict["environment"] = get_ecs_tensorflow_environment_variables(processor, model_name)
+            print(f"Added environment variables: {arguments_dict['environment']}")
         elif framework in ["mxnet", "pytorch"]:
             arguments_dict["container_command"] = [
                 get_mms_run_command(model_name, processor)
@@ -766,9 +906,7 @@ def setup_ecs_inference_service(
         task_family, revision = register_ecs_task_definition(**arguments_dict)
         print(f"Created Task definition - {task_family}:{revision}")
 
-        service_name = create_ecs_service(
-            cluster_name, f"service-{cluster_name}", f"{task_family}:{revision}"
-        )
+        service_name = create_ecs_service(cluster_name, f"service-{cluster_name}", f"{task_family}:{revision}")
         print(
             f"Created ECS service - {service_name} with cloudwatch log group - {log_group_name} "
             f"log stream prefix - {datetime_suffix}/{cluster_name}"
@@ -779,8 +917,4 @@ def setup_ecs_inference_service(
             raise Exception(f"No task running in the service: {service_name}")
         return service_name, task_family, revision
     except Exception as e:
-        print(f"Setup failure Exception - {e}")
-        tear_down_ecs_inference_service(
-            cluster_arn, service_name, task_family, revision
-        )
-    return None, None, None
+        raise ECSServiceCreationException(f"Setup Inference Service Exception - {e}")
