@@ -8,9 +8,8 @@ from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2
 
 @pytest.mark.parametrize("ecs_instance_type", ["c5.18xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
-def test_ecs_mxnet_inference_cpu(mxnet_inference, ecs_container_instance, region, cpu_only):
+def test_ecs_mxnet_inference_cpu(mxnet_inference, ecs_container_instance, ecs_cluster_name, region, cpu_only):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
-    ecs_cluster_name = ecs_utils.get_ecs_cluster_name(ecs_cluster_arn, region=region)
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
 
     model_name = "squeezenet"
@@ -28,9 +27,8 @@ def test_ecs_mxnet_inference_cpu(mxnet_inference, ecs_container_instance, region
 
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
-def test_ecs_mxnet_inference_gpu(mxnet_inference, ecs_container_instance, region, gpu_only):
+def test_ecs_mxnet_inference_gpu(mxnet_inference, ecs_container_instance, ecs_cluster_name, region, gpu_only):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
-    ecs_cluster_name = ecs_utils.get_ecs_cluster_name(ecs_cluster_arn, region=region)
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
     num_gpus = ec2_utils.get_instance_num_gpus(worker_instance_id, region=region)
 
@@ -49,9 +47,10 @@ def test_ecs_mxnet_inference_gpu(mxnet_inference, ecs_container_instance, region
 
 @pytest.mark.parametrize("ecs_instance_type", ["c5.large"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
-def test_ecs_mxnet_inference_gluonnlp_cpu(mxnet_inference, ecs_container_instance, region, cpu_only, py3_only):
+def test_ecs_mxnet_inference_gluonnlp_cpu(
+        mxnet_inference, ecs_container_instance, ecs_cluster_name, region, cpu_only, py3_only
+):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
-    ecs_cluster_name = ecs_utils.get_ecs_cluster_name(ecs_cluster_arn, region=region)
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
 
     model_name = "bert_sst"
@@ -69,9 +68,10 @@ def test_ecs_mxnet_inference_gluonnlp_cpu(mxnet_inference, ecs_container_instanc
 
 @pytest.mark.parametrize("ecs_instance_type", ["g3.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
-def test_ecs_mxnet_inference_gluonnlp_gpu(mxnet_inference, ecs_container_instance, region, gpu_only, py3_only):
+def test_ecs_mxnet_inference_gluonnlp_gpu(
+        mxnet_inference, ecs_container_instance, ecs_cluster_name, region, gpu_only, py3_only
+):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
-    ecs_cluster_name = ecs_utils.get_ecs_cluster_name(ecs_cluster_arn, region=region)
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
     num_gpus = ec2_utils.get_instance_num_gpus(worker_instance_id, region=region)
 
