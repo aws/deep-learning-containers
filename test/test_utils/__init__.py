@@ -54,6 +54,22 @@ def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80"):
     return True
 
 
+@retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80"):
+    run_out = run(
+        (f"curl -X POST http://{ip_address}:{port}/predictions/bert_sst/predict -F "
+         "'data=[\"Positive sentiment\", \"Negative sentiment\"]'"),
+        warn=True
+    )
+
+    # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
+    # is 404. Hence the extra check.
+    if run_out.return_code != 0 or '1' not in run_out.stdout:
+        return False
+
+    return True
+
+
 @retry(
     stop_max_attempt_number=10,
     wait_fixed=10000,
@@ -110,6 +126,7 @@ def get_mms_run_command(model_names, processor="cpu"):
         mxnet_model_location = {
             "squeezenet": "https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model",
             "pytorch-densenet": "https://asimov-multi-model-server.s3.amazonaws.com/pytorch/densenet/densenet.mar",
+            "bert_sst": "https://aws-dlc-sample-models.s3.amazonaws.com/bert_sst/bert_sst.mar"
         }
     else:
         mxnet_model_location = {
