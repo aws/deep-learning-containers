@@ -20,6 +20,9 @@
       deep_learning_container.py:
         source: docker/artifacts/deep_learning_container.py
         target: deep_learning_container.py
+      README.rst:
+        source: README.rst
+        target: README.rst
       training_context: &TRAINING_CONTEXT
         sagamaker_package:
           source: dist/sagemaker_mxnet_container-3.1.5.dev0.tar.gz

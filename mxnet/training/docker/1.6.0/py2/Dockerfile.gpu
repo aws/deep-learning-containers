@@ -16,6 +16,8 @@ ENV LANG=C.UTF-8 \
     CUDNN_VERSION=7.6.0.64-1+cuda10.1 \
     NCCL_VERSION=2.4.8-1+cuda10.1
 
+COPY dockerd-entrypoint-1.py /usr/local/bin/dockerd-entrypoint.py
+
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     # build-essential needed to pip install user's dependencies (e.g. requirements.txt)
@@ -156,7 +158,6 @@ RUN mkdir /root/.keras \
 # TODO: Should we be installing OpenCV in our image like this? Is there another way we can fix this?
 RUN ln -s /dev/null /dev/raw1394
 
-COPY dockerd-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
