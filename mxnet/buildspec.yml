@@ -49,6 +49,9 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
+        README.rst:
+          source: README.rst
+          target: README-context.rst
     BuildMXNetGPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &MXNET_GPU_TRAINING_PY3 false
