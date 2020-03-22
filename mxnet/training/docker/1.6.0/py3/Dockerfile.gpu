@@ -18,7 +18,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DGLBACKEND=mxnet \
     CUDNN_VERSION=7.6.0.64-1+cuda10.1 \
     NCCL_VERSION=2.4.8-1+cuda10.1
-
+# Hello world
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     software-properties-common \
