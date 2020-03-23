@@ -104,11 +104,11 @@ def main():
     test_type = os.getenv("TEST_TYPE")
     dlc_images = os.getenv("DLC_IMAGES")
 
-    if test_type in ["sanity", "ecs"]:
+    if test_type in ("sanity", "ecs", "ec2"):
         report = os.path.join(os.getcwd(), f"{test_type}.xml")
         os.chdir("dlc_tests")
         pytest_cmd = ["-s", test_type, f"--junitxml={report}"]
-        if test_type == "ecs":
+        if test_type != "sanity":
             pytest_cmd.append('-n=auto')
         sys.exit(pytest.main(pytest_cmd))
     elif test_type == "sagemaker":
