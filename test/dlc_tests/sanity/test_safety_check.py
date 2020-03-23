@@ -20,9 +20,9 @@ def test_safety(image):
     ignore_str = "" if ignore_ids_list is None else " ".join(ignore_ids_list)
 
     container_name = f"{repo_name}-safety"
-    docker_exec_cmd = f"docker exec -it {container_name}"
+    docker_exec_cmd = f"docker exec -i {container_name}"
     # Add null entrypoint to ensure command exits immediately
-    run(f"docker run -itd "
+    run(f"docker run -id "
         f"--name {container_name} "
         f"--mount type=bind,src=$(pwd)/container_tests,target=/test "
         f"--entrypoint='' "
