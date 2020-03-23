@@ -28,7 +28,7 @@ def test_safety(image):
         f"--entrypoint='/bin/bash' "
         f"{image}")
     try:
-        run(f"{docker_exec_cmd} pip install safety yolk3k ")
+        run(f"{docker_exec_cmd} pip install -qq safety yolk3k ")
         run_out = run(f"{docker_exec_cmd} safety check --json 2>&1 ", warn=True)
         json_str_safety_result = run_out.stdout
         safety_result = json.loads(json_str_safety_result)
