@@ -54,11 +54,13 @@ def main():
         print(f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}")
         return
 
-    # Start sanity test job
+    # Run necessary PR test jobs
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
-    run_test_job(commit, "dlc-sanity-test")
-    run_test_job(commit, "dlc-sagemaker-test")
-    run_test_job(commit, "dlc-ecs-test")
+
+    pr_test_jobs = ["dlc-sanity-test", "dlc-sagemaker-test", "dlc-ecs-test", "dlc-ec2-test"]
+
+    for job in pr_test_jobs:
+        run_test_job(commit, job)
 
 
 if __name__ == "__main__":
