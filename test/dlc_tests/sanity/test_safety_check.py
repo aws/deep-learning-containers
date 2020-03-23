@@ -22,18 +22,18 @@ def test_safety(image):
     container_name = f"{repo_name}-safety"
     docker_exec_cmd = f"docker exec -i {container_name}"
     # Add null entrypoint to ensure command exits immediately
-    run(f"docker run -d "
+    run(f"docker run -id "
         f"--name {container_name} "
         f"--mount type=bind,src=$(pwd)/container_tests,target=/test "
         f"--entrypoint='/bin/bash' "
         f"{image}")
     try:
-        run(f"""{docker_exec_cmd} "pip install safety yolk3k" """)
-        run_out = run(f"""{docker_exec_cmd} "safety check --json 2>&1" """, warn=True)
+        run(f"""{docker_exec_cmd} pip install safety yolk3k """)
+        run_out = run(f"""{docker_exec_cmd} safety check --json 2>&1 """, warn=True)
         json_str_safety_result = run_out.stdout
         safety_result = json.loads(json_str_safety_result)
         for package, affected_versions, curr_version, _, vulnerability_id in safety_result:
-            run_out = run(f"""{docker_exec_cmd} "yolk -M {package} -f version" """, warn=True)
+            run_out = run(f"""{docker_exec_cmd} yolk -M {package} -f version """, warn=True)
             if run_out.return_code != 0:
                 continue
             latest_version = run_out.stdout
@@ -52,6 +52,6 @@ def test_safety(image):
                 if vulnerability_id in ignore_str:
                     print('Ignoring vulnerability ID {} as it is a known issue.'.format(vulnerability_id))
 
-        run(f"""{docker_exec_cmd} "/test/bin/testSafety {ignore_str}" """)
+        run(f"""{docker_exec_cmd} /test/bin/testSafety {ignore_str} """)
     finally:
         run(f"docker rm -f {container_name}")
