@@ -17,7 +17,7 @@ ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
 # Used for referencing test scripts from container_tests directory when github repo is local to the test run
-CONTAINER_TESTS_LOCAL_PREFIX = os.path.join("container_tests", "bin")
+CONTAINER_TESTS_LOCAL_PREFIX = os.path.join(os.getcwd(), "container_tests", "bin")
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):

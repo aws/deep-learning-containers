@@ -3,14 +3,17 @@ import os
 import boto3
 
 from retrying import retry
+from invoke import run
 
-from test.test_utils import DEFAULT_REGION, run_subprocess_cmd
+from test.test_utils import DEFAULT_REGION
 
 
 def ec2_training_test_executor(ecr_uri, test_script):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     bash_path = os.path.join(os.sep, 'bin', 'bash')
-    run_subprocess_cmd(f"{docker_cmd} run --entrypoint='' {ecr_uri} {bash_path} -c {test_script}", "EC2 test failed")
+    container_script = os.path.join(os.sep, os.path.basename(test_script))
+    run(f"{docker_cmd} run -v {test_script}:{container_script} "
+        f"--entrypoint='' {ecr_uri} {bash_path} -c {container_script}")
 
 
 def launch_instance(
