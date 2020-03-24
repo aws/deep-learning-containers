@@ -3,17 +3,19 @@ import os
 import boto3
 
 from retrying import retry
-from invoke import run
+from invoke.context import Context
 
 from test.test_utils import DEFAULT_REGION
 
 
 def ec2_training_test_executor(ecr_uri, test_script):
+    context = Context()
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     bash_path = os.path.join(os.sep, 'bin', 'bash')
     container_script = os.path.join(os.sep, os.path.basename(test_script))
-    run(f"{docker_cmd} run -v {test_script}:{container_script} "
-        f"--entrypoint='chmod +x {container_script} && {bash_path} -c {container_script}' {ecr_uri}")
+    with context.prefix(f"chmod +x {test_script}"):
+        context.run(f"{docker_cmd} run -v {test_script}:{container_script} -it {ecr_uri} "
+                    f"{bash_path} -c {container_script}")
 
 
 def launch_instance(
