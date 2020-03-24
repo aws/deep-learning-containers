@@ -5,6 +5,7 @@ from multiprocessing import Pool
 
 import pytest
 
+from invoke import run
 from invoke.context import Context
 
 
@@ -99,6 +100,17 @@ def run_sagemaker_tests(images):
         p.map(run_sagemaker_pytest_cmd, images)
 
 
+def pull_dlc_images(images):
+    """
+    Pulls DLC images to CodeBuild jobs before running PyTest commands
+    """
+    # Skipping PyTorch Inference tests for now, as pulling all PT images results in out of space issue
+    images = [image for image in images if "pytorch-inference" not in image]
+
+    for image in images:
+        run(f"docker pull {image}")
+
+
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
@@ -106,10 +118,16 @@ def main():
 
     if test_type in ("sanity", "ecs", "ec2"):
         report = os.path.join(os.getcwd(), f"{test_type}.xml")
+
+        # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
         os.chdir("dlc_tests")
-        pytest_cmd = ["-s", test_type, f"--junitxml={report}"]
-        if test_type != "sanity":
-            pytest_cmd.append('-n=auto')
+
+        # Pull images for necessary tests
+        if test_type != "ecs":
+            pull_dlc_images(dlc_images.split(" "))
+
+        # Execute dlc_tests pytest command
+        pytest_cmd = ["-s", test_type, f"--junitxml={report}", "-n=auto"]
         sys.exit(pytest.main(pytest_cmd))
     elif test_type == "sagemaker":
         run_sagemaker_tests(dlc_images.split(" "))
