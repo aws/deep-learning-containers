@@ -35,7 +35,6 @@ def _get_safety_ignore_list(repo_name, python_version):
     return IGNORE_SAFETY_IDS.get(repo_name, {}).get(python_version)
 
 
-@pytest.mark.usefixtures("pull_images")
 def test_safety(image):
     """
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
