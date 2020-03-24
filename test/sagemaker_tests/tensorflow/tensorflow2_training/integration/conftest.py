@@ -41,7 +41,6 @@ def pytest_addoption(parser):
     parser.addoption('--py-version', default='3', choices=['2', '3', '2,3'])
     parser.addoption('--account-id', default='142577830533')
     parser.addoption('--instance-type', default=None)
-    parser.addoption('--pr', action='store_true', default=False, help='Use this flag to run tests marked for PR')
 
 
 def pytest_configure(config):
@@ -106,11 +105,6 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
     if (region in NO_P2_REGIONS and instance_type.startswith('ml.p2')) or \
             (region in NO_P3_REGIONS and instance_type.startswith('ml.p3')):
         pytest.skip('Skipping GPU test in region {}'.format(region))
-
-
-@pytest.fixture(autouse=True)
-def skip_non_pr_tests(request):
-    pr_context = request.config.getoption("--pr")
 
 
 @pytest.fixture
