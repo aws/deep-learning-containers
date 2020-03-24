@@ -13,7 +13,7 @@ def ec2_training_test_executor(ecr_uri, test_script):
     bash_path = os.path.join(os.sep, 'bin', 'bash')
     container_script = os.path.join(os.sep, os.path.basename(test_script))
     run(f"{docker_cmd} run -v {test_script}:{container_script} "
-        f"--entrypoint='' {ecr_uri} {bash_path} -c {container_script}")
+        f"--entrypoint='{bash_path} -c {container_script}' {ecr_uri}")
 
 
 def launch_instance(
