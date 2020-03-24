@@ -94,7 +94,7 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80"):
 
 
 @retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
-def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"):
+def request_tensorflow_inference_rest(model_name, ip_address="127.0.0.1", port="8501"):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
     :param model_name:

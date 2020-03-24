@@ -2,7 +2,7 @@ import pytest
 
 import test.test_utils.ecs as ecs_utils
 import test.test_utils.ec2 as ec2_utils
-from test.test_utils import get_tensorflow_model_name, request_tensorflow_inference
+from test.test_utils import get_tensorflow_model_name, request_tensorflow_inference_rest
 from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2
 
 
@@ -19,7 +19,7 @@ def test_ecs_tensorflow_inference_cpu(tensorflow_inference, ecs_container_instan
             tensorflow_inference, "tensorflow", ecs_cluster_arn, model_name, worker_instance_id, region=region
         )
         model_name = get_tensorflow_model_name("cpu", model_name)
-        inference_result = request_tensorflow_inference(model_name, ip_address=public_ip_address)
+        inference_result = request_tensorflow_inference_rest(model_name, ip_address=public_ip_address)
         assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
 
     finally:
@@ -41,7 +41,7 @@ def test_ecs_tensorflow_inference_gpu(tensorflow_inference, ecs_container_instan
             region=region
         )
         model_name = get_tensorflow_model_name("gpu", model_name)
-        inference_result = request_tensorflow_inference(model_name, ip_address=public_ip_address)
+        inference_result = request_tensorflow_inference_rest(model_name, ip_address=public_ip_address)
         assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
 
     finally:
