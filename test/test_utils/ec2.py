@@ -10,11 +10,11 @@ from test.test_utils import DEFAULT_REGION
 
 def ec2_training_test_executor(ecr_uri, test_script):
     context = Context()
-    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    gpu_cmd = "--gpus all" if "gpu" in ecr_uri else ""
     bash_path = os.path.join(os.sep, 'bin', 'bash')
     container_script = os.path.join(os.sep, os.path.basename(test_script))
     with context.prefix(f"chmod +x {test_script}"):
-        context.run(f"{docker_cmd} run -v {test_script}:{container_script} -it {ecr_uri} "
+        context.run(f"docker run {gpu_cmd} -v {test_script}:{container_script} {ecr_uri} "
                     f"{bash_path} -c {container_script}")
 
 
