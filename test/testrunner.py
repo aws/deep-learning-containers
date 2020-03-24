@@ -102,14 +102,13 @@ def run_sagemaker_tests(images):
 
 def pull_dlc_images(images):
     """
-    Pulls all DLC images to CodeBuild jobs before running pytest commands
+    Pulls DLC images to CodeBuild jobs before running PyTest commands
     """
-
     # Skipping PyTorch Inference tests for now, as pulling all PT images results in out of space issue
     images = [image for image in images if "pytorch-inference" not in image]
 
     for image in images:
-        run(f"docker pull {image}")
+        run(f"docker pull {image}", hide='out')
 
 
 def main():
