@@ -17,10 +17,6 @@ ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
 
-def is_pr_context():
-    return os.getenv("BUILD_CONTEXT") == "PR"
-
-
 def run_subprocess_cmd(cmd, failure="Command failed"):
     command = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
     if command.returncode:
