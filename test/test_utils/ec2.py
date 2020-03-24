@@ -10,7 +10,8 @@ from test.test_utils import DEFAULT_REGION
 
 def ec2_training_test_executor(ecr_uri, test_script):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
-    run(f"{docker_cmd} run --entrypoint='' {ecr_uri} {test_script}")
+    bash_path = os.path.join(os.sep, 'bin', 'bash')
+    run(f"{docker_cmd} run --entrypoint='' {ecr_uri} {bash_path} -c {test_script}")
 
 
 def launch_instance(
