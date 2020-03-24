@@ -5,7 +5,34 @@ from invoke import run
 import json
 import pytest
 
-from test.dlc_tests.sanity import get_safety_ignore_list
+
+# List of safety check vulnerability IDs to ignore. To get the ID, run safety check on the container,
+# and copy paste the ID given by the safety check for a package.
+# Note:- 1. This ONLY needs to be done if a package version exists that resolves this safety issue, but that version
+#           cannot be used because of incompatibilities.
+#        2. Ensure that IGNORE_SAFETY_IDS is always as small/empty as possible.
+IGNORE_SAFETY_IDS = {
+    "mxnet-inference-eia": {
+        # numpy<=1.16.0 -- This has to only be here while we publish MXNet 1.4.1 EI DLC v1.0
+        "py2": ['36810'],
+        "py3": ['36810']
+    },
+    "pytorch-training": {
+        # astropy<3.0.1
+        "py2": ['35810'],
+        "py3": []
+    }
+}
+
+
+def _get_safety_ignore_list(repo_name, python_version):
+    """
+    Get a list of known safety check issue IDs to ignore, if specified in IGNORE_LISTS.
+    :param repo_name:
+    :param python_version:
+    :return: <list> list of safety check IDs to ignore
+    """
+    return IGNORE_SAFETY_IDS.get(repo_name, {}).get(python_version)
 
 
 @pytest.mark.usefixtures("pull_images")
@@ -16,8 +43,8 @@ def test_safety(image):
     """
     repo_name, image_tag = image.split('/')[-1].split(':')
     python_version = "py2" if "py2" in image_tag else "py3"
-    ignore_ids_list = get_safety_ignore_list(repo_name, python_version)
-    ignore_str = "" if ignore_ids_list is None else " ".join(ignore_ids_list)
+    ignore_ids_list = _get_safety_ignore_list(repo_name, python_version)
+    ignore_str = "" if not ignore_ids_list else " ".join(ignore_ids_list)
 
     container_name = f"{repo_name}-{image_tag}-safety"
     docker_exec_cmd = f"docker exec -i {container_name}"
@@ -43,14 +70,7 @@ def test_safety(image):
                 # SpecifierSet(x) takes a version constraint, such as "<=4.5.6", ">1.2.3", or ">=1.2,<3.4.5", and
                 # gives an object that can be easily compared against a Version object.
                 # https://packaging.pypa.io/en/latest/specifiers/
-                print(f"Latest version {package}=={latest_version} is within affected versions {affected_versions}")
-                print(f"Ignoring safety vulnerability for package {package}=={curr_version} "
-                      f"because both current and latest versions are vulnerable.")
                 ignore_str += f" {vulnerability_id}"
-            else:
-                print('Package {}=={} can be updated to version {}'.format(package, curr_version, latest_version))
-                if vulnerability_id in ignore_str:
-                    print('Ignoring vulnerability ID {} as it is a known issue.'.format(vulnerability_id))
 
         run(f"{docker_exec_cmd} chmod +x /test/bin/testSafety", echo=True)
         run(f"{docker_exec_cmd} /test/bin/testSafety {ignore_str} ", echo=True)
