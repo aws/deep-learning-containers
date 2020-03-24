@@ -106,7 +106,7 @@ def pull_dlc_images(images):
     """
     for image in images:
         print(f"****** Space left when pulling {image} *********")
-        run("echo df -H")
+        run("df -H")
         run(f"docker pull {image}", hide='out')
 
 
