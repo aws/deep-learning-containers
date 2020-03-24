@@ -108,7 +108,7 @@ def pull_dlc_images(images):
     images = [image for image in images if "pytorch-inference" not in image]
 
     for image in images:
-        run(f"docker pull {image}")
+        run(f"docker pull {image}", hide='out')
 
 
 def main():
