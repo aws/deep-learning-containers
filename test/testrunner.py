@@ -100,10 +100,13 @@ def run_sagemaker_tests(images):
         p.map(run_sagemaker_pytest_cmd, images)
 
 
-def pull_dlc_images(images):
+def pull_dlc_images(images, test_type):
     """
     Pulls DLC images to CodeBuild jobs before running PyTest commands
     """
+    # PT inference images are too big for the EC2 tests
+    if test_type == "ec2":
+        images = [image for image in images if "pytorch-inference" not in images]
     for image in images:
         print(f"****** Space left when pulling {image} *********")
         run("df -H")
