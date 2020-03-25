@@ -1,7 +1,18 @@
+from os.path import exists, join
+import re
+
 import boto3
+from invoke import run
 from retrying import retry
 
 from test.test_utils import DEFAULT_REGION
+
+
+EC2_TENSORFLOW_INFERENCE_PORT_MAPPINGS = {
+    "gpu": {"py2": "8500", "py3": "8501"},
+    "cpu": {"py2": "8502", "py3": "8503"},
+    "eia": {"py2": "8504", "py3": "8505"},
+}
 
 
 def launch_instance(
@@ -250,3 +261,48 @@ def get_instance_num_gpus(instance_id, region=DEFAULT_REGION):
     """
     instance_info = get_instance_details(instance_id, region=region)
     return sum(gpu_type["Count"] for gpu_type in instance_info["GpuInfo"]["Gpus"])
+
+
+def host_setup_for_tensorflow_inference(container_name, framework_version):
+    home_dir = run("pwd", hide="out").stdout.strip("\n")
+    src_location = join(home_dir, f"{container_name}-serving")
+    if exists(src_location):
+        run(f"rm -rf {src_location}", echo=True)
+
+    if framework_version.startswith('1.'):
+        fw_short_version = re.search(r"\d+\.\d+", framework_version).group()
+        run(f"git clone -b r{fw_short_version} https://github.com/tensorflow/serving.git {src_location}", echo=True)
+    else:
+        run(f"mkdir -p {src_location}")
+        # tensorflow/serving is not yet updated with scripts for TF 2.1, so using locally modified scripts
+        script_location = join("container_tests", "bin", "tensorflow_serving")
+        run(f"cp -r {script_location} {src_location}")
+
+    run(
+        f"""pip install -qq -U tensorflow=={framework_version}"""
+        f""" "tensorflow-serving-api<={framework_version}" """, echo=True
+    )
+
+    script = join(src_location, "tensorflow_serving", "example", "mnist_saved_model.py")
+    model_path = join(src_location, "models", "mnist")
+    run(f"python {script} {model_path}", hide="out")
+
+    return src_location, model_path
+
+
+def request_tensorflow_inference_grpc(src_location, ip_address="127.0.0.1", port="8500"):
+    script = join(src_location, "tensorflow_serving", "example", "mnist_client.py")
+    run(f"python {script} --num_tests=1000 --server={ip_address}:{port}", echo=True)
+
+
+def tensorflow_inference_test_cleanup(src_location):
+    run(f"rm -rf {src_location}", warn=True, echo=True)
+
+
+def get_inference_ec2_test_port_number(image_uri):
+    proc = "gpu" if "gpu" in image_uri else "eia" if "eia" in image_uri else "cpu"
+    py_ver = "py2" if "py2" in image_uri else "py3"
+    if "tensorflow" in image_uri:
+        return EC2_TENSORFLOW_INFERENCE_PORT_MAPPINGS.get(proc, {}).get(py_ver, "8500")
+    else:
+        return "80"
