@@ -58,7 +58,7 @@ def main():
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
 
     # TODO: To re-enable dlc-sagemaker-test, add it to the list below
-    pr_test_jobs = ["dlc-ec2-test"]
+    pr_test_jobs = ["dlc-sanity-test", "dlc-ec2-test"]
 
     for job in pr_test_jobs:
         run_test_job(commit, job)
