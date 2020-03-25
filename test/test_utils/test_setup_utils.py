@@ -6,7 +6,7 @@ from invoke.context import Context
 
 def host_setup_for_tensorflow_inference(container_name, framework_version):
     context = Context()
-    home_dir = context.run("$pwd", hide="out").stdout.strip("\n")
+    home_dir = context.run("pwd", hide="out").stdout.strip("\n")
     src_location = join(home_dir, f"{container_name}-serving")
     if exists("serving"):
         context.run("rm -rf serving", echo=True)
