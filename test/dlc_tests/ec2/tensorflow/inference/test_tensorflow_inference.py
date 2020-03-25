@@ -20,13 +20,13 @@ def test_ec2_tensorflow_inference_grpc_cpu(tensorflow_inference, cpu_only):
     try:
         run(f"docker run -id --name {container_name} -p {grpc_port}:8500 "
             f"--mount type=bind,source={model_location},target=/models/mnist -e MODEL_NAME=mnist "
-            f"{tensorflow_inference}")
+            f"{tensorflow_inference}", echo=True)
 
         sleep(30)
 
         request_tensorflow_inference_grpc(src_path, venv_path, port=grpc_port)
     finally:
-        run(f"docker rm -f {container_name}", warn=True)
+        run(f"docker rm -f {container_name}", warn=True, echo=True)
         tensorflow_inference_test_cleanup(src_path, venv_path)
 
 
