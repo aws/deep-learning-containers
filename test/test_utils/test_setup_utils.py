@@ -1,5 +1,7 @@
-from invoke.context import Context
 from os.path import exists, join
+import re
+
+from invoke.context import Context
 
 
 def host_setup_for_tensorflow_inference(container_name, framework_version):
@@ -8,10 +10,12 @@ def host_setup_for_tensorflow_inference(container_name, framework_version):
     src_location = join(home_dir, f"{container_name}-serving")
     if exists("serving"):
         context.run("rm -rf serving", echo=True)
-    context.run(f"git clone https://github.com/tensorflow/serving.git {src_location}", echo=True)
+    fw_short_version = re.search(r"\d+\.\d+", framework_version).group()
+    context.run(f"git clone -b r{fw_short_version} https://github.com/tensorflow/serving.git {src_location}", echo=True)
 
     context.run(f"""pip install -qq -U tensorflow=={framework_version}"""
                 f""" "tensorflow-serving-api<={framework_version}" """, echo=True)
+
     script = join(src_location, "tensorflow_serving", "example", "mnist_saved_model.py")
     model_path = join(src_location, "models", "mnist")
     context.run(f"python {script} {model_path}", hide="out")
