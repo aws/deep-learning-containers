@@ -15,7 +15,7 @@ def ec2_training_test_executor(ecr_uri, test_script):
     container_tests_dir = CONTAINER_TESTS_LOCAL_DIR
     with context.prefix(f"chmod +x -R {container_tests_dir}"):
         context.run(f"docker run {gpu_cmd} -v {container_tests_dir}:/test {ecr_uri} "
-                    f"{bash_path} -c {test_script}", hide="out")
+                    f"{bash_path} -c {test_script}", hide="both")
 
 
 def launch_instance(
