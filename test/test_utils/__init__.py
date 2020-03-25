@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 
 from invoke import run
@@ -22,6 +23,11 @@ def run_subprocess_cmd(cmd, failure="Command failed"):
     if command.returncode:
         pytest.fail(f"{failure}. Error log:\n{command.stdout.decode()}")
     return command
+
+
+def get_image_framework_version(image_uri):
+    fw_version_format = r"\d+\.\d+(\.\d+)*"
+    return re.search(fw_version_format, image_uri).group()
 
 
 def retry_if_result_is_false(result):

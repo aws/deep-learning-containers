@@ -40,4 +40,4 @@ def tensorflow_inference_test_cleanup(container_name):
     venv_location = join(home_dir, container_name)
     src_location = join(home_dir, "serving")
 
-    context.run(f"rm -rf {venv_location} {src_location}")
+    context.run(f"rm -rf {venv_location} {src_location}", warn=True)
