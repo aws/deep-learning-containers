@@ -17,6 +17,7 @@ def host_setup_for_tensorflow_inference(container_name, framework_version):
             f"git clone -b r{fw_short_version} https://github.com/tensorflow/serving.git {src_location}", echo=True
         )
     else:
+        context.run(f"mkdir -p {src_location}")
         # tensorflow/serving is not yet updated with scripts for TF 2.1, so using locally modified scripts
         script_location = join("container_tests", "bin", "tensorflow_serving")
         context.run(f"cp -r {script_location} {src_location}")
