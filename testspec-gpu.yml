@@ -4,7 +4,7 @@ phases:
   install:
     commands:
       - apt-get update -y
-      - apt-get install -y t nvidia-container-toolkit
+      - apt-get install -y nvidia-container-toolkit
     runtime-versions:
       docker: 18
   pre_build:
