@@ -2,7 +2,7 @@ from time import sleep
 
 from invoke import run
 
-from test.test_utils import get_image_framework_version
+from test.test_utils import get_image_framework_version, request_tensorflow_inference_grpc
 import test.test_utils.ec2 as ec2_utils
 
 
@@ -22,7 +22,6 @@ def test_ec2_tensorflow_inference_grpc(tensorflow_inference, cpu_only):
 
         sleep(30)
 
-        ec2_utils.request_tensorflow_inference_grpc(src_path, port=grpc_port)
+        request_tensorflow_inference_grpc(src_path, port=grpc_port)
     finally:
         run(f"docker rm -f {container_name}", warn=True, echo=True)
-        ec2_utils.tensorflow_inference_test_cleanup(src_path)

@@ -121,6 +121,18 @@ def request_tensorflow_inference_rest(model_name, ip_address="127.0.0.1", port="
     return True
 
 
+def request_tensorflow_inference_grpc(src_location, ip_address="127.0.0.1", port="8500"):
+    """
+    Method to run tensorflow inference on MNIST model using gRPC protocol
+    :param src_location:
+    :param ip_address:
+    :param port:
+    :return:
+    """
+    script = os.path.join(src_location, "mnist_client.py")
+    run(f"python {script} --num_tests=1000 --server={ip_address}:{port}", echo=True)
+
+
 def get_mms_run_command(model_names, processor="cpu"):
     """
     Helper function to format run command for MMS
