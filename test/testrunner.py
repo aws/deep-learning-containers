@@ -104,7 +104,7 @@ def pull_dlc_images(images, test_type):
     """
     # PT inference images are too big for the EC2 tests
     if test_type == "ec2":
-        images = [image for image in images if "pytorch-inference" not in images]
+        images = [image for image in images if "pytorch-inference" not in image]
     for image in images:
         print(f"****** Space left when pulling {image} *********")
         run("df -H")
