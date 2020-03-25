@@ -31,7 +31,7 @@ def test_ec2_tensorflow_inference_grpc_cpu(tensorflow_inference, cpu_only):
 
 
 @pytest.mark.skip("nvidia-docker issues in CodeBuild")
-def test_ec2_tensorflow_inference_grpc_gpu(tensorflow_inference, gpu_only, py3_only):
+def test_ec2_tensorflow_inference_grpc_gpu(tensorflow_inference, gpu_only):
     run(f"docker pull {tensorflow_inference}", hide="out")
     repo_name, image_tag = tensorflow_inference.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-container"
