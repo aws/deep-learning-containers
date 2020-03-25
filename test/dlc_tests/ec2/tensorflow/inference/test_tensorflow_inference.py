@@ -14,9 +14,9 @@ def test_ec2_tensorflow_inference_grpc_cpu(tensorflow_inference, cpu_only):
     repo_name, image_tag = tensorflow_inference.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-container"
     framework_version = get_image_framework_version(tensorflow_inference)
-    grpc_port = "8500"
+    grpc_port = "8500" if "py2" in tensorflow_inference else "8502"
 
-    src_path, venv_path, model_location = host_setup_for_tensorflow_inference(container_name, framework_version)
+    src_path, model_location = host_setup_for_tensorflow_inference(container_name, framework_version)
     try:
         run(f"docker run -id --name {container_name} -p {grpc_port}:8500 "
             f"--mount type=bind,source={model_location},target=/models/mnist -e MODEL_NAME=mnist "
@@ -24,10 +24,10 @@ def test_ec2_tensorflow_inference_grpc_cpu(tensorflow_inference, cpu_only):
 
         sleep(30)
 
-        request_tensorflow_inference_grpc(src_path, venv_path, port=grpc_port)
+        request_tensorflow_inference_grpc(src_path, port=grpc_port)
     finally:
         run(f"docker rm -f {container_name}", warn=True, echo=True)
-        tensorflow_inference_test_cleanup(src_path, venv_path)
+        tensorflow_inference_test_cleanup(src_path)
 
 
 @pytest.mark.skip("nvidia-docker issues in CodeBuild")
@@ -36,9 +36,9 @@ def test_ec2_tensorflow_inference_grpc_gpu(tensorflow_inference, gpu_only):
     repo_name, image_tag = tensorflow_inference.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-container"
     framework_version = get_image_framework_version(tensorflow_inference)
-    grpc_port = "8500"
+    grpc_port = "8500" if "py2" in tensorflow_inference else "8502"
 
-    src_path, venv_path, model_location = host_setup_for_tensorflow_inference(container_name, framework_version)
+    src_path, model_location = host_setup_for_tensorflow_inference(container_name, framework_version)
     try:
         run(f"nvidia-docker run -id --name {container_name} -p {grpc_port}:8500 "
             f"--mount type=bind,source={model_location},target=/models/mnist -e MODEL_NAME=mnist "
@@ -46,7 +46,7 @@ def test_ec2_tensorflow_inference_grpc_gpu(tensorflow_inference, gpu_only):
 
         sleep(30)
 
-        request_tensorflow_inference_grpc(src_path, venv_path, port=grpc_port)
+        request_tensorflow_inference_grpc(src_path, port=grpc_port)
     finally:
         run(f"docker rm -f {container_name}", warn=True)
-        tensorflow_inference_test_cleanup(src_path, venv_path)
+        tensorflow_inference_test_cleanup(src_path)
