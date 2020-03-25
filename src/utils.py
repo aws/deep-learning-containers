@@ -227,9 +227,9 @@ def pr_build_setup(pr_number, framework):
     # parse_modifed_root_files_info(files, pattern="testspec\.yml")
 
     return (
-        JobParameters.device_types,
-        JobParameters.image_types,
-        JobParameters.py_versions,
+        [],
+        [],
+        []
     )
 
 
