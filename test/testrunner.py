@@ -128,7 +128,7 @@ def main():
 
         # Pull images for necessary tests
         if test_type != "ecs":
-            pull_dlc_images(dlc_images.split(" "))
+            pull_dlc_images(dlc_images.split(" "), test_type)
 
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", test_type, f"--junitxml={report}", "-n=auto"]
