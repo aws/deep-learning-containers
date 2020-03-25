@@ -5,7 +5,7 @@ from os.path import exists, join
 def host_setup_for_tensorflow_inference(container_name, framework_version):
     context = Context()
     home_dir = context.run("$pwd", hide="out").stdout.strip("\n")
-    src_location = join(home_dir, "serving")
+    src_location = join(home_dir, f"{container_name}-serving")
     if exists("serving"):
         context.run("rm -rf serving")
     context.run(f"git clone https://github.com/tensorflow/serving.git {src_location}")
@@ -26,7 +26,7 @@ def request_tensorflow_inference_grpc(container_name, ip_address="127.0.0.1", po
     context = Context()
     home_dir = context.run("$pwd", hide="out").stdout.strip("\n")
     venv_location = join(home_dir, container_name)
-    src_location = join(home_dir, "serving")
+    src_location = join(home_dir, f"{container_name}-serving")
 
     with context.prefix(f"source {venv_location}/bin/activate"):
         with context.cd(src_location):
@@ -38,6 +38,6 @@ def tensorflow_inference_test_cleanup(container_name):
     context = Context()
     home_dir = context.run("$pwd", hide="out").stdout.strip("\n")
     venv_location = join(home_dir, container_name)
-    src_location = join(home_dir, "serving")
+    src_location = join(home_dir, f"{container_name}-serving")
 
     context.run(f"rm -rf {venv_location} {src_location}", warn=True)
