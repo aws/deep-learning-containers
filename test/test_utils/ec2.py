@@ -12,11 +12,12 @@ def ec2_training_test_executor(ecr_uri, test_script):
     context = Context()
     bash_path = os.path.join(os.sep, 'bin', 'bash')
     container_tests_dir = CONTAINER_TESTS_LOCAL_DIR
-    local_test_dir = os.path.join(os.sep, 'test')
+    log_dir = os.path.join(container_tests_dir, 'logs')
+    if not os.path.exists(log_dir):
+        os.mkdir(log_dir)
     with context.prefix(f"chmod +x -R {container_tests_dir}"):
         context.run(f"docker run -v {container_tests_dir}:/test {ecr_uri} "
-                    f"{bash_path} -c mkdir -p {os.path.join(local_test_dir, 'logs')} && "
-                    f"chmod +x -R {local_test_dir} && {test_script}", hide="both")
+                    f"{bash_path} -c {test_script}", hide="both")
 
 
 def launch_instance(
