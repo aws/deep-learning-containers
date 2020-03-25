@@ -19,25 +19,18 @@ def host_setup_for_tensorflow_inference(container_name, framework_version):
             script = join("tensorflow_serving", "example", "mnist_saved_model.py")
             model_path = join("models", "mnist")
             context.run(f"python {script} {model_path}", hide="out")
-    return join(src_location, model_path)
+    abs_model_path = join(src_location, model_path)
+    return src_location, venv_location, abs_model_path
 
 
-def request_tensorflow_inference_grpc(container_name, ip_address="127.0.0.1", port="8500"):
+def request_tensorflow_inference_grpc(src_location, venv_location, ip_address="127.0.0.1", port="8500"):
     context = Context()
-    home_dir = context.run("$pwd", hide="out").stdout.strip("\n")
-    venv_location = join(home_dir, container_name)
-    src_location = join(home_dir, f"{container_name}-serving")
-
     with context.prefix(f"source {venv_location}/bin/activate"):
         with context.cd(src_location):
             script = join("tensorflow_serving", "example", "mnist_client.py")
             context.run(f"python {script} --num_tests=1000 --server={ip_address}:{port}")
 
 
-def tensorflow_inference_test_cleanup(container_name):
+def tensorflow_inference_test_cleanup(src_location, venv_location):
     context = Context()
-    home_dir = context.run("$pwd", hide="out").stdout.strip("\n")
-    venv_location = join(home_dir, container_name)
-    src_location = join(home_dir, f"{container_name}-serving")
-
     context.run(f"rm -rf {venv_location} {src_location}", warn=True)
