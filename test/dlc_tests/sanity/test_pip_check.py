@@ -1,6 +1,12 @@
 import pytest
 
+from invoke import run
+
 from test.test_utils import run_subprocess_cmd
+
+
+def test_nvidia_smi(image):
+    run("nvidia-smi")
 
 
 def test_pip_check(image):
