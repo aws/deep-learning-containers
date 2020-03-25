@@ -4,8 +4,7 @@ from os.path import exists, join
 
 def host_setup_for_tensorflow_inference(container_name, framework_version):
     context = Context()
-    out = context.run("echo $HOME", hide="out").stdout.strip("\n")
-    home_dir = out if out else "."
+    home_dir = context.run("$pwd", hide="out").stdout.strip("\n")
     src_location = join(home_dir, "serving")
     if exists("serving"):
         context.run("rm -rf serving")
@@ -25,8 +24,7 @@ def host_setup_for_tensorflow_inference(container_name, framework_version):
 
 def request_tensorflow_inference_grpc(container_name, ip_address="127.0.0.1", port="8500"):
     context = Context()
-    out = context.run("echo $HOME", hide="out").stdout.strip("\n")
-    home_dir = out if out else "."
+    home_dir = context.run("$pwd", hide="out").stdout.strip("\n")
     venv_location = join(home_dir, container_name)
     src_location = join(home_dir, "serving")
 
@@ -34,3 +32,12 @@ def request_tensorflow_inference_grpc(container_name, ip_address="127.0.0.1", po
         with context.cd(src_location):
             script = join("tensorflow_serving", "example", "mnist_client.py")
             context.run(f"python {script} --num_tests=1000 --server={ip_address}:{port}")
+
+
+def tensorflow_inference_test_cleanup(container_name):
+    context = Context()
+    home_dir = context.run("$pwd", hide="out").stdout.strip("\n")
+    venv_location = join(home_dir, container_name)
+    src_location = join(home_dir, "serving")
+
+    context.run(f"rm -rf {venv_location} {src_location}")

@@ -3,7 +3,9 @@ from time import sleep
 from invoke import run
 import pytest
 
-from test.test_utils.test_setup_utils import host_setup_for_tensorflow_inference, request_tensorflow_inference_grpc
+from test.test_utils.test_setup_utils import (host_setup_for_tensorflow_inference,
+                                              request_tensorflow_inference_grpc,
+                                              tensorflow_inference_test_cleanup)
 
 
 def test_ec2_tensorflow_inference_grpc_cpu(tensorflow_inference, cpu_only):
@@ -24,6 +26,7 @@ def test_ec2_tensorflow_inference_grpc_cpu(tensorflow_inference, cpu_only):
         request_tensorflow_inference_grpc(container_name, port=grpc_port)
     finally:
         run(f"docker rm -f {container_name}", warn=True)
+        tensorflow_inference_test_cleanup(container_name)
 
 
 @pytest.mark.skip("nvidia-docker issues in CodeBuild")
@@ -45,3 +48,4 @@ def test_ec2_tensorflow_inference_grpc_gpu(tensorflow_inference, gpu_only):
         request_tensorflow_inference_grpc(container_name, port=grpc_port)
     finally:
         run(f"docker rm -f {container_name}", warn=True)
+        tensorflow_inference_test_cleanup(container_name)
