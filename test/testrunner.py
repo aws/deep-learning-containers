@@ -131,7 +131,6 @@ def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
     dlc_images = os.getenv("DLC_IMAGES")
-    os.chdir("test")
 
     if test_type in ("sanity", "ecs", "ec2"):
         report = os.path.join(os.getcwd(), f"{test_type}.xml")
