@@ -17,7 +17,6 @@ phases:
       - python test/testrunner.py
   post_build:
     commands:
-      - cd ..
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
 reports:
   test_reports:
