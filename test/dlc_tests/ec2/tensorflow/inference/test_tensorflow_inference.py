@@ -8,7 +8,7 @@ import test.test_utils.ec2 as ec2_utils
 
 
 def test_ec2_tensorflow_inference_grpc(tensorflow_inference, cpu_only):
-    run(f"docker pull {tensorflow_inference}", hide="out")
+    run(f"docker pull {tensorflow_inference}", hide=True)
 
     repo_name, image_tag = tensorflow_inference.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-container"
@@ -21,10 +21,10 @@ def test_ec2_tensorflow_inference_grpc(tensorflow_inference, cpu_only):
     try:
         run(f"{docker_bin} run -id --name {container_name} -p {grpc_port}:8500 "
             f"--mount type=bind,source={model_location},target=/models/mnist -e MODEL_NAME=mnist "
-            f"{tensorflow_inference}", echo=True)
+            f"{tensorflow_inference}", hide=True)
 
         sleep(30)
 
         request_tensorflow_inference_grpc(src_path, port=grpc_port)
     finally:
-        run(f"docker rm -f {container_name}", warn=True, echo=True)
+        run(f"docker rm -f {container_name}", warn=True, hide=True)

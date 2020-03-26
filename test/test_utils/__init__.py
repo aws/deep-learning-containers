@@ -130,7 +130,7 @@ def request_tensorflow_inference_grpc(src_location, ip_address="127.0.0.1", port
     :return:
     """
     script = os.path.join(src_location, "mnist_client.py")
-    run(f"python {script} --num_tests=1000 --server={ip_address}:{port}", echo=True)
+    run(f"python {script} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
 def get_mms_run_command(model_names, processor="cpu"):
@@ -192,7 +192,7 @@ def get_tensorflow_model_name(processor, model_name):
 
 
 def get_mnist_serving_path():
-    path = run("pwd", hide="out").stdout.strip("\n")
+    path = run("pwd", hide=True).stdout.strip("\n")
     if "dlc_tests" not in path:
         EnvironmentError("Test is being run from wrong path")
     while os.path.basename(path) != "dlc_tests":
@@ -205,12 +205,12 @@ def setup_mnist_serving_model():
     framework_version = get_image_framework_version(any_image)
     src_location = get_mnist_serving_path()
     if os.path.exists(src_location):
-        run(f"rm -rf {src_location}", echo=True)
+        run(f"rm -rf {src_location}", hide=True)
 
     if framework_version.startswith("1."):
         fw_short_version = re.search(r"\d+\.\d+", framework_version).group()
         run(f"git clone -b r{fw_short_version} https://github.com/tensorflow/serving.git {src_location}_temp",
-            echo=True)
+            hide=True)
         script_location = os.path.join(f"{src_location}_temp", "tensorflow_serving", "example")
         tensorflow_package_name = "tensorflow"
     else:
@@ -219,9 +219,9 @@ def setup_mnist_serving_model():
         tensorflow_package_name = "tensorflow-cpu"
     run(f"cp -r {script_location} {src_location}")
 
-    run(f"pip install --user -qq -U {tensorflow_package_name}=={framework_version}", echo=True)
-    run(f"""pip install --user -qq "tensorflow-serving-api<={framework_version}" """, echo=True)
+    run(f"pip install --user -qq -U {tensorflow_package_name}=={framework_version}", hide=True)
+    run(f"""pip install --user -qq "tensorflow-serving-api<={framework_version}" """, hide=True)
 
     script = os.path.join(src_location, "mnist_saved_model.py")
     model_path = os.path.join(src_location, "models", "mnist")
-    run(f"python {script} {model_path}", hide="out")
+    run(f"python {script} {model_path}", hide=True)
