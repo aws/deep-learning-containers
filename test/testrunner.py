@@ -6,7 +6,7 @@ from invoke import run
 from invoke.context import Context
 import pytest
 
-import test.test_utils.ec2 as ec2_utils
+import test_utils
 
 
 def assign_sagemaker_instance_type(image):
@@ -124,7 +124,7 @@ def setup_host_environment(images):
     jobs = set(jobs)
 
     if "inference" in jobs and framework == "tensorflow":
-        ec2_utils.setup_mnist_serving_model()
+        test_utils.setup_mnist_serving_model()
 
 
 def main():

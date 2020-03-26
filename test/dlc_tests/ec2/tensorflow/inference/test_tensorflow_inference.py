@@ -3,7 +3,7 @@ from time import sleep
 
 from invoke import run
 
-from test.test_utils import request_tensorflow_inference_grpc
+from test.test_utils import get_mnist_serving_path, request_tensorflow_inference_grpc
 import test.test_utils.ec2 as ec2_utils
 
 
@@ -14,7 +14,7 @@ def test_ec2_tensorflow_inference_grpc(tensorflow_inference, cpu_only):
     container_name = f"{repo_name}-{image_tag}-container"
     docker_bin = "nvidia-docker" if "gpu" in tensorflow_inference else "docker"
 
-    src_path = ec2_utils.get_mnist_serving_path()
+    src_path = get_mnist_serving_path()
     model_location = os.path.join(src_path, "models", "mnist")
     grpc_port = ec2_utils.get_inference_ec2_test_port_number(tensorflow_inference)
 
