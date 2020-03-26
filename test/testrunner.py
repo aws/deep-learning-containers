@@ -102,9 +102,6 @@ def pull_dlc_images(images):
     """
     Pulls DLC images to CodeBuild jobs before running PyTest commands
     """
-    # Skipping PyTorch Inference tests for now, as pulling all PT images results in out of space issue
-    images = [image for image in images if "pytorch-inference" not in image]
-
     for image in images:
         run(f"docker pull {image}", hide='out')
 
@@ -121,7 +118,7 @@ def main():
         os.chdir("dlc_tests")
 
         # Pull images for necessary tests
-        if test_type != "ecs":
+        if test_type == "sanity":
             pull_dlc_images(dlc_images.split(" "))
 
         # Execute dlc_tests pytest command
