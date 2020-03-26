@@ -6,7 +6,7 @@ from test.test_utils import request_tensorflow_inference_grpc
 import test.test_utils.ec2 as ec2_utils
 
 
-def test_ec2_tensorflow_inference_grpc(tensorflow_inference, mnist_serving_model, cpu_only, py3_only):
+def test_ec2_tensorflow_inference_grpc(tensorflow_inference, mnist_serving_model, cpu_only):
     run(f"docker pull {tensorflow_inference}", hide="out")
     src_path, model_location = mnist_serving_model
 
