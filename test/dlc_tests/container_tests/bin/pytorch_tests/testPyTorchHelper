@@ -12,7 +12,7 @@ TRAINING_LOG=${LOG_DIR}/pytorch_train_mnist.log
 
 echo "Training mnist using PyTorch... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
 set +e
-python mnist/main.py >$TRAINING_LOG 2>&1
+python ${EXAMPLESDIR}/mnist/main.py >$TRAINING_LOG 2>&1
 RETURN_VAL=`echo $?`
 set -e
 
