@@ -6,7 +6,7 @@ from invoke import run
 from invoke.context import Context
 import pytest
 
-import test.test_utils.ec2 as ec2_utils
+import test_utils.ec2 as ec2_utils
 
 
 def assign_sagemaker_instance_type(image):
