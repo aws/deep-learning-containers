@@ -24,7 +24,7 @@ ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 
-ARG TF_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/tensorflow/r2.1_aws/20200326-210825/b340a8e30edb75f9ad8af2e838837c63db48ea42/cpu/cputensorflow-2.1.0-cp36-cp36m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/tensorflow/r2.1_aws/20200326-230527/b340a8e30edb75f9ad8af2e838837c63db48ea42/cpu/cputensorflow-2.1.0-cp36-cp36m-manylinux2010_x86_64.whl
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
