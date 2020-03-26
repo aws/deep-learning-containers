@@ -39,6 +39,7 @@ def test_safety(image):
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
     error if an issue is fixable.
     """
+    run(f"docker pull {image}", hide=True)
     repo_name, image_tag = image.split('/')[-1].split(':')
     python_version = "py2" if "py2" in image_tag else "py3"
     ignore_ids_list = _get_safety_ignore_list(repo_name, python_version)
@@ -71,6 +72,6 @@ def test_safety(image):
                 ignore_str += f" {vulnerability_id}"
 
         run(f"{docker_exec_cmd} chmod +x /test/bin/testSafety", hide=True)
-        run(f"{docker_exec_cmd} /test/bin/testSafety {ignore_str} ", hide=True)
+        run(f"{docker_exec_cmd} /test/bin/testSafety {ignore_str} ")
     finally:
         run(f"docker rm -f {container_name}", hide=True)
