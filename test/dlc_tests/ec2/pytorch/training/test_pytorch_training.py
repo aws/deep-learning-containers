@@ -55,5 +55,5 @@ def test_pytorch_mpi(pytorch_training, gpu_only, py3_only):
 
 def test_smdebug(pytorch_training, py3_only):
     test_script = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
-    test_cmd = f"{test_script} 'mxnet'"
+    test_cmd = f"{test_script} 'pytorch'"
     ec2_training_test_executor(pytorch_training, test_cmd)
