@@ -256,11 +256,11 @@ def pr_build_setup(pr_number, framework):
     parse_modified_docker_files_info(files, framework, pattern="\S+Dockerfile\S+")
 
     parse_modified_sagemaker_test_files(
-        files, framework, pattern="\S+sagemaker_tests\/\S+"
+        files, framework, pattern="sagemaker_tests\/\S+"
     )
 
     # The below functions are only run if all JobParameters variables are not set with constants.ALL
-    parse_modified_dlc_test_files_info(files, framework, pattern="\S+dlc_tests\/\S+")
+    parse_modified_dlc_test_files_info(files, framework, pattern="dlc_tests\/\S+")
 
     # The below code currently overides the device_types, image_types, py_versions with constants.ALL
     # when there is a change in any the below files
