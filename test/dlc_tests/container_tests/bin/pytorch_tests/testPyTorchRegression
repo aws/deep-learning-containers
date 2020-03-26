@@ -4,5 +4,8 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
+if [ ! -d ${HOME_DIR}/artifacts/examples ] ; then
+    git clone https://github.com/pytorch/examples.git ${HOME_DIR}/artifacts/examples
+fi
 ${BIN_DIR}/pytorch_tests/testPyTorchRegressionHelper || exit 1
 exit 0

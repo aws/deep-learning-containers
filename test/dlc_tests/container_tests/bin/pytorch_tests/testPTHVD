@@ -5,6 +5,8 @@ BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 HOROVOD_VERSION=v0.16.4
 
-git clone -b ${HOROVOD_VERSION} https://github.com/horovod/horovod.git ${HOME_DIR}/artifacts/horovod
+if [ ! -d ${HOME_DIR}/artifacts/horovod ] ; then
+    git clone -b ${HOROVOD_VERSION} https://github.com/horovod/horovod.git ${HOME_DIR}/artifacts/horovod
+fi
 ${BIN_DIR}/pytorch_tests/testPTHVDHelper || exit 1
 exit 0

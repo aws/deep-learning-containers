@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 from test.test_utils import CONTAINER_TESTS_PREFIX
 from test.test_utils.ec2 import ec2_training_test_executor
 
@@ -27,6 +29,7 @@ def test_pytorch_train_dgl(pytorch_training, py3_only, cpu_only):
     ec2_training_test_executor(pytorch_training, test_script)
 
 
+@pytest.mark.skip(reason="This is a GPU only test which is failing due to CodeBuild GPU issues.")
 def test_pytorch_with_horovod(pytorch_training, gpu_only):
     test_script = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPTHVD")
     ec2_training_test_executor(pytorch_training, test_script)
@@ -52,5 +55,5 @@ def test_pytorch_mpi(pytorch_training, gpu_only, py3_only):
 
 def test_smdebug(pytorch_training, py3_only):
     test_script = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
-    test_cmd = f"{test_script} mxnet"
+    test_cmd = f"{test_script} 'mxnet'"
     ec2_training_test_executor(pytorch_training, test_cmd)
