@@ -49,9 +49,9 @@ JOB_FRAMEWORK = os.environ.get("FRAMEWORK")
 JOB_FRAMEWORK_VERSION = os.environ.get("VERSION")
 
 # Test environment file
-TEST_ENV = os.path.join(os.path.expanduser("~"), "testenv.json")
+TEST_ENV_PATH = os.path.join(os.path.expanduser("~"), "testenv.json")
 # Test images for all test types (sm,ecs,eks,ec2) to pass on to code build jobs
-TEST_TYPE_IMAGES = os.path.join(os.path.expanduser("~"), "test_type_images.json")
+TEST_TYPE_IMAGES_PATH = os.path.join(os.path.expanduser("~"), "test_type_images.json")
 
 # Test types for running code build test jobs
 SAGEMAKER_TESTS = "sagemaker"

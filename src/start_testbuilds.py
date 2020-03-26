@@ -21,7 +21,7 @@ import constants
 
 
 def run_test_job(commit, codebuild_project, images_str=""):
-    test_env_file = constants.TEST_ENV
+    test_env_file = constants.TEST_ENV_PATH
     if not os.path.exists(test_env_file):
         raise FileNotFoundError(
             f"{test_env_file} not found. This is required to set test environment variables"
@@ -52,14 +52,13 @@ def main():
         return
 
     # load the images for all test_types to pass on to code build jobs
-    with open(constants.TEST_TYPE_IMAGES) as json_file:
+    with open(constants.TEST_TYPE_IMAGES_PATH) as json_file:
         test_images = json.load(json_file)
 
     # Run necessary PR test jobs
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
 
-    for test_type in test_images.keys():
-        images = test_images[test_type]
+    for test_type, images in test_images.items():
         # only run the code build test jobs when the images are present
         if images:
             pr_test_job = f"dlc-{test_type}-test"

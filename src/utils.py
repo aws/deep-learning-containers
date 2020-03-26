@@ -72,7 +72,7 @@ def update_image_run_test_types(image_build_string, test_type):
     :return:
     """
     if image_build_string in JobParameters.image_run_test_types.keys():
-        test = JobParameters.image_run_test_types[image_build_string]
+        test = JobParameters.image_run_test_types.get(image_build_string)
         # If image_build_string is already present
         # we will only append the test_type if it doesn't have all tests.
         if constants.ALL not in test and test_type != constants.ALL:
@@ -160,12 +160,13 @@ def parse_modified_sagemaker_test_files(files, framework, pattern=""):
     """
     rule = re.findall(rf"{pattern}", files)
     for test_file in rule:
-        test_folder = test_file.split("/")[1]
+        test_dirs = test_file.split("/")
+        test_folder = test_dirs[1]
         if test_folder == "sagemaker_tests":
-            framework_changed = test_file.split("/")[2]
+            framework_changed = test_dirs[2]
             # The below code looks for file changes in /test/sagemaker_tests/(mxnet|pytorch|tensorflow) directory
             if framework_changed == framework:
-                job_name = test_file.split("/")[3]
+                job_name = test_dirs[3]
                 # The training folder structure for tensorflow is tensorflow1_training(1.x), tensorflow2_training(2.x)
                 # so we are stripping the tensorflow1 from the name
                 if framework_changed == "tensorflow" and "training" in job_name:
@@ -202,14 +203,15 @@ def parse_modified_dlc_test_files_info(files, framework, pattern=""):
     rule = re.findall(rf"{pattern}", files)
     # JobParameters variables are not set with constants.ALL
     for test_file in rule:
-        test_folder = test_file.split("/")[1]
+        test_dirs = test_file.split("/")
+        test_folder = test_dirs[1]
         if test_folder == "dlc_tests":
-            test_name = test_file.split("/")[2]
+            test_name = test_dirs[2]
             # The below code looks for file changes in /test/dlc_tests/(ecs|eks|ec2) directory
             if test_name in ["ecs", "eks", "ec2"]:
-                framework_changed = test_file.split("/")[3]
+                framework_changed = test_dirs[3]
                 if framework_changed == framework:
-                    job_name = test_file.split("/")[4]
+                    job_name = test_dirs[4]
                     if job_name in constants.IMAGE_TYPES:
                         JobParameters.add_image_types(job_name)
                         JobParameters.build_for_all_device_types_py_versions()
@@ -328,7 +330,7 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
 
 def fetch_dlc_images_for_test_jobs(images):
     """
-    use the JobParamters.run-test_types values to pass on image ecr urls to each test type.
+    use the JobParamters.run_test_types values to pass on image ecr urls to each test type.
     :param images: list
     :return: dictionary
     """
@@ -339,21 +341,26 @@ def fetch_dlc_images_for_test_jobs(images):
         if docker_image.build_status:
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(docker_image.ecr_url)
-            image_tag = docker_image.tag
-            image_job_type = image_tag.split("-")[0]
+            image_job_type = docker_image.info.get("image_type")
+            image_device_type = docker_image.info.get("device_type")
+            image_python_version = docker_image.info.get("python_version")
+            image_tag = f"{image_job_type}_{image_device_type}_{image_python_version}"
+            # when image_run_test_types has key all values can be (all , ecs, eks, ec2, sagemaker)
             if constants.ALL in JobParameters.image_run_test_types.keys():
-                run_tests = JobParameters.image_run_test_types[constants.ALL]
+                run_tests = JobParameters.image_run_test_types.get(constants.ALL)
                 run_tests = (
                     constants.ALL_TESTS if constants.ALL in run_tests else run_tests
                 )
                 for test in run_tests:
                     DLC_IMAGES[test].append(docker_image.ecr_url)
+            # when key is training or inference values can be  (ecs, eks, ec2, sagemaker)
             if image_job_type in JobParameters.image_run_test_types.keys():
-                run_tests = JobParameters.image_run_test_types[image_job_type]
+                run_tests = JobParameters.image_run_test_types.get(image_job_type)
                 for test in run_tests:
                     DLC_IMAGES[test].append(docker_image.ecr_url)
+            # when key is image_tag (training-cpu-py3) values can be (ecs, eks, ec2, sagemaker)
             if image_tag in JobParameters.image_run_test_types.keys():
-                run_tests = JobParameters.image_run_test_types[image_tag]
+                run_tests = JobParameters.image_run_test_types.get(image_tag)
                 run_tests = (
                     constants.ALL_TESTS if constants.ALL in run_tests else run_tests
                 )
@@ -362,7 +369,7 @@ def fetch_dlc_images_for_test_jobs(images):
 
     for test_type in DLC_IMAGES.keys():
         test_images = DLC_IMAGES[test_type]
-        if type(test_images) == list:
+        if test_images:
             DLC_IMAGES[test_type] = list(set(test_images))
     return DLC_IMAGES
 
@@ -384,16 +391,11 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     :param kwargs: other environment variables to set
     """
     test_envs = []
-    ecr_urls = []
-
-    for docker_image in images:
-        # TODO we have change this logic after to append urls only for new builds after test migration is done
-        ecr_urls.append(docker_image.ecr_url)
 
     test_images_dict = fetch_dlc_images_for_test_jobs(images)
 
     # dumping the test_images to dict that can be used in src/start_testbuilds.py
-    write_to_json_file(constants.TEST_TYPE_IMAGES, test_images_dict)
+    write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, test_images_dict)
 
     if kwargs:
         for key, value in kwargs.items():
