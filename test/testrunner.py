@@ -6,7 +6,7 @@ from invoke import run
 from invoke.context import Context
 import pytest
 
-import test_utils.ec2 as ec2_utils
+import test.test_utils.ec2 as ec2_utils
 
 
 def assign_sagemaker_instance_type(image):
@@ -131,6 +131,7 @@ def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
     dlc_images = os.getenv("DLC_IMAGES")
+    os.chdir("test")
 
     if test_type in ("sanity", "ecs", "ec2"):
         report = os.path.join(os.getcwd(), f"{test_type}.xml")
