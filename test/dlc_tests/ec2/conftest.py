@@ -7,7 +7,7 @@ import pytest
 from test.test_utils import get_image_framework_version
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def mnist_serving_model():
     any_image = os.getenv("DLC_IMAGES").split(" ")[0]
     framework_version = get_image_framework_version(any_image)
