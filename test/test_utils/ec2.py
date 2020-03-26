@@ -273,15 +273,15 @@ def host_setup_for_tensorflow_inference(container_name, framework_version):
         fw_short_version = re.search(r"\d+\.\d+", framework_version).group()
         run(f"git clone -b r{fw_short_version} https://github.com/tensorflow/serving.git {src_location}", echo=True)
         src_location = join(src_location, "tensorflow_serving", "example")
+        tensorflow_package_name = "tensorflow"
     else:
         # tensorflow/serving is not yet updated with scripts for TF 2.1, so using locally modified scripts
         script_location = join("container_tests", "bin", "tensorflow_serving", "example")
         run(f"cp -r {script_location} {src_location}")
+        tensorflow_package_name = "tensorflow-cpu"
 
-    run(
-        f"""pip install -qq -U tensorflow-cpu=={framework_version}"""
-        f""" "tensorflow-serving-api<={framework_version}" """, echo=True
-    )
+    run(f"pip install --user -qq -U {tensorflow_package_name}=={framework_version}", echo=True)
+    run(f"""pip install --user -qq "tensorflow-serving-api<={framework_version}" """, echo=True)
 
     script = join(src_location, "mnist_saved_model.py")
     model_path = join(src_location, "models", "mnist")
