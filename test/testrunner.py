@@ -126,7 +126,9 @@ def main():
             pull_dlc_images(dlc_images.split(" "), test_type)
 
         # Execute dlc_tests pytest command
-        pytest_cmd = ["-s", test_type, f"--junitxml={report}", "-n=auto"]
+        pytest_cmd = ["-s", test_type, f"--junitxml={report}"]
+        if test_type != "ec2":
+            pytest_cmd.append("-n=auto")
         sys.exit(pytest.main(pytest_cmd))
     elif test_type == "sagemaker":
         run_sagemaker_tests(dlc_images.split(" "))
