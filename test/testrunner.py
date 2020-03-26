@@ -1,12 +1,12 @@
 import os
 import sys
-
 from multiprocessing import Pool
-
-import pytest
 
 from invoke import run
 from invoke.context import Context
+import pytest
+
+import test.test_utils.ec2 as ec2_utils
 
 
 def assign_sagemaker_instance_type(image):
@@ -109,6 +109,24 @@ def pull_dlc_images(images):
         run(f"docker pull {image}", hide='out')
 
 
+def setup_host_environment(images):
+    """
+    Runs framework-related/test-related setup steps common to all tests before parallellized tests start
+    :param images:
+    :return:
+    """
+    framework = ("mxnet" if "mxnet" in images[0] else
+                 "pytorch" if "pytorch" in images[0] else
+                 "tensorflow")
+    jobs = []
+    for image in images:
+        jobs.append("training" if "training" in image else "inference")
+    jobs = set(jobs)
+
+    if "inference" in jobs and framework == "tensorflow":
+        ec2_utils.setup_mnist_serving_model()
+
+
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
@@ -123,6 +141,9 @@ def main():
         # Pull images for necessary tests
         if test_type != "ecs":
             pull_dlc_images(dlc_images.split(" "))
+
+        if test_type == "ec2":
+            setup_host_environment(dlc_images.split(" "))
 
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", test_type, f"--junitxml={report}", "-n=auto"]
