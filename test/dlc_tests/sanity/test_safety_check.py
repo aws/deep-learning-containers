@@ -3,7 +3,6 @@ from pkg_resources._vendor.packaging.version import Version
 
 from invoke import run
 import json
-import pytest
 
 
 # List of safety check vulnerability IDs to ignore. To get the ID, run safety check on the container,
@@ -12,12 +11,12 @@ import pytest
 #           cannot be used because of incompatibilities.
 #        2. Ensure that IGNORE_SAFETY_IDS is always as small/empty as possible.
 IGNORE_SAFETY_IDS = {
-    "mxnet-inference-eia": {
+    "pr-mxnet-inference-eia": {
         # numpy<=1.16.0 -- This has to only be here while we publish MXNet 1.4.1 EI DLC v1.0
         "py2": ['36810'],
         "py3": ['36810']
     },
-    "pytorch-training": {
+    "pr-pytorch-training": {
         # astropy<3.0.1
         "py2": ['35810'],
         "py3": []
@@ -52,14 +51,14 @@ def test_safety(image):
         f"--name {container_name} "
         f"--mount type=bind,src=$(pwd)/container_tests,target=/test "
         f"--entrypoint='/bin/bash' "
-        f"{image}", echo=True)
+        f"{image}", hide=True)
     try:
-        run(f"{docker_exec_cmd} pip install safety yolk3k ", hide='out')
-        run_out = run(f"{docker_exec_cmd} safety check --json ", warn=True, hide='out')
+        run(f"{docker_exec_cmd} pip install safety yolk3k ", hide=True)
+        run_out = run(f"{docker_exec_cmd} safety check --json ", warn=True, hide=True)
         json_str_safety_result = run_out.stdout
         safety_result = json.loads(json_str_safety_result)
         for package, affected_versions, curr_version, _, vulnerability_id in safety_result:
-            run_out = run(f"{docker_exec_cmd} yolk -M {package} -f version ", warn=True, hide='out')
+            run_out = run(f"{docker_exec_cmd} yolk -M {package} -f version ", warn=True, hide=True)
             if run_out.return_code != 0:
                 continue
             latest_version = run_out.stdout
@@ -71,7 +70,7 @@ def test_safety(image):
                 # https://packaging.pypa.io/en/latest/specifiers/
                 ignore_str += f" {vulnerability_id}"
 
-        run(f"{docker_exec_cmd} chmod +x /test/bin/testSafety", echo=True)
-        run(f"{docker_exec_cmd} /test/bin/testSafety {ignore_str} ", echo=True)
+        run(f"{docker_exec_cmd} chmod +x /test/bin/testSafety", hide=True)
+        run(f"{docker_exec_cmd} /test/bin/testSafety {ignore_str} ", hide=True)
     finally:
-        run(f"docker rm -f {container_name}", echo=True)
+        run(f"docker rm -f {container_name}", hide=True)
