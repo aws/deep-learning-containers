@@ -78,7 +78,7 @@ def ec2_instance_ami(request):
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
 def ec2_instance(
-        request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_arn, ec2_instance_ami
+        request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_arn, ec2_instance_ami, region
 ):
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = generate_ssh_keypair(ec2_client, ec2_key_name)
@@ -103,10 +103,12 @@ def ec2_instance(
         ec2_client.terminate_instances(InstanceIds=[instance_id])
         destroy_ssh_keypair(ec2_client, key_filename)
 
-    # request.addfinalizer(terminate_ec2_instance)
+    request.addfinalizer(terminate_ec2_instance)
 
-    waiter = ec2_client.get_waiter("instance_running")
-    waiter.wait(InstanceIds=[instance_id])
+    ec2_utils.check_instance_state(instance_id, state="running", region=region)
+    ec2_utils.check_system_state(
+        instance_id, system_status="ok", instance_status="ok", region=region
+    )
     return instance_id, key_filename
 
 
