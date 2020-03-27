@@ -62,7 +62,7 @@ def ec2_resource(region):
 
 @pytest.fixture(scope="function")
 def ec2_instance_type(request):
-    return request.param
+    return request.param or "c5.4xlarge"
 
 
 @pytest.fixture(scope="function")
@@ -72,7 +72,7 @@ def ec2_instance_role_arn(request):
 
 @pytest.fixture(scope="function")
 def ec2_instance_ami(request):
-    return request.param
+    return request.param or UBUNTU_16_BASE_DLAMI
 
 
 @pytest.mark.timeout(300)
