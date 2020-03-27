@@ -157,21 +157,29 @@ def py3_only():
 
 
 def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, values_to_generate_for_fixture):
-    test_parametrization = {}
+    """
+    Take a dictionary (values_to_generate_for_fixture), that maps a fixture name used in a test function to another
+    fixture that needs to be parametrized, and parametrize to create unique resources for a test.
+    :param metafunc_obj: pytest metafunc object
+    :param images_to_parametrize: <list> list of image URIs which are used in a test
+    :param values_to_generate_for_fixture: <dict> Mapping of "Fixture used" -> "Fixture to be parametrized"
+    :return: <dict> Mapping of "Fixture to be parametrized" -> "Unique values for fixture to be parametrized"
+    """
+    fixtures_parametrized = {}
     if images_to_parametrize:
         for key, new_fixture_name in values_to_generate_for_fixture.items():
             if key in metafunc_obj.fixturenames:
-                test_parametrization[new_fixture_name] = []
+                fixtures_parametrized[new_fixture_name] = []
                 for index, image in enumerate(images_to_parametrize):
                     image_tag = image.split(":")[-1].replace(".", "-")
-                    test_parametrization[new_fixture_name].append(
+                    fixtures_parametrized[new_fixture_name].append(
                         (
                             image,
                             f"{metafunc_obj.function.__name__}-{image_tag}-"
                             f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}",
                         )
                     )
-    return test_parametrization
+    return fixtures_parametrized
 
 
 def pytest_generate_tests(metafunc):
