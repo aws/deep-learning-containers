@@ -49,7 +49,6 @@ def test_safety(image):
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
     error if an issue is fixable.
     """
-    run(f"docker pull {image}", hide=True)
     repo_name, image_tag = image.split('/')[-1].split(':')
     ignore_ids_list = _get_safety_ignore_list(image)
     ignore_str = "" if not ignore_ids_list else " ".join(ignore_ids_list)
