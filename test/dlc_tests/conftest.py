@@ -57,7 +57,7 @@ def ec2_client(region):
 
 @pytest.fixture(scope="session")
 def ec2_resource(region):
-    return boto3.resource("ec2", region_name=region)
+    return boto3.resource("ec2", region_name=region, config=Config(retries={'max_attempts': 10}))
 
 
 @pytest.fixture(scope="function")
