@@ -11,27 +11,37 @@ import json
 #           cannot be used because of incompatibilities.
 #        2. Ensure that IGNORE_SAFETY_IDS is always as small/empty as possible.
 IGNORE_SAFETY_IDS = {
-    "pr-mxnet-inference-eia": {
-        # numpy<=1.16.0 -- This has to only be here while we publish MXNet 1.4.1 EI DLC v1.0
-        "py2": ['36810'],
-        "py3": ['36810']
+    "mxnet": {
+        "inference-eia": {
+            # numpy<=1.16.0 -- This has to only be here while we publish MXNet 1.4.1 EI DLC v1.0
+            "py2": ['36810'],
+            "py3": ['36810']
+        }
     },
-    "pr-pytorch-training": {
-        # astropy<3.0.1
-        "py2": ['35810'],
-        "py3": []
+    "pytorch": {
+        "training": {
+            # astropy<3.0.1
+            "py2": ['35810'],
+            "py3": []
+        }
     }
 }
 
 
-def _get_safety_ignore_list(repo_name, python_version):
+def _get_safety_ignore_list(image_uri):
     """
     Get a list of known safety check issue IDs to ignore, if specified in IGNORE_LISTS.
-    :param repo_name:
+    :param image_uri:
     :param python_version:
     :return: <list> list of safety check IDs to ignore
     """
-    return IGNORE_SAFETY_IDS.get(repo_name, {}).get(python_version)
+    framework = ("mxnet" if "mxnet" in image_uri else
+                 "pytorch" if "pytorch" in image_uri else
+                 "tensorflow")
+    job_type = "training" if "training" in image_uri else "inference-eia" if "eia" in image_uri else "inference"
+    python_version = "py2" if "py2" in image_uri else "py3"
+
+    return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version)
 
 
 def test_safety(image):
@@ -41,8 +51,7 @@ def test_safety(image):
     """
     run(f"docker pull {image}", hide=True)
     repo_name, image_tag = image.split('/')[-1].split(':')
-    python_version = "py2" if "py2" in image_tag else "py3"
-    ignore_ids_list = _get_safety_ignore_list(repo_name, python_version)
+    ignore_ids_list = _get_safety_ignore_list(image)
     ignore_str = "" if not ignore_ids_list else " ".join(ignore_ids_list)
 
     container_name = f"{repo_name}-{image_tag}-safety"
