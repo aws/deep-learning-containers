@@ -103,7 +103,7 @@ def ec2_instance(
         ec2_client.terminate_instances(InstanceIds=[instance_id])
         destroy_ssh_keypair(ec2_client, key_filename)
 
-    request.addfinalizer(terminate_ec2_instance)
+    # request.addfinalizer(terminate_ec2_instance)
 
     waiter = ec2_client.get_waiter("instance_running")
     waiter.wait(InstanceIds=[instance_id])
