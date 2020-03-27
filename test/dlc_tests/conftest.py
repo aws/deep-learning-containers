@@ -62,17 +62,17 @@ def ec2_resource(region):
 
 @pytest.fixture(scope="function")
 def ec2_instance_type(request):
-    return request.param or "c5.4xlarge"
+    return request.param if hasattr(request, "param") else "g4dn.xlarge"
 
 
 @pytest.fixture(scope="function")
 def ec2_instance_role_name(request):
-    return request.param or None
+    return request.param if hasattr(request, "param") else None
 
 
 @pytest.fixture(scope="function")
 def ec2_instance_ami(request):
-    return request.param or UBUNTU_16_BASE_DLAMI
+    return request.param if hasattr(request, "param") else UBUNTU_16_BASE_DLAMI
 
 
 @pytest.mark.timeout(300)
@@ -86,7 +86,7 @@ def ec2_instance(
         KeyName=ec2_key_name,
         ImageId=ec2_instance_ami,
         InstanceType=ec2_instance_type,
-        IamInstanceProfile=({"Name": ec2_instance_role_name} if ec2_instance_role_name else None),
+        IamInstanceProfile={"Name": ec2_instance_role_name},
         TagSpecifications=[
             {
                 "ResourceType": "instance",
