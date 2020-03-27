@@ -156,6 +156,26 @@ def py3_only():
     pass
 
 
+def generate_unique_values_for_fixtures(metafunc, fixture, images_to_parametrize, values_to_generate_for_fixture):
+    parametrization_done = False
+    if images_to_parametrize:
+        for key, new_fixture_name in values_to_generate_for_fixture.items():
+            if key in metafunc.fixturenames:
+                test_parametrization = []
+                for index, image in enumerate(images_to_parametrize):
+                    image_tag = image.split(":")[-1].replace(".", "-")
+                    test_parametrization.append(
+                        (
+                            image,
+                            f"{metafunc.function.__name__}-{image_tag}-"
+                            f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}",
+                        )
+                    )
+                metafunc.parametrize(f"{fixture},{new_fixture_name}", test_parametrization)
+                parametrization_done = True
+    return parametrization_done
+
+
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
@@ -177,23 +197,14 @@ def pytest_generate_tests(metafunc):
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
                 images_to_parametrize = [py3_image for py3_image in images_to_parametrize if 'py2' not in py3_image]
 
-            # Parametrize tests that spin up an ecs cluster with unique name
-            if (images_to_parametrize and
-                    ("ecs_container_instance" in metafunc.fixturenames or "ec2_connection" in metafunc.fixturenames)):
-                test_parametrization = []
-                for index, image in enumerate(images_to_parametrize):
-                    image_tag = image.split(":")[-1].replace(".", "-")
-                    test_parametrization.append(
-                        (
-                            image,
-                            f"{metafunc.function.__name__}-{image_tag}-"
-                            f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}",
-                        )
-                    )
-                new_fixture_name = ("ecs_cluster_name" if "ecs_container_instance" in metafunc.fixturenames else
-                                    "ec2_key_name")
-                metafunc.parametrize(f"{fixture},{new_fixture_name}", test_parametrization)
-            else:
+            # Parametrize tests that spin up an ecs cluster or tests that spin up an EC2 instance with a unique name
+            values_to_generate_for_fixture = {"ecs_container_instance": "ecs_cluster_name",
+                                              "ec2_connection": "ec2_key_name"}
+
+            fixtures_parametrized = generate_unique_values_for_fixtures(
+                metafunc, fixture, images_to_parametrize, values_to_generate_for_fixture
+            )
+            if not fixtures_parametrized:
                 metafunc.parametrize(fixture, images_to_parametrize)
 
     # Parametrize for framework agnostic tests, i.e. sanity
