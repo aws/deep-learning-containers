@@ -156,24 +156,22 @@ def py3_only():
     pass
 
 
-def generate_unique_values_for_fixtures(metafunc, fixture, images_to_parametrize, values_to_generate_for_fixture):
-    parametrization_done = False
+def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, values_to_generate_for_fixture):
+    test_parametrization = {}
     if images_to_parametrize:
         for key, new_fixture_name in values_to_generate_for_fixture.items():
-            if key in metafunc.fixturenames:
-                test_parametrization = []
+            if key in metafunc_obj.fixturenames:
+                test_parametrization[new_fixture_name] = []
                 for index, image in enumerate(images_to_parametrize):
                     image_tag = image.split(":")[-1].replace(".", "-")
-                    test_parametrization.append(
+                    test_parametrization[new_fixture_name].append(
                         (
                             image,
-                            f"{metafunc.function.__name__}-{image_tag}-"
+                            f"{metafunc_obj.function.__name__}-{image_tag}-"
                             f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}",
                         )
                     )
-                metafunc.parametrize(f"{fixture},{new_fixture_name}", test_parametrization)
-                parametrization_done = True
-    return parametrization_done
+    return test_parametrization
 
 
 def pytest_generate_tests(metafunc):
@@ -202,9 +200,12 @@ def pytest_generate_tests(metafunc):
                                               "ec2_connection": "ec2_key_name"}
 
             fixtures_parametrized = generate_unique_values_for_fixtures(
-                metafunc, fixture, images_to_parametrize, values_to_generate_for_fixture
+                metafunc, images_to_parametrize, values_to_generate_for_fixture
             )
-            if not fixtures_parametrized:
+            if fixtures_parametrized:
+                for new_fixture_name, test_parametrization in fixtures_parametrized.items():
+                    metafunc.parametrize(f"{fixture},{new_fixture_name}", test_parametrization)
+            else:
                 metafunc.parametrize(fixture, images_to_parametrize)
 
     # Parametrize for framework agnostic tests, i.e. sanity
