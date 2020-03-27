@@ -1,6 +1,11 @@
+import pytest
+
+
 def test_placeholder_gpu(tensorflow_inference, gpu_only):
     print(tensorflow_inference)
 
 
-def test_placeholder_cpu(tensorflow_inference, cpu_only):
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+def test_placeholder_cpu(tensorflow_inference, ec2_connection, cpu_only):
     print(tensorflow_inference)
+    ec2_connection.run("ls -l")

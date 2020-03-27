@@ -1,7 +1,7 @@
 import boto3
 from retrying import retry
 
-from test.test_utils import DEFAULT_REGION
+from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
 
 
 def launch_instance(
@@ -85,6 +85,21 @@ def get_public_ip(instance_id, region=DEFAULT_REGION):
     if not instance["PublicIpAddress"]:
         raise Exception("IP address not yet available")
     return instance["PublicIpAddress"]
+
+
+@retry(stop_max_attempt_number=8, wait_fixed=120000)
+def get_instance_user(instance_id, region=DEFAULT_REGION):
+    """
+    Get "ubuntu" or "ec2-user" based on AMI used to launch instance
+    :param instance_id: Instance ID to be queried
+    :param region: Region where query will be performed
+    :return: <str> user name
+    """
+    instance = get_instance_from_id(instance_id, region)
+    if not instance["ImageId"]:
+        raise Exception("IP address not yet available")
+    user = "ubuntu" if instance["ImageId"] in [UBUNTU_16_BASE_DLAMI] else "ec2-user"
+    return user
 
 
 def get_instance_state(instance_id, region=DEFAULT_REGION):
