@@ -401,7 +401,7 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
         for key, value in kwargs.items():
             test_envs.append({"name": key, "value": value, "type": "PLAINTEXT"})
 
-    write_to_json_file(constants.TEST_ENV, test_envs)
+    write_to_json_file(constants.TEST_ENV_PATH, test_envs)
 
 
 def get_codebuild_project_name():
