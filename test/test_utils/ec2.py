@@ -96,8 +96,6 @@ def get_instance_user(instance_id, region=DEFAULT_REGION):
     :return: <str> user name
     """
     instance = get_instance_from_id(instance_id, region)
-    if not instance["ImageId"]:
-        raise Exception("IP address not yet available")
     user = "ubuntu" if instance["ImageId"] in [UBUNTU_16_BASE_DLAMI] else "ec2-user"
     return user
 

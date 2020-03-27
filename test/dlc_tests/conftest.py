@@ -80,6 +80,7 @@ def ec2_instance_ami(request):
 def ec2_instance(
         request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_arn, ec2_instance_ami
 ):
+    print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = generate_ssh_keypair(ec2_client, ec2_key_name)
     instances = ec2_resource.create_instances(
         KeyName=ec2_key_name,
@@ -122,9 +123,7 @@ def ec2_connection(ec2_instance, region):
     conn = Connection(
         user=user,
         host=ec2_utils.get_public_ip(instance_id, region),
-        connect_kwargs={
-            "key_filename": [instance_pem_file]
-        }
+        connect_kwargs={"key_filename": [instance_pem_file]}
     )
     return conn
 
