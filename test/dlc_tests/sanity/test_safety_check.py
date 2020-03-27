@@ -1,8 +1,15 @@
+import json
+import logging
 from pkg_resources._vendor.packaging.specifiers import SpecifierSet
 from pkg_resources._vendor.packaging.version import Version
+import sys
 
 from invoke import run
-import json
+
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
 # List of safety check vulnerability IDs to ignore. To get the ID, run safety check on the container,
@@ -80,6 +87,8 @@ def test_safety(image):
                 ignore_str += f" {vulnerability_id}"
 
         run(f"{docker_exec_cmd} chmod +x /test/bin/testSafety", hide=True)
-        run(f"{docker_exec_cmd} /test/bin/testSafety {ignore_str} ")
+        output = run(f"{docker_exec_cmd} /test/bin/testSafety {ignore_str} ", warn=True).stdout
+        LOGGER.info(output)
+        assert output.return_code == 0, f"Safety test failed for {image}"
     finally:
         run(f"docker rm -f {container_name}", hide=True)
