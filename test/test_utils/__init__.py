@@ -177,7 +177,7 @@ def generate_ssh_keypair(ec2_client, key_name):
     key_pair = ec2_client.create_key_pair(KeyName=key_name)
     pwd = run("pwd", hide=True).stdout.strip("\n")
     key_filename = os.path.join(pwd, f"{key_name}.pem")
-    run(f"echo {key_pair['KeyMaterial']} > {key_filename}")
+    run(f"echo '{key_pair['KeyMaterial']}' > {key_filename}")
     run(f"chmod 400 {key_filename}")
     return key_filename
 
