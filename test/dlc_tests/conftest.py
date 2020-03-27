@@ -52,12 +52,12 @@ def docker_client(region):
 
 @pytest.fixture(scope="session")
 def ec2_client(region):
-    return boto3.Session(region_name=region).client("ec2", config=Config(retries={'max_attempts': 10}))
+    return boto3.client("ec2", region_name=region, config=Config(retries={'max_attempts': 10}))
 
 
 @pytest.fixture(scope="session")
-def ec2_resource():
-    return boto3.Session(region_name=region).resource("ec2")
+def ec2_resource(region):
+    return boto3.resource("ec2", region_name=region)
 
 
 @pytest.fixture(scope="function")
@@ -65,12 +65,35 @@ def ec2_instance_type(request):
     return request.param
 
 
+@pytest.fixture(scope="function")
+def ec2_instance_role_arn(request):
+    return request.param
+
+
+@pytest.fixture(scope="function")
+def ec2_instance_ami(request):
+    return request.param
+
+
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
-def ec2_instance(request, ec2_client, ec2_instance_type, ec2_resource, ec2_key_name):
+def ec2_instance(
+        request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_arn, ec2_instance_ami
+):
     key_filename = generate_ssh_keypair(ec2_client, ec2_key_name)
     instances = ec2_resource.create_instances(
-        KeyName=ec2_key_name, ImageId=UBUNTU_16_BASE_DLAMI, InstanceType=ec2_instance_type, MaxCount=1, MinCount=1,
+        KeyName=ec2_key_name,
+        ImageId=ec2_instance_ami,
+        InstanceType=ec2_instance_type,
+        IamInstanceProfile={"Name": ec2_instance_role_arn},
+        TagSpecifications=[
+            {
+                "ResourceType": "instance",
+                "Tags": [{"Key": "Name", "Value": f"CI-CD {ec2_key_name}"}]
+            },
+        ],
+        MaxCount=1,
+        MinCount=1,
     )
     instance_id = instances[0].id
 
