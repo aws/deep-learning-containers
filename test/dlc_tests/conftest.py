@@ -66,8 +66,8 @@ def ec2_instance_type(request):
 
 
 @pytest.fixture(scope="function")
-def ec2_instance_role_arn(request):
-    return request.param
+def ec2_instance_role_name(request):
+    return request.param or None
 
 
 @pytest.fixture(scope="function")
@@ -78,7 +78,7 @@ def ec2_instance_ami(request):
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
 def ec2_instance(
-        request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_arn, ec2_instance_ami, region
+        request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami, region
 ):
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = generate_ssh_keypair(ec2_client, ec2_key_name)
@@ -86,7 +86,7 @@ def ec2_instance(
         KeyName=ec2_key_name,
         ImageId=ec2_instance_ami,
         InstanceType=ec2_instance_type,
-        IamInstanceProfile={"Name": ec2_instance_role_arn},
+        IamInstanceProfile=({"Name": ec2_instance_role_name} if ec2_instance_role_name else None),
         TagSpecifications=[
             {
                 "ResourceType": "instance",
