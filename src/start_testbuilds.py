@@ -20,25 +20,20 @@ import boto3
 import constants
 
 
-def run_test_job(commit, codebuild_project):
-    test_env_file = constants.TEST_ENV
+def run_test_job(commit, codebuild_project, images_str=""):
+    test_env_file = constants.TEST_ENV_PATH
     if not os.path.exists(test_env_file):
-        raise FileNotFoundError(f"{test_env_file} not found. This is required to set test environment variables"
-                                f" for test jobs. Failing the build.")
+        raise FileNotFoundError(
+            f"{test_env_file} not found. This is required to set test environment variables"
+            f" for test jobs. Failing the build."
+        )
 
     with open(test_env_file) as test_env_file:
         env_overrides = json.load(test_env_file)
 
-    # Make sure DLC_IMAGES exists. If not, don't execute job.
-    images_present = False
-    for override in env_overrides:
-        if override.get('name') == "DLC_IMAGES" and override.get('value', '').strip():
-            images_present = True
-            break
-
-    if not images_present:
-        print(f"Skipping test {codebuild_project} as no images were built.")
-        return
+    env_overrides.append(
+        {"name": "DLC_IMAGES", "value": images_str, "type": "PLAINTEXT"}
+    )
 
     client = boto3.client("codebuild")
     return client.start_build(
@@ -51,17 +46,24 @@ def run_test_job(commit, codebuild_project):
 def main():
     build_context = os.getenv("BUILD_CONTEXT")
     if build_context != "PR":
-        print(f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}")
+        print(
+            f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}"
+        )
         return
+
+    # load the images for all test_types to pass on to code build jobs
+    with open(constants.TEST_TYPE_IMAGES_PATH) as json_file:
+        test_images = json.load(json_file)
 
     # Run necessary PR test jobs
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
 
-    # TODO: To re-enable dlc-sagemaker-test, add it to the list below
-    pr_test_jobs = ["dlc-sanity-test", "dlc-ecs-test", "dlc-ec2-test"]
-
-    for job in pr_test_jobs:
-        run_test_job(commit, job)
+    for test_type, images in test_images.items():
+        # only run the code build test jobs when the images are present
+        if images:
+            pr_test_job = f"dlc-{test_type}-test"
+            images_str = " ".join(images)
+            run_test_job(commit, pr_test_job, images_str)
 
 
 if __name__ == "__main__":
