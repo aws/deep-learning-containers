@@ -171,3 +171,18 @@ def get_tensorflow_model_name(processor, model_name):
         return tensorflow_models[model_name][processor]
     else:
         raise Exception(f"No entry found for model {model_name} in dictionary")
+
+
+def generate_ssh_keypair(ec2_client, key_name):
+    key_pair = ec2_client.create_key_pair(KeyName=key_name)
+    pwd = run("pwd", hide=True).stdout.strip("\n")
+    key_filename = os.path.join(pwd, f"{key_name}.pem")
+    run(f"echo '{key_pair['KeyMaterial']}' > {key_filename}")
+    run(f"chmod 400 {key_filename}")
+    return key_filename
+
+
+def destroy_ssh_keypair(ec2_client, key_filename):
+    key_name = os.path.basename(key_filename).strip(".pem")
+    ec2_client.delete_key_pair(KeyName=key_name)
+    run(f"rm -f {key_filename}")
