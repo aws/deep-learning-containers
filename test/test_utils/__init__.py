@@ -203,7 +203,15 @@ def upload_tests_to_s3(testname_datetime_suffix):
     run_out = run(f"aws s3 ls {s3_test_location}", warn=True)
     if run_out.return_code == 0:
         raise FileExistsError(f"{s3_test_location} already exists. Skipping upload and failing the test.")
-    run(f"aws s3 cp --recursive container_tests/ {s3_test_location}/")
+
+    path = run("pwd", hide=True).stdout.strip("\n")
+    if "dlc_tests" not in path:
+        EnvironmentError("Test is being run from wrong path")
+    while os.path.basename(path) != "dlc_tests":
+        path = os.path.dirname(path)
+    container_tests_path = os.path.join(path, "container_tests")
+
+    run(f"aws s3 cp --recursive {container_tests_path}/ {s3_test_location}/")
     return s3_test_location
 
 
