@@ -6,7 +6,7 @@ import docker
 from fabric import Connection
 import pytest
 
-from test.test_utils import destroy_ssh_keypair, generate_ssh_keypair, run_subprocess_cmd
+from test import test_utils
 from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
 import test.test_utils.ec2 as ec2_utils
 
@@ -44,7 +44,7 @@ def region():
 
 @pytest.fixture(scope="session")
 def docker_client(region):
-    run_subprocess_cmd(
+    test_utils.run_subprocess_cmd(
         f"$(aws ecr get-login --no-include-email --region {region})", failure="Failed to log into ECR.",
     )
     return docker.from_env()
@@ -81,7 +81,7 @@ def ec2_instance(
         request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami, region
 ):
     print(f"Creating instance: CI-CD {ec2_key_name}")
-    key_filename = generate_ssh_keypair(ec2_client, ec2_key_name)
+    key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
     instances = ec2_resource.create_instances(
         KeyName=ec2_key_name,
         ImageId=ec2_instance_ami,
@@ -101,7 +101,7 @@ def ec2_instance(
     # Define finalizer to terminate instance after this fixture completes
     def terminate_ec2_instance():
         ec2_client.terminate_instances(InstanceIds=[instance_id])
-        destroy_ssh_keypair(ec2_client, key_filename)
+        test_utils.destroy_ssh_keypair(ec2_client, key_filename)
 
     request.addfinalizer(terminate_ec2_instance)
 
@@ -113,10 +113,12 @@ def ec2_instance(
 
 
 @pytest.fixture(scope="function")
-def ec2_connection(ec2_instance, region):
+def ec2_connection(request, ec2_instance, ec2_key_name, region):
     """
     Fixture to establish connection with EC2 instance if necessary
+    :param request: pytest test request
     :param ec2_instance: ec2_instance pytest fixture
+    :param ec2_key_name: unique key name
     :param region: Region where ec2 instance is launched
     :return: Fabric connection object
     """
@@ -127,6 +129,18 @@ def ec2_connection(ec2_instance, region):
         host=ec2_utils.get_public_ip(instance_id, region),
         connect_kwargs={"key_filename": [instance_pem_file]}
     )
+
+    artifact_folder = f"{ec2_key_name}-folder"
+    s3_test_artifact_location = test_utils.upload_tests_to_s3(artifact_folder)
+
+    def delete_s3_artifact_copy():
+        test_utils.delete_uploaded_tests_from_s3(s3_test_artifact_location)
+
+    request.addfinalizer(delete_s3_artifact_copy)
+
+    conn.run(f"aws s3 cp --recursive s3://{test_utils.TEST_TRANSFER_S3_BUCKET}/{ec2_key_name}-folder /test")
+    conn.run(f"chmod -R +x /test/*")
+
     return conn
 
 
