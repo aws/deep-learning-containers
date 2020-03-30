@@ -56,8 +56,6 @@ def main():
     with open(constants.TEST_TYPE_IMAGES_PATH) as json_file:
         test_images = json.load(json_file)
 
-    print(f"Start Test builds test type images: {test_images}")
-
     # Run necessary PR test jobs
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
 
