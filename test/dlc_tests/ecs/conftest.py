@@ -2,6 +2,8 @@ import time
 
 import pytest
 import boto3
+
+from test import test_utils
 import test.test_utils.ecs as ecs_utils
 
 
@@ -55,10 +57,10 @@ def training_script(request):
 @pytest.fixture(scope="function")
 def training_cmd(request, ecs_cluster_name, training_script):
     artifact_folder = f"{ecs_cluster_name}-folder"
-    s3_test_artifact_location = ecs_utils.upload_tests_for_ecs(artifact_folder)
+    s3_test_artifact_location = test_utils.upload_tests_to_s3(artifact_folder)
 
     def delete_s3_artifact_copy():
-        ecs_utils.delete_uploaded_tests_for_ecs(s3_test_artifact_location)
+        test_utils.delete_uploaded_tests_from_s3(s3_test_artifact_location)
 
     request.addfinalizer(delete_s3_artifact_copy)
 
