@@ -34,6 +34,7 @@ def run_test_job(commit, codebuild_project, images_str=""):
     env_overrides.append(
         {"name": "DLC_IMAGES", "value": images_str, "type": "PLAINTEXT"}
     )
+    print(f"env_overrides dict: {env_overrides}")
 
     client = boto3.client("codebuild")
     return client.start_build(
@@ -55,11 +56,15 @@ def main():
     with open(constants.TEST_TYPE_IMAGES_PATH) as json_file:
         test_images = json.load(json_file)
 
+    print(f"Start Test builds test type images: {test_images}")
+
     # Run necessary PR test jobs
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
 
     for test_type, images in test_images.items():
         # only run the code build test jobs when the images are present
+        print(f"test_type : {test_type}")
+        print(f"images: {images}")
         if images:
             pr_test_job = f"dlc-{test_type}-test"
             images_str = " ".join(images)

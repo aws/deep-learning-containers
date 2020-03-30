@@ -144,7 +144,7 @@ def parse_modifed_root_files_info(files, pattern=""):
     """
     rule = re.findall(rf"{pattern}", files)
     if rule:
-        JobParameters.build_for_all_images()
+        # JobParameters.build_for_all_images()
         update_image_run_test_types(constants.ALL, constants.ALL)
 
 
@@ -395,6 +395,9 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
 
     # dumping the test_images to dict that can be used in src/start_testbuilds.py
     write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, test_images_dict)
+
+    print(f"Utils Test Type Images: {test_images_dict}")
+
 
     if kwargs:
         for key, value in kwargs.items():
