@@ -7,7 +7,6 @@ import os
 import boto3
 
 from retrying import retry
-from invoke import run
 
 from test.test_utils import DEFAULT_REGION, get_mms_run_command, get_tensorflow_model_name
 from test.test_utils import ec2 as ec2_utils
@@ -27,7 +26,7 @@ ECS_MXNET_PYTORCH_INFERENCE_PORT_MAPPINGS = [
 ]
 
 ECS_INSTANCE_ROLE_ARN = "arn:aws:iam::669063966089:instance-profile/ecsInstanceRole"
-ECS_S3_TEST_BUCKET = "s3://dlcinfra-ecs-testscripts"
+ECS_INSTANCE_ROLE_NAME = "ecsInstanceRole"
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
 
@@ -693,31 +692,6 @@ def build_ecs_training_command(s3_test_location, test_string):
         f"pip install -U awscli && mkdir -p /test/logs && aws s3 cp {s3_test_location}/ /test/ --recursive "
         f"&& chmod +x -R /test/ && {test_string}"
     ]
-
-
-def upload_tests_for_ecs(testname_datetime_suffix):
-    """
-    Upload test-related artifacts to unique s3 location.
-    Allows each test to have a unique remote location for test scripts and files.
-    These uploaded files and folders are copied into a container running an ECS test.
-    :param testname_datetime_suffix: test name and datetime suffix that is unique to a test
-    :return: <bool> True if upload was successful, False if any failure during upload
-    """
-    s3_test_location = os.path.join(ECS_S3_TEST_BUCKET, testname_datetime_suffix)
-    run_out = run(f"aws s3 ls {s3_test_location}", warn=True)
-    if run_out.return_code == 0:
-        raise ECSTestArtifactCopyException(f"{s3_test_location} already exists. Skipping upload and failing the test.")
-    run(f"aws s3 cp --recursive container_tests/ {s3_test_location}/")
-    return s3_test_location
-
-
-def delete_uploaded_tests_for_ecs(s3_test_location):
-    """
-    Delete s3 bucket data related to current test after test is completed
-    :param s3_test_location: S3 URI for test artifacts to be removed
-    :return: <bool> True/False based on success/failure of removal
-    """
-    run(f"aws s3 rm --recursive {s3_test_location}")
 
 
 def ecs_training_test_executor(cluster_name, cluster_arn, training_command, image_uri, instance_id, num_gpus=None):
