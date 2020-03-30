@@ -1,7 +1,7 @@
 import boto3
 from retrying import retry
 
-from test.test_utils import DEFAULT_REGION
+from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
 
 
 def launch_instance(
@@ -73,7 +73,7 @@ def get_instance_from_id(instance_id, region=DEFAULT_REGION):
     return instance["Reservations"][0]["Instances"][0]
 
 
-@retry(stop_max_attempt_number=8, wait_fixed=120000)
+@retry(stop_max_attempt_number=16, wait_fixed=60000)
 def get_public_ip(instance_id, region=DEFAULT_REGION):
     """
     Get Public IP of instance using instance ID
@@ -87,6 +87,19 @@ def get_public_ip(instance_id, region=DEFAULT_REGION):
     return instance["PublicIpAddress"]
 
 
+@retry(stop_max_attempt_number=16, wait_fixed=60000)
+def get_instance_user(instance_id, region=DEFAULT_REGION):
+    """
+    Get "ubuntu" or "ec2-user" based on AMI used to launch instance
+    :param instance_id: Instance ID to be queried
+    :param region: Region where query will be performed
+    :return: <str> user name
+    """
+    instance = get_instance_from_id(instance_id, region)
+    user = "ubuntu" if instance["ImageId"] in [UBUNTU_16_BASE_DLAMI] else "ec2-user"
+    return user
+
+
 def get_instance_state(instance_id, region=DEFAULT_REGION):
     """
     Get state of instance using instance ID
@@ -98,7 +111,7 @@ def get_instance_state(instance_id, region=DEFAULT_REGION):
     return instance["State"]["Name"]
 
 
-@retry(stop_max_attempt_number=8, wait_fixed=120000)
+@retry(stop_max_attempt_number=16, wait_fixed=60000)
 def check_instance_state(instance_id, state="running", region=DEFAULT_REGION):
     """
     Compares the instance state with the state argument.
