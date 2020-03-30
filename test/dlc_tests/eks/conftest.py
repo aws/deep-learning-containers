@@ -3,6 +3,7 @@ import logging
 import pytest
 import sys
 from invoke import run, sudo
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
@@ -18,13 +19,11 @@ KUBETAIL_VERSION = "1.6.7"
 
 EKS_NVIDIA_PLUGIN_VERSION = "1.12"
 # https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
-EKS_AMI_ID = {
-    "cpu": "ami-0d3998d69ebe9b214",
-    "gpu": "ami-0484012ada3522476"
-}
+EKS_AMI_ID = {"cpu": "ami-0d3998d69ebe9b214", "gpu": "ami-0484012ada3522476"}
 
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
 PR_EKS_CLUSTER_NAME = "dlc-pr-eks-test-cluster"
+
 
 @pytest.fixture(scope="session")
 def eks_setup():
@@ -40,7 +39,8 @@ def eks_setup():
     eks_tools_installed = True
 
     run_out = run(
-        "eksctl version && kubectl version --short --client && aws-iam-authenticator version && ks version"
+        "eksctl version && kubectl version --short --client && aws-iam-authenticator version && ks version",
+        warn_only=True,
     )
 
     eks_tools_installed = not run_out.return_code
@@ -105,6 +105,7 @@ def eks_setup():
     # run("aws-iam-authenticator version")
     # run("ks version")
 
+
 @pytest.fixture(scope="session")
 def setup_eks_cluster(processor_type, instance_type, num_nodes, eks_cluster_name):
     """Function to start, setup and verify the status of EKS cluster. It verifies if the cluster
@@ -115,20 +116,36 @@ def setup_eks_cluster(processor_type, instance_type, num_nodes, eks_cluster_name
         processor_type, instance_type, num_nodes: str
     """
 
-
-    if  not eks_utils.is_eks_cluster_active(eks_cluster_name):
-        LOGGER.info("No associated nodegroup found for cluster: %s. Creating nodegroup.", eks_cluster_name)
+    if not eks_utils.is_eks_cluster_active(eks_cluster_name):
+        LOGGER.info(
+            "No associated nodegroup found for cluster: %s. Creating nodegroup.",
+            eks_cluster_name,
+        )
     else:
-        LOGGER.info("No active cluster named %s found. Creating the cluster.", eks_cluster_name)
-        eks_utils.create_eks_cluster(eks_cluster_name, processor_type, num_nodes, instance_type, SSH_PUBLIC_KEY_NAME)
+        LOGGER.info(
+            "No active cluster named %s found. Creating the cluster.", eks_cluster_name
+        )
+        eks_utils.create_eks_cluster(
+            eks_cluster_name,
+            processor_type,
+            num_nodes,
+            instance_type,
+            SSH_PUBLIC_KEY_NAME,
+        )
 
     eks_utils.eks_write_kubeconfig(eks_cluster_name)
 
     run("kubectl delete all --all", warn_only=True)
 
     if processor_type == "gpu":
-        run("kubectl apply -f https://raw.githubusercontent.com/NVIDIA"
-            "/k8s-device-plugin/v{}/nvidia-device-plugin.yml".format(EKS_NVIDIA_PLUGIN_VERSION))
+        run(
+            "kubectl apply -f https://raw.githubusercontent.com/NVIDIA"
+            "/k8s-device-plugin/v{}/nvidia-device-plugin.yml".format(
+                EKS_NVIDIA_PLUGIN_VERSION
+            )
+        )
 
-    LOGGER.info("Cluster is active and associated nodegroup configured. "
-                "Kubeconfig has been updated. EKS setup complete.")
+    LOGGER.info(
+        "Cluster is active and associated nodegroup configured. "
+        "Kubeconfig has been updated. EKS setup complete."
+    )
