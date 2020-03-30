@@ -138,9 +138,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
 
     request.addfinalizer(delete_s3_artifact_copy)
 
-    conn.run(
-        f"aws s3 cp --recursive s3://{test_utils.TEST_TRANSFER_S3_BUCKET}/{ec2_key_name}-folder $HOME/container_tests"
-    )
+    conn.run(f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{ec2_key_name}-folder $HOME/container_tests")
     conn.run(f"chmod -R +x $HOME/container_tests/*")
 
     return conn
