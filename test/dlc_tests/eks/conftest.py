@@ -3,7 +3,6 @@ import logging
 import pytest
 import sys
 from invoke import run, sudo
-import boto3
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
@@ -40,9 +39,11 @@ def eks_setup():
 
     eks_tools_installed = True
 
-    eks_tools_installed = run(
+    run_out = run(
         "eksctl version && kubectl version --short --client && aws-iam-authenticator version && ks version"
     )
+
+    eks_tools_installed = not run_out.return_code
 
     eks_utils.eks_write_kubeconfig(PR_EKS_CLUSTER_NAME, "us-west-2")
 
