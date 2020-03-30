@@ -151,9 +151,9 @@ def parse_modifed_root_files_info(files, pattern=""):
     :return: None
     """
     rule = re.findall(rf"{pattern}", files)
-    if rule:
+    # if rule:
         # JobParameters.build_for_all_images()
-        update_image_run_test_types(constants.ALL, constants.ALL)
+        # update_image_run_test_types(constants.ALL, constants.ALL)
 
 
 def parse_modified_sagemaker_test_files(files, framework, pattern=""):
