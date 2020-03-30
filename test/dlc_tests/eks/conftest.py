@@ -45,9 +45,8 @@ def eks_setup():
 
     eks_tools_installed = not run_out.return_code
 
-    eks_utils.eks_write_kubeconfig(PR_EKS_CLUSTER_NAME, "us-west-2")
-
     if eks_tools_installed:
+        eks_utils.eks_write_kubeconfig(PR_EKS_CLUSTER_NAME, "us-west-2")
         return
 
     eksctl_download_command = """curl --silent --location \
@@ -99,11 +98,13 @@ def eks_setup():
     run("chmod +x /tmp/kubetail")
     sudo("mv /tmp/kubetail /usr/local/bin")
 
-    # # Run a quick check that the binaries are available in the PATH by listing the 'version'
-    # run("eksctl version")
-    # run("kubectl version --short --client")
-    # run("aws-iam-authenticator version")
-    # run("ks version")
+    # Run a quick check that the binaries are available in the PATH by listing the 'version'
+    run("eksctl version")
+    run("kubectl version --short --client")
+    run("aws-iam-authenticator version")
+    run("ks version")
+
+    eks_utils.eks_write_kubeconfig(PR_EKS_CLUSTER_NAME, "us-west-2")
 
 
 @pytest.fixture(scope="session")
