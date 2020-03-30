@@ -111,7 +111,7 @@ def main():
     test_type = os.getenv("TEST_TYPE")
     dlc_images = os.getenv("DLC_IMAGES")
 
-    if test_type in ("sanity", "ecs", "ec2"):
+    if test_type in ("sanity", "ecs", "ec2", "eks"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
