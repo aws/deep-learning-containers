@@ -169,12 +169,12 @@ def parse_modified_sagemaker_test_files(files, framework, pattern=""):
     rule = re.findall(rf"{pattern}", files)
     for test_file in rule:
         test_dirs = test_file.split("/")
-        test_folder = test_dirs[1]
+        test_folder = test_dirs[0]
         if test_folder == "sagemaker_tests":
-            framework_changed = test_dirs[2]
+            framework_changed = test_dirs[1]
             # The below code looks for file changes in /test/sagemaker_tests/(mxnet|pytorch|tensorflow) directory
             if framework_changed == framework:
-                job_name = test_dirs[3]
+                job_name = test_dirs[2]
                 # The training folder structure for tensorflow is tensorflow1_training(1.x), tensorflow2_training(2.x)
                 # so we are stripping the tensorflow1 from the name
                 if framework_changed == "tensorflow" and "training" in job_name:
@@ -212,14 +212,14 @@ def parse_modified_dlc_test_files_info(files, framework, pattern=""):
     # JobParameters variables are not set with constants.ALL
     for test_file in rule:
         test_dirs = test_file.split("/")
-        test_folder = test_dirs[1]
+        test_folder = test_dirs[0]
         if test_folder == "dlc_tests":
-            test_name = test_dirs[2]
+            test_name = test_dirs[1]
             # The below code looks for file changes in /test/dlc_tests/(ecs|eks|ec2) directory
             if test_name in ["ecs", "eks", "ec2"]:
-                framework_changed = test_dirs[3]
+                framework_changed = test_dirs[2]
                 if framework_changed == framework:
-                    job_name = test_dirs[4]
+                    job_name = test_dirs[3]
                     if job_name in constants.IMAGE_TYPES:
                         # JobParameters.add_image_types(job_name)
                         # JobParameters.build_for_all_device_types_py_versions()
