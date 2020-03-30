@@ -21,9 +21,11 @@ import sys
 import constants
 from github import GitHubHandler
 
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+
 
 class JobParameters:
     image_types = []
@@ -402,7 +404,6 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, test_images_dict)
 
     LOGGER.debug(f"Utils Test Type Images: {test_images_dict}")
-
 
     if kwargs:
         for key, value in kwargs.items():

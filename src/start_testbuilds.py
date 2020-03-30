@@ -12,17 +12,19 @@ distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
-import os
-import json
 import boto3
+import json
 import logging
+import os
 import sys
 
 import constants
 
+
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
-LOGGER.addHandler(logging.StreamHandler(sys.stderr))
+LOGGER.setLevel(logging.DEBUG)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+
 
 def run_test_job(commit, codebuild_project, images_str=""):
     test_env_file = constants.TEST_ENV_PATH
