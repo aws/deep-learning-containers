@@ -67,7 +67,7 @@ def ec2_instance_type(request):
 
 @pytest.fixture(scope="function")
 def ec2_instance_role_name(request):
-    return request.param if hasattr(request, "param") else ""
+    return request.param if hasattr(request, "param") else ec2_utils.EC2_INSTANCE_ROLE_NAME
 
 
 @pytest.fixture(scope="function")
