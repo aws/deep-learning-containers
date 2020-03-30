@@ -1,8 +1,7 @@
-import time
 import logging
 import pytest
 import sys
-from invoke import run, sudo
+from invoke import run
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -80,23 +79,23 @@ def eks_setup():
     )
 
     run(eksctl_download_command)
-    sudo("mv /tmp/eksctl /usr/local/bin")
+    run("mv /tmp/eksctl /usr/local/bin")
 
     run(kubectl_download_command)
     run("chmod +x /tmp/kubectl")
-    sudo("mv /tmp/kubectl /usr/local/bin")
+    run("mv /tmp/kubectl /usr/local/bin")
 
     run(aws_iam_authenticator_download_command)
     run("chmod +x /tmp/aws-iam-authenticator")
-    sudo("mv /tmp/aws-iam-authenticator /usr/local/bin")
+    run("mv /tmp/aws-iam-authenticator /usr/local/bin")
 
     run(ksonnet_download_command)
     run("tar -xf /tmp/{}.tar.gz -C /tmp --strip-components=1".format(KSONNET_VERSION))
-    sudo("mv /tmp/ks /usr/local/bin")
+    run("mv /tmp/ks /usr/local/bin")
 
     run(kubetail_download_command)
     run("chmod +x /tmp/kubetail")
-    sudo("mv /tmp/kubetail /usr/local/bin")
+    run("mv /tmp/kubetail /usr/local/bin")
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
     run("eksctl version")
