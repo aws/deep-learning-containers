@@ -14,11 +14,15 @@ language governing permissions and limitations under the License.
 """
 import os
 import json
-
 import boto3
+import logging
+import sys
 
 import constants
 
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 def run_test_job(commit, codebuild_project, images_str=""):
     test_env_file = constants.TEST_ENV_PATH
@@ -34,7 +38,7 @@ def run_test_job(commit, codebuild_project, images_str=""):
     env_overrides.append(
         {"name": "DLC_IMAGES", "value": images_str, "type": "PLAINTEXT"}
     )
-    print(f"env_overrides dict: {env_overrides}")
+    LOGGER.debug(f"env_overrides dict: {env_overrides}")
 
     client = boto3.client("codebuild")
     return client.start_build(
@@ -47,7 +51,7 @@ def run_test_job(commit, codebuild_project, images_str=""):
 def main():
     build_context = os.getenv("BUILD_CONTEXT")
     if build_context != "PR":
-        print(
+        LOGGER.info(
             f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}"
         )
         return
@@ -61,8 +65,8 @@ def main():
 
     for test_type, images in test_images.items():
         # only run the code build test jobs when the images are present
-        print(f"test_type : {test_type}")
-        print(f"images: {images}")
+        LOGGER.debug(f"test_type : {test_type}")
+        LOGGER.debug(f"images: {images}")
         if images:
             pr_test_job = f"dlc-{test_type}-test"
             images_str = " ".join(images)

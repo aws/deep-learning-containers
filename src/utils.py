@@ -15,10 +15,15 @@ language governing permissions and limitations under the License.
 import os
 import re
 import json
+import logging
+import sys
 
 import constants
 from github import GitHubHandler
 
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 class JobParameters:
     image_types = []
@@ -396,7 +401,7 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     # dumping the test_images to dict that can be used in src/start_testbuilds.py
     write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, test_images_dict)
 
-    print(f"Utils Test Type Images: {test_images_dict}")
+    LOGGER.debug(f"Utils Test Type Images: {test_images_dict}")
 
 
     if kwargs:
