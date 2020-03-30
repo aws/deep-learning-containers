@@ -12,7 +12,9 @@ def test_placeholder_gpu(tensorflow_inference, gpu_only):
 def test_placeholder_cpu(tensorflow_inference, ec2_connection, cpu_only):
     conn = ec2_connection
 
+    # Assert that connection is successful
     output = conn.run(f"echo {tensorflow_inference}").stdout.strip("\n")
     assert output == tensorflow_inference, f"Fabric output did not match -- {output}"
 
-    conn.run(f"/test/bin/testPipInstall")
+    # Assert that copy from s3 was successful
+    conn.run(f"[ -f $HOME/container_tests/bin/testPipInstall ]")
