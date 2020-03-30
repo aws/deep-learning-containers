@@ -40,7 +40,7 @@ def eks_setup():
 
     run_out = run(
         "eksctl version && kubectl version --short --client && aws-iam-authenticator version && ks version",
-        warn_only=True,
+        warn=True,
     )
 
     eks_tools_installed = not run_out.return_code
