@@ -14,11 +14,9 @@ phases:
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - pip install -r test/requirements.txt
       - echo Running pytest $TEST_TYPE tests on $DLC_IMAGES...
-      - cd test
-      - python testrunner.py
+      - python test/testrunner.py
   post_build:
     commands:
-      - cd ..
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
 reports:
   test_reports:
