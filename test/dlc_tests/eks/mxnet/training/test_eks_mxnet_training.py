@@ -3,7 +3,8 @@ from invoke import run
 import random
 import test.test_utils.eks as eks_utils
 
-#@pytest.mark.skip(reason="Ignoring for now")
+
+@pytest.mark.skip(reason="Temp skip")
 def test_eks_mxnet_single_node_training(eks_setup, mxnet_training):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
@@ -22,7 +23,7 @@ def test_eks_mxnet_single_node_training(eks_setup, mxnet_training):
         "eks/eks_manifest_templates/training/single_node_training.yaml"
     )
     yaml_path = "/tmp/mxnet_single_node_training.yaml"
-    pod_name = f"mxnet-single-node-training-{random.randint(2001,4000)}"
+    pod_name = f"mxnet-single-node-training-{random.randint(2001, 4000)}"
 
     args = (
         "git clone https://github.com/apache/incubator-mxnet.git && python "
