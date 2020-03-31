@@ -86,8 +86,8 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", conn=N
     :return: <bool> True/False based on result of inference
     """
     conn_run = conn.run if conn is not None else run
-    conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg")
-    run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/pytorch-densenet -T flower.jpg", warn=True)
+    conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True)
+    run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/pytorch-densenet -T flower.jpg", hide=True, warn=True)
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
