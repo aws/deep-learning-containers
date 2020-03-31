@@ -22,11 +22,11 @@ def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, gpu_only):
 
     docker_cmd = (
         f"docker run -itd --name {container_name}"
-        f" --entrypoint='/bin/bash' -p 80:8080"
-        f"  -p 8081:8081 {pytorch_inference} {mms_inference_cmd}"
+        f" -p 80:8080 -p 8081:8081"
+        f" {pytorch_inference} {mms_inference_cmd}"
     )
     try:
-        conn.run("$(aws ecr get-login --no-include-email --region us-west-2)")
+        conn.run(f"$(aws ecr get-login --no-include-email --region {test_utils.DEFAULT_REGION})", hide=True)
         conn.run(docker_cmd, hide=True)
         inference_result = test_utils.request_pytorch_inference_densenet(conn)
         assert inference_result, f"Failed to perform pytorch inference test for image: {pytorch_inference} on ec2"
@@ -45,11 +45,11 @@ def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, cpu_only):
     mms_inference_cmd = test_utils.get_mms_run_command(model_name, "cpu")
     docker_cmd = (
         f"docker run -itd --name {container_name}"
-        f" --entrypoint='/bin/bash' -p 80:8080 "
-        f" -p 8081:8081 {pytorch_inference} {mms_inference_cmd}"
+        f" -p 80:8080 -p 8081:8081"
+        f" {pytorch_inference} {mms_inference_cmd}"
     )
     try:
-        conn.run("$(aws ecr get-login --no-include-email --region us-west-2)")
+        conn.run(f"$(aws ecr get-login --no-include-email --region {test_utils.DEFAULT_REGION})", hide=True)
         conn.run(docker_cmd, hide=True)
         inference_result = test_utils.request_pytorch_inference_densenet(conn)
         assert inference_result, f"Failed to perform pytorch inference test for image: {pytorch_inference} on ec2"
