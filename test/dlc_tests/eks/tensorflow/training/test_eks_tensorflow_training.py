@@ -20,7 +20,7 @@ def test_eks_tensorflow_single_node_training(eks_setup, tensorflow_training):
     eks_utils.LOGGER.info("*****************")
 
     template_path = (
-        "test/dlc_tests/eks/eks_manifest_templates/training/single_node_training.yaml"
+        "eks/eks_manifest_templates/training/single_node_training.yaml"
     )
     yaml_path = "/tmp/tensorflow_single_node_training.yaml"
     pod_name = f"tensorflow-single-node-training-{random.randint(4001, 6000)}"
