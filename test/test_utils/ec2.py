@@ -275,4 +275,4 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     connection.run(f"$(aws ecr get-login --no-include-email --region {region} --registry-ids {os.getenv('ACCOUNT_ID')})"
                    f" && {docker_cmd} run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
-                   f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}")
+                   f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}", hide=True)
