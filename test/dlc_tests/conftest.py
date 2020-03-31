@@ -1,4 +1,6 @@
 import os
+import logging
+import sys
 
 import boto3
 from botocore.config import Config
@@ -10,6 +12,9 @@ from test import test_utils
 from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
 import test.test_utils.ec2 as ec2_utils
 
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Immutable constant for framework specific image fixtures
 FRAMEWORK_FIXTURES = (
@@ -123,6 +128,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
     :return: Fabric connection object
     """
     instance_id, instance_pem_file = ec2_instance
+    LOGGER.info(f"instance id: {instance_id}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
     conn = Connection(
         user=user,

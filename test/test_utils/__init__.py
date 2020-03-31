@@ -1,10 +1,15 @@
+import logging
 import os
 import subprocess
+import sys
 
 from invoke import run
 import pytest
 from retrying import retry
 
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
@@ -183,6 +188,8 @@ def generate_ssh_keypair(ec2_client, key_name):
     key_filename = os.path.join(pwd, f"{key_name}.pem")
     run(f"echo '{key_pair['KeyMaterial']}' > {key_filename}")
     run(f"chmod 400 {key_filename}")
+    run_out = run(f"cat {key_filename}")
+    LOGGER.info(f"pem file: {run_out.stdout}")
     return key_filename
 
 
