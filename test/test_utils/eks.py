@@ -7,6 +7,7 @@ import base64
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 EKS_NVIDIA_PLUGIN_VERSION = "1.12"
 # https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html

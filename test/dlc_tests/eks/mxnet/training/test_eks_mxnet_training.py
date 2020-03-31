@@ -18,7 +18,7 @@ def test_eks_mxnet_single_node_training(eks_setup, mxnet_training):
     print("*****************")
 
     template_path = (
-        "test/dlc_tests/eks/eks_manifest_templates/training/single_node_training.yaml"
+        "eks/eks_manifest_templates/training/single_node_training.yaml"
     )
     yaml_path = "/tmp/mxnet_single_node_training.yaml"
     pod_name = "mxnet-single-node-training"
