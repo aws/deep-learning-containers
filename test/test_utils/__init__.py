@@ -78,15 +78,16 @@ def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80"):
     wait_fixed=10000,
     retry_on_result=retry_if_result_is_false,
 )
-def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80"):
+def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", conn=None):
     """
     Send request to container to test inference on flower.jpg
     :param ip_address:
     :param port:
     :return: <bool> True/False based on result of inference
     """
-    run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg")
-    run_out = run(f"curl -X POST http://{ip_address}:{port}/predictions/pytorch-densenet -T flower.jpg", warn=True)
+    conn_run = conn.run if conn is not None else run
+    conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg")
+    run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/pytorch-densenet -T flower.jpg", warn=True)
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
