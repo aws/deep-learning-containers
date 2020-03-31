@@ -79,29 +79,29 @@ def eks_setup():
     )
 
     run(eksctl_download_command)
-    run("mv /tmp/eksctl /usr/local/bin")
+    run("mv /tmp/eksctl /usr/local/bin", pty=True)
 
     run(kubectl_download_command)
-    run("chmod +x /tmp/kubectl")
-    run("mv /tmp/kubectl /usr/local/bin")
+    run("chmod +x /tmp/kubectl", pty=True)
+    run("mv /tmp/kubectl /usr/local/bin", pty=True)
 
     run(aws_iam_authenticator_download_command)
-    run("chmod +x /tmp/aws-iam-authenticator")
-    run("mv /tmp/aws-iam-authenticator /usr/local/bin")
+    run("chmod +x /tmp/aws-iam-authenticator", pty=True)
+    run("mv /tmp/aws-iam-authenticator /usr/local/bin", pty=True)
 
     run(ksonnet_download_command)
     run("tar -xf /tmp/{}.tar.gz -C /tmp --strip-components=1".format(KSONNET_VERSION))
-    run("mv /tmp/ks /usr/local/bin")
+    run("mv /tmp/ks /usr/local/bin", pty=True)
 
     run(kubetail_download_command)
-    run("chmod +x /tmp/kubetail")
-    run("mv /tmp/kubetail /usr/local/bin")
+    run("chmod +x /tmp/kubetail", pty=True)
+    run("mv /tmp/kubetail /usr/local/bin", pty=True)
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
-    run("eksctl version")
-    run("kubectl version --short --client")
-    run("aws-iam-authenticator version")
-    run("ks version")
+    run("eksctl version", pty=True)
+    run("kubectl version --short --client", pty=True)
+    run("aws-iam-authenticator version", pty=True)
+    run("ks version", pty=True)
 
     eks_utils.eks_write_kubeconfig(PR_EKS_CLUSTER_NAME, "us-west-2")
 
