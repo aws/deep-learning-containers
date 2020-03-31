@@ -17,7 +17,7 @@ def get_mms_inference_cmd():
 
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, gpu_only):
-    conn = ec2_connection()
+    conn = ec2_connection
 
     # Assert that connection is successful
     output = conn.run(f"echo {pytorch_inference}").stdout.strip("\n")
@@ -27,7 +27,11 @@ def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, gpu_only):
     container_name = f"{repo_name}-{image_tag}-ec2"
     mms_inference_cmd = get_mms_inference_cmd()
 
-    docker_cmd = f"docker run -itd --name {container_name} --mount type=bind,src=$(pwd)/container_tests,target=/test --entrypoint='/bin/bash -p 80:8080  -p 8081:8081 {mms_inference_cmd}"
+    docker_cmd = (
+        f"docker run -itd --name {container_name}"
+        f" --mount type=bind,src=$(pwd)/container_tests,target=/test"
+        f" --entrypoint='/bin/bash' -p 80:8080  -p 8081:8081 {mms_inference_cmd}"
+    )
     try:
         run_out = run(docker_cmd, hide=True)
         LOGGER.info(run_out.stdout)
@@ -41,7 +45,7 @@ def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, gpu_only):
 
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, cpu_only):
-    conn = ec2_connection()
+    conn = ec2_connection
 
     # Assert that connection is successful
     output = conn.run(f"echo {pytorch_inference}").stdout.strip("\n")
@@ -53,7 +57,7 @@ def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, cpu_only):
     docker_cmd = (
         f"docker run -itd --name {container_name} "
         f"--mount type=bind,src=$(pwd)/container_tests,target=/test "
-        f"--entrypoint='/bin/bash -p 80:8080  "
+        f"--entrypoint='/bin/bash' -p 80:8080  "
         f"-p 8081:8081 {mms_inference_cmd}"
     )
     try:
