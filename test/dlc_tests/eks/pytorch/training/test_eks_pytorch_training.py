@@ -1,5 +1,6 @@
 import pytest
 from invoke import run
+import datetime as date
 import test.test_utils.eks as eks_utils
 
 
@@ -21,7 +22,7 @@ def test_eks_pytorch_single_node_training(eks_setup, pytorch_training):
         "eks/eks_manifest_templates/training/single_node_training.yaml"
     )
     yaml_path = "/tmp/pytorch_single_node_training.yaml"
-    pod_name = "pytorch-single-node-training"
+    pod_name = f"pytorch-single-node-training-{date.datetime}"
 
     args = "git clone https://github.com/pytorch/examples.git && python examples/mnist/main.py"
 
