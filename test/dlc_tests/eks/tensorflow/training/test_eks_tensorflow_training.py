@@ -13,9 +13,10 @@ def test_eks_tensorflow_single_node_training(eks_setup, tensorflow_training):
 
     training_result = False
 
-    print("*****************")
-    run("pwd")
-    print("*****************")
+    eks_utils.LOGGER.info("*****************")
+    run_out = run("pwd")
+    eks_utils.LOGGER.info(run_out.stdout)
+    eks_utils.LOGGER.info("*****************")
 
     template_path = (
         "test/dlc_tests/eks/eks_manifest_templates/training/single_node_training.yaml"
