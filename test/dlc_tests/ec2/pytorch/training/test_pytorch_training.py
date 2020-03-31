@@ -13,7 +13,7 @@ PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 PT_SMDEBUG_CMD = f"{os.path.join(CONTAINER_TESTS_PREFIX, 'testSmdebug')} pytorch"
 
 PT_EC2_GPU_INSTANCE_TYPE = "p3.2xlarge"
-PT_EC2_CPU_INSTANCE_TYPE = "c4.4xlarge"
+PT_EC2_CPU_INSTANCE_TYPE = "c5.9xlarge"
 
 
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INSTANCE_TYPE], indirect=True)
