@@ -108,7 +108,7 @@ def ec2_instance(
         ec2_client.terminate_instances(InstanceIds=[instance_id])
         test_utils.destroy_ssh_keypair(ec2_client, key_filename)
 
-    request.addfinalizer(terminate_ec2_instance)
+    # request.addfinalizer(terminate_ec2_instance)
 
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
     ec2_utils.check_system_state(
@@ -129,6 +129,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
     """
     instance_id, instance_pem_file = ec2_instance
     LOGGER.info(f"instance id: {instance_id}")
+    LOGGER.info(f"Instance ip_address: {ec2_utils.get_public_ip(instance_id, region)}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
     conn = Connection(
         user=user,
