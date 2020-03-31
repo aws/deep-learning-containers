@@ -26,6 +26,7 @@ def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, gpu_only):
         f"  -p 8081:8081 {pytorch_inference} {mms_inference_cmd}"
     )
     try:
+        conn.run("$(aws ecr get-login --no-include-email --region us-west-2)")
         conn.run(docker_cmd, hide=True)
         inference_result = test_utils.request_pytorch_inference_densenet(conn)
         assert inference_result, f"Failed to perform pytorch inference test for image: {pytorch_inference} on ec2"
@@ -48,6 +49,7 @@ def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, cpu_only):
         f" -p 8081:8081 {pytorch_inference} {mms_inference_cmd}"
     )
     try:
+        conn.run("$(aws ecr get-login --no-include-email --region us-west-2)")
         conn.run(docker_cmd, hide=True)
         inference_result = test_utils.request_pytorch_inference_densenet(conn)
         assert inference_result, f"Failed to perform pytorch inference test for image: {pytorch_inference} on ec2"
