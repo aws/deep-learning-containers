@@ -1,6 +1,6 @@
 import pytest
 from invoke import run
-import time
+import random
 import test.test_utils.eks as eks_utils
 
 
@@ -19,10 +19,10 @@ def test_eks_pytorch_single_node_training(eks_setup, pytorch_training):
     print("*****************")
 
     template_path = (
-        "eks/eks_manifest_templates/training/single_node_training.yaml"
+        "test/dlc_tests/eks/eks_manifest_templates/training/single_node_training.yaml"
     )
     yaml_path = "/tmp/pytorch_single_node_training.yaml"
-    pod_name = f"pytorch-single-node-training-{time.time()}"
+    pod_name = f"pytorch-single-node-training-{random.randint(0, 2000)}"
 
     args = "git clone https://github.com/pytorch/examples.git && python examples/mnist/main.py"
 

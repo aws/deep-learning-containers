@@ -1,6 +1,6 @@
 import pytest
 from invoke import run
-import time
+import random
 import test.test_utils.eks as eks_utils
 
 #@pytest.mark.skip(reason="Ignoring for now")
@@ -19,10 +19,10 @@ def test_eks_mxnet_single_node_training(eks_setup, mxnet_training):
     print("*****************")
 
     template_path = (
-        "eks/eks_manifest_templates/training/single_node_training.yaml"
+        "test/dlc_tests/eks/eks_manifest_templates/training/single_node_training.yaml"
     )
     yaml_path = "/tmp/mxnet_single_node_training.yaml"
-    pod_name = f"mxnet-single-node-training-{time.time()}"
+    pod_name = f"mxnet-single-node-training-{random.randint(2001,4000)}"
 
     args = (
         "git clone https://github.com/apache/incubator-mxnet.git && python "
