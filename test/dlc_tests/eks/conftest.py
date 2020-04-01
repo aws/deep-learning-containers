@@ -67,8 +67,8 @@ def eks_setup():
     )
 
     # TODO: change 'linux' to 'darwin' for MacOS
-    ksonnet_download_command = """wget https://github.com/ksonnet/ksonnet/releases/download/v{0}/ks_{0}_linux_amd64.tar.gz \
-        -O /tmp/{0}.tar.gz """.format(
+    ksonnet_download_command = """curl --silent --location https://github.com/ksonnet/ksonnet/releases/download/v{0}/ks_{0}_linux_amd64.tar.gz \
+        -o /tmp/{0}.tar.gz """.format(
         KSONNET_VERSION
     )
 
@@ -78,6 +78,10 @@ def eks_setup():
         KUBETAIL_VERSION
     )
 
+
+    LOGGER.info("aws sts get-caller-identity")
+    run_out = run("aws sts get-caller-identity")
+    LOGGER.info(run_out)
     run(eksctl_download_command)
     LOGGER.info("********* whoami")
     run_out = run("whoami")
