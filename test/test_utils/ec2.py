@@ -10,12 +10,7 @@ EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 
 def launch_instance(
-    ami_id,
-    instance_type,
-    region=DEFAULT_REGION,
-    user_data=None,
-    iam_instance_profile_arn=None,
-    instance_name="",
+    ami_id, instance_type, region=DEFAULT_REGION, user_data=None, iam_instance_profile_arn=None, instance_name="",
 ):
     """
     Launch an instance
@@ -38,10 +33,7 @@ def launch_instance(
         "MaxCount": 1,
         "MinCount": 1,
         "TagSpecifications": [
-            {
-                "ResourceType": "instance",
-                "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}],
-            },
+            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}],},
         ],
     }
     if user_data:
@@ -275,9 +267,14 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region} --registry-ids "
-                   f"{os.getenv('ACCOUNT_ID')})", hide=True)
+    connection.run(
+        f"$(aws ecr get-login --no-include-email --region {region} --registry-ids " f"{os.getenv('ACCOUNT_ID')})",
+        hide=True,
+    )
 
     # Run training command
-    connection.run(f"{docker_cmd} run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
-                   f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}", hide=True)
+    connection.run(
+        f"{docker_cmd} run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
+        f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}",
+        hide=True,
+    )
