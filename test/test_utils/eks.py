@@ -133,6 +133,7 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     run(eksctl_write_kubeconfig_command)
 
     LOGGER.info("kubeconfig successfully written to folder ~/.kube/config")
+    run("cat /root/.kube/config", warn=True)
 
 @retry(stop_max_attempt_number=4, wait_fixed=60000)
 def create_eks_cluster_nodegroup(eks_cluster_name, processor_type, num_nodes,
