@@ -8,7 +8,6 @@ from test.test_utils.ec2 import execute_ec2_training_test
 
 MX_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testMXNetStandalone")
 MX_MNIST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testMXNet")
-MX_REGRESSION_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testMXNetRegression")
 MX_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testMXNetDGL")
 MX_NLP_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "gluonnlp_tests", "testNLP")
 MX_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testMXNetHVD")
@@ -49,16 +48,6 @@ def test_mxnet_keras_gpu(mxnet_training, ec2_connection, gpu_only):
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_CPU_INSTANCE_TYPE], indirect=True)
 def test_mxnet_keras_cpu(mxnet_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_KERAS_CMD)
-
-
-@pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GPU_INSTANCE_TYPE], indirect=True)
-def test_mxnet_linear_regression_gpu(mxnet_training, ec2_connection, gpu_only):
-    execute_ec2_training_test(ec2_connection, mxnet_training, MX_REGRESSION_CMD)
-
-
-@pytest.mark.parametrize("ec2_instance_type", [MX_EC2_CPU_INSTANCE_TYPE], indirect=True)
-def test_mxnet_linear_regression_cpu(mxnet_training, ec2_connection, cpu_only):
-    execute_ec2_training_test(ec2_connection, mxnet_training, MX_REGRESSION_CMD)
 
 
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GPU_INSTANCE_TYPE], indirect=True)
