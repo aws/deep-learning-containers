@@ -34,8 +34,8 @@ def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, cpu_only):
             LOGGER.info("docker run failed", run_out.return_code)
         output = conn.run("docker ps -a")
         LOGGER.info(f"containers for {pytorch_inference} : {output.stdout}")
-        # inference_result = test_utils.request_pytorch_inference_densenet(conn)
-        # assert inference_result, f"Failed to perform pytorch inference test for image: {pytorch_inference} on ec2"
+        inference_result = test_utils.request_pytorch_inference_densenet(connection=conn)
+        assert inference_result, f"Failed to perform pytorch inference test for image: {pytorch_inference} on ec2"
 
     finally:
         output = run(f"docker rm -f {container_name}", warn=True, hide=True)

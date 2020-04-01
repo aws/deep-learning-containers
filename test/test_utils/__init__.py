@@ -83,14 +83,15 @@ def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80"):
     wait_fixed=10000,
     retry_on_result=retry_if_result_is_false,
 )
-def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", conn=None):
+def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connection=None):
     """
     Send request to container to test inference on flower.jpg
-    :param ip_address:
-    :param port:
+    :param ip_address: str
+    :param port: str
+    :param connection: obj
     :return: <bool> True/False based on result of inference
     """
-    conn_run = conn.run if conn is not None else run
+    conn_run = connection.run if connection is not None else run
     conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True)
     run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/pytorch-densenet -T flower.jpg", hide=True, warn=True)
 
