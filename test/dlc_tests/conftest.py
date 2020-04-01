@@ -128,7 +128,6 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
     :return: Fabric connection object
     """
     instance_id, instance_pem_file = ec2_instance
-    LOGGER.info(f"instance id: {instance_id}")
     LOGGER.info(f"Instance ip_address: {ec2_utils.get_public_ip(instance_id, region)}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
     conn = Connection(
