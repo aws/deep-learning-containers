@@ -189,8 +189,6 @@ def generate_ssh_keypair(ec2_client, key_name):
     key_filename = os.path.join(pwd, f"{key_name}.pem")
     run(f"echo '{key_pair['KeyMaterial']}' > {key_filename}")
     run(f"chmod 400 {key_filename}")
-    run_out = run(f"cat {key_filename}")
-    LOGGER.info(f"{key_filename}: {run_out.stdout}")
     return key_filename
 
 
