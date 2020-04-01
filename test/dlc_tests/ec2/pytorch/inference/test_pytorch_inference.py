@@ -6,15 +6,15 @@ from test.dlc_tests.conftest import LOGGER
 
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gpu_only):
-    test_ec2_pytorch_inference(pytorch_inference, "gpu", ec2_connection, region)
+    ec2_pytorch_inference(pytorch_inference, "gpu", ec2_connection, region)
 
 
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cpu_only):
-    test_ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
+    ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
 
 
-def test_ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
+def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
     model_name = "pytorch-densenet"
