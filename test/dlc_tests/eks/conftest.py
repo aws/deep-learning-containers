@@ -49,25 +49,25 @@ def eks_setup():
         return
 
     eksctl_download_command = """curl --silent --location \
-    https://github.com/weaveworks/eksctl/releases/download/{}/eksctl_Darwin_amd64.tar.gz | \
+    https://github.com/weaveworks/eksctl/releases/download/{}/eksctl_Linux_amd64.tar.gz | \
     tar xz -C /tmp""".format(
         EKSCTL_VERSION
     )
 
     kubectl_download_command = """curl --silent --location \
-    https://amazon-eks.s3-us-west-2.amazonaws.com/{}/2019-08-14/bin/darwin/amd64/kubectl \
+    https://amazon-eks.s3-us-west-2.amazonaws.com/{}/2019-08-14/bin/linux/amd64/kubectl \
         -o /tmp/kubectl""".format(
         EKS_VERSION
     )
 
     aws_iam_authenticator_download_command = """curl --silent --location \
-    https://amazon-eks.s3-us-west-2.amazonaws.com/{}/2019-08-14/bin/darwin/amd64/aws-iam-authenticator \
+    https://amazon-eks.s3-us-west-2.amazonaws.com/{}/2019-08-14/bin/linux/amd64/aws-iam-authenticator \
         -o /tmp/aws-iam-authenticator""".format(
         EKS_VERSION
     )
 
     # TODO: change 'linux' to 'darwin' for MacOS
-    ksonnet_download_command = """wget https://github.com/ksonnet/ksonnet/releases/download/v{0}/ks_{0}_darwin_amd64.tar.gz \
+    ksonnet_download_command = """wget https://github.com/ksonnet/ksonnet/releases/download/v{0}/ks_{0}_linux_amd64.tar.gz \
         -O /tmp/{0}.tar.gz """.format(
         KSONNET_VERSION
     )
