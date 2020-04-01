@@ -4,6 +4,7 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
+${BIN_DIR}/pytorch_tests/setupPyTorchBackendTest || exit 1
 set -e
 cd ${HOME_DIR}
 cd ./dlbs && source ./scripts/environment.sh && cd ..

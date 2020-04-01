@@ -58,7 +58,7 @@ def generate_sagemaker_pytest_cmd(image):
             integration_path = os.path.join(integration_path, "test_tfs.py")
             instance_type_arg = "--instance-types"
 
-    test_report = os.path.join(os.getcwd(), f"{tag}.xml")
+    test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
     return (
         f"pytest {integration_path} --region {region} {docker_base_arg} "
         f"{docker_base_name} --tag {tag} {aws_id_arg} {account_id} {instance_type_arg} {instance_type} "
@@ -112,7 +112,7 @@ def main():
     dlc_images = os.getenv("DLC_IMAGES")
 
     if test_type in ("sanity", "ecs", "ec2"):
-        report = os.path.join(os.getcwd(), f"{test_type}.xml")
+        report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
         os.chdir(os.path.join("test", "dlc_tests"))
