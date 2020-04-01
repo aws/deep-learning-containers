@@ -3,6 +3,10 @@ from invoke import run
 import random
 import test.test_utils.eks as eks_utils
 
+# TODO:
+# 1. Enable all tests again for EC2, ECS, Sanity (in start_testbuilds.py)
+# 2. Enable all tests again in testrunner.py
+
 #@pytest.mark.skip(reason="Ignoring for now")
 def test_eks_tensorflow_single_node_training(eks_setup, tensorflow_training):
     """
