@@ -16,7 +16,7 @@ MX_KERAS_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testKerasMXNet")
 
 MX_SMDEBUG_CMD = f""" "{os.path.join(CONTAINER_TESTS_PREFIX, 'testSmdebug')} mxnet" """
 
-MX_EC2_GPU_INSTANCE_TYPE = "p2.2xlarge"
+MX_EC2_GPU_INSTANCE_TYPE = "p2.xlarge"
 MX_EC2_CPU_INSTANCE_TYPE = "c5.4xlarge"
 
 
