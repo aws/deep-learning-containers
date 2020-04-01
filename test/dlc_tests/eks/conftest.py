@@ -21,7 +21,7 @@ EKS_NVIDIA_PLUGIN_VERSION = "1.12"
 EKS_AMI_ID = {"cpu": "ami-0d3998d69ebe9b214", "gpu": "ami-0484012ada3522476"}
 
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
-PR_EKS_CLUSTER_NAME = "dlc-pr-eks-test-cluster"
+PR_EKS_CLUSTER_NAME = "dlc-eks-test-cluster"
 
 
 @pytest.fixture(scope="session")
