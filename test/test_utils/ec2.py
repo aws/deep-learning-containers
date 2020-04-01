@@ -267,10 +267,7 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(
-        f"$(aws ecr get-login --no-include-email --region {region} --registry-ids " f"{os.getenv('ACCOUNT_ID')})",
-        hide=True,
-    )
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region}", hide=True)
 
     # Run training command
     connection.run(
