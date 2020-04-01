@@ -122,7 +122,7 @@ def main():
             pull_dlc_images(dlc_images.split(" "))
 
         # Execute dlc_tests pytest command
-        pytest_cmd = ["-s", test_type, f"--junitxml={report}", "-n=auto"]
+        pytest_cmd = ["-s", test_type, f"--junitxml={report}"]
         sys.exit(pytest.main(pytest_cmd))
     elif test_type == "sagemaker":
         run_sagemaker_tests(dlc_images.split(" "))
