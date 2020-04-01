@@ -21,7 +21,6 @@ def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, gpu_only):
 
     docker_cmd = (
         f"docker run -itd --name {container_name}"
-        f" --mount type=bind,src=$(pwd)/container_tests,target=/test"
         f" -p 80:8080 -p 8081:8081"
         f" {pytorch_inference} {mms_inference_cmd}"
     )
@@ -46,7 +45,6 @@ def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, cpu_only):
     mms_inference_cmd = test_utils.get_mms_run_command(model_name, "cpu")
     docker_cmd = (
         f"docker run -itd --name {container_name}"
-        f" --mount type=bind,src=$(pwd)/container_tests,target=/test"
         f" -p 80:8080 -p 8081:8081"
         f" {pytorch_inference} {mms_inference_cmd}"
     )
