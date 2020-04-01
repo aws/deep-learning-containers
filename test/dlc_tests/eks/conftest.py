@@ -68,7 +68,7 @@ def eks_setup():
 
     # TODO: change 'linux' to 'darwin' for MacOS
     ksonnet_download_command = """curl --silent --location https://github.com/ksonnet/ksonnet/releases/download/v{0}/ks_{0}_linux_amd64.tar.gz \
-        -o /tmp/{0}.tar.gz """.format(
+        -o /tmp/{0}.tar.gz""".format(
         KSONNET_VERSION
     )
 
