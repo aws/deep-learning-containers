@@ -88,7 +88,9 @@ def test_safety(image):
 
         run(f"{docker_exec_cmd} chmod +x /test/bin/testSafety", hide=True)
         output = run(f"{docker_exec_cmd} /test/bin/testSafety {ignore_str} ", warn=True)
-        LOGGER.info(output.stdout)
-        assert output.return_code == 0, f"Safety test failed for {image}"
+        if output.return_code == 0:
+            LOGGER.info(output.stdout)
+        assert output.return_code == 0, (f"Safety test failed for {image}\n"
+                                         f"{output.stdout}")
     finally:
         run(f"docker rm -f {container_name}", hide=True)
