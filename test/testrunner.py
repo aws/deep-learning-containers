@@ -15,20 +15,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
-EKS_VERSION = "1.13.8"
-EKSCTL_VERSION = "0.5.0"
-KSONNET_VERSION = "0.13.1"
-KUBEFLOW_VERSION = "v0.4.1"
-EKS_NVIDIA_PLUGIN_VERSION = "1.12"
-KUBETAIL_VERSION = "1.6.7"
-
-EKS_NVIDIA_PLUGIN_VERSION = "1.12"
-# https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
-EKS_AMI_ID = {"cpu": "ami-0d3998d69ebe9b214", "gpu": "ami-0484012ada3522476"}
-
-SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
-PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"
-
 
 def assign_sagemaker_instance_type(image):
     if "tensorflow" in image:
@@ -127,96 +113,6 @@ def pull_dlc_images(images):
         run(f"docker pull {image}", hide="out")
 
 
-def eks_setup(framework):
-    """Function to download eksctl, kubectl, aws-iam-authenticator and ksonnet binaries
-    Utilities:
-    1. eksctl: create and manage cluster
-    2. kubectl: create and manage runs on eks cluster
-    3. aws-iam-authenticator: authenticate the instance to access eks with the appropriate aws credentials
-    4. ksonnet: configure pod files and apply changes to the EKS cluster (will be deprecated soon, but no replacement available yet)
-    :param framework: str
-    """
-
-    # Run a quick check that the binaries are available in the PATH by listing the 'version'
-
-    eks_tools_installed = True
-
-    run_out = run(
-        "eksctl version && kubectl version --short --client && aws-iam-authenticator version && ks version",
-        warn=True,
-    )
-
-    eks_tools_installed = not run_out.return_code
-
-    # Assume cluster with such a name is active
-    eks_cluster_name = PR_EKS_CLUSTER_NAME_TEMPLATE.format(framework)
-
-    if eks_tools_installed:
-        eks_utils.eks_write_kubeconfig(eks_cluster_name, "us-west-2")
-        return
-
-    platform = run("uname -s").stdout.strip()
-
-    eksctl_download_command = (
-        f"curl --silent --location https://github.com/weaveworks/eksctl/releases/download/"
-        f"{EKSCTL_VERSION}/eksctl_{platform}_amd64.tar.gz | tar xz -C /tmp"
-    )
-
-    kubectl_download_command = (
-        f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-14/bin/{platform.lower()}/amd64/kubectl -o /tmp/kubectl"
-    )
-
-    aws_iam_authenticator_download_command = (
-        f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-14/bin/{platform.lower()}/amd64/aws-iam-authenticator -o /tmp/aws-iam-authenticator"
-    )
-
-    ksonnet_download_command = (
-        f"curl --silent --location https://github.com/ksonnet/ksonnet/releases/download/"
-        f"v{KSONNET_VERSION}/ks_{KSONNET_VERSION}_{platform.lower()}_amd64.tar.gz -o /tmp/{KSONNET_VERSION}.tar.gz"
-    )
-
-    kubetail_download_command = (
-        f"curl --silent --location https://raw.githubusercontent.com/johanhaleby/kubetail/"
-        f"{KUBETAIL_VERSION}/kubetail -o /tmp/kubetail"
-    )
-
-    run(eksctl_download_command)
-    run("mv /tmp/eksctl /usr/local/bin")
-
-    run(kubectl_download_command)
-    run("chmod +x /tmp/kubectl")
-    run("mv /tmp/kubectl /usr/local/bin")
-
-    run(aws_iam_authenticator_download_command)
-    run("chmod +x /tmp/aws-iam-authenticator")
-    run("mv /tmp/aws-iam-authenticator /usr/local/bin")
-
-    run(ksonnet_download_command)
-    run("tar -xf /tmp/{}.tar.gz -C /tmp --strip-components=1".format(KSONNET_VERSION))
-    run("mv /tmp/ks /usr/local/bin")
-
-    run(kubetail_download_command)
-    run("chmod +x /tmp/kubetail")
-    run("mv /tmp/kubetail /usr/local/bin")
-
-    # Run a quick check that the binaries are available in the PATH by listing the 'version'
-    run("eksctl version")
-    run("kubectl version --short --client")
-    run("aws-iam-authenticator version")
-    run("ks version")
-
-    eks_utils.eks_write_kubeconfig(eks_cluster_name, "us-west-2")
-
-    run(
-        "kubectl apply -f https://raw.githubusercontent.com/NVIDIA"
-        "/k8s-device-plugin/v{}/nvidia-device-plugin.yml".format(
-            EKS_NVIDIA_PLUGIN_VERSION
-        )
-    )
-
-
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
@@ -239,7 +135,7 @@ def main():
                 if "pytorch" in dlc_images
                 else "tensorflow"
             )
-            eks_setup(framework)
+            eks_utils.eks_setup(framework)
 
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", test_type, f"--junitxml={report}", "-n=auto"]
