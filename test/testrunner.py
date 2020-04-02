@@ -27,7 +27,8 @@ EKS_NVIDIA_PLUGIN_VERSION = "1.12"
 EKS_AMI_ID = {"cpu": "ami-0d3998d69ebe9b214", "gpu": "ami-0484012ada3522476"}
 
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
-PR_EKS_CLUSTER_NAME = "dlc-eks-pr-{}-test-cluster"
+PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"
+
 
 def assign_sagemaker_instance_type(image):
     if "tensorflow" in image:
@@ -123,7 +124,8 @@ def pull_dlc_images(images):
     Pulls DLC images to CodeBuild jobs before running PyTest commands
     """
     for image in images:
-        run(f"docker pull {image}", hide='out')
+        run(f"docker pull {image}", hide="out")
+
 
 def eks_setup(framework):
     """Function to download eksctl, kubectl, aws-iam-authenticator and ksonnet binaries
@@ -132,7 +134,9 @@ def eks_setup(framework):
     2. kubectl: create and manage runs on eks cluster
     3. aws-iam-authenticator: authenticate the instance to access eks with the appropriate aws credentials
     4. ksonnet: configure pod files and apply changes to the EKS cluster (will be deprecated soon, but no replacement available yet)
+    :param framework: str
     """
+
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
 
     eks_tools_installed = True
@@ -144,56 +148,42 @@ def eks_setup(framework):
 
     eks_tools_installed = not run_out.return_code
 
+    # Assume cluster with such a name is active
+    eks_cluster_name = PR_EKS_CLUSTER_NAME_TEMPLATE.format(framework)
+
     if eks_tools_installed:
-        eks_utils.eks_write_kubeconfig(PR_EKS_CLUSTER_NAME, "us-west-2")
+        eks_utils.eks_write_kubeconfig(eks_cluster_name, "us-west-2")
         return
 
-    eksctl_download_command = """curl --silent --location \
-    https://github.com/weaveworks/eksctl/releases/download/{}/eksctl_Linux_amd64.tar.gz | \
-    tar xz -C /tmp""".format(
-        EKSCTL_VERSION
+    platform = run("uname -s").stdout
+
+    eksctl_download_command = (
+        f"curl --silent --location https://github.com/weaveworks/eksctl/releases/download/"
+        f"{EKSCTL_VERSION}/eksctl_{platform}_amd64.tar.gz | tar xz -C /tmp"
     )
 
-    kubectl_download_command = """curl --silent --location \
-    https://amazon-eks.s3-us-west-2.amazonaws.com/{}/2019-08-14/bin/linux/amd64/kubectl \
-        -o /tmp/kubectl""".format(
-        EKS_VERSION
+    kubectl_download_command = (
+        f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
+        f"{EKS_VERSION}/2019-08-14/bin/{platform.lower()}/amd64/kubectl -o /tmp/kubectl"
     )
 
-    aws_iam_authenticator_download_command = """curl --silent --location \
-    https://amazon-eks.s3-us-west-2.amazonaws.com/{}/2019-08-14/bin/linux/amd64/aws-iam-authenticator \
-        -o /tmp/aws-iam-authenticator""".format(
-        EKS_VERSION
+    aws_iam_authenticator_download_command = (
+        f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
+        f"{EKS_VERSION}/2019-08-14/bin/{platform.lower()}/amd64/aws-iam-authenticator -o /tmp/aws-iam-authenticator"
     )
 
-    # TODO: change 'linux' to 'darwin' for MacOS
-    ksonnet_download_command = """curl --silent --location https://github.com/ksonnet/ksonnet/releases/download/v{0}/ks_{0}_linux_amd64.tar.gz \
-        -o /tmp/{0}.tar.gz""".format(
-        KSONNET_VERSION
+    ksonnet_download_command = (
+        f"curl --silent --location https://github.com/ksonnet/ksonnet/releases/download/"
+        f"v{KSONNET_VERSION}/ks_{KSONNET_VERSION}_{platform.lower()}_amd64.tar.gz -o /tmp/{KSONNET_VERSION}.tar.gz"
     )
 
-    kubetail_download_command = """curl --silent --location \
-        https://raw.githubusercontent.com/johanhaleby/kubetail/{}/kubetail \
-        -o /tmp/kubetail""".format(
-        KUBETAIL_VERSION
+    kubetail_download_command = (
+        f"curl --silent --location https://raw.githubusercontent.com/johanhaleby/kubetail/"
+        f"{KUBETAIL_VERSION}/kubetail -o /tmp/kubetail"
     )
 
-
-    LOGGER.info("aws sts get-caller-identity")
-    run_out = run("aws sts get-caller-identity")
-    LOGGER.info(run_out)
     run(eksctl_download_command)
-    LOGGER.info("********* whoami")
-    run_out = run("whoami")
-    LOGGER.info(run_out.stdout)
-    LOGGER.info("********* Listing /tmp")
-    run_out = run("ls -l /tmp")
-    LOGGER.info(run_out.stdout)
-    LOGGER.info("********* Listing /usr/local/bin")
-    run_out = run("ls -l /usr/local/bin")
-    LOGGER.info(run_out.stdout)
-    run_out = run("mv /tmp/eksctl /usr/local/bin")
-    LOGGER.info(run_out.stdout)
+    run("mv /tmp/eksctl /usr/local/bin")
 
     run(kubectl_download_command)
     run("chmod +x /tmp/kubectl")
@@ -217,24 +207,20 @@ def eks_setup(framework):
     run("aws-iam-authenticator version")
     run("ks version")
 
-    # # Create the cluster if it doesn't exist:
-    # if not eks_utils.is_eks_cluster_active(PR_EKS_CLUSTER_NAME):
-    #     eks_utils.create_eks_cluster(PR_EKS_CLUSTER_NAME, "gpu", "3", "p3.16xlarge", "dlc-ec2-keypair-prod", region="us-west-2")
-    #     #run(f"eksctl create cluster dlc-{PR_EKS_CLUSTER_NAME} --nodes 3 --node-type=p3.16xlarge --timeout=40m --ssh-access --ssh-public-key dlc-ec2-keypair-prod --region us-east-1 --auto-kubeconfig --region us-west-2")
-
-    eks_cluster_name = PR_EKS_CLUSTER_NAME.format(framework)
     eks_utils.eks_write_kubeconfig(eks_cluster_name, "us-west-2")
 
-    run("kubectl apply -f https://raw.githubusercontent.com/NVIDIA"
-        "/k8s-device-plugin/v{}/nvidia-device-plugin.yml".format(EKS_NVIDIA_PLUGIN_VERSION))
+    run(
+        "kubectl apply -f https://raw.githubusercontent.com/NVIDIA"
+        "/k8s-device-plugin/v{}/nvidia-device-plugin.yml".format(
+            EKS_NVIDIA_PLUGIN_VERSION
+        )
+    )
+
 
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
     dlc_images = os.getenv("DLC_IMAGES")
-
-    # dlc_images = '669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-mxnet-training:training-gpu-py3 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:training-gpu-py3-2.1.0 ' \
-    #              '669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:training-gpu-py3-1.15.2 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-pytorch-training:training-gpu-py3'
 
     if test_type in ("sanity", "ecs", "ec2", "eks"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
@@ -246,7 +232,13 @@ def main():
         if test_type == "sanity":
             pull_dlc_images(dlc_images.split(" "))
         if test_type == "eks":
-            framework = "mxnet" if "mxnet" in dlc_images else "pytorch" if "pytorch" in dlc_images else "tensorflow"
+            framework = (
+                "mxnet"
+                if "mxnet" in dlc_images
+                else "pytorch"
+                if "pytorch" in dlc_images
+                else "tensorflow"
+            )
             eks_setup(framework)
 
         # Execute dlc_tests pytest command
