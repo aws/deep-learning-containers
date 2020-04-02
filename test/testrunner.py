@@ -223,7 +223,7 @@ def eks_setup(framework):
     #     #run(f"eksctl create cluster dlc-{PR_EKS_CLUSTER_NAME} --nodes 3 --node-type=p3.16xlarge --timeout=40m --ssh-access --ssh-public-key dlc-ec2-keypair-prod --region us-east-1 --auto-kubeconfig --region us-west-2")
 
     eks_cluster_name = PR_EKS_CLUSTER_NAME.format(framework)
-    eks_utils.eks_write_kubeconfig(, "us-west-2")
+    eks_utils.eks_write_kubeconfig(eks_cluster_name, "us-west-2")
 
     run("kubectl apply -f https://raw.githubusercontent.com/NVIDIA"
         "/k8s-device-plugin/v{}/nvidia-device-plugin.yml".format(EKS_NVIDIA_PLUGIN_VERSION))
