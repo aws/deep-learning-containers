@@ -7,12 +7,6 @@ from test.dlc_tests.conftest import LOGGER
 SQUEEZENET_MODEL = "squeezenet"
 BERT_MODEL = "bert_sst"
 
-# @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-# def test_ec2_mxnet_inference_gpu(mxnet_inference, ec2_connection, region, gpu_only):
-#     run_ec2_mxnet_inference(mxnet_inference, SQUEEZENET_MODEL, "squeezenet", ec2_connection, "gpu", 80, 8081)
-#     if "py3" in mxnet_inference:
-#         run_ec2_mxnet_inference(mxnet_inference, BERT_MODEL, "gluonnlp", ec2_connection, "gpu", 90, 9091)
-
 
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_ec2_mxnet_squeezenet_inference_gpu(mxnet_inference, ec2_connection, region, gpu_only):
