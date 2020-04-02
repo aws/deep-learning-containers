@@ -237,8 +237,8 @@ def main():
         # Pull images for necessary tests
         if test_type == "sanity":
             pull_dlc_images(dlc_images.split(" "))
-        if test_type == "eks":
-            eks_setup()
+        # if test_type == "eks":
+        #     eks_setup()
 
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", test_type, f"--junitxml={report}"]
