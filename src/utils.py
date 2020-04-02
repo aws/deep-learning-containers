@@ -349,6 +349,7 @@ def fetch_dlc_images_for_test_jobs(images):
     LOGGER.debug(f"Job Parameters run tests: {JobParameters.image_run_test_types}")
     for docker_image in images:
         # TODO change this to docker_image.build_status == constants.SUCCESS when new builds are enabled
+        LOGGER.debug(f"docker build status {docker_image.build_status}")
         if docker_image.build_status:
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(docker_image.ecr_url)
@@ -356,7 +357,6 @@ def fetch_dlc_images_for_test_jobs(images):
             image_device_type = docker_image.info.get("device_type")
             image_python_version = docker_image.info.get("python_version")
             image_tag = f"{image_job_type}_{image_device_type}_{image_python_version}"
-            LOGGER.info(f"Intial image tag {image_tag}")
             # when image_run_test_types has key all values can be (all , ecs, eks, ec2, sagemaker)
             if constants.ALL in JobParameters.image_run_test_types.keys():
                 LOGGER.info("Fetch All Images")
