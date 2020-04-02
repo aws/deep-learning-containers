@@ -27,7 +27,7 @@ EKS_NVIDIA_PLUGIN_VERSION = "1.12"
 EKS_AMI_ID = {"cpu": "ami-0d3998d69ebe9b214", "gpu": "ami-0484012ada3522476"}
 
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
-PR_EKS_CLUSTER_NAME = "dlc-eks-pr-test-cluster"
+PR_EKS_CLUSTER_NAME = "dlc-eks-pr-{}-test-cluster"
 
 def assign_sagemaker_instance_type(image):
     if "tensorflow" in image:
@@ -125,7 +125,7 @@ def pull_dlc_images(images):
     for image in images:
         run(f"docker pull {image}", hide='out')
 
-def eks_setup():
+def eks_setup(framework):
     """Function to download eksctl, kubectl, aws-iam-authenticator and ksonnet binaries
     Utilities:
     1. eksctl: create and manage cluster
@@ -222,7 +222,8 @@ def eks_setup():
     #     eks_utils.create_eks_cluster(PR_EKS_CLUSTER_NAME, "gpu", "3", "p3.16xlarge", "dlc-ec2-keypair-prod", region="us-west-2")
     #     #run(f"eksctl create cluster dlc-{PR_EKS_CLUSTER_NAME} --nodes 3 --node-type=p3.16xlarge --timeout=40m --ssh-access --ssh-public-key dlc-ec2-keypair-prod --region us-east-1 --auto-kubeconfig --region us-west-2")
 
-    eks_utils.eks_write_kubeconfig(PR_EKS_CLUSTER_NAME, "us-west-2")
+    eks_cluster_name = PR_EKS_CLUSTER_NAME.format(framework)
+    eks_utils.eks_write_kubeconfig(, "us-west-2")
 
     run("kubectl apply -f https://raw.githubusercontent.com/NVIDIA"
         "/k8s-device-plugin/v{}/nvidia-device-plugin.yml".format(EKS_NVIDIA_PLUGIN_VERSION))
@@ -230,10 +231,10 @@ def eks_setup():
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
-    #dlc_images = os.getenv("DLC_IMAGES")
+    dlc_images = os.getenv("DLC_IMAGES")
 
-    dlc_images = '669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-mxnet-training:training-gpu-py3 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:training-gpu-py3-2.1.0 ' \
-                 '669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:training-gpu-py3-1.15.2 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-pytorch-training:training-gpu-py3'
+    # dlc_images = '669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-mxnet-training:training-gpu-py3 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:training-gpu-py3-2.1.0 ' \
+    #              '669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:training-gpu-py3-1.15.2 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-pytorch-training:training-gpu-py3'
 
     if test_type in ("sanity", "ecs", "ec2", "eks"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
@@ -245,7 +246,8 @@ def main():
         if test_type == "sanity":
             pull_dlc_images(dlc_images.split(" "))
         if test_type == "eks":
-            eks_setup()
+            framework = "mxnet" if "mxnet" in dlc_images else "pytorch" if "pytorch" in dlc_images else "tensorflow"
+            eks_setup(framework)
 
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", test_type, f"--junitxml={report}", "-n=auto"]
