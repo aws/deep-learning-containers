@@ -117,9 +117,9 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
         py_version = dockerfile[4]
         device_type = dockerfile[-1].split(".")[-1]
         # Use class static variables to avoid passing, returning the varibles from all functions
-        # JobParameters.device_types.append(device_type)
-        # JobParameters.image_types.append(image_type)
-        # JobParameters.py_versions.append(py_version)
+        JobParameters.device_types.append(device_type)
+        JobParameters.image_types.append(image_type)
+        JobParameters.py_versions.append(py_version)
         # create a map for the image_build_string and run_test_types on it
         # this map will be used to update the DLC_IMAGES for pr test jobs
         LOGGER.debug("Updated run tests inside parse modified docker file changes")
@@ -139,7 +139,7 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
     for buildspec in rule:
         buildspec_framework = buildspec.split("/")[0]
         if buildspec_framework == framework:
-            # JobParameters.build_for_all_images()
+            JobParameters.build_for_all_images()
             LOGGER.debug("Updated run tests inside parse buildspec.yml file changes")
             update_image_run_test_types(constants.ALL, constants.ALL)
 
