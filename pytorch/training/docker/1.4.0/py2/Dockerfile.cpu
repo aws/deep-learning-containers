@@ -6,6 +6,7 @@ LABEL maintainer="Amazon AI"
 ARG PYTHON_VERSION=2.7
 ARG OPEN_MPI_VERSION=4.0.1
 
+# docker file changes
 # See http://bugs.python.org/issue19846
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging

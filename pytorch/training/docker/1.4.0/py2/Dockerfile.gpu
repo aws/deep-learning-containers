@@ -8,6 +8,7 @@ ARG PYTHON_VERSION=2.7
 ARG OPEN_MPI_VERSION=4.0.1
 ARG CUBLAS_VERSION=10.2.1.243-1_amd64
 
+# docker file changes
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
 ENV PYTHONDONTWRITEBYTECODE=1
