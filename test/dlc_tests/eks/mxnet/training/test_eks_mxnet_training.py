@@ -5,7 +5,7 @@ import test.test_utils.eks as eks_utils
 
 
 @pytest.mark.skip(reason="Temp skip")
-def test_eks_mxnet_single_node_training(mxnet_training):
+def test_eks_mxnet_single_node_training(eks_setup, mxnet_training):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
     Args:
