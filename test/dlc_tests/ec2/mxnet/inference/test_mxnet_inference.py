@@ -50,7 +50,7 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
             )
         elif model_name == BERT_MODEL:
             inference_result = test_utils.request_mxnet_inference_gluonnlp(
-                port=90, connection=ec2_connection
+                port=target_port, connection=ec2_connection
             )
         assert (
             inference_result
