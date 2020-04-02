@@ -7,7 +7,6 @@ import test.test_utils.eks as eks_utils
 # 1. Enable all tests again for EC2, ECS, Sanity (in start_testbuilds.py)
 # 2. Enable all tests again in testrunner.py
 
-#@pytest.mark.skip(reason="Ignoring for now")
 def test_eks_tensorflow_single_node_training(tensorflow_training):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training

@@ -155,7 +155,7 @@ def eks_setup(framework):
         eks_utils.eks_write_kubeconfig(eks_cluster_name, "us-west-2")
         return
 
-    platform = run("uname -s").stdout
+    platform = run("uname -s").stdout.strip()
 
     eksctl_download_command = (
         f"curl --silent --location https://github.com/weaveworks/eksctl/releases/download/"
