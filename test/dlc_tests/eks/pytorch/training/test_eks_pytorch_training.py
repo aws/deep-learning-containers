@@ -21,8 +21,10 @@ def test_eks_pytorch_single_node_training(pytorch_training):
     template_path = (
         "eks/eks_manifest_templates/training/single_node_training.yaml"
     )
-    yaml_path = "/tmp/pytorch_single_node_training.yaml"
-    pod_name = f"pytorch-single-node-training-{random.randint(0, 2000)}"
+    rand_int = random.randint(4001, 6000)
+
+    yaml_path = f"/tmp/pytorch_single_node_training.yaml_{rand_int}"
+    pod_name = f"pytorch-single-node-training-{rand_int}"
 
     args = "git clone https://github.com/pytorch/examples.git && python examples/mnist/main.py"
 

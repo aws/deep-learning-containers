@@ -26,8 +26,11 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
     template_path = (
         "eks/eks_manifest_templates/training/single_node_training.yaml"
     )
-    yaml_path = "/tmp/tensorflow_single_node_training.yaml"
-    pod_name = f"tensorflow-single-node-training-{random.randint(4001, 6000)}"
+
+    rand_int = random.randint(4001, 6000)
+
+    yaml_path = f"/tmp/tensorflow_single_node_training.yaml_{rand_int}"
+    pod_name = f"tensorflow-single-node-training-{rand_int}"
 
     args = "git clone https://github.com/fchollet/keras.git && python /keras/examples/mnist_cnn.py"
 

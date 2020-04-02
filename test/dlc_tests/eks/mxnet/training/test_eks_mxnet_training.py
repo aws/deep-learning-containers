@@ -22,8 +22,11 @@ def test_eks_mxnet_single_node_training(mxnet_training):
     template_path = (
         "eks/eks_manifest_templates/training/single_node_training.yaml"
     )
-    yaml_path = "/tmp/mxnet_single_node_training.yaml"
-    pod_name = f"mxnet-single-node-training-{random.randint(2001, 4000)}"
+
+    rand_int = random.randint(4001, 6000)
+
+    yaml_path = f"/tmp/mxnet_single_node_training.yaml_{rand_int}"
+    pod_name = f"mxnet-single-node-training-{rand_int}"
 
     args = (
         "git clone https://github.com/apache/incubator-mxnet.git && python "

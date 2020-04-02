@@ -133,7 +133,6 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
 
     #run(f"aws eks --region us-west-2 update-kubeconfig --name {eks_cluster_name} --kubeconfig /root/.kube/config --role-arn arn:aws:iam::669063966089:role/nikhilsk-eks-test-role")
 
-    LOGGER.info("kubeconfig successfully written to folder ~/.kube/config")
     run("cat /root/.kube/config", warn=True)
 
 @retry(stop_max_attempt_number=4, wait_fixed=60000)
