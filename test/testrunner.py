@@ -9,11 +9,12 @@ import pytest
 from invoke import run
 from invoke.context import Context
 
+import test_utils.eks as eks_utils
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
-import test.test_utils.eks as eks_utils
 EKS_VERSION = "1.13.8"
 EKSCTL_VERSION = "0.5.0"
 KSONNET_VERSION = "0.13.1"
