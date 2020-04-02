@@ -139,7 +139,7 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
     for buildspec in rule:
         buildspec_framework = buildspec.split("/")[0]
         if buildspec_framework == framework:
-            JobParameters.build_for_all_images()
+            # JobParameters.build_for_all_images()
             LOGGER.debug("Updated run tests inside parse buildspec.yml file changes")
             update_image_run_test_types(constants.ALL, constants.ALL)
 
