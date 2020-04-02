@@ -10,6 +10,7 @@ TF1_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflow1Standa
 TF2_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflow2Standalone")
 TF_MNIST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorFlow")
 TF_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testHVD")
+TF_OPENCV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testOpenCV")
 
 TF_EC2_GPU_INSTANCE_TYPE = "p2.xlarge"
 TF_EC2_CPU_INSTANCE_TYPE = "c5.4xlarge"
@@ -45,3 +46,17 @@ def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_connection, gpu_on
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_CPU_INSTANCE_TYPE], indirect=True)
 def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_HVD_CMD)
+
+
+@pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
+def test_tensorflow_opencv_gpu(tensorflow_training, ec2_connection, gpu_only):
+    if "1." in tensorflow_training:
+        pytest.skip("This test is for TF2 only")
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_OPENCV_CMD)
+
+
+@pytest.mark.parametrize("ec2_instance_type", [TF_EC2_CPU_INSTANCE_TYPE], indirect=True)
+def test_tensorflow_opencv_cpu(tensorflow_training, ec2_connection, cpu_only):
+    if "1." in tensorflow_training:
+        pytest.skip("This test is for TF2 only")
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_OPENCV_CMD)
