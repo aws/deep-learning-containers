@@ -117,9 +117,9 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
         py_version = dockerfile[4]
         device_type = dockerfile[-1].split(".")[-1]
         # Use class static variables to avoid passing, returning the varibles from all functions
-        JobParameters.device_types.append(device_type)
-        JobParameters.image_types.append(image_type)
-        JobParameters.py_versions.append(py_version)
+        # JobParameters.device_types.append(device_type)
+        # JobParameters.image_types.append(image_type)
+        # JobParameters.py_versions.append(py_version)
         # create a map for the image_build_string and run_test_types on it
         # this map will be used to update the DLC_IMAGES for pr test jobs
         LOGGER.debug("Updated run tests inside parse modified docker file changes")
@@ -356,8 +356,10 @@ def fetch_dlc_images_for_test_jobs(images):
             image_device_type = docker_image.info.get("device_type")
             image_python_version = docker_image.info.get("python_version")
             image_tag = f"{image_job_type}_{image_device_type}_{image_python_version}"
+            LOGGER.info(f"Intial image tag {image_tag}")
             # when image_run_test_types has key all values can be (all , ecs, eks, ec2, sagemaker)
             if constants.ALL in JobParameters.image_run_test_types.keys():
+                LOGGER.info("Fetch All Images")
                 run_tests = JobParameters.image_run_test_types.get(constants.ALL)
                 run_tests = (
                     constants.ALL_TESTS if constants.ALL in run_tests else run_tests
@@ -366,11 +368,13 @@ def fetch_dlc_images_for_test_jobs(images):
                     DLC_IMAGES[test].append(docker_image.ecr_url)
             # when key is training or inference values can be  (ecs, eks, ec2, sagemaker)
             if image_job_type in JobParameters.image_run_test_types.keys():
+                LOGGER.info(f"Fetch Images with job type {image_job_type}")
                 run_tests = JobParameters.image_run_test_types.get(image_job_type)
                 for test in run_tests:
                     DLC_IMAGES[test].append(docker_image.ecr_url)
             # when key is image_tag (training-cpu-py3) values can be (ecs, eks, ec2, sagemaker)
             if image_tag in JobParameters.image_run_test_types.keys():
+                LOGGER.info(f"Fetch Images with image tag {image_tag}")
                 run_tests = JobParameters.image_run_test_types.get(image_tag)
                 run_tests = (
                     constants.ALL_TESTS if constants.ALL in run_tests else run_tests
