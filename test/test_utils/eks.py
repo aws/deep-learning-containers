@@ -7,6 +7,7 @@ import base64
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 EKS_NVIDIA_PLUGIN_VERSION = "1.12"
 # https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
@@ -75,6 +76,9 @@ def is_eks_training_complete(pod_name):
                     "IN-PROGRESS: Container is either Creating or Running. Waiting to complete..."
                 )
                 raise ValueError("IN-PROGRESS: Retry.")
+    else:
+        LOGGER.info("containerStatuses not available yet, retrying")
+        raise ValueError("IN-PROGRESS: Retry.")
 
     return False
 
@@ -90,8 +94,6 @@ def write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file
 
     for key, value in search_replace_dict.items():
         yaml_data = yaml_data.replace(key, value)
-        print("***********")
-        print(yaml_data)
 
     with open(remote_yaml_file_path, 'w') as yaml_file:
         yaml_file.write(yaml_data)

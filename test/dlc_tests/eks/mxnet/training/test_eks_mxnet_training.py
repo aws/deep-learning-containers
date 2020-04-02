@@ -4,7 +4,6 @@ import random
 import test.test_utils.eks as eks_utils
 
 
-@pytest.mark.skip(reason="Temp skip")
 def test_eks_mxnet_single_node_training(mxnet_training):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
@@ -14,10 +13,6 @@ def test_eks_mxnet_single_node_training(mxnet_training):
     """
 
     training_result = False
-
-    print("*****************")
-    run("pwd")
-    print("*****************")
 
     template_path = (
         "eks/eks_manifest_templates/training/single_node_training.yaml"

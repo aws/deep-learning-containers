@@ -18,11 +18,6 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
 
     training_result = False
 
-    eks_utils.LOGGER.info("*****************")
-    run_out = run("pwd")
-    eks_utils.LOGGER.info(run_out.stdout)
-    eks_utils.LOGGER.info("*****************")
-
     template_path = (
         "eks/eks_manifest_templates/training/single_node_training.yaml"
     )
@@ -50,7 +45,7 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
     )
 
     try:
-        run("kubectl --kubeconfig /root/.kube/config create -f {}".format(yaml_path))
+        run("kubectl create -f {}".format(yaml_path))
 
         if eks_utils.is_eks_training_complete(pod_name):
             tensorflow_out = run("kubectl logs {}".format(pod_name)).stdout
@@ -59,4 +54,4 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
 
         assert training_result, f"Training failed"
     finally:
-        run("kubectl --kubeconfig /root/.kube/config delete pods {}".format(pod_name))
+        run("kubectl delete pods {}".format(pod_name))
