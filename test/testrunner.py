@@ -27,7 +27,7 @@ EKS_NVIDIA_PLUGIN_VERSION = "1.12"
 EKS_AMI_ID = {"cpu": "ami-0d3998d69ebe9b214", "gpu": "ami-0484012ada3522476"}
 
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
-PR_EKS_CLUSTER_NAME = "dlc-eks-test-cluster"
+PR_EKS_CLUSTER_NAME = "dlc-eks-pr-test-cluster"
 
 def assign_sagemaker_instance_type(image):
     if "tensorflow" in image:
@@ -217,12 +217,15 @@ def eks_setup():
     run("aws-iam-authenticator version")
     run("ks version")
 
-    # Create the cluster if it doesn't exist:
-    if not eks_utils.is_eks_cluster_active(PR_EKS_CLUSTER_NAME):
-        eks_utils.create_eks_cluster(PR_EKS_CLUSTER_NAME, "gpu", "3", "p3.16xlarge", "dlc-ec2-keypair-prod", region="us-west-2")
-        #run(f"eksctl create cluster dlc-{PR_EKS_CLUSTER_NAME} --nodes 3 --node-type=p3.16xlarge --timeout=40m --ssh-access --ssh-public-key dlc-ec2-keypair-prod --region us-east-1 --auto-kubeconfig --region us-west-2")
+    # # Create the cluster if it doesn't exist:
+    # if not eks_utils.is_eks_cluster_active(PR_EKS_CLUSTER_NAME):
+    #     eks_utils.create_eks_cluster(PR_EKS_CLUSTER_NAME, "gpu", "3", "p3.16xlarge", "dlc-ec2-keypair-prod", region="us-west-2")
+    #     #run(f"eksctl create cluster dlc-{PR_EKS_CLUSTER_NAME} --nodes 3 --node-type=p3.16xlarge --timeout=40m --ssh-access --ssh-public-key dlc-ec2-keypair-prod --region us-east-1 --auto-kubeconfig --region us-west-2")
 
     eks_utils.eks_write_kubeconfig(PR_EKS_CLUSTER_NAME, "us-west-2")
+
+    run("kubectl apply -f https://raw.githubusercontent.com/NVIDIA"
+        "/k8s-device-plugin/v{}/nvidia-device-plugin.yml".format(EKS_NVIDIA_PLUGIN_VERSION))
 
 def main():
     # Define constants
@@ -238,8 +241,8 @@ def main():
         # Pull images for necessary tests
         if test_type == "sanity":
             pull_dlc_images(dlc_images.split(" "))
-        # if test_type == "eks":
-        #     eks_setup()
+        if test_type == "eks":
+            eks_setup()
 
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", test_type, f"--junitxml={report}", "-n=auto"]
