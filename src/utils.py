@@ -122,6 +122,7 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
         JobParameters.py_versions.append(py_version)
         # create a map for the image_build_string and run_test_types on it
         # this map will be used to update the DLC_IMAGES for pr test jobs
+        LOGGER.debug("Updated run tests inside parse modified docker file changes")
         run_tests_key = f"{image_type}_{device_type}_{py_version}"
         update_image_run_test_types(run_tests_key, constants.ALL)
 
@@ -138,7 +139,8 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
     for buildspec in rule:
         buildspec_framework = buildspec.split("/")[0]
         if buildspec_framework == framework:
-            JobParameters.build_for_all_images()
+            JobParameters.build_for_all_images(
+            LOGGER.debug("Updated run tests inside parse buildspec.yml file changes")
             update_image_run_test_types(constants.ALL, constants.ALL)
 
 
@@ -153,6 +155,7 @@ def parse_modifed_root_files_info(files, pattern=""):
     rule = re.findall(rf"{pattern}", files)
     if rule:
         # JobParameters.build_for_all_images()
+        LOGGER.debug("Updated run tests inside parse modified root files")
         update_image_run_test_types(constants.ALL, constants.ALL)
 
 
@@ -274,7 +277,7 @@ def pr_build_setup(pr_number, framework):
     # when there is a change in any the below files
     parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.yml")
 
-    parse_modifed_root_files_info(files, pattern="src\/\S+")
+    # parse_modifed_root_files_info(files, pattern="src\/\S+")
 
     # Todo remove test_utils to enable the builds and test triggers for test_utils file changes
     parse_modifed_root_files_info(
@@ -343,7 +346,7 @@ def fetch_dlc_images_for_test_jobs(images):
     :return: dictionary
     """
     DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
-
+    LOGGER.debug(f"Job Parameters run tests: {JobParameters.image_run_test_types}")
     for docker_image in images:
         # TODO change this to docker_image.build_status == constants.SUCCESS when new builds are enabled
         if docker_image.build_status:
