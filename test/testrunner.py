@@ -230,7 +230,10 @@ def eks_setup():
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
-    dlc_images = os.getenv("DLC_IMAGES")
+    #dlc_images = os.getenv("DLC_IMAGES")
+
+    dlc_images = '669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-mxnet-training:training-gpu-py3 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:training-gpu-py3-2.1.0 ' \
+                 '669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:training-gpu-py3-1.15.2 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-pytorch-training:training-gpu-py3'
 
     if test_type in ("sanity", "ecs", "ec2", "eks"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
