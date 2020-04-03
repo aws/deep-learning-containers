@@ -117,9 +117,9 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
         py_version = dockerfile[4]
         device_type = dockerfile[-1].split(".")[-1]
         # Use class static variables to avoid passing, returning the varibles from all functions
-        JobParameters.device_types.append(device_type)
-        JobParameters.image_types.append(image_type)
-        JobParameters.py_versions.append(py_version)
+        # JobParameters.device_types.append(device_type)
+        # JobParameters.image_types.append(image_type)
+        # JobParameters.py_versions.append(py_version)
         # create a map for the image_build_string and run_test_types on it
         # this map will be used to update the DLC_IMAGES for pr test jobs
         LOGGER.debug("Updated run tests inside parse modified docker file changes")
@@ -275,7 +275,7 @@ def pr_build_setup(pr_number, framework):
 
     # The below code currently overides the device_types, image_types, py_versions with constants.ALL
     # when there is a change in any the below files
-    parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.yml")
+    # parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.yml")
 
     # parse_modifed_root_files_info(files, pattern="src\/\S+")
 
@@ -349,7 +349,7 @@ def fetch_dlc_images_for_test_jobs(images):
     LOGGER.debug(f"Job Parameters run tests: {JobParameters.image_run_test_types}")
     for docker_image in images:
         # TODO change this to docker_image.build_status == constants.SUCCESS when new builds are enabled
-        LOGGER.debug(f"docker build status {docker_image.build_status}")
+        LOGGER.debug(f"docker build status {docker_image.build_status} {type(docker_image.build_status)}")
         if docker_image.build_status:
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(docker_image.ecr_url)
