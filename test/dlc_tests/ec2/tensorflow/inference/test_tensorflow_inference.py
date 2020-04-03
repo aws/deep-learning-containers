@@ -23,7 +23,7 @@ def test_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, regi
 def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
-    framework_version = get_tensorflow_framework_version(image_uri)[:4]
+    framework_version = get_tensorflow_framework_version(image_uri)
     serving_folder_path = f"{test_utils.UBUNTU_HOME_DIR}/serving"
     model_path = os.path.join(serving_folder_path, "models", "mnist")
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
@@ -72,13 +72,19 @@ def train_mnist_model(serving_folder_path, ec2_connection):
 
 
 def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection):
+    # Tensorflow 1.x doesn't have package with version 1.15.2 so use only 1.15
+    if TENSORFLOW1_VERSION in framework_version:
+        framework_version = framework_version[:4]
     run_out = ec2_connection.run(
-        f"pip install -U tensorflow=={framework_version} tensorflow-serving-api=={framework_version}"
+        (
+            f"pip install --user -U tensorflow=={framework_version} "
+            f"tensorflow-serving-api=={framework_version}"
+        )
+    )
+    LOGGER.info(
+        f"Install pip package for tensorflow inference status : {run_out.return_code == 0}"
     )
     if TENSORFLOW1_VERSION == framework_version[:2]:
-        LOGGER.info(
-            f"Install pip package for tensorflow inference status : {run_out.return_code == 0}"
-        )
         if os.path.exists(f"{serving_folder_path}"):
             ec2_connection.run(f"rm -rf {serving_folder_path}")
         run_out = ec2_connection.run(
