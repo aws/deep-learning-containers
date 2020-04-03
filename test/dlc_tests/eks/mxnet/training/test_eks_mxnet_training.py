@@ -1,4 +1,5 @@
 import pytest
+import time
 import re
 import random
 import test.test_utils.eks as eks_utils
@@ -58,6 +59,7 @@ def test_eks_mxnet_single_node_training(mxnet_training):
 
         assert training_result, f"Training failed"
     finally:
+        time.sleep(5)
         run("kubectl delete pods {}".format(pod_name))
 
 
@@ -117,6 +119,7 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
 
         assert training_result, f"Training failed"
     finally:
+        time.sleep(5)
         run("kubectl delete pods {}".format(pod_name))
 
 
@@ -191,4 +194,5 @@ def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
 
         assert training_result, f"Training failed"
     finally:
+        time.sleep(5)
         run("kubectl delete pods {}".format(pod_name))
