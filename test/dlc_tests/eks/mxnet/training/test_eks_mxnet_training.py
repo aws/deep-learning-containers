@@ -52,6 +52,9 @@ def test_eks_mxnet_single_node_training(mxnet_training):
             mxnet_out = run("kubectl logs {}".format(pod_name)).stdout
             if "Epoch[19] Validation-accuracy" in mxnet_out:
                 training_result = True
+            else:
+                eks_utils.LOGGER.info("**** training output ****")
+                eks_utils.LOGGER.debug(mxnet_out)
 
         assert training_result, f"Training failed"
     finally:
@@ -108,6 +111,9 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
             dgl_out = run("kubectl logs {}".format(pod_name)).stdout
             if "Test accuracy" in dgl_out:
                 training_result = True
+            else:
+                eks_utils.LOGGER.info("**** training output ****")
+                eks_utils.LOGGER.debug(dgl_out)
 
         assert training_result, f"Training failed"
     finally:
@@ -181,6 +187,7 @@ def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
                             accuracy
                         )
                     )
+                    eks_utils.LOGGER.debug(gluonnlp_out)
 
         assert training_result, f"Training failed"
     finally:

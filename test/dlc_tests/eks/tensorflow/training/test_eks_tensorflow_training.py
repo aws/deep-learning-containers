@@ -45,6 +45,9 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
             tensorflow_out = run("kubectl logs {}".format(pod_name)).stdout
             if "Test accuracy" in tensorflow_out:
                 training_result = True
+            else:
+                eks_utils.LOGGER.info("**** training output ****")
+                eks_utils.LOGGER.debug(tensorflow_out)
 
         assert training_result, f"Training failed"
     finally:
