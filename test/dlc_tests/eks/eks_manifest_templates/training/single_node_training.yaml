@@ -1,5 +1,5 @@
 ---
-apiVersion: batch/v1
+apiVersion: v1alpha1
 kind: Pod
 metadata:
   name: <POD_NAME>
