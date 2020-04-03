@@ -6,7 +6,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 ARG PYTHON=python3
 ARG PIP=pip3
 ARG TFS_SHORT_VERSION=2.1
-ARG TFS_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/serving/r2.1_aws/20200403-223534/9a6e1430342fc42987c708a9b64d20ad0dfece73/tf_219f944b6010298a55eb16e149dff04fc6bf7ac9/gpu/tensorflow_model_server
+ARG TFS_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/serving/r2.1_aws/20200403-230816/9a6e1430342fc42987c708a9b64d20ad0dfece73/tf_8d402033bc6e030bc998fd3224fec8a739e73273/gpu/tensorflow_model_server
 
 ENV NCCL_VERSION=2.4.7-1+cuda10.1
 ENV CUDNN_VERSION=7.6.2.24-1+cuda10.1
