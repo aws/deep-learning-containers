@@ -19,6 +19,8 @@ CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 # S3 Bucket to use to transfer tests into an EC2 instance
 TEST_TRANSFER_S3_BUCKET = "s3://dlinfra-tests-transfer-bucket"
 
+# Ubuntu ami home dir
+UBUNTU_HOME_DIR = "/home/ubuntu"
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
     command = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
@@ -99,16 +101,18 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
 
 
 @retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
-def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"):
+def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501", connection=None):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
     :param model_name:
     :param ip_address:
     :param port:
+    :connection: ec2_connection object to run the commands remotely over ssh
     :return:
     """
+    conn_run = connection.run if connection is not None else run
     inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"
-    run_out = run(
+    run_out = conn_run(
         f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
     )
 
