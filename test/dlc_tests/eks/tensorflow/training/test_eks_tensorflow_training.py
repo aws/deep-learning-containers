@@ -3,9 +3,6 @@ from invoke import run
 import random
 import test.test_utils.eks as eks_utils
 
-# TODO:
-# 1. Enable all tests again for EC2, ECS, Sanity (in start_testbuilds.py)
-# 2. Enable all tests again in testrunner.py
 
 def test_eks_tensorflow_single_node_training(tensorflow_training):
     """
@@ -17,9 +14,7 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
 
     training_result = False
 
-    template_path = (
-        "eks/eks_manifest_templates/training/single_node_training.yaml"
-    )
+    template_path = "eks/eks_manifest_templates/training/single_node_training.yaml"
 
     rand_int = random.randint(4001, 6000)
 
