@@ -62,8 +62,10 @@ def get_tensorflow_framework_version(image_uri):
 
 def train_mnist_model(serving_folder_path, ec2_connection):
     ec2_connection.run(f"cd {serving_folder_path}")
+    mnist_script_path = f"{serving_folder_path}tensorflow_serving/example/mnist_saved_model.py"
+    ec2_connection.run("pwd")
     run_out = ec2_connection.run(
-        "python tensorflow_serving/example/mnist_saved_model.py models/mnist", hide=True
+        f"python {mnist_script_path} models/mnist", hide=True
     )
     LOGGER.info(
         "Train TF Mnist model for inference.", test_status=(run_out.return_code == 0)
@@ -77,7 +79,7 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
         framework_version = framework_version[:4]
     run_out = ec2_connection.run(
         (
-            f"pip install --user -U tensorflow=={framework_version} "
+            f"pip install --user -q -U tensorflow=={framework_version} "
             f"tensorflow-serving-api=={framework_version}"
         )
     )
