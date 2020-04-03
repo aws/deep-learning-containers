@@ -1,10 +1,9 @@
 ---
-apiVersion: v1alpha1
+apiVersion: v1
 kind: Pod
 metadata:
   name: <POD_NAME>
 spec:
-  ttlSecondsAfterFinished: 100
   restartPolicy: OnFailure
   containers:
   - name: <POD_NAME>
