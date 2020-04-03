@@ -52,5 +52,5 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
 
         assert training_result, f"Training failed"
     finally:
-        time.sleep(5)
+        time.sleep(10)
         run("kubectl delete pods {}".format(pod_name))

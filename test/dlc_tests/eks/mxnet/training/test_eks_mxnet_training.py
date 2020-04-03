@@ -119,7 +119,7 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
 
         assert training_result, f"Training failed"
     finally:
-        time.sleep(5)
+        time.sleep(10)
         run("kubectl delete pods {}".format(pod_name))
 
 
@@ -194,5 +194,5 @@ def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
 
         assert training_result, f"Training failed"
     finally:
-        time.sleep(5)
+        time.sleep(10)
         run("kubectl delete pods {}".format(pod_name))
