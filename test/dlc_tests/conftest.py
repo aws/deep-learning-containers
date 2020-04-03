@@ -24,6 +24,8 @@ FRAMEWORK_FIXTURES = (
     "mxnet_training",
     "tensorflow_inference",
     "tensorflow_training",
+    "training",
+    "inference"
 )
 
 

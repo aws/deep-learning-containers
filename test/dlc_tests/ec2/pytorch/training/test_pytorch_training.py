@@ -10,7 +10,6 @@ PT_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testP
 PT_MNIST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorch")
 PT_REGRESSION_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchRegression")
 PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
-PT_SMDEBUG_CMD = f""" "{os.path.join(CONTAINER_TESTS_PREFIX, 'testSmdebug')} pytorch" """
 
 PT_EC2_GPU_INSTANCE_TYPE = "p3.2xlarge"
 PT_EC2_CPU_INSTANCE_TYPE = "c5.9xlarge"
@@ -79,15 +78,3 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only):
 def test_pytorch_mpi(pytorch_training, ec2_connection, gpu_only, py3_only):
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchMpi")
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
-
-
-@pytest.mark.skip(reason="Test is not properly receiving args. Will assess in a different ticket.")
-@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INSTANCE_TYPE], indirect=True)
-def test_pytorch_smdebug_gpu(pytorch_training, ec2_connection, gpu_only, py3_only):
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_SMDEBUG_CMD)
-
-
-@pytest.mark.skip(reason="Test is not properly receiving args. Will assess in a different ticket.")
-@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_CPU_INSTANCE_TYPE], indirect=True)
-def test_pytorch_smdebug_cpu(pytorch_training, ec2_connection, cpu_only, py3_only):
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_SMDEBUG_CMD)

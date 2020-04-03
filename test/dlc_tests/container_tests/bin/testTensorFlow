@@ -4,7 +4,7 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-git clone https://github.com/fchollet/keras.git ${HOME_DIR}/artifacts/keras
+git clone https://github.com/keras-team/keras.git ${HOME_DIR}/artifacts/keras
 cd ${HOME_DIR}/artifacts/keras
 ${BIN_DIR}/testBackendWithKeras tensorflow python || exit 1
 rm -rf ${HOME_DIR}/src/keras
