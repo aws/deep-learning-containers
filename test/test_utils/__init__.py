@@ -37,17 +37,19 @@ def retry_if_result_is_false(result):
     wait_fixed=10000,
     retry_on_result=retry_if_result_is_false,
 )
-def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80"):
+def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80", connection=None):
     """
     Send request to container to test inference on kitten.jpg
     :param ip_address:
     :param port:
+    :connection: ec2_connection object to run the commands remotely over ssh
     :return: <bool> True/False based on result of inference
     """
-    run_out = run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg")
+    conn_run = connection.run if connection is not None else run
+    run_out = conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg")
     if run_out.return_code != 0:
         return False
-    run_out = run(f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg", warn=True)
+    run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg", warn=True)
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
@@ -58,8 +60,16 @@ def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80"):
 
 
 @retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
-def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80"):
-    run_out = run(
+def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connection=None):
+    """
+        Send request to container to test inference for predicting sentiments.
+        :param ip_address:
+        :param port:
+        :connection: ec2_connection object to run the commands remotely over ssh
+        :return: <bool> True/False based on result of inference
+    """
+    conn_run = connection.run if connection is not None else run
+    run_out = conn_run(
         (f"curl -X POST http://{ip_address}:{port}/predictions/bert_sst/predict -F "
          "'data=[\"Positive sentiment\", \"Negative sentiment\"]'"),
         warn=True
