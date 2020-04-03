@@ -14,12 +14,12 @@ RETURN_VAL=`echo $?`
 set -e
 
 if [ ${RETURN_VAL} -eq 0 ]; then
-  python ${BIN_DIR}/testHVD.py 2> ${TRAINING_LOG}
+  python ${BIN_DIR}/testTF2HVD.py > ${TRAINING_LOG} 2>&1
 else
-  python ${BIN_DIR}/testHVD.py --no-cuda 2> ${TRAINING_LOG}
+  python ${BIN_DIR}/testTF2HVD.py --no-cuda > ${TRAINING_LOG} 2>&1
 fi
 
-if grep "loss =" $TRAINING_LOG; then
+if grep "Loss =" $TRAINING_LOG; then
   echo "Successfully verified Horovod works with mpi."
 else
   echo "Horovod training failed with mpi."
@@ -43,10 +43,10 @@ if [ ${RETURN_VAL} -eq 0 ]; then
         -x NCCL_MIN_NRINGS=4 -x LD_LIBRARY_PATH -x PATH -mca pml ob1 -mca btl ^openib \
         -x NCCL_SOCKET_IFNAME=$INTERFACE -mca btl_tcp_if_exclude lo,docker0 \
         -x TF_CPP_MIN_LOG_LEVEL=0 \
-        python -W ignore ${HOVOROD_DIR}/tf_train_imagenet_resnet_hvd.py \
-        --synthetic --batch_size 128 --num_batches 100 --clear_log 2> ${TRAINING_LOG}
+        python -W ignore ${HOVOROD_DIR}/tf2_train_imagenet_resnet_hvd.py \
+        --synthetic --batch_size 64 --num_batches 100 --clear_log 2> ${TRAINING_LOG}
 else
-  python -W ignore ${HOVOROD_DIR}/tensorflow_synthetic_benchmark.py --no-cuda > ${TRAINING_LOG}
+  python -W ignore ${HOVOROD_DIR}/tensorflow2_synthetic_benchmark.py --no-cuda > ${TRAINING_LOG}
 fi
 
 if grep "Total img/sec on" $TRAINING_LOG; then
