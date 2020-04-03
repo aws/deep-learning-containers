@@ -83,7 +83,7 @@ def is_eks_training_complete(pod_name):
                 )
                 raise ValueError("IN-PROGRESS: Retry.")
     else:
-        LOGGER.info("containerStatuses not available yet, retrying")
+        LOGGER.info(f"containerStatuses not available yet, retrying. Pod: {pod_name}")
         raise ValueError("IN-PROGRESS: Retry.")
 
     return False
