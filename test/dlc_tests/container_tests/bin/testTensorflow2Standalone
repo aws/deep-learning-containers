@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+import sys
+import subprocess
+from subprocess import PIPE
+
+import logging
+import numpy as np
+import tensorflow as tf
+
+LOGGER = logging.getLogger(__name__)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
+
+def main():
+    check_tensorflow()
+
+
+def check_tensorflow():
+    try:
+        process = subprocess.Popen(["bash", "-c", "nvidia-smi"], stdout=PIPE)
+        process.communicate()
+        ret_val = process.wait()
+        is_gpu = not ret_val
+
+        # Creates a session with log_device_placement set to False.
+        sess = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(log_device_placement=False))
+
+        with sess:
+            if is_gpu:
+                # Use GPU device 0
+                with tf.device('/job:localhost/replica:0/task:0/device:XLA_GPU:0'):
+                    x_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[2, 3], name='x_mat')
+                    y_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[3, 2], name='y_mat')
+                    z_mat = tf.matmul(x_mat, y_mat)
+
+                assert sess.run(z_mat).any(), "Error: GPU sanity test for TensorFlow failed."
+            else:
+                # Use CPU device 0
+                with tf.device('/job:localhost/replica:0/task:0/device:XLA_CPU:0'):
+                    x_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[2, 3], name='x_mat')
+                    y_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[3, 2], name='y_mat')
+                    z_mat = tf.matmul(x_mat, y_mat)
+
+                assert sess.run(z_mat).any(), "Error: CPU sanity test for TensorFlow failed."
+
+    except Exception as excp:
+        LOGGER.debug("Error: check_tensorflow test failed.")
+        LOGGER.debug("Exception: {}".format(excp))
+        raise
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        pass
