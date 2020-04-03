@@ -275,7 +275,7 @@ def pr_build_setup(pr_number, framework):
 
     # The below code currently overides the device_types, image_types, py_versions with constants.ALL
     # when there is a change in any the below files
-    # parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.yml")
+    parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.yml")
 
     # parse_modifed_root_files_info(files, pattern="src\/\S+")
 
@@ -350,7 +350,8 @@ def fetch_dlc_images_for_test_jobs(images):
     for docker_image in images:
         # TODO change this to docker_image.build_status == constants.SUCCESS when new builds are enabled
         LOGGER.debug(f"docker build status {docker_image.build_status} {type(docker_image.build_status)}")
-        if docker_image.build_status:
+        if(docker_image.build_status == constants.SUCCESS or
+          docker_image.build_status == constants.NOT_BUILT):
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(docker_image.ecr_url)
             image_job_type = docker_image.info.get("image_type")
