@@ -1,4 +1,5 @@
 import os
+import re
 from time import sleep
 
 import pytest
@@ -26,6 +27,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region):
     framework_version = get_tensorflow_framework_version(image_uri)
     serving_folder_path = f"{test_utils.UBUNTU_HOME_DIR}/serving"
     model_path = os.path.join(serving_folder_path, "models", "mnist")
+    mnist_client_path = f"{serving_folder_path}/tensorflow_serving/example/mnist_client.py"
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     docker_run_cmd = (
         f"{docker_cmd} run -id --name {container_name} -p {grpc_port}:8500 "
@@ -38,16 +40,16 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region):
         )
         sleep(2)
         train_mnist_model(serving_folder_path, ec2_connection)
-        sleep(2)
+        sleep(10)
         ec2_connection.run(
             f"$(aws ecr get-login --no-include-email --region {region})", hide=True
         )
         LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
-        inference_result = test_utils.request_tensorflow_inference(
-            port=grpc_port, connection=ec2_connection
+        sleep(20)
+        inference_result = test_utils.request_tensorflow_inference_grpc(
+            script_file_path=mnist_client_path, port=grpc_port, connection=ec2_connection
         )
-        sleep(15)
         assert (
             inference_result
         ), f"Failed to perform tensorflow inference test for image: {image_uri} on ec2"
@@ -57,36 +59,34 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region):
 
 
 def get_tensorflow_framework_version(image_uri):
-    return image_uri.split("-")[-1]
+    return re.findall(rf"[1-2]\.[0-9]\S+", image_uri)[0]
 
 
 def train_mnist_model(serving_folder_path, ec2_connection):
     ec2_connection.run(f"cd {serving_folder_path}")
-    ec2_connection.run("pwd")
     mnist_script_path = f"{serving_folder_path}/tensorflow_serving/example/mnist_saved_model.py"
     run_out = ec2_connection.run(
-        f"python {mnist_script_path} models/mnist", hide=True
+        f"python {mnist_script_path} {serving_folder_path}/models/mnist", hide=True
     )
     LOGGER.info(
-        "Train TF Mnist model for inference.", test_status=(run_out.return_code == 0)
+        f"Train TF Mnist model for inference : {run_out.return_code == 0}"
     )
+
     return run_out.return_code == 0
 
 
 def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection):
     # Tensorflow 1.x doesn't have package with version 1.15.2 so use only 1.15
-    if TENSORFLOW1_VERSION in framework_version:
-        framework_version = framework_version[:4]
     run_out = ec2_connection.run(
         (
-            f"pip install --user -q -U tensorflow=={framework_version} "
-            f"tensorflow-serving-api=={framework_version}"
-        )
+            f"pip install --user -qq -U 'tensorflow<={framework_version}' "
+            f" 'tensorflow-serving-api<={framework_version}'"
+        ), hide=True
     )
     LOGGER.info(
         f"Install pip package for tensorflow inference status : {run_out.return_code == 0}"
     )
-    if TENSORFLOW1_VERSION == framework_version[:2]:
+    if str(framework_version).startswith(TENSORFLOW1_VERSION):
         if os.path.exists(f"{serving_folder_path}"):
             ec2_connection.run(f"rm -rf {serving_folder_path}")
         run_out = ec2_connection.run(
@@ -97,11 +97,7 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
         )
         LOGGER.info(f"Clone TF serving repository status {run_out.return_code == 0}")
     else:
-        local_scripts_path = os.path.join(
-            "container_tests", "bin", "tensorflow_serving", "example"
-        )
+        local_scripts_path = os.path.join("container_tests", "bin", "tensorflow_serving")
+        ec2_connection.run(f"mkdir -p {serving_folder_path}")
         ec2_connection.run(f"cp -r {local_scripts_path} {serving_folder_path}")
-        training_script = os.path.join(serving_folder_path, "mnist_saved_model.py")
-        model_path = os.path.join(serving_folder_path, "models", "mnist")
-        ec2_connection.run(f"python {training_script} {model_path}", hide=True)
     return run_out.return_code == 0

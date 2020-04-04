@@ -277,9 +277,9 @@ def pr_build_setup(pr_number, framework):
     parse_modifed_root_files_info(files, pattern="src\/\S+")
 
     # Todo remove test_utils to enable the builds and test triggers for test_utils file changes
-    parse_modifed_root_files_info(
-        files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests|test_utils))\S+)"
-    )
+    # parse_modifed_root_files_info(
+    #     files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests|test_utils))\S+)"
+    # )
 
     parse_modifed_root_files_info(files, pattern="testspec\.yml")
 

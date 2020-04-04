@@ -1,10 +1,15 @@
 import os
 import subprocess
+import logging
+import sys
 
 from invoke import run
 import pytest
 from retrying import retry
 
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
@@ -110,8 +115,8 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
     return True
 
 
-@retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
-def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501", connection=None):
+@retry(stop_max_attempt_number=10, wait_fixed=20000, retry_on_result=retry_if_result_is_false)
+def request_tensorflow_inference(model_name="mnist", ip_address="127.0.0.1", port="8501", connection=None):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
     :param model_name:
@@ -132,6 +137,20 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
         return False
 
     return True
+
+
+@retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None):
+    """
+    Method to run tensorflow inference on MNIST model using gRPC protocol
+    :param script_file_path:
+    :param ip_address:
+    :param port:
+    :return:
+    """
+    conn_run = connection.run if connection is not None else run
+    run_out = conn_run(f"python {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
+    return run_out.return_code == 0
 
 
 def get_mms_run_command(model_names, processor="cpu"):
@@ -198,6 +217,8 @@ def generate_ssh_keypair(ec2_client, key_name):
     key_filename = os.path.join(pwd, f"{key_name}.pem")
     run(f"echo '{key_pair['KeyMaterial']}' > {key_filename}")
     run(f"chmod 400 {key_filename}")
+    run_out = run(f"cat {key_filename}")
+    LOGGER.info(f"{key_filename}: {run_out.stdout}")
     return key_filename
 
 
