@@ -1,3 +1,7 @@
+"""
+Helper functions for EKS Integration Tests
+"""
+
 import os
 import sys
 import json
@@ -6,7 +10,7 @@ import logging
 from retrying import retry
 from invoke import run
 
-from test.test_utils import DLC_TESTS_PREFIX
+from test_utils import DLC_TESTS_PREFIX
 
 SINGLE_NODE_TRAINING_TEMPLATE_PATH = os.path.join(
     os.sep,
