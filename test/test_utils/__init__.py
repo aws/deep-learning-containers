@@ -5,8 +5,6 @@ from invoke import run
 import pytest
 from retrying import retry
 
-from .. import ROOT_DIR
-
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
 # Constant to represent AMI Id used to spin up EC2 instances
@@ -16,6 +14,9 @@ ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
+
+# Path till directory test/
+ROOT_DIR = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 
 # Use as prefix for file paths in ec2, ecs and eks tests
 DLC_TESTS_PREFIX = os.path.join(os.sep, ROOT_DIR, "dlc_tests")
