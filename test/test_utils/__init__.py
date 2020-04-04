@@ -5,7 +5,7 @@ from invoke import run
 import pytest
 from retrying import retry
 
-from test import ROOT_DIR
+from .. import ROOT_DIR
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
