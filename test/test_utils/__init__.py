@@ -15,12 +15,6 @@ ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
-# Path till directory test/
-ROOT_DIR = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-
-# Use as prefix for file paths in ec2, ecs and eks tests
-DLC_TESTS_PREFIX = os.path.join(os.sep, ROOT_DIR, "dlc_tests")
-
 # S3 Bucket to use to transfer tests into an EC2 instance
 TEST_TRANSFER_S3_BUCKET = "s3://dlinfra-tests-transfer-bucket"
 

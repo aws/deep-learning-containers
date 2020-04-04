@@ -10,7 +10,11 @@ import logging
 from retrying import retry
 from invoke import run
 
-from test_utils import DLC_TESTS_PREFIX
+# Path till directory test/
+ROOT_DIR = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+
+# Use as prefix for file paths in ec2, ecs and eks tests
+DLC_TESTS_PREFIX = os.path.join(os.sep, ROOT_DIR, "dlc_tests")
 
 SINGLE_NODE_TRAINING_TEMPLATE_PATH = os.path.join(
     os.sep,
