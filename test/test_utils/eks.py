@@ -1,8 +1,21 @@
-import logging, json, sys
-import ruamel.yaml as yaml
+import os
+import sys
+import json
+import logging
+
 from retrying import retry
 from invoke import run
-import base64
+
+from test.test_utils import DLC_TESTS_PREFIX
+
+SINGLE_NODE_TRAINING_TEMPLATE_PATH = os.path.join(
+    os.sep,
+    DLC_TESTS_PREFIX,
+    "eks",
+    "eks_manifest_templates",
+    "training",
+    "single_node_training.yaml",
+)
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -23,6 +36,7 @@ EKS_AMI_ID = {"cpu": "ami-0d3998d69ebe9b214", "gpu": "ami-0484012ada3522476"}
 
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
 PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"
+
 
 def retry_if_value_error(exception):
     """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
@@ -87,6 +101,7 @@ def is_eks_training_complete(pod_name):
         raise ValueError("IN-PROGRESS: Retry.")
 
     return False
+
 
 def eks_setup(framework):
     """Function to download eksctl, kubectl, aws-iam-authenticator and ksonnet binaries
@@ -175,7 +190,9 @@ def eks_setup(framework):
     )
 
 
-def write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file_path, search_replace_dict):
+def write_eks_yaml_file_from_template(
+    local_template_file_path, remote_yaml_file_path, search_replace_dict
+):
     """Function that does a simple replace operation based on the search_replace_dict on the template file contents
     and writes the final yaml file to remote_yaml_path
     Args:
@@ -188,10 +205,11 @@ def write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file
     for key, value in search_replace_dict.items():
         yaml_data = yaml_data.replace(key, value)
 
-    with open(remote_yaml_file_path, 'w') as yaml_file:
+    with open(remote_yaml_file_path, "w") as yaml_file:
         yaml_file.write(yaml_data)
 
     LOGGER.info("Copied generated yaml file to %s", remote_yaml_file_path)
+
 
 def is_eks_cluster_active(eks_cluster_name):
     """Function to verify if the default eks cluster is up and running.
@@ -203,15 +221,18 @@ def is_eks_cluster_active(eks_cluster_name):
     if_active = False
 
     eksctl_check_cluster_command = """eksctl get cluster {} -o json
-    """.format(eks_cluster_name)
+    """.format(
+        eks_cluster_name
+    )
 
     run_out = run(eksctl_check_cluster_command, warn_only=True)
 
     if run_out.return_code == 0:
         cluster_info = json.loads(run_out.stdout)[0]
-        if_active = (cluster_info['Status'] == 'ACTIVE')
+        if_active = cluster_info["Status"] == "ACTIVE"
 
     return if_active
+
 
 def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     """Function that writes the aws eks configuration for the specified cluster in the file ~/.kube/config
@@ -223,9 +244,11 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
         eks_cluster_name, region: str
     """
     eksctl_write_kubeconfig_command = """eksctl utils write-kubeconfig \
-                                         --name {} --region {}""".format(eks_cluster_name, region)
+                                         --name {} --region {}""".format(
+        eks_cluster_name, region
+    )
     run(eksctl_write_kubeconfig_command)
 
-    #run(f"aws eks --region us-west-2 update-kubeconfig --name {eks_cluster_name} --kubeconfig /root/.kube/config --role-arn arn:aws:iam::669063966089:role/nikhilsk-eks-test-role")
+    # run(f"aws eks --region us-west-2 update-kubeconfig --name {eks_cluster_name} --kubeconfig /root/.kube/config --role-arn arn:aws:iam::669063966089:role/nikhilsk-eks-test-role")
 
     run("cat /root/.kube/config", warn=True)

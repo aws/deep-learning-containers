@@ -1,11 +1,11 @@
 import pytest
 import time
 import re
+import os
 import random
 import test.test_utils.eks as eks_utils
 
 from invoke import run
-
 
 def test_eks_mxnet_single_node_training(mxnet_training):
     """
@@ -16,11 +16,9 @@ def test_eks_mxnet_single_node_training(mxnet_training):
 
     training_result = False
 
-    template_path = "eks/eks_manifest_templates/training/single_node_training.yaml"
-
     rand_int = random.randint(4001, 6000)
 
-    yaml_path = f"/tmp/mxnet_single_node_training.yaml_{rand_int}"
+    yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_training_{rand_int}.yaml")
     pod_name = f"mxnet-single-node-training-{rand_int}"
 
     args = (
@@ -43,7 +41,7 @@ def test_eks_mxnet_single_node_training(mxnet_training):
     }
 
     eks_utils.write_eks_yaml_file_from_template(
-        template_path, yaml_path, search_replace_dict
+        eks_utils.SINGLE_NODE_TRAINING_TEMPLATE_PATH, yaml_path, search_replace_dict
     )
 
     try:
@@ -74,11 +72,9 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
 
     training_result = False
 
-    template_path = "eks/eks_manifest_templates/training/single_node_training.yaml"
-
     rand_int = random.randint(4001, 6000)
 
-    yaml_path = f"/tmp/mxnet_single_node_training_dgl.yaml_{rand_int}"
+    yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"mxnet-single-node-training-dgl-{rand_int}"
 
     args = (
@@ -103,7 +99,7 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
     }
 
     eks_utils.write_eks_yaml_file_from_template(
-        template_path, yaml_path, search_replace_dict
+        eks_utils.SINGLE_NODE_TRAINING_TEMPLATE_PATH, yaml_path, search_replace_dict
     )
 
     try:
@@ -134,11 +130,9 @@ def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
 
     training_result = False
 
-    template_path = "eks/eks_manifest_templates/training/single_node_training.yaml"
-
     rand_int = random.randint(4001, 6000)
 
-    yaml_path = f"/tmp/mxnet_single_node_training_gluonnlp.yaml_{rand_int}"
+    yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_training_gluonnlp_{rand_int}.yaml")
     pod_name = f"mxnet-single-node-training-gluonnlp-{rand_int}"
 
     args = (
@@ -164,7 +158,7 @@ def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
     }
 
     eks_utils.write_eks_yaml_file_from_template(
-        template_path, yaml_path, search_replace_dict
+        eks_utils.SINGLE_NODE_TRAINING_TEMPLATE_PATH, yaml_path, search_replace_dict
     )
 
     try:

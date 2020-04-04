@@ -1,8 +1,11 @@
-import pytest
+import os
 import time
-from invoke import run
+import pytest
 import random
+
 import test.test_utils.eks as eks_utils
+
+from invoke import run
 
 
 def test_eks_tensorflow_single_node_training(tensorflow_training):
@@ -15,11 +18,9 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
 
     training_result = False
 
-    template_path = "eks/eks_manifest_templates/training/single_node_training.yaml"
-
     rand_int = random.randint(4001, 6000)
 
-    yaml_path = f"/tmp/tensorflow_single_node_training.yaml_{rand_int}"
+    yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_training_{rand_int}.yaml")
     pod_name = f"tensorflow-single-node-training-{rand_int}"
 
     args = "git clone https://github.com/fchollet/keras.git && python /keras/examples/mnist_cnn.py"
@@ -36,7 +37,7 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
     }
 
     eks_utils.write_eks_yaml_file_from_template(
-        template_path, yaml_path, search_replace_dict
+        eks_utils.SINGLE_NODE_TRAINING_TEMPLATE_PATH, yaml_path, search_replace_dict
     )
 
     try:

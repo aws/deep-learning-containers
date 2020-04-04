@@ -56,9 +56,7 @@ def generate_sagemaker_pytest_cmd(image):
 
             # NOTE: We are relying on tag structure to get TF major version. If tagging changes, this will break.
             tf_major_version = tag.split("-")[-1].split(".")[0]
-            path = os.path.join(
-                "sagemaker_tests", framework, f"{framework}{tf_major_version}_training"
-            )
+            path = os.path.join("sagemaker_tests", framework, f"{framework}{tf_major_version}_training")
         else:
             aws_id_arg = "--registry"
             docker_base_arg = "--repo"
@@ -128,14 +126,12 @@ def main():
         if test_type == "sanity":
             pull_dlc_images(dlc_images.split(" "))
         if test_type == "eks":
-            framework = (
-                "mxnet"
-                if "mxnet" in dlc_images
-                else "pytorch"
-                if "pytorch" in dlc_images
-                else "tensorflow"
-            )
-            eks_utils.eks_setup(framework)
+
+            def setup(framework):
+                if framework in dlc_images:
+                    eks_utils.eks_setup(framework)
+
+            map(setup, ["tensorflow", "mxnet", "pytorch"])
 
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]
