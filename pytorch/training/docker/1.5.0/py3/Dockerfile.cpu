@@ -108,7 +108,7 @@ RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.4.0
 
 # fix safety issues
 RUN pip install pillow==7.1.0
-
+RUN pip install psutil==5.6.7
 
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
