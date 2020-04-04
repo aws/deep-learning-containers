@@ -59,7 +59,7 @@ RUN conda install -c \
     h5py==2.9.0 \
     requests==2.22.0 \
  && conda install \
-    pytorch==$PYTORCH_VERSION \
+    pytorch==1.4.0 \
     torchvision==$TORCHVISION_VERSION cpuonly -c pytorch \
  && conda clean -ya \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \

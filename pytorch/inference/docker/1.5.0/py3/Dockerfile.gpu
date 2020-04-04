@@ -75,7 +75,7 @@ RUN conda install -c \
     requests==2.22.0 \
  && conda install -c \
     pytorch \
-    pytorch==$PYTORCH_VERSION \
+    pytorch==1.4.0 \
     torchvision==$TORCHVISION_VERSION \
     cudatoolkit=10.1  \
  && conda clean -ya \
