@@ -126,12 +126,9 @@ def main():
         if test_type == "sanity":
             pull_dlc_images(dlc_images.split(" "))
         if test_type == "eks":
-
-            def setup(framework):
+            for framework in ["tensorflow", "mxnet", "pytorch"]:
                 if framework in dlc_images:
                     eks_utils.eks_setup(framework)
-
-            map(setup, ["tensorflow", "mxnet", "pytorch"])
 
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]
