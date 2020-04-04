@@ -92,8 +92,9 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
         run_out = ec2_connection.run(
             "git clone https://github.com/tensorflow/serving.git"
         )
+        git_branch_version = re.findall("1\.[0-9]\d", framework_version)
         ec2_connection.run(
-            f"cd {serving_folder_path} && git checkout r{framework_version[:4]}"
+            f"cd {serving_folder_path} && git checkout r{git_branch_version}"
         )
         LOGGER.info(f"Clone TF serving repository status {run_out.return_code == 0}")
     else:
