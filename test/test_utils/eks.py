@@ -52,7 +52,7 @@ def retry_if_value_error(exception):
 
 
 @retry(
-    stop_max_attempt_number=40,
+    stop_max_attempt_number=240,
     wait_fixed=10000,
     retry_on_exception=retry_if_value_error,
 )
