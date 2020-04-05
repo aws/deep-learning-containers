@@ -53,7 +53,7 @@ def retry_if_value_error(exception):
 
 @retry(
     stop_max_attempt_number=40,
-    wait_fixed=60000,
+    wait_fixed=10000,
     retry_on_exception=retry_if_value_error,
 )
 def is_eks_training_complete(pod_name):
