@@ -5,7 +5,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.6.6
-ARG PYTORCH_VERSION=1.4.0
+ARG PYTORCH_VERSION=1.5.0
 ARG TORCHVISION_VERSION=0.5.0
 ARG MMS_VERSION=1.0.8
 
@@ -74,8 +74,7 @@ RUN conda install -c \
     h5py==2.9.0 \
     requests==2.22.0 \
  && conda install -c \
-    pytorch \
-    pytorch==$PYTORCH_VERSION \
+    pytorch==https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl  \
     torchvision==$TORCHVISION_VERSION \
     cudatoolkit=10.1  \
  && conda clean -ya \
