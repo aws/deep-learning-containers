@@ -1,6 +1,4 @@
 import os
-import time
-import pytest
 import random
 
 import test.test_utils.eks as eks_utils
@@ -52,7 +50,6 @@ def test_eks_pytorch_single_node_training(pytorch_training):
                 eks_utils.LOGGER.debug(pytorch_out)
         assert training_result, f"Training failed"
     finally:
-        time.sleep(10)
         run("kubectl delete pods {}".format(pod_name))
 
 
@@ -110,5 +107,4 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
 
         assert training_result, f"Training failed"
     finally:
-        time.sleep(10)
         run("kubectl delete pods {}".format(pod_name))

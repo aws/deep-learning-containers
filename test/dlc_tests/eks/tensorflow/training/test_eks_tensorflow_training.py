@@ -1,6 +1,4 @@
 import os
-import time
-import pytest
 import random
 
 import test.test_utils.eks as eks_utils
@@ -53,5 +51,4 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
 
         assert training_result, f"Training failed"
     finally:
-        time.sleep(10)
         run("kubectl delete pods {}".format(pod_name))
