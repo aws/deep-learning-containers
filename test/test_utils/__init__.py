@@ -18,6 +18,8 @@ CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 # S3 Bucket to use to transfer tests into an EC2 instance
 TEST_TRANSFER_S3_BUCKET = "s3://dlinfra-tests-transfer-bucket"
 
+# Ubuntu ami home dir
+UBUNTU_HOME_DIR = "/home/ubuntu"
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
     command = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
@@ -114,6 +116,7 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
     :param model_name:
     :param ip_address:
     :param port:
+    :connection: ec2_connection object to run the commands remotely over ssh
     :return:
     """
     inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"
@@ -127,6 +130,19 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
         return False
 
     return True
+
+
+def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None):
+    """
+    Method to run tensorflow inference on MNIST model using gRPC protocol
+    :param script_file_path:
+    :param ip_address:
+    :param port:
+    :param connection:
+    :return:
+    """
+    conn_run = connection.run if connection is not None else run
+    conn_run(f"python {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
 def get_mms_run_command(model_names, processor="cpu"):
