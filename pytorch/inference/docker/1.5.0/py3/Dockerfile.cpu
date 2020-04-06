@@ -59,8 +59,9 @@ RUN conda install -c \
     h5py==2.9.0 \
     requests==2.22.0 \
  && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/cpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
- && conda install -c \
-    torchvision==$TORCHVISION_VERSION cpuonly -c pytorch \
+ && pip uninstall -y torchvision \
+ && pip install --no-cache-dir -U \
+    https://torchvision-build.s3.amazonaws.com/1.4.0/py3/cpu/torchvision-0.5.0%2Bcpu-cp36-cp36m-linux_x86_64.whl
  && conda clean -ya \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \

@@ -73,10 +73,12 @@ RUN conda install -c \
     pillow==6.2.1 \
     h5py==2.9.0 \
     requests==2.22.0 \
- && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/cpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
  && conda install -c \
-    torchvision==$TORCHVISION_VERSION \
     cudatoolkit=10.1  \
+ && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
+ && pip uninstall -y torchvision \
+ && pip install --no-cache-dir -U \
+    https://torchvision-build.s3.amazonaws.com/1.4.0/py3/cpu/torchvision-0.5.0%2Bcpu-cp36-cp36m-linux_x86_64.whl
  && conda clean -ya \
  && /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
