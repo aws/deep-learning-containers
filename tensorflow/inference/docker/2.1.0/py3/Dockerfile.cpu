@@ -6,7 +6,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 ARG PYTHON=python3
 ARG PIP=pip3
 ARG TFS_SHORT_VERSION=2.1
-ARG TFS_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/serving/r2.1_aws/20200403-234306/9a6e1430342fc42987c708a9b64d20ad0dfece73/tf_65c0d25f6c8a5e55bc49294142a2bee1d3ccdbd8/cpu/tensorflow_model_server
+ARG TFS_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/serving/r2.1_aws/20200406-195039/9a6e1430342fc42987c708a9b64d20ad0dfece73/tf_89c92c57b480d34101160ba5c4322034af5eb03e/cpu/tensorflow_model_server
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
