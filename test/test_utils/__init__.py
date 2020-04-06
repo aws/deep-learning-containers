@@ -133,7 +133,6 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
     return True
 
 
-@retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
 def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None):
     """
     Method to run tensorflow inference on MNIST model using gRPC protocol
