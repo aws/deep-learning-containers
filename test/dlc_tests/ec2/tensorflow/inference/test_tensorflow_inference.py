@@ -50,43 +50,32 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region):
         LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
         sleep(20)
-        inference_result = test_utils.request_tensorflow_inference_grpc(
+        test_utils.request_tensorflow_inference_grpc(
             script_file_path=mnist_client_path, port=grpc_port, connection=ec2_connection
         )
-        assert (
-            inference_result
-        ), f"Failed to perform tensorflow inference test for image: {image_uri} on ec2"
-
     finally:
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
 
 
 def get_tensorflow_framework_version(image_uri):
-    return re.findall(rf"[1-2]\.[0-9][\d|\.]+", image_uri)[0]
+    return re.findall(r"[1-2]\.[0-9][\d|\.]+", image_uri)[0]
 
 
 def train_mnist_model(serving_folder_path, ec2_connection):
     ec2_connection.run(f"cd {serving_folder_path}")
     mnist_script_path = f"{serving_folder_path}/tensorflow_serving/example/mnist_saved_model.py"
-    run_out = ec2_connection.run(
+    ec2_connection.run(
         f"python {mnist_script_path} {serving_folder_path}/models/mnist", hide=True
     )
-    LOGGER.info(
-        f"Train TF Mnist model for inference : {run_out.return_code == 0}"
-    )
-    return run_out.return_code == 0
 
 
 def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection):
     # Tensorflow 1.x doesn't have package with version 1.15.2 so use only 1.15
-    run_out = ec2_connection.run(
+    ec2_connection.run(
         (
             f"pip install --user -qq -U 'tensorflow<={framework_version}' "
             f" 'tensorflow-serving-api<={framework_version}'"
         ), hide=True
-    )
-    LOGGER.info(
-        f"Install pip package for tensorflow inference status : {run_out.return_code == 0}"
     )
     if os.path.exists(f"{serving_folder_path}"):
         ec2_connection.run(f"rm -rf {serving_folder_path}")
@@ -103,4 +92,3 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
         local_scripts_path = os.path.join("container_tests", "bin", "tensorflow_serving")
         ec2_connection.run(f"mkdir -p {serving_folder_path}")
         ec2_connection.run(f"cp -r {local_scripts_path} {serving_folder_path}")
-    return run_out.return_code == 0

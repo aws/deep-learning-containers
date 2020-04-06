@@ -111,7 +111,7 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
 
 
 @retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
-def request_tensorflow_inference(ip_address="127.0.0.1", port="8501"):
+def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
     :param model_name:
@@ -144,8 +144,7 @@ def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", 
     :return:
     """
     conn_run = connection.run if connection is not None else run
-    run_out = conn_run(f"python {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
-    return run_out.return_code == 0
+    conn_run(f"python {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
 def get_mms_run_command(model_names, processor="cpu"):
