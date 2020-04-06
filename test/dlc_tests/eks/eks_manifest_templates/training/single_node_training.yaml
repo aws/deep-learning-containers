@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: <POD_NAME>
+spec:
+  restartPolicy: OnFailure
+  containers:
+  - name: <POD_NAME>
+    image: <CONTAINER_NAME>
+    command:
+      - "/bin/sh"
+      - "-c"
+    args:
+    - <ARGS>
+    resources:
+      limits:
+        cpu: <CPU_LIMIT>

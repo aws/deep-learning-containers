@@ -5,7 +5,6 @@ from invoke import run
 import pytest
 from retrying import retry
 
-
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
 # Constant to represent AMI Id used to spin up EC2 instances

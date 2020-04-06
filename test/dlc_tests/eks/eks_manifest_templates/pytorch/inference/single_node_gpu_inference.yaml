@@ -1,0 +1,52 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mms-service
+  labels:
+    app: mms-service
+spec:
+  ports:
+  - port: 8080
+    targetPort: mms
+  selector:
+    app: mms-service
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: mms-service
+  labels:
+    app: mms-service
+spec:
+  replicas: <NUM_REPLICAS>
+  selector:
+    matchLabels:
+      app: <SELECTOR_NAME>
+  template:
+    metadata:
+      labels:
+        app: <SELECTOR_NAME>
+    spec:
+      containers:
+      - name: mms-container
+        image: <DOCKER_IMAGE_BUILD_ID>
+        args:
+        - mxnet-model-server
+        - --start
+        - --mms-config /home/model-server/config.properties
+        - --models <MODELS>
+        ports:
+        - name: mms
+          containerPort: 8080
+        - name: mms-management
+          containerPort: 8081
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: "4"
+            memory: 4Gi
+            nvidia.com/gpu: <NUM_GPUS>
+          requests:
+            cpu: "1"
+            memory: 1Gi
