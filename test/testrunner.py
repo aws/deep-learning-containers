@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 
 from multiprocessing import Pool
 
@@ -7,6 +8,12 @@ import pytest
 
 from invoke import run
 from invoke.context import Context
+
+import test_utils.eks as eks_utils
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
 def assign_sagemaker_instance_type(image):
@@ -49,9 +56,7 @@ def generate_sagemaker_pytest_cmd(image):
 
             # NOTE: We are relying on tag structure to get TF major version. If tagging changes, this will break.
             tf_major_version = tag.split("-")[-1].split(".")[0]
-            path = os.path.join(
-                "sagemaker_tests", framework, f"{framework}{tf_major_version}_training"
-            )
+            path = os.path.join("sagemaker_tests", framework, f"{framework}{tf_major_version}_training")
         else:
             aws_id_arg = "--registry"
             docker_base_arg = "--repo"
@@ -103,7 +108,7 @@ def pull_dlc_images(images):
     Pulls DLC images to CodeBuild jobs before running PyTest commands
     """
     for image in images:
-        run(f"docker pull {image}", hide='out')
+        run(f"docker pull {image}", hide="out")
 
 
 def main():
@@ -111,7 +116,7 @@ def main():
     test_type = os.getenv("TEST_TYPE")
     dlc_images = os.getenv("DLC_IMAGES")
 
-    if test_type in ("sanity", "ecs", "ec2"):
+    if test_type in ("sanity", "ecs", "ec2", "eks"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
@@ -120,9 +125,13 @@ def main():
         # Pull images for necessary tests
         if test_type == "sanity":
             pull_dlc_images(dlc_images.split(" "))
+        if test_type == "eks":
+            for framework in ["tensorflow", "mxnet", "pytorch"]:
+                if framework in dlc_images:
+                    eks_utils.eks_setup(framework)
 
         # Execute dlc_tests pytest command
-        pytest_cmd = ["-s", test_type, f"--junitxml={report}", "-n=auto"]
+        pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]
         sys.exit(pytest.main(pytest_cmd))
     elif test_type == "sagemaker":
         run_sagemaker_tests(dlc_images.split(" "))

@@ -347,7 +347,8 @@ def fetch_dlc_images_for_test_jobs(images):
 
     for docker_image in images:
         # TODO change this to docker_image.build_status == constants.SUCCESS when new builds are enabled
-        if docker_image.build_status:
+        if (docker_image.build_status == constants.SUCCESS or
+                docker_image.build_status == constants.NOT_BUILT):
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(docker_image.ecr_url)
             image_job_type = docker_image.info.get("image_type")
