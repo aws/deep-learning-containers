@@ -158,5 +158,5 @@ def image_builder(buildspec):
 
 
 def tag_images_with_pr(image_tag):
-    pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
-    return f"{image_tag}-PR-{pr_number}"
+    pr_number = os.getenv("CODEBUILD_SOURCE_VERSION").replace('/','-')
+    return f"{image_tag}-{pr_number}"
