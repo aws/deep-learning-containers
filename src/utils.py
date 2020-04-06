@@ -314,6 +314,7 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
 
     if os.environ.get("BUILD_CONTEXT") == "PR":
         pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
+        LOGGER.info(f"pr number: {pr_number}")
         if pr_number is not None:
             pr_number = int(pr_number.split("/")[-1])
         device_types, image_types, py_versions = pr_build_setup(pr_number, framework)
