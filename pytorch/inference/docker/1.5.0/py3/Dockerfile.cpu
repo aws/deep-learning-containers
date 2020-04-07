@@ -50,6 +50,7 @@ RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-la
 
 RUN conda install -c \
     conda-forge \
+    awscli \
     opencv==4.0.1 \
  && conda install -y \
     scikit-learn==0.21.2 \
@@ -67,7 +68,6 @@ RUN conda install -c \
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -sf /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
-    awscli \
     fastai==1.0.59 \
     scipy==1.2.2 \
     smdebug==0.7.1 \
