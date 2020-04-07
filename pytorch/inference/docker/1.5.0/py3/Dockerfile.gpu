@@ -75,7 +75,7 @@ RUN conda install -c \
     cudatoolkit=10.1  \
  && conda clean -ya \
  && /opt/conda/bin/conda config --set ssl_verify False \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && ln -sf /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install mxnet-model-server==$MMS_VERSION \
     sagemaker-pytorch-inference \
     psutil==5.6.7 \

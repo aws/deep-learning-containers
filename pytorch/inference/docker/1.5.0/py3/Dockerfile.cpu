@@ -65,7 +65,7 @@ RUN conda install -c \
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && ln -sf /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
     awscli \
     fastai==1.0.59 \
