@@ -272,7 +272,7 @@ def pr_build_setup(pr_number, framework):
 
     # The below code currently overides the device_types, image_types, py_versions with constants.ALL
     # when there is a change in any the below files
-    parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.yml")
+    parse_modifed_buidspec_yml_info(files, framework, pattern="\S+buildspec.yml")
 
     parse_modifed_root_files_info(files, pattern="src\/\S+")
 
