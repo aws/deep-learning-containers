@@ -9,6 +9,7 @@ import logging
 
 from retrying import retry
 from invoke import run
+from invoke.context import Context
 
 # Path till directory test/
 ROOT_DIR = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
@@ -260,3 +261,121 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     # run(f"aws eks --region us-west-2 update-kubeconfig --name {eks_cluster_name} --kubeconfig /root/.kube/config --role-arn arn:aws:iam::669063966089:role/nikhilsk-eks-test-role")
 
     run("cat /root/.kube/config", warn=True)
+
+
+def run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path):
+    """Run MXNet distributed training on EKS using MXNet Operator
+    Args:
+    namespace, app_name, job_name, remote_yaml_file_path
+    """
+
+    training_result = False
+
+    # Namespaces will allow parallel runs on the same cluster. Create namespace if it doesnt exist.
+    does_namespace_exist = run("kubectl get namespace | grep {}".format(namespace),
+                               warn_only=True)
+    if not does_namespace_exist:
+        run("kubectl create namespace {}".format(namespace))
+
+    # Create a new ksonnet app.
+    run("rm -rf {}".format(app_name))
+
+    context = Context()
+
+    #with hide('running'):
+    #    _, github_token = utils.get_github_token()
+    #    with shell_env(GITHUB_TOKEN=github_token):
+    run("ks init {}".format(app_name))
+
+    with context.cd(f"{app_name}"):
+        context.run("ks env set default --namespace {}".format(namespace))
+
+        # Check if the kubeflow registry exists and create. Registry will be available in each pod.
+        does_registry_exist = run("ks registry list | grep kubeflow", warn_only=True)
+        if not does_registry_exist:
+            #with hide('running'):
+            #    _, github_token = utils.get_github_token()
+            #    with shell_env(GITHUB_TOKEN=github_token):
+            run("ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{}/kubeflow".format(KUBEFLOW_VERSION))
+            run("ks pkg install kubeflow/mxnet-job@{}".format(KUBEFLOW_VERSION))
+
+            run("ks generate mxnet-operator mxnet-operator")
+
+            try:
+                # use `$ks show default` to see details.
+                run("ks apply default -c mxnet-operator")
+                # Delete old job with same name if exists
+                run("kubectl delete -f {}".format(remote_yaml_file_path), warn_only=True)
+                run("kubectl create -f {}".format(remote_yaml_file_path))
+                if is_mxnet_eks_multinode_training_complete(job_name, remote_yaml_file_path):
+                    training_result = True
+            except Exception as e:
+                raise Exception("something went wrong! Exception - {}".format(e))
+            finally:
+                run("kubectl delete -f {}".format(remote_yaml_file_path), warn_only=True)
+                # If different versions of kubeflow used in the cluster, crd must be deleted.
+                run("kubectl delete crd mxjobs.kubeflow.org")
+                eks_multinode_cleanup("", job_name, namespace)
+
+    return training_result
+
+
+@retry(stop_max_attempt_number=40, wait_fixed=6000, retry_on_exception=retry_if_value_error)
+def is_mxnet_eks_multinode_training_complete(job_name, remote_yaml_file_path):
+    """Function to check job and pod status for multinode training.
+    A separate method is required because kubectl commands for logs and status are different with namespaces.
+    Args:
+        job_name: str, remote_yaml_file_path: str
+    """
+    run_out = run("kubectl get mxjobs {} -o json".format(job_name))
+    pod_info = json.loads(run_out.stdout)
+
+    if 'status' not in pod_info:
+        raise ValueError("Waiting for job to launch...")
+
+    # Job_phase can be one of the Creating, Running, Cleanup, Failed, Done
+    # Job state can be one of the Running, Succeeded, Failed
+    if 'phase' in pod_info['status']:
+        job_phase = pod_info['status']['phase']
+        job_state = pod_info['status']['state']
+        LOGGER.info("Current job phase: %s", job_phase)
+
+        if 'Failed' in job_state:
+                LOGGER.info("Failure: Job failed to run and the pods are getting terminated.")
+        elif 'Succeeded' in job_state:
+              if 'Done' in job_phase or 'CleanUp' in job_phase:
+                  LOGGER.info("SUCCESS: Job is complete. Pods are getting terminated.")
+                  return True
+        elif 'Running' in job_state:
+            if 'Creating' in job_phase:
+                LOGGER.info("IN-PROGRESS: Container is either Creating. Waiting to complete...")
+                raise ValueError("IN-PROGRESS: Container getting created.")
+            elif 'Running' in job_phase:
+                # Print logs generated
+                run("kubetail $(kubectl get pods | grep {} | cut -f 1 -d ' ' | paste -s -d, -) --follow "
+                    "false".format(job_name +"-worker"), warn_only=True)
+                raise ValueError("IN-PROGRESS: Job is running.")
+            elif 'CleanUp' in job_phase or 'Failed' in job_phase:
+                LOGGER.info("Failed: The job failed to execute. Pods are getting terminated.")
+            elif 'Done' in job_phase:
+                LOGGER.info("Failed: The job failed to execute. Pods are getting terminated.")
+
+    return False
+
+
+def eks_multinode_cleanup(pod_name, job_name, namespace):
+    """Function to cleanup resources created by EKS
+    Use namespace as default if you do not create one.
+    Args:
+        pod_name, job_name, namespace: str
+    """
+
+    # Operator specific cleanup
+    if job_name == "openmpi-job":
+        component,_ = pod_name.split("-master")
+        run("ks component rm {}".format(component), warn_only=True)
+    else:
+        run("ks delete default -c {}".format(job_name), warn_only=True)
+
+    run("ks delete default", warn_only=True)
+    run("kubectl delete namespace {}".format(namespace), warn_only=True)
