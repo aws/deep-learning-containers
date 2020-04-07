@@ -49,7 +49,11 @@ def image_builder(buildspec):
             ARTIFACTS.update(image_config["context"])
 
         build_context = os.getenv("BUILD_CONTEXT")
-        image_tag = tag_images_with_pr(image_config["tag"]) if build_context == "PR" else image_config["tag"]
+        image_tag = (
+            tag_image_with_pr_number(image_config["tag"])
+            if build_context == "PR"
+            else image_config["tag"]
+        )
 
         ARTIFACTS.update(
             {
@@ -154,9 +158,13 @@ def image_builder(buildspec):
 
         # Set environment variables to be consumed by test jobs
         test_trigger_job = utils.get_codebuild_project_name()
-        utils.set_test_env(IMAGES, BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"), TEST_TRIGGER=test_trigger_job)
+        utils.set_test_env(
+            IMAGES,
+            BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
+            TEST_TRIGGER=test_trigger_job,
+        )
 
 
-def tag_images_with_pr(image_tag):
-    pr_number = os.getenv("CODEBUILD_SOURCE_VERSION").replace('/','-')
+def tag_image_with_pr_number(image_tag):
+    pr_number = os.getenv("CODEBUILD_SOURCE_VERSION").replace("/", "-")
     return f"{image_tag}-{pr_number}"
