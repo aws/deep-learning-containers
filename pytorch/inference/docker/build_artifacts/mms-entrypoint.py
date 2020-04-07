@@ -17,8 +17,10 @@ import subprocess
 import sys
 import os.path
 
+sm_file = 'https://github.com/aws/sagemaker-pytorch-serving-container/blob/master/docker/build_artifacts/mms-entrypoint.py'
+
 if not os.path.exists("/opt/ml/input/config"):
-    subprocess.call(['python', '/usr/local/bin/deep_learning_container.py', '&>/dev/null', '&'])
+    subprocess.call(['python', sm_file, '&>/dev/null', '&'])
 
 if sys.argv[1] == 'serve':
     from sagemaker_pytorch_serving_container import serving
