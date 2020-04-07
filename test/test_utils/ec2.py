@@ -85,6 +85,19 @@ def get_public_ip(instance_id, region=DEFAULT_REGION):
 
 
 @retry(stop_max_attempt_number=16, wait_fixed=60000)
+def get_public_ip_from_private_dns(private_dns, region=DEFAULT_REGION):
+    """
+    Get Public IP of instance using private DNS
+    :param private_dns:
+    :param region:
+    :return: <str> IP Address of instance with matching private DNS
+    """
+    client = boto3.Session(region_name=region).client("ec2")
+    response = client.describe_instances(Filters={"Name": "private-dns-name", "Value": [private_dns]})
+    return response.get("Reservations")[0].get("Instances")[0].get("PublicIpAddress")
+
+
+@retry(stop_max_attempt_number=16, wait_fixed=60000)
 def get_instance_user(instance_id, region=DEFAULT_REGION):
     """
     Get "ubuntu" or "ec2-user" based on AMI used to launch instance

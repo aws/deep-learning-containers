@@ -10,6 +10,9 @@ import logging
 from retrying import retry
 from invoke import run
 
+from test.test_utils import DEFAULT_REGION
+import test.test_utils.ec2 as ec2_utils
+
 # Path till directory test/
 ROOT_DIR = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 
@@ -260,3 +263,54 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     # run(f"aws eks --region us-west-2 update-kubeconfig --name {eks_cluster_name} --kubeconfig /root/.kube/config --role-arn arn:aws:iam::669063966089:role/nikhilsk-eks-test-role")
 
     run("cat /root/.kube/config", warn=True)
+
+
+def create_eks_cluster_nodegroup(
+        eks_cluster_name, processor_type, num_nodes, instance_type, ssh_public_key_name, region=DEFAULT_REGION
+):
+    """
+    Function to create and attach a nodegroup to an existing EKS cluster.
+    :param eks_cluster_name: Cluster name of the form PR_EKS_CLUSTER_NAME_TEMPLATE
+    :param processor_type: cpu/gpu
+    :param num_nodes: number of nodes to create in nodegroup
+    :param instance_type: instance type to use for nodegroup instances
+    :param ssh_public_key_name:
+    :param region: Region where EKS cluster is located
+    :return: None
+    """
+    eksctl_create_nodegroup_command = (
+        "eksctl create nodegroup "
+        f"--cluster {eks_cluster_name} "
+        f"--node-ami {EKS_AMI_ID.get(processor_type)} "
+        f"--nodes {num_nodes} "
+        f"--node-type={instance_type} "
+        f"--timeout=40m "
+        f"--ssh-access "
+        f"--ssh-public-key {ssh_public_key_name} "
+        f"--region {region}"
+    )
+
+    run(eksctl_create_nodegroup_command)
+
+    LOGGER.info("EKS cluster nodegroup created successfully, with the following parameters\n"
+                f"cluster_name: {eks_cluster_name}\n"
+                f"ami-id: {EKS_AMI_ID[processor_type]}\n"
+                f"num_nodes: {num_nodes}\n"
+                f"instance_type: {instance_type}\n"
+                f"ssh_public_key: {ssh_public_key_name}")
+
+
+def get_eks_worker_public_ip(region):
+    """Function to get the public ip of a eks worker node
+    Returns:
+        Public ip address of any one worker node in the current EKS cluster.
+    """
+
+    # Assumption: All eks worker nodes are the same instance type; get private dns of any one.
+    private_dns = run("kubectl get nodes | head -n 2 | tail -n 1 | cut -d' ' -f1")
+
+    # Use the private dns to filter the instances; get the associated public ip required for login.
+    public_ip = ec2_utils.get_public_ip_from_private_dns(private_dns, region)
+    LOGGER.info(f"The public IP of the worker node is {public_ip}")
+
+    return public_ip
