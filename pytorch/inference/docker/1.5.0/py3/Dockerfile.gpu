@@ -63,20 +63,21 @@ RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-la
 
 RUN conda install -c \
     pytorch magma-cuda101==2.5.1 \
-RUN conda install -c \
+ && conda install -c \
     conda-forge \
+    awscli \
     opencv==4.0.1 \
-RUN conda install -y \
+ && conda install -y \
     scikit-learn==0.21.2 \
     pandas==0.25.0 \
+    pillow==6.2.1 \
     h5py==2.9.0 \
     requests==2.22.0 \
-RUN conda install -c \
-    cudatoolkit=10.1  \
-RUN conda clean -ya \
-RUN /opt/conda/bin/conda config --set ssl_verify False \
-RUN ln -sf /opt/conda/bin/pip /usr/local/bin/pip3 \
-RUN pip install mxnet-model-server==$MMS_VERSION \
+ && conda clean -ya \
+ && /opt/conda/bin/conda config --set ssl_verify False \
+ && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && pip install mxnet-model-server==$MMS_VERSION \
     sagemaker-pytorch-inference \
     psutil==5.6.7 \
     Pillow==7.1.0
