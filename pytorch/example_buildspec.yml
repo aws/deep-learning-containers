@@ -1,0 +1,42 @@
+  account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+  region: &REGION <set-$REGION-in-environment>
+  framework: &FRAMEWORK pytorch
+  version: &VERSION 1.4.0
+
+  repository_info:
+    training_repository: &TRAINING_REPOSITORY
+      image_type: &TRAINING_IMAGE_TYPE training
+      root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
+      repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
+      repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+
+  context:
+      deep_learning_container.py:
+        source: docker/artifacts/deep_learning_container.py
+        target: deep_learning_container.py
+      training_context: &TRAINING_CONTEXT
+        changehostname:
+          source: docker/build_artifacts/changehostname.c
+          target: changehostname.c
+
+  images:
+    BuildPyTorchExampleGPUTrainPy2DockerImage:
+      <<: *TRAINING_REPOSITORY
+      build: &PYTORCH_GPU_TRAINING_PY2 false
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE gpu
+      python_version: &DOCKER_PYTHON_VERSION py2
+      tag: !join [ *TRAINING_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION, "-", *VERSION, "-example" ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /example, /Dockerfile., *DEVICE_TYPE ]
+      context:
+        <<: *TRAINING_CONTEXT
+    BuildPyTorchExampleGPUTrainPy3DockerImage:
+      <<: *TRAINING_REPOSITORY
+      build: &PYTORCH_GPU_TRAINING_PY3 false
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE gpu
+      python_version: &DOCKER_PYTHON_VERSION py3
+      tag: !join [ *TRAINING_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION, "-", *VERSION, "-example" ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /example, /Dockerfile., *DEVICE_TYPE ]
+      context:
+        <<: *TRAINING_CONTEXT

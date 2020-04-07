@@ -1,0 +1,10 @@
+# Take the base MXNet Container
+FROM 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-mxnet-training:training-gpu-py3-1.6.0
+
+# Add Custom stack of code
+RUN git clone -b v1.6.x https://github.com/apache/incubator-mxnet.git
+
+# Repository to run EKS test case
+RUN git clone -b v0.19.0 https://github.com/horovod/horovod.git
+
+ENTRYPOINT ["python", "/incubator-mxnet/example/image-classification/train_mnist.py"]

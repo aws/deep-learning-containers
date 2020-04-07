@@ -1,0 +1,9 @@
+# Use the Deep Learning Container as a base Image
+FROM 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-pytorch-training:training-gpu-py2-1.4.0
+
+RUN pip install tensorboardX==1.6.0
+
+# Add any script or repo as required
+RUN cd /var && wget https://raw.githubusercontent.com/kubeflow/pytorch-operator/master/examples/mnist/mnist.py
+
+ENTRYPOINT ["python", "/var/mnist.py"]

@@ -1,0 +1,6 @@
+# Use the Deep Learning Container as a base Image
+FROM 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:training-gpu-py2-1.15.2
+
+# Add any script or repo as required
+RUN git clone https://github.com/aws-samples/deep-learning-models
+WORKDIR "/"
