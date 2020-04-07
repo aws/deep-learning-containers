@@ -1,0 +1,70 @@
+#!/bin/bash
+
+FRAMEWORK=$1
+USERNAME=$2
+PASSWORD=$3
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+
+SMDEBUG_RELEASE_TAG=$(python -c "import smdebug; print(smdebug.__version__)")
+
+if [[ ${FRAMEWORK} == "tensorflow" ]]; then
+    TENSORFLOW_VERSION=$(python -c "import tensorflow;print(tensorflow.__version__)")
+    if [ "$(printf '%s\n' "2.0.0" "$TENSORFLOW_VERSION" | sort -V | head -n1)" = "2.0.0" ]; then
+        FRAMEWORK="tensorflow2"
+    fi
+fi
+
+
+echo "Simply verify if smdebug is installed correctly."
+
+set +x
+echo "Cloning git repo."
+git clone -b ${SMDEBUG_RELEASE_TAG} https://github.com/awslabs/sagemaker-debugger.git sagemaker-debugger
+set -x
+
+echo "Changing to sagemaker-debugger."
+cd sagemaker-debugger
+
+echo "Creating mock test folder."
+mkdir -p mock
+cp -r tests mock/
+
+echo "Installing pre-requisites."
+pip install pytest
+pip install tensorflow-datasets
+
+echo "Running framework tests."
+pytest mock/tests/${FRAMEWORK} --ignore=mock/tests/mxnet/test_training_end.py  2>&1
+
+if [ "$?" -eq "0" ]
+then
+    echo "SMDebug framework tests succeeded."
+else
+    echo "SMDebug framework tests Failed."
+    exit 1
+fi
+
+# Skipping mxnet as mxnet does not have ZCC tests
+if [ "$FRAMEWORK" != "mxnet" ]
+then
+
+    echo "Setting up SMDebug environment."
+    echo "{\"LocalPath\": \"newlogsRunTest1/test_hook_from_json_config\"}" > /tmp/test_hook_from_json_config.json
+    export SMDEBUG_CONFIG_FILE_PATH=/tmp/test_hook_from_json_config.json
+
+    echo "Running ZCC tests."
+    timeout 2700s python mock/tests/zero_code_change/${FRAMEWORK}_integration_tests.py 2>&1
+
+    if [ "$?" -eq "0" ]
+    then
+        echo "SMDebug framework tests succeeded."
+    else
+        echo "SMDebug framework tests Failed."
+        exit 1
+    fi
+fi
+
+exit 0

@@ -5,11 +5,9 @@ import pytest
 from test.test_utils import CONTAINER_TESTS_PREFIX
 
 
-SMDEBUG_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
-
-
 @pytest.mark.parametrize("ec2_instance_type", ["p3.8xlarge"], indirect=True)
 def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
+    test_script = get_correct_testscript(training)
     framework = get_framework_from_image_uri(training)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(
@@ -17,13 +15,14 @@ def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
     )
 
     ec2_connection.run(
-        f"""nvidia-docker run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {training} {os.path.join(os.sep, 'bin', 'bash')} -c "{SMDEBUG_SCRIPT} '{framework}'" """,
+        f"""nvidia-docker run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {training} {os.path.join(os.sep, 'bin', 'bash')} -c "{test_script} '{framework}'" """,
         hide=True,
     )
 
 
 @pytest.mark.parametrize("ec2_instance_type", ["c5.9xlarge"], indirect=True)
 def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
+    test_script = get_correct_testscript(training)
     framework = get_framework_from_image_uri(training)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(
@@ -31,9 +30,17 @@ def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
     )
 
     ec2_connection.run(
-        f"""docker run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {training} {os.path.join(os.sep, 'bin', 'bash')} -c "{SMDEBUG_SCRIPT} '{framework}'" """,
+        f"""docker run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {training} {os.path.join(os.sep, 'bin', 'bash')} -c "{test_script} '{framework}'" """,
         hide=True,
     )
+
+
+def get_correct_testscript(image_uri):
+    if "tensorflow" in image_uri:
+        if "-1." in image_uri:
+            return os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebugTF1")
+        return os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebugTF2")
+    return os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
 
 
 def get_framework_from_image_uri(image_uri):
