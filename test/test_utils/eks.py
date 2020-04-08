@@ -379,3 +379,77 @@ def eks_multinode_cleanup(pod_name, job_name, namespace):
 
     run("ks delete default", warn_only=True)
     run("kubectl delete namespace {}".format(namespace), warn_only=True)
+
+
+def generate_mxnet_multinode_yaml_file(container_image, job_name, num_workers, num_servers, gpu_limit, command, args, remote_yaml_file_path):
+    """Function that writes the yaml file for a given container_image and commands to create a pod.
+    Args:
+        container_img, job_name, num_workers, num_servers, gpu_limit, command, args: list, remote_yaml_file_path: str
+    """
+
+    yaml_data = {
+        "apiVersion": "kubeflow.org/v1alpha1",
+        "kind": "MXJob",
+        "metadata": {
+            "name": job_name
+        },
+        "spec": {
+            "jobMode": "dist",
+            "replicaSpecs": [
+                {
+                    "replicas": 1,
+                    "mxReplicaType": "SCHEDULER",
+                    "PsRootPort": 9000,
+                    "template": {
+                        "spec": {
+                            "containers":[
+                                {
+                                    "name": "mxnet",
+                                    "image": container_image
+                                }],
+                            "restartPolicy": "OnFailure",
+                        }
+                    }
+                },
+
+                {
+                    "replicas": num_servers,
+                    "mxReplicaType": "SERVER",
+                    "template": {
+                        "spec": {
+                            "containers":[
+                                {
+                                    "name": "mxnet",
+                                    "image": container_image
+                                }],
+                        }
+                    }
+                },
+
+                {
+                    "replicas": num_workers,
+                    "mxReplicaType": "WORKER",
+                    "template": {
+                        "spec": {
+                            "containers":[
+                                {
+                                   "name": "mxnet",
+                                   "image": container_image,
+                                   "command": command,
+                                   "args": args,
+                                   "resources": {
+                                       "limits": {
+                                           "nvidia.com/gpu": gpu_limit
+                                        }
+                                   }
+                                }],
+                          "restartPolicy": "OnFailure",
+                        }
+                    }
+                }
+            ]
+        }
+    }
+    put(StringIO(unicode(yaml.dump(yaml_data, default_flow_style=False))), remote_yaml_file_path)
+
+    LOGGER.info("Uploaded generated yaml file to %s", remote_yaml_file_path)
