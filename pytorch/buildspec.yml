@@ -126,6 +126,7 @@
       <<: *TRAINING_REPOSITORY
       build: &PYTORCH_GPU_TRAINING_PY2 false
       image_size_baseline: 9028
+      base_image_name: BuildGPUPTTrainPy2DockerImage
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py2
       tag: !join [ *TRAINING_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION, "-", *VERSION, "-example" ]
@@ -136,6 +137,7 @@
       <<: *TRAINING_REPOSITORY
       build: &PYTORCH_GPU_TRAINING_PY3 false
       image_size_baseline: 9228
+      base_image_name: BuildGPUPTTrainPy3DockerImage
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
       tag: !join [ *TRAINING_IMAGE_TYPE, "-" , *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION, "-", *VERSION, "-example" ]

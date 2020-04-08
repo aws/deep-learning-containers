@@ -1,5 +1,7 @@
 # Use the Deep Learning Container as a base Image
-FROM 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-pytorch-training:training-gpu-py3-1.4.0
+ARG BASE_IMAGE=""
+
+FROM $BASE_IMAGE
 
 RUN pip install tensorboardX==1.6.0
 

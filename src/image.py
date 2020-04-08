@@ -65,6 +65,10 @@ class DockerImage:
             self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
             return self.build_status
 
+        build_args = {}
+        if self.info.get("base_image_uri"):
+            build_args["BASE_IMAGE"] = self.info["base_image_uri"]
+
         with open(self.context.context_path, "rb") as context_file:
             response = []
 
@@ -75,6 +79,7 @@ class DockerImage:
                 rm=True,
                 decode=True,
                 tag=self.ecr_url,
+                buildargs=build_args
             ):
                 if line.get("error") is not None:
                     self.context.remove()
