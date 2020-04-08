@@ -17,10 +17,13 @@ import subprocess
 import sys
 import os.path
 
-sm_file = 'https://github.com/aws/sagemaker-pytorch-serving-container/blob/master/docker/build_artifacts/mms-entrypoint.py'
-
 if not os.path.exists("/opt/ml/input/config"):
-    subprocess.call(['python', sm_file, '&>/dev/null', '&'])
+    # TODO delete
+    print("cwd : ", os.getcwd())
+    files = [f for f in os.listdir('.') if os.path.isfile(f)]
+    for f in files:
+        print(f)
+    subprocess.call(['python', '/usr/local/bin/deep_learning_container.py', '&>/dev/null', '&'])
 
 if sys.argv[1] == 'serve':
     from sagemaker_pytorch_serving_container import serving
