@@ -95,9 +95,19 @@ def image_builder(buildspec):
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
     # to it is executed concurrently in a separate thread.
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        for image in IMAGES:
+        non_example_images = [image for image in IMAGES if "example" in image.name.lower()]
+        example_images = [image for image in IMAGES if "example" not in image.name.lower()]
+
+        for image in non_example_images:
             THREADS[image.name] = executor.submit(image.build)
 
+        # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
+        FORMATTER.progress(THREADS)
+
+        for image in example_images:
+            THREADS[image.name] = executor.submit(image.build)
+
+        # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
         FORMATTER.progress(THREADS)
 
         FORMATTER.title("Build Logs")

@@ -96,8 +96,10 @@ def run_sagemaker_tests(images):
     """
     Function to set up multiprocessing for SageMaker tests
 
-    :param images:
+    :param images: <list> List of all images to be used in SageMaker tests
     """
+    if not images:
+        return
     pool_number = len(images)
     with Pool(pool_number) as p:
         p.map(run_sagemaker_pytest_cmd, images)
@@ -126,7 +128,7 @@ def main():
 
         # Pull images for necessary tests
         if test_type == "sanity":
-            pull_dlc_images(non_example_image_list)
+            pull_dlc_images(all_image_list)
         if test_type == "eks":
             for framework in ["tensorflow", "mxnet", "pytorch"]:
                 if framework in dlc_images:
