@@ -101,6 +101,7 @@ class DockerImage:
             ) / (1024 * 1024)
             if self.summary["image_size"] > self.info["image_size_baseline"] * 1.20:
                 response.append("Image size baseline exceeded")
+                response.append(f"{self.summary['image_size']} > 1.2 * {self.info['image_size_baseline']}")
                 self.log = response
                 self.build_status = constants.FAIL
                 self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
