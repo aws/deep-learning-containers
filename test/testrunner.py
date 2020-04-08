@@ -115,6 +115,8 @@ def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
     dlc_images = os.getenv("DLC_IMAGES")
+    all_image_list = dlc_images.split(" ")
+    non_example_image_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
 
     if test_type in ("sanity", "ecs", "ec2", "eks"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
@@ -124,7 +126,7 @@ def main():
 
         # Pull images for necessary tests
         if test_type == "sanity":
-            pull_dlc_images(dlc_images.split(" "))
+            pull_dlc_images(non_example_image_list)
         if test_type == "eks":
             for framework in ["tensorflow", "mxnet", "pytorch"]:
                 if framework in dlc_images:
@@ -134,7 +136,7 @@ def main():
         pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]
         sys.exit(pytest.main(pytest_cmd))
     elif test_type == "sagemaker":
-        run_sagemaker_tests(dlc_images.split(" "))
+        run_sagemaker_tests(non_example_image_list)
     else:
         raise NotImplementedError("Tests only support sagemaker and sanity currently")
 
