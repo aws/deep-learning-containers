@@ -40,8 +40,6 @@ class OutputFormatter:
         self.left_padding = "=" + self.padding
         self.right_padding = self.padding + "="
 
-        self.pre_existing_progress = []
-
         logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
     def log(self, level, message):
@@ -95,7 +93,7 @@ class OutputFormatter:
             output_type="list", initial_len=len(futures.items()), interval=0
         ) as output:
             num_iterations = 0
-            self.print_lines(self.pre_existing_progress + output)
+            self.print_lines(output)
             while True:
                 i = 0
                 num_iterations += 1
@@ -114,9 +112,8 @@ class OutputFormatter:
                 if all(done.values()):
                     break
                 time.sleep(1)
-            self.pre_existing_progress += output
 
-        self.print_lines(self.pre_existing_progress)
+        self.print_lines(output)
 
     def table(self, rows):
         """
