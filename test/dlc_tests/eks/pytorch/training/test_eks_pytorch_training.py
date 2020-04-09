@@ -125,13 +125,10 @@ def test_eks_pytorch_multinode_node_training(pytorch_training, example):
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
 
     rand_int = random.randint(4001, 6000)
-    image_tag = pytorch_training.split('/')[-1]
-    image_tag = image_tag.split(':')[-1].replace('.', '-')
-    pytorch_image_tag = f"pytorch-{image_tag}"
 
-    namespace = f"{pytorch_image_tag}-multi-node-training-{rand_int}"
-    app_name = f"eks-{pytorch_image_tag}-mnist-app-{rand_int}"
-    job_name = f"kubeflow-{pytorch_image_tag}-gpu-dist-job-{rand_int}"
+    namespace = f"pytorch-multi-node-training-{rand_int}"
+    app_name = f"eks-pytorch-mnist-app-{rand_int}"
+    job_name = f"kubeflow-pytorch-gpu-dist-job-{rand_int}"
     num_masters = "1"
     num_workers = "3"
     gpu_limit = "1"
@@ -144,7 +141,7 @@ def test_eks_pytorch_multinode_node_training(pytorch_training, example):
         "training",
         "multi_node_gpu_training.yaml"
     )
-    remote_yaml_path = os.path.join(os.sep, "tmp", f"{pytorch_image_tag}_multinode_node_training_{rand_int}.yaml")
+    remote_yaml_path = os.path.join(os.sep, "tmp", f"pytorch_multinode_node_training_{rand_int}.yaml")
     replace_dict = {
         "<JOB_NAME>": job_name,
         "<NUM_MASTERS>": num_masters,
@@ -166,9 +163,6 @@ def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_ya
     """
 
     KUBEFLOW_VERSION = "v0.6.1"
-
-    training_result = False
-
     context = Context()
 
     eks_utils.eks_multinode_cleanup("", job_name, namespace)
@@ -210,7 +204,6 @@ def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_ya
                 # If different versions of kubeflow used in the cluster, crd must be deleted.
                 context.run("kubectl delete crd pytorchjobs.kubeflow.org")
                 eks_utils.eks_multinode_cleanup("", job_name, namespace)
-        print(training_result)
 
 
 def retry_if_value_error(exception):
@@ -227,6 +220,7 @@ def is_pytorch_eks_multinode_training_complete(job_name):
     """
     run_out = run(f"kubectl get pytorchjobs {job_name} -o json")
     job_info = json.loads(run_out.stdout)
+    LOGGER.info(f"job_info: {job_info}")
 
     if 'status' not in job_info:
         raise ValueError("Waiting for job to launch...")
