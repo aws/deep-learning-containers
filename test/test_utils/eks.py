@@ -7,6 +7,10 @@ import sys
 import json
 import logging
 
+from io import StringIO
+
+import yaml
+
 from retrying import retry
 from invoke import run
 from invoke.context import Context
@@ -450,6 +454,6 @@ def generate_mxnet_multinode_yaml_file(container_image, job_name, num_workers, n
             ]
         }
     }
-    put(StringIO(unicode(yaml.dump(yaml_data, default_flow_style=False))), remote_yaml_file_path)
+    Context.put(StringIO(yaml.dump(yaml_data, default_flow_style=False)), remote_yaml_file_path)
 
     LOGGER.info("Uploaded generated yaml file to %s", remote_yaml_file_path)
