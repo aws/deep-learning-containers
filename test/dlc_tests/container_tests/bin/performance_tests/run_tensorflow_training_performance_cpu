@@ -1,0 +1,33 @@
+#!/bin/bash
+
+PYTHON_VERSION=$(python -c 'import sys; print(sys.version_info[0])')
+HOME_DIR=/test/benchmark
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs/cpu
+
+mkdir -p ${HOME_DIR}
+mkdir -p ${BIN_DIR}
+mkdir -p ${LOG_DIR}
+
+# configure MKL_INFERENCE_VARS
+export TENSORFLOW_INTER_OP_PARALLELISM=2
+export TENSORFLOW_INTRA_OP_PARALLELISM=72
+export KMP_AFFINITY='granularity=fine,verbose,compact,1,0'
+export OMP_NUM_THREADS=36
+export TENSORFLOW_SESSION_PARALLELISM=9
+export KMP_BLOCKTIME=1
+export KMP_SETTINGS=0
+
+git clone https://github.com/tensorflow/benchmarks.git ${HOME_DIR}/artifacts/tensorflow/benchmarks && cd ${HOME_DIR}/artifacts/tensorflow/benchmarks && git checkout cnn_tf_v1.13_compatible
+python scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --batch_size=256 --model=resnet50_v1.5 --train_dir=$HOME/test00 --device=cpu --data_format=NHWC --num_inter_threads=0 --num_intra_threads=36 --mkl=True --kmp_blocktime=0 > ${LOG_DIR}/synthetic_results.txt
+
+#if [ $? -eq 0 ]
+#then
+#  aws s3 cp ${LOG_DIR}/synthetic_results.txt s3://tensorflow-dlc-performance/ec2/training/cpu/py"${PYTHON_VERSION}"/
+#else
+#  aws s3 cp ${LOG_DIR}/synthetic_results.txt s3://tensorflow-dlc-performance/ec2/training/cpu/py"${PYTHON_VERSION}"/failure_log/
+#  printf '%s\n' "something went wrong! Exception" >&2
+#  exit 1
+#fi
+
+rm -rf ${HOME_DIR}/artifacts/tensorflow/benchmarks
