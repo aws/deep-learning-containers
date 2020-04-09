@@ -159,8 +159,7 @@ def test_eks_pytorch_multinode_node_training(pytorch_training):
     run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_yaml_path)
 
 
-
-def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path):
+def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path, example):
     """Run PyTorch distributed training on EKS using PyTorch Operator
     Args:
     namespace, app_name, job_name, remote_yaml_file_path
