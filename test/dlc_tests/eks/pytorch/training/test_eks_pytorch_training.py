@@ -115,7 +115,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
         run("kubectl delete pods {}".format(pod_name))
 
 
-def test_eks_pytorch_multinode_node_training(pytorch_training):
+def test_eks_pytorch_multinode_node_training(pytorch_training, example):
     """
        Function to create mutliple pods using kubectl and given container image, and run Pytorch training
        Args:
@@ -159,7 +159,7 @@ def test_eks_pytorch_multinode_node_training(pytorch_training):
     run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_yaml_path)
 
 
-def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path, example):
+def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path):
     """Run PyTorch distributed training on EKS using PyTorch Operator
     Args:
     namespace, app_name, job_name, remote_yaml_file_path
