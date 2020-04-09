@@ -178,6 +178,11 @@ def py3_only():
     pass
 
 
+@pytest.fixture(scope="session")
+def example():
+    pass
+
+
 def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, values_to_generate_for_fixture):
     """
     Take a dictionary (values_to_generate_for_fixture), that maps a fixture name used in a test function to another
@@ -214,12 +219,14 @@ def pytest_generate_tests(metafunc):
             images_to_parametrize = []
             for image in images:
                 if lookup in image:
-                    if "cpu_only" in metafunc.fixturenames and "cpu" in image:
-                        images_to_parametrize.append(image)
-                    elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
-                        images_to_parametrize.append(image)
-                    elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames:
-                        images_to_parametrize.append(image)
+                    if ("example" not in metafunc.fixturenames and "example" not in image) or \
+                            ("example" in metafunc.fixturenames and "example" in image):
+                        if "cpu_only" in metafunc.fixturenames and "cpu" in image:
+                            images_to_parametrize.append(image)
+                        elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
+                            images_to_parametrize.append(image)
+                        elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames:
+                            images_to_parametrize.append(image)
 
             # Remove all images tagged as "py2" if py3_only is a fixture
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
