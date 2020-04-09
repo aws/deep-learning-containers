@@ -219,8 +219,9 @@ def pytest_generate_tests(metafunc):
             images_to_parametrize = []
             for image in images:
                 if lookup in image:
-                    if ("example" not in metafunc.fixturenames and "example" not in image) or \
-                            ("example" in metafunc.fixturenames and "example" in image):
+                    is_example_lookup = "example" in metafunc.fixturenames and "example" in image
+                    is_standard_lookup = "example" not in metafunc.fixturenames and "example" not in image
+                    if is_example_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
