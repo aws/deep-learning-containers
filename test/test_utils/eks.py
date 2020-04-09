@@ -254,10 +254,7 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     Args:
         eks_cluster_name, region: str
     """
-    eksctl_write_kubeconfig_command = """eksctl utils write-kubeconfig \
-                                         --name {} --region {}""".format(
-        eks_cluster_name, region
-    )
+    eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --name {eks_cluster_name} --region {region}"
     run(eksctl_write_kubeconfig_command)
 
     # run(f"aws eks --region us-west-2 update-kubeconfig --name {eks_cluster_name} --kubeconfig /root/.kube/config --role-arn arn:aws:iam::669063966089:role/nikhilsk-eks-test-role")
@@ -279,7 +276,7 @@ def create_eks_cluster_nodegroup(
     :return: None
     """
     eksctl_create_nodegroup_command = (
-        "eksctl create nodegroup "
+        f"eksctl create nodegroup "
         f"--cluster {eks_cluster_name} "
         f"--node-ami {EKS_AMI_ID.get(processor_type)} "
         f"--nodes {num_nodes} "
@@ -300,17 +297,85 @@ def create_eks_cluster_nodegroup(
                 f"ssh_public_key: {ssh_public_key_name}")
 
 
-def get_eks_worker_public_ip(region):
-    """Function to get the public ip of a eks worker node
-    Returns:
-        Public ip address of any one worker node in the current EKS cluster.
+def eks_multinode_cleanup(ctx, pod_name, job_name, namespace):
+    """
+    Function to cleanup resources created by EKS
+    Use namespace as default if you do not create one.
+    :param ctx:
+    :param pod_name:
+    :param job_name:
+    :param namespace:
+    :return:
+    """
+    # Operator specific cleanup
+    if job_name == "openmpi-job":
+        component, _ = pod_name.split("-master")
+        ctx.run(f"ks component rm {component}", warn=True)
+    else:
+        ctx.run(f"ks delete default -c {job_name}", warn=True)
+
+    ctx.run("ks delete default", warn=True)
+    ctx.run(f"kubectl delete namespace {namespace}", warn=True)
+
+
+def eks_multinode_get_logs(ctx, namespace, pod_name):
+    """
+    Function to get logs for a pod in the specified namespace.
+    :param ctx:
+    :param namespace:
+    :param pod_name:
+    :return:
+    """
+    return ctx.run(f"kubectl logs -n {namespace} -f {pod_name}").stdout
+
+
+@retry(stop_max_attempt_number=30, wait_fixed=5000, retry_on_exception=retry_if_value_error)
+def is_mpijob_launcher_pod_ready(ctx, job_name):
+    """Check if the MpiJob Launcher Pod is Ready
+    Args:
+        ctx: Context
+        job_name: str
     """
 
-    # Assumption: All eks worker nodes are the same instance type; get private dns of any one.
-    private_dns = run("kubectl get nodes | head -n 2 | tail -n 1 | cut -d' ' -f1")
+    pod_name = ctx.run(f"kubectl get pods -l mpi_job_name={job_name},mpi_role_type=launcher -o name").stdout
+    if pod_name:
+        return pod_name
+    else:
+        raise ValueError("Launcher pod is not ready yet, try again.")
 
-    # Use the private dns to filter the instances; get the associated public ip required for login.
-    public_ip = ec2_utils.get_public_ip_from_private_dns(private_dns, region)
-    LOGGER.info(f"The public IP of the worker node is {public_ip}")
 
-    return public_ip
+@retry(stop_max_attempt_number=40, wait_fixed=60000, retry_on_exception=retry_if_value_error)
+def is_eks_multinode_training_complete(ctx, namespace, pod_name, job_name):
+    """Function to check if the pod status has reached 'Completion' for multinode training.
+    A separate method is required because kubectl commands for logs and status are different with namespaces.
+    Args:
+        namespace, pod_name, job_name: str
+    """
+
+    run_out = ctx.run(f"kubectl get pod -n {namespace} {pod_name} -o json")
+    pod_info = json.loads(run_out.stdout)
+
+    if 'containerStatuses' in pod_info['status']:
+        container_status = pod_info['status']['containerStatuses'][0]
+        LOGGER.info(f"Container Status: {container_status}")
+        if container_status['name'] == job_name:
+            if "terminated" in container_status['state']:
+                if container_status['state']['terminated']['reason'] == "Completed":
+                    LOGGER.info("SUCCESS: The container terminated.")
+                    return True
+                elif container_status['state']['terminated']['reason'] == "Error":
+                    LOGGER.error(f"ERROR: The container run threw an error and terminated. "
+                                 f"kubectl logs: {eks_multinode_get_logs(ctx, namespace, pod_name)}")
+                    eks_multinode_cleanup(ctx, pod_name, job_name, namespace)
+                    raise AttributeError("Container Error!")
+            elif 'waiting' in container_status['state'] and \
+                    container_status['state']['waiting']['reason'] == "CrashLoopBackOff":
+                LOGGER.error(f"ERROR: The container run threw an error in waiting state. "
+                             f"kubectl logs: {eks_multinode_get_logs(ctx, namespace, pod_name)}")
+                eks_multinode_cleanup(ctx, pod_name, job_name, namespace)
+                raise AttributeError("Error: CrashLoopBackOff!")
+            elif 'waiting' in container_status['state'] or 'running' in container_status['state']:
+                LOGGER.info("IN-PROGRESS: Container is either Creating or Running. Waiting to complete...")
+                raise ValueError("IN-PROGRESS: Retry.")
+
+    return False
