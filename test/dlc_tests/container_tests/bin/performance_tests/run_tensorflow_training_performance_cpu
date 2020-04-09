@@ -21,13 +21,13 @@ export KMP_SETTINGS=0
 git clone https://github.com/tensorflow/benchmarks.git ${HOME_DIR}/artifacts/tensorflow/benchmarks && cd ${HOME_DIR}/artifacts/tensorflow/benchmarks && git checkout cnn_tf_v1.13_compatible
 python scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --batch_size=256 --model=resnet50_v1.5 --train_dir=$HOME/test00 --device=cpu --data_format=NHWC --num_inter_threads=0 --num_intra_threads=36 --mkl=True --kmp_blocktime=0 > ${LOG_DIR}/synthetic_results.txt
 
-#if [ $? -eq 0 ]
-#then
-#  aws s3 cp ${LOG_DIR}/synthetic_results.txt s3://tensorflow-dlc-performance/ec2/training/cpu/py"${PYTHON_VERSION}"/
-#else
-#  aws s3 cp ${LOG_DIR}/synthetic_results.txt s3://tensorflow-dlc-performance/ec2/training/cpu/py"${PYTHON_VERSION}"/failure_log/
-#  printf '%s\n' "something went wrong! Exception" >&2
-#  exit 1
-#fi
+if [ $? -eq 0 ]
+then
+  aws s3 cp ${LOG_DIR}/synthetic_results.txt s3://tensorflow-dlc-cicd-performance/ec2/training/cpu/py"${PYTHON_VERSION}"/
+else
+  aws s3 cp ${LOG_DIR}/synthetic_results.txt s3://tensorflow-dlc-cicd-performance/ec2/training/cpu/py"${PYTHON_VERSION}"/failure_log/
+  printf '%s\n' "something went wrong! Exception" >&2
+  exit 1
+fi
 
 rm -rf ${HOME_DIR}/artifacts/tensorflow/benchmarks
