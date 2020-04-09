@@ -125,7 +125,7 @@ RUN pip install \
     --no-cache-dir fastai==1.0.59 \
     awscli \
     scipy==1.2.2 \
- && pip install --no-cache-dir -U $PYTORCH_VERSION \
+ && USE_CUDA=1 pip install --no-cache-dir -U $PYTORCH_VERSION \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U $TORCHVISION_VERSION
 
