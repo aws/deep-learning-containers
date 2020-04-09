@@ -125,13 +125,13 @@ RUN pip install \
     --no-cache-dir fastai==1.0.59 \
     awscli \
     scipy==1.2.2 \
- && USE_CUDA=1 pip install --no-cache-dir -U $PYTORCH_VERSION \
+ && pip install --no-cache-dir -U $PYTORCH_VERSION \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U $TORCHVISION_VERSION
 
 # Install Horovod
 RUN ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-10.1 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
 # Configure Open MPI and configure NCCL parameters
