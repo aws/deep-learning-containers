@@ -125,7 +125,7 @@
     BuildPyTorchExampleGPUTrainPy2DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &PYTORCH_GPU_TRAINING_PY2 false
-      image_size_baseline: 9028
+      image_size_baseline: 9200
       base_image_name: BuildGPUPTTrainPy2DockerImage
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py2
@@ -136,7 +136,7 @@
     BuildPyTorchExampleGPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &PYTORCH_GPU_TRAINING_PY3 false
-      image_size_baseline: 9228
+      image_size_baseline: 8500
       base_image_name: BuildGPUPTTrainPy3DockerImage
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
