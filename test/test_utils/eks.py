@@ -319,38 +319,3 @@ def is_service_running(selector_name, namespace="default"):
     else:
         raise ValueError("Service not running yet, try again")
 
-# def run_inference_service_on_eks(ecr_uri, framework, processor, selector_name, inference_search_replace_dict, apply_credentials=False):
-#     """Run inference against the model specified
-#     Args:
-#         framework, processor, namespace, selector_name: str
-#         eks_gpus_per_worker: num
-#         inference_search_replace_dict: dict
-#         apply_credentials: boolean
-#     """
-#
-#     # run("kubectl delete namespace {}".format(namespace), warn_only=True)
-#     # run("kubectl create namespace {}".format(namespace))
-#
-#     local_inference_template_file_path = get_single_node_inference_template_path(framework, processor)
-#     yaml_path = os.path.join(os.sep, "tmp", f"{framework}_single_node_{processor}_training_{rand_int}.yaml")
-#
-#     inference_search_replace_dict["<SELECTOR_NAME>"] = selector_name
-#     inference_search_replace_dict["<DOCKER_IMAGE_BUILD_ID>"] = ecr_uri
-#
-#     if processor == "gpu":
-#         inference_search_replace_dict["<NUM_GPUS>"] = "1"
-#
-#     # if apply_credentials:
-#     #     apply_aws_credentials_on_eks_pods(namespace)
-#
-#     write_eks_yaml_file_from_template(local_inference_template_file_path, yaml_path, inference_search_replace_dict)
-#
-#     # Apply the inference job
-#     run("kubectl apply -f {}".format(yaml_path))
-#
-#     try:
-#         is_service_running(selector_name)
-#     except ValueError as excp:
-#         LOGGER.error("Service is not running: %s", excp)
-#
-#     LOGGER.info("EKS service is up and running. Ready for inference.")
