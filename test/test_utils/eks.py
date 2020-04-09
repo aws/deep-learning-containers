@@ -10,8 +10,7 @@ import logging
 from retrying import retry
 from invoke import run
 
-from test.test_utils import DEFAULT_REGION
-import test.test_utils.ec2 as ec2_utils
+DEFAULT_REGION = "us-west-2"
 
 # Path till directory test/
 ROOT_DIR = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
