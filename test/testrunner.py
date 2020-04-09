@@ -56,7 +56,7 @@ def generate_sagemaker_pytest_cmd(image):
 
             # NOTE: We are relying on tag structure to get TF major version. If tagging changes, this will break.
             tf_major_version = tag.split("-")[-1].split(".")[0]
-            path = os.path.join("sagemaker_tests", framework, f"{framework}{tf_major_version}_training")
+            path = os.path.join(os.path.dirname(path), f"{framework}{tf_major_version}_training")
         else:
             aws_id_arg = "--registry"
             docker_base_arg = "--repo"
@@ -81,7 +81,7 @@ def run_sagemaker_pytest_cmd(image):
 
     :param image: ECR url
     """
-    if "2.1.0" in image or "tensorflow-inference" in image:
+    if "tensorflow-inference" in image:
         LOGGER.info(f"Treating test for {image} as successful.")
         return
     pytest_command, path, tag = generate_sagemaker_pytest_cmd(image)
