@@ -116,6 +116,7 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
         image_type = dockerfile[1]
         py_version = dockerfile[4]
         device_type = dockerfile[-1].split(".")[-1]
+        LOGGER.info(f"Building dockerfile: {dockerfile}")
         # Use class static variables to avoid passing, returning the varibles from all functions
         JobParameters.device_types.append(device_type)
         JobParameters.image_types.append(image_type)
