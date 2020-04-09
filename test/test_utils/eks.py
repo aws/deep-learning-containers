@@ -260,3 +260,21 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     # run(f"aws eks --region us-west-2 update-kubeconfig --name {eks_cluster_name} --kubeconfig /root/.kube/config --role-arn arn:aws:iam::669063966089:role/nikhilsk-eks-test-role")
 
     run("cat /root/.kube/config", warn=True)
+
+
+def eks_multinode_cleanup(pod_name, job_name, namespace):
+    """Function to cleanup resources created by EKS
+    Use namespace as default if you do not create one.
+    Args:
+        pod_name, job_name, namespace: str
+    """
+
+    # Operator specific cleanup
+    if job_name == "openmpi-job":
+        component, _ = pod_name.split("-master")
+        run("ks component rm {}".format(component), warn=True)
+    else:
+        run("ks delete default -c {}".format(job_name), warn=True)
+
+    run("ks delete default", warn=True)
+    run("kubectl delete namespace {}".format(namespace), warn=True)

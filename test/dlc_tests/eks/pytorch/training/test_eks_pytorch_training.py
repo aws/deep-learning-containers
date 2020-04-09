@@ -1,9 +1,14 @@
+import json
 import os
 import random
 
-import test.test_utils.eks as eks_utils
-
 from invoke import run
+from invoke.context import Context
+from retrying import retry
+
+import test.test_utils.eks as eks_utils
+from src.github import GitHubHandler
+from test.dlc_tests.conftest import LOGGER
 
 
 def test_eks_pytorch_single_node_training(pytorch_training):
@@ -108,3 +113,165 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
         assert training_result, f"Training failed"
     finally:
         run("kubectl delete pods {}".format(pod_name))
+
+
+def test_eks_pytorch_multinode_node_training(pytorch_training):
+    """
+       Function to create mutliple pods using kubectl and given container image, and run Pytorch training
+       Args:
+           :param setup_utils: environment in which EKS tools are setup
+           :param pytorch_training: the ECR URI
+       """
+    # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
+
+    rand_int = random.randint(4001, 6000)
+    image_tag = pytorch_training.split('/')[-1]
+    image_tag = image_tag.split(':')[-1].replace('.', '-')
+    pytorch_image_tag = f"pytorch-{image_tag}"
+
+    namespace = f"{pytorch_image_tag}-multi-node-training-{rand_int}"
+    app_name = f"eks-{pytorch_image_tag}-mnist-app-{rand_int}"
+    job_name = f"kubeflow-{pytorch_image_tag}-gpu-dist-job-{rand_int}"
+    num_masters = "1"
+    num_workers = "3"
+    gpu_limit = "1"
+    backend = "gloo"
+    epochs = '"10"'
+    local_template_file_path = os.path.join(
+        "eks",
+        "eks_manifest_templates",
+        "pytorch",
+        "training",
+        "multi_node_gpu_training.yaml"
+    )
+    remote_yaml_path = os.path.join(os.sep, "tmp", f"{pytorch_image_tag}_multinode_node_training_{rand_int}.yaml")
+    replace_dict = {
+        "<JOB_NAME>": job_name,
+        "<NUM_MASTERS>": num_masters,
+        "<NUM_WORKERS>": num_workers,
+        "<CONTAINER_IMAGE>": pytorch_training,
+        "<BACKEND>": backend,
+        "<EPOCHS>": epochs,
+        "<GPU_LIMIT>": gpu_limit
+    }
+
+    eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_path, replace_dict)
+    run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_yaml_path)
+
+
+
+def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path):
+    """Run PyTorch distributed training on EKS using PyTorch Operator
+    Args:
+    namespace, app_name, job_name, remote_yaml_file_path
+    """
+
+    KUBEFLOW_VERSION = "v0.6.1"
+
+    training_result = False
+
+    context = Context()
+
+    eks_utils.eks_multinode_cleanup("", job_name, namespace)
+
+    # Namespaces will allow parallel runs on the same cluster. Create namespace if it doesnt exist.
+    does_namespace_exist = run(f"kubectl get namespace | grep {namespace}",
+                               warn=True)
+    if not does_namespace_exist:
+        run(f"kubectl create namespace {namespace}")
+
+    # Create a new ksonnet app.
+    run(f"rm -rf {app_name}")
+    github_handler = GitHubHandler("aws", "kubeflow")
+    github_token = github_handler.get_auth_token()
+    os.environ['GITHUB_TOKEN'] = github_token
+    run(f"ks init {app_name}")
+
+    with context.cd(app_name):
+        context.run(f"ks env set default --namespace {namespace}")
+
+        # Check if the kubeflow registry exists and create. Registry will be available in each pod.
+        does_registry_exist = run("ks registry list | grep kubeflow", warn=True)
+        if not does_registry_exist:
+            context.run(f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{KUBEFLOW_VERSION}/kubeflow")
+            context.run(f"ks pkg install kubeflow/pytorch-job@{KUBEFLOW_VERSION}")
+            context.run("ks generate pytorch-operator pytorch-operator")
+            try:
+                # use `$ks show default` to see details.
+                context.run("ks apply default -c pytorch-operator")
+                # Delete old job with same name if exists
+                context.run(f"kubectl delete -f {remote_yaml_file_path}", warn=True)
+                context.run(f"kubectl create -f {remote_yaml_file_path}")
+                if is_pytorch_eks_multinode_training_complete(job_name):
+                    training_result = True
+            except Exception as e:
+                raise Exception(f"something went wrong! Exception - {e}")
+            finally:
+                context.run(f"kubectl delete -f {remote_yaml_file_path}", warn=True)
+                # If different versions of kubeflow used in the cluster, crd must be deleted.
+                context.run("kubectl delete crd pytorchjobs.kubeflow.org")
+                eks_utils.eks_multinode_cleanup("", job_name, namespace)
+        print(training_result)
+    return training_result
+
+
+def retry_if_value_error(exception):
+    """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
+    return isinstance(exception, ValueError)
+
+
+@retry(stop_max_attempt_number=40, wait_fixed=60000, retry_on_exception=retry_if_value_error)
+def is_pytorch_eks_multinode_training_complete(job_name):
+    """Function to check job and pod status for multinode training.
+    A separate method is required because kubectl commands for logs and status are different with namespaces.
+    Args:
+        job_name: str
+    """
+    run_out = run(f"kubectl get pytorchjobs {job_name} -o json")
+    job_info = json.loads(run_out.stdout)
+
+    if 'status' not in job_info:
+        raise ValueError("Waiting for job to launch...")
+    job_status = job_info['status']
+    if 'conditions' not in job_status:
+        raise ValueError("Waiting for job to launch...")
+    job_conditions = job_status['conditions']
+    if len(job_conditions) == 0:
+        raise ValueError("Waiting for job to launch...")
+    else:
+        # job_conditions at least with length 1
+        if 'status' in job_conditions[0]:
+            job_created = job_conditions[0]['status']
+            if 'message' in job_conditions[0] and len(job_conditions) == 1:
+                LOGGER.info(job_conditions[0]['message'])
+            if not job_created:
+                raise ValueError("Waiting for job to be created...")
+            if len(job_conditions) == 1:
+                raise ValueError("Waiting for job to run...")
+            # job_conditions at least with length 2
+            if 'status' in job_conditions[1]:
+                job_running = job_conditions[1]['status']
+                if 'message' in job_conditions[1] and len(job_conditions) == 2:
+                    LOGGER.info(job_conditions[1]['message'])
+                if not job_running:
+                    raise ValueError("Waiting for job to run...")
+                if len(job_conditions) == 2:
+                    raise ValueError("Waiting for job to complete...")
+                # job_conditions at least with length 3
+                if 'status' in job_conditions[2]:
+                    job_succeed = job_conditions[2]['status']
+                    if 'message' in job_conditions[2]:
+                        LOGGER.info(job_conditions[2]['message'])
+                    if not job_succeed:
+                        if job_running:
+                            raise ValueError("Waiting for job to complete...")
+                        else:
+                            return False
+                    run("kubectl logs kubeflow-pytorch-gpu-dist-job-master-0", warn=True)
+                    return True
+
+            else:
+                raise ValueError("Waiting for job to run...")
+        else:
+            raise ValueError("Waiting for job to launch...")
+    return False
