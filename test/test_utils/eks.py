@@ -235,7 +235,7 @@ def is_eks_cluster_active(eks_cluster_name):
         eks_cluster_name
     )
 
-    run_out = run(eksctl_check_cluster_command, warn_only=True)
+    run_out = run(eksctl_check_cluster_command, warn=True)
 
     if run_out.return_code == 0:
         cluster_info = json.loads(run_out.stdout)[0]

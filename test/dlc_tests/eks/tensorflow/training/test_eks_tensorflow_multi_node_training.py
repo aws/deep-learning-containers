@@ -73,7 +73,7 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
 
         with ctx.cd("{}".format(app_name)):
             # Check if the kubeflow registry exists and create. Registry will be available in each pod.
-            registry_not_exist = ctx.run("ks registry list | grep kubeflow", warn_only=True)
+            registry_not_exist = ctx.run("ks registry list | grep kubeflow", warn=True)
 
             if registry_not_exist.return_code:
                 github_token = github_handler.get_auth_token()
