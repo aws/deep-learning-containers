@@ -84,7 +84,7 @@ def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80", connec
     return True
 
 
-@retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+@retry(stop_max_attempt_number=30, wait_fixed=20000, retry_on_result=retry_if_result_is_false)
 def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connection=None):
     """
         Send request to container to test inference for predicting sentiments.
@@ -109,8 +109,8 @@ def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connecti
 
 
 @retry(
-    stop_max_attempt_number=10,
-    wait_fixed=10000,
+    stop_max_attempt_number=30,
+    wait_fixed=20000,
     retry_on_result=retry_if_result_is_false,
 )
 def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connection=None):
@@ -137,7 +137,7 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
     return True
 
 
-@retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+@retry(stop_max_attempt_number=30, wait_fixed=20000, retry_on_result=retry_if_result_is_false)
 def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command

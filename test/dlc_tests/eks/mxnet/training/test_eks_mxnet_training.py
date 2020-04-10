@@ -29,7 +29,7 @@ def test_eks_mxnet_single_node_training(mxnet_training):
     args = args + " --gpus 0" if processor_type == "gpu" else args
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
-    cpu_limit = 72
+    cpu_limit = 36
     cpu_limit = str(int(cpu_limit) / 2)
 
     search_replace_dict = {
