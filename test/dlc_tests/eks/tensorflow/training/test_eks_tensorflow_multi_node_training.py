@@ -29,7 +29,7 @@ def run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, clu
     :return: None
     """
     # Use the image tag as namespace to make it unique within the CodeBuild job
-    unique_tag = example_image_uri.split(':')[-1]
+    unique_tag = example_image_uri.split(':')[-1].replace(".", "-")
     # namespace = f"tensorflow-multi-node-training-{unique_tag}"
     namespace = "default"
     job_name = f"tf-resnet50-horovod-job-{unique_tag}"
