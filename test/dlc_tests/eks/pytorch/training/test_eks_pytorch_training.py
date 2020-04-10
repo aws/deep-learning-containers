@@ -184,7 +184,7 @@ def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_ya
         context.run(f"ks env set default --namespace {namespace}")
 
         # Check if the kubeflow registry exists and create. Registry will be available in each pod.
-        does_registry_exist = run("ks registry list | grep kubeflow", warn=True)
+        does_registry_exist = context.run("ks registry list | grep kubeflow", warn=True)
         if not does_registry_exist:
             context.run(f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{KUBEFLOW_VERSION}/kubeflow")
             context.run(f"ks pkg install kubeflow/pytorch-job@{KUBEFLOW_VERSION}")
@@ -196,7 +196,7 @@ def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_ya
                 context.run(f"kubectl delete -f {remote_yaml_file_path}", warn=True)
                 context.run(f"kubectl create -f {remote_yaml_file_path}")
                 if is_pytorch_eks_multinode_training_complete(job_name):
-                    training_result = True
+                    LOGGER.info(f"training is complete for jobs {job_name}")
             except Exception as e:
                 raise Exception(f"something went wrong! Exception - {e}")
             finally:
