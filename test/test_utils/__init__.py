@@ -49,7 +49,7 @@ def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80", connec
     conn_run = connection.run if connection is not None else run
 
     # Check if image already exists
-    run_out = conn_run("ls -l kitten.jpg", warn=True)
+    run_out = conn_run("[ -f kitten.jpg ]", warn=True)
     if run_out.return_code != 0:
         conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg", hide=True)
 
@@ -102,7 +102,7 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
     """
     conn_run = connection.run if connection is not None else run
     # Check if image already exists
-    run_out = conn_run("ls -l flower.jpg", warn=True)
+    run_out = conn_run("[ -f flower.jpg ]", warn=True)
     if run_out.return_code != 0:
         conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True)
 

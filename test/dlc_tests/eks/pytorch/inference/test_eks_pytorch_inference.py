@@ -14,7 +14,7 @@ def test_eks_pytorch_densenet_inference(pytorch_inference):
 
     processor = "gpu" if "gpu" in pytorch_inference else "cpu"
 
-    model = "pytorch-densenet=https://asimov-multi-model-server.s3.amazonaws.com/pytorch/densenet/densenet.mar"
+    model = "pytorch-densenet=https://dlc-samples.s3.amazonaws.com/pytorch/multi-model-server/densenet/densenet.mar"
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_{processor}_inference_{rand_int}.yaml")
     inference_service_name = selector_name = f"densenet-service-{processor}-{rand_int}"
 
