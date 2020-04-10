@@ -11,7 +11,7 @@ import test.test_utils.eks as eks_utils
 def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, py3_only, gpu_only, example):
     eks_cluster_size = 3
     ec2_instance_type = "p3.16xlarge"
-    cluster_name = eks_utils.PR_EKS_CLUSTER_NAME_TEMPLATE.format("tensorflow")
+    cluster_name = "saimidu-tf-multi-node-eks-test"
 
     assert eks_utils.is_eks_cluster_active(cluster_name), f"EKS Cluster {cluster_name} is inactive. Exiting test"
 
@@ -37,7 +37,8 @@ def run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, clu
                       "-x,LD_LIBRARY_PATH,-x,PATH,-x,NCCL_SOCKET_IFNAME=eth0,-x,NCCL_DEBUG=INFO,python,"
                       "/deep-learning-models/models/resnet/tensorflow/train_imagenet_resnet_hvd.py")
     args_to_pass = "-- --num_epochs=1,--synthetic"
-    path_to_ksonnet_app = f"~/tensorflow_multi_node_eks_test-{unique_tag}/"
+    home_dir = Context().run("echo $HOME").stdout.strip("\n")
+    path_to_ksonnet_app = os.path.join(home_dir, "saimidu_tf_multi_node_eks_test")
     app_name = f"kubeflow-tf-hvd-mpijob-{unique_tag}"
 
     run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, example_image_uri, job_name,
@@ -65,6 +66,8 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
     pod_name = None
     ctx = Context()
     github_handler = GitHubHandler("aws", "kubeflow")
+    github_token = github_handler.get_auth_token()
+    os.environ["GITHUB_TOKEN"] = github_token
 
     if not os.path.exists(path_to_ksonnet_app):
         ctx.run(f"mkdir -p {path_to_ksonnet_app}")
@@ -78,8 +81,6 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
             registry_not_exist = ctx.run("ks registry list | grep kubeflow", warn=True)
 
             if registry_not_exist.return_code:
-                github_token = github_handler.get_auth_token()
-                os.environ["GITHUB_TOKEN"] = github_token
                 ctx.run(f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{KUBEFLOW_VERSION}/kubeflow")
                 ctx.run(f"ks pkg install kubeflow/common@{KUBEFLOW_VERSION}")
                 ctx.run(f"ks pkg install kubeflow/mpi-job@{KUBEFLOW_VERSION}")
