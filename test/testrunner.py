@@ -135,7 +135,7 @@ def main():
                     eks_utils.eks_setup(framework)
 
         # Execute dlc_tests pytest command
-        pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]
+        pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto", "--full-trace"]
         sys.exit(pytest.main(pytest_cmd))
     # elif test_type == "sagemaker":
     #     run_sagemaker_tests(standard_images_list)

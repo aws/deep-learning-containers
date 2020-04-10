@@ -1,0 +1,28 @@
+#!/bin/bash
+
+PYTHON_VERSION=$(python -c 'import sys; print(sys.version_info[0])' | tr -d "'")
+TF_VERSION=$(python -c 'import tensorflow as tf; print(tf.__version__[0])'| tr -d "'")
+if [ "$TF_VERSION" -eq 2 ]
+then
+  exit 0
+fi
+HOME_DIR=/test/benchmark
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs/gpu
+
+mkdir -p ${HOME_DIR}
+mkdir -p ${BIN_DIR}
+mkdir -p ${LOG_DIR}
+
+git clone https://github.com/tensorflow/benchmarks.git ${HOME_DIR}/artifacts/tensorflow/benchmarks && cd ${HOME_DIR}/artifacts/tensorflow/benchmarks && git checkout cnn_tf_v1.13_compatible
+timeout 220m python benchmarks/scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --batch_size=256 --model=resnet50_v1.5 --optimizer=momentum --variable_update=replicated --nodistortions --gradient_repacking=2 --num_gpus=8 --num_epochs=91 --weight_decay=1e-4 --use_fp16 --all_reduce_spec=nccl --save_summaries_steps=0 --summary_verbosity=1 --num_warmup_batches=0 --train_dir=$HOME/test00 --compute_lr_on_cpu=True --single_l2_loss_op=True --loss_type_to_report=base_loss 2>&1 | tee ${LOG_DIR}/synthetic_results.txt
+if [ $? -eq 0 ]
+then
+  aws s3 cp ${LOG_DIR}/synthetic_results.txt s3://tensorflow"${TF_VERSION}"-dlc-cicd-performance/ec2/training/gpu/py"${PYTHON_VERSION}"/
+else
+  aws s3 cp ${LOG_DIR}/synthetic_results.txt s3://tensorflow"${TF_VERSION}"-dlc-cicd-performance/ec2/training/gpu/py"${PYTHON_VERSION}"/failure_log/
+  printf '%s\n' "something went wrong! Exception" >&2
+  exit 1
+fi
+
+rm -rf ${HOME_DIR}/artifacts/tensorflow/benchmarks
