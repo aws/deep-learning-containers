@@ -11,108 +11,108 @@ from src.github import GitHubHandler
 from test.dlc_tests.conftest import LOGGER
 
 
-# def test_eks_pytorch_single_node_training(pytorch_training):
-#     """
-#     Function to create a pod using kubectl and given container image, and run MXNet training
-#     Args:
-#         :param setup_utils: environment in which EKS tools are setup
-#         :param pytorch_training: the ECR URI
-#     """
-#
-#     training_result = False
-#
-#     rand_int = random.randint(4001, 6000)
-#
-#     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_{rand_int}.yaml")
-#     pod_name = f"pytorch-single-node-training-{rand_int}"
-#
-#     args = "git clone https://github.com/pytorch/examples.git && python examples/mnist/main.py"
-#
-#     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
-#     cpu_limit = 72
-#     cpu_limit = str(int(cpu_limit) / 2)
-#
-#     search_replace_dict = {
-#         "<POD_NAME>": pod_name,
-#         "<CONTAINER_NAME>": pytorch_training,
-#         "<ARGS>": args,
-#         "<CPU_LIMIT>": cpu_limit,
-#     }
-#
-#     eks_utils.write_eks_yaml_file_from_template(
-#         eks_utils.SINGLE_NODE_TRAINING_TEMPLATE_PATH, yaml_path, search_replace_dict
-#     )
-#
-#     try:
-#         run("kubectl create -f {}".format(yaml_path))
-#
-#         if eks_utils.is_eks_training_complete(pod_name):
-#             pytorch_out = run("kubectl logs {}".format(pod_name)).stdout
-#             if "Accuracy" in pytorch_out:
-#                 training_result = True
-#             else:
-#                 eks_utils.LOGGER.info("**** training output ****")
-#                 eks_utils.LOGGER.debug(pytorch_out)
-#         assert training_result, f"Training failed"
-#     finally:
-#         run("kubectl delete pods {}".format(pod_name))
-#
-#
-# def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
-#
-#     """
-#     Function to create a pod using kubectl and given container image, and run
-#     DGL training with PyTorch backend
-#     Args:
-#         :param pytorch_training: the ECR URI
-#     """
-#
-#     training_result = False
-#
-#     rand_int = random.randint(4001, 6000)
-#
-#     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml")
-#     pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
-#
-#     args = (
-#         "git clone https://github.com/dmlc/dgl.git && "
-#         "cd /dgl/examples/pytorch/gcn/ && DGLBACKEND=pytorch python train.py --dataset cora"
-#     )
-#
-#     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
-#     cpu_limit = 72
-#     cpu_limit = str(int(cpu_limit) / 2)
-#
-#     if "gpu" in pytorch_training:
-#         args = args + " --gpu 0"
-#     else:
-#         args = args + " --gpu -1"
-#
-#     search_replace_dict = {
-#         "<POD_NAME>": pod_name,
-#         "<CONTAINER_NAME>": pytorch_training,
-#         "<ARGS>": args,
-#         "<CPU_LIMIT>": cpu_limit,
-#     }
-#
-#     eks_utils.write_eks_yaml_file_from_template(
-#         eks_utils.SINGLE_NODE_TRAINING_TEMPLATE_PATH, yaml_path, search_replace_dict
-#     )
-#
-#     try:
-#         run("kubectl create -f {}".format(yaml_path))
-#
-#         if eks_utils.is_eks_training_complete(pod_name):
-#             dgl_out = run("kubectl logs {}".format(pod_name)).stdout
-#             if "Test accuracy" in dgl_out:
-#                 training_result = True
-#             else:
-#                 eks_utils.LOGGER.info("**** training output ****")
-#                 eks_utils.LOGGER.debug(dgl_out)
-#
-#         assert training_result, f"Training failed"
-#     finally:
-#         run("kubectl delete pods {}".format(pod_name))
+def test_eks_pytorch_single_node_training(pytorch_training):
+    """
+    Function to create a pod using kubectl and given container image, and run MXNet training
+    Args:
+        :param setup_utils: environment in which EKS tools are setup
+        :param pytorch_training: the ECR URI
+    """
+
+    training_result = False
+
+    rand_int = random.randint(4001, 6000)
+
+    yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_{rand_int}.yaml")
+    pod_name = f"pytorch-single-node-training-{rand_int}"
+
+    args = "git clone https://github.com/pytorch/examples.git && python examples/mnist/main.py"
+
+    # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
+    cpu_limit = 72
+    cpu_limit = str(int(cpu_limit) / 2)
+
+    search_replace_dict = {
+        "<POD_NAME>": pod_name,
+        "<CONTAINER_NAME>": pytorch_training,
+        "<ARGS>": args,
+        "<CPU_LIMIT>": cpu_limit,
+    }
+
+    eks_utils.write_eks_yaml_file_from_template(
+        eks_utils.SINGLE_NODE_TRAINING_TEMPLATE_PATH, yaml_path, search_replace_dict
+    )
+
+    try:
+        run("kubectl create -f {}".format(yaml_path))
+
+        if eks_utils.is_eks_training_complete(pod_name):
+            pytorch_out = run("kubectl logs {}".format(pod_name)).stdout
+            if "Accuracy" in pytorch_out:
+                training_result = True
+            else:
+                eks_utils.LOGGER.info("**** training output ****")
+                eks_utils.LOGGER.debug(pytorch_out)
+        assert training_result, f"Training failed"
+    finally:
+        run("kubectl delete pods {}".format(pod_name))
+
+
+def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
+
+    """
+    Function to create a pod using kubectl and given container image, and run
+    DGL training with PyTorch backend
+    Args:
+        :param pytorch_training: the ECR URI
+    """
+
+    training_result = False
+
+    rand_int = random.randint(4001, 6000)
+
+    yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml")
+    pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
+
+    args = (
+        "git clone https://github.com/dmlc/dgl.git && "
+        "cd /dgl/examples/pytorch/gcn/ && DGLBACKEND=pytorch python train.py --dataset cora"
+    )
+
+    # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
+    cpu_limit = 72
+    cpu_limit = str(int(cpu_limit) / 2)
+
+    if "gpu" in pytorch_training:
+        args = args + " --gpu 0"
+    else:
+        args = args + " --gpu -1"
+
+    search_replace_dict = {
+        "<POD_NAME>": pod_name,
+        "<CONTAINER_NAME>": pytorch_training,
+        "<ARGS>": args,
+        "<CPU_LIMIT>": cpu_limit,
+    }
+
+    eks_utils.write_eks_yaml_file_from_template(
+        eks_utils.SINGLE_NODE_TRAINING_TEMPLATE_PATH, yaml_path, search_replace_dict
+    )
+
+    try:
+        run("kubectl create -f {}".format(yaml_path))
+
+        if eks_utils.is_eks_training_complete(pod_name):
+            dgl_out = run("kubectl logs {}".format(pod_name)).stdout
+            if "Test accuracy" in dgl_out:
+                training_result = True
+            else:
+                eks_utils.LOGGER.info("**** training output ****")
+                eks_utils.LOGGER.debug(dgl_out)
+
+        assert training_result, f"Training failed"
+    finally:
+        run("kubectl delete pods {}".format(pod_name))
 
 
 def test_eks_pytorch_multinode_node_training(pytorch_training, example):
@@ -220,7 +220,7 @@ def is_pytorch_eks_multinode_training_complete(job_name):
     """
     run_out = run(f"kubectl get pytorchjobs {job_name} -o json")
     job_info = json.loads(run_out.stdout)
-    LOGGER.info(f"job_info: {job_info}")
+    LOGGER.debug(f"job_info: {job_info}")
 
     if 'status' not in job_info:
         raise ValueError("Waiting for job to launch...")
@@ -259,7 +259,7 @@ def is_pytorch_eks_multinode_training_complete(job_name):
                             raise ValueError("Waiting for job to complete...")
                         else:
                             return False
-                    run("kubectl logs kubeflow-pytorch-gpu-dist-job-master-0", warn=True)
+                    run(f"kubectl logs {job_name}-master-0", warn=True)
                     return True
 
             else:
