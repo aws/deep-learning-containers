@@ -8,7 +8,7 @@ import test.test_utils.eks as eks_utils
 
 
 # Test only runs in region us-west-2, on instance type p3.16xlarge, on PR_EKS_CLUSTER_NAME_TEMPLATE cluster
-def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, gpu_only, example):
+def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, py3_only, gpu_only, example):
     eks_cluster_size = 3
     ec2_instance_type = "p3.16xlarge"
     cluster_name = eks_utils.PR_EKS_CLUSTER_NAME_TEMPLATE.format("tensorflow")
