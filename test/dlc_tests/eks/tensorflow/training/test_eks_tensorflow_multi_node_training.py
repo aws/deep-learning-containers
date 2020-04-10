@@ -29,7 +29,8 @@ def run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, clu
     :param eks_gpus_per_worker:
     :return: None
     """
-    namespace = "default"
+    # Use the image tag as namespace to make it unique within the CodeBuild job
+    namespace = example_image_uri.split(":")[-1]
     job_name = "tf-resnet50-horovod-job"
     command_to_run = ("mpirun,-mca,btl_tcp_if_exclude,lo,-mca,pml,ob1,-mca,btl,^openib,--bind-to,none,-map-by,slot,"
                       "-x,LD_LIBRARY_PATH,-x,PATH,-x,NCCL_SOCKET_IFNAME=eth0,-x,NCCL_DEBUG=INFO,python,"
