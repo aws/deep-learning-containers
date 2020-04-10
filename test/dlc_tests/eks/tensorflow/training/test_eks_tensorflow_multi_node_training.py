@@ -16,7 +16,7 @@ def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, ec2_instanc
 
     assert eks_utils.is_eks_cluster_active(cluster_name), f"EKS Cluster {cluster_name} is inactive. Exiting test"
 
-    eks_gpus_per_worker = ec2_utils.get_instance_num_gpus(ec2_instance_type)
+    eks_gpus_per_worker = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)
 
     run_eks_tensorflow_multinode_training_resnet50_mpijob(tensorflow_training, eks_cluster_size, eks_gpus_per_worker)
 
