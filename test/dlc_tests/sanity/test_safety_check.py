@@ -21,6 +21,20 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 #           cannot be used because of incompatibilities.
 #        2. Ensure that IGNORE_SAFETY_IDS is always as small/empty as possible.
 IGNORE_SAFETY_IDS = {
+    "tensorflow": {
+        "training": {
+            "py2": ['37524'],
+            "py3": ['37524']
+        },
+        "inference": {
+            "py2": ['37524'],
+            "py3": ['37524']
+        },
+        "inference-eia": {
+            "py2": ['37524'],
+            "py3": ['37524']
+        }
+    },
     "mxnet": {
         "inference-eia": {
             # numpy<=1.16.0 -- This has to only be here while we publish MXNet 1.4.1 EI DLC v1.0
