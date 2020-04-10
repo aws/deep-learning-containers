@@ -218,7 +218,7 @@ def is_pytorch_eks_multinode_training_complete(job_name):
     Args:
         job_name: str
     """
-    run_out = run(f"kubectl get pytorchjobs {job_name} -o json")
+    run_out = run(f"kubectl get pytorchjobs {job_name} -o json", warn=True)
     job_info = json.loads(run_out.stdout)
     LOGGER.debug(f"job_info: {job_info}")
 
