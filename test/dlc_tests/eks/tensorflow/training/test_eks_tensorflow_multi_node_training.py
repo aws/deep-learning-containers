@@ -1,17 +1,16 @@
 import os
-import random
 
 from invoke.context import Context
-import pytest
 
 from src.github import GitHubHandler
 import test.test_utils.ec2 as ec2_utils
 import test.test_utils.eks as eks_utils
 
 
-@pytest.mark.parametrize("ec2_instance_type", ["p3.16xlarge"], indirect=True)
-def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, ec2_instance_type, gpu_only, example, region):
+# Test only runs in region us-west-2, on instance type p3.16xlarge, on PR_EKS_CLUSTER_NAME_TEMPLATE cluster
+def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, gpu_only, example):
     eks_cluster_size = 3
+    ec2_instance_type = "p3.16xlarge"
     cluster_name = eks_utils.PR_EKS_CLUSTER_NAME_TEMPLATE.format("tensorflow")
 
     assert eks_utils.is_eks_cluster_active(cluster_name), f"EKS Cluster {cluster_name} is inactive. Exiting test"
@@ -30,14 +29,15 @@ def run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, clu
     :return: None
     """
     # Use the image tag as namespace to make it unique within the CodeBuild job
-    namespace = example_image_uri.split(":")[-1]
-    job_name = "tf-resnet50-horovod-job"
+    unique_tag = example_image_uri.split(':')[-1]
+    namespace = f"tensorflow-multi-node-training-{unique_tag}"
+    job_name = f"tf-resnet50-horovod-job-{unique_tag}"
     command_to_run = ("mpirun,-mca,btl_tcp_if_exclude,lo,-mca,pml,ob1,-mca,btl,^openib,--bind-to,none,-map-by,slot,"
                       "-x,LD_LIBRARY_PATH,-x,PATH,-x,NCCL_SOCKET_IFNAME=eth0,-x,NCCL_DEBUG=INFO,python,"
                       "/deep-learning-models/models/resnet/tensorflow/train_imagenet_resnet_hvd.py")
     args_to_pass = "-- --num_epochs=1,--synthetic"
-    path_to_ksonnet_app = "~/tensorflow_multi_node_eks_test/"
-    app_name = "kubeflow-tf-hvd-mpijob"
+    path_to_ksonnet_app = f"~/tensorflow_multi_node_eks_test-{unique_tag}/"
+    app_name = f"kubeflow-tf-hvd-mpijob-{unique_tag}"
 
     run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, example_image_uri, job_name,
                                                   command_to_run, args_to_pass, path_to_ksonnet_app,
@@ -69,21 +69,19 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
         ctx.run(f"mkdir -p {path_to_ksonnet_app}")
 
     with ctx.cd(path_to_ksonnet_app):
-        ctx.run("rm -rf {}".format(app_name))
-        ctx.run("ks init {}".format(app_name))
+        ctx.run(f"rm -rf {app_name}")
+        ctx.run(f"ks init {app_name}")
 
-        with ctx.cd("{}".format(app_name)):
+        with ctx.cd(app_name):
             # Check if the kubeflow registry exists and create. Registry will be available in each pod.
             registry_not_exist = ctx.run("ks registry list | grep kubeflow", warn=True)
 
             if registry_not_exist.return_code:
                 github_token = github_handler.get_auth_token()
-                with ctx.prefix(f"GITHUB_TOKEN={github_token}"):
-                    ctx.run((f"ks registry add kubeflow "
-                             f"github.com/kubeflow/kubeflow/tree/{KUBEFLOW_VERSION}/kubeflow"),
-                            hide=True)
-                    ctx.run(f"ks pkg install kubeflow/common@{KUBEFLOW_VERSION}", hide=True)
-                    ctx.run(f"ks pkg install kubeflow/mpi-job@{KUBEFLOW_VERSION}", hide=True)
+                os.environ["GITHUB_TOKEN"] = github_token
+                ctx.run(f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{KUBEFLOW_VERSION}/kubeflow")
+                ctx.run(f"ks pkg install kubeflow/common@{KUBEFLOW_VERSION}")
+                ctx.run(f"ks pkg install kubeflow/mpi-job@{KUBEFLOW_VERSION}")
 
             ctx.run("ks generate mpi-operator mpi-operator")
             # The latest mpi-operator docker image does not accept the gpus-per-node parameter
@@ -97,12 +95,12 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
             ctx.run("kubectl get crd")
 
             # Use Ksonnet to generate manifest files which are then applied to the default context.
-            ctx.run("ks generate mpi-job-custom {}".format(job_name))
-            ctx.run("ks param set {} replicas {}".format(job_name, cluster_size))
-            ctx.run("ks param set {} gpusPerReplica {}".format(job_name, eks_gpus_per_worker))
-            ctx.run("ks param set {} image {}".format(job_name, custom_image))
-            ctx.run("ks param set {} command {}".format(job_name, command_to_run))
-            ctx.run("ks param set {} args {}".format(job_name, args_to_pass))
+            ctx.run(f"ks generate mpi-job-custom {job_name}")
+            ctx.run(f"ks param set {job_name} replicas {cluster_size}")
+            ctx.run(f"ks param set {job_name} gpusPerReplica {eks_gpus_per_worker}")
+            ctx.run(f"ks param set {job_name} image {custom_image}")
+            ctx.run(f"ks param set {job_name} command {command_to_run}")
+            ctx.run(f"ks param set {job_name} args {args_to_pass}")
 
             try:
                 # use `$ks show default` to see details.
@@ -132,7 +130,5 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
                     eks_utils.LOGGER.info(f"Wait for the {pod_name} pod to reach completion")
                     distributed_out = ctx.run(f"kubectl logs -f {complete_pod_name}").stdout
                     eks_utils.LOGGER.info(distributed_out)
-            # except Exception as e:
-            #     raise Exception(f"Something went wrong! Exception - {e}")
             finally:
                 eks_utils.eks_multinode_cleanup(ctx, pod_name, job_name, namespace)
