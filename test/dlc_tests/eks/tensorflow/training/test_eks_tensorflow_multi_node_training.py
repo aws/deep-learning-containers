@@ -87,14 +87,14 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
             # The latest mpi-operator docker image does not accept the gpus-per-node parameter
             # which is specified by the older spec file from v0.5.1.
             ctx.run("ks param set mpi-operator image mpioperator/mpi-operator:0.2.0")
-            ctx.run("ks apply default -c mpi-operator")
+            ctx.run(f"ks apply {namespace} -c mpi-operator")
             eks_utils.LOGGER.info(
-                "The mpi-operator package must be applied to default before we can use mpiJob. "
-                "Check status before moving on."
+                f"The mpi-operator package must be applied to {namespace} before we can use mpiJob. "
+                f"Check status before moving on."
             )
             ctx.run("kubectl get crd")
 
-            # Use Ksonnet to generate manifest files which are then applied to the default context.
+            # Use Ksonnet to generate manifest files which are then applied to the context defined by namespace.
             ctx.run(f"ks generate mpi-job-custom {job_name}")
             ctx.run(f"ks param set {job_name} replicas {cluster_size}")
             ctx.run(f"ks param set {job_name} gpusPerReplica {eks_gpus_per_worker}")
@@ -103,14 +103,10 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
             ctx.run(f"ks param set {job_name} args {args_to_pass}")
 
             try:
-                # use `$ks show default` to see details.
-                eks_utils.LOGGER.info(
-                    "Since we are not using a namespace currently, verify no pods are running "
-                    "already in the default one. "
-                )
+                # use `$ks show {namespace}` to see details.
                 ctx.run("kubectl get pods -o wide")
-                eks_utils.LOGGER.info("Apply the generated manifest to the default env.")
-                ctx.run(f"ks apply default -c {job_name}")
+                eks_utils.LOGGER.info(f"Apply the generated manifest to the {namespace} env.")
+                ctx.run(f"ks apply {namespace} -c {job_name}")
 
                 eks_utils.LOGGER.info("Check pods")
                 ctx.run("kubectl get pods -o wide")
