@@ -219,8 +219,9 @@ def is_pytorch_eks_multinode_training_complete(job_name):
         job_name: str
     """
     run_out = run(f"kubectl get pytorchjobs {job_name} -o json", warn=True)
-    job_info = json.loads(run_out.stdout)
-    LOGGER.debug(f"job_info: {job_info}")
+    if run_out.stdout is not None or run_out.stdout != "":
+        job_info = json.loads(run_out.stdout)
+        LOGGER.debug(f"job_info: {job_info}")
 
     if 'status' not in job_info:
         raise ValueError("Waiting for job to launch...")
