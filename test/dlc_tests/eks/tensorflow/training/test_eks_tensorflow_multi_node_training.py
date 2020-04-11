@@ -1,4 +1,5 @@
 import os
+import random
 
 from invoke.context import Context
 
@@ -8,7 +9,7 @@ import test.test_utils.eks as eks_utils
 
 
 # Test only runs in region us-west-2, on instance type p3.16xlarge, on PR_EKS_CLUSTER_NAME_TEMPLATE cluster
-def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, py3_only, gpu_only, example):
+def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example):
     eks_cluster_size = 3
     ec2_instance_type = "p3.16xlarge"
     cluster_name = eks_utils.PR_EKS_CLUSTER_NAME_TEMPLATE.format("tensorflow")
@@ -28,8 +29,9 @@ def run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, clu
     :param eks_gpus_per_worker:
     :return: None
     """
-    # Use the image tag as namespace to make it unique within the CodeBuild job
-    unique_tag = example_image_uri.split(':')[-1].replace(".", "-")
+    # Seed random with image URI to ensure that the same random number isn't created due to same system time
+    random.seed(example_image_uri)
+    unique_tag = random.randint(1, 10000)
     # namespace = f"tensorflow-multi-node-training-{unique_tag}"
     namespace = "default"
     job_name = f"tf-resnet50-horovod-job-{unique_tag}"
@@ -38,7 +40,7 @@ def run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, clu
                       "/deep-learning-models/models/resnet/tensorflow/train_imagenet_resnet_hvd.py")
     args_to_pass = "-- --num_epochs=1,--synthetic"
     home_dir = Context().run("echo $HOME").stdout.strip("\n")
-    path_to_ksonnet_app = f"~/tensorflow_multi_node_eks_test-{unique_tag}/"
+    path_to_ksonnet_app = os.path.join(home_dir, f"tensorflow_multi_node_eks_test-{unique_tag}")
     app_name = f"kubeflow-tf-hvd-mpijob-{unique_tag}"
 
     run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, example_image_uri, job_name,
