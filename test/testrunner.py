@@ -81,7 +81,7 @@ def run_sagemaker_pytest_cmd(image):
 
     :param image: ECR url
     """
-    if "tensorflow-inference" in image:
+    if "tensorflow-inference" not in image:
         LOGGER.info(f"Treating test for {image} as successful.")
         return
     pytest_command, path, tag = generate_sagemaker_pytest_cmd(image)
