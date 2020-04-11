@@ -5,7 +5,7 @@ LABEL maintainer="Amazon AI"
 
 ARG PYTHON_VERSION=3.6.6
 # ARG PYTORCH_VERSION=https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl
-ARG PYTORCH_VERSION=https://pytorch-aws.s3.amazonaws.com/pytorch-1.4.0/py3/gpu/torch-1.6.0a0+c5662dd-cp37-cp37m-manylinux1_x86_64.whl
+ARG PYTORCH_VERSION=https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.6.0a0%2Beddbee1-cp36-cp36m-manylinux1_x86_64.whl
 ARG TORCHVISION_VERSION=https://torchvision-build.s3.amazonaws.com/1.4.0/py3/gpu/torchvision-0.5.0-cp36-cp36m-linux_x86_64.whl
 ARG OPEN_MPI_VERSION=4.0.1
 ARG CUBLAS_VERSION=10.2.1.243-1_amd64
