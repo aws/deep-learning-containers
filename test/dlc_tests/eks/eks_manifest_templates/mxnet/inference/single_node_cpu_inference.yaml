@@ -2,22 +2,22 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: mms-service
+  name: <INFERENCE_SERVICE_NAME>
   labels:
-    app: mms-service
+    app: <INFERENCE_SERVICE_NAME>
 spec:
   ports:
   - port: 8080
     targetPort: mms
   selector:
-    app: mms-service
+    app: <INFERENCE_SERVICE_NAME>
 ---
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: mms-service
+  name: <INFERENCE_SERVICE_NAME>
   labels:
-    app: mms-service
+    app: <INFERENCE_SERVICE_NAME>
 spec:
   replicas: <NUM_REPLICAS>
   selector:
@@ -42,3 +42,10 @@ spec:
         - name: mms-management
           containerPort: 8081
         imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: "1"
+            memory: 1Gi

@@ -5,6 +5,7 @@ Helper functions for EKS Integration Tests
 import os
 import sys
 import json
+import base64
 import logging
 
 from retrying import retry
@@ -27,6 +28,13 @@ SINGLE_NODE_TRAINING_TEMPLATE_PATH = os.path.join(
     "single_node_training.yaml",
 )
 
+SINGLE_NODE_INFERENCE_TEMPLATE_PATH = os.path.join(
+    os.sep,
+    DLC_TESTS_PREFIX,
+    "eks",
+    "eks_manisfest_templates"
+)
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
@@ -47,6 +55,29 @@ EKS_AMI_ID = {"cpu": "ami-0d3998d69ebe9b214", "gpu": "ami-0484012ada3522476"}
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
 PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"
 
+def get_single_node_training_template_path():
+
+    return os.path.join(
+        os.sep,
+        DLC_TESTS_PREFIX,
+        "eks",
+        "eks_manifest_templates",
+        "training",
+        "single_node_training.yaml",
+    )
+
+def get_single_node_inference_template_path(framework, processor):
+
+    return os.path.join(
+        os.sep,
+        DLC_TESTS_PREFIX,
+        "eks",
+        "eks_manifest_templates",
+        framework,
+        "inference",
+        f"single_node_{processor}_inference.yaml",
+    )
+
 
 def retry_if_value_error(exception):
     """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
@@ -54,7 +85,7 @@ def retry_if_value_error(exception):
 
 
 @retry(
-    stop_max_attempt_number=240,
+    stop_max_attempt_number=360,
     wait_fixed=10000,
     retry_on_exception=retry_if_value_error,
 )
@@ -259,6 +290,35 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     # run(f"aws eks --region us-west-2 update-kubeconfig --name {eks_cluster_name} --kubeconfig /root/.kube/config --role-arn arn:aws:iam::669063966089:role/nikhilsk-eks-test-role")
 
     run("cat /root/.kube/config", warn=True)
+
+
+def eks_forward_port_between_host_and_container(selector_name, host_port, container_port, namespace="default"):
+    """Uses kubectl port-forward command to forward a port from the container pods to the host.
+    Note: The 'host' in this case is the gateway host, and not the worker hosts.
+    Args:
+        namespace, selector_name: str
+        host_port, container_port: int
+    """
+
+    # Terminate other port-forwards
+    # run("lsof -ni | awk '{print $2}' |  grep -v PID | uniq | xargs kill -9", warn=True)
+
+    run("nohup kubectl port-forward -n {0} `kubectl get pods -n {0} --selector=app={1} -o "
+        "jsonpath='{{.items[0].metadata.name}}'` {2}:{3} > /dev/null 2>&1 &".format(namespace, selector_name, host_port, container_port))
+
+
+@retry(stop_max_attempt_number=20, wait_fixed=30000, retry_on_exception=retry_if_value_error)
+def is_service_running(selector_name, namespace="default"):
+    """Check if the service pod is running
+    Args:
+        namespace, selector_name: str
+    """
+    run_out = run("kubectl get pods -n {} --selector=app={} -o jsonpath='{{.items[0].status.phase}}' ".format(namespace, selector_name), warn=True)
+
+    if run_out.stdout == "Running":
+        return True
+    else:
+        raise ValueError("Service not running yet, try again")
 
 
 def create_eks_cluster_nodegroup(
