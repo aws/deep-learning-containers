@@ -11,7 +11,7 @@ import test.test_utils.eks as eks_utils
 def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, py3_only, gpu_only, example):
     eks_cluster_size = 3
     ec2_instance_type = "p3.16xlarge"
-    cluster_name = "saimidu-tf-multi-node-eks-test"
+    cluster_name = eks_utils.PR_EKS_CLUSTER_NAME_TEMPLATE.format("tensorflow")
 
     assert eks_utils.is_eks_cluster_active(cluster_name), f"EKS Cluster {cluster_name} is inactive. Exiting test"
 
@@ -38,7 +38,7 @@ def run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, clu
                       "/deep-learning-models/models/resnet/tensorflow/train_imagenet_resnet_hvd.py")
     args_to_pass = "-- --num_epochs=1,--synthetic"
     home_dir = Context().run("echo $HOME").stdout.strip("\n")
-    path_to_ksonnet_app = os.path.join(home_dir, "saimidu_tf_multi_node_eks_test")
+    path_to_ksonnet_app = f"~/tensorflow_multi_node_eks_test-{unique_tag}/"
     app_name = f"kubeflow-tf-hvd-mpijob-{unique_tag}"
 
     run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, example_image_uri, job_name,
