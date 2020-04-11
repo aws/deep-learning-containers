@@ -131,8 +131,9 @@ RUN pip install \
  && pip install --no-deps --no-cache-dir -U $TORCHVISION_VERSION
 
 # Install Horovod
-RUN ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-10.1 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir git+https://github.com/horovod/horovod \
+RUN pip uninstall -y horovod \
+ && ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-10.1 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
 # Configure Open MPI and configure NCCL parameters
