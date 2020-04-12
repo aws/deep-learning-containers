@@ -31,7 +31,7 @@ def run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, clu
     :return: None
     """
     # Seed random with image URI to ensure that the same random number isn't created due to same system time
-    framework_version = re.search(r"[1-2](\.\d+)+", example_image_uri)
+    framework_version = re.search(r"[1-2](\.\d+)+", example_image_uri).group()
     major_version = framework_version.split(".")[0]
     random.seed(example_image_uri)
     unique_tag = random.randint(1, 10000)
