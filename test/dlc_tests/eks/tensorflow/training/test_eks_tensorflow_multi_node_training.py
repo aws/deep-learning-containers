@@ -1,5 +1,6 @@
 import os
 import random
+import re
 
 from invoke.context import Context
 
@@ -30,15 +31,21 @@ def run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, clu
     :return: None
     """
     # Seed random with image URI to ensure that the same random number isn't created due to same system time
+    framework_version = re.search(r"[1-2](\.\d+)+", example_image_uri)
+    major_version = framework_version.split(".")[0]
     random.seed(example_image_uri)
     unique_tag = random.randint(1, 10000)
-    # namespace = f"tensorflow-multi-node-training-{unique_tag}"
-    namespace = f"tf-multi-node-{'py2' if 'py2' in example_image_uri else 'py3'}-{unique_tag}"
+    namespace = f"tf-multi-node-train-{'py2' if 'py2' in example_image_uri else 'py3'}-{unique_tag}"
     job_name = f"tf-resnet50-horovod-job-{unique_tag}"
+
+    script_name = ("/deep-learning-models/models/resnet/tensorflow2/train_tf2_resnet.py" if major_version == "2" else
+                   "/deep-learning-models/models/resnet/tensorflow/train_imagenet_resnet_hvd.py")
+
     command_to_run = ("mpirun,-mca,btl_tcp_if_exclude,lo,-mca,pml,ob1,-mca,btl,^openib,--bind-to,none,-map-by,slot,"
-                      "-x,LD_LIBRARY_PATH,-x,PATH,-x,NCCL_SOCKET_IFNAME=eth0,-x,NCCL_DEBUG=INFO,python,"
-                      "/deep-learning-models/models/resnet/tensorflow/train_imagenet_resnet_hvd.py")
-    args_to_pass = "-- --num_epochs=1,--synthetic"
+                      "-x,LD_LIBRARY_PATH,-x,PATH,-x,NCCL_SOCKET_IFNAME=eth0,-x,NCCL_DEBUG=INFO,python,") + script_name
+    args_to_pass = ("-- --synthetic,--batch_size,128,--num_batches,100,--clear_log,2" if major_version == "2" else
+                    "-- --num_epochs=1,--synthetic")
+
     home_dir = Context().run("echo $HOME").stdout.strip("\n")
     path_to_ksonnet_app = os.path.join(home_dir, f"tensorflow_multi_node_eks_test-{unique_tag}")
     app_name = f"kubeflow-tf-hvd-mpijob-{unique_tag}"
