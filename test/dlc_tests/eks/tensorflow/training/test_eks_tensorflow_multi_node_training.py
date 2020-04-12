@@ -33,7 +33,7 @@ def run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, clu
     random.seed(example_image_uri)
     unique_tag = random.randint(1, 10000)
     # namespace = f"tensorflow-multi-node-training-{unique_tag}"
-    namespace = "default"
+    namespace = f"tf-multi-node-{'py2' if 'py2' in example_image_uri else 'py3'}-{unique_tag}"
     job_name = f"tf-resnet50-horovod-job-{unique_tag}"
     command_to_run = ("mpirun,-mca,btl_tcp_if_exclude,lo,-mca,pml,ob1,-mca,btl,^openib,--bind-to,none,-map-by,slot,"
                       "-x,LD_LIBRARY_PATH,-x,PATH,-x,NCCL_SOCKET_IFNAME=eth0,-x,NCCL_DEBUG=INFO,python,"
@@ -71,12 +71,14 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
     github_token = github_handler.get_auth_token()
     os.environ["GITHUB_TOKEN"] = github_token
 
+    ctx.run(f"kubectl create namespace {namespace}")
+
     if not os.path.exists(path_to_ksonnet_app):
         ctx.run(f"mkdir -p {path_to_ksonnet_app}")
 
     with ctx.cd(path_to_ksonnet_app):
         ctx.run(f"rm -rf {app_name}")
-        ctx.run(f"ks init {app_name}")
+        ctx.run(f"ks init {app_name} --namespace {namespace}")
 
         with ctx.cd(app_name):
             # Check if the kubeflow registry exists and create. Registry will be available in each pod.
@@ -93,7 +95,7 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
             ctx.run("ks param set mpi-operator image mpioperator/mpi-operator:0.2.0")
             ctx.run("ks apply default -c mpi-operator")
             eks_utils.LOGGER.info(
-                "The mpi-operator package must be applied to default before we can use mpiJob. "
+                "The mpi-operator package must be applied to default env before we can use mpiJob. "
                 "Check status before moving on."
             )
             ctx.run("kubectl get crd")
@@ -108,19 +110,19 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
 
             try:
                 # use `$ks show default` to see details.
-                ctx.run("kubectl get pods -o wide")
+                ctx.run(f"kubectl get pods -n {namespace} -o wide")
                 eks_utils.LOGGER.info("Apply the generated manifest to the default env.")
                 ctx.run(f"ks apply default -c {job_name}")
 
                 eks_utils.LOGGER.info("Check pods")
-                ctx.run("kubectl get pods -o wide")
+                ctx.run(f"kubectl get pods -n {namespace} -o wide")
 
                 eks_utils.LOGGER.info(
                     "First the mpi-operator and the n-worker pods will be created and then "
                     "the launcher pod is created in the end. Use retries until launcher "
                     "pod's name is available to read logs."
                 )
-                complete_pod_name = eks_utils.is_mpijob_launcher_pod_ready(ctx, job_name)
+                complete_pod_name = eks_utils.is_mpijob_launcher_pod_ready(ctx, namespace, job_name)
 
                 _, pod_name = complete_pod_name.split("/")
                 eks_utils.LOGGER.info(f"The Pods have been created and the name of the launcher pod is {pod_name}")
@@ -128,7 +130,7 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
                 eks_utils.LOGGER.info(f"Wait for the {job_name} job to complete")
                 if eks_utils.is_eks_multinode_training_complete(ctx, namespace, pod_name, job_name):
                     eks_utils.LOGGER.info(f"Wait for the {pod_name} pod to reach completion")
-                    distributed_out = ctx.run(f"kubectl logs -f {complete_pod_name}").stdout
+                    distributed_out = ctx.run(f"kubectl logs -n {namespace} -f {complete_pod_name}").stdout
                     eks_utils.LOGGER.info(distributed_out)
             finally:
                 eks_utils.eks_multinode_cleanup(ctx, pod_name, job_name, namespace)

@@ -389,14 +389,17 @@ def eks_multinode_get_logs(ctx, namespace, pod_name):
 
 
 @retry(stop_max_attempt_number=30, wait_fixed=5000, retry_on_exception=retry_if_value_error)
-def is_mpijob_launcher_pod_ready(ctx, job_name):
+def is_mpijob_launcher_pod_ready(ctx, namespace, job_name):
     """Check if the MpiJob Launcher Pod is Ready
     Args:
         ctx: Context
+        namespace: str
         job_name: str
     """
 
-    pod_name = ctx.run(f"kubectl get pods -l mpi_job_name={job_name},mpi_role_type=launcher -o name").stdout.strip("\n")
+    pod_name = ctx.run(
+        f"kubectl get pods -n {namespace} -l mpi_job_name={job_name},mpi_role_type=launcher -o name"
+    ).stdout.strip("\n")
     if pod_name:
         return pod_name
     else:
