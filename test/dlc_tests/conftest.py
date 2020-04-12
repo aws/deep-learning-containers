@@ -13,7 +13,7 @@ from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
 import test.test_utils.ec2 as ec2_utils
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Immutable constant for framework specific image fixtures

@@ -272,9 +272,13 @@ def eks_multinode_cleanup(pod_name, job_name, namespace):
     # Operator specific cleanup
     if job_name == "openmpi-job":
         component, _ = pod_name.split("-master")
+        LOGGER.debug(f"ks component rm {component}")
         run("ks component rm {}".format(component), warn=True)
     else:
+        LOGGER.debug(f"ks delete default -c {job_name}")
         run("ks delete default -c {}".format(job_name), warn=True)
 
+    LOGGER.debug(f"ks delete default")
     run("ks delete default", warn=True)
+    LOGGER.debug(f"kubectl delete namespace {namespace}")
     run("kubectl delete namespace {}".format(namespace), warn=True)

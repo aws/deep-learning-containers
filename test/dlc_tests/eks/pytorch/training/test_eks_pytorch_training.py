@@ -171,36 +171,51 @@ def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_ya
     does_namespace_exist = run(f"kubectl get namespace | grep {namespace}",
                                warn=True)
     if not does_namespace_exist:
+        LOGGER.debug(f"kubectl create namespace {namespace}")
         run(f"kubectl create namespace {namespace}")
 
     # Create a new ksonnet app.
+    LOGGER.debug(f"rm -rf {app_name}")
     run(f"rm -rf {app_name}")
     github_handler = GitHubHandler("aws", "kubeflow")
     github_token = github_handler.get_auth_token()
     os.environ['GITHUB_TOKEN'] = github_token
+    LOGGER.debug(f"ks init {app_name}")
     run(f"ks init {app_name}")
 
     with context.cd(app_name):
+        LOGGER.debug(f"ks env set default --namespace {namespace}")
         context.run(f"ks env set default --namespace {namespace}")
 
         # Check if the kubeflow registry exists and create. Registry will be available in each pod.
+        LOGGER.debug(f"ks registry list | grep kubeflow")
         does_registry_exist = context.run("ks registry list | grep kubeflow", warn=True)
         if not does_registry_exist:
+            LOGGER.debug(f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{KUBEFLOW_VERSION}/kubeflow")
             context.run(f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{KUBEFLOW_VERSION}/kubeflow")
+            LOGGER.debug(f"ks pkg install kubeflow/pytorch-job@{KUBEFLOW_VERSION}")
             context.run(f"ks pkg install kubeflow/pytorch-job@{KUBEFLOW_VERSION}")
+            LOGGER.debug(f"ks generate pytorch-operator pytorch-operator")
             context.run("ks generate pytorch-operator pytorch-operator")
             try:
                 # use `$ks show default` to see details.
+                LOGGER.debug(f"ks apply default -c pytorch-operator")
                 context.run("ks apply default -c pytorch-operator")
                 # Delete old job with same name if exists
+                LOGGER.debug(f"kubectl delete -f {remote_yaml_file_path}")
                 context.run(f"kubectl delete -f {remote_yaml_file_path}", warn=True)
+                LOGGER.debug(f"kubectl create -f {remote_yaml_file_path}")
                 context.run(f"kubectl create -f {remote_yaml_file_path}")
                 if is_pytorch_eks_multinode_training_complete(job_name):
+                    LOGGER.debug(f"training is complete for jobs {job_name}")
                     LOGGER.info(f"training is complete for jobs {job_name}")
             except Exception as e:
+                LOGGER.debug(f"something went wrong! Exception - {e}")
                 raise Exception(f"something went wrong! Exception - {e}")
             finally:
+                LOGGER.debug(f"kubectl delete -f {remote_yaml_file_path}")
                 context.run(f"kubectl delete -f {remote_yaml_file_path}", warn=True)
+                LOGGER.debug(f"kubectl delete crd pytorchjobs.kubeflow.org")
                 # If different versions of kubeflow used in the cluster, crd must be deleted.
                 context.run("kubectl delete crd pytorchjobs.kubeflow.org")
                 eks_utils.eks_multinode_cleanup("", job_name, namespace)
@@ -218,6 +233,7 @@ def is_pytorch_eks_multinode_training_complete(job_name):
     Args:
         job_name: str
     """
+    LOGGER.debug(f"kubectl get pytorchjobs {job_name} -o json")
     run_out = run(f"kubectl get pytorchjobs {job_name} -o json", warn=True)
     if run_out.stdout is not None or run_out.stdout != "":
         job_info = json.loads(run_out.stdout)
