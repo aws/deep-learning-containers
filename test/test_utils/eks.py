@@ -356,7 +356,7 @@ def create_eks_cluster_nodegroup(
                 f"ssh_public_key: {ssh_public_key_name}")
 
 
-def eks_multinode_cleanup(ctx, pod_name, job_name, namespace):
+def eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env):
     """
     Function to cleanup resources created by EKS
     Use namespace as default if you do not create one.
@@ -364,6 +364,7 @@ def eks_multinode_cleanup(ctx, pod_name, job_name, namespace):
     :param pod_name:
     :param job_name:
     :param namespace:
+    :param env:
     :return:
     """
     # Operator specific cleanup
@@ -371,9 +372,9 @@ def eks_multinode_cleanup(ctx, pod_name, job_name, namespace):
         component, _ = pod_name.split("-master")
         ctx.run(f"ks component rm {component}", warn=True)
     else:
-        ctx.run(f"ks delete default -c {job_name}", warn=True)
+        ctx.run(f"ks delete {env} -c {job_name}", warn=True)
 
-    ctx.run("ks delete default", warn=True)
+    ctx.run(f"ks delete {env}", warn=True)
     ctx.run(f"kubectl delete namespace {namespace}", warn=True)
 
 
@@ -388,7 +389,7 @@ def eks_multinode_get_logs(ctx, namespace, pod_name):
     return ctx.run(f"kubectl logs -n {namespace} -f {pod_name}").stdout
 
 
-@retry(stop_max_attempt_number=30, wait_fixed=5000, retry_on_exception=retry_if_value_error)
+@retry(stop_max_attempt_number=120, wait_fixed=10000, retry_on_exception=retry_if_value_error)
 def is_mpijob_launcher_pod_ready(ctx, namespace, job_name):
     """Check if the MpiJob Launcher Pod is Ready
     Args:
@@ -407,7 +408,7 @@ def is_mpijob_launcher_pod_ready(ctx, namespace, job_name):
 
 
 @retry(stop_max_attempt_number=40, wait_fixed=60000, retry_on_exception=retry_if_value_error)
-def is_eks_multinode_training_complete(ctx, namespace, pod_name, job_name):
+def is_eks_multinode_training_complete(ctx, namespace, env, pod_name, job_name):
     """Function to check if the pod status has reached 'Completion' for multinode training.
     A separate method is required because kubectl commands for logs and status are different with namespaces.
     Args:
@@ -428,13 +429,13 @@ def is_eks_multinode_training_complete(ctx, namespace, pod_name, job_name):
                 elif container_status['state']['terminated']['reason'] == "Error":
                     LOGGER.error(f"ERROR: The container run threw an error and terminated. "
                                  f"kubectl logs: {eks_multinode_get_logs(ctx, namespace, pod_name)}")
-                    eks_multinode_cleanup(ctx, pod_name, job_name, namespace)
+                    eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env)
                     raise AttributeError("Container Error!")
             elif 'waiting' in container_status['state'] and \
                     container_status['state']['waiting']['reason'] == "CrashLoopBackOff":
                 LOGGER.error(f"ERROR: The container run threw an error in waiting state. "
                              f"kubectl logs: {eks_multinode_get_logs(ctx, namespace, pod_name)}")
-                eks_multinode_cleanup(ctx, pod_name, job_name, namespace)
+                eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env)
                 raise AttributeError("Error: CrashLoopBackOff!")
             elif 'waiting' in container_status['state'] or 'running' in container_status['state']:
                 LOGGER.info("IN-PROGRESS: Container is either Creating or Running. Waiting to complete...")

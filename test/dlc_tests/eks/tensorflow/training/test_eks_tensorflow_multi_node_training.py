@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import random
 import re
@@ -31,11 +32,11 @@ def run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, clu
     :return: None
     """
     # Seed random with image URI to ensure that the same random number isn't created due to same system time
-    framework_version = re.search(r"[1-2](\.\d+)+", example_image_uri).group()
+    framework_version = re.search(r"\d+(\.\d+)+", example_image_uri).group()
     major_version = framework_version.split(".")[0]
-    random.seed(example_image_uri)
+    random.seed(f"{example_image_uri}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_tag = random.randint(1, 10000)
-    namespace = f"tf-multi-node-train-{'py2' if 'py2' in example_image_uri else 'py3'}-{unique_tag}"
+    namespace = f"tf{major_version}-multi-node-train-{'py2' if 'py2' in example_image_uri else 'py3'}-{unique_tag}"
     job_name = f"tf-resnet50-horovod-job-{unique_tag}"
 
     script_name = ("/deep-learning-models/models/resnet/tensorflow2/train_tf2_resnet.py" if major_version == "2" else
@@ -73,6 +74,7 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
     """
     KUBEFLOW_VERSION = "v0.5.1"
     pod_name = None
+    env = f"{namespace}-env"
     ctx = Context()
     github_handler = GitHubHandler("aws", "kubeflow")
     github_token = github_handler.get_auth_token()
@@ -88,6 +90,7 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
         ctx.run(f"ks init {app_name} --namespace {namespace}")
 
         with ctx.cd(app_name):
+            ctx.run(f"ks env add {env} --namespace {namespace}")
             # Check if the kubeflow registry exists and create. Registry will be available in each pod.
             registry_not_exist = ctx.run("ks registry list | grep kubeflow", warn=True)
 
@@ -100,10 +103,10 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
             # The latest mpi-operator docker image does not accept the gpus-per-node parameter
             # which is specified by the older spec file from v0.5.1.
             ctx.run("ks param set mpi-operator image mpioperator/mpi-operator:0.2.0")
-            ctx.run("ks apply default -c mpi-operator")
+            ctx.run(f"ks apply {env} -c mpi-operator")
             eks_utils.LOGGER.info(
-                "The mpi-operator package must be applied to default env before we can use mpiJob. "
-                "Check status before moving on."
+                f"The mpi-operator package must be applied to {env} env before we can use mpiJob. "
+                f"Check status before moving on."
             )
             ctx.run("kubectl get crd")
 
@@ -118,8 +121,8 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
             try:
                 # use `$ks show default` to see details.
                 ctx.run(f"kubectl get pods -n {namespace} -o wide")
-                eks_utils.LOGGER.info("Apply the generated manifest to the default env.")
-                ctx.run(f"ks apply default -c {job_name}")
+                eks_utils.LOGGER.info(f"Apply the generated manifest to the {env} env.")
+                ctx.run(f"ks apply {env} -c {job_name}")
 
                 eks_utils.LOGGER.info("Check pods")
                 ctx.run(f"kubectl get pods -n {namespace} -o wide")
@@ -135,9 +138,9 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
                 eks_utils.LOGGER.info(f"The Pods have been created and the name of the launcher pod is {pod_name}")
 
                 eks_utils.LOGGER.info(f"Wait for the {job_name} job to complete")
-                if eks_utils.is_eks_multinode_training_complete(ctx, namespace, pod_name, job_name):
+                if eks_utils.is_eks_multinode_training_complete(ctx, namespace, env, pod_name, job_name):
                     eks_utils.LOGGER.info(f"Wait for the {pod_name} pod to reach completion")
                     distributed_out = ctx.run(f"kubectl logs -n {namespace} -f {complete_pod_name}").stdout
                     eks_utils.LOGGER.info(distributed_out)
             finally:
-                eks_utils.eks_multinode_cleanup(ctx, pod_name, job_name, namespace)
+                eks_utils.eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env)
