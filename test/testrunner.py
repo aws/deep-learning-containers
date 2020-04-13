@@ -30,6 +30,7 @@ def generate_sagemaker_pytest_cmd(image):
     :param image: ECR url of image
     :return: <tuple> pytest command to be run, path where it should be executed, image tag
     """
+    reruns = 4
     region = os.getenv("AWS_REGION", "us-west-2")
     integration_path = os.path.join("integration", "sagemaker")
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
@@ -65,7 +66,7 @@ def generate_sagemaker_pytest_cmd(image):
 
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
     return (
-        f"pytest {integration_path} --region {region} {docker_base_arg} "
+        f"pytest --reruns {reruns} {integration_path} --region {region} {docker_base_arg} "
         f"{docker_base_name} --tag {tag} {aws_id_arg} {account_id} {instance_type_arg} {instance_type} "
         f"--junitxml {test_report}",
         path,
