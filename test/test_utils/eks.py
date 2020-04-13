@@ -513,6 +513,7 @@ def generate_mxnet_multinode_yaml_file(container_image, job_name, num_workers, n
             ]
         }
     }
-    Context.put(StringIO(yaml.dump(yaml_data, default_flow_style=False)), remote_yaml_file_path)
+    with open(remote_yaml_file_path, 'w') as yaml_file:
+        yaml.dump(yaml_data, yaml_file, default_flow_style=False)
 
     LOGGER.info("Uploaded generated yaml file to %s", remote_yaml_file_path)
