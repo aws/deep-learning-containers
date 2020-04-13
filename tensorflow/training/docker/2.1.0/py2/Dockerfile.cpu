@@ -101,22 +101,24 @@ RUN ${PIP} install --no-cache-dir -U \
     keras_preprocessing==1.1.0 \
     keras==2.3.1 \
     python-dateutil==2.8.1 \
-    pyYAML==5.2 \
+    pyYAML==5.3.1 \
     requests==2.22.0 \
     awscli \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
     "cryptography>=2.3" \
-    "sagemaker-tensorflow>=2.0,<2.1" \
+    "sagemaker-tensorflow>=2.1,<2.2" \
+    "sagemaker-tensorflow-training>2,<4" \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    "sagemaker-tensorflow-training>=3.0<4.0" \
-    werkzeug==0.15.5 \
-    psutil==5.4.8 \
  && ${PIP} install --no-cache-dir -U \
-    horovod==0.18.2 
+    horovod==0.18.2
+
+ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.1/license.txt -o /license.txt
 

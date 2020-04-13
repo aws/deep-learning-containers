@@ -127,24 +127,25 @@ RUN pip install --no-cache-dir -U \
     scipy==1.2.2 \
     scikit-learn==0.20.3 \
     pandas==0.24.2 \
-    Pillow==6.2.1 \
+    Pillow==7.0.0 \
     h5py==2.9.0 \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
     requests==2.22.0 \
     keras==2.3.1 \
-    smdebug==0.5.0.post0 \
-    sagemaker-experiments==0.1.3 \
+    smdebug==0.7.2 \
+    sagemaker==1.50.17 \
+    sagemaker-experiments==0.1.7 \
     mpi4py==3.0.2 \
     "cryptography>=2.3" \
     "sagemaker-tensorflow>=1.15,<1.16" \
+    "sagemaker-tensorflow-training>=2,<3" \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && pip install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
-    "sagemaker-tensorflow-training>=2.0<3.0" \
-    awscli \
-    werkzeug==0.15.5
+ && pip install --no-cache-dir -U \
+    awscli
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs \
@@ -156,6 +157,10 @@ RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs \
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
+
+ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 
