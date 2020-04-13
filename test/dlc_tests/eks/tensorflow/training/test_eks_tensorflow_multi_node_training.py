@@ -103,7 +103,7 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
             # The latest mpi-operator docker image does not accept the gpus-per-node parameter
             # which is specified by the older spec file from v0.5.1.
             ctx.run("ks param set mpi-operator image mpioperator/mpi-operator:0.2.0")
-            ctx.run(f"ks apply {env} -c mpi-operator")
+            ctx.run(f"ks apply {env} -c mpi-operator", hide=True)
             eks_utils.LOGGER.info(
                 f"The mpi-operator package must be applied to {env} env before we can use mpiJob. "
                 f"Check status before moving on."
@@ -122,7 +122,7 @@ def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_im
                 # use `$ks show default` to see details.
                 ctx.run(f"kubectl get pods -n {namespace} -o wide")
                 eks_utils.LOGGER.info(f"Apply the generated manifest to the {env} env.")
-                ctx.run(f"ks apply {env} -c {job_name}")
+                ctx.run(f"ks apply {env} -c {job_name}", hide=True)
 
                 eks_utils.LOGGER.info("Check pods")
                 ctx.run(f"kubectl get pods -n {namespace} -o wide")
