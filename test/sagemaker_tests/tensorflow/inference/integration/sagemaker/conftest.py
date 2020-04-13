@@ -15,6 +15,7 @@ import random
 import time
 
 import boto3
+from botocore.config import Config
 import pytest
 
 # these regions have some p2 and p3 instances, but not enough for automated testing
@@ -95,12 +96,12 @@ def boto_session(region):
 
 @pytest.fixture(scope='session')
 def sagemaker_client(boto_session):
-    return boto_session.client('sagemaker')
+    return boto_session.client('sagemaker', config=Config(retries={'max_attempts': 10}))
 
 
 @pytest.fixture(scope='session')
 def sagemaker_runtime_client(boto_session):
-    return boto_session.client('runtime.sagemaker')
+    return boto_session.client('runtime.sagemaker', config=Config(retries={'max_attempts': 10}))
 
 
 def unique_name_from_base(base, max_length=63):
