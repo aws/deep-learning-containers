@@ -309,8 +309,8 @@ def eks_multinode_cleanup(pod_name, job_name, namespace):
         LOGGER.debug(f"ks delete default -c {job_name}")
         run("ks delete default -c {}".format(job_name), warn=True)
 
-    LOGGER.debug(f"ks delete default")
-    run("ks delete default", warn=True)
+    # LOGGER.debug(f"ks delete default")
+    # run("ks delete default", warn=True)
     LOGGER.debug(f"kubectl delete namespace {namespace}")
     run("kubectl delete namespace {}".format(namespace), warn=True)
     
