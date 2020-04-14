@@ -15,8 +15,9 @@ import random
 import time
 
 import boto3
-from botocore.config import Config
 import pytest
+
+from botocore.config import Config
 
 # these regions have some p2 and p3 instances, but not enough for automated testing
 NO_P2_REGIONS = [
