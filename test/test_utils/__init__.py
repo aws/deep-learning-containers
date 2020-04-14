@@ -47,9 +47,12 @@ def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80", connec
     :return: <bool> True/False based on result of inference
     """
     conn_run = connection.run if connection is not None else run
-    run_out = conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg")
+
+    # Check if image already exists
+    run_out = conn_run("[ -f kitten.jpg ]", warn=True)
     if run_out.return_code != 0:
-        return False
+        conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg", hide=True)
+
     run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg", warn=True)
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
@@ -98,7 +101,11 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
     :return: <bool> True/False based on result of inference
     """
     conn_run = connection.run if connection is not None else run
-    conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True)
+    # Check if image already exists
+    run_out = conn_run("[ -f flower.jpg ]", warn=True)
+    if run_out.return_code != 0:
+        conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True)
+
     run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/pytorch-densenet -T flower.jpg", hide=True, warn=True)
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
@@ -109,7 +116,7 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
     return True
 
 
-@retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+@retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
 def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
