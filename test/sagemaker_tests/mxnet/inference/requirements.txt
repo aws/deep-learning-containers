@@ -4,8 +4,8 @@ tox
 flake8
 pytest
 pytest-cov
-pytest-xdist
 pytest-rerunfailures
+pytest-xdist
 mock
 sagemaker==1.23.0
 docker-compose

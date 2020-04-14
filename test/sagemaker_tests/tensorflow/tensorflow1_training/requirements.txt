@@ -9,6 +9,7 @@ tox
 flake8
 pytest
 pytest-cov
+pytest-rerunfailures
 pytest-xdist
 mock
 sagemaker==1.50.1

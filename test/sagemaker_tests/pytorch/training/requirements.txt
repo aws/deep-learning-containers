@@ -6,6 +6,7 @@ Flask==1.1.1
 mock==2.0.0
 pytest==4.4.0
 pytest-cov==2.7.1
+pytest-rerunfailures
 pytest-xdist==1.28.0
 PyYAML==5.3
 sagemaker==1.48.0
