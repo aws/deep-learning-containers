@@ -325,7 +325,6 @@ def is_service_running(selector_name, namespace="default"):
         raise ValueError("Service not running yet, try again")
 
 
-
 def run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path):
     """Run MXNet distributed training on EKS using MXNet Operator
     Args:
@@ -334,16 +333,15 @@ def run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml
 
     training_result = False
 
+    context = Context()
+
     # Namespaces will allow parallel runs on the same cluster. Create namespace if it doesnt exist.
-    does_namespace_exist = run("kubectl get namespace | grep {}".format(namespace),
-                               warn=True)
+    does_namespace_exist = context.run("kubectl get namespace | grep {}".format(namespace), warn=True)
     if not does_namespace_exist:
-        run("kubectl create namespace {}".format(namespace))
+        context.run("kubectl create namespace {}".format(namespace))
 
     # Create a new ksonnet app.
-    run("rm -rf {}".format(app_name))
-
-    context = Context()
+    context.run("rm -rf {}".format(app_name))
 
     #with hide('running'):
     #    _, github_token = utils.get_github_token()
