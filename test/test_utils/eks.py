@@ -359,26 +359,26 @@ def run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml
             #with hide('running'):
             #    _, github_token = utils.get_github_token()
             #    with shell_env(GITHUB_TOKEN=github_token):
-            run("ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{}/kubeflow".format(KUBEFLOW_VERSION),
+            context.run("ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{}/kubeflow".format(KUBEFLOW_VERSION),
                 hide=True)
-            run("ks pkg install kubeflow/mxnet-job@{}".format(KUBEFLOW_VERSION), hide=True)
+            context.run("ks pkg install kubeflow/mxnet-job@{}".format(KUBEFLOW_VERSION), hide=True)
 
-            run("ks generate mxnet-operator mxnet-operator", hide=True)
+            context.run("ks generate mxnet-operator mxnet-operator", hide=True)
 
             try:
                 # use `$ks show default` to see details.
-                run("ks apply default -c mxnet-operator")
+                context.run("ks apply default -c mxnet-operator")
                 # Delete old job with same name if exists
-                run("kubectl delete -f {}".format(remote_yaml_file_path), warn=True)
-                run("kubectl create -f {}".format(remote_yaml_file_path))
+                context.run("kubectl delete -f {}".format(remote_yaml_file_path), warn=True)
+                context.run("kubectl create -f {}".format(remote_yaml_file_path))
                 if is_mxnet_eks_multinode_training_complete(job_name, remote_yaml_file_path):
                     training_result = True
             except Exception as e:
                 raise Exception("something went wrong! Exception - {}".format(e))
             finally:
-                run("kubectl delete -f {}".format(remote_yaml_file_path), warn=True)
+                context.run("kubectl delete -f {}".format(remote_yaml_file_path), warn=True)
                 # If different versions of kubeflow used in the cluster, crd must be deleted.
-                run("kubectl delete crd mxjobs.kubeflow.org")
+                context.run("kubectl delete crd mxjobs.kubeflow.org")
                 eks_multinode_cleanup("", job_name, namespace)
 
     return training_result
