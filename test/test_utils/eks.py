@@ -348,7 +348,7 @@ def run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml
     #with hide('running'):
     #    _, github_token = utils.get_github_token()
     #    with shell_env(GITHUB_TOKEN=github_token):
-    run("ks init {}".format(app_name))
+    context.run("ks init {}".format(app_name))
 
     with context.cd(f"{app_name}"):
         context.run("ks env set default --namespace {}".format(namespace))
