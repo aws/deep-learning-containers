@@ -83,9 +83,6 @@ def run_sagemaker_pytest_cmd(image):
 
     :param image: ECR url
     """
-    if "tensorflow-inference" not in image:
-        LOGGER.info(f"Skipping tests for {image}")
-        return
     pytest_command, path, tag = generate_sagemaker_pytest_cmd(image)
 
     context = Context()
