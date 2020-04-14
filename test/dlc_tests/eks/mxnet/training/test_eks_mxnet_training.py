@@ -212,4 +212,4 @@ def test_eks_mxnet_multinode_training(mxnet_training, example):
                                        command, args, remote_yaml_file_path)
 
     training_result = eks_utils.run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path)
-    return training_result
+    assert training_result, "EKS multinode training failed"
