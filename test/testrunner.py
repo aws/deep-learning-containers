@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import logging
 
@@ -83,7 +84,7 @@ def run_sagemaker_pytest_cmd(image):
     :param image: ECR url
     """
     if "tensorflow-inference" not in image:
-        LOGGER.info(f"Treating test for {image} as successful.")
+        LOGGER.info(f"Skipping tests for {image}")
         return
     pytest_command, path, tag = generate_sagemaker_pytest_cmd(image)
 
@@ -141,7 +142,9 @@ def main():
         pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]
         sys.exit(pytest.main(pytest_cmd))
     elif test_type == "sagemaker":
-        run_sagemaker_tests(standard_images_list)
+        run_sagemaker_tests(
+            [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
+        )
     else:
         raise NotImplementedError("Tests only support sagemaker and sanity currently")
 
