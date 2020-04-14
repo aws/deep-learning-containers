@@ -269,7 +269,7 @@ def is_eks_cluster_active(eks_cluster_name):
         eks_cluster_name
     )
 
-    run_out = run(eksctl_check_cluster_command, warn_only=True)
+    run_out = run(eksctl_check_cluster_command, warn=True)
 
     if run_out.return_code == 0:
         cluster_info = json.loads(run_out.stdout)[0]
@@ -336,7 +336,7 @@ def run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml
 
     # Namespaces will allow parallel runs on the same cluster. Create namespace if it doesnt exist.
     does_namespace_exist = run("kubectl get namespace | grep {}".format(namespace),
-                               warn_only=True)
+                               warn=True)
     if not does_namespace_exist:
         run("kubectl create namespace {}".format(namespace))
 
@@ -354,7 +354,7 @@ def run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml
         context.run("ks env set default --namespace {}".format(namespace))
 
         # Check if the kubeflow registry exists and create. Registry will be available in each pod.
-        does_registry_exist = run("ks registry list | grep kubeflow", warn_only=True)
+        does_registry_exist = run("ks registry list | grep kubeflow", warn=True)
         if not does_registry_exist:
             #with hide('running'):
             #    _, github_token = utils.get_github_token()
@@ -368,14 +368,14 @@ def run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml
                 # use `$ks show default` to see details.
                 run("ks apply default -c mxnet-operator")
                 # Delete old job with same name if exists
-                run("kubectl delete -f {}".format(remote_yaml_file_path), warn_only=True)
+                run("kubectl delete -f {}".format(remote_yaml_file_path), warn=True)
                 run("kubectl create -f {}".format(remote_yaml_file_path))
                 if is_mxnet_eks_multinode_training_complete(job_name, remote_yaml_file_path):
                     training_result = True
             except Exception as e:
                 raise Exception("something went wrong! Exception - {}".format(e))
             finally:
-                run("kubectl delete -f {}".format(remote_yaml_file_path), warn_only=True)
+                run("kubectl delete -f {}".format(remote_yaml_file_path), warn=True)
                 # If different versions of kubeflow used in the cluster, crd must be deleted.
                 run("kubectl delete crd mxjobs.kubeflow.org")
                 eks_multinode_cleanup("", job_name, namespace)
@@ -416,7 +416,7 @@ def is_mxnet_eks_multinode_training_complete(job_name, remote_yaml_file_path):
             elif 'Running' in job_phase:
                 # Print logs generated
                 run("kubetail $(kubectl get pods | grep {} | cut -f 1 -d ' ' | paste -s -d, -) --follow "
-                    "false".format(job_name +"-worker"), warn_only=True)
+                    "false".format(job_name +"-worker"), warn=True)
                 raise ValueError("IN-PROGRESS: Job is running.")
             elif 'CleanUp' in job_phase or 'Failed' in job_phase:
                 LOGGER.info("Failed: The job failed to execute. Pods are getting terminated.")
@@ -436,12 +436,12 @@ def eks_multinode_cleanup(pod_name, job_name, namespace):
     # Operator specific cleanup
     if job_name == "openmpi-job":
         component,_ = pod_name.split("-master")
-        run("ks component rm {}".format(component), warn_only=True)
+        run("ks component rm {}".format(component), warn=True)
     else:
-        run("ks delete default -c {}".format(job_name), warn_only=True)
+        run("ks delete default -c {}".format(job_name), warn=True)
 
-    run("ks delete default", warn_only=True)
-    run("kubectl delete namespace {}".format(namespace), warn_only=True)
+    run("ks delete default", warn=True)
+    run("kubectl delete namespace {}".format(namespace), warn=True)
 
 
 def generate_mxnet_multinode_yaml_file(container_image, job_name, num_workers, num_servers, gpu_limit, command, args, remote_yaml_file_path):
