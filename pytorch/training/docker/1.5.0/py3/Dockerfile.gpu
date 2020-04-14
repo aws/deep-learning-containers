@@ -104,6 +104,7 @@ RUN conda install -c pytorch magma-cuda101==2.5.1 \
     Pillow==6.2.0 \
     h5py==2.9.0 \
     requests==2.22.0 \
+    libgcc \
  && conda clean -ya
 
 WORKDIR /opt/pytorch
@@ -133,7 +134,7 @@ RUN pip install \
 # Install Horovod
 RUN pip uninstall -y horovod \
  && ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-10.1 HOROVOD_WITHOUT_TENSORFLOW=1 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-10.1 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
 # Configure Open MPI and configure NCCL parameters
