@@ -7,7 +7,6 @@ import os
 import boto3
 
 from retrying import retry
-from invoke import run
 
 from test.test_utils import DEFAULT_REGION, get_mms_run_command, get_tensorflow_model_name
 from test.test_utils import ec2 as ec2_utils
@@ -27,7 +26,7 @@ ECS_MXNET_PYTORCH_INFERENCE_PORT_MAPPINGS = [
 ]
 
 ECS_INSTANCE_ROLE_ARN = "arn:aws:iam::669063966089:instance-profile/ecsInstanceRole"
-ECS_S3_TEST_BUCKET = "s3://dlcinfra-ecs-testscripts"
+ECS_INSTANCE_ROLE_NAME = "ecsInstanceRole"
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
 
@@ -485,7 +484,7 @@ def describe_ecs_task_exit_status(cluster_arn_or_name, task_arn, region=DEFAULT_
                 {
                     "container_arn": container['containerArn'],
                     "exit_code": container['exitCode'],
-                    "reason": container.get('reason', 'UnknownFailureReason')
+                    "reason": container.get('reason', f'UnknownFailureReason - see response: {container}')
                 }
             )
 
@@ -695,92 +694,6 @@ def build_ecs_training_command(s3_test_location, test_string):
     ]
 
 
-def upload_tests_for_ecs(testname_datetime_suffix):
-    """
-    Upload test-related artifacts to unique s3 location.
-    Allows each test to have a unique remote location for test scripts and files.
-    These uploaded files and folders are copied into a container running an ECS test.
-    :param testname_datetime_suffix: test name and datetime suffix that is unique to a test
-    :return: <bool> True if upload was successful, False if any failure during upload
-    """
-    s3_test_location = os.path.join(ECS_S3_TEST_BUCKET, testname_datetime_suffix)
-    run_out = run(f"aws s3 ls {s3_test_location}", warn=True)
-    if run_out.return_code == 0:
-        raise ECSTestArtifactCopyException(f"{s3_test_location} already exists. Skipping upload and failing the test.")
-    run(f"aws s3 cp --recursive container_tests/ {s3_test_location}/")
-    return s3_test_location
-
-
-def delete_uploaded_tests_for_ecs(s3_test_location):
-    """
-    Delete s3 bucket data related to current test after test is completed
-    :param s3_test_location: S3 URI for test artifacts to be removed
-    :return: <bool> True/False based on success/failure of removal
-    """
-    run(f"aws s3 rm --recursive {s3_test_location}")
-
-
-def ecs_inference_test_executor(
-    docker_image_uri,
-    framework,
-    job,
-    processor,
-    cluster_name,
-    cluster_arn,
-    datetime_suffix,
-    model_name,
-    num_cpus,
-    memory,
-    num_gpus,
-    test_args,
-):
-    """
-    Create a service in an existing cluster, run the test using the arguments passed in
-    *test_args and scales down and deletes the service
-    This is a helper function to run help run ECS inference tests. Cluster can be reused to run N
-    number of tests but each model will need a new service
-    :param docker_image_uri:
-    :param framework:
-    :param job:
-    :param processor:
-    :param cluster_name:
-    :param cluster_arn:
-    :param datetime_suffix:
-    :param model_name:
-    :param num_cpus:
-    :param memory:
-    :param num_gpus:
-    :param test_args:
-    :return: <bool> True if test passed else False
-    """
-    service_name = task_family = revision = None
-    try:
-        service_name, task_family, revision = setup_ecs_inference_service(
-            docker_image_uri,
-            framework,
-            job,
-            processor,
-            cluster_name,
-            cluster_arn,
-            datetime_suffix,
-            model_name,
-            num_cpus,
-            memory,
-            num_gpus,
-        )
-        if service_name is None:
-            return [False]
-        return_codes = []
-        for args in test_args:
-            test_function, test_function_arguments = args[0], args[1:]
-            return_codes.append(test_function(*test_function_arguments))
-        return return_codes
-    finally:
-        tear_down_ecs_inference_service(
-            cluster_arn, service_name, task_family, revision
-        )
-
-
 def ecs_training_test_executor(cluster_name, cluster_arn, training_command, image_uri, instance_id, num_gpus=None):
     """
     Function to run training task on ECS; Cleans up the resources after each execution
@@ -851,67 +764,62 @@ def ecs_training_test_executor(cluster_name, cluster_arn, training_command, imag
 
 
 def setup_ecs_inference_service(
-    docker_image_uri,
-    framework,
-    job,
-    processor,
-    cluster_name,
-    cluster_arn,
-    datetime_suffix,
-    model_name,
-    num_cpus,
-    memory,
-    num_gpus,
+        docker_image_uri, framework, cluster_arn, model_name, worker_instance_id, num_gpus=None, region=DEFAULT_REGION
 ):
     """
     Function to setup Inference service on ECS
     :param docker_image_uri:
     :param framework:
-    :param job:
-    :param processor:
-    :param cluster_name:
     :param cluster_arn:
-    :param datetime_suffix:
     :param model_name:
-    :param num_cpus:
-    :param memory:
+    :param worker_instance_id:
     :param num_gpus:
+    :param region:
     :return: <tuple> service_name, task_family, revision if all steps passed else Exception
         Cleans up the resources if any step fails
     """
+    datetime_suffix = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
+    processor = "gpu" if "gpu" in docker_image_uri else "eia" if "eia" in docker_image_uri else "cpu"
+    port_mappings = get_ecs_port_mappings(framework)
+    log_group_name = f"/ecs/{framework}-inference-{processor}"
+    num_cpus = ec2_utils.get_instance_num_cpus(worker_instance_id, region=region)
+    # We assume that about 80% of RAM is free on the instance, since we are not directly querying it to find out
+    # what the memory utilization is.
+    memory = int(ec2_utils.get_instance_memory(worker_instance_id, region=region) * 0.8)
+    cluster_name = get_ecs_cluster_name(cluster_arn, region=region)
+    # Below values here are just for sanity
+    arguments_dict = {
+        "family_name": cluster_name,
+        "image": docker_image_uri,
+        "log_group_name": log_group_name,
+        "log_stream_prefix": datetime_suffix,
+        "port_mappings": port_mappings,
+        "num_cpu": num_cpus,
+        "memory": memory,
+        "region": region
+    }
+
+    if processor == "gpu" and num_gpus:
+        arguments_dict["num_gpu"] = num_gpus
+    if framework == "tensorflow":
+        arguments_dict["environment"] = get_ecs_tensorflow_environment_variables(processor, model_name)
+        print(f"Added environment variables: {arguments_dict['environment']}")
+    elif framework in ["mxnet", "pytorch"]:
+        arguments_dict["container_command"] = [
+            get_mms_run_command(model_name, processor)
+        ]
     try:
-        port_mappings = get_ecs_port_mappings(framework)
-        log_group_name = "/ecs/{}-{}-{}".format(framework, job, processor)
-        # Below values here are just for sanity
-        arguments_dict = {
-            "family_name": cluster_name,
-            "image": docker_image_uri,
-            "log_group_name": log_group_name,
-            "log_stream_prefix": datetime_suffix,
-            "port_mappings": port_mappings,
-            "num_cpu": num_cpus,
-            "memory": memory,
-        }
-
-        if processor == "gpu" and num_gpus:
-            arguments_dict["num_gpu"] = num_gpus
-        if framework == "tensorflow":
-            arguments_dict["environment"] = get_ecs_tensorflow_environment_variables(processor, model_name)
-            print(f"Added environment variables: {arguments_dict['environment']}")
-        elif framework in ["mxnet", "pytorch"]:
-            arguments_dict["container_command"] = [
-                get_mms_run_command(model_name, processor)
-            ]
-
         task_family, revision = register_ecs_task_definition(**arguments_dict)
         print(f"Created Task definition - {task_family}:{revision}")
 
-        service_name = create_ecs_service(cluster_name, f"service-{cluster_name}", f"{task_family}:{revision}")
+        service_name = create_ecs_service(
+            cluster_name, f"service-{cluster_name}", f"{task_family}:{revision}", region=region
+        )
         print(
             f"Created ECS service - {service_name} with cloudwatch log group - {log_group_name} "
             f"log stream prefix - {datetime_suffix}/{cluster_name}"
         )
-        if check_running_task_for_ecs_service(cluster_name, service_name):
+        if check_running_task_for_ecs_service(cluster_name, service_name, region=region):
             print("Service status verified as running. Running inference ...")
         else:
             raise Exception(f"No task running in the service: {service_name}")

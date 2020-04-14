@@ -5,7 +5,6 @@ from invoke import run
 import pytest
 from retrying import retry
 
-
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
 # Constant to represent AMI Id used to spin up EC2 instances
@@ -16,6 +15,11 @@ ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
+# S3 Bucket to use to transfer tests into an EC2 instance
+TEST_TRANSFER_S3_BUCKET = "s3://dlinfra-tests-transfer-bucket"
+
+# Ubuntu ami home dir
+UBUNTU_HOME_DIR = "/home/ubuntu"
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
     command = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
@@ -34,17 +38,22 @@ def retry_if_result_is_false(result):
     wait_fixed=10000,
     retry_on_result=retry_if_result_is_false,
 )
-def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80"):
+def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80", connection=None):
     """
     Send request to container to test inference on kitten.jpg
     :param ip_address:
     :param port:
+    :connection: ec2_connection object to run the commands remotely over ssh
     :return: <bool> True/False based on result of inference
     """
-    run_out = run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg")
+    conn_run = connection.run if connection is not None else run
+
+    # Check if image already exists
+    run_out = conn_run("[ -f kitten.jpg ]", warn=True)
     if run_out.return_code != 0:
-        return False
-    run_out = run(f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg", warn=True)
+        conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg", hide=True)
+
+    run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg", warn=True)
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
@@ -55,8 +64,16 @@ def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80"):
 
 
 @retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
-def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80"):
-    run_out = run(
+def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connection=None):
+    """
+        Send request to container to test inference for predicting sentiments.
+        :param ip_address:
+        :param port:
+        :connection: ec2_connection object to run the commands remotely over ssh
+        :return: <bool> True/False based on result of inference
+    """
+    conn_run = connection.run if connection is not None else run
+    run_out = conn_run(
         (f"curl -X POST http://{ip_address}:{port}/predictions/bert_sst/predict -F "
          "'data=[\"Positive sentiment\", \"Negative sentiment\"]'"),
         warn=True
@@ -75,15 +92,21 @@ def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80"):
     wait_fixed=10000,
     retry_on_result=retry_if_result_is_false,
 )
-def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80"):
+def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connection=None):
     """
     Send request to container to test inference on flower.jpg
-    :param ip_address:
-    :param port:
+    :param ip_address: str
+    :param port: str
+    :param connection: obj
     :return: <bool> True/False based on result of inference
     """
-    run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg")
-    run_out = run(f"curl -X POST http://{ip_address}:{port}/predictions/pytorch-densenet -T flower.jpg", warn=True)
+    conn_run = connection.run if connection is not None else run
+    # Check if image already exists
+    run_out = conn_run("[ -f flower.jpg ]", warn=True)
+    if run_out.return_code != 0:
+        conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True)
+
+    run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/pytorch-densenet -T flower.jpg", hide=True, warn=True)
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
@@ -93,13 +116,14 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80"):
     return True
 
 
-@retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+@retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
 def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
     :param model_name:
     :param ip_address:
     :param port:
+    :connection: ec2_connection object to run the commands remotely over ssh
     :return:
     """
     inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"
@@ -113,6 +137,19 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
         return False
 
     return True
+
+
+def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None):
+    """
+    Method to run tensorflow inference on MNIST model using gRPC protocol
+    :param script_file_path:
+    :param ip_address:
+    :param port:
+    :param connection:
+    :return:
+    """
+    conn_run = connection.run if connection is not None else run
+    conn_run(f"python {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
 def get_mms_run_command(model_names, processor="cpu"):
@@ -171,3 +208,51 @@ def get_tensorflow_model_name(processor, model_name):
         return tensorflow_models[model_name][processor]
     else:
         raise Exception(f"No entry found for model {model_name} in dictionary")
+
+
+def generate_ssh_keypair(ec2_client, key_name):
+    key_pair = ec2_client.create_key_pair(KeyName=key_name)
+    pwd = run("pwd", hide=True).stdout.strip("\n")
+    key_filename = os.path.join(pwd, f"{key_name}.pem")
+    run(f"echo '{key_pair['KeyMaterial']}' > {key_filename}")
+    run(f"chmod 400 {key_filename}")
+    return key_filename
+
+
+def destroy_ssh_keypair(ec2_client, key_filename):
+    key_name = os.path.basename(key_filename).strip(".pem")
+    ec2_client.delete_key_pair(KeyName=key_name)
+    run(f"rm -f {key_filename}")
+
+
+def upload_tests_to_s3(testname_datetime_suffix):
+    """
+    Upload test-related artifacts to unique s3 location.
+    Allows each test to have a unique remote location for test scripts and files.
+    These uploaded files and folders are copied into a container running an ECS test.
+    :param testname_datetime_suffix: test name and datetime suffix that is unique to a test
+    :return: <bool> True if upload was successful, False if any failure during upload
+    """
+    s3_test_location = os.path.join(TEST_TRANSFER_S3_BUCKET, testname_datetime_suffix)
+    run_out = run(f"aws s3 ls {s3_test_location}", warn=True)
+    if run_out.return_code == 0:
+        raise FileExistsError(f"{s3_test_location} already exists. Skipping upload and failing the test.")
+
+    path = run("pwd", hide=True).stdout.strip("\n")
+    if "dlc_tests" not in path:
+        EnvironmentError("Test is being run from wrong path")
+    while os.path.basename(path) != "dlc_tests":
+        path = os.path.dirname(path)
+    container_tests_path = os.path.join(path, "container_tests")
+
+    run(f"aws s3 cp --recursive {container_tests_path}/ {s3_test_location}/")
+    return s3_test_location
+
+
+def delete_uploaded_tests_from_s3(s3_test_location):
+    """
+    Delete s3 bucket data related to current test after test is completed
+    :param s3_test_location: S3 URI for test artifacts to be removed
+    :return: <bool> True/False based on success/failure of removal
+    """
+    run(f"aws s3 rm --recursive {s3_test_location}")

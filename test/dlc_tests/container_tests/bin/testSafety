@@ -8,6 +8,6 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/log_testSafety
 
-yes | pip install safety || exit 1
+yes | pip install -qq safety || exit 1
 safety check --full-report && exit 0  # print out all vulnerabilities even if they are meant to be ignored
 safety check --bare ${IGNORE_LIST[*]} &> /dev/null || exit 1  # exit with err code 1 if not all vulnerabilities handled

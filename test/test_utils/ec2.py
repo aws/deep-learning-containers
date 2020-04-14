@@ -1,16 +1,16 @@
+import os
+
 import boto3
 from retrying import retry
 
-from test.test_utils import DEFAULT_REGION
+from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
+
+
+EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 
 def launch_instance(
-    ami_id,
-    instance_type,
-    region=DEFAULT_REGION,
-    user_data=None,
-    iam_instance_profile_arn=None,
-    instance_name="",
+    ami_id, instance_type, region=DEFAULT_REGION, user_data=None, iam_instance_profile_arn=None, instance_name="",
 ):
     """
     Launch an instance
@@ -33,10 +33,7 @@ def launch_instance(
         "MaxCount": 1,
         "MinCount": 1,
         "TagSpecifications": [
-            {
-                "ResourceType": "instance",
-                "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}],
-            },
+            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}],},
         ],
     }
     if user_data:
@@ -73,7 +70,7 @@ def get_instance_from_id(instance_id, region=DEFAULT_REGION):
     return instance["Reservations"][0]["Instances"][0]
 
 
-@retry(stop_max_attempt_number=8, wait_fixed=120000)
+@retry(stop_max_attempt_number=16, wait_fixed=60000)
 def get_public_ip(instance_id, region=DEFAULT_REGION):
     """
     Get Public IP of instance using instance ID
@@ -87,6 +84,19 @@ def get_public_ip(instance_id, region=DEFAULT_REGION):
     return instance["PublicIpAddress"]
 
 
+@retry(stop_max_attempt_number=16, wait_fixed=60000)
+def get_instance_user(instance_id, region=DEFAULT_REGION):
+    """
+    Get "ubuntu" or "ec2-user" based on AMI used to launch instance
+    :param instance_id: Instance ID to be queried
+    :param region: Region where query will be performed
+    :return: <str> user name
+    """
+    instance = get_instance_from_id(instance_id, region)
+    user = "ubuntu" if instance["ImageId"] in [UBUNTU_16_BASE_DLAMI] else "ec2-user"
+    return user
+
+
 def get_instance_state(instance_id, region=DEFAULT_REGION):
     """
     Get state of instance using instance ID
@@ -98,7 +108,7 @@ def get_instance_state(instance_id, region=DEFAULT_REGION):
     return instance["State"]["Name"]
 
 
-@retry(stop_max_attempt_number=8, wait_fixed=120000)
+@retry(stop_max_attempt_number=16, wait_fixed=60000)
 def check_instance_state(instance_id, state="running", region=DEFAULT_REGION):
     """
     Compares the instance state with the state argument.
@@ -250,3 +260,18 @@ def get_instance_num_gpus(instance_id, region=DEFAULT_REGION):
     """
     instance_info = get_instance_details(instance_id, region=region)
     return sum(gpu_type["Count"] for gpu_type in instance_info["GpuInfo"]["Gpus"])
+
+
+def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
+    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+
+    # Make sure we are logged into ECR so we can pull the image
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+
+    # Run training command
+    connection.run(
+        f"{docker_cmd} run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
+        f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}",
+        hide=True,
+    )

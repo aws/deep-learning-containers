@@ -15,21 +15,35 @@ language governing permissions and limitations under the License.
 import os
 import re
 import json
+import logging
+import sys
 
 import constants
 from github import GitHubHandler
+
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
 class JobParameters:
     image_types = []
     device_types = []
     py_versions = []
+    image_run_test_types = {}
 
     @staticmethod
     def build_for_all_images():
         JobParameters.image_types = constants.ALL
         JobParameters.device_types = constants.ALL
         JobParameters.py_versions = constants.ALL
+
+    @staticmethod
+    def add_image_types(value):
+        if JobParameters.image_types != constants.ALL:
+            JobParameters.image_types.append(value)
 
     @staticmethod
     def build_for_all_device_types_py_versions():
@@ -57,6 +71,29 @@ def get_pr_modified_files(pr_number):
     return files
 
 
+def update_image_run_test_types(image_build_string, test_type):
+    """
+    Map the test_types with image_tags or job_type values, we use this mapping in fetch_dlc_images_for_test_jobs
+    to append images for each test job
+    :param image_build_string: str (image_name or training or inference or all)
+    :param test_type: str (all or ec2 or ecs or eks or sagemaker)
+    :return:
+    """
+    if image_build_string in JobParameters.image_run_test_types.keys():
+        test = JobParameters.image_run_test_types.get(image_build_string)
+        # If image_build_string is already present
+        # we will only append the test_type if it doesn't have all tests.
+        if constants.ALL not in test and test_type != constants.ALL:
+            test.append(test_type)
+            JobParameters.image_run_test_types[image_build_string] = test
+        # if test_type is "all" then we override existing value with that.
+        elif test_type == constants.ALL:
+            JobParameters.image_run_test_types[image_build_string] = [test_type]
+    # Assigning the test_type to image_build_string for the first time
+    else:
+        JobParameters.image_run_test_types[image_build_string] = [test_type]
+
+
 def parse_modified_docker_files_info(files, framework, pattern=""):
     """
     Parse all the files in PR to find docker file related changes for any framework
@@ -79,10 +116,15 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
         image_type = dockerfile[1]
         py_version = dockerfile[4]
         device_type = dockerfile[-1].split(".")[-1]
+        LOGGER.info(f"Building dockerfile: {dockerfile}")
         # Use class static variables to avoid passing, returning the varibles from all functions
         JobParameters.device_types.append(device_type)
         JobParameters.image_types.append(image_type)
         JobParameters.py_versions.append(py_version)
+        # create a map for the image_build_string and run_test_types on it
+        # this map will be used to update the DLC_IMAGES for pr test jobs
+        run_tests_key = f"{image_type}_{device_type}_{py_version}"
+        update_image_run_test_types(run_tests_key, constants.ALL)
 
 
 def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
@@ -94,11 +136,11 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
     :return: None
     """
     rule = re.findall(rf"{pattern}", files)
-    if not JobParameters.do_build_all_images():
-        for buildspec in rule:
-            buildspec_framework = buildspec.split("/")[0]
-            if buildspec_framework == framework:
-                JobParameters.build_for_all_images()
+    for buildspec in rule:
+        buildspec_framework = buildspec.split("/")[0]
+        if buildspec_framework == framework:
+            JobParameters.build_for_all_images()
+            update_image_run_test_types(constants.ALL, constants.ALL)
 
 
 # Rule 3: If any file in the build code changes, build all images
@@ -110,9 +152,9 @@ def parse_modifed_root_files_info(files, pattern=""):
     :return: None
     """
     rule = re.findall(rf"{pattern}", files)
-    if not JobParameters.do_build_all_images():
-        if rule:
-            JobParameters.build_for_all_images()
+    if rule:
+        # JobParameters.build_for_all_images()
+        update_image_run_test_types(constants.ALL, constants.ALL)
 
 
 def parse_modified_sagemaker_test_files(files, framework, pattern=""):
@@ -127,25 +169,33 @@ def parse_modified_sagemaker_test_files(files, framework, pattern=""):
     """
     rule = re.findall(rf"{pattern}", files)
     for test_file in rule:
-        test_folder = test_file.split("/")[1]
+        test_dirs = test_file.split("/")
+        test_folder = test_dirs[0]
         if test_folder == "sagemaker_tests":
-            framework_changed = test_file.split("/")[2]
+            framework_changed = test_dirs[1]
             # The below code looks for file changes in /test/sagemaker_tests/(mxnet|pytorch|tensorflow) directory
             if framework_changed == framework:
-                job_name = test_file.split("/")[3]
+                job_name = test_dirs[2]
                 # The training folder structure for tensorflow is tensorflow1_training(1.x), tensorflow2_training(2.x)
-                # so we are stripping the tensrflow1 from the name
+                # so we are stripping the tensorflow1 from the name
                 if framework_changed == "tensorflow" and "training" in job_name:
                     job_name = "training"
                 if job_name in constants.IMAGE_TYPES:
-                    JobParameters.image_types.append(job_name)
-                    JobParameters.build_for_all_device_types_py_versions()
+                    # JobParameters.add_image_types(job_name)
+                    # JobParameters.build_for_all_device_types_py_versions()
+                    update_image_run_test_types(job_name, constants.SAGEMAKER_TESTS)
+                # If file changed is under /test/sagemaker_tests/(mxnet|pytorch|tensorflow)
+                # but not in training/inference dirs
                 else:
-                    JobParameters.build_for_all_images()
+                    # JobParameters.build_for_all_images()
+                    update_image_run_test_types(
+                        constants.ALL, constants.SAGEMAKER_TESTS
+                    )
                     break
             # If file changed is under /test/sagemaker_tests but not in (mxnet|pytorch|tensorflow) dirs
             elif framework_changed not in constants.FRAMEWORKS:
-                JobParameters.build_for_all_images()
+                # JobParameters.build_for_all_images()
+                update_image_run_test_types(constants.ALL, constants.SAGEMAKER_TESTS)
                 break
 
 
@@ -161,28 +211,39 @@ def parse_modified_dlc_test_files_info(files, framework, pattern=""):
     """
     rule = re.findall(rf"{pattern}", files)
     # JobParameters variables are not set with constants.ALL
-    if not JobParameters.do_build_all_images():
-        for test_file in rule:
-            test_folder = test_file.split("/")[1]
-            if test_folder == "dlc_tests":
-                test_name = test_file.split("/")[2]
-                # The below code looks for file changes in /test/dlc_tests/(ecs|eks|ec2) directory
-                if test_name in ["ecs", "eks", "ec2"]:
-                    framework_changed = test_file.split("/")[3]
-                    if framework_changed == framework:
-                        job_name = test_file.split("/")[4]
-                        if job_name in constants.IMAGE_TYPES:
-                            JobParameters.image_types.append(job_name)
-                            JobParameters.build_for_all_device_types_py_versions()
-                        # If file changed is under /test/sagemaker_tests/(ecs|eks|ec2)
-                        # but not in (mxnet|pytorch|tensorflow) dirs
-                        else:
-                            JobParameters.build_for_all_images()
-                            break
-                    # If file changed is under /test/dlc_tests but not in (ecs|eks|ec2) dirs
-                    elif framework_changed not in constants.FRAMEWORKS:
-                        JobParameters.build_for_all_images()
+    for test_file in rule:
+        test_dirs = test_file.split("/")
+        test_folder = test_dirs[0]
+        if test_folder == "dlc_tests":
+            test_name = test_dirs[1]
+            # The below code looks for file changes in /test/dlc_tests/(ecs|eks|ec2) directory
+            if test_name in ["ecs", "eks", "ec2"]:
+                framework_changed = test_dirs[2]
+                if framework_changed == framework:
+                    job_name = test_dirs[3]
+                    if job_name in constants.IMAGE_TYPES:
+                        # JobParameters.add_image_types(job_name)
+                        # JobParameters.build_for_all_device_types_py_versions()
+                        update_image_run_test_types(job_name, test_name)
+                    # If file changed is under /test/dlc_tests/(ecs|eks|ec2)
+                    # but not in (inference|training) dirs
+                    else:
+                        # JobParameters.build_for_all_images()
+                        update_image_run_test_types(constants.ALL, test_name)
                         break
+                # If file changed is under /test/dlc_tests/(ecs|eks|ec2) dirs init and conftest files
+                elif framework_changed not in constants.FRAMEWORKS:
+                    # JobParameters.build_for_all_images()
+                    update_image_run_test_types(constants.ALL, test_name)
+                    break
+            # If file changed is under /test/dlc_tests/ dir sanity, container_tests dirs
+            # and init, conftest files
+            else:
+                # JobParameters.build_for_all_images()
+                update_image_run_test_types(constants.ALL, constants.EC2_TESTS)
+                update_image_run_test_types(constants.ALL, constants.ECS_TESTS)
+                update_image_run_test_types(constants.ALL, constants.EKS_TESTS)
+                break
 
 
 def pr_build_setup(pr_number, framework):
@@ -203,14 +264,12 @@ def pr_build_setup(pr_number, framework):
     # if there are no changes in the files then functions return same lists
     parse_modified_docker_files_info(files, framework, pattern="\S+Dockerfile\S+")
 
-    # TODO we have re enable this logic to parse test files once test migration is done
-    # parse_modified_sagemaker_test_files(
-    #     files, framework, pattern="\S+sagemaker_tests\/\S+"
-    # )
+    parse_modified_sagemaker_test_files(
+        files, framework, pattern="sagemaker_tests\/\S+"
+    )
 
     # The below functions are only run if all JobParameters variables are not set with constants.ALL
-    # TODO we have re enable this logic to parse test files once test migration is done
-    # parse_modified_dlc_test_files_info(files, framework, pattern="\S+dlc_tests\/\S+")
+    parse_modified_dlc_test_files_info(files, framework, pattern="dlc_tests\/\S+")
 
     # The below code currently overides the device_types, image_types, py_versions with constants.ALL
     # when there is a change in any the below files
@@ -218,13 +277,12 @@ def pr_build_setup(pr_number, framework):
 
     parse_modifed_root_files_info(files, pattern="src\/\S+")
 
-    # TODO we have re enable this logic after test migration is done
-    # parse_modifed_root_files_info(
-    #     files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
-    # )
+    # Todo remove test_utils to enable the builds and test triggers for test_utils file changes
+    parse_modifed_root_files_info(
+        files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests|test_utils))\S+)"
+    )
 
-    # TODO we have re enable this logic after test migration is done
-    # parse_modifed_root_files_info(files, pattern="testspec\.yml")
+    parse_modifed_root_files_info(files, pattern="testspec\.yml")
 
     return (
         JobParameters.device_types,
@@ -275,7 +333,60 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
         for image_type in to_build["image_types"]:
             for py_version in to_build["py_versions"]:
                 env_variable = f"{framework.upper()}_{device_type.upper()}_{image_type.upper()}_{py_version.upper()}"
+                # TODO enable the below line when you want to trigger new builds and remove print
                 os.environ[env_variable] = "true"
+
+
+def fetch_dlc_images_for_test_jobs(images):
+    """
+    use the JobParamters.run_test_types values to pass on image ecr urls to each test type.
+    :param images: list
+    :return: dictionary
+    """
+    DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
+
+    for docker_image in images:
+        # TODO change this to docker_image.build_status == constants.SUCCESS when new builds are enabled
+        if (docker_image.build_status == constants.SUCCESS or
+                docker_image.build_status == constants.NOT_BUILT):
+            # Run sanity tests on the all images built
+            DLC_IMAGES["sanity"].append(docker_image.ecr_url)
+            image_job_type = docker_image.info.get("image_type")
+            image_device_type = docker_image.info.get("device_type")
+            image_python_version = docker_image.info.get("python_version")
+            image_tag = f"{image_job_type}_{image_device_type}_{image_python_version}"
+            # when image_run_test_types has key all values can be (all , ecs, eks, ec2, sagemaker)
+            if constants.ALL in JobParameters.image_run_test_types.keys():
+                run_tests = JobParameters.image_run_test_types.get(constants.ALL)
+                run_tests = (
+                    constants.ALL_TESTS if constants.ALL in run_tests else run_tests
+                )
+                for test in run_tests:
+                    DLC_IMAGES[test].append(docker_image.ecr_url)
+            # when key is training or inference values can be  (ecs, eks, ec2, sagemaker)
+            if image_job_type in JobParameters.image_run_test_types.keys():
+                run_tests = JobParameters.image_run_test_types.get(image_job_type)
+                for test in run_tests:
+                    DLC_IMAGES[test].append(docker_image.ecr_url)
+            # when key is image_tag (training-cpu-py3) values can be (ecs, eks, ec2, sagemaker)
+            if image_tag in JobParameters.image_run_test_types.keys():
+                run_tests = JobParameters.image_run_test_types.get(image_tag)
+                run_tests = (
+                    constants.ALL_TESTS if constants.ALL in run_tests else run_tests
+                )
+                for test in run_tests:
+                    DLC_IMAGES[test].append(docker_image.ecr_url)
+
+    for test_type in DLC_IMAGES.keys():
+        test_images = DLC_IMAGES[test_type]
+        if test_images:
+            DLC_IMAGES[test_type] = list(set(test_images))
+    return DLC_IMAGES
+
+
+def write_to_json_file(file_name, content):
+    with open(file_name, "w") as fp:
+        json.dump(content, fp)
 
 
 def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
@@ -290,21 +401,19 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     :param kwargs: other environment variables to set
     """
     test_envs = []
-    ecr_urls = []
 
-    for docker_image in images:
-        # TODO we have change this logic after to append urls only for new builds after test migration is done
-        ecr_urls.append(docker_image.ecr_url)
+    test_images_dict = fetch_dlc_images_for_test_jobs(images)
 
-    images_arg = " ".join(ecr_urls)
-    test_envs.append({"name": images_env, "value": images_arg, "type": "PLAINTEXT"})
+    # dumping the test_images to dict that can be used in src/start_testbuilds.py
+    write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, test_images_dict)
+
+    LOGGER.debug(f"Utils Test Type Images: {test_images_dict}")
 
     if kwargs:
         for key, value in kwargs.items():
             test_envs.append({"name": key, "value": value, "type": "PLAINTEXT"})
 
-    with open(constants.TEST_ENV, "w") as ef:
-        json.dump(test_envs, ef)
+    write_to_json_file(constants.TEST_ENV_PATH, test_envs)
 
 
 def get_codebuild_project_name():

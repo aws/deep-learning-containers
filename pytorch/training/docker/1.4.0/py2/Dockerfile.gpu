@@ -10,11 +10,11 @@ ARG CUBLAS_VERSION=10.2.1.243-1_amd64
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
-ENV PYTHONDONTWRITEBYTECODE=1 
-ENV PYTHONUNBUFFERED=1 
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib" 
-ENV PYTHONIOENCODING=UTF-8 
-ENV LANG=C.UTF-8 
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+ENV PYTHONIOENCODING=UTF-8
+ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 ENV HOROVOD_VERSION=0.16.4
 ENV PATH="$PATH:/home/.openmpi/bin"
@@ -57,7 +57,7 @@ RUN apt-get update \
     cuda-nvrtc-dev-10-1
 
 # CUBLAS compatible with CUDA 10.1 needs to be downloaded and installed.
-# The apt-get package name has changed and using the new name (libcublas10) does 
+# The apt-get package name has changed and using the new name (libcublas10) does
 # not give control over the version that is changed. Version being used here is
 # 10.2.1.243 compliant with CUDA version 10.1.243.
 # CUBLAS versions: https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/
@@ -80,12 +80,13 @@ RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI
  && rm -rf openmpi-$OPEN_MPI_VERSION
 
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
- && curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh  \
+ && curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
  && /opt/conda/bin/conda install -y anaconda \
     python=$PYTHON_VERSION \
+    jupyter_client==5.3.4 \
     numpy==1.16.4 \
     ipython==5.8.0 \
     mkl==2019.4 \
@@ -97,7 +98,6 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
 
 RUN conda install -c pytorch magma-cuda101==2.5.1 \
  && conda install -c conda-forge \
-    awscli \
     opencv==4.0.1 \
  && conda install -y \
     scikit-learn==0.20.3 \
@@ -106,6 +106,7 @@ RUN conda install -c pytorch magma-cuda101==2.5.1 \
     h5py==2.9.0 \
     requests==2.22.0 \
  && pip install -U \
+    awscli \
     scipy==1.2.2 \
     sphinxcontrib-websupport==1.1.2 \
     "spyder<4.0" \
@@ -117,7 +118,7 @@ RUN conda install -c pytorch magma-cuda101==2.5.1 \
 # custom versions from an S3 bucket. This will need to be removed in the future
 RUN /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
-    sagemaker-pytorch-training \
+    "sagemaker-pytorch-training<2" \
  && pip uninstall torch -y \
  && pip install -U --no-cache-dir \
     https://pytorch-aws.s3.amazonaws.com/pytorch-1.4.0/py2/gpu/torch-1.4.0-cp27-cp27mu-manylinux1_x86_64.whl \
