@@ -208,7 +208,7 @@ def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_ya
                     ctx.run(f"kubectl create -f {remote_yaml_file_path} -n {namespace}")
                     training_result = is_pytorch_eks_multinode_training_complete(job_name, namespace)
                     if training_result:
-                        run_out = run(f"kubectl logs {job_name}-master-0", warn=True).stdout
+                        run_out = run(f"kubectl logs {job_name}-master-0 -n {namespace}", warn=True).stdout
                         if "Test accuracy" in run_out:
                             training_result = True
                         else:
