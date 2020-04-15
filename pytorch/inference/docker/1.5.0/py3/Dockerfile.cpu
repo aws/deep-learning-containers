@@ -73,6 +73,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     scipy==1.2.2 \
     smdebug==0.7.1 \
     sagemaker==1.50.17 \
+    sagemaker-containers==2.8.6 \
     sagemaker-experiments==0.1.7 \
     "sagemaker-pytorch-training<2" \
  && pip install --no-cache-dir -U $PYTORCH_VERSION \
