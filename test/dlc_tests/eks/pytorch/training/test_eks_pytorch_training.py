@@ -214,12 +214,7 @@ def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_ya
                         else:
                             eks_utils.LOGGER.info("**** training output ****")
                             eks_utils.LOGGER.debug(run_out)
-                    assert (
-                        training_result, f"Training failed"
-                    )
-                except Exception as e:
-                    LOGGER.debug(f"something went wrong! Exception - {e}")
-                    raise Exception(f"something went wrong! Exception - {e}")
+                    assert training_result, f"Training failed"
                 finally:
                     eks_utils.eks_multinode_cleanup(ctx, "", job_name, namespace, env)
 
