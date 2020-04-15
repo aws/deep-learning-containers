@@ -5,7 +5,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON_VERSION=3.6.6
-ARG PYTORCH_VERSION=https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/cpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl
+ARG PYTORCH_VERSION=https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/inference/cpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl
 ARG TORCHVISION_VERSION=https://torchvision-build.s3.amazonaws.com/1.4.0/py3/cpu/torchvision-0.5.0%2Bcpu-cp36-cp36m-linux_x86_64.whl
 ARG MMS_VERSION=1.0.8
 
@@ -93,7 +93,7 @@ RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.0/license.txt -o /license.txt
 
 RUN conda install -y -c conda-forge pyyaml==5.3.1
-RUN pip install  sagemaker-containers==2.8.6 pillow==7.1.0 awscli==1.18.35
+RUN pip install  sagemaker-containers==2.8.6 pillow==7.1.0 awscli==1.18.35 botocore==1.15.39
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
