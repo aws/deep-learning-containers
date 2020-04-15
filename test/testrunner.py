@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import logging
 
@@ -30,6 +31,7 @@ def generate_sagemaker_pytest_cmd(image):
     :param image: ECR url of image
     :return: <tuple> pytest command to be run, path where it should be executed, image tag
     """
+    reruns = 4
     region = os.getenv("AWS_REGION", "us-west-2")
     integration_path = os.path.join("integration", "sagemaker")
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
@@ -56,7 +58,7 @@ def generate_sagemaker_pytest_cmd(image):
 
             # NOTE: We are relying on tag structure to get TF major version. If tagging changes, this will break.
             tf_major_version = tag.split("-")[-1].split(".")[0]
-            path = os.path.join("sagemaker_tests", framework, f"{framework}{tf_major_version}_training")
+            path = os.path.join(os.path.dirname(path), f"{framework}{tf_major_version}_training")
         else:
             aws_id_arg = "--registry"
             docker_base_arg = "--repo"
@@ -65,7 +67,7 @@ def generate_sagemaker_pytest_cmd(image):
 
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
     return (
-        f"pytest {integration_path} --region {region} {docker_base_arg} "
+        f"pytest --reruns {reruns} {integration_path} --region {region} {docker_base_arg} "
         f"{docker_base_name} --tag {tag} {aws_id_arg} {account_id} {instance_type_arg} {instance_type} "
         f"--junitxml {test_report}",
         path,
@@ -81,7 +83,6 @@ def run_sagemaker_pytest_cmd(image):
 
     :param image: ECR url
     """
-
     pytest_command, path, tag = generate_sagemaker_pytest_cmd(image)
 
     context = Context()
@@ -96,8 +97,10 @@ def run_sagemaker_tests(images):
     """
     Function to set up multiprocessing for SageMaker tests
 
-    :param images:
+    :param images: <list> List of all images to be used in SageMaker tests
     """
+    if not images:
+        return
     pool_number = len(images)
     with Pool(pool_number) as p:
         p.map(run_sagemaker_pytest_cmd, images)
@@ -115,6 +118,8 @@ def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
     dlc_images = os.getenv("DLC_IMAGES")
+    all_image_list = dlc_images.split(" ")
+    standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
 
     if test_type in ("sanity", "ecs", "ec2", "eks"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
@@ -124,7 +129,7 @@ def main():
 
         # Pull images for necessary tests
         if test_type == "sanity":
-            pull_dlc_images(dlc_images.split(" "))
+            pull_dlc_images(all_image_list)
         if test_type == "eks":
             for framework in ["tensorflow", "mxnet", "pytorch"]:
                 if framework in dlc_images:
@@ -134,7 +139,9 @@ def main():
         pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]
         sys.exit(pytest.main(pytest_cmd))
     elif test_type == "sagemaker":
-        run_sagemaker_tests(dlc_images.split(" "))
+        run_sagemaker_tests(
+            [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
+        )
     else:
         raise NotImplementedError("Tests only support sagemaker and sanity currently")
 

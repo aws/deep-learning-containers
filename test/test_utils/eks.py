@@ -5,10 +5,13 @@ Helper functions for EKS Integration Tests
 import os
 import sys
 import json
+import base64
 import logging
 
 from retrying import retry
 from invoke import run
+
+DEFAULT_REGION = "us-west-2"
 
 # Path till directory test/
 ROOT_DIR = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
@@ -23,6 +26,13 @@ SINGLE_NODE_TRAINING_TEMPLATE_PATH = os.path.join(
     "eks_manifest_templates",
     "training",
     "single_node_training.yaml",
+)
+
+SINGLE_NODE_INFERENCE_TEMPLATE_PATH = os.path.join(
+    os.sep,
+    DLC_TESTS_PREFIX,
+    "eks",
+    "eks_manisfest_templates"
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -45,6 +55,29 @@ EKS_AMI_ID = {"cpu": "ami-0d3998d69ebe9b214", "gpu": "ami-0484012ada3522476"}
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
 PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"
 
+def get_single_node_training_template_path():
+
+    return os.path.join(
+        os.sep,
+        DLC_TESTS_PREFIX,
+        "eks",
+        "eks_manifest_templates",
+        "training",
+        "single_node_training.yaml",
+    )
+
+def get_single_node_inference_template_path(framework, processor):
+
+    return os.path.join(
+        os.sep,
+        DLC_TESTS_PREFIX,
+        "eks",
+        "eks_manifest_templates",
+        framework,
+        "inference",
+        f"single_node_{processor}_inference.yaml",
+    )
+
 
 def retry_if_value_error(exception):
     """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
@@ -52,7 +85,7 @@ def retry_if_value_error(exception):
 
 
 @retry(
-    stop_max_attempt_number=240,
+    stop_max_attempt_number=360,
     wait_fixed=10000,
     retry_on_exception=retry_if_value_error,
 )
@@ -233,7 +266,7 @@ def is_eks_cluster_active(eks_cluster_name):
         eks_cluster_name
     )
 
-    run_out = run(eksctl_check_cluster_command, warn_only=True)
+    run_out = run(eksctl_check_cluster_command, warn=True)
 
     if run_out.return_code == 0:
         cluster_info = json.loads(run_out.stdout)[0]
@@ -251,12 +284,161 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     Args:
         eks_cluster_name, region: str
     """
-    eksctl_write_kubeconfig_command = """eksctl utils write-kubeconfig \
-                                         --name {} --region {}""".format(
-        eks_cluster_name, region
-    )
+    eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --name {eks_cluster_name} --region {region}"
     run(eksctl_write_kubeconfig_command)
 
     # run(f"aws eks --region us-west-2 update-kubeconfig --name {eks_cluster_name} --kubeconfig /root/.kube/config --role-arn arn:aws:iam::669063966089:role/nikhilsk-eks-test-role")
 
     run("cat /root/.kube/config", warn=True)
+
+
+def eks_forward_port_between_host_and_container(selector_name, host_port, container_port, namespace="default"):
+    """Uses kubectl port-forward command to forward a port from the container pods to the host.
+    Note: The 'host' in this case is the gateway host, and not the worker hosts.
+    Args:
+        namespace, selector_name: str
+        host_port, container_port: int
+    """
+
+    # Terminate other port-forwards
+    # run("lsof -ni | awk '{print $2}' |  grep -v PID | uniq | xargs kill -9", warn=True)
+
+    run("nohup kubectl port-forward -n {0} `kubectl get pods -n {0} --selector=app={1} -o "
+        "jsonpath='{{.items[0].metadata.name}}'` {2}:{3} > /dev/null 2>&1 &".format(namespace, selector_name, host_port, container_port))
+
+
+@retry(stop_max_attempt_number=20, wait_fixed=30000, retry_on_exception=retry_if_value_error)
+def is_service_running(selector_name, namespace="default"):
+    """Check if the service pod is running
+    Args:
+        namespace, selector_name: str
+    """
+    run_out = run("kubectl get pods -n {} --selector=app={} -o jsonpath='{{.items[0].status.phase}}' ".format(namespace, selector_name), warn=True)
+
+    if run_out.stdout == "Running":
+        return True
+    else:
+        raise ValueError("Service not running yet, try again")
+
+
+def create_eks_cluster_nodegroup(
+        eks_cluster_name, processor_type, num_nodes, instance_type, ssh_public_key_name, region=DEFAULT_REGION
+):
+    """
+    Function to create and attach a nodegroup to an existing EKS cluster.
+    :param eks_cluster_name: Cluster name of the form PR_EKS_CLUSTER_NAME_TEMPLATE
+    :param processor_type: cpu/gpu
+    :param num_nodes: number of nodes to create in nodegroup
+    :param instance_type: instance type to use for nodegroup instances
+    :param ssh_public_key_name:
+    :param region: Region where EKS cluster is located
+    :return: None
+    """
+    eksctl_create_nodegroup_command = (
+        f"eksctl create nodegroup "
+        f"--cluster {eks_cluster_name} "
+        f"--node-ami {EKS_AMI_ID.get(processor_type)} "
+        f"--nodes {num_nodes} "
+        f"--node-type={instance_type} "
+        f"--timeout=40m "
+        f"--ssh-access "
+        f"--ssh-public-key {ssh_public_key_name} "
+        f"--region {region}"
+    )
+
+    run(eksctl_create_nodegroup_command)
+
+    LOGGER.info("EKS cluster nodegroup created successfully, with the following parameters\n"
+                f"cluster_name: {eks_cluster_name}\n"
+                f"ami-id: {EKS_AMI_ID[processor_type]}\n"
+                f"num_nodes: {num_nodes}\n"
+                f"instance_type: {instance_type}\n"
+                f"ssh_public_key: {ssh_public_key_name}")
+
+
+def eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env):
+    """
+    Function to cleanup resources created by EKS
+    Use namespace as default if you do not create one.
+    :param ctx:
+    :param pod_name:
+    :param job_name:
+    :param namespace:
+    :param env:
+    :return:
+    """
+    # Operator specific cleanup
+    if job_name == "openmpi-job":
+        component, _ = pod_name.split("-master")
+        ctx.run(f"ks component rm {component}", warn=True)
+    else:
+        ctx.run(f"ks delete {env} -c {job_name}", warn=True)
+
+    ctx.run(f"ks delete {env}", warn=True)
+    ctx.run(f"kubectl delete namespace {namespace}", warn=True)
+
+
+def eks_multinode_get_logs(ctx, namespace, pod_name):
+    """
+    Function to get logs for a pod in the specified namespace.
+    :param ctx:
+    :param namespace:
+    :param pod_name:
+    :return:
+    """
+    return ctx.run(f"kubectl logs -n {namespace} -f {pod_name}").stdout
+
+
+@retry(stop_max_attempt_number=120, wait_fixed=10000, retry_on_exception=retry_if_value_error)
+def is_mpijob_launcher_pod_ready(ctx, namespace, job_name):
+    """Check if the MpiJob Launcher Pod is Ready
+    Args:
+        ctx: Context
+        namespace: str
+        job_name: str
+    """
+
+    pod_name = ctx.run(
+        f"kubectl get pods -n {namespace} -l mpi_job_name={job_name},mpi_role_type=launcher -o name"
+    ).stdout.strip("\n")
+    if pod_name:
+        return pod_name
+    else:
+        raise ValueError("Launcher pod is not ready yet, try again.")
+
+
+@retry(stop_max_attempt_number=40, wait_fixed=60000, retry_on_exception=retry_if_value_error)
+def is_eks_multinode_training_complete(ctx, namespace, env, pod_name, job_name):
+    """Function to check if the pod status has reached 'Completion' for multinode training.
+    A separate method is required because kubectl commands for logs and status are different with namespaces.
+    Args:
+        namespace, pod_name, job_name: str
+    """
+
+    run_out = ctx.run(f"kubectl get pod -n {namespace} {pod_name} -o json")
+    pod_info = json.loads(run_out.stdout)
+
+    if 'containerStatuses' in pod_info['status']:
+        container_status = pod_info['status']['containerStatuses'][0]
+        LOGGER.info(f"Container Status: {container_status}")
+        if container_status['name'] == job_name:
+            if "terminated" in container_status['state']:
+                if container_status['state']['terminated']['reason'] == "Completed":
+                    LOGGER.info("SUCCESS: The container terminated.")
+                    return True
+                elif container_status['state']['terminated']['reason'] == "Error":
+                    LOGGER.error(f"ERROR: The container run threw an error and terminated. "
+                                 f"kubectl logs: {eks_multinode_get_logs(ctx, namespace, pod_name)}")
+                    eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env)
+                    raise AttributeError("Container Error!")
+            elif 'waiting' in container_status['state'] and \
+                    container_status['state']['waiting']['reason'] == "CrashLoopBackOff":
+                LOGGER.error(f"ERROR: The container run threw an error in waiting state. "
+                             f"kubectl logs: {eks_multinode_get_logs(ctx, namespace, pod_name)}")
+                eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env)
+                raise AttributeError("Error: CrashLoopBackOff!")
+            elif 'waiting' in container_status['state'] or 'running' in container_status['state']:
+                LOGGER.info("IN-PROGRESS: Container is either Creating or Running. Waiting to complete...")
+                raise ValueError("IN-PROGRESS: Retry.")
+
+    return False

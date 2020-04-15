@@ -18,6 +18,16 @@ CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 # S3 Bucket to use to transfer tests into an EC2 instance
 TEST_TRANSFER_S3_BUCKET = "s3://dlinfra-tests-transfer-bucket"
 
+# Ubuntu ami home dir
+UBUNTU_HOME_DIR = "/home/ubuntu"
+
+# Reason string for skipping tests in PR context
+SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test will be run in nightly/release pipeline."
+
+
+def is_pr_context():
+    return os.getenv("BUILD_CONTEXT") == "PR"
+
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
     command = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
@@ -45,9 +55,12 @@ def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80", connec
     :return: <bool> True/False based on result of inference
     """
     conn_run = connection.run if connection is not None else run
-    run_out = conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg")
+
+    # Check if image already exists
+    run_out = conn_run("[ -f kitten.jpg ]", warn=True)
     if run_out.return_code != 0:
-        return False
+        conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg", hide=True)
+
     run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg", warn=True)
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
@@ -96,7 +109,11 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
     :return: <bool> True/False based on result of inference
     """
     conn_run = connection.run if connection is not None else run
-    conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True)
+    # Check if image already exists
+    run_out = conn_run("[ -f flower.jpg ]", warn=True)
+    if run_out.return_code != 0:
+        conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True)
+
     run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/pytorch-densenet -T flower.jpg", hide=True, warn=True)
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
@@ -107,13 +124,14 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
     return True
 
 
-@retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+@retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
 def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
     :param model_name:
     :param ip_address:
     :param port:
+    :connection: ec2_connection object to run the commands remotely over ssh
     :return:
     """
     inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"
@@ -127,6 +145,19 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
         return False
 
     return True
+
+
+def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None):
+    """
+    Method to run tensorflow inference on MNIST model using gRPC protocol
+    :param script_file_path:
+    :param ip_address:
+    :param port:
+    :param connection:
+    :return:
+    """
+    conn_run = connection.run if connection is not None else run
+    conn_run(f"python {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
 def get_mms_run_command(model_names, processor="cpu"):

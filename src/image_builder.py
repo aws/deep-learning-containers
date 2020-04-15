@@ -27,6 +27,21 @@ from buildspec import Buildspec
 from output import OutputFormatter
 
 
+def _find_image_object(images_list, image_name):
+    """
+    Find and return an image object from images_list with a name that matches image_name
+    :param images_list: <list> List of <DockerImage> objects
+    :param image_name: <str> Name of image as per buildspec
+    :return: <DockerImage> Object with image_name as "name" attribute
+    """
+    ret_image_object = None
+    for image in images_list:
+        if image.name == image_name:
+            ret_image_object = image
+            break
+    return ret_image_object
+
+
 # TODO: Abstract away to ImageBuilder class
 def image_builder(buildspec):
     FORMATTER = OutputFormatter(constants.PADDING)
@@ -54,6 +69,10 @@ def image_builder(buildspec):
             if build_context == "PR"
             else image_config["tag"]
         )
+        base_image_uri = None
+        if image_config.get("base_image_name") is not None:
+            base_image_object = _find_image_object(IMAGES, image_config["base_image_name"])
+            base_image_uri = base_image_object.ecr_url
 
         ARTIFACTS.update(
             {
@@ -81,6 +100,7 @@ def image_builder(buildspec):
             "python_version": str(image_config["python_version"]),
             "image_type": str(image_config["image_type"]),
             "image_size_baseline": int(image_config["image_size_baseline"]),
+            "base_image_uri": base_image_uri
         }
 
         image_object = DockerImage(
@@ -102,9 +122,21 @@ def image_builder(buildspec):
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
     # to it is executed concurrently in a separate thread.
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        for image in IMAGES:
+        # Standard images must be built before example images
+        # Example images will use standard images as base
+        standard_images = [image for image in IMAGES if "example" not in image.name.lower()]
+        example_images = [image for image in IMAGES if "example" in image.name.lower()]
+
+        for image in standard_images:
             THREADS[image.name] = executor.submit(image.build)
 
+        # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
+        FORMATTER.progress(THREADS)
+
+        for image in example_images:
+            THREADS[image.name] = executor.submit(image.build)
+
+        # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
         FORMATTER.progress(THREADS)
 
         FORMATTER.title("Build Logs")
