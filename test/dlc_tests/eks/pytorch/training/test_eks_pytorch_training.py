@@ -127,7 +127,7 @@ def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
            :param pytorch_training: the ECR URI
        """
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
-    random.seed(f"{pytorch_training}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}")
+    random.seed(f"{pytorch_training}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 6000)
 
     namespace = f"pytorch-multi-node-training-{unique_id}"
