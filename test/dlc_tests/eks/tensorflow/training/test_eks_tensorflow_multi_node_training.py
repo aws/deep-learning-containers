@@ -17,7 +17,7 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 # Test only runs in region us-west-2, on instance type p3.16xlarge, on PR_EKS_CLUSTER_NAME_TEMPLATE cluster
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
-def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example):
+def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example_only):
     eks_cluster_size = 3
     ec2_instance_type = "p3.16xlarge"
     cluster_name = eks_utils.PR_EKS_CLUSTER_NAME_TEMPLATE.format("tensorflow")
@@ -84,7 +84,6 @@ def _run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_i
     ctx = Context()
     github_handler = GitHubHandler("aws", "kubeflow")
     github_token = github_handler.get_auth_token()
-    os.environ["GITHUB_TOKEN"] = github_token
 
     ctx.run(f"kubectl create namespace {namespace}")
 
@@ -93,7 +92,7 @@ def _run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_i
 
     with ctx.cd(path_to_ksonnet_app):
         ctx.run(f"rm -rf {app_name}")
-        ctx.run(f"ks init {app_name} --namespace {namespace}")
+        ctx.run(f"ks init {app_name} --namespace {namespace}", env={"GITHUB_TOKEN": github_token})
 
         with ctx.cd(app_name):
             ctx.run(f"ks env add {env} --namespace {namespace}")
@@ -101,9 +100,12 @@ def _run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_i
             registry_not_exist = ctx.run("ks registry list | grep kubeflow", warn=True)
 
             if registry_not_exist.return_code:
-                ctx.run(f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{KUBEFLOW_VERSION}/kubeflow")
-                ctx.run(f"ks pkg install kubeflow/common@{KUBEFLOW_VERSION}")
-                ctx.run(f"ks pkg install kubeflow/mpi-job@{KUBEFLOW_VERSION}")
+                ctx.run(
+                    f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{KUBEFLOW_VERSION}/kubeflow",
+                    env={"GITHUB_TOKEN": github_token}
+                )
+                ctx.run(f"ks pkg install kubeflow/common@{KUBEFLOW_VERSION}", env={"GITHUB_TOKEN": github_token})
+                ctx.run(f"ks pkg install kubeflow/mpi-job@{KUBEFLOW_VERSION}", env={"GITHUB_TOKEN": github_token})
 
             try:
                 ctx.run("ks generate mpi-operator mpi-operator")
