@@ -108,7 +108,8 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.4.0/license.txt
 
 # fix safety issues
-RUN pip install psutil==5.6.7
+RUN pip install psutil==5.6.7 \
+                Pillow==7.1.0
 
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]

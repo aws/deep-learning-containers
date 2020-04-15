@@ -107,6 +107,9 @@ RUN conda install -c pytorch magma-cuda101==2.5.1 \
     libgcc \
  && conda clean -ya
 
+RUN pip install psutil==5.6.7 \
+                Pillow==7.1.0
+
 WORKDIR /opt/pytorch
 
 # Copy workaround script for incorrect hostname
