@@ -374,6 +374,8 @@ def eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env):
     else:
         ctx.run(f"ks delete {env} -c {job_name} -n {namespace}", warn=True)
 
+    if "pytorch" not in namespace:
+        ctx.run(f"ks delete {env}", warn=True)
     ctx.run(f"kubectl delete namespace {namespace}", warn=True)
 
 

@@ -186,7 +186,6 @@ def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_ya
         # Create a new ksonnet app.
         github_handler = GitHubHandler("aws", "kubeflow")
         github_token = github_handler.get_auth_token()
-        os.environ['GITHUB_TOKEN'] = github_token
         ctx.run(f"ks init {app_name} --namespace {namespace}")
 
         with ctx.cd(app_name):
@@ -195,8 +194,14 @@ def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_ya
             # Check if the kubeflow registry exists and create. Registry will be available in each pod.
             does_registry_exist = ctx.run("ks registry list | grep kubeflow", warn=True)
             if not does_registry_exist:
-                ctx.run(f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{KUBEFLOW_VERSION}/kubeflow")
-                ctx.run(f"ks pkg install kubeflow/pytorch-job@{KUBEFLOW_VERSION}")
+                ctx.run(
+                    f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{KUBEFLOW_VERSION}/kubeflow",
+                    env={"GITHUB_TOKEN": github_token}
+                )
+                ctx.run(
+                    f"ks pkg install kubeflow/pytorch-job@{KUBEFLOW_VERSION}",
+                    env={"GITHUB_TOKEN": github_token}
+                )
                 ctx.run(f"ks generate pytorch-operator pytorch-operator")
                 try:
                     # use `$ks show default` to see details.
