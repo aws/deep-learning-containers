@@ -2,6 +2,7 @@ FROM ubuntu:16.04
 
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON_VERSION=3.6.6
 ARG PYTORCH_VERSION=https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/cpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl
@@ -30,7 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openjdk-8-jdk-headless \
     vim \
     wget \
-    zlib1g-dev 
+    zlib1g-dev
 
 RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
@@ -50,6 +51,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
 
 RUN conda install -c \
     conda-forge \
+    awscli==1.18.23 \
     opencv==4.0.1 \
  && conda install -y \
     scikit-learn==0.21.2 \
@@ -57,14 +59,11 @@ RUN conda install -c \
     h5py==2.9.0 \
     requests==2.22.0 \
  && conda clean -ya \
+ && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install mxnet-model-server==$MMS_VERSION \
-    sagemaker-pytorch-inference \
-    psutil==5.6.7 \
-    Pillow==7.1.0 \
-    pyyaml==5.3.1
+ && pip install mxnet-model-server==$MMS_VERSION
 
-# Uninstall torch and torchvision and install the custom versions from an S3 bucket
+ # Uninstall torch and torchvision and install the custom versions from an S3 bucket
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -sf /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
@@ -73,6 +72,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     scipy==1.2.2 \
     smdebug==0.7.1 \
     sagemaker==1.50.17 \
+    sagemaker-containers==2.8.6 \
     sagemaker-experiments==0.1.7 \
     "sagemaker-pytorch-training<2" \
  && pip install --no-cache-dir -U $PYTORCH_VERSION \
@@ -88,7 +88,12 @@ COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.4.0/license.txt -o /license.txt
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
+
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.0/license.txt -o /license.txt
+
+RUN conda install -y -c conda-forge pyyaml==5.3.1
+RUN pip install  sagemaker-containers==2.8.6 pillow==7.1.0 awscli==1.18.35
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
