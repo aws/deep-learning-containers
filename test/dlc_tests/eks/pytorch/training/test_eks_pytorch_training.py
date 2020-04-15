@@ -209,12 +209,12 @@ def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_ya
                     training_result = is_pytorch_eks_multinode_training_complete(job_name, namespace)
                     if training_result:
                         run_out = run(f"kubectl logs {job_name}-master-0 -n {namespace}", warn=True).stdout
-                        if "Test accuracy" in run_out:
+                        if "accuracy" in run_out:
                             training_result = True
                         else:
                             eks_utils.LOGGER.info("**** training output ****")
                             eks_utils.LOGGER.debug(run_out)
-                    assert training_result, f"Training failed"
+                    assert training_result, f"Training for eks pytorch multinode failed"
                 finally:
                     eks_utils.eks_multinode_cleanup(ctx, "", job_name, namespace, env)
 
