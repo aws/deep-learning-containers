@@ -80,7 +80,7 @@ RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI
  && rm -rf openmpi-$OPEN_MPI_VERSION
 
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
- && curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+ && curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh  \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
@@ -153,6 +153,10 @@ RUN apt-get install -y --no-install-recommends openssh-client openssh-server \
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.4.0/license.txt
+
+# fix safety issues
+RUN conda install -y -c conda-forge pyyaml==5.3.1
+RUN pip install pillow==6.2.2 urllib3==1.25.8 bleach==3.1.4
 
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
