@@ -5,7 +5,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON_VERSION=3.6.6
-ARG PYTORCH_VERSION=https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/cpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl
+ARG PYTORCH_VERSION=https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/inference/cpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl
 ARG TORCHVISION_VERSION=https://torchvision-build.s3.amazonaws.com/1.4.0/py3/cpu/torchvision-0.5.0%2Bcpu-cp36-cp36m-linux_x86_64.whl
 ARG MMS_VERSION=1.0.8
 
