@@ -1,16 +1,22 @@
-from datetime import datetime
 import os
 import random
 import re
 
+from datetime import datetime
+
+import pytest
+
 from invoke.context import Context
 
-from src.github import GitHubHandler
 import test.test_utils.ec2 as ec2_utils
 import test.test_utils.eks as eks_utils
 
+from src.github import GitHubHandler
+from test.test_utils import is_pr_context, SKIP_PR_REASON
+
 
 # Test only runs in region us-west-2, on instance type p3.16xlarge, on PR_EKS_CLUSTER_NAME_TEMPLATE cluster
+@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example):
     eks_cluster_size = 3
     ec2_instance_type = "p3.16xlarge"
@@ -20,10 +26,10 @@ def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example):
 
     eks_gpus_per_worker = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)
 
-    run_eks_tensorflow_multinode_training_resnet50_mpijob(tensorflow_training, eks_cluster_size, eks_gpus_per_worker)
+    _run_eks_tensorflow_multinode_training_resnet50_mpijob(tensorflow_training, eks_cluster_size, eks_gpus_per_worker)
 
 
-def run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, cluster_size, eks_gpus_per_worker):
+def _run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, cluster_size, eks_gpus_per_worker):
     """
     Run Tensorflow distributed training on EKS using horovod docker images with synthetic dataset
     :param example_image_uri:
@@ -51,14 +57,14 @@ def run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, clu
     path_to_ksonnet_app = os.path.join(home_dir, f"tensorflow_multi_node_eks_test-{unique_tag}")
     app_name = f"kubeflow-tf-hvd-mpijob-{unique_tag}"
 
-    run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, example_image_uri, job_name,
-                                                  command_to_run, args_to_pass, path_to_ksonnet_app,
-                                                  cluster_size, eks_gpus_per_worker)
+    _run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, example_image_uri, job_name,
+                                                   command_to_run, args_to_pass, path_to_ksonnet_app,
+                                                   cluster_size, eks_gpus_per_worker)
 
 
-def run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_image, job_name,
-                                                  command_to_run, args_to_pass, path_to_ksonnet_app,
-                                                  cluster_size, eks_gpus_per_worker):
+def _run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_image, job_name,
+                                                   command_to_run, args_to_pass, path_to_ksonnet_app,
+                                                   cluster_size, eks_gpus_per_worker):
     """
     Run Tensorflow distributed training on EKS using horovod docker images using MPIJob
     :param namespace:
