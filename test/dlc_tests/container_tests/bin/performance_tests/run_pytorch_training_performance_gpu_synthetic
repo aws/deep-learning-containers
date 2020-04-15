@@ -1,0 +1,32 @@
+#!/bin/bash
+
+PYTHON_VERSION=$(python -c 'import sys; print(sys.version_info[0])' | tr -d "'")
+if [ "$PYTHON_VERSION" -eq 2 ]
+then
+  exit 0
+fi
+HOME_DIR=/test/benchmark
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs/gpu
+LOG_FILE=synthetic_results.txt
+
+mkdir -p ${HOME_DIR}
+mkdir -p ${BIN_DIR}
+mkdir -p ${LOG_DIR}
+
+# https://quip-amazon.com/tSIiAkIT3bMF/Asimov-PyTorch-DLC-performance-run-Results-and-Instructions
+set -e
+cd ${HOME_DIR}
+git clone https://github.com/HewlettPackard/dlcookbook-dlbs.git ./dlbs && cd ./dlbs && source ./scripts/environment.sh && cd ..
+git clone https://www.github.com/nvidia/apex && cd apex && pip install -q -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ && cd ..
+git clone https://github.com/YYStreet/dlcookbook-dlbs
+export OMP_NUM_THREADS=8
+python -m torch.distributed.launch --nproc_per_node=8 dlcookbook-dlbs/python/pytorch_benchmarks/benchmarks.py --model resnet50 --batch_size=64 --device gpu --cudnn_fastest --dist_backend=nccl  2>&1 | tee ${LOG_DIR}/${LOG_FILE}
+echo Benchmark Results: >&2
+echo PyTorch py"${PYTHON_VERSION}" gpu synthetic>&2
+tail -3 ${LOG_DIR}/${LOG_FILE} >&2 # Dsiplay only the results to console
+set +e
+
+rm -rf ${HOME_DIR}/artifacts/tensorflow/benchmarks
+
+exit 0
