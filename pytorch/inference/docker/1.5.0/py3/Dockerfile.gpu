@@ -65,7 +65,6 @@ RUN conda install -c \
     pytorch magma-cuda101==2.5.1 \
  && conda install -c \
     conda-forge \
-    awscli==1.18.23 \
     opencv==4.0.1 \
  && conda install -y \
     scikit-learn==0.21.2 \
@@ -84,7 +83,6 @@ RUN pip install \
     sagemaker==1.50.17 \
     sagemaker-experiments==0.1.7 \
     --no-cache-dir fastai==1.0.59 \
-    awscli \
     scipy==1.2.2 \
  && pip install --no-cache-dir -U  $PYTORCH_VERSION \
  && pip uninstall -y torchvision \
@@ -104,7 +102,7 @@ RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.0/license.txt -o /license.txt
 
 RUN conda install -y -c conda-forge pyyaml==5.3.1
-RUN pip install  sagemaker-containers==2.8.6 pillow==7.1.0 awscli==1.18.35
+RUN pip install  sagemaker-containers==2.8.6 pillow==7.1.0 awscli
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
