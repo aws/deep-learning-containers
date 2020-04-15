@@ -7,11 +7,11 @@ if [ $# -lt 1 ]; then
 fi
 
 FRAMEWORK=$1
-
 # declare -A only works with bash 4 and above, and creates an "associate array" in bash
 declare -A ZCC_TEST_NAME=( ["mxnet"]="mxnet_gluon_integration_test.py" \
                            ["pytorch"]="pytorch_integration_tests.py" \
-                           ["tensorflow"]="tensorflow_integration_tests.py" )
+                           ["tensorflow"]="tensorflow_integration_tests.py" \
+                           ["tensorflow2"]="tensorflow2_integration_tests.py")
 
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
@@ -35,9 +35,15 @@ cp -r tests mock/
 
 echo "Installing pre-requisites."
 pip install pytest
+pip install tensorflow-datasets
 
 echo "Running framework tests."
-pytest mock/tests/${FRAMEWORK} --ignore=mock/tests/mxnet/test_training_end.py  2>&1 
+
+if [ $FRAMEWORK = "tensorflow" ]; then
+    timeout 1800s pytest mock/tests/${FRAMEWORK} -k "not test_mnist_s3 and not test_mnist_s3_multi_save_configs" --ignore=mock/tests/mxnet/test_training_end.py  2>&1
+else
+    timeout 1800s pytest mock/tests/${FRAMEWORK} --ignore=mock/tests/mxnet/test_training_end.py  2>&1
+fi
 
 if [ "$?" -eq "0" ]
 then
@@ -50,6 +56,7 @@ fi
 echo "Setting up SMDebug environment."
 echo "{\"LocalPath\": \"newlogsRunTest1/test_hook_from_json_config\"}" > /tmp/test_hook_from_json_config.json
 export SMDEBUG_CONFIG_FILE_PATH=/tmp/test_hook_from_json_config.json
+export PYTHONPATH=$(pwd)/mock
 
 if [ ! ${ZCC_TEST_NAME[$FRAMEWORK]} ]; then
     echo "$FRAMEWORK is not a valid entry in list of frameworks"
@@ -57,13 +64,13 @@ if [ ! ${ZCC_TEST_NAME[$FRAMEWORK]} ]; then
 fi
 
 echo "Running ZCC tests."
-timeout 360s python mock/tests/zero_code_change/${ZCC_TEST_NAME[$FRAMEWORK]} 2>&1
+timeout 1800s python mock/tests/zero_code_change/${ZCC_TEST_NAME[$FRAMEWORK]}
 
 if [ "$?" -eq "0" ]
 then
-    echo "SMDebug framework tests succeeded."
+    echo "SMDebug ZCC tests succeeded."
 else
-    echo "SMDebug framework tests Failed."
+    echo "SMDebug ZCC tests Failed."
     exit 1
 fi
 

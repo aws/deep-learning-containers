@@ -5,9 +5,12 @@ import pytest
 from test.test_utils import CONTAINER_TESTS_PREFIX
 
 
+SMDEBUG_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
+
+
 @pytest.mark.parametrize("ec2_instance_type", ["p3.8xlarge"], indirect=True)
 def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
-    test_script = get_correct_testscript(training)
+    test_script = SMDEBUG_SCRIPT
     framework = get_framework_from_image_uri(training)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(
@@ -22,7 +25,7 @@ def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
 
 @pytest.mark.parametrize("ec2_instance_type", ["c5.9xlarge"], indirect=True)
 def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
-    test_script = get_correct_testscript(training)
+    test_script = SMDEBUG_SCRIPT
     framework = get_framework_from_image_uri(training)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(
@@ -35,17 +38,11 @@ def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
     )
 
 
-def get_correct_testscript(image_uri):
-    if "tensorflow" in image_uri:
-        if "-1." in image_uri:
-            return os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebugTF1")
-        return os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebugTF2")
-    return os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
-
-
 def get_framework_from_image_uri(image_uri):
     frameworks = ("tensorflow", "mxnet", "pytorch")
     for framework in frameworks:
         if framework in image_uri:
+            if framework == "tensorflow" and "-2." in image_uri:
+                return "tensorflow2"
             return framework
     raise RuntimeError(f"Could not find any framework {frameworks} in {image_uri}")
