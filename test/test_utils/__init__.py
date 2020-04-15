@@ -21,6 +21,14 @@ TEST_TRANSFER_S3_BUCKET = "s3://dlinfra-tests-transfer-bucket"
 # Ubuntu ami home dir
 UBUNTU_HOME_DIR = "/home/ubuntu"
 
+# Reason string for skipping tests in PR context
+SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test will be run in nightly/release pipeline."
+
+
+def is_pr_context():
+    return os.getenv("BUILD_CONTEXT") == "PR"
+
+
 def run_subprocess_cmd(cmd, failure="Command failed"):
     command = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
     if command.returncode:

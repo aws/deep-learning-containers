@@ -20,7 +20,7 @@ from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 from six.moves.urllib.parse import urlparse
 
-from test.sagemaker_tests import is_pr_context, SKIP_PR_REASON
+from test.test_utils import is_pr_context, SKIP_PR_REASON
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from .timeout import timeout
 
