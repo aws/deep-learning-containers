@@ -193,7 +193,7 @@ def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
         run("kubectl delete pods {}".format(pod_name))
 
 
-def test_eks_mxnet_multinode_training(mxnet_training, example):
+def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     """Run MXNet distributed training on EKS using docker images with MNIST dataset"""
     namespace = "mxnet-multi-node-training"
     app_name = "eks-mxnet-mnist-app"
