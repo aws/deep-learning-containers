@@ -1,4 +1,5 @@
 import os
+import re
 
 import pytest
 
@@ -44,7 +45,7 @@ def get_framework_from_image_uri(image_uri):
     frameworks = ("tensorflow", "mxnet", "pytorch")
     for framework in frameworks:
         if framework in image_uri:
-            if framework == "tensorflow" and "-2." in image_uri:
+            if framework == "tensorflow" and re.search(r'-2.[0-9]', image_uri):
                 return "tensorflow2"
             return framework
     raise RuntimeError(f"Could not find any framework {frameworks} in {image_uri}")
