@@ -141,6 +141,11 @@ RUN pip uninstall -y horovod \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-10.1 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
+# Install Nvidia Apex
+RUN git clone https://github.com/NVIDIA/apex.git \
+ && cd apex \
+ && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+
 # Configure Open MPI and configure NCCL parameters
 RUN mv /home/.openmpi/bin/mpirun /home/.openmpi/bin/mpirun.real \
  && echo '#!/bin/bash' > /home/.openmpi/bin/mpirun \
