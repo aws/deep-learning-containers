@@ -3,7 +3,7 @@ import re
 
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf2
 
 
 SMDEBUG_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
@@ -45,7 +45,7 @@ def get_framework_from_image_uri(image_uri):
     frameworks = ("tensorflow", "mxnet", "pytorch")
     for framework in frameworks:
         if framework in image_uri:
-            if framework == "tensorflow" and re.search(r'-2.[0-9]', image_uri):
+            if framework == "tensorflow" and is_tf2(image_uri):
                 return "tensorflow2"
             return framework
     raise RuntimeError(f"Could not find any framework {frameworks} in {image_uri}")
