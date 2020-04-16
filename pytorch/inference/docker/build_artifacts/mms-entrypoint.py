@@ -18,6 +18,11 @@ import sys
 import os.path
 
 if not os.path.exists("/opt/ml/input/config"):
+    # TODO delete
+    print("cwd : ", os.getcwd())
+    # files = [f for f in os.listdir('.') if os.path.isfile(f)]
+    # for f in files:
+    #     print(f)
     subprocess.call(['python', '/usr/local/bin/deep_learning_container.py', '&>/dev/null', '&'])
 
 if sys.argv[1] == 'serve':
