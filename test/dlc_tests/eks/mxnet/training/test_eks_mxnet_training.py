@@ -195,7 +195,8 @@ def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
 
 def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     """Run MXNet distributed training on EKS using docker images with MNIST dataset"""
-    namespace = "mxnet-multi-node-training"
+    unique_id = random.randint(1, 6000)
+    namespace = f"mxnet-multi-node-training-{unique_id}"
     app_name = "eks-mxnet-mnist-app"
     job_name = "kubeflow-mxnet-gpu-dist-job"
 
