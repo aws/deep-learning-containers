@@ -69,6 +69,11 @@ def image_builder(buildspec):
             if build_context == "PR"
             else image_config["tag"]
         )
+        image_repo_uri = (
+            image_config["repository"]
+            if build_context == "PR"
+            else modify_repository_name_for_context(str(image_config["repository"]), build_context)
+        )
         base_image_uri = None
         if image_config.get("base_image_name") is not None:
             base_image_object = _find_image_object(IMAGES, image_config["base_image_name"])
@@ -106,7 +111,7 @@ def image_builder(buildspec):
         image_object = DockerImage(
             info=info,
             dockerfile=image_config["docker_file"],
-            repository=image_config["repository"],
+            repository=image_repo_uri,
             tag=image_tag,
             to_build=image_config["build"],
             context=context,
@@ -201,6 +206,16 @@ def tag_image_with_pr_number(image_tag):
     pr_number = os.getenv("CODEBUILD_SOURCE_VERSION").replace("/", "-")
     return f"{image_tag}-{pr_number}"
 
-def fetch_repository_for_build_context():
-    build_context = os.getenv("BUILD_CONTEXT")
-    if build_context == "PR":
+
+def modify_repository_name_for_context(image_repo_uri, build_context):
+    repo_uri_values = image_repo_uri.split("/")
+    repo_name = repo_uri_values[-1]
+    if build_context == "MAINLINE":
+        repo_uri_values[-1] = repo_name.replace(
+            constants.PR_REPO_PREFIX, constants.MAINLINE_REPO_PREFIX
+        )
+    elif build_context == "NIGHTLY":
+        repo_uri_values[-1] = repo_name.replace(
+            constants.PR_REPO_PREFIX, constants.NIGHTLY_REPO_PREFIX
+        )
+    return "/".join(repo_uri_values)
