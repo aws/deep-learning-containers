@@ -11,6 +11,8 @@ from invoke.context import Context
 from retrying import retry
 
 import test.test_utils.eks as eks_utils
+import test.test_utils.ec2 as ec2_utils
+
 from src.github import GitHubHandler
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 
@@ -18,6 +20,48 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON
 LOGGER = eks_utils.LOGGER
 
 
+def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_only):
+    """Run MXNet distributed training on EKS using docker images with MNIST dataset"""
+
+    ctx = Context()
+
+    eks_cluster_size = 3
+    ec2_instance_type = "p3.16xlarge"
+    cluster_name = eks_utils.PR_EKS_CLUSTER_NAME_TEMPLATE.format("mxnet")
+
+    assert eks_utils.is_eks_cluster_active(cluster_name), f"EKS Cluster {cluster_name} is inactive. Exiting test"
+
+    eks_gpus_per_worker = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)
+
+    LOGGER.info("Starting run_eks_mxnet_multi_node_training on MNIST dataset using horovod")
+    LOGGER.info("The test will run on an example image %s", mxnet_training)
+
+    user = ctx.run("echo $USER").stdout.strip("\n")
+    random.seed(f"{mxnet_training}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}")
+    unique_tag = f"{user}-{random.randint(1, 10000)}"
+
+    namespace = f"mx-multi-node-train-{'py2' if 'py2' in mxnet_training else 'py3'}-{unique_tag}"
+    app_name = f"kubeflow-mxnet-hvd-mpijob-{unique_tag}"
+    job_name = f"mxnet-mnist-horovod-job={unique_tag}"
+
+    command_to_run = "mpirun,-mca,btl_tcp_if_exclude,lo,-mca,pml,ob1,-mca,btl,^openib,--bind-to,none,-map-by,slot," \
+                     "-x,LD_LIBRARY_PATH,-x,PATH,-x,NCCL_SOCKET_IFNAME=eth0,-x,NCCL_DEBUG=INFO,python," \
+                     "/horovod/examples/mxnet_mnist.py"
+    args_to_pass = "-- --epochs=10,--lr=0.001"
+    home_dir = ctx.run("echo $HOME").stdout.strip("\n")
+    path_to_ksonnet_app = os.path.join(home_dir, f"mxnet_multi_node_hvd_eks_test-{unique_tag}")
+
+    # return training_result
+    result = run_eks_multi_node_training_mpijob(namespace, app_name,
+                                                mxnet_training, job_name,
+                                                command_to_run, args_to_pass,
+                                                path_to_ksonnet_app, eks_cluster_size,
+                                                eks_gpus_per_worker)
+
+    return result
+
+
+@pytest.mark.skip(reason="Crashing the codebuild job")
 def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     """Run MXNet distributed training on EKS using docker images with MNIST dataset"""
     random.seed(f"{mxnet_training}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
