@@ -165,7 +165,7 @@ def run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml
                     # Delete old job with same name if exists
                     ctx.run(f"kubectl delete -f {remote_yaml_file_path}", warn=True)
                     ctx.run(f"kubectl create -f {remote_yaml_file_path} -n {namespace}")
-                    if is_mxnet_eks_multinode_training_complete(job_name, remote_yaml_file_path):
+                    if is_mxnet_eks_multinode_training_complete(job_name, namespace):
                         training_result = True
                 finally:
                     eks_utils.eks_multinode_cleanup("", job_name, namespace, env)
