@@ -54,7 +54,7 @@ def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, regi
         hide=False,
     )
     ec2_connection.run(
-        f"cat {log_file} >&2",
+        f"tail 28 {log_file} >&2",
         hide=False,
     )
 
