@@ -37,7 +37,7 @@ def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_onl
     LOGGER.info("The test will run on an example image %s", mxnet_training)
 
     user = ctx.run("echo $USER").stdout.strip("\n")
-    random.seed(f"{mxnet_training}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}")
+    random.seed(f"{mxnet_training}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_tag = f"{user}-{random.randint(1, 10000)}"
 
     namespace = f"mx-multi-node-train-{'py2' if 'py2' in mxnet_training else 'py3'}-{unique_tag}"
@@ -50,6 +50,8 @@ def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_onl
     args_to_pass = "-- --epochs=10,--lr=0.001"
     home_dir = ctx.run("echo $HOME").stdout.strip("\n")
     path_to_ksonnet_app = os.path.join(home_dir, f"mxnet_multi_node_hvd_eks_test-{unique_tag}")
+
+    LOGGER.debug(f"Namespace: {namespace}")
 
     # return training_result
     result = run_eks_multi_node_training_mpijob(namespace, app_name,
