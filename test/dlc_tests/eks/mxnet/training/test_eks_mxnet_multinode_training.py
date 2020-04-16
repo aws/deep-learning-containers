@@ -118,7 +118,7 @@ def run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml
 
     kubeflow_version = "v0.4.1"
     home_dir = run("echo $HOME").stdout.strip("\n")
-    path_to_ksonnet_app = os.path.join(home_dir, f"pytorch_multi_node_eks_test-{unique_id}")
+    path_to_ksonnet_app = os.path.join(home_dir, f"mxnet_multi_node_eks_test-{unique_id}")
     env = f"{namespace}-env"
 
     training_result = False
