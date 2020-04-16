@@ -153,7 +153,7 @@ def parse_modifed_root_files_info(files, pattern=""):
     """
     rule = re.findall(rf"{pattern}", files)
     if rule:
-        # JobParameters.build_for_all_images()
+        JobParameters.build_for_all_images()
         update_image_run_test_types(constants.ALL, constants.ALL)
 
 
@@ -315,6 +315,7 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
 
     if os.environ.get("BUILD_CONTEXT") == "PR":
         pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
+        LOGGER.info(f"pr number: {pr_number}")
         if pr_number is not None:
             pr_number = int(pr_number.split("/")[-1])
         device_types, image_types, py_versions = pr_build_setup(pr_number, framework)
