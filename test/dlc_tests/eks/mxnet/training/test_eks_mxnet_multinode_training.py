@@ -132,8 +132,6 @@ def run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml
     if not os.path.exists(path_to_ksonnet_app):
         ctx.run(f"mkdir -p {path_to_ksonnet_app}")
 
-    ctx.run("ks init {}".format(app_name))
-
     with ctx.cd(f"{path_to_ksonnet_app}"):
         ctx.run(f"rm -rf {app_name}")
         github_handler = GitHubHandler("aws", "kubeflow")
