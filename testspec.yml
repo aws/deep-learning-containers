@@ -18,8 +18,14 @@ phases:
   post_build:
     commands:
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
+      - echo $DLC_IMAGES > tested_images.txt
 reports:
   test_reports:
     files:
       - test/*.xml
     file-format: JunitXml
+artifacts:
+  files:
+    - tested_images_list.txt
+  name: DLC_IMAGES_TESTED
+  discard-paths: yes
