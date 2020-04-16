@@ -200,3 +200,7 @@ def image_builder(buildspec):
 def tag_image_with_pr_number(image_tag):
     pr_number = os.getenv("CODEBUILD_SOURCE_VERSION").replace("/", "-")
     return f"{image_tag}-{pr_number}"
+
+def fetch_repository_for_build_context():
+    build_context = os.getenv("BUILD_CONTEXT")
+    if build_context == "PR":
