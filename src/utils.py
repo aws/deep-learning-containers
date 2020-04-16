@@ -153,7 +153,7 @@ def parse_modifed_root_files_info(files, pattern=""):
     """
     rule = re.findall(rf"{pattern}", files)
     if rule:
-        #JobParameters.build_for_all_images()
+        JobParameters.build_for_all_images()
         update_image_run_test_types(constants.ALL, constants.ALL)
 
 
