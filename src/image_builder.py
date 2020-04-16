@@ -64,11 +64,12 @@ def image_builder(buildspec):
             ARTIFACTS.update(image_config["context"])
 
         build_context = os.getenv("BUILD_CONTEXT")
-        image_tag = (
-            tag_image_with_pr_number(image_config["tag"])
-            if build_context == "PR"
-            else image_config["tag"]
-        )
+        image_tag = image_config["tag"]
+        #(
+        #    tag_image_with_pr_number(image_config["tag"])
+        #    if build_context == "PR"
+        #    else image_config["tag"]
+        #)
         base_image_uri = None
         if image_config.get("base_image_name") is not None:
             base_image_object = _find_image_object(IMAGES, image_config["base_image_name"])
