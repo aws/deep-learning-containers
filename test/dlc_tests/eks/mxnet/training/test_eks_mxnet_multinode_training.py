@@ -42,7 +42,7 @@ def test_eks_mxnet_multinode_training(mxnet_training, example_only):
         "--gpus",
         "0",
     ]
-    remote_yaml_file_path = "/tmp/mxnet_multi_node_training.yaml"
+    remote_yaml_file_path = os.path.join(os.sep, "tmp", f"mxnet_multi_node_training_{unique_id}.yaml")
 
     generate_mxnet_multinode_yaml_file(
         mxnet_training, job_name, num_workers, num_servers, gpu_limit, command, args, remote_yaml_file_path
@@ -126,9 +126,9 @@ def run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml
     ctx = Context()
 
     # Namespaces will allow parallel runs on the same cluster. Create namespace if it doesnt exist.
-    does_namespace_exist = ctx.run("kubectl get namespace | grep {}".format(namespace), warn=True)
+    does_namespace_exist = ctx.run(f"kubectl get namespace | grep {namespace}", warn=True)
     if not does_namespace_exist:
-        ctx.run("kubectl create namespace {}".format(namespace))
+        ctx.run(f"kubectl create namespace {namespace}")
     if not os.path.exists(path_to_ksonnet_app):
         ctx.run(f"mkdir -p {path_to_ksonnet_app}")
 
@@ -144,12 +144,12 @@ def run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml
             does_registry_exist = ctx.run("ks registry list | grep kubeflow", warn=True)
             if not does_registry_exist:
                 ctx.run(
-                    "ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{}/kubeflow".format(kubeflow_version),
+                    f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{kubeflow_version}/kubeflow",
                     env={"GITHUB_TOKEN": github_token},
                     hide=True,
                 )
                 ctx.run(
-                    "ks pkg install kubeflow/mxnet-job@{}".format(kubeflow_version),
+                    f"ks pkg install kubeflow/mxnet-job@{kubeflow_version}",
                     env={"GITHUB_TOKEN": github_token},
                     hide=True,
                 )
