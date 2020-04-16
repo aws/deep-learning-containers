@@ -20,6 +20,7 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON
 LOGGER = eks_utils.LOGGER
 
 
+@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_only):
     """Run MXNet distributed training on EKS using docker images with MNIST dataset"""
 
@@ -54,7 +55,7 @@ def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_onl
     LOGGER.debug(f"Namespace: {namespace}")
 
     # return training_result
-    result = run_eks_multi_node_training_mpijob(namespace, app_name,
+    result = _run_eks_multi_node_training_mpijob(namespace, app_name,
                                                 mxnet_training, job_name,
                                                 command_to_run, args_to_pass,
                                                 path_to_ksonnet_app, eks_cluster_size,
@@ -63,7 +64,7 @@ def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_onl
     return result
 
 
-@pytest.mark.skip(reason="Crashing the codebuild job")
+@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     """Run MXNet distributed training on EKS using docker images with MNIST dataset"""
     random.seed(f"{mxnet_training}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
@@ -94,7 +95,7 @@ def test_eks_mxnet_multinode_training(mxnet_training, example_only):
         mxnet_training, job_name, num_workers, num_servers, gpu_limit, command, args, remote_yaml_file_path
     )
 
-    training_result = run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path, unique_id)
+    training_result = _run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path, unique_id)
     assert training_result, "EKS multinode training failed"
 
 
@@ -156,7 +157,7 @@ def generate_mxnet_multinode_yaml_file(
     LOGGER.info("Uploaded generated yaml file to %s", remote_yaml_file_path)
 
 
-def run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path, unique_id):
+def _run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path, unique_id):
     """Run MXNet distributed training on EKS using MXNet Operator
     Args:
     namespace, app_name, job_name, remote_yaml_file_path
@@ -263,7 +264,7 @@ def is_mxnet_eks_multinode_training_complete(job_name, namespace):
     return False
 
 
-def run_eks_multi_node_training_mpijob(namespace, app_name, custom_image, job_name, command_to_run, args_to_pass,
+def _run_eks_multi_node_training_mpijob(namespace, app_name, custom_image, job_name, command_to_run, args_to_pass,
                                        path_to_ksonnet_app, cluster_size, eks_gpus_per_worker):
     """
     Function to run eks multinode training MPI job
