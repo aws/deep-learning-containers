@@ -93,7 +93,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     typing==3.6.4 \
     future==0.17.1 \
     "pyopenssl>=17.5.0" \
- && conda install -c dglteam -y dgl-cuda10.1==0.4.1 \
+ && conda install -c dglteam -y dgl-cuda10.1==0.4.3 \
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c pytorch magma-cuda101==2.5.1 \
