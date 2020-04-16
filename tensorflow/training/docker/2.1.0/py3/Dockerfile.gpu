@@ -144,7 +144,7 @@ RUN ${PIP} install --no-cache-dir -U \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
     keras==2.3.1 \
-    smdebug==0.7.1 \
+    smdebug==0.7.2 \
     python-dateutil==2.8.1 \
     pyYAML==5.3.1 \
     requests==2.22.0 \

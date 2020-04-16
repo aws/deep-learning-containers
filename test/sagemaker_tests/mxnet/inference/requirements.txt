@@ -2,10 +2,10 @@ sagemaker-inference>=1.1.0,<=1.1.2
 retrying==1.3.3
 tox
 flake8
-pytest
+pytest==5.3.5
 pytest-cov
+pytest-rerunfailures==9.0
 pytest-xdist
-pytest-rerunfailures
 mock
 sagemaker==1.23.0
 docker-compose
