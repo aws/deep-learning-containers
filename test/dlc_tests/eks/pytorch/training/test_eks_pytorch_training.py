@@ -225,7 +225,6 @@ def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_ya
                     eks_utils.eks_multinode_cleanup(ctx, "", job_name, namespace, env)
 
 
-
 def retry_if_value_error(exception):
     """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
     return isinstance(exception, ValueError)
