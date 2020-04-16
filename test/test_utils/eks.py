@@ -8,7 +8,7 @@ import json
 import logging
 
 from retrying import retry
-from invoke import run, Context
+from invoke import run
 
 DEFAULT_REGION = "us-west-2"
 
