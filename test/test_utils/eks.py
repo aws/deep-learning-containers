@@ -8,7 +8,10 @@ import json
 import logging
 
 from retrying import retry
-from invoke import run
+from invoke import run, Context
+
+from src.github import GitHubHandler
+
 
 DEFAULT_REGION = "us-west-2"
 
@@ -442,3 +445,89 @@ def is_eks_multinode_training_complete(ctx, namespace, env, pod_name, job_name):
                 raise ValueError("IN-PROGRESS: Retry.")
 
     return False
+
+
+def run_eks_multi_node_training_mpijob(namespace, app_name, custom_image, job_name, command_to_run, args_to_pass,
+                                       path_to_ksonnet_app, cluster_size, eks_gpus_per_worker):
+    """
+    Function to run eks multinode training MPI job
+    """
+    kubeflow_version = "v0.5.1"
+    pod_name = None
+    env = f"{namespace}-env"
+    ctx = Context()
+    github_handler = GitHubHandler("aws", "kubeflow")
+    github_token = github_handler.get_auth_token()
+
+    ctx.run(f"kubectl create namespace {namespace}")
+
+    if not os.path.exists(path_to_ksonnet_app):
+        ctx.run(f"mkdir -p {path_to_ksonnet_app}")
+
+    with ctx.cd(path_to_ksonnet_app):
+        ctx.run(f"rm -rf {app_name}")
+        ctx.run(f"ks init {app_name} --namespace {namespace}", env={"GITHUB_TOKEN": github_token})
+
+        with ctx.cd(app_name):
+            ctx.run(f"ks env add {env} --namespace {namespace}")
+            # Check if the kubeflow registry exists and create. Registry will be available in each pod.
+            registry_not_exist = ctx.run("ks registry list | grep kubeflow", warn=True)
+
+            if registry_not_exist.return_code:
+                ctx.run(
+                    f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{kubeflow_version}/kubeflow",
+                    env={"GITHUB_TOKEN": github_token}
+                )
+                ctx.run(f"ks pkg install kubeflow/common@{kubeflow_version}", env={"GITHUB_TOKEN": github_token})
+                ctx.run(f"ks pkg install kubeflow/mpi-job@{kubeflow_version}", env={"GITHUB_TOKEN": github_token})
+
+            try:
+                ctx.run("ks generate mpi-operator mpi-operator")
+                # The latest mpi-operator docker image does not accept the gpus-per-node parameter
+                # which is specified by the older spec file from v0.5.1.
+                ctx.run("ks param set mpi-operator image mpioperator/mpi-operator:0.2.0")
+                mpi_operator_start = ctx.run(f"ks apply {env} -c mpi-operator", warn=True)
+                if mpi_operator_start.return_code:
+                    raise RuntimeError(f"Failed to start mpi-operator:\n{mpi_operator_start.stderr}")
+
+                LOGGER.info(
+                    f"The mpi-operator package must be applied to {env} env before we can use mpiJob. "
+                    f"Check status before moving on."
+                )
+                ctx.run("kubectl get crd")
+
+                # Use Ksonnet to generate manifest files which are then applied to the default context.
+                ctx.run(f"ks generate mpi-job-custom {job_name}")
+                ctx.run(f"ks param set {job_name} replicas {cluster_size}")
+                ctx.run(f"ks param set {job_name} gpusPerReplica {eks_gpus_per_worker}")
+                ctx.run(f"ks param set {job_name} image {custom_image}")
+                ctx.run(f"ks param set {job_name} command {command_to_run}")
+                ctx.run(f"ks param set {job_name} args {args_to_pass}")
+
+                # use `$ks show default` to see details.
+                ctx.run(f"kubectl get pods -n {namespace} -o wide")
+                LOGGER.info(f"Apply the generated manifest to the {env} env.")
+                training_job_start = ctx.run(f"ks apply {env} -c {job_name}", warn=True)
+                if training_job_start.return_code:
+                    raise RuntimeError(f"Failed to start {job_name}:\n{training_job_start.stderr}")
+
+                LOGGER.info("Check pods")
+                ctx.run(f"kubectl get pods -n {namespace} -o wide")
+
+                LOGGER.info(
+                    "First the mpi-operator and the n-worker pods will be created and then "
+                    "the launcher pod is created in the end. Use retries until launcher "
+                    "pod's name is available to read logs."
+                )
+                complete_pod_name = is_mpijob_launcher_pod_ready(ctx, namespace, job_name)
+
+                _, pod_name = complete_pod_name.split("/")
+                LOGGER.info(f"The Pods have been created and the name of the launcher pod is {pod_name}")
+
+                LOGGER.info(f"Wait for the {job_name} job to complete")
+                if is_eks_multinode_training_complete(ctx, namespace, env, pod_name, job_name):
+                    LOGGER.info(f"Wait for the {pod_name} pod to reach completion")
+                    distributed_out = ctx.run(f"kubectl logs -n {namespace} -f {complete_pod_name}").stdout
+                    LOGGER.info(distributed_out)
+            finally:
+                eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env)
