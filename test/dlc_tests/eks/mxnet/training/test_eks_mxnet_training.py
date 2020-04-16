@@ -191,26 +191,3 @@ def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
         assert training_result, f"Training failed"
     finally:
         run("kubectl delete pods {}".format(pod_name))
-
-
-def test_eks_mxnet_multinode_training(mxnet_training, example_only):
-    """Run MXNet distributed training on EKS using docker images with MNIST dataset"""
-    unique_id = random.randint(1, 6000)
-    namespace = f"mxnet-multi-node-training-{unique_id}"
-    app_name = "eks-mxnet-mnist-app"
-    job_name = "kubeflow-mxnet-gpu-dist-job"
-
-    # TODO: This should either be dynamic or at least global variables
-    num_workers = 3
-    num_servers = 2
-    gpu_limit = 1
-    command = ["python"]
-    args = ["/incubator-mxnet/example/image-classification/train_mnist.py","--num-epochs","20","--num-layers",
-            "2","--kv-store","dist_device_sync","--gpus","0"]
-    remote_yaml_file_path = "/tmp/mxnet_multi_node_training.yaml"
-
-    eks_utils.generate_mxnet_multinode_yaml_file(mxnet_training, job_name, num_workers, num_servers, gpu_limit,
-                                       command, args, remote_yaml_file_path)
-
-    training_result = eks_utils.run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path)
-    assert training_result, "EKS multinode training failed"
