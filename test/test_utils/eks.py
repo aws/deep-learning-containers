@@ -5,7 +5,6 @@ Helper functions for EKS Integration Tests
 import os
 import sys
 import json
-import base64
 import logging
 
 from retrying import retry
