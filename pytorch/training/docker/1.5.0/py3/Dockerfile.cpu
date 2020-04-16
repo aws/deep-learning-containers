@@ -83,7 +83,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     Pillow==6.2.0 \
     h5py==2.9.0 \
     requests==2.22.0 \
- && conda install -c dglteam -y dgl==0.4.1 \
+ && conda install -c dglteam -y dgl==0.4.3 \
  && /opt/conda/bin/conda clean -ya \
  && conda clean -ya
 
