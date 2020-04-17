@@ -54,7 +54,10 @@ def run_test_job(commit, codebuild_project, images_str=""):
 
 
 def is_test_job_enabled(test_type):
-    if test_type == constants.SAGEMAKER_TESTS and not test_config.DISABLE_SAGEMAKER_TESTS:
+    if (
+        test_type == constants.SAGEMAKER_TESTS
+        and not test_config.DISABLE_SAGEMAKER_TESTS
+    ):
         return True
     elif test_type == constants.ECS_TESTS and not test_config.DISABLE_ECS_TESTS:
         return True
@@ -91,7 +94,6 @@ def main():
             images_str = " ".join(images)
             if is_test_job_enabled(test_type):
                 run_test_job(commit, pr_test_job, images_str)
-
 
 
 if __name__ == "__main__":
