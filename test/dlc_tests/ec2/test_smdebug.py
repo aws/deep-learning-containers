@@ -20,7 +20,7 @@ def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
 
     ec2_connection.run(
         f"nvidia-docker run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
-        f"{training} {os.path.join(os.sep, 'bin', 'bash')} -c \"{test_script} {framework}\"",
+        f"--entrypoint \"{os.path.join(os.sep, 'bin', 'bash')} -c '{test_script} {framework}'\" {training} ",
         hide=True,
     )
 
