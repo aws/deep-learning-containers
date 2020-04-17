@@ -86,7 +86,7 @@ RUN pip install \
     --no-cache-dir fastai==1.0.59 \
     awscli \
     scipy==1.2.2 \
- && pip install -f https://download.pytorch.org/whl/test/cu102/torch_test.html torch==1.5.0 \
+ && pip install https://download.pytorch.org/whl/test/cu102/torch-1.5.0-cp36-cp36m-linux_x86_64.whl \
  && pip uninstall -y torchvision \
  && pip install --no-deps -f https://download.pytorch.org/whl/test/torch_test.html torchvision
 # && pip install --no-deps --no-cache-dir -U $TORCHVISION_VERSION
