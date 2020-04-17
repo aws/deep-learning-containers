@@ -24,8 +24,6 @@ import tempfile
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
-from .utils import image_utils
-
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
 logging.getLogger('boto3').setLevel(logging.INFO)
@@ -44,8 +42,6 @@ NO_P3_REGIONS = ['ap-east-1', 'ap-northeast-3', 'ap-southeast-1', 'ap-southeast-
 
 
 def pytest_addoption(parser):
-    parser.addoption('--build-image', '-D', action='store_true')
-    parser.addoption('--build-base-image', '-B', action='store_true')
     parser.addoption('--aws-id')
     parser.addoption('--instance-type')
     parser.addoption('--docker-base-name', default='pytorch')
@@ -110,34 +106,6 @@ def opt_ml():
 @pytest.fixture(scope='session', name='use_gpu')
 def fixture_use_gpu(processor):
     return processor == 'gpu'
-
-
-@pytest.fixture(scope='session', name='build_base_image', autouse=True)
-def fixture_build_base_image(request, framework_version, py_version, processor, tag, docker_base_name):
-    build_base_image = request.config.getoption('--build-base-image')
-    if build_base_image:
-        return image_utils.build_base_image(framework_name=docker_base_name,
-                                            framework_version=framework_version,
-                                            py_version=py_version,
-                                            base_image_tag=tag,
-                                            processor=processor,
-                                            cwd=os.path.join(dir_path, '..'))
-
-    return tag
-
-
-@pytest.fixture(scope='session', name='build_image', autouse=True)
-def fixture_build_image(request, framework_version, py_version, processor, tag, docker_base_name):
-    build_image = request.config.getoption('--build-image')
-    if build_image:
-        return image_utils.build_image(framework_name=docker_base_name,
-                                       framework_version=framework_version,
-                                       py_version=py_version,
-                                       processor=processor,
-                                       tag=tag,
-                                       cwd=os.path.join(dir_path, '..'))
-
-    return tag
 
 
 @pytest.fixture(scope='session', name='sagemaker_session')

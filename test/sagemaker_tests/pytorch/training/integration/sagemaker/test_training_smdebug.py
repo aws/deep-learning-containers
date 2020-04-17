@@ -13,6 +13,7 @@
 from __future__ import absolute_import
 
 import pytest
+from sagemaker import utils
 from sagemaker.pytorch import PyTorch
 
 from ...integration import training_dir, smdebug_mnist_script, DEFAULT_TIMEOUT
@@ -32,6 +33,9 @@ def test_training_smdebug(sagemaker_session, ecr_image, instance_type):
                           sagemaker_session=sagemaker_session,
                           image_name=ecr_image,
                           hyperparameters=hyperparameters)
+
         training_input = pytorch.sagemaker_session.upload_data(path=training_dir,
                                                                key_prefix='pytorch/mnist')
-        pytorch.fit({'training': training_input})
+        job_name = utils.unique_name_from_base('test-pytorch-smdebug')
+
+        pytorch.fit({'training': training_input}, job_name=job_name)

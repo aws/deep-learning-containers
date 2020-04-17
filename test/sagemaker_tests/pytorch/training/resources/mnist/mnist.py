@@ -11,6 +11,7 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
+
 import argparse
 import logging
 import os
@@ -25,7 +26,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
 import torch.utils.data.distributed
-
 from torchvision import datasets, transforms
 
 logger = logging.getLogger(__name__)
@@ -177,14 +177,6 @@ def test(model, test_loader, device):
     logger.debug('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
-
-
-def model_fn(model_dir):
-    logger.info('model_fn')
-    model = torch.nn.DataParallel(Net())
-    with open(os.path.join(model_dir, 'model.pth'), 'rb') as f:
-        model.load_state_dict(torch.load(f))
-    return model
 
 
 def save_model(model, model_dir):

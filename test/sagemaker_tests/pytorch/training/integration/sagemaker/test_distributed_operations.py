@@ -16,6 +16,7 @@ import os
 
 import boto3
 import pytest
+from sagemaker import utils
 from sagemaker.pytorch import PyTorch
 from six.moves.urllib.parse import urlparse
 
@@ -57,12 +58,15 @@ def test_dist_operations_fastai_gpu(sagemaker_session, ecr_image):
                           train_instance_type=MULTI_GPU_INSTANCE,
                           sagemaker_session=sagemaker_session,
                           image_name=ecr_image)
+
         pytorch.sagemaker_session.default_bucket()
         training_input = pytorch.sagemaker_session.upload_data(
             path=os.path.join(fastai_path, 'cifar_tiny', 'training'),
             key_prefix='pytorch/distributed_operations'
         )
-        pytorch.fit({'training': training_input})
+
+        job_name = utils.unique_name_from_base('test-pytorch-dist-ops')
+        pytorch.fit({'training': training_input}, job_name=job_name)
 
     model_s3_url = pytorch.create_model().model_data
     _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
@@ -82,7 +86,9 @@ def test_mnist_gpu(sagemaker_session, ecr_image, dist_gpu_backend):
 
         training_input = sagemaker_session.upload_data(path=os.path.join(data_dir, 'training'),
                                                        key_prefix='pytorch/mnist')
-        pytorch.fit({'training': training_input})
+        job_name = utils.unique_name_from_base('test-pytorch-dist-ops')
+
+        pytorch.fit({'training': training_input}, job_name=job_name)
 
 
 def _test_dist_operations(sagemaker_session, ecr_image, instance_type, dist_backend, train_instance_count=3):
@@ -94,10 +100,13 @@ def _test_dist_operations(sagemaker_session, ecr_image, instance_type, dist_back
                           sagemaker_session=sagemaker_session,
                           image_name=ecr_image,
                           hyperparameters={'backend': dist_backend})
+
         pytorch.sagemaker_session.default_bucket()
         fake_input = pytorch.sagemaker_session.upload_data(path=dist_operations_path,
                                                            key_prefix='pytorch/distributed_operations')
-        pytorch.fit({'required_argument': fake_input})
+
+        job_name = utils.unique_name_from_base('test-pytorch-dist-ops')
+        pytorch.fit({'required_argument': fake_input}, job_name=job_name)
 
 
 def _assert_s3_file_exists(region, s3_url):
