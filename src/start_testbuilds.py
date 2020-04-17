@@ -40,42 +40,27 @@ def run_test_job(commit, codebuild_project, images_str=""):
     with open(test_env_file) as test_env_file:
         env_overrides = json.load(test_env_file)
 
-    env_overrides.append(
-        {"name": "DLC_IMAGES", "value": images_str, "type": "PLAINTEXT"}
-    )
+    env_overrides.append({"name": "DLC_IMAGES", "value": images_str, "type": "PLAINTEXT"})
     LOGGER.debug(f"env_overrides dict: {env_overrides}")
 
     client = boto3.client("codebuild")
     return client.start_build(
-        projectName=codebuild_project,
-        environmentVariablesOverride=env_overrides,
-        sourceVersion=commit,
+        projectName=codebuild_project, environmentVariablesOverride=env_overrides, sourceVersion=commit,
     )
 
 
 def is_test_job_enabled(test_type):
-    if (
-        test_type == constants.SAGEMAKER_TESTS
-        and not test_config.DISABLE_SAGEMAKER_TESTS
-    ):
-        return True
-    elif test_type == constants.ECS_TESTS and not test_config.DISABLE_ECS_TESTS:
-        return True
-    elif test_type == constants.EC2_TESTS and not test_config.DISABLE_EC2_TESTS:
-        return True
-    elif test_type == constants.EKS_TESTS and not test_config.DISABLE_EKS_TESTS:
-        return True
-    elif test_type == constants.SANITY_TESTS and not test_config.DISABLE_SANITY_TESTS:
-        return True
-    return False
+    return ((test_type == constants.SAGEMAKER_TESTS and not test_config.DISABLE_SAGEMAKER_TESTS) or
+            (test_type == constants.ECS_TESTS and not test_config.DISABLE_ECS_TESTS) or
+            (test_type == constants.EC2_TESTS and not test_config.DISABLE_EC2_TESTS) or
+            (test_type == constants.EKS_TESTS and not test_config.DISABLE_EKS_TESTS) or
+            (test_type == constants.SANITY_TESTS and not test_config.DISABLE_SANITY_TESTS))
 
 
 def main():
     build_context = os.getenv("BUILD_CONTEXT")
     if build_context != "PR":
-        LOGGER.info(
-            f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}"
-        )
+        LOGGER.info(f"Not triggering test jobs from boto3, as BUILD_CONTEXT is {build_context}")
         return
 
     # load the images for all test_types to pass on to code build jobs
