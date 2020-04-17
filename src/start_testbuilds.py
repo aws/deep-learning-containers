@@ -19,8 +19,8 @@ import sys
 
 import boto3
 
-from src import constants
-from test import test_config
+import constants
+from config import test_config
 
 
 LOGGER = logging.getLogger(__name__)
