@@ -1,6 +1,7 @@
 #!/bin/bash
 
 if [ $# -lt 1 ]; then
+    echo $0
     echo "Not enough args"
     echo "Use as: $0 <framework>, where framework is one of (mxnet, pytorch, tensorflow)"
     exit 1
