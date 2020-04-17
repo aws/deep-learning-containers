@@ -5,7 +5,6 @@ Helper functions for EKS Integration Tests
 import os
 import sys
 import json
-import base64
 import logging
 
 from retrying import retry
@@ -372,9 +371,10 @@ def eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env):
         component, _ = pod_name.split("-master")
         ctx.run(f"ks component rm {component}", warn=True)
     else:
-        ctx.run(f"ks delete {env} -c {job_name}", warn=True)
+        ctx.run(f"ks delete {env} -c {job_name} -n {namespace}", warn=True)
 
-    ctx.run(f"ks delete {env}", warn=True)
+    if "pytorch" not in namespace:
+        ctx.run(f"ks delete {env}", warn=True)
     ctx.run(f"kubectl delete namespace {namespace}", warn=True)
 
 
