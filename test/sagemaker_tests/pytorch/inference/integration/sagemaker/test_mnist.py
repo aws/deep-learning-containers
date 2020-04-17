@@ -12,29 +12,26 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os
-
 import numpy as np
 import pytest
 import sagemaker
 from sagemaker.pytorch import PyTorchModel
 
-from ...integration import model_cpu_dir, mnist_cpu_script, mnist_gpu_script, model_eia_dir, mnist_eia_script
+from ...integration import model_cpu_tar, mnist_cpu_script, model_gpu_tar, mnist_gpu_script, \
+    model_eia_tar, mnist_eia_script
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
 @pytest.mark.cpu_test
 def test_mnist_distributed_cpu(sagemaker_session, ecr_image, instance_type):
     instance_type = instance_type or 'ml.c4.xlarge'
-    model_dir = os.path.join(model_cpu_dir, 'model_mnist.tar.gz')
-    _test_mnist_distributed(sagemaker_session, ecr_image, instance_type, model_dir, mnist_cpu_script)
+    _test_mnist_distributed(sagemaker_session, ecr_image, instance_type, model_cpu_tar, mnist_cpu_script)
 
 
 @pytest.mark.gpu_test
 def test_mnist_distributed_gpu(sagemaker_session, ecr_image, instance_type):
     instance_type = instance_type or 'ml.p2.xlarge'
-    model_dir = os.path.join(model_cpu_dir, 'model_mnist.tar.gz')
-    _test_mnist_distributed(sagemaker_session, ecr_image, instance_type, model_dir, mnist_gpu_script)
+    _test_mnist_distributed(sagemaker_session, ecr_image, instance_type, model_gpu_tar, mnist_gpu_script)
 
 
 @pytest.mark.eia_test
@@ -42,17 +39,16 @@ def test_mnist_eia(sagemaker_session, ecr_image, instance_type, accelerator_type
     instance_type = instance_type or 'ml.c4.xlarge'
     # Scripted model is serialized with torch.jit.save().
     # Inference test for EIA doesn't need to instantiate model definition then load state_dict
-    model_dir = os.path.join(model_eia_dir, 'model_mnist.tar.gz')
-    _test_mnist_distributed(sagemaker_session, ecr_image, instance_type, model_dir, mnist_eia_script,
+    _test_mnist_distributed(sagemaker_session, ecr_image, instance_type, model_eia_tar, mnist_eia_script,
                             accelerator_type=accelerator_type)
 
 
-def _test_mnist_distributed(sagemaker_session, ecr_image, instance_type, model_dir, mnist_script,
+def _test_mnist_distributed(sagemaker_session, ecr_image, instance_type, model_tar, mnist_script,
                             accelerator_type=None):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-pytorch-serving")
 
     model_data = sagemaker_session.upload_data(
-        path=model_dir,
+        path=model_tar,
         key_prefix="sagemaker-pytorch-serving/models",
     )
 

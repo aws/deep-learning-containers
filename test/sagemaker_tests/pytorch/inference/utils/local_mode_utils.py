@@ -18,7 +18,7 @@ import os
 import tarfile
 import time
 
-from test.integration import resources_path
+from ..integration import resources_path
 
 LOCK_PATH = os.path.join(resources_path, 'local_mode_lock')
 
