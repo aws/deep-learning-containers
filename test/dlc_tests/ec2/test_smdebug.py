@@ -19,12 +19,13 @@ def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
     )
 
     ec2_connection.run(
-        f"nvidia-docker run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {training}",
+        f"nvidia-docker run --name smdebug-gpu -v "
+        f"{container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {training}",
         hide=True,
     )
 
     ec2_connection.run(
-        f"nvidia-docker exec --user root {training} /bin/bash -c '{test_script} {framework}'",
+        f"nvidia-docker exec --user root smdebug-gpu /bin/bash -c '{test_script} {framework}'",
         hide=True,
     )
 
@@ -39,12 +40,12 @@ def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
     )
 
     ec2_connection.run(
-        f"docker run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {training}",
+        f"docker run --name smdebug-cpu -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {training}",
         hide=True,
     )
 
     ec2_connection.run(
-        f"docker exec --user root {training} /bin/bash -c '{test_script} {framework}'",
+        f"docker exec --user root smdebug-cpu /bin/bash -c '{test_script} {framework}'",
         hide=True,
     )
 
