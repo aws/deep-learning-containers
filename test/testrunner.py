@@ -20,7 +20,7 @@ def assign_sagemaker_instance_type(image):
     if "tensorflow" in image:
         return "ml.p3.8xlarge" if "gpu" in image else "ml.c4.4xlarge"
     else:
-        return "ml.p3.xlarge" if "gpu" in image else "ml.c4.8xlarge"
+        return "ml.p2.8xlarge" if "gpu" in image else "ml.c4.8xlarge"
 
 
 def generate_sagemaker_pytest_cmd(image):
