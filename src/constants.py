@@ -60,6 +60,7 @@ TEST_TYPE_IMAGES_PATH = os.path.join(os.path.expanduser("~"), "test_type_images.
 
 # Test types for running code build test jobs
 SAGEMAKER_TESTS = "sagemaker"
+SANITY_TESTS = "sanity"
 EC2_TESTS = "ec2"
 ECS_TESTS = "ecs"
 EKS_TESTS = "eks"
