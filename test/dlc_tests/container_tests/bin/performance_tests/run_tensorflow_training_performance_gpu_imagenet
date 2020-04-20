@@ -7,10 +7,11 @@ if [ "$TF_VERSION" -eq 2 ]
 then
   GIT_BRANCH="cnn_tf_v2.1_compatible"
 fi
+TIMESTAMP=$(date "+%Y-%m-%d-%H-%M-%S")
 HOME_DIR=/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs/gpu
-LOG_FILE=imagenet_results.txt
+LOG_FILE=imagenet_results_${TIMESTAMP}.txt
 
 mkdir -p ${HOME_DIR}
 mkdir -p ${BIN_DIR}
@@ -22,6 +23,8 @@ timeout 220m python scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --batch_size=
 echo Benchmark Results: >&2
 echo Tensorflow"${TF_VERSION}" py"${PYTHON_VERSION}" gpu imagenet>&2
 tail -3 ${LOG_DIR}/${LOG_FILE} >&2 # Dsiplay only the results to console
+aws s3 cp ${LOG_DIR}/"${LOG_FILE}" s3://dlinfra-dlc-cicd-performance/tensorflow"${TF_VERSION}"/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}"
+echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/tensorflow"${TF_VERSION}"/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}" >&2
 set +e
 
 rm -rf ${HOME_DIR}/artifacts/tensorflow/benchmarks
