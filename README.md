@@ -19,11 +19,11 @@ This project is licensed under the Apache-2.0 License.
 
 ## Table of Contents
 
- Getting Started
+ [Getting Started](###-getting-started)
 
- Building your Image
+ [Building your Image](###-building-your-image)
 
- Running the tests
+ [Running Tests Locally](###-running-tests-locally)
 
 ### Getting Started
 
@@ -67,9 +67,9 @@ For the purposes of testing in your personal account, the following managed perm
     ```
 ### Building your image
 
-The paths to the dockerfiles follow a specific pattern e.g., mxnet/training/docker/<version>/<python_version>/Dockerfile.<processor>
+The paths to the dockerfiles follow a specific pattern e.g., mxnet/training/docker/\<version>/\<python_version>/Dockerfile.<processor>
 
-These paths are specified by the buildspec.yml residing in mxnet/buildspec.yml i.e. <framework>/buildspec.yml. 
+These paths are specified by the buildspec.yml residing in mxnet/buildspec.yml i.e. \<framework>/buildspec.yml. 
 If you want to build the dockerfile for a particular version, or introduce a new version of the framework, re-create the 
 folder structure as per above and modify the buildspec.yml file to specify the version of the dockerfile you want to build.
 
@@ -83,10 +83,10 @@ folder structure as per above and modify the buildspec.yml file to specify the v
 2. If you would instead like to build only a single image
     ```
     python src/main.py --buildspec mxnet/buildspec.yml \
-                         --framework mxnet \
-                         --image_types training \
-                         --device_types cpu \
-                         --py_versions py3
+                       --framework mxnet \
+                       --image_types training \
+                       --device_types cpu \
+                       --py_versions py3
     ```
 3. The arguments —image_types, —device_types and —py_versions are all comma separated list who’s possible values are as follows:
     ```
@@ -97,10 +97,10 @@ folder structure as per above and modify the buildspec.yml file to specify the v
 4. For example, to build all gpu, training containers, you could use the following command
     ```
     python src/main.py --buildspec mxnet/buildspec.yml \
-                         --framework mxnet \
-                         --image_types training \
-                         --device_types gpu \
-                         --py_versions py3
+                       --framework mxnet \
+                       --image_types training \
+                       --device_types gpu \
+                       --py_versions py3
     ```
 
 ### Upgrading the framework version
