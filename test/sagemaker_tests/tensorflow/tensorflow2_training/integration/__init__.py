@@ -19,6 +19,7 @@ logging.getLogger('boto3').setLevel(logging.INFO)
 logging.getLogger('botocore').setLevel(logging.INFO)
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', 'resources')
+DEFAULT_TIMEOUT = 120
 
 # these regions have some p2 and p3 instances, but not enough for automated testing
 NO_P2_REGIONS = [
