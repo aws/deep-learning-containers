@@ -1,16 +1,17 @@
 import os
+import re
 
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf2
 
 
 SMDEBUG_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
 
 
-@pytest.mark.skip("Will debug smdebug tests in a different PR")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.8xlarge"], indirect=True)
 def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
+    test_script = SMDEBUG_SCRIPT
     framework = get_framework_from_image_uri(training)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(
@@ -18,15 +19,20 @@ def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
     )
 
     ec2_connection.run(
-        f"""nvidia-docker run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {training} 
-            {os.path.join(os.sep, 'bin', 'bash')} -c "{SMDEBUG_SCRIPT} '{framework}'" """,
+        f"nvidia-docker run --name smdebug-gpu -v "
+        f"{container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {training}",
+        hide=True,
+    )
+
+    ec2_connection.run(
+        f"nvidia-docker exec --user root smdebug-gpu /bin/bash -c '{test_script} {framework}'",
         hide=True,
     )
 
 
-@pytest.mark.skip("Will debug smdebug tests in a different PR")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.9xlarge"], indirect=True)
 def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
+    test_script = SMDEBUG_SCRIPT
     framework = get_framework_from_image_uri(training)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(
@@ -34,8 +40,12 @@ def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
     )
 
     ec2_connection.run(
-        f"""docker run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {training} 
-            {os.path.join(os.sep, 'bin', 'bash')} -c "{SMDEBUG_SCRIPT} '{framework}'" """,
+        f"docker run --name smdebug-cpu -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {training}",
+        hide=True,
+    )
+
+    ec2_connection.run(
+        f"docker exec --user root smdebug-cpu /bin/bash -c '{test_script} {framework}'",
         hide=True,
     )
 
@@ -44,5 +54,7 @@ def get_framework_from_image_uri(image_uri):
     frameworks = ("tensorflow", "mxnet", "pytorch")
     for framework in frameworks:
         if framework in image_uri:
+            if framework == "tensorflow" and is_tf2(image_uri):
+                return "tensorflow2"
             return framework
     raise RuntimeError(f"Could not find any framework {frameworks} in {image_uri}")
