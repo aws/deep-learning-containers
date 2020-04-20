@@ -5,16 +5,16 @@ if [ "$PYTHON_VERSION" -eq 2 ]
 then
   exit 0
 fi
+TIMESTAMP=$(date "+%Y-%m-%d-%H-%M-%S")
 HOME_DIR=/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs/gpu
-LOG_FILE=synthetic_results.txt
+LOG_FILE=synthetic_results_${TIMESTAMP}.txt
 
 mkdir -p ${HOME_DIR}
 mkdir -p ${BIN_DIR}
 mkdir -p ${LOG_DIR}
 
-# https://quip-amazon.com/tSIiAkIT3bMF/Asimov-PyTorch-DLC-performance-run-Results-and-Instructions
 set -e
 cd ${HOME_DIR}
 git clone https://github.com/HewlettPackard/dlcookbook-dlbs.git ./dlbs && cd ./dlbs && source ./scripts/environment.sh && cd ..
@@ -25,8 +25,8 @@ python -m torch.distributed.launch --nproc_per_node=8 dlcookbook-dlbs/python/pyt
 echo Benchmark Results: >&2
 echo PyTorch py"${PYTHON_VERSION}" gpu synthetic>&2
 tail -3 ${LOG_DIR}/${LOG_FILE} >&2 # Dsiplay only the results to console
+aws s3 cp ${LOG_DIR}/"${LOG_FILE}" s3://dlinfra-dlc-cicd-performance/pytorch/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}"
+echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/pytorch/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}" >&2
 set +e
-
-rm -rf ${HOME_DIR}/artifacts/tensorflow/benchmarks
 
 exit 0
