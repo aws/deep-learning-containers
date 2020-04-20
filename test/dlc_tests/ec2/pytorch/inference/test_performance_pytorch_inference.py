@@ -1,5 +1,5 @@
 import os
-
+import time
 import pytest
 
 from test.test_utils import CONTAINER_TESTS_PREFIX
@@ -30,9 +30,10 @@ def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, regi
 
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ", hide=False)
 
+    time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
     # Run performance inference command, display benchmark results to console
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
-    log_file = f"{processor}-{python_version}-benchmark-results.log"
+    log_file = f"inference_benchmark_results_{time_str}.log"
     ec2_connection.run(
         f"{docker_cmd} run -d --name {container_name} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} ",
@@ -54,7 +55,14 @@ def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, regi
         hide=False,
     )
     ec2_connection.run(
-        f"tail -50 {log_file} >&2",
+        f"cat {log_file} >&2",
         hide=False,
     )
-
+    ec2_connection.run(
+        f"aws s3 cp {log_file} s3://dlinfra-dlc-cicd-performance/pytorch/ec2/inference/{processor}/{python_version}/{log_file}",
+        hide=False,
+    )
+    ec2_connection.run(
+        f"echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/pytorch/ec2/inference/{processor}/{python_version}/{log_file} >&2",
+        hide=False,
+    )
