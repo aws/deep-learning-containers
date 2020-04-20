@@ -19,11 +19,11 @@ This project is licensed under the Apache-2.0 License.
 
 ## Table of Contents
 
- [Getting Started](#-getting-started)
+ [Getting Started](#getting-started)
 
- [Building your Image](#-building-your-image)
+ [Building your Image](#building-your-image)
 
- [Running Tests Locally](#-running-tests-locally)
+ [Running Tests Locally](#running-tests-locally)
 
 ### Getting started
 
