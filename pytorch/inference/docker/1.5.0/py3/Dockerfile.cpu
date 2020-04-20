@@ -64,18 +64,7 @@ RUN conda install -c \
  && pip install mxnet-model-server==$MMS_VERSION
 
  # Uninstall torch and torchvision and install the custom versions from an S3 bucket
-RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -sf /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install --no-cache-dir -U \
-    awscli \
-    fastai==1.0.59 \
-    scipy==1.2.2 \
-    smdebug==0.7.2 \
-    sagemaker==1.50.17 \
-    sagemaker-containers==2.8.6 \
-    sagemaker-experiments==0.1.7 \
-    "sagemaker-pytorch-training<2" \
- && pip install --no-cache-dir -U $PYTORCH_VERSION \
+RUN pip install --no-cache-dir -U $PYTORCH_VERSION \
  && pip uninstall -y torchvision \
  && pip install --no-deps -f https://download.pytorch.org/whl/test/torch_test.html torchvision
 # && pip install --no-deps --no-cache-dir -U $TORCHVISION_VERSION
