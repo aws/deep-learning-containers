@@ -2,9 +2,10 @@
 
 PYTHON_VERSION=$(python -c 'import sys; print(sys.version_info[0])' | tr -d "'")
 TF_VERSION=$(python -c 'import tensorflow as tf; print(tf.__version__[0])'| tr -d "'")
+GIT_BRANCH="cnn_tf_v1.13_compatible"
 if [ "$TF_VERSION" -eq 2 ]
 then
-  exit 0
+  GIT_BRANCH="cnn_tf_v2.1_compatible"
 fi
 HOME_DIR=/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
@@ -25,7 +26,7 @@ export KMP_BLOCKTIME=1
 export KMP_SETTINGS=0
 
 set -e
-git clone https://github.com/tensorflow/benchmarks.git ${HOME_DIR}/artifacts/tensorflow/benchmarks && cd ${HOME_DIR}/artifacts/tensorflow/benchmarks && git checkout cnn_tf_v1.13_compatible
+git clone https://github.com/tensorflow/benchmarks.git ${HOME_DIR}/artifacts/tensorflow/benchmarks && cd ${HOME_DIR}/artifacts/tensorflow/benchmarks && git checkout ${GIT_BRANCH}
 python scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --batch_size=256 --model=resnet50_v1.5 --train_dir=$HOME/test00 --device=cpu --data_format=NHWC --num_inter_threads=0 --num_intra_threads=36 --mkl=True --kmp_blocktime=0 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
 echo Benchmark Results: >&2
 echo Tensorflow"${TF_VERSION}" py"${PYTHON_VERSION}" cpu synthetic>&2
