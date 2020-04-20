@@ -1,4 +1,4 @@
-FROM nvidia/cuda:10.1-cudnn7-devel-ubuntu16.04
+FROM nvidia/cuda:10.2-cudnn7-devel-ubuntu16.04
 # NCCL_VERSION=2.4.7, CUDNN_VERSION=7.6.2.24
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
@@ -62,7 +62,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c \
-    pytorch magma-cuda101 \
+    pytorch magma-cuda102 \
  && conda install -c \
     conda-forge \
     awscli \
@@ -80,13 +80,13 @@ RUN conda install -c \
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install \
-    --no-cache-dir smdebug==0.7.1 \
+    --no-cache-dir smdebug==0.7.2 \
     sagemaker==1.50.17 \
     sagemaker-experiments==0.1.7 \
     --no-cache-dir fastai==1.0.59 \
     awscli \
     scipy==1.2.2 \
- && pip install https://download.pytorch.org/whl/test/cu101/torch-1.5.0%2Bcu101-cp36-cp36m-linux_x86_64.whl \
+ && pip install https://download.pytorch.org/whl/test/cu102/torch-1.5.0-cp36-cp36m-linux_x86_64.whl \
  && pip uninstall -y torchvision \
  && pip install --no-deps -f https://download.pytorch.org/whl/test/torch_test.html torchvision
 # && pip install --no-deps --no-cache-dir -U $TORCHVISION_VERSION
