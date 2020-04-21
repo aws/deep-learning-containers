@@ -1,5 +1,5 @@
 import os
-import re
+import json
 import sys
 import logging
 
@@ -112,6 +112,16 @@ def pull_dlc_images(images):
     """
     for image in images:
         run(f"docker pull {image}", hide="out")
+
+
+def get_dlc_images():
+    if os.getenv("BUILD_CONTEXT") == "PR":
+        return os.getenv("DLC_IMAGES")
+    else:
+        with open("test_type_images.json") as test_env_file:
+            test_images = json.load(test_env_file)
+        _, images = test_images.items()
+        return images
 
 
 def main():

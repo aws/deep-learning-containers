@@ -21,3 +21,7 @@ phases:
       - echo Build step finished on `date`
       - echo Starting test jobs
       - python src/start_testbuilds.py
+artifacts:
+  files:
+    - $HOME/test_type_images.json
+    -
