@@ -80,7 +80,7 @@ RUN conda install -c \
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip uninstall -y torch \
  && pip uninstall -y torchvision \
- && pip install torch==$PYTORCH_VERSION+cu101 torchvision==$PYTORCH_VERSION+cu101 -f https://download.pytorch.org/whl/torch_stable.html
+ && pip install torch==$PYTORCH_VERSION+cu101 torchvision==$TORCHVISION_VERSION+cu101 -f https://download.pytorch.org/whl/torch_stable.html
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
