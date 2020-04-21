@@ -147,6 +147,9 @@ def train(args):
         model.train()
         for batch_idx, (data, target) in enumerate(train_loader, 1):
             data, target = data.to(device), target.to(device)
+            if is_distributed and use_cuda:
+                # multi-machine multi-gpu case
+                data, target = data.to(host_rank), target.to(host_rank)
             optimizer.zero_grad()
             output = model(data)
             loss = F.nll_loss(output, target)
