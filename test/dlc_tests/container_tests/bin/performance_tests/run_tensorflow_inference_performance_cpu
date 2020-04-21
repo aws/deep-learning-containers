@@ -33,7 +33,7 @@ python tf${TF_VERSION}_serving_perf.py --processor cpu --run_all_s3 --binary /us
 
 echo Benchmark Results: >&2
 echo Tensorflow"${TF_VERSION}" py"${PYTHON_VERSION}" cpu inference >&2
-tail -3 ${LOG_DIR}/${LOG_FILE} >&2 # Dsiplay only the results to console
+cat ${LOG_DIR}/${LOG_FILE} >&2 # Dsiplay only the results to console
 aws s3 cp ${LOG_DIR}/"${LOG_FILE}" s3://dlinfra-dlc-cicd-performance/tensorflow"${TF_VERSION}"/ec2/inference/cpu/py"${PYTHON_VERSION}"/"${LOG_FILE}"
 echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/tensorflow"${TF_VERSION}"/ec2/inference/cpu/py"${PYTHON_VERSION}"/"${LOG_FILE}" >&2
 set +e
