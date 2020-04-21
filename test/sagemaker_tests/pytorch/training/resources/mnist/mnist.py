@@ -146,10 +146,11 @@ def train(args):
     for epoch in range(1, args.epochs + 1):
         model.train()
         for batch_idx, (data, target) in enumerate(train_loader, 1):
-            data, target = data.to(device), target.to(device)
             if is_distributed and use_cuda:
-                # multi-machine multi-gpu case
-                data, target = data.to(host_rank), target.to(host_rank)
+                # multi-machine multi-gpu case - allow asynchrous GPU copies of the data
+                data, target = data.cuda(non_blocking=True), target.cuda(non_blocking=True)
+            else:
+                data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
             output = model(data)
             loss = F.nll_loss(output, target)
