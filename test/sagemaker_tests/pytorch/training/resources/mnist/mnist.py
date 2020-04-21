@@ -126,13 +126,12 @@ def train(args):
     if is_distributed and use_cuda:
         # multi-machine multi-gpu case
         logger.debug("Multi-machine multi-gpu: using DistributedDataParallel.")
-        model = torch.nn.parallel.DistributedDataParallel(model)
-        # the DDP constructor should set the single device scope. 
-        # otherwise, DDP will use all available devices.
-        n = torch.cuda.device_count()
-        # set up devices for this process
-        device_ids = list(range(host_rank * n, (host_rank + 1) * n))
-        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=device_ids)
+        # establish host rank and set device on this node
+        dp_device_ids = [host_rank]
+        torch.cuda.set_device(host_rank)
+        # for multiprocessing distributed, the DDP constructor should always set
+        # the single device scope. otherwise, DDP will use all available devices.
+        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=dp_device_ids, output_device=host_rank)
     elif use_cuda:
         # single-machine multi-gpu case
         logger.debug("Single-machine multi-gpu: using DataParallel().cuda().")
