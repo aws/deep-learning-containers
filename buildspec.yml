@@ -24,4 +24,3 @@ phases:
 artifacts:
   files:
     - $HOME/test_type_images.json
-    -

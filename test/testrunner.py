@@ -121,13 +121,13 @@ def get_dlc_images():
         with open("test_type_images.json") as test_env_file:
             test_images = json.load(test_env_file)
         _, images = test_images.items()
-        return images
+        return " ".join(images)
 
 
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
-    dlc_images = os.getenv("DLC_IMAGES")
+    dlc_images = get_dlc_images()
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
 
