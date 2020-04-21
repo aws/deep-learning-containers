@@ -153,7 +153,7 @@ def parse_modifed_root_files_info(files, pattern=""):
     """
     rule = re.findall(rf"{pattern}", files)
     if rule:
-        # JobParameters.build_for_all_images()
+        JobParameters.build_for_all_images()
         update_image_run_test_types(constants.ALL, constants.ALL)
 
 
@@ -181,20 +181,20 @@ def parse_modified_sagemaker_test_files(files, framework, pattern=""):
                 if framework_changed == "tensorflow" and "training" in job_name:
                     job_name = "training"
                 if job_name in constants.IMAGE_TYPES:
-                    # JobParameters.add_image_types(job_name)
-                    # JobParameters.build_for_all_device_types_py_versions()
+                    JobParameters.add_image_types(job_name)
+                    JobParameters.build_for_all_device_types_py_versions()
                     update_image_run_test_types(job_name, constants.SAGEMAKER_TESTS)
                 # If file changed is under /test/sagemaker_tests/(mxnet|pytorch|tensorflow)
                 # but not in training/inference dirs
                 else:
-                    # JobParameters.build_for_all_images()
+                    JobParameters.build_for_all_images()
                     update_image_run_test_types(
                         constants.ALL, constants.SAGEMAKER_TESTS
                     )
                     break
             # If file changed is under /test/sagemaker_tests but not in (mxnet|pytorch|tensorflow) dirs
             elif framework_changed not in constants.FRAMEWORKS:
-                # JobParameters.build_for_all_images()
+                JobParameters.build_for_all_images()
                 update_image_run_test_types(constants.ALL, constants.SAGEMAKER_TESTS)
                 break
 
@@ -222,24 +222,24 @@ def parse_modified_dlc_test_files_info(files, framework, pattern=""):
                 if framework_changed == framework:
                     job_name = test_dirs[3]
                     if job_name in constants.IMAGE_TYPES:
-                        # JobParameters.add_image_types(job_name)
-                        # JobParameters.build_for_all_device_types_py_versions()
+                        JobParameters.add_image_types(job_name)
+                        JobParameters.build_for_all_device_types_py_versions()
                         update_image_run_test_types(job_name, test_name)
                     # If file changed is under /test/dlc_tests/(ecs|eks|ec2)
                     # but not in (inference|training) dirs
                     else:
-                        # JobParameters.build_for_all_images()
+                        JobParameters.build_for_all_images()
                         update_image_run_test_types(constants.ALL, test_name)
                         break
                 # If file changed is under /test/dlc_tests/(ecs|eks|ec2) dirs init and conftest files
                 elif framework_changed not in constants.FRAMEWORKS:
-                    # JobParameters.build_for_all_images()
+                    JobParameters.build_for_all_images()
                     update_image_run_test_types(constants.ALL, test_name)
                     break
             # If file changed is under /test/dlc_tests/ dir sanity, container_tests dirs
             # and init, conftest files
             else:
-                # JobParameters.build_for_all_images()
+                JobParameters.build_for_all_images()
                 update_image_run_test_types(constants.ALL, constants.EC2_TESTS)
                 update_image_run_test_types(constants.ALL, constants.ECS_TESTS)
                 update_image_run_test_types(constants.ALL, constants.EKS_TESTS)
@@ -277,9 +277,8 @@ def pr_build_setup(pr_number, framework):
 
     parse_modifed_root_files_info(files, pattern="src\/\S+")
 
-    # Todo remove test_utils to enable the builds and test triggers for test_utils file changes
     parse_modifed_root_files_info(
-        files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests|test_utils))\S+)"
+        files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
     )
 
     parse_modifed_root_files_info(files, pattern="testspec\.yml")
@@ -347,9 +346,7 @@ def fetch_dlc_images_for_test_jobs(images):
     DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
 
     for docker_image in images:
-        # TODO change this to docker_image.build_status == constants.SUCCESS when new builds are enabled
-        if (docker_image.build_status == constants.SUCCESS or
-                docker_image.build_status == constants.NOT_BUILT):
+        if docker_image.build_status == constants.SUCCESS:
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(docker_image.ecr_url)
             image_job_type = docker_image.info.get("image_type")
