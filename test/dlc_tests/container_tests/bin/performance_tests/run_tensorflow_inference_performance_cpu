@@ -1,0 +1,43 @@
+#!/bin/bash
+
+PYTHON_VERSION=$(python -c 'import sys; print(sys.version_info[0])' | tr -d "'")
+TF_VERSION=$(tensorflow_model_server --version | grep Library | cut -d' ' -f3 | cut -d'.' -f1)
+TF_SERVING_BRANCH="1.15"
+if [ "$TF_VERSION" -eq 2 ]
+then
+  TF_SERVING_BRANCH="2.1.0rc1"
+fi
+FOLDER_VERSION="1.15"
+if [ "$TF_VERSION" -eq 2 ]
+then
+  FOLDER_VERSION="2.1"
+fi
+TIMESTAMP=$(date "+%Y-%m-%d-%H-%M-%S")
+HOME_DIR=/test/benchmark
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs/cpu
+LOG_FILE=inference_results_${TIMESTAMP}.txt
+
+mkdir -p ${HOME_DIR}
+mkdir -p ${BIN_DIR}
+mkdir -p ${LOG_DIR}
+
+set -e
+apt-get update -y
+apt-get install wzip unzip -y
+pip install boto3 grpcio tensorflow-serving-api==${TF_SERVING_BRANCH} --user
+aws s3 cp s3://tensorflow-aws/${FOLDER_VERSION}/Serving/CPU-WITH-MKL/tensorflow_model_server /usr/bin/
+chmod +x /usr/bin/tensorflow_model_server
+cd /test/bin/performance_tests
+python tf${TF_VERSION}_serving_perf.py --processor cpu --run_all_s3 --binary /usr/bin/tensorflow_model_server --get_perf --iterations 1000 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
+
+echo Benchmark Results: >&2
+echo Tensorflow"${TF_VERSION}" py"${PYTHON_VERSION}" cpu inference >&2
+tail -3 ${LOG_DIR}/${LOG_FILE} >&2 # Dsiplay only the results to console
+aws s3 cp ${LOG_DIR}/"${LOG_FILE}" s3://dlinfra-dlc-cicd-performance/tensorflow"${TF_VERSION}"/ec2/inference/cpu/py"${PYTHON_VERSION}"/"${LOG_FILE}"
+echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/tensorflow"${TF_VERSION}"/ec2/inference/cpu/py"${PYTHON_VERSION}"/"${LOG_FILE}" >&2
+set +e
+
+rm -rf ${HOME_DIR}/artifacts/tensorflow/benchmarks
+
+exit 0
