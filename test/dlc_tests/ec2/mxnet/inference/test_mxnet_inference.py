@@ -8,24 +8,24 @@ SQUEEZENET_MODEL = "squeezenet"
 BERT_MODEL = "bert_sst"
 
 
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-def test_ec2_mxnet_squeezenet_inference_gpu(mxnet_inference, ec2_connection, region, gpu_only):
-    run_ec2_mxnet_inference(mxnet_inference, SQUEEZENET_MODEL, "squeezenet", ec2_connection, "gpu", region, 80, 8081)
-
-
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-def test_ec2_mxnet_gluonnlp_inference_gpu(mxnet_inference, ec2_connection, region, gpu_only, py3_only):
-    run_ec2_mxnet_inference(mxnet_inference, BERT_MODEL, "gluonnlp", ec2_connection, "gpu", region, 90, 9091)
-
-
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-def test_ec2_mxnet_squeezenet_inference_cpu(mxnet_inference, ec2_connection, region, cpu_only):
-    run_ec2_mxnet_inference(mxnet_inference, SQUEEZENET_MODEL, "squeezenet", ec2_connection, "cpu", region, 80, 8081)
-
-
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-def test_ec2_mxnet_gluonnlp_inference_cpu(mxnet_inference, ec2_connection, region, cpu_only, py3_only):
-    run_ec2_mxnet_inference(mxnet_inference, BERT_MODEL, "gluonnlp", ec2_connection, "cpu", region, 90, 9091)
+# @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+# def test_ec2_mxnet_squeezenet_inference_gpu(mxnet_inference, ec2_connection, region, gpu_only):
+#     run_ec2_mxnet_inference(mxnet_inference, SQUEEZENET_MODEL, "squeezenet", ec2_connection, "gpu", region, 80, 8081)
+#
+#
+# @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+# def test_ec2_mxnet_gluonnlp_inference_gpu(mxnet_inference, ec2_connection, region, gpu_only, py3_only):
+#     run_ec2_mxnet_inference(mxnet_inference, BERT_MODEL, "gluonnlp", ec2_connection, "gpu", region, 90, 9091)
+#
+#
+# @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+# def test_ec2_mxnet_squeezenet_inference_cpu(mxnet_inference, ec2_connection, region, cpu_only):
+#     run_ec2_mxnet_inference(mxnet_inference, SQUEEZENET_MODEL, "squeezenet", ec2_connection, "cpu", region, 80, 8081)
+#
+#
+# @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+# def test_ec2_mxnet_gluonnlp_inference_cpu(mxnet_inference, ec2_connection, region, cpu_only, py3_only):
+#     run_ec2_mxnet_inference(mxnet_inference, BERT_MODEL, "gluonnlp", ec2_connection, "cpu", region, 90, 9091)
 
 
 def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection, processor, region, target_port, target_management_port):
