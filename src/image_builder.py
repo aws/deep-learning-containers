@@ -204,10 +204,7 @@ def image_builder(buildspec):
 
 def tag_image_with_pr_number(image_tag):
     pr_number = os.getenv("CODEBUILD_SOURCE_VERSION").replace("/", "-")
-    # ToDo re-enable the logic back once the pr builds logic to trigger new builds
-    # only for build changes is back
-    # return f"{image_tag}-{pr_number}"
-    return image_tag
+    return f"{image_tag}-{pr_number}"
 
 
 def modify_repository_name_for_context(image_repo_uri, build_context):
