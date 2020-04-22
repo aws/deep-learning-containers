@@ -131,7 +131,7 @@ RUN pip install \
     scipy==1.2.2 \
  && pip install --no-cache-dir -U $PYTORCH_VERSION \
  && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U torchvision==$TORCHVISION_VERSION+cu101
+ && pip install --no-deps --no-cache-dir -U torchvision==$TORCHVISION_VERSION+cu101 -f https://download.pytorch.org/whl/torch_stable.html
 
 # Install Horovod
 RUN pip uninstall -y horovod \

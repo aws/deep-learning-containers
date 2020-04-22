@@ -101,7 +101,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "sagemaker-pytorch-training<2" \
  && pip install --no-cache-dir -U $PYTORCH_VERSION \
  && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U torchvision==$TORCHVISION_VERSION+cpu
+ && pip install --no-deps --no-cache-dir -U torchvision==$TORCHVISION_VERSION+cpu -f https://download.pytorch.org/whl/torch_stable.html
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
