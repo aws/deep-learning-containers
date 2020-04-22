@@ -63,6 +63,17 @@ def image_builder(buildspec):
         if image_config.get("context") is not None:
             ARTIFACTS.update(image_config["context"])
 
+        build_context = os.getenv("BUILD_CONTEXT")
+        image_tag = (
+            tag_image_with_pr_number(image_config["tag"])
+            if build_context == "PR"
+            else image_config["tag"]
+        )
+        image_repo_uri = (
+            image_config["repository"]
+            if build_context == "PR"
+            else modify_repository_name_for_context(str(image_config["repository"]), build_context)
+        )
         base_image_uri = None
         if image_config.get("base_image_name") is not None:
             base_image_object = _find_image_object(IMAGES, image_config["base_image_name"])
@@ -100,8 +111,8 @@ def image_builder(buildspec):
         image_object = DockerImage(
             info=info,
             dockerfile=image_config["docker_file"],
-            repository=image_config["repository"],
-            tag=image_config["tag"],
+            repository=image_repo_uri,
+            tag=image_tag,
             to_build=image_config["build"],
             context=context,
         )
@@ -184,4 +195,27 @@ def image_builder(buildspec):
 
         # Set environment variables to be consumed by test jobs
         test_trigger_job = utils.get_codebuild_project_name()
-        utils.set_test_env(IMAGES, BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"), TEST_TRIGGER=test_trigger_job)
+        utils.set_test_env(
+            IMAGES,
+            BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
+            TEST_TRIGGER=test_trigger_job,
+        )
+
+
+def tag_image_with_pr_number(image_tag):
+    pr_number = os.getenv("CODEBUILD_SOURCE_VERSION").replace("/", "-")
+    return f"{image_tag}-{pr_number}"
+
+
+def modify_repository_name_for_context(image_repo_uri, build_context):
+    repo_uri_values = image_repo_uri.split("/")
+    repo_name = repo_uri_values[-1]
+    if build_context == "MAINLINE":
+        repo_uri_values[-1] = repo_name.replace(
+            constants.PR_REPO_PREFIX, constants.MAINLINE_REPO_PREFIX
+        )
+    elif build_context == "NIGHTLY":
+        repo_uri_values[-1] = repo_name.replace(
+            constants.PR_REPO_PREFIX, constants.NIGHTLY_REPO_PREFIX
+        )
+    return "/".join(repo_uri_values)

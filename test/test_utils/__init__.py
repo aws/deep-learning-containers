@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 
 from invoke import run
@@ -20,6 +21,26 @@ TEST_TRANSFER_S3_BUCKET = "s3://dlinfra-tests-transfer-bucket"
 
 # Ubuntu ami home dir
 UBUNTU_HOME_DIR = "/home/ubuntu"
+
+# Reason string for skipping tests in PR context
+SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test will be run in nightly/release pipeline."
+
+
+def is_tf1(image_uri):
+    if "tensorflow" not in image_uri:
+        return False
+    return bool(re.search(r'-1.[0-9]', image_uri))
+
+
+def is_tf2(image_uri):
+    if "tensorflow" not in image_uri:
+        return False
+    return bool(re.search(r'-2.[0-9]', image_uri))
+
+
+def is_pr_context():
+    return os.getenv("BUILD_CONTEXT") == "PR"
+
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
     command = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
