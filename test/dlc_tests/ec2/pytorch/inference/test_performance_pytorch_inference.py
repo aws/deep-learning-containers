@@ -36,33 +36,24 @@ def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, regi
     log_file = f"inference_benchmark_results_{time_str}.log"
     ec2_connection.run(
         f"{docker_cmd} run -d --name {container_name} "
-        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} ",
-        hide=False,
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
     )
     ec2_connection.run(
-        f"{docker_cmd} exec {container_name} "
+        f"{docker_cmd} exec {container_name} -e OMP_NUM_THREADS=1 "
         f"python {test_cmd} "
-        f"2>&1 | tee {log_file}",
-        hide=False,
+        f"2>&1 | tee {log_file}"
     )
     ec2_connection.run(
-        f"docker rm -f {container_name}",
-        hide=False,
+        f"docker rm -f {container_name}"
     )
     ec2_connection.run(
         f"echo Benchmark Results: >&2;"
-        f"echo PyTorch Inference {processor} {python_version} >&2",
-        hide=False,
+        f"echo PyTorch Inference {processor} {python_version} >&2"
+    )
+    ec2_connection.run(f"cat {log_file} >&2")
+    ec2_connection.run(
+        f"aws s3 cp {log_file} s3://dlinfra-dlc-cicd-performance/pytorch/ec2/inference/{processor}/{python_version}/{log_file}"
     )
     ec2_connection.run(
-        f"cat {log_file} >&2",
-        hide=False,
-    )
-    ec2_connection.run(
-        f"aws s3 cp {log_file} s3://dlinfra-dlc-cicd-performance/pytorch/ec2/inference/{processor}/{python_version}/{log_file}",
-        hide=False,
-    )
-    ec2_connection.run(
-        f"echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/pytorch/ec2/inference/{processor}/{python_version}/{log_file} >&2",
-        hide=False,
+        f"echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/pytorch/ec2/inference/{processor}/{python_version}/{log_file} >&2"
     )
