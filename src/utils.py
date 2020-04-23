@@ -228,18 +228,18 @@ def parse_modified_dlc_test_files_info(files, framework, pattern=""):
                     # If file changed is under /test/dlc_tests/(ecs|eks|ec2)
                     # but not in (inference|training) dirs
                     else:
-                        #JobParameters.build_for_all_images()
+                        JobParameters.build_for_all_images()
                         update_image_run_test_types(constants.ALL, test_name)
                         break
                 # If file changed is under /test/dlc_tests/(ecs|eks|ec2) dirs init and conftest files
                 elif framework_changed not in constants.FRAMEWORKS:
-                    #JobParameters.build_for_all_images()
+                    JobParameters.build_for_all_images()
                     update_image_run_test_types(constants.ALL, test_name)
                     break
             # If file changed is under /test/dlc_tests/ dir sanity, container_tests dirs
             # and init, conftest files
             else:
-                #JobParameters.build_for_all_images()
+                JobParameters.build_for_all_images()
                 update_image_run_test_types(constants.ALL, constants.EC2_TESTS)
                 update_image_run_test_types(constants.ALL, constants.ECS_TESTS)
                 update_image_run_test_types(constants.ALL, constants.EKS_TESTS)
@@ -346,7 +346,7 @@ def fetch_dlc_images_for_test_jobs(images):
     DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
 
     for docker_image in images:
-        if docker_image.build_status == constants.SUCCESS:
+        if docker_image.build_status == constants.SUCCESS and docker_image.build_status==constants.NOT_BUILT:
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(docker_image.ecr_url)
             image_job_type = docker_image.info.get("image_type")
