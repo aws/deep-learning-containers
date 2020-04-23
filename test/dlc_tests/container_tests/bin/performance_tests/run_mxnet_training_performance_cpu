@@ -25,7 +25,7 @@ python deeplearning-benchmark/image_classification/image_classification.py \
 --epochs 25 --log-interval 50 --kvstore local --dtype='float32' --batch-size=64 2>&1 | tee ${LOG_DIR}/"${LOG_FILE}"
 
 echo Benchmark Results: >&2
-echo MXNet"${TF_VERSION}" py"${PYTHON_VERSION}" cpu >&2
+echo MXNet Training py"${PYTHON_VERSION}" cpu >&2
 tail ${LOG_DIR}/"${LOG_FILE}" >&2 # Dsiplay only the results to console
 aws s3 cp ${LOG_DIR}/"${LOG_FILE}" s3://dlinfra-dlc-cicd-performance/mxnet/ec2/training/cpu/py"${PYTHON_VERSION}"/"${LOG_FILE}"
 echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/mxnet/ec2/training/cpu/py"${PYTHON_VERSION}"/"${LOG_FILE}" >&2

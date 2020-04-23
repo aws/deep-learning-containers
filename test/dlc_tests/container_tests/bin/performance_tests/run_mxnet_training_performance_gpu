@@ -25,7 +25,7 @@ pip install psutil gluoncv==0.2.0b20180625 && python deep-learning-benchmark-mir
 --rec-val /home/ubuntu/data/val-passthrough.rec --rec-val-idx /home/ubuntu/data/val-passthrough.idx 2>&1 | tee ${LOG_DIR}/"${LOG_FILE}"
 
 echo Benchmark Results: >&2
-echo MXNet"${TF_VERSION}" py"${PYTHON_VERSION}" gpu >&2
+echo MXNet Training py"${PYTHON_VERSION}" gpu >&2
 tail ${LOG_DIR}/"${LOG_FILE}" >&2 # Dsiplay only the results to console
 aws s3 cp ${LOG_DIR}/"${LOG_FILE}" s3://dlinfra-dlc-cicd-performance/mxnet/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}"
 echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/mxnet/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}" >&2
