@@ -225,20 +225,20 @@ def parse_modified_dlc_test_files_info(files, framework, pattern=""):
                     job_name = test_dirs[3]
                     if job_name in constants.IMAGE_TYPES:
                         LOGGER.info("Inside dlc_tests eks framework job_name folder ")
-                        JobParameters.add_image_types(job_name)
+                        # JobParameters.add_image_types(job_name)
                         JobParameters.build_for_all_device_types_py_versions()
                         update_image_run_test_types(job_name, test_name)
                     # If file changed is under /test/dlc_tests/(ecs|eks|ec2)
                     # but not in (inference|training) dirs
                     else:
                         LOGGER.info("Inside dlc_tests eks framework folder but not in job_name ")
-                        JobParameters.build_for_all_images()
+                        # JobParameters.build_for_all_images()
                         update_image_run_test_types(constants.ALL, test_name)
                         break
                 # If file changed is under /test/dlc_tests/(ecs|eks|ec2) dirs init and conftest files
                 elif framework_changed not in constants.FRAMEWORKS:
                     LOGGER.info("Inside dlc_tests eks folder files but not in framework ")
-                    JobParameters.build_for_all_images()
+                    # JobParameters.build_for_all_images()
                     update_image_run_test_types(constants.ALL, test_name)
                     break
             # If file changed is under /test/dlc_tests/ dir sanity, container_tests dirs
