@@ -152,9 +152,10 @@ def parse_modifed_root_files_info(files, pattern=""):
     :return: None
     """
     rule = re.findall(rf"{pattern}", files)
-    if rule:
-        JobParameters.build_for_all_images()
-        update_image_run_test_types(constants.ALL, constants.ALL)
+    LOGGER.info("inside modified root files")
+    # if rule:
+        # JobParameters.build_for_all_images()
+        # update_image_run_test_types(constants.ALL, constants.ALL)
 
 
 def parse_modified_sagemaker_test_files(files, framework, pattern=""):
@@ -210,6 +211,7 @@ def parse_modified_dlc_test_files_info(files, framework, pattern=""):
     :return: None
     """
     rule = re.findall(rf"{pattern}", files)
+    LOGGER.info("inside dlc_tests parsing")
     # JobParameters variables are not set with constants.ALL
     for test_file in rule:
         test_dirs = test_file.split("/")
@@ -222,17 +224,20 @@ def parse_modified_dlc_test_files_info(files, framework, pattern=""):
                 if framework_changed == framework:
                     job_name = test_dirs[3]
                     if job_name in constants.IMAGE_TYPES:
+                        LOGGER.info("Inside dlc_tests eks framework job_name folder ")
                         JobParameters.add_image_types(job_name)
                         JobParameters.build_for_all_device_types_py_versions()
                         update_image_run_test_types(job_name, test_name)
                     # If file changed is under /test/dlc_tests/(ecs|eks|ec2)
                     # but not in (inference|training) dirs
                     else:
+                        LOGGER.info("Inside dlc_tests eks framework folder but not in job_name ")
                         JobParameters.build_for_all_images()
                         update_image_run_test_types(constants.ALL, test_name)
                         break
                 # If file changed is under /test/dlc_tests/(ecs|eks|ec2) dirs init and conftest files
                 elif framework_changed not in constants.FRAMEWORKS:
+                    LOGGER.info("Inside dlc_tests eks folder files but not in framework ")
                     JobParameters.build_for_all_images()
                     update_image_run_test_types(constants.ALL, test_name)
                     break
@@ -412,7 +417,6 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
             test_envs.append({"name": key, "value": value, "type": "PLAINTEXT"})
 
     write_to_json_file(constants.TEST_ENV_PATH, test_envs)
-
 
 def get_codebuild_project_name():
     return os.getenv("CODEBUILD_BUILD_ID").split(":")[0]

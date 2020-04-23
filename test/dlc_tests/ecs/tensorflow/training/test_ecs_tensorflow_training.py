@@ -6,6 +6,7 @@ from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2, CONTAINE
 from test.test_utils import ecs as ecs_utils
 from test.test_utils import ec2 as ec2_utils
 
+# test comment
 
 TF_MNIST_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorFlow")
 
