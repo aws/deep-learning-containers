@@ -228,18 +228,18 @@ def parse_modified_dlc_test_files_info(files, framework, pattern=""):
                     # If file changed is under /test/dlc_tests/(ecs|eks|ec2)
                     # but not in (inference|training) dirs
                     else:
-                        JobParameters.build_for_all_images()
+                        #JobParameters.build_for_all_images()
                         update_image_run_test_types(constants.ALL, test_name)
                         break
                 # If file changed is under /test/dlc_tests/(ecs|eks|ec2) dirs init and conftest files
                 elif framework_changed not in constants.FRAMEWORKS:
-                    JobParameters.build_for_all_images()
+                    #JobParameters.build_for_all_images()
                     update_image_run_test_types(constants.ALL, test_name)
                     break
             # If file changed is under /test/dlc_tests/ dir sanity, container_tests dirs
             # and init, conftest files
             else:
-                JobParameters.build_for_all_images()
+                #JobParameters.build_for_all_images()
                 update_image_run_test_types(constants.ALL, constants.EC2_TESTS)
                 update_image_run_test_types(constants.ALL, constants.ECS_TESTS)
                 update_image_run_test_types(constants.ALL, constants.EKS_TESTS)
