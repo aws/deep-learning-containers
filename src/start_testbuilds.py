@@ -74,7 +74,7 @@ def main():
         # only run the code build test jobs when the images are present
         LOGGER.debug(f"test_type : {test_type}")
         LOGGER.debug(f"images: {images}")
-        if images and test_type in ["eks"]:
+        if images:
             pr_test_job = f"dlc-{test_type}-test"
             images_str = " ".join(images)
             if is_test_job_enabled(test_type):
