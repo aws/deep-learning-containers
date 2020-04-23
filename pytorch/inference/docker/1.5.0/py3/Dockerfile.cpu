@@ -62,7 +62,7 @@ RUN conda install -c \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install mxnet-model-server==$MMS_VERSION
 
- # Uninstall torch and torchvision and install the custom versions from an S3 bucket
+ # Uninstall and re-install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
  && pip uninstall -y torchvision \
  && pip install torch==$PYTORCH_VERSION+cpu torchvision==$TORCHVISION_VERSION+cpu -f https://download.pytorch.org/whl/torch_stable.html
