@@ -16,3 +16,5 @@ spec:
     resources:
       limits:
         cpu: <CPU_LIMIT>
+      requests:
+        cpu: <CPU_LIMIT>
