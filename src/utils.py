@@ -153,9 +153,9 @@ def parse_modifed_root_files_info(files, pattern=""):
     """
     rule = re.findall(rf"{pattern}", files)
     LOGGER.info("inside modified root files")
-    # if rule:
-        # JobParameters.build_for_all_images()
-        # update_image_run_test_types(constants.ALL, constants.ALL)
+    if rule:
+        JobParameters.build_for_all_images()
+        update_image_run_test_types(constants.ALL, constants.ALL)
 
 
 def parse_modified_sagemaker_test_files(files, framework, pattern=""):
@@ -278,13 +278,13 @@ def pr_build_setup(pr_number, framework):
 
     # The below code currently overides the device_types, image_types, py_versions with constants.ALL
     # when there is a change in any the below files
-    parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.yml")
-
-    parse_modifed_root_files_info(files, pattern="src\/\S+")
-
-    parse_modifed_root_files_info(
-        files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
-    )
+    # parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.yml")
+    #
+    # parse_modifed_root_files_info(files, pattern="src\/\S+")
+    #
+    # parse_modifed_root_files_info(
+    #     files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
+    # )
 
     parse_modifed_root_files_info(files, pattern="testspec\.yml")
 
@@ -351,7 +351,7 @@ def fetch_dlc_images_for_test_jobs(images):
     DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
 
     for docker_image in images:
-        if docker_image.build_status == constants.SUCCESS:
+        if docker_image.build_status == constants.SUCCESS or docker_image.build_status == constants.NOT_BUILT:
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(docker_image.ecr_url)
             image_job_type = docker_image.info.get("image_type")
