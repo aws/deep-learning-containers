@@ -79,7 +79,8 @@ def main():
     state = codebuild_statuses[args.status]
 
     # Send status for given state
-    post_status(state)
+    if os.getenv("BUILD_CONTEXT") == "PR":
+        post_status(state)
 
 
 if __name__ == "__main__":
