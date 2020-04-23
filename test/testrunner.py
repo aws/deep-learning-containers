@@ -114,15 +114,16 @@ def pull_dlc_images(images):
         run(f"docker pull {image}", hide="out")
 
 
-def get_dlc_images():
+def get_dlc_images(test_type):
     if os.getenv("BUILD_CONTEXT") == "PR":
         return os.getenv("DLC_IMAGES")
     else:
         test_env_file = os.path.join(os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json")
         with open(test_env_file) as test_env:
             test_images = json.load(test_env)
-        _, images = test_images.items()
-        return " ".join(images)
+        for dlc_test_type, images in test_images.items():
+            if test_type == dlc_test_type:
+                return " ".join(images)
 
 
 def main():
