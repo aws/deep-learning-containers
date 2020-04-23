@@ -2,6 +2,7 @@ FROM ubuntu:16.04
 
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON_VERSION=2.7
 ARG PYTORCH_VERSION=1.4.0
@@ -34,7 +35,7 @@ RUN apt-get update \
     zlib1g-dev
 
 
-RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
@@ -52,12 +53,11 @@ RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-la
 
 RUN conda install -c \
     conda-forge \
-    awscli \
+    awscli==1.18.23 \
     opencv==4.0.1 \
  && conda install -y \
     scikit-learn==0.20.3 \
     pandas==0.24.2 \
-    pillow==6.2.1 \
     h5py==2.9.0 \
     requests==2.22.0 \
  && conda install \
@@ -65,11 +65,7 @@ RUN conda install -c \
     torchvision==$TORCHVISION_VERSION cpuonly -c pytorch \
  && conda clean -ya \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && pip install \
-    mxnet-model-server==$MMS_VERSION \
-    sagemaker-pytorch-inference \
-    psutil==5.4.8 \
-    Pillow==6.2.0
+ && pip install mxnet-model-server==$MMS_VERSION
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
@@ -80,7 +76,12 @@ COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
+
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.4.0/license.txt -o /license.txt
+
+RUN conda install -y -c conda-forge pyyaml==5.3.1
+RUN pip install -U sagemaker-containers==2.8.6 pillow==6.2.2 urllib3==1.25.8 awscli
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]

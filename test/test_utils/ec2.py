@@ -1,3 +1,5 @@
+import os
+
 import boto3
 from retrying import retry
 
@@ -8,12 +10,7 @@ EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 
 def launch_instance(
-    ami_id,
-    instance_type,
-    region=DEFAULT_REGION,
-    user_data=None,
-    iam_instance_profile_arn=None,
-    instance_name="",
+    ami_id, instance_type, region=DEFAULT_REGION, user_data=None, iam_instance_profile_arn=None, instance_name="",
 ):
     """
     Launch an instance
@@ -36,10 +33,7 @@ def launch_instance(
         "MaxCount": 1,
         "MinCount": 1,
         "TagSpecifications": [
-            {
-                "ResourceType": "instance",
-                "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}],
-            },
+            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}],},
         ],
     }
     if user_data:
@@ -88,6 +82,19 @@ def get_public_ip(instance_id, region=DEFAULT_REGION):
     if not instance["PublicIpAddress"]:
         raise Exception("IP address not yet available")
     return instance["PublicIpAddress"]
+
+
+@retry(stop_max_attempt_number=16, wait_fixed=60000)
+def get_public_ip_from_private_dns(private_dns, region=DEFAULT_REGION):
+    """
+    Get Public IP of instance using private DNS
+    :param private_dns:
+    :param region:
+    :return: <str> IP Address of instance with matching private DNS
+    """
+    client = boto3.Session(region_name=region).client("ec2")
+    response = client.describe_instances(Filters={"Name": "private-dns-name", "Value": [private_dns]})
+    return response.get("Reservations")[0].get("Instances")[0].get("PublicIpAddress")
 
 
 @retry(stop_max_attempt_number=16, wait_fixed=60000)
@@ -208,6 +215,25 @@ def terminate_instance(instance_id, region=DEFAULT_REGION):
         raise Exception("Failed to terminate instance. Unknown error.")
 
 
+def get_instance_type_details(instance_type, region=DEFAULT_REGION):
+    """
+    Get instance type details for a given instance type
+    :param instance_type: Instance type to be queried
+    :param region: Region where query will be performed
+    :return: <dict> Information about instance type
+    """
+    client = boto3.client("ec2", region_name=region)
+    response = client.describe_instance_types(InstanceTypes=[instance_type])
+    if not response or not response["InstanceTypes"]:
+        raise Exception("Unable to get instance details. No response received.")
+    if response["InstanceTypes"][0]["InstanceType"] != instance_type:
+        raise Exception(
+            f"Bad response received. Requested {instance_type} "
+            f"but got {response['InstanceTypes'][0]['InstanceType']}"
+        )
+    return response["InstanceTypes"][0]
+
+
 def get_instance_details(instance_id, region=DEFAULT_REGION):
     """
     Get instance details for instance with given instance ID
@@ -217,19 +243,11 @@ def get_instance_details(instance_id, region=DEFAULT_REGION):
     """
     if not instance_id:
         raise Exception("No instance id provided")
-    instance = get_instance_from_id(instance_id, region=DEFAULT_REGION)
+    instance = get_instance_from_id(instance_id, region=region)
     if not instance:
         raise Exception("Could not find instance")
-    client = boto3.Session(region_name=region).client("ec2")
-    response = client.describe_instance_types(InstanceTypes=[instance["InstanceType"]])
-    if not response or not response["InstanceTypes"]:
-        raise Exception("Unable to get instance details. No response received.")
-    if response["InstanceTypes"][0]["InstanceType"] != instance["InstanceType"]:
-        raise Exception(
-            f"Bad response received. Requested {instance['InstanceType']} "
-            f"but got {response['InstanceTypes'][0]['InstanceType']}"
-        )
-    return response["InstanceTypes"][0]
+
+    return get_instance_type_details(instance["InstanceType"], region=region)
 
 
 @retry(stop_max_attempt_number=30, wait_fixed=10000)
@@ -257,12 +275,30 @@ def get_instance_memory(instance_id, region=DEFAULT_REGION):
 
 
 @retry(stop_max_attempt_number=30, wait_fixed=10000)
-def get_instance_num_gpus(instance_id, region=DEFAULT_REGION):
+def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_REGION):
     """
     Get total number of GPUs on instance with given instance ID
     :param instance_id: Instance ID to be queried
+    :param instance_type: Instance Type to be queried
     :param region: Region where query will be performed
     :return: <int> Number of GPUs on instance with matching instance ID
     """
-    instance_info = get_instance_details(instance_id, region=region)
+    assert instance_id or instance_type, "Input must be either instance_id or instance_type"
+    instance_info = (get_instance_type_details(instance_type, region=region) if instance_type else
+                     get_instance_details(instance_id, region=region))
     return sum(gpu_type["Count"] for gpu_type in instance_info["GpuInfo"]["Gpus"])
+
+
+def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
+    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+
+    # Make sure we are logged into ECR so we can pull the image
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+
+    # Run training command
+    connection.run(
+        f"{docker_cmd} run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
+        f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}",
+        hide=True,
+    )

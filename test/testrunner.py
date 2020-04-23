@@ -1,5 +1,7 @@
 import os
+import json
 import sys
+import logging
 
 from multiprocessing import Pool
 
@@ -7,6 +9,12 @@ import pytest
 
 from invoke import run
 from invoke.context import Context
+
+import test_utils.eks as eks_utils
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
 def assign_sagemaker_instance_type(image):
@@ -23,6 +31,7 @@ def generate_sagemaker_pytest_cmd(image):
     :param image: ECR url of image
     :return: <tuple> pytest command to be run, path where it should be executed, image tag
     """
+    reruns = 4
     region = os.getenv("AWS_REGION", "us-west-2")
     integration_path = os.path.join("integration", "sagemaker")
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
@@ -37,7 +46,7 @@ def generate_sagemaker_pytest_cmd(image):
     # NOTE: We are relying on the fact that repos are defined as <context>-<framework>-<job_type> in our infrastructure
     framework = find_path[1]
     job_type = find_path[2]
-    path = os.path.join("sagemaker_tests", framework, job_type)
+    path = os.path.join("test", "sagemaker_tests", framework, job_type)
     aws_id_arg = "--aws-id"
     docker_base_arg = "--docker-base-name"
     instance_type_arg = "--instance-type"
@@ -49,18 +58,16 @@ def generate_sagemaker_pytest_cmd(image):
 
             # NOTE: We are relying on tag structure to get TF major version. If tagging changes, this will break.
             tf_major_version = tag.split("-")[-1].split(".")[0]
-            path = os.path.join(
-                "sagemaker_tests", framework, f"{framework}{tf_major_version}_training"
-            )
+            path = os.path.join(os.path.dirname(path), f"{framework}{tf_major_version}_training")
         else:
             aws_id_arg = "--registry"
             docker_base_arg = "--repo"
             integration_path = os.path.join(integration_path, "test_tfs.py")
             instance_type_arg = "--instance-types"
 
-    test_report = os.path.join(os.getcwd(), f"{tag}.xml")
+    test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
     return (
-        f"pytest {integration_path} --region {region} {docker_base_arg} "
+        f"pytest --reruns {reruns} {integration_path} --region {region} {docker_base_arg} "
         f"{docker_base_name} --tag {tag} {aws_id_arg} {account_id} {instance_type_arg} {instance_type} "
         f"--junitxml {test_report}",
         path,
@@ -76,7 +83,6 @@ def run_sagemaker_pytest_cmd(image):
 
     :param image: ECR url
     """
-
     pytest_command, path, tag = generate_sagemaker_pytest_cmd(image)
 
     context = Context()
@@ -91,8 +97,10 @@ def run_sagemaker_tests(images):
     """
     Function to set up multiprocessing for SageMaker tests
 
-    :param images:
+    :param images: <list> List of all images to be used in SageMaker tests
     """
+    if not images:
+        return
     pool_number = len(images)
     with Pool(pool_number) as p:
         p.map(run_sagemaker_pytest_cmd, images)
@@ -103,29 +111,48 @@ def pull_dlc_images(images):
     Pulls DLC images to CodeBuild jobs before running PyTest commands
     """
     for image in images:
-        run(f"docker pull {image}", hide='out')
+        run(f"docker pull {image}", hide="out")
+
+
+def get_dlc_images():
+    if os.getenv("BUILD_CONTEXT") == "PR":
+        return os.getenv("DLC_IMAGES")
+    else:
+        test_env_file = os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON")
+        with open(test_env_file) as test_env:
+            test_images = json.load(test_env)
+        _, images = test_images.items()
+        return " ".join(images)
 
 
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
-    dlc_images = os.getenv("DLC_IMAGES")
+    dlc_images = get_dlc_images()
+    all_image_list = dlc_images.split(" ")
+    standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
 
-    if test_type in ("sanity", "ecs", "ec2"):
-        report = os.path.join(os.getcwd(), f"{test_type}.xml")
+    if test_type in ("sanity", "ecs", "ec2", "eks"):
+        report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
-        os.chdir("dlc_tests")
+        os.chdir(os.path.join("test", "dlc_tests"))
 
         # Pull images for necessary tests
         if test_type == "sanity":
-            pull_dlc_images(dlc_images.split(" "))
+            pull_dlc_images(all_image_list)
+        if test_type == "eks":
+            for framework in ["tensorflow", "mxnet", "pytorch"]:
+                if framework in dlc_images:
+                    eks_utils.eks_setup(framework)
 
         # Execute dlc_tests pytest command
-        pytest_cmd = ["-s", test_type, f"--junitxml={report}", "-n=auto"]
+        pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]
         sys.exit(pytest.main(pytest_cmd))
     elif test_type == "sagemaker":
-        run_sagemaker_tests(dlc_images.split(" "))
+        run_sagemaker_tests(
+            [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
+        )
     else:
         raise NotImplementedError("Tests only support sagemaker and sanity currently")
 

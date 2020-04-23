@@ -44,6 +44,11 @@ INFO = 1
 ERROR = 2
 DEBUG = 3
 
+# Repository prefix
+MAINLINE_REPO_PREFIX = "beta-"
+NIGHTLY_REPO_PREFIX = "nightly-"
+PR_REPO_PREFIX = "pr-"
+
 # Env variables for the code build PR jobs
 JOB_FRAMEWORK = os.environ.get("FRAMEWORK")
 JOB_FRAMEWORK_VERSION = os.environ.get("VERSION")
@@ -55,6 +60,7 @@ TEST_TYPE_IMAGES_PATH = os.path.join(os.path.expanduser("~"), "test_type_images.
 
 # Test types for running code build test jobs
 SAGEMAKER_TESTS = "sagemaker"
+SANITY_TESTS = "sanity"
 EC2_TESTS = "ec2"
 ECS_TESTS = "ecs"
 EKS_TESTS = "eks"

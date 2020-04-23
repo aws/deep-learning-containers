@@ -1,4 +1,6 @@
 import os
+import logging
+import sys
 
 import boto3
 from botocore.config import Config
@@ -10,6 +12,9 @@ from test import test_utils
 from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
 import test.test_utils.ec2 as ec2_utils
 
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Immutable constant for framework specific image fixtures
 FRAMEWORK_FIXTURES = (
@@ -19,6 +24,8 @@ FRAMEWORK_FIXTURES = (
     "mxnet_training",
     "tensorflow_inference",
     "tensorflow_training",
+    "training",
+    "inference"
 )
 
 
@@ -123,6 +130,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
     :return: Fabric connection object
     """
     instance_id, instance_pem_file = ec2_instance
+    LOGGER.info(f"Instance ip_address: {ec2_utils.get_public_ip(instance_id, region)}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
     conn = Connection(
         user=user,
@@ -139,7 +147,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
     request.addfinalizer(delete_s3_artifact_copy)
 
     conn.run(f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{ec2_key_name}-folder $HOME/container_tests")
-    conn.run(f"chmod -R +x $HOME/container_tests/*")
+    conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
 
     return conn
 
@@ -167,6 +175,11 @@ def gpu_only():
 
 @pytest.fixture(scope="session")
 def py3_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def example_only():
     pass
 
 
@@ -206,12 +219,15 @@ def pytest_generate_tests(metafunc):
             images_to_parametrize = []
             for image in images:
                 if lookup in image:
-                    if "cpu_only" in metafunc.fixturenames and "cpu" in image:
-                        images_to_parametrize.append(image)
-                    elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
-                        images_to_parametrize.append(image)
-                    elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames:
-                        images_to_parametrize.append(image)
+                    is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
+                    is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
+                    if is_example_lookup or is_standard_lookup:
+                        if "cpu_only" in metafunc.fixturenames and "cpu" in image:
+                            images_to_parametrize.append(image)
+                        elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
+                            images_to_parametrize.append(image)
+                        elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames:
+                            images_to_parametrize.append(image)
 
             # Remove all images tagged as "py2" if py3_only is a fixture
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:

@@ -27,6 +27,21 @@ from buildspec import Buildspec
 from output import OutputFormatter
 
 
+def _find_image_object(images_list, image_name):
+    """
+    Find and return an image object from images_list with a name that matches image_name
+    :param images_list: <list> List of <DockerImage> objects
+    :param image_name: <str> Name of image as per buildspec
+    :return: <DockerImage> Object with image_name as "name" attribute
+    """
+    ret_image_object = None
+    for image in images_list:
+        if image.name == image_name:
+            ret_image_object = image
+            break
+    return ret_image_object
+
+
 # TODO: Abstract away to ImageBuilder class
 def image_builder(buildspec):
     FORMATTER = OutputFormatter(constants.PADDING)
@@ -47,6 +62,22 @@ def image_builder(buildspec):
 
         if image_config.get("context") is not None:
             ARTIFACTS.update(image_config["context"])
+
+        build_context = os.getenv("BUILD_CONTEXT")
+        image_tag = (
+            tag_image_with_pr_number(image_config["tag"])
+            if build_context == "PR"
+            else image_config["tag"]
+        )
+        image_repo_uri = (
+            image_config["repository"]
+            if build_context == "PR"
+            else modify_repository_name_for_context(str(image_config["repository"]), build_context)
+        )
+        base_image_uri = None
+        if image_config.get("base_image_name") is not None:
+            base_image_object = _find_image_object(IMAGES, image_config["base_image_name"])
+            base_image_uri = base_image_object.ecr_url
 
         ARTIFACTS.update(
             {
@@ -74,13 +105,14 @@ def image_builder(buildspec):
             "python_version": str(image_config["python_version"]),
             "image_type": str(image_config["image_type"]),
             "image_size_baseline": int(image_config["image_size_baseline"]),
+            "base_image_uri": base_image_uri
         }
 
         image_object = DockerImage(
             info=info,
             dockerfile=image_config["docker_file"],
-            repository=image_config["repository"],
-            tag=image_config["tag"],
+            repository=image_repo_uri,
+            tag=image_tag,
             to_build=image_config["build"],
             context=context,
         )
@@ -95,9 +127,21 @@ def image_builder(buildspec):
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
     # to it is executed concurrently in a separate thread.
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        for image in IMAGES:
+        # Standard images must be built before example images
+        # Example images will use standard images as base
+        standard_images = [image for image in IMAGES if "example" not in image.name.lower()]
+        example_images = [image for image in IMAGES if "example" in image.name.lower()]
+
+        for image in standard_images:
             THREADS[image.name] = executor.submit(image.build)
 
+        # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
+        FORMATTER.progress(THREADS)
+
+        for image in example_images:
+            THREADS[image.name] = executor.submit(image.build)
+
+        # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
         FORMATTER.progress(THREADS)
 
         FORMATTER.title("Build Logs")
@@ -151,4 +195,27 @@ def image_builder(buildspec):
 
         # Set environment variables to be consumed by test jobs
         test_trigger_job = utils.get_codebuild_project_name()
-        utils.set_test_env(IMAGES, BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"), TEST_TRIGGER=test_trigger_job)
+        utils.set_test_env(
+            IMAGES,
+            BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
+            TEST_TRIGGER=test_trigger_job,
+        )
+
+
+def tag_image_with_pr_number(image_tag):
+    pr_number = os.getenv("CODEBUILD_SOURCE_VERSION").replace("/", "-")
+    return f"{image_tag}-{pr_number}"
+
+
+def modify_repository_name_for_context(image_repo_uri, build_context):
+    repo_uri_values = image_repo_uri.split("/")
+    repo_name = repo_uri_values[-1]
+    if build_context == "MAINLINE":
+        repo_uri_values[-1] = repo_name.replace(
+            constants.PR_REPO_PREFIX, constants.MAINLINE_REPO_PREFIX
+        )
+    elif build_context == "NIGHTLY":
+        repo_uri_values[-1] = repo_name.replace(
+            constants.PR_REPO_PREFIX, constants.NIGHTLY_REPO_PREFIX
+        )
+    return "/".join(repo_uri_values)
