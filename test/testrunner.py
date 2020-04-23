@@ -117,19 +117,19 @@ def pull_dlc_images(images):
 def get_dlc_images(test_type):
     if os.getenv("BUILD_CONTEXT") == "PR":
         return os.getenv("DLC_IMAGES")
-    else:
-        test_env_file = os.path.join(os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json")
-        with open(test_env_file) as test_env:
-            test_images = json.load(test_env)
-        for dlc_test_type, images in test_images.items():
-            if test_type == dlc_test_type:
-                return " ".join(images)
+    test_env_file = os.path.join(os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json")
+    with open(test_env_file) as test_env:
+        test_images = json.load(test_env)
+    for dlc_test_type, images in test_images.items():
+        if test_type == dlc_test_type:
+            return " ".join(images)
+    raise RuntimeError(f"Cannot find any images for {test_type} in {test_images}")
 
 
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
-    dlc_images = get_dlc_images()
+    dlc_images = get_dlc_images(test_type)
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
 
