@@ -118,8 +118,9 @@ def get_dlc_images():
     if os.getenv("BUILD_CONTEXT") == "PR":
         return os.getenv("DLC_IMAGES")
     else:
-        with open("test_type_images.json") as test_env_file:
-            test_images = json.load(test_env_file)
+        test_env_file = os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON")
+        with open(test_env_file) as test_env:
+            test_images = json.load(test_env)
         _, images = test_images.items()
         return " ".join(images)
 
