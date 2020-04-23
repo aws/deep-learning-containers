@@ -12,6 +12,9 @@ from invoke.context import Context
 
 import test_utils.eks as eks_utils
 
+from test_utils import get_dlc_images
+
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
@@ -114,18 +117,6 @@ def pull_dlc_images(images):
         run(f"docker pull {image}", hide="out")
 
 
-def get_dlc_images(test_type):
-    if os.getenv("BUILD_CONTEXT") == "PR":
-        return os.getenv("DLC_IMAGES")
-    test_env_file = os.path.join(os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json")
-    with open(test_env_file) as test_env:
-        test_images = json.load(test_env)
-    for dlc_test_type, images in test_images.items():
-        if test_type == dlc_test_type:
-            return " ".join(images)
-    raise RuntimeError(f"Cannot find any images for {test_type} in {test_images}")
-
-
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
@@ -149,7 +140,7 @@ def main():
                     eks_utils.eks_setup(framework)
 
         # Execute dlc_tests pytest command
-        pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto", "--images", all_image_list]
+        pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]
         sys.exit(pytest.main(pytest_cmd))
     elif test_type == "sagemaker":
         run_sagemaker_tests(
