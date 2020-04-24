@@ -4,8 +4,6 @@ FROM nvidia/cuda@sha256:4979db047661dc0003594fb20d37cce6d6c7e989252f4e3fb0beb398
 LABEL maintainer="Amazon AI"
 
 ARG PYTHON_VERSION=3.6.6
-ARG PYTORCH_VERSION=https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl
-ARG TORCHVISION_VERSION=0.6.0
 ARG OPEN_MPI_VERSION=4.0.1
 ARG CUBLAS_VERSION=10.2.1.243-1_amd64
 
@@ -128,9 +126,10 @@ RUN pip install \
     --no-cache-dir fastai==1.0.59 \
     awscli \
     scipy==1.2.2 \
- && pip install --no-cache-dir -U $PYTORCH_VERSION \
+ && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
  && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U torchvision==$TORCHVISION_VERSION+cu101 -f https://download.pytorch.org/whl/torch_stable.html
+ && pip install --no-deps --no-cache-dir -U \
+     https://torchvision-build.s3.amazonaws.com/1.5.0/gpu/torchvision-0.6.0-cp36-cp36m-linux_x86_64.whl
 
 # Install Horovod
 RUN pip uninstall -y horovod \
