@@ -33,7 +33,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
     args = "git clone https://github.com/pytorch/examples.git && python examples/mnist/main.py"
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
-    cpu_limit = 36
+    cpu_limit = 72
     cpu_limit = str(int(cpu_limit) / 2)
 
     search_replace_dict = {

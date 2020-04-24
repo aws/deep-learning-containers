@@ -24,7 +24,7 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
     args = "git clone https://github.com/fchollet/keras.git && python /keras/examples/mnist_cnn.py"
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
-    cpu_limit = 36
+    cpu_limit = 72
     cpu_limit = str(int(cpu_limit) / 2)
 
     search_replace_dict = {
