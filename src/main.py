@@ -1,4 +1,6 @@
 import argparse
+import datetime
+import os
 
 import utils
 import constants
@@ -14,6 +16,8 @@ if __name__ == "__main__":
     parser.add_argument("--py_versions", type=str, default=constants.ALL)
 
     args = parser.parse_args()
+
+    os.environ["DATE_TIME"] = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
     device_types = (
         args.device_types.split(",")
