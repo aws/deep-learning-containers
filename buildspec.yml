@@ -15,6 +15,7 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
+      - export DATE_TIME=`date "+%Y-%m-%d-%H-%M-%S"`
       - python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK
   post_build:
     commands:
