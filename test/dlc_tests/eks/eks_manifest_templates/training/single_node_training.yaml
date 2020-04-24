@@ -17,6 +17,6 @@ spec:
       limits:
         cpu: <CPU_LIMIT>
         ephemeral-storage: "1Gi"
-        nvidia.com/gpu: <NUM_GPUS>
+        nvidia.com/gpu: "1"
       requests:
         ephemeral-storage: "500Mi"
