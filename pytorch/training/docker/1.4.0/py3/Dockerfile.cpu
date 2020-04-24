@@ -5,6 +5,7 @@ LABEL maintainer="Amazon AI"
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.6.6
 ARG OPEN_MPI_VERSION=4.0.1
+ARG SMDEBUG_URL=smdebug
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -93,7 +94,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     awscli \
     fastai==1.0.59 \
     scipy==1.2.2 \
-    smdebug==0.7.1 \
+    ${SMDEBUG_URL} \
     sagemaker==1.50.17 \
     sagemaker-experiments==0.1.7 \
     "sagemaker-pytorch-training<2" \
