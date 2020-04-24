@@ -39,7 +39,7 @@ def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, regi
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
     )
     ec2_connection.run(
-        f"{docker_cmd} exec {container_name} "
+        f"{docker_cmd} exec -e OMP_NUM_THREADS=1 {container_name} "
         f"python {test_cmd} "
         f"2>&1 | tee {log_file}"
     )
