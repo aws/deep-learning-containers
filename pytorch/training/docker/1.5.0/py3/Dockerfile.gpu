@@ -4,9 +4,6 @@ FROM nvidia/cuda@sha256:4979db047661dc0003594fb20d37cce6d6c7e989252f4e3fb0beb398
 LABEL maintainer="Amazon AI"
 
 ARG PYTHON_VERSION=3.6.6
-ARG PYTORCH_VERSION=https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl
-# ARG PYTORCH_VERSION=https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.6.0a0%2Beddbee1-cp36-cp36m-manylinux1_x86_64.whl
-ARG TORCHVISION_VERSION=https://torchvision-build.s3.amazonaws.com/1.4.0/py3/gpu/torchvision-0.5.0-cp36-cp36m-linux_x86_64.whl
 ARG OPEN_MPI_VERSION=4.0.1
 ARG CUBLAS_VERSION=10.2.1.243-1_amd64
 
@@ -101,7 +98,6 @@ RUN conda install -c pytorch magma-cuda101==2.5.1 \
     opencv==4.0.1 \
  && conda install -y scikit-learn==0.21.2 \
     pandas==0.25.0 \
-    pillow==6.2.1 \
     h5py==2.9.0 \
     requests==2.22.0 \
     libgcc \
@@ -124,16 +120,16 @@ RUN /opt/conda/bin/conda config --set ssl_verify False \
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install \
-    --no-cache-dir smdebug==0.7.1 \
+    --no-cache-dir smdebug \
     sagemaker==1.50.17 \
     sagemaker-experiments==0.1.7 \
     --no-cache-dir fastai==1.0.59 \
     awscli \
     scipy==1.2.2 \
- && pip install --no-cache-dir -U $PYTORCH_VERSION \
+ && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
  && pip uninstall -y torchvision \
- && pip install --no-deps -f https://download.pytorch.org/whl/test/torch_test.html torchvision
-# && pip install --no-deps --no-cache-dir -U $TORCHVISION_VERSION
+ && pip install --no-deps --no-cache-dir -U \
+     https://torchvision-build.s3.amazonaws.com/1.5.0/gpu/torchvision-0.6.0-cp36-cp36m-linux_x86_64.whl
 
 # Install Horovod
 RUN pip uninstall -y horovod \
@@ -170,7 +166,7 @@ RUN pip install --no-cache-dir "sagemaker-pytorch-training<2"
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.4.0/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.0/license.txt
 
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]

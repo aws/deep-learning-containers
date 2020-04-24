@@ -1,5 +1,4 @@
 import os
-import re
 import sys
 import logging
 
@@ -11,6 +10,9 @@ from invoke import run
 from invoke.context import Context
 
 import test_utils.eks as eks_utils
+
+from test_utils import get_dlc_images
+
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -117,7 +119,8 @@ def pull_dlc_images(images):
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
-    dlc_images = os.getenv("DLC_IMAGES")
+    dlc_images = get_dlc_images(test_type)
+    LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
 
