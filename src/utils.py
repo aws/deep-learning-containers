@@ -139,7 +139,7 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
     for buildspec in rule:
         buildspec_framework = buildspec.split("/")[0]
         if buildspec_framework == framework:
-            #JobParameters.build_for_all_images()
+            JobParameters.build_for_all_images()
             update_image_run_test_types(constants.ALL, constants.ALL)
 
 
@@ -222,18 +222,18 @@ def parse_modified_dlc_test_files_info(files, framework, pattern=""):
                 if framework_changed == framework:
                     job_name = test_dirs[3]
                     if job_name in constants.IMAGE_TYPES:
-                        JobParameters.add_image_types(job_name)
+                        #JobParameters.add_image_types(job_name)
                         JobParameters.build_for_all_device_types_py_versions()
                         update_image_run_test_types(job_name, test_name)
                     # If file changed is under /test/dlc_tests/(ecs|eks|ec2)
                     # but not in (inference|training) dirs
                     else:
-                        JobParameters.build_for_all_images()
+                        # JobParameters.build_for_all_images()
                         update_image_run_test_types(constants.ALL, test_name)
                         break
                 # If file changed is under /test/dlc_tests/(ecs|eks|ec2) dirs init and conftest files
                 elif framework_changed not in constants.FRAMEWORKS:
-                    JobParameters.build_for_all_images()
+                    # JobParameters.build_for_all_images()
                     update_image_run_test_types(constants.ALL, test_name)
                     break
             # If file changed is under /test/dlc_tests/ dir sanity, container_tests dirs
@@ -273,13 +273,13 @@ def pr_build_setup(pr_number, framework):
 
     # The below code currently overides the device_types, image_types, py_versions with constants.ALL
     # when there is a change in any the below files
-    parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.yml")
-
-    parse_modifed_root_files_info(files, pattern="src\/\S+")
-
-    parse_modifed_root_files_info(
-        files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
-    )
+    # parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.yml")
+    #
+    # parse_modifed_root_files_info(files, pattern="src\/\S+")
+    #
+    # parse_modifed_root_files_info(
+    #     files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
+    # )
 
     parse_modifed_root_files_info(files, pattern="testspec\.yml")
 
@@ -346,7 +346,7 @@ def fetch_dlc_images_for_test_jobs(images):
     DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
 
     for docker_image in images:
-        if docker_image.build_status == constants.SUCCESS and docker_image.build_status==constants.NOT_BUILT:
+        if docker_image.build_status == constants.SUCCESS or docker_image.build_status == constants.NOT_BUILT:
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(docker_image.ecr_url)
             image_job_type = docker_image.info.get("image_type")
