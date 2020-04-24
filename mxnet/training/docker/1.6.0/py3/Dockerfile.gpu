@@ -7,6 +7,7 @@ ARG PYTHON=python3
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.6.8
 ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
+ARG SMDEBUG_URL=smdebug
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -151,12 +152,12 @@ RUN ${PIP} install --no-cache --upgrade \
     urllib3==1.24 \
     python-dateutil==2.8.0 \
     tqdm==4.39.0 \
-    smdebug==0.5.0.post0 \
     sagemaker-experiments==0.1.3 \
     PyYAML==5.1.2 \
     mpi4py==3.0.2 \
     sagemaker-mxnet-training \
     ${MX_URL} \
+    ${SMDEBUG_URL} \
     awscli
 
 # Install Horovod, temporarily using CUDA stubs
