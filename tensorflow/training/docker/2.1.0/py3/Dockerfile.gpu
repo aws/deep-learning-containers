@@ -145,21 +145,21 @@ RUN ${PIP} install --no-cache-dir -U \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
     keras==2.3.1 \
-    smdebug==0.7.2 \
+    ${SMDEBUG_URL} \
     python-dateutil==2.8.1 \
     pyYAML==5.3.1 \
     requests==2.22.0 \
     awscli \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
+    sagemaker==1.50.17 \
     sagemaker-experiments==0.1.7 \
     "sagemaker-tensorflow>=2.1,<2.2" \
     "sagemaker-tensorflow-training>2,<4" \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
-    ${TF_URL} \
-    ${SMDEBUG_URL}
+    ${TF_URL}
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \

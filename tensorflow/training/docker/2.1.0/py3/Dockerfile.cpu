@@ -101,6 +101,7 @@ RUN ${PIP} install --no-cache-dir -U \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
     keras==2.3.1 \
+    ${SMDEBUG_URL} \
     python-dateutil==2.8.1 \
     pyYAML==5.3.1 \
     requests==2.22.0 \
@@ -115,8 +116,8 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    horovod==0.18.2 \
-    ${SMDEBUG_URL}
+    horovod==0.18.2
+
 
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
