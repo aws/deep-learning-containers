@@ -4,7 +4,7 @@
   version: &VERSION 1.4.0
   cuda_version: &CUDA_VERSION cu101
   os_version: &OS_VERSION ubuntu16.04
-  date_time: &DATE_TIME <set-$DATE_TIME-in-environment>
+  date_time: &DATE_TIME 2020
 
   repository_info:
     training_repository: &TRAINING_REPOSITORY
