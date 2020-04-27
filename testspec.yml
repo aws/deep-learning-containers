@@ -23,3 +23,8 @@ reports:
     files:
       - test/*.xml
     file-format: JunitXml
+artifacts:
+  files:
+    - $CODEBUILD_SRC_DIR_DLC_IMAGES_JSON/test_type_images.json
+  name: DLC_TESTS_JSON
+  discard-paths: yes
