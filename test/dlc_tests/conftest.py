@@ -34,7 +34,7 @@ collect_ignore = [os.path.join("container_tests", "*")]
 
 
 def pytest_addoption(parser):
-    default_images = test_utils.get_dlc_images(os.getenv("TEST_TYPE"))
+    default_images = test_utils.get_dlc_images()
     parser.addoption(
         "--images", default=default_images.split(" "), nargs="+", help="Specify image(s) to run",
     )
