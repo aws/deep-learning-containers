@@ -4,7 +4,7 @@ PYTHON_VERSION=$(python -c 'import sys; print(sys.version_info[0])' | tr -d "'")
 HOME_DIR=/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs/gpu
-LOG_FILE=synthetic_results_${TIMESTAMP}.txt
+LOG_FILE=training_results_${TIMESTAMP}.txt
 
 mkdir -p ${HOME_DIR}
 mkdir -p ${BIN_DIR}
