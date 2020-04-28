@@ -124,9 +124,7 @@ def main():
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
 
-    # if test_type in ("sanity", "ecs", "ec2", "eks"):
-    if test_type in ("ec2"):
-
+    if test_type in ("sanity", "ecs", "ec2", "eks"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
@@ -143,10 +141,10 @@ def main():
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]
         sys.exit(pytest.main(pytest_cmd))
-#     elif test_type == "sagemaker":
-#         run_sagemaker_tests(
-#             [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
-#         )
+    elif test_type == "sagemaker":
+        run_sagemaker_tests(
+            [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
+        )
     else:
         raise NotImplementedError("Tests only support sagemaker and sanity currently")
 

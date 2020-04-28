@@ -10,12 +10,12 @@ from test.dlc_tests.conftest import LOGGER
 TENSORFLOW1_VERSION = "1."
 TENSORFLOW2_VERSION = "2."
 
-
+@pytest.mark.skip(reason="Skip non-benchmark tests")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_ec2_tenorflow_inference_gpu(tensorflow_inference, ec2_connection, region, gpu_only):
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
-
+@pytest.mark.skip(reason="Skip non-benchmark tests")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, region, cpu_only):
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
