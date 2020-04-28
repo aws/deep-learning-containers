@@ -18,7 +18,6 @@ import sys
 import os.path
 
 if not os.path.exists("/opt/ml/input/config"):
-    print("cwd : ", os.getcwd())
     subprocess.call(['python', '/usr/local/bin/deep_learning_container.py', '&>/dev/null', '&'])
 
 if sys.argv[1] == 'serve':
