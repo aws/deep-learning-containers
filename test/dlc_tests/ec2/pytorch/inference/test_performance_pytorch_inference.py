@@ -28,12 +28,13 @@ def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, regi
     # Make sure we are logged into ECR so we can pull the image
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
-    ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ", hide=False)
+    ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
 
     time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
+    commit_info = os.getenv("$CODEBUILD_RESOLVED_SOURCE_VERSION")
     # Run performance inference command, display benchmark results to console
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
-    log_file = f"inference_benchmark_results_{time_str}.log"
+    log_file = f"inference_benchmark_results_{commit_info}_{time_str}.log"
     ec2_connection.run(
         f"{docker_cmd} run -d --name {container_name}  -e OMP_NUM_THREADS=1 "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
