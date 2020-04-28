@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import subprocess
@@ -277,3 +278,15 @@ def delete_uploaded_tests_from_s3(s3_test_location):
     :return: <bool> True/False based on success/failure of removal
     """
     run(f"aws s3 rm --recursive {s3_test_location}")
+
+
+def get_dlc_images():
+    if os.getenv("BUILD_CONTEXT") == "PR":
+        return os.getenv("DLC_IMAGES")
+    test_env_file = os.path.join(os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json")
+    with open(test_env_file) as test_env:
+        test_images = json.load(test_env)
+    for dlc_test_type, images in test_images.items():
+        if dlc_test_type == "sanity":
+            return " ".join(images)
+    raise RuntimeError(f"Cannot find any images for in {test_images}")
