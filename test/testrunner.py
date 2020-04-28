@@ -12,7 +12,7 @@ from invoke.context import Context
 
 import test_utils.eks as eks_utils
 
-from .test_utils import get_dlc_images
+from test_utils import get_dlc_images
 
 
 LOGGER = logging.getLogger(__name__)
