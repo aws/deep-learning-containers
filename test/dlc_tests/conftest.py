@@ -89,7 +89,6 @@ def ec2_instance(
         request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami, region
 ):
     print(f"Creating instance: CI-CD {ec2_key_name}")
-    LOGGER.info(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
     extra_volume_size_mapping = [
                         {
@@ -100,7 +99,6 @@ def ec2_instance(
                         },
                     ]
     if ("performance" in ec2_key_name) and ("mxnet" in ec2_key_name) and ("training_cpu" not in ec2_key_name):
-        LOGGER.info(f"Creating extra-volume-size instance:")
         instances = ec2_resource.create_instances(
             BlockDeviceMappings=extra_volume_size_mapping,
             KeyName=ec2_key_name,
