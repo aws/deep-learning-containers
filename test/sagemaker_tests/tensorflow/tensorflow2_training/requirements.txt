@@ -13,7 +13,7 @@ pytest-rerunfailures==9.0
 pytest-xdist
 mock
 sagemaker==1.50.1
-tensorflow<2.0
+tensorflow==2.1.0
 docker-compose
 boto3==1.10.50
 six==1.13.0
@@ -21,3 +21,4 @@ python-dateutil>=2.1,<2.8.1
 botocore==1.13.50
 requests-mock
 awscli==1.16.314
+fabric==2.5.0
