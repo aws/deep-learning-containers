@@ -315,7 +315,6 @@ def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=
 
     # Run training command, display benchmark results to console
     connection.run(
-        f"{docker_cmd} run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
-        f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}",
-        hide=False,
+        f"{docker_cmd} run -e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
+        f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
     )
