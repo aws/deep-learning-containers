@@ -12,16 +12,16 @@ def get_avg_speed(filepath, index):
                 try:
                     total += float(line.split()[index])
                 except ValueError as e:
-                    raise RuntimeError(f"LINE: {line} split {line.split()[index]} ERROR: {e}")
+                    raise RuntimeError("LINE: {} split {} ERROR: {}".format(line, line.split()[index], e))
                 n += 1
     if total and n:
         return total/n
     else:
-        raise ValueError(f"total: {total}; n: {n} -- something went wrong")
+        raise ValueError("total: {}; n: {} -- something went wrong".format(total, n))
 
 
 if __name__ == '__main__':
     filepath = sys.argv[1]
     index = int(sys.argv[2])
     avg_speed = get_avg_speed(filepath, index)
-    print(f"Speed: {avg_speed} samples/sec")
+    print("Speed: {} samples/sec".format(avg_speed))
