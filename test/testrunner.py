@@ -127,7 +127,7 @@ def setup_eks_clusters(dlc_images):
                 cluster_name = f"dlc-{framework}-cluster-" \
                                f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
                 # TODO: handle instance type more appropriately when this is all hashed out
-                eks_utils.create_cluster(cluster_name, "gpu", 3, "p3.2xlarge", "pytest.pem")
+                eks_utils.create_eks_cluster(cluster_name, "gpu", 3, "p3.2xlarge", "pytest.pem")
                 clusters.append(cluster_name)
             eks_utils.eks_setup(framework, cluster_name)
     return clusters
