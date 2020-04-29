@@ -311,10 +311,36 @@ def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
-    connection.run(f"{docker_cmd} pull -q {ecr_uri} ", hide=False)
+    connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
     # Run training command, display benchmark results to console
     connection.run(
         f"{docker_cmd} run -e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
         f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
+    )
+
+
+def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
+    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+
+    # Make sure we are logged into ECR so we can pull the image
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+
+    connection.run(f"{docker_cmd} pull -q {ecr_uri}")
+
+    # Run training command, display benchmark results to console
+    repo_name, image_tag = ecr_uri.split("/")[-1].split(":")
+    container_name = f"{repo_name}-performance-{image_tag}-ec2"
+    connection.run(
+        f"{docker_cmd} run -d --name {container_name} "
+        f"-e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} "
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri}"
+    )
+    connection.run(
+        f"{docker_cmd} exec {container_name} "
+        f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
+    )
+    connection.run(
+        f"docker rm -f {container_name}"
     )
