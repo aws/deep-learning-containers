@@ -8,46 +8,46 @@ from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf2
 
 SMDEBUG_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
 
+@pytest.mark.skip(reason="Skip non-benchmark tests")
+@pytest.mark.parametrize("ec2_instance_type", ["p3.8xlarge"], indirect=True)
+def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
+    test_script = SMDEBUG_SCRIPT
+    framework = get_framework_from_image_uri(training)
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+    ec2_connection.run(
+        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
+    )
 
-# @pytest.mark.parametrize("ec2_instance_type", ["p3.8xlarge"], indirect=True)
-# def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
-#     test_script = SMDEBUG_SCRIPT
-#     framework = get_framework_from_image_uri(training)
-#     container_test_local_dir = os.path.join("$HOME", "container_tests")
-#     ec2_connection.run(
-#         f"$(aws ecr get-login --no-include-email --region {region})", hide=True
-#     )
-#
-#     ec2_connection.run(
-#         f"nvidia-docker run --name smdebug-gpu -v "
-#         f"{container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {training}",
-#         hide=True,
-#     )
-#
-#     ec2_connection.run(
-#         f"nvidia-docker exec --user root smdebug-gpu /bin/bash -c '{test_script} {framework}'",
-#         hide=True,
-#     )
-#
-#
-# @pytest.mark.parametrize("ec2_instance_type", ["c5.9xlarge"], indirect=True)
-# def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
-#     test_script = SMDEBUG_SCRIPT
-#     framework = get_framework_from_image_uri(training)
-#     container_test_local_dir = os.path.join("$HOME", "container_tests")
-#     ec2_connection.run(
-#         f"$(aws ecr get-login --no-include-email --region {region})", hide=True
-#     )
-#
-#     ec2_connection.run(
-#         f"docker run --name smdebug-cpu -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {training}",
-#         hide=True,
-#     )
-#
-#     ec2_connection.run(
-#         f"docker exec --user root smdebug-cpu /bin/bash -c '{test_script} {framework}'",
-#         hide=True,
-#     )
+    ec2_connection.run(
+        f"nvidia-docker run --name smdebug-gpu -v "
+        f"{container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {training}",
+        hide=True,
+    )
+
+    ec2_connection.run(
+        f"nvidia-docker exec --user root smdebug-gpu /bin/bash -c '{test_script} {framework}'",
+        hide=True,
+    )
+
+@pytest.mark.skip(reason="Skip non-benchmark tests")
+@pytest.mark.parametrize("ec2_instance_type", ["c5.9xlarge"], indirect=True)
+def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
+    test_script = SMDEBUG_SCRIPT
+    framework = get_framework_from_image_uri(training)
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+    ec2_connection.run(
+        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
+    )
+
+    ec2_connection.run(
+        f"docker run --name smdebug-cpu -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {training}",
+        hide=True,
+    )
+
+    ec2_connection.run(
+        f"docker exec --user root smdebug-cpu /bin/bash -c '{test_script} {framework}'",
+        hide=True,
+    )
 
 
 def get_framework_from_image_uri(image_uri):
