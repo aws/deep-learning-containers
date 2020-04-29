@@ -51,7 +51,10 @@ def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, regi
         f"echo Benchmark Results: >&2;"
         f"echo PyTorch Inference {processor} {python_version} >&2"
     )
-    ec2_connection.run(f"cat {log_file} >&2")
+    if python_version == "py3":
+        ec2_connection.run(f"tail -28 {log_file} >&2")
+    else:
+        ec2_connection.run(f"cat {log_file} >&2")
     ec2_connection.run(
         f"aws s3 cp {log_file} s3://dlinfra-dlc-cicd-performance/pytorch/ec2/inference/{processor}/{python_version}/{log_file}"
     )
