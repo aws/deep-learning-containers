@@ -42,7 +42,7 @@ def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, regi
     ec2_connection.run(
         f"{docker_cmd} exec {container_name} "
         f"python {test_cmd} "
-        f">&1 | tee {log_file}"
+        f"2>&1 | tee {log_file}"
     )
     ec2_connection.run(
         f"docker rm -f {container_name}"
