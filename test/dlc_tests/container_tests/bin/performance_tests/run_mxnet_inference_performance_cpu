@@ -19,6 +19,7 @@ git clone https://github.com/awslabs/deeplearning-benchmark.git ${HOME_DIR}/arti
 pip install psutil gluoncv==0.2.0b20180625 && export KMP_AFFINITY='granularity=fine,compact,1,0' && export OMP_NUM_THREADS=36 && python deeplearning-benchmark/image_classification/infer_imagenet.py \
 --use-rec --batch-size 256 --dtype float32 --num-data-workers 40 --mode hybrid --model resnet50_v2 --use-pretrained \
 --kvstore local --log-interval 1 --rec-val /home/ubuntu/data/val-passthrough.rec --rec-val-idx /home/ubuntu/data/val-passthrough.idx 2>&1 | tee ${LOG_DIR}/"${LOG_FILE}"
+python /test/bin/performance_tests/get_avg_accuracies.py ${LOG_DIR}/"${LOG_FILE}" >> ${LOG_DIR}/"${LOG_FILE}"
 
 echo Benchmark Results: >&2
 echo MXNet Inference py"${PYTHON_VERSION}" cpu >&2
