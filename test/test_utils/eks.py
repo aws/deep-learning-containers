@@ -266,7 +266,7 @@ def create_eks_cluster(eks_cluster_name, processor_type, num_nodes,
 
     eksctl_create_cluster_command = f"eksctl create cluster {eks_cluster_name} " \
                                     f"--node-ami {EKS_AMI_ID[processor_type]} " \
-                                    f"--nodes{num_nodes} " \
+                                    f"--nodes {num_nodes} " \
                                     f"--node-type={instance_type} " \
                                     f"--timeout=40m " \
                                     f"--ssh-access " \
