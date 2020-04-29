@@ -136,7 +136,7 @@ def setup_eks_clusters(dlc_images):
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
-    dlc_images = get_dlc_images(test_type)
+    dlc_images = get_dlc_images()
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
