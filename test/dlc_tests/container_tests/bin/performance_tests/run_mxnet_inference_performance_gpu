@@ -21,7 +21,7 @@ pip install psutil gluoncv==0.2.0b20180625 && python deeplearning-benchmark/imag
 --use-rec --batch-size 128 --dtype float16 --num-data-workers 40 --mode symbolic --model resnet50_v2 --num_gpus 0,1,2,3,4,5,6,7 \
 --use-pretrained --kvstore local --log-interval 1 --num-epochs 1 --rec-val /home/ubuntu/data/val-passthrough.rec --rec-val-idx /home/ubuntu/data/val-passthrough.idx \
 2>&1 | tee ${LOG_DIR}/"${LOG_FILE}"
-python /test/bin/performance_tests/get_avg_accuracies.py ${LOG_DIR}/"${LOG_FILE}" 1 >> ${LOG_DIR}/"${LOG_FILE}"
+python /test/bin/performance_tests/get_avg_accuracies.py ${LOG_DIR}/"${LOG_FILE}" 4 >> ${LOG_DIR}/"${LOG_FILE}"
 
 echo Benchmark Results: >&2
 echo MXNet Inference py"${PYTHON_VERSION}" gpu >&2
