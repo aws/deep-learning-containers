@@ -8,7 +8,7 @@ from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf2
 
 SMDEBUG_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
 
-
+@pytest.mark.skip(reason="Skip non-benchmark tests")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.8xlarge"], indirect=True)
 def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
     test_script = SMDEBUG_SCRIPT
@@ -29,7 +29,7 @@ def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
         hide=True,
     )
 
-
+@pytest.mark.skip(reason="Skip non-benchmark tests")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.9xlarge"], indirect=True)
 def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
     test_script = SMDEBUG_SCRIPT
