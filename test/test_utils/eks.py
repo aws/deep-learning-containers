@@ -224,7 +224,7 @@ def delete_eks_cluster(eks_cluster_name):
         eks_cluster_name: str
     """
 
-    run("eksctl delete cluster {} --wait".format(eks_cluster_name), warn_only=True)
+    run("eksctl delete cluster {} --wait".format(eks_cluster_name), warn=True)
 
     cfn_stack_names = list_cfn_stack_names()
     for stack_name in cfn_stack_names:
