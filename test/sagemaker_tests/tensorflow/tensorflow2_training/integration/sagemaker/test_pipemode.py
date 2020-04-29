@@ -17,7 +17,7 @@ import shutil
 import uuid
 
 import pytest
-from recordio_utils import build_record_file, build_single_record_file
+from .recordio_utils import build_record_file, build_single_record_file
 from sagemaker import s3_input
 from sagemaker.tensorflow import TensorFlow
 
