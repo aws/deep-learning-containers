@@ -1,13 +1,17 @@
+# usage: python <script_name>.py <log_file> 4 Training
+# usage: python <script_name>.py <log_file> 1 Inference
 import sys
 
-
-def get_avg_speed(filepath):
+def get_avg_speed(filepath, index):
     total = 0.0
     n = 0
     with open(filepath) as f:
         for line in f:
-            if "Batch" in line:
-                total += float(line.split()[4])
+            if "Speed" in line:
+                try:
+                    total += float(line.split()[index])
+                except ValueError as e:
+                    raise RuntimeError("LINE: {} split {} ERROR: {}".format(line, line.split()[index], e))
                 n += 1
     if total and n:
         return total/n
@@ -17,5 +21,6 @@ def get_avg_speed(filepath):
 
 if __name__ == '__main__':
     filepath = sys.argv[1]
-    avg_speed = get_avg_speed(filepath)
+    index = int(sys.argv[2])
+    avg_speed = get_avg_speed(filepath, index)
     print("Speed: {} samples/sec".format(avg_speed))
