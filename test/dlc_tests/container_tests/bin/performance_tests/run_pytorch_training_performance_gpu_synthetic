@@ -9,7 +9,7 @@ TIMESTAMP=$(date "+%Y-%m-%d-%H-%M-%S")
 HOME_DIR=/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs/gpu
-LOG_FILE=synthetic_results_${TIMESTAMP}.txt
+LOG_FILE=synthetic_results_${COMMIT_INFO}_${TIMESTAMP}.txt
 
 mkdir -p ${HOME_DIR}
 mkdir -p ${BIN_DIR}
