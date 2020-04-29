@@ -21,3 +21,4 @@ botocore==1.13.50
 requests-mock
 awscli==1.16.314
 fabric==2.5.0
+sagemaker-experiments==0.1.7
