@@ -170,7 +170,7 @@ def list_cfn_stack_names():
 
     try:
         cfn_stacks = cfn.list_stacks(
-            StackStatusFilter=[status for status in stack_statuses if status is not 'DELETE_COMPLETE']
+            StackStatusFilter=[status for status in stack_statuses if status != 'DELETE_COMPLETE']
         )
     except ClientError as e:
         LOGGER.error(f"Error: Cannot list stack names. Full Exception:\n{e}")
@@ -233,6 +233,23 @@ def delete_eks_cluster(eks_cluster_name):
             delete_cfn_stack_and_wait(stack_name)
 
 
+def setup_eksctl():
+    run_out = run("eksctl version", warn=True)
+
+    eksctl_installed = not run_out.return_code
+
+    if eksctl_installed:
+        return
+
+    platform = run("uname -s").stdout.strip()
+    eksctl_download_command = (
+        f"curl --silent --location https://github.com/weaveworks/eksctl/releases/download/"
+        f"{EKSCTL_VERSION}/eksctl_{platform}_amd64.tar.gz | tar xz -C /tmp"
+    )
+    run(eksctl_download_command)
+    run("mv /tmp/eksctl /usr/local/bin")
+
+
 @retry(stop_max_attempt_number=2, wait_fixed=60000)
 def create_eks_cluster(eks_cluster_name, processor_type, num_nodes,
                        instance_type, ssh_public_key_name, region=os.getenv("AWS_REGION", DEFAULT_REGION)):
@@ -243,6 +260,8 @@ def create_eks_cluster(eks_cluster_name, processor_type, num_nodes,
     Args:
         eks_cluster_name, processor_type, num_nodes, instance_type, ssh_public_key_name: str
     """
+    setup_eksctl()
+
     delete_eks_cluster(eks_cluster_name)
 
     eksctl_create_cluster_command = f"eksctl create cluster {eks_cluster_name} " \
@@ -296,11 +315,6 @@ def eks_setup(framework, cluster_name=None):
 
     platform = run("uname -s").stdout.strip()
 
-    eksctl_download_command = (
-        f"curl --silent --location https://github.com/weaveworks/eksctl/releases/download/"
-        f"{EKSCTL_VERSION}/eksctl_{platform}_amd64.tar.gz | tar xz -C /tmp"
-    )
-
     kubectl_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
         f"{EKS_VERSION}/2019-08-14/bin/{platform.lower()}/amd64/kubectl -o /tmp/kubectl"
@@ -321,8 +335,8 @@ def eks_setup(framework, cluster_name=None):
         f"{KUBETAIL_VERSION}/kubetail -o /tmp/kubetail"
     )
 
-    run(eksctl_download_command)
-    run("mv /tmp/eksctl /usr/local/bin")
+    # Separate function handles setting up eksctl
+    setup_eksctl()
 
     run(kubectl_download_command)
     run("chmod +x /tmp/kubectl")
