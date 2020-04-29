@@ -1,4 +1,5 @@
 import os
+import random
 import sys
 import logging
 
@@ -11,7 +12,7 @@ from invoke.context import Context
 
 import test_utils.eks as eks_utils
 
-from test_utils import get_dlc_images
+from test_utils import get_dlc_images, is_pr_context
 
 
 LOGGER = logging.getLogger(__name__)
@@ -116,6 +117,22 @@ def pull_dlc_images(images):
         run(f"docker pull {image}", hide="out")
 
 
+def setup_eks_clusters(dlc_images):
+    clusters = []
+    for framework in ("tensorflow", "mxnet", "pytorch"):
+        if framework in dlc_images:
+            cluster_name = None
+            # Enabling this in PR context for testing. TODO: Change to if not is_pr_context()
+            if is_pr_context():
+                cluster_name = f"dlc-{framework}-cluster-" \
+                               f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
+                # TODO: handle instance type more appropriately when this is all hashed out
+                eks_utils.create_cluster(cluster_name, "gpu", 3, "p3.2xlarge", "pytest.pem")
+                clusters.append(cluster_name)
+            eks_utils.eks_setup(framework, cluster_name)
+    return clusters
+
+
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
@@ -123,6 +140,7 @@ def main():
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
+    clusters = []
 
     if test_type in ("sanity", "ecs", "ec2", "eks"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
@@ -134,13 +152,15 @@ def main():
         if test_type == "sanity":
             pull_dlc_images(all_image_list)
         if test_type == "eks":
-            for framework in ["tensorflow", "mxnet", "pytorch"]:
-                if framework in dlc_images:
-                    eks_utils.eks_setup(framework)
-
+            clusters = setup_eks_clusters(dlc_images)
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]
-        sys.exit(pytest.main(pytest_cmd))
+        try:
+            sys.exit(pytest.main(pytest_cmd))
+        finally:
+            if test_type == "eks" and clusters:
+                for cluster in clusters:
+                    eks_utils.delete_eks_cluster(cluster)
     elif test_type == "sagemaker":
         run_sagemaker_tests(
             [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]

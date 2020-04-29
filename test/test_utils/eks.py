@@ -7,6 +7,9 @@ import sys
 import json
 import logging
 
+import boto3
+
+from botocore.exceptions import ClientError
 from retrying import retry
 from invoke import run
 
@@ -143,7 +146,127 @@ def is_eks_training_complete(pod_name):
     return False
 
 
-def eks_setup(framework):
+def init_cfn_client():
+    """Function to initiate the cfn session
+    Args:
+        material_set: str
+    """
+    return boto3.client('cloudformation')
+
+
+def list_cfn_stack_names():
+    """Function to list the cfn stacks in the account.
+    Note: lists all the cfn stacks that aren't
+    Args:
+        material_set: str
+    """
+    stack_statuses = ['CREATE_IN_PROGRESS', 'CREATE_FAILED', 'CREATE_COMPLETE', 'ROLLBACK_IN_PROGRESS',
+                      'ROLLBACK_FAILED', 'ROLLBACK_COMPLETE', 'DELETE_IN_PROGRESS', 'DELETE_FAILED',
+                      'UPDATE_IN_PROGRESS', 'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS', 'UPDATE_COMPLETE',
+                      'UPDATE_ROLLBACK_IN_PROGRESS', 'UPDATE_ROLLBACK_FAILED',
+                      'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS', 'UPDATE_ROLLBACK_COMPLETE',
+                      'REVIEW_IN_PROGRESS', 'DELETE_COMPLETE']
+    cfn = init_cfn_client()
+
+    try:
+        cfn_stacks = cfn.list_stacks(
+            StackStatusFilter=[status for status in stack_statuses if status is not 'DELETE_COMPLETE']
+        )
+    except ClientError as e:
+        LOGGER.error(f"Error: Cannot list stack names. Full Exception:\n{e}")
+
+    return [stack['StackName'] for stack in cfn_stacks['StackSummaries']]
+
+
+def describe_cfn_stack_events(stack_name):
+    """
+    Function to describe CFN events.
+    Args:
+        stack_name, materialset: str
+    """
+    cfn = init_cfn_client()
+    max_items = 10
+    try:
+        LOGGER.info("Describing the latest {} events on the stack".format(max_items))
+        for stack_event in cfn.describe_stack_events(StackName=stack_name)["StackEvents"][:max_items]:
+            LOGGER.info(stack_event)
+    except ClientError as e:
+        LOGGER.error(f"Error: Cannot describe events on stack: {stack_name}. Full Exception:\n{e}")
+
+
+def delete_cfn_stack_and_wait(stack_name):
+    """Function to delete cfn stack. The waiter checks if the stack has been deleted every _delay seconds,
+    for a maximum of _max_attempts times i.e. for _max_attempts min.
+    Args:
+        stack_name, material_set: str
+    """
+    cfn = init_cfn_client()
+    _delay = 60
+    _max_attempts = 20
+    try:
+        cfn.delete_stack(StackName=stack_name)
+        cfn_waiter = cfn.get_waiter("stack_delete_complete")
+        cfn_waiter.wait(StackName=stack_name,
+                        WaiterConfig={
+                            'Delay': _delay,
+                            'MaxAttempts': _max_attempts
+                        })
+    except ClientError as e:
+        LOGGER.error("Error: Cannot delete stack: {}".format(stack_name))
+        LOGGER.error("Exception: {}".format(e))
+        describe_cfn_stack_events(stack_name)
+
+
+def delete_eks_cluster(eks_cluster_name):
+    """Function to delete the EKS cluster, if it exists. Additionally, the function cleans up any cloudformation stacks
+    that are dangling.
+    Args:
+        eks_cluster_name: str
+    """
+
+    run("eksctl delete cluster {} --wait".format(eks_cluster_name), warn_only=True)
+
+    cfn_stack_names = list_cfn_stack_names()
+    for stack_name in cfn_stack_names:
+        if eks_cluster_name in stack_name:
+            LOGGER.info("Deleting dangling cloudformation stack: {}".format(stack_name))
+            delete_cfn_stack_and_wait(stack_name)
+
+
+@retry(stop_max_attempt_number=2, wait_fixed=60000)
+def create_eks_cluster(eks_cluster_name, processor_type, num_nodes,
+                       instance_type, ssh_public_key_name, region=os.getenv("AWS_REGION", DEFAULT_REGION)):
+    """Function to setup an EKS cluster using eksctl. The AWS credentials used to perform eks operations
+    are that the user deepamiuser-beta as used in other functions. The 'deeplearning-ami-beta' public key
+    will be used to access the nodes created as EC2 instances in the EKS cluster.
+    Note: eksctl creates a cloudformation stack by the name of eksctl-${eks_cluster_name}-cluster.
+    Args:
+        eks_cluster_name, processor_type, num_nodes, instance_type, ssh_public_key_name: str
+    """
+    delete_eks_cluster(eks_cluster_name)
+
+    eksctl_create_cluster_command = f"eksctl create cluster {eks_cluster_name} " \
+                                    f"--node-ami {EKS_AMI_ID[processor_type]} " \
+                                    f"--nodes{num_nodes} " \
+                                    f"--node-type={instance_type} " \
+                                    f"--timeout=40m " \
+                                    f"--ssh-access " \
+                                    f"--ssh-public-key {ssh_public_key_name} " \
+                                    f"--region {region}"
+
+    # In us-east-1 you are likely to get UnsupportedAvailabilityZoneException,
+    # if the allocated zones is us-east-1e as it does not support AmazonEKS
+    if region == "us-east-1":
+        eksctl_create_cluster_command += " --zones=us-east-1a,us-east-1b,us-east-1d "
+    eksctl_create_cluster_command += " --auto-kubeconfig "
+    run(eksctl_create_cluster_command)
+
+    LOGGER.info(f"EKS cluster created successfully, with the following parameters cluster_name: "
+                f"{eks_cluster_name} ami-id: {EKS_AMI_ID[processor_type]} num_nodes: {num_nodes} instance_type: "
+                f"{instance_type} ssh_public_key: {ssh_public_key_name}")
+
+
+def eks_setup(framework, cluster_name=None):
     """Function to download eksctl, kubectl, aws-iam-authenticator and ksonnet binaries
     Utilities:
     1. eksctl: create and manage cluster
@@ -162,7 +285,10 @@ def eks_setup(framework):
     eks_tools_installed = not run_out.return_code
 
     # Assume cluster with such a name is active
-    eks_cluster_name = PR_EKS_CLUSTER_NAME_TEMPLATE.format(framework)
+    if not cluster_name:
+        eks_cluster_name = PR_EKS_CLUSTER_NAME_TEMPLATE.format(framework)
+    else:
+        eks_cluster_name = cluster_name
 
     if eks_tools_installed:
         eks_write_kubeconfig(eks_cluster_name, "us-west-2")
