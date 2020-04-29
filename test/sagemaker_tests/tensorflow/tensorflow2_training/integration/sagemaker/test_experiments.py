@@ -22,9 +22,9 @@ from smexperiments.experiment import Experiment
 from smexperiments.trial import Trial
 from smexperiments.trial_component import TrialComponent
 
-from test.integration import DEFAULT_TIMEOUT
-from test.integration import RESOURCE_PATH
-from timeout import timeout
+from ...integration import DEFAULT_TIMEOUT
+from ...integration import RESOURCE_PATH
+from .timeout import timeout
 
 DATA_PATH = os.path.join(RESOURCE_PATH, "mnist")
 SCRIPT_PATH = os.path.join(DATA_PATH, "mnist_gluon_basic_hook_demo.py")
