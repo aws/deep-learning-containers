@@ -33,7 +33,8 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     ec2_connection.sudo(f"aws s3 cp s3://tensorflow-aws/{tf_api_version}/Serving/{processor_folder}/tensorflow_model_server /usr/bin/")
     ec2_connection.sudo(f"chmod +x /usr/bin/tensorflow_model_server")
     time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
-    log_file = f"inference_benchmark_results_{time_str}.log"
+    commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+    log_file = f"inference_benchmark_results_{commit_info}_{time_str}.log"
     ec2_connection.run(
         f"python {container_test_local_dir}/bin/performance_tests/tf{tf_version}_serving_perf.py "
         f"--processor {processor} --docker_image_name {image_uri} --run_all_s3 --binary /usr/bin/tensorflow_model_server --get_perf --iterations 1000 "
