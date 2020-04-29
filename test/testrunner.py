@@ -119,17 +119,18 @@ def pull_dlc_images(images):
 
 def setup_eks_clusters(dlc_images):
     clusters = []
-    for framework in ("tensorflow", "mxnet", "pytorch"):
-        if framework in dlc_images:
+    frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
+    for long_name, short_name in frameworks.items():
+        if long_name in dlc_images:
             cluster_name = None
             # Enabling this in PR context for testing. TODO: Change to if not is_pr_context()
             if is_pr_context():
-                cluster_name = f"dlc-{framework}-cluster-" \
+                cluster_name = f"dlc-{short_name}-cluster-" \
                                f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
                 # TODO: handle instance type more appropriately when this is all hashed out
                 eks_utils.create_eks_cluster(cluster_name, "gpu", 3, "p3.2xlarge", "pytest.pem")
                 clusters.append(cluster_name)
-            eks_utils.eks_setup(framework, cluster_name)
+            eks_utils.eks_setup(long_name, cluster_name)
     return clusters
 
 
