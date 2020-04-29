@@ -18,7 +18,6 @@ mkdir -p ${LOG_DIR}
 set -e
 cd ${HOME_DIR}
 git clone https://github.com/HewlettPackard/dlcookbook-dlbs.git ./dlbs && cd ./dlbs && source ./scripts/environment.sh && cd ..
-git clone https://www.github.com/nvidia/apex && cd apex && pip install -q -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ && cd ..
 git clone https://github.com/YYStreet/dlcookbook-dlbs
 export OMP_NUM_THREADS=8
 python -m torch.distributed.launch --nproc_per_node=8 dlcookbook-dlbs/python/pytorch_benchmarks/benchmarks.py --model resnet50 --batch_size=64 --device gpu --cudnn_fastest --dist_backend=nccl  2>&1 | tee ${LOG_DIR}/${LOG_FILE}
