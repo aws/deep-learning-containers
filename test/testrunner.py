@@ -118,20 +118,19 @@ def pull_dlc_images(images):
 
 
 def setup_eks_clusters(dlc_images):
-    clusters = []
+    terminable_clusters = []
     frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
     for long_name, short_name in frameworks.items():
         if long_name in dlc_images:
             cluster_name = None
-            # TODO: Change to if not is_pr_context() once PR is in approved state
-            if is_pr_context():
+            if not is_pr_context():
+                num_nodes = 3 if long_name != "pytorch" else 4
                 cluster_name = f"dlc-{short_name}-cluster-" \
                                f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
-                # TODO: handle instance type more appropriately when this is all hashed out
-                eks_utils.create_eks_cluster(cluster_name, "gpu", 3, "p3.2xlarge", "pytest.pem")
-                clusters.append(cluster_name)
+                eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
+                terminable_clusters.append(cluster_name)
             eks_utils.eks_setup(long_name, cluster_name)
-    return clusters
+    return terminable_clusters
 
 
 def main():
@@ -141,7 +140,7 @@ def main():
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
-    clusters = []
+    eks_terminable_clusters = []
 
     if test_type in ("sanity", "ecs", "ec2", "eks"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
@@ -153,14 +152,14 @@ def main():
         if test_type == "sanity":
             pull_dlc_images(all_image_list)
         if test_type == "eks":
-            clusters = setup_eks_clusters(dlc_images)
+            eks_terminable_clusters = setup_eks_clusters(dlc_images)
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]
         try:
             sys.exit(pytest.main(pytest_cmd))
         finally:
-            if test_type == "eks" and clusters:
-                for cluster in clusters:
+            if test_type == "eks" and eks_terminable_clusters:
+                for cluster in eks_terminable_clusters:
                     eks_utils.delete_eks_cluster(cluster)
     elif test_type == "sagemaker":
         run_sagemaker_tests(
