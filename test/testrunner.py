@@ -153,6 +153,9 @@ def main():
         if test_type == "sanity":
             pull_dlc_images(all_image_list)
         if test_type == "eks":
+            # TODO: Re-enable other frameworks later
+            if "pytorch" not in dlc_images:
+                return
             clusters = setup_eks_clusters(dlc_images)
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]

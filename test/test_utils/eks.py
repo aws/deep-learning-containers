@@ -52,7 +52,7 @@ KUBETAIL_VERSION = "1.6.7"
 EKS_NVIDIA_PLUGIN_VERSION = "1.12"
 
 # https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
-EKS_AMI_ID = {"cpu": "ami-0f53c7a1236d06961", "gpu": "ami-09c404af3afbdf7d5"}
+EKS_AMI_ID = {"cpu": "ami-010938e49e2ec29ae", "gpu": "ami-06d2bf0a1cbcfee72"}
 
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
 PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"
