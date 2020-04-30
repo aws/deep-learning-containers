@@ -24,6 +24,8 @@ ENV DGLBACKEND=pytorch
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
+ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.5/20200421-232037/ba6662f9e55c5b0c882ccb54daacbb3812f00f5b/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl dist/
+
 RUN apt-get update \
  && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
     build-essential \
@@ -126,7 +128,7 @@ RUN pip install \
     --no-cache-dir fastai==1.0.59 \
     awscli \
     scipy==1.2.2 \
- && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
+ && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U \
      https://torchvision-build.s3.amazonaws.com/1.5.0/gpu/torchvision-0.6.0-cp36-cp36m-linux_x86_64.whl
