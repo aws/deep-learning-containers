@@ -123,7 +123,7 @@ def setup_eks_clusters(dlc_images):
     for long_name, short_name in frameworks.items():
         if long_name in dlc_images:
             cluster_name = None
-            # Enabling this in PR context for testing. TODO: Change to if not is_pr_context()
+            # TODO: Change to if not is_pr_context() once PR is in approved state
             if is_pr_context():
                 cluster_name = f"dlc-{short_name}-cluster-" \
                                f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
@@ -153,9 +153,6 @@ def main():
         if test_type == "sanity":
             pull_dlc_images(all_image_list)
         if test_type == "eks":
-            # TODO: Re-enable other frameworks later
-            if "pytorch" not in dlc_images:
-                return
             clusters = setup_eks_clusters(dlc_images)
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]

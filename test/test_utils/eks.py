@@ -212,8 +212,7 @@ def delete_cfn_stack_and_wait(stack_name):
                             'MaxAttempts': _max_attempts
                         })
     except ClientError as e:
-        LOGGER.error("Error: Cannot delete stack: {}".format(stack_name))
-        LOGGER.error("Exception: {}".format(e))
+        LOGGER.error(f"Error: Cannot delete stack: {stack_name}. Full Exception:\n{e}")
         describe_cfn_stack_events(stack_name)
 
 
@@ -229,7 +228,7 @@ def delete_eks_cluster(eks_cluster_name):
     cfn_stack_names = list_cfn_stack_names()
     for stack_name in cfn_stack_names:
         if eks_cluster_name in stack_name:
-            LOGGER.info("Deleting dangling cloudformation stack: {}".format(stack_name))
+            LOGGER.info(f"Deleting dangling cloudformation stack: {stack_name}")
             delete_cfn_stack_and_wait(stack_name)
 
 
