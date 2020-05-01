@@ -23,7 +23,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
 # Define framework-related package sources
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.2/AmazonLinux/cpu/final/tensorflow-1.15.2-cp36-cp36m-manylinux2010_x86_64.whl
-ARG SMDEBUG_URL=smdebug
+ARG SMDEBUG_VERSION=0.7.2
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -111,7 +111,7 @@ RUN pip install --no-cache-dir -U \
     horovod==0.18.2 \
  && pip install --no-cache-dir -U \
     awscli \
-    ${SMDEBUG_URL}
+    smdebug==${SMDEBUG_VERSION}
 
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

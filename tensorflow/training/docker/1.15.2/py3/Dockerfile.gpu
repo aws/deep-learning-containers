@@ -20,7 +20,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
 # Define framework-related package sources
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.2/AmazonLinux/gpu/final/tensorflow_gpu-1.15.2-cp36-cp36m-manylinux2010_x86_64.whl
-ARG SMDEBUG_URL=smdebug
+ARG SMDEBUG_VERSION=0.7.2
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated \
@@ -147,7 +147,7 @@ RUN pip install --no-cache-dir -U \
     ${TF_URL} \
  && pip install --no-cache-dir -U \
     awscli \
-    ${SMDEBUG_URL}
+    smdebug==${SMDEBUG_VERSION}
 
 
 # Install Horovod, temporarily using CUDA stubs

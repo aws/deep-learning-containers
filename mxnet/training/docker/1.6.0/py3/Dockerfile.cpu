@@ -6,7 +6,7 @@ ARG PYTHON=python3
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.6.8
 ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
-ARG SMDEBUG_URL=smdebug
+ARG SMDEBUG_VERSION=0.7.2
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -116,7 +116,7 @@ RUN ${PIP} install --no-cache --upgrade \
     mpi4py==3.0.2 \
     sagemaker-mxnet-training \
     ${MX_URL} \
-    ${SMDEBUG_URL} \
+    smdebug==${SMDEBUG_VERSION} \
     awscli
 
 # Install Horovod
