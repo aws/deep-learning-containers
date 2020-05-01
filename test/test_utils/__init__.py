@@ -30,13 +30,13 @@ SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test w
 def is_tf1(image_uri):
     if "tensorflow" not in image_uri:
         return False
-    return bool(re.search(r'-1\.\d+\.\d+', image_uri))
+    return bool(re.search(r'1\.\d+\.\d+', image_uri))
 
 
 def is_tf2(image_uri):
     if "tensorflow" not in image_uri:
         return False
-    return bool(re.search(r'-2\.\d+\.\d+', image_uri))
+    return bool(re.search(r'2\.\d+\.\d+', image_uri))
 
 
 def is_pr_context():
