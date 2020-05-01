@@ -4,5 +4,5 @@ ARG BASE_IMAGE=""
 FROM $BASE_IMAGE
 
 # Add any script or repo as required
-RUN git clone -b tf2 https://github.com/aws-samples/deep-learning-models
+RUN git clone -b legacy https://github.com/aws-samples/deep-learning-models
 WORKDIR "/"
