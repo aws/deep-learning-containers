@@ -19,7 +19,7 @@ ENV LC_ALL=C.UTF-8
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
 # Define framework-related package sources
-ARG TF_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws/20200502-051025/207ecbf88a494840923cb03d53a1a6bc9f787778/gpu/py37/tensorflow_gpu-1.15.2-cp36-cp36m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws/20200502-051025/207ecbf88a494840923cb03d53a1a6bc9f787778/gpu/tensorflow_gpu-1.15.2-cp36-cp36m-manylinux2010_x86_64.whl
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated \
