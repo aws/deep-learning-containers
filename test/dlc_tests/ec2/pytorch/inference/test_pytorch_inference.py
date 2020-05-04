@@ -6,7 +6,7 @@ from test import test_utils
 from test.dlc_tests.conftest import LOGGER
 
 
-if os.getenv("BUILD_CONTEXT") == "PR":
+if os.getenv("BUILD_CONTEXT") == "<fill in PR after testing>":
     PT_EC2_GPU_INSTANCE_TYPE = ["p3.2xlarge"]
     PT_EC2_CPU_INSTANCE_TYPE = ["c5.4xlarge"]
 else:

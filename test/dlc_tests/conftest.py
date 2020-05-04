@@ -1,5 +1,6 @@
 import os
 import logging
+import random
 import sys
 
 import boto3
@@ -204,7 +205,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                         (
                             image,
                             f"{metafunc_obj.function.__name__}-{image_tag}-"
-                            f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}",
+                            f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}-{random.randint(1, 10000)}",
                         )
                     )
     return fixtures_parametrized
