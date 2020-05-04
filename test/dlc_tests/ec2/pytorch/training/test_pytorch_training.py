@@ -11,7 +11,7 @@ PT_MNIST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorc
 PT_REGRESSION_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchRegression")
 PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 
-if os.getenv("BUILD_CONTEXT") == "PR":
+if os.getenv("BUILD_CONTEXT") == "<fill in PR after testing>":
     PT_EC2_GPU_INSTANCE_TYPE = ["p3.2xlarge"]
     PT_EC2_CPU_INSTANCE_TYPE = ["c5.9xlarge"]
 else:
