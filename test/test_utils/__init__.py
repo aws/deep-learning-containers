@@ -233,9 +233,11 @@ def get_tensorflow_model_name(processor, model_name):
 
 
 def generate_ssh_keypair(ec2_client, key_name):
-    key_pair = ec2_client.create_key_pair(KeyName=key_name)
     pwd = run("pwd", hide=True).stdout.strip("\n")
     key_filename = os.path.join(pwd, f"{key_name}.pem")
+    if os.path.exists(key_filename):
+        return
+    key_pair = ec2_client.create_key_pair(KeyName=key_name)
     run(f"echo '{key_pair['KeyMaterial']}' > {key_filename}")
     run(f"chmod 400 {key_filename}")
     return key_filename
