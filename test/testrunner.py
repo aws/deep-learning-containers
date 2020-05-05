@@ -123,7 +123,8 @@ def setup_eks_clusters(dlc_images):
     for long_name, short_name in frameworks.items():
         if long_name in dlc_images:
             cluster_name = None
-            if not is_pr_context():
+            #if not is_pr_context():
+            if long_name == "pytorch":
                 num_nodes = 3 if long_name != "pytorch" else 4
                 cluster_name = f"dlc-{short_name}-cluster-" \
                                f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
