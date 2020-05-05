@@ -2,6 +2,7 @@ import os
 import random
 import sys
 import logging
+import re
 
 from multiprocessing import Pool
 
@@ -60,7 +61,7 @@ def generate_sagemaker_pytest_cmd(image):
             aws_id_arg = "--account-id"
 
             # NOTE: We are relying on tag structure to get TF major version. If tagging changes, this will break.
-            tf_major_version = tag.split("-")[-1].split(".")[0]
+            tf_major_version = re.search(r'\d\.(\.|\d)+', tag).group()[0]
             path = os.path.join(os.path.dirname(path), f"{framework}{tf_major_version}_training")
         else:
             aws_id_arg = "--registry"
