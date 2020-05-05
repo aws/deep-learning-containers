@@ -91,7 +91,7 @@ def run_sagemaker_pytest_cmd(image):
 
     context = Context()
     with context.cd(path):
-        context.run(f"python3.6 -m virtualenv {tag}")
+        context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
             context.run(pytest_command)
