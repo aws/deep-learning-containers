@@ -25,6 +25,9 @@
       start_with_right_hostname:
         source: docker/build_artifacts/start_with_right_hostname.sh
         target: start_with_right_hostname.sh
+      example_mnist_file:
+        source: docker/build_artifacts/mnist.py
+        target: mnist.py
       sagemaker_package_name:
         source: dist/sagemaker_pytorch_container-1.3.1-py2.py3-none-any.whl
         target: sagemaker_pytorch_container-1.3.1-py2.py3-none-any.whl

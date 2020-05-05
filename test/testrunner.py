@@ -3,6 +3,7 @@ import random
 import re
 import sys
 import logging
+import re
 
 from multiprocessing import Pool
 
