@@ -1,5 +1,6 @@
 import os
 import logging
+import random
 import sys
 
 import boto3
@@ -139,7 +140,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
         connect_kwargs={"key_filename": [instance_pem_file]}
     )
 
-    artifact_folder = f"{ec2_key_name}-folder"
+    artifact_folder = f"{ec2_key_name}-{random.randint(1, 100000)}-folder"
     s3_test_artifact_location = test_utils.upload_tests_to_s3(artifact_folder)
 
     def delete_s3_artifact_copy():
