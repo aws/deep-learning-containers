@@ -12,7 +12,9 @@
 # permissions and limitations under the License.
 from __future__ import absolute_import
 
+import datetime
 import os
+import random
 import time
 
 import pytest
@@ -38,8 +40,10 @@ def test_training(sagemaker_session, ecr_image, instance_type, framework_version
     from smexperiments.trial_component import TrialComponent
 
     sm_client = sagemaker_session.sagemaker_client
+    random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
+    unique_id = random.randint(1, 6000)
 
-    experiment_name = "tf-container-integ-test-{}".format(int(time.time()))
+    experiment_name = f"tf-container-integ-test-{unique_id}-{int(time.time())}"
 
     experiment = Experiment.create(
         experiment_name=experiment_name,
