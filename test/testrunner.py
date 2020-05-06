@@ -14,9 +14,9 @@ from invoke import run
 from invoke.context import Context
 
 import test_utils.eks as eks_utils
+import test_utils.ec2 as ec2_utils
 
 from test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair
-from test_utils import ec2 as ec2_utils
 
 
 LOGGER = logging.getLogger(__name__)
