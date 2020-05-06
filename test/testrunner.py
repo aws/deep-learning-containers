@@ -168,6 +168,7 @@ def main():
             if test_type == "ec2" and os.path.exists(KEYS_TO_DESTROY_FILE):
                 with open(KEYS_TO_DESTROY_FILE) as key_destroy_file:
                     for key_file in key_destroy_file:
+                        LOGGER.info(key_file)
                         ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
                         destroy_ssh_keypair(ec2_client, key_file)
     elif test_type == "sagemaker":
