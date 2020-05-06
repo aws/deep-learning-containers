@@ -2,9 +2,12 @@ import json
 import os
 import re
 import subprocess
+import time
 
-from invoke import run
 import pytest
+
+from botocore.exceptions import ClientError
+from invoke import run
 from retrying import retry
 
 # Constant to represent default region for boto3 commands
@@ -26,7 +29,7 @@ UBUNTU_HOME_DIR = "/home/ubuntu"
 # Reason string for skipping tests in PR context
 SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test will be run in nightly/release pipeline."
 
-KEYS_TO_DESTROY_FILE = os.path.join(os.getcwd(), "keys_to_destroy.json")
+KEYS_TO_DESTROY_FILE = os.path.join(os.sep, "tmp", "keys_to_destroy.json")
 
 
 def is_tf1(image_uri):
@@ -240,7 +243,17 @@ def generate_ssh_keypair(ec2_client, key_name):
     if os.path.exists(key_filename):
         run(f"chmod 400 {key_filename}")
         return key_filename
-    key_pair = ec2_client.create_key_pair(KeyName=key_name)
+    try:
+        key_pair = ec2_client.create_key_pair(KeyName=key_name)
+    except ClientError as e:
+        if "InvalidKeyPair.Duplicate" in e:
+            # Wait 10 seconds for key to be created to avoid race condition
+            time.sleep(10)
+            if os.path.exists(key_filename):
+                run(f"chmod 400 {key_filename}")
+                return key_filename
+        raise ClientError(e)
+
     run(f"echo '{key_pair['KeyMaterial']}' > {key_filename}")
     run(f"chmod 400 {key_filename}")
     return key_filename
