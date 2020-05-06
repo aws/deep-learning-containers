@@ -110,7 +110,7 @@ def ec2_instance(
     # Define finalizer to terminate instance after this fixture completes
     def terminate_ec2_instance():
         ec2_client.terminate_instances(InstanceIds=[instance_id])
-        if os.getenv("BUILD_CONTEXT") == "PR":
+        if os.getenv("BUILD_CONTEXT") == "<fill in PR here>":
             test_utils.destroy_ssh_keypair(ec2_client, key_filename)
         else:
             with open(KEYS_TO_DESTROY_FILE, 'a') as destroy_keys:
