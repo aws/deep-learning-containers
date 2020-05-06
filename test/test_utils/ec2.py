@@ -8,6 +8,8 @@ from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
+KEYS_TO_DESTROY_FILE = os.path.join(os.getcwd(), "keys_to_destroy.json")
+
 
 def launch_instance(
     ami_id, instance_type, region=DEFAULT_REGION, user_data=None, iam_instance_profile_arn=None, instance_name="",
