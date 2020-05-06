@@ -13,9 +13,9 @@ import pytest
 from invoke import run
 from invoke.context import Context
 
-from test.test_utils import eks as eks_utils
-from test.test_utils import ec2 as ec2_utils
-from test.test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair
+from .test_utils import eks as eks_utils
+from .test_utils import ec2 as ec2_utils
+from .test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair
 
 
 LOGGER = logging.getLogger(__name__)
