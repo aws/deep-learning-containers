@@ -24,7 +24,7 @@ ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 
-ARG TF_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/tensorflow/r2.2_aws/20200505-185012/8c9466b96317811c967a962add34cda1e8f26819/cpu/py37/cpucpucputensorflow-2.1.0-cp36-cp36m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/tensorflow/r2.2_aws/20200506-001844/ff1687e27bf4288bac973e29fb2bc973a3bab5fc/cpu/py37/cpucpucputensorflow-2.1.0-cp36-cp36m-manylinux2010_x86_64.whl
 
 ARG ESTIMATOR_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/estimator/r2.2_aws/20200505-185012/8f513c56f62a9936c21ad1d3c29fdbaa1600bd83/tf_8c9466b96317811c967a962add34cda1e8f26819/tf_779227797052fabc765bf86d36a6cde20866d41ctensorflow-2.1.0-cp36-cp36m-manylinux2010_x86_64.whl
 
