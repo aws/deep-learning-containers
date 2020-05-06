@@ -10,7 +10,7 @@ from fabric import Connection
 import pytest
 
 from test import test_utils
-from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
+from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, KEYS_TO_DESTROY_FILE
 import test.test_utils.ec2 as ec2_utils
 
 LOGGER = logging.getLogger(__name__)
@@ -113,7 +113,7 @@ def ec2_instance(
         if os.getenv("BUILD_CONTEXT") == "PR":
             test_utils.destroy_ssh_keypair(ec2_client, key_filename)
         else:
-            with open(ec2_utils.KEYS_TO_DESTROY_FILE, 'a') as destroy_keys:
+            with open(KEYS_TO_DESTROY_FILE, 'a') as destroy_keys:
                 destroy_keys.write(f"{key_filename}\n")
 
     request.addfinalizer(terminate_ec2_instance)

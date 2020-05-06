@@ -26,6 +26,8 @@ UBUNTU_HOME_DIR = "/home/ubuntu"
 # Reason string for skipping tests in PR context
 SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test will be run in nightly/release pipeline."
 
+KEYS_TO_DESTROY_FILE = os.path.join(os.getcwd(), "keys_to_destroy.json")
+
 
 def is_tf1(image_uri):
     if "tensorflow" not in image_uri:

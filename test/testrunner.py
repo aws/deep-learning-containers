@@ -13,9 +13,8 @@ import pytest
 from invoke import run
 from invoke.context import Context
 
-from .test_utils import eks as eks_utils
-from .test_utils import ec2 as ec2_utils
-from .test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair
+from test_utils import eks as eks_utils
+from test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair, KEYS_TO_DESTROY_FILE
 
 
 LOGGER = logging.getLogger(__name__)
@@ -166,8 +165,8 @@ def main():
                     eks_utils.delete_eks_cluster(cluster)
 
             # Delete dangling EC2 KeyPairs
-            if test_type == "ec2" and os.path.exists(ec2_utils.KEYS_TO_DESTROY_FILE):
-                with open(ec2_utils.KEYS_TO_DESTROY_FILE) as key_destroy_file:
+            if test_type == "ec2" and os.path.exists(KEYS_TO_DESTROY_FILE):
+                with open(KEYS_TO_DESTROY_FILE) as key_destroy_file:
                     for key_file in key_destroy_file:
                         ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
                         destroy_ssh_keypair(ec2_client, key_file)
