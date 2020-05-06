@@ -24,9 +24,9 @@ ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 
-ARG TF_URL=https://A/B/Ctensorflow-2.1.0-cp36-cp36m-manylinux2010_x86_64.whl
+ARG TF_URL=https://A/B/C/Ctensorflow-2.1.0-cp36-cp36m-manylinux2010_x86_64.whl
 
-ARG ESTIMATOR_URL=https://A/Btensorflow-2.1.0-cp36-cp36m-manylinux2010_x86_64.whl
+ARG ESTIMATOR_URL=https://A/B/Btensorflow-2.1.0-cp36-cp36m-manylinux2010_x86_64.whl
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
