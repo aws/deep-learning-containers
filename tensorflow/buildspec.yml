@@ -17,9 +17,6 @@
 
   context:
     training_context: &TRAINING_CONTEXT
-      sagemaker_package_name:
-        source: dist/sagemaker_tensorflow_container-2.0.8.dev0.tar.gz
-        target: sagemaker_tensorflow_container-2.0.8.dev0.tar.gz
       dockerd-entrypoint:
         source: docker/build_artifacts/dockerd-entrypoint.py
         target: dockerd-entrypoint.py

@@ -21,16 +21,10 @@
         source: docker/artifacts/deep_learning_container.py
         target: deep_learning_container.py
       training_context: &TRAINING_CONTEXT
-        sagamaker_package:
-          source: dist/sagemaker_mxnet_container-3.1.5.dev0.tar.gz
-          target: sagemaker_mxnet_container.tar.gz
         entrypoint:
           source: docker/artifacts/dockerd-entrypoint.py
           target: dockerd-entrypoint.py
       inference_context: &INFERENCE_CONTEXT
-        sagemaker_package:
-          source: dist/sagemaker_mxnet_serving_container-1.1.6.dev0.tar.gz
-          target: sagemaker_mxnet_serving_container.tar.gz
         config:
           source: docker/artifacts/config.properties
           target: config.properties
