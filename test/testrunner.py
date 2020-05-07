@@ -1,5 +1,6 @@
 import os
 import random
+import re
 import sys
 import logging
 import re
@@ -60,8 +61,9 @@ def generate_sagemaker_pytest_cmd(image):
         if job_type == "training":
             aws_id_arg = "--account-id"
 
-            # NOTE: We are relying on tag structure to get TF major version. If tagging changes, this will break.
-            tf_major_version = re.search(r'\d\.(\.|\d)+', tag).group()[0]
+            # NOTE: We rely on Framework Version being in "major.minor.patch" format
+            tf_framework_version = re.search(r"\d+(\.\d+){2}", tag).group()
+            tf_major_version = tf_framework_version.split(".")[0]
             path = os.path.join(os.path.dirname(path), f"{framework}{tf_major_version}_training")
         else:
             aws_id_arg = "--registry"
