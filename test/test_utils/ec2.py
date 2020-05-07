@@ -301,3 +301,18 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
         f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}",
         hide=True,
     )
+
+def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
+    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+
+    # Make sure we are logged into ECR so we can pull the image
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+
+    connection.run(f"{docker_cmd} pull -q {ecr_uri} ", hide=False)
+
+    # Run training command, display benchmark results to console
+    connection.run(
+        f"{docker_cmd} run -e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
+        f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
+    )
