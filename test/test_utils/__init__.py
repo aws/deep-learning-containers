@@ -29,7 +29,7 @@ UBUNTU_HOME_DIR = "/home/ubuntu"
 # Reason string for skipping tests in PR context
 SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test will be run in nightly/release pipeline."
 
-KEYS_TO_DESTROY_FILE = os.path.join(os.sep, "tmp", "keys_to_destroy.json")
+KEYS_TO_DESTROY_FILE = os.path.join(os.sep, "tmp", "keys_to_destroy.txt")
 
 
 def is_tf1(image_uri):

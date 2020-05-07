@@ -1,3 +1,4 @@
+import datetime
 import os
 import logging
 import random
@@ -144,7 +145,10 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
         connect_kwargs={"key_filename": [instance_pem_file]}
     )
 
-    artifact_folder = f"{ec2_key_name}-{random.randint(1, 100000)}-folder"
+    random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
+    unique_id = random.randint(1, 100000)
+
+    artifact_folder = f"{ec2_key_name}-{unique_id}-folder"
     s3_test_artifact_location = test_utils.upload_tests_to_s3(artifact_folder)
 
     def delete_s3_artifact_copy():
