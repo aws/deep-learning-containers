@@ -12,8 +12,10 @@
 # permissions and limitations under the License.
 from __future__ import absolute_import
 
+import datetime
 import os
 import time
+import random
 
 import pytest
 from sagemaker import utils
@@ -34,8 +36,10 @@ SCRIPT_PATH = os.path.join(DATA_PATH, "mnist_gluon_basic_hook_demo.py")
 def test_training(sagemaker_session, ecr_image, instance_type, framework_version):
 
     sm_client = sagemaker_session.sagemaker_client
+    random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
+    unique_id = random.randint(1, 6000)
 
-    experiment_name = "tf-container-integ-test-{}".format(int(time.time()))
+    experiment_name = f"tf-container-integ-test-{unique_id}-{int(time.time())}"
 
     experiment = Experiment.create(
         experiment_name=experiment_name,
@@ -43,7 +47,7 @@ def test_training(sagemaker_session, ecr_image, instance_type, framework_version
         sagemaker_boto_client=sm_client,
     )
 
-    trial_name = "tf-container-integ-test-{}".format(int(time.time()))
+    trial_name = f"tf-container-integ-test-{unique_id}-{int(time.time())}"
 
     trial = Trial.create(
         experiment_name=experiment_name, trial_name=trial_name, sagemaker_boto_client=sm_client
