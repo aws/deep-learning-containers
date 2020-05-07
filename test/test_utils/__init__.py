@@ -246,7 +246,7 @@ def generate_ssh_keypair(ec2_client, key_name):
     try:
         key_pair = ec2_client.create_key_pair(KeyName=key_name)
     except ClientError as e:
-        if "InvalidKeyPair.Duplicate" in e:
+        if "InvalidKeyPair.Duplicate" in f"{e}":
             # Wait 10 seconds for key to be created to avoid race condition
             time.sleep(10)
             if os.path.exists(key_filename):
