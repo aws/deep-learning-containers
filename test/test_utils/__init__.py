@@ -20,6 +20,9 @@ CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 # S3 Bucket to use to transfer tests into an EC2 instance
 TEST_TRANSFER_S3_BUCKET = "s3://dlinfra-tests-transfer-bucket"
 
+# S3 Bucket to use to record benchmark results for further retrieving
+BENCHMARK_RESULTS_S3_BUCKET = "s3://dlinfra-dlc-cicd-performance"
+
 # Ubuntu ami home dir
 UBUNTU_HOME_DIR = "/home/ubuntu"
 
@@ -30,13 +33,13 @@ SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test w
 def is_tf1(image_uri):
     if "tensorflow" not in image_uri:
         return False
-    return bool(re.search(r'-1.[0-9]', image_uri))
+    return bool(re.search(r'1\.\d+\.\d+', image_uri))
 
 
 def is_tf2(image_uri):
     if "tensorflow" not in image_uri:
         return False
-    return bool(re.search(r'-2.[0-9]', image_uri))
+    return bool(re.search(r'2\.\d+\.\d+', image_uri))
 
 
 def is_pr_context():
