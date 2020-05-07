@@ -1,6 +1,5 @@
 import os
 import random
-import re
 import sys
 import logging
 import re
@@ -8,9 +7,9 @@ import re
 from multiprocessing import Pool
 
 import boto3
-from botocore.config import Config
 import pytest
 
+from botocore.config import Config
 from invoke import run
 from invoke.context import Context
 
