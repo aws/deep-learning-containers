@@ -13,9 +13,11 @@ ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
 
-import os
-from copy import deepcopy
 import concurrent.futures
+import datetime
+import os
+
+from copy import deepcopy
 
 import constants
 import utils
@@ -69,6 +71,7 @@ def image_builder(buildspec):
             if build_context == "PR"
             else image_config["tag"]
         )
+        image_tag = tag_image_with_datetime(image_tag)
         image_repo_uri = (
             image_config["repository"]
             if build_context == "PR"
@@ -205,6 +208,11 @@ def image_builder(buildspec):
 def tag_image_with_pr_number(image_tag):
     pr_number = os.getenv("CODEBUILD_SOURCE_VERSION").replace("/", "-")
     return f"{image_tag}-{pr_number}"
+
+
+def tag_image_with_datetime(image_tag):
+    datetime_suffix = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    return f"{image_tag}-{datetime_suffix}"
 
 
 def modify_repository_name_for_context(image_repo_uri, build_context):
