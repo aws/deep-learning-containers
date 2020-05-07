@@ -24,9 +24,9 @@ ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 
-ARG TF_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/tensorflow/r2.2_aws/20200507-105337/4a3902e9ba5d93179b2a7609deeff4dac7e6f51c/gpu/py37/tensorflow_gpu-2.1.0-cp36-cp36m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/tensorflow/r2.2_aws/20200507-105337/4a3902e9ba5d93179b2a7609deeff4dac7e6f51c/gpu/tensorflow_gpu-2.1.0-cp36-cp36m-manylinux2010_x86_64.whl
 
-ARG ESTIMATOR_URL=https://A/B/B/tensorflow_gpu-2.1.0-cp36-cp36m-manylinux2010_x86_64.whl
+ARG ESTIMATOR_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/estimator/r2.2_aws/20200507-105337/8f513c56f62a9936c21ad1d3c29fdbaa1600bd83/tf_4a3902e9ba5d93179b2a7609deeff4dac7e6f51c/tensorflow_gpu-2.1.0-cp36-cp36m-manylinux2010_x86_64.whl
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     python3-dev \
