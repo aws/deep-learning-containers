@@ -13,6 +13,7 @@ from invoke import run
 from invoke.context import Context
 
 import test_utils.eks as eks_utils
+from .test_utils import ec2 as ec2_utils
 
 from test_utils import get_dlc_images, is_pr_context
 
@@ -22,12 +23,36 @@ LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def assign_sagemaker_instance_type(image):
+def assign_sagemaker_remote_job_instance_type(image):
     if "tensorflow" in image:
         return "ml.p3.8xlarge" if "gpu" in image else "ml.c4.4xlarge"
     else:
         return "ml.p2.8xlarge" if "gpu" in image else "ml.c4.8xlarge"
 
+def assign_sagemaker_local_job_instance_type(image):
+    if "training" in image:
+        return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
+    else:
+        return "p2.xlarge" if "gpu" in image else "c5.18xlarge"
+
+def launch_sagemaker_local_ec2_instance(image, ami_id, region):
+    instance_type = assign_sagemaker_local_job_instance_type(image)
+    instance_name=image.split(":")[-1]
+    instance = ec2_utils.launch_instance(
+        ami_id,
+        region=region,
+        instance_type=instance_type,
+        user_data=None,
+        iam_instance_profile_arn=ec2_utils.EC2_INSTANCE_ROLE_NAME,
+        instance_name=f"{instance_name}",
+    )
+    instance_id = instance["InstanceId"
+    public_ip_address = ec2_utils.get_public_ip(instance_id, region=region)
+    ec2_utils.check_instance_state(instance_id, state="running", region=region)
+    ec2_utils.check_system_state(
+        instance_id, system_status="ok", instance_status="ok", region=region
+    )
+    return instance_id, public_ip_address
 
 def generate_sagemaker_pytest_cmd(image):
     """
@@ -38,12 +63,12 @@ def generate_sagemaker_pytest_cmd(image):
     """
     reruns = 4
     region = os.getenv("AWS_REGION", "us-west-2")
-    integration_path = os.path.join("integration", "sagemaker") if is_pr_context() else os.path.join("integration", "local")
+    integration_path = os.path.join("integration", "sagemaker")
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
     docker_base_name, tag = image.split("/")[1].split(":")
 
     # Assign instance type
-    instance_type = assign_sagemaker_instance_type(image)
+    instance_type = assign_sagemaker_remote_job_instance_type(image)
 
     # Get path to test directory
     find_path = docker_base_name.split("-")
@@ -81,6 +106,22 @@ def generate_sagemaker_pytest_cmd(image):
     )
 
 
+def run_sagemaker_local_tests(image):
+    """
+    Run the sagemaker local tests in ec2 instance for the image
+    :param image: ECR url
+    :return: None
+    """
+    SAGEMAKER_AMI_ID = "ami-0eb5a5dcf38497043"
+    region = os.getenv("AWS_REGION", "us-west-2")
+
+    try:
+        instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, SAGEMAKER_AMI_ID, region)
+        LOGGER.info(f"Instances {instance_id}, {ip_address}, {image}")
+    finally:
+        ec2_utils.terminate_instance(instance_id,region)
+
+
 def run_sagemaker_pytest_cmd(image):
     """
     Run pytest in a virtual env for a particular image
@@ -107,9 +148,10 @@ def run_sagemaker_tests(images):
     """
     if not images:
         return
-    pool_number = len(images)
+    pool_number = len(images) * 2
     with Pool(pool_number) as p:
-        p.map(run_sagemaker_pytest_cmd, images)
+        # p.map(run_sagemaker_pytest_cmd, images)
+        p.map(run_sagemaker_local_tests, images)
 
 
 def pull_dlc_images(images):
