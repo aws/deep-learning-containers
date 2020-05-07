@@ -18,7 +18,7 @@ from sagemaker.mxnet.model import MXNetModel
 from sagemaker.predictor import StringDeserializer
 
 import local_mode_utils
-from test.integration import RESOURCE_PATH
+from ...integration import RESOURCE_PATH
 
 HOSTING_RESOURCE_PATH = os.path.join(RESOURCE_PATH, 'dummy_hosting')
 MODEL_PATH = os.path.join(HOSTING_RESOURCE_PATH, 'code')

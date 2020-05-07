@@ -25,9 +25,9 @@ from sagemaker.predictor import BytesDeserializer, csv_deserializer, csv_seriali
 from sagemaker_containers.beta.framework import content_types
 from torchvision import datasets, transforms
 
-from test.integration import training_dir, mnist_script, mnist_1d_script, model_cpu_dir, \
+from ...integration import training_dir, mnist_script, mnist_1d_script, model_cpu_dir, \
     model_gpu_dir, model_cpu_1d_dir, call_model_fn_once_script, ROLE
-from test.utils import local_mode_utils
+from ...utils import local_mode_utils
 
 CONTENT_TYPE_TO_SERIALIZER_MAP = {
     content_types.CSV: csv_serializer,

@@ -18,7 +18,7 @@ import os
 from sagemaker.mxnet.model import MXNetModel
 
 import local_mode_utils
-from test.integration import RESOURCE_PATH
+from ...integration import RESOURCE_PATH
 
 GLUON_PATH = os.path.join(RESOURCE_PATH, 'gluon_hosting')
 MODEL_PATH = os.path.join(GLUON_PATH, 'model')
