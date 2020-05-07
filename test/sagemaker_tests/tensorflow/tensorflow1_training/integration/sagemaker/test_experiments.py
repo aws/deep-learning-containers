@@ -51,7 +51,7 @@ def test_training(sagemaker_session, ecr_image, instance_type, framework_version
         sagemaker_boto_client=sm_client,
     )
 
-    trial_name = "tf-container-integ-test-{}".format(int(time.time()))
+    trial_name = f"tf-container-integ-test-{unique_id}-{int(time.time())}"
     trial = Trial.create(
         experiment_name=experiment_name, trial_name=trial_name, sagemaker_boto_client=sm_client
     )
