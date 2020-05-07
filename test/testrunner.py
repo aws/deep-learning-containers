@@ -38,7 +38,7 @@ def generate_sagemaker_pytest_cmd(image):
     """
     reruns = 4
     region = os.getenv("AWS_REGION", "us-west-2")
-    integration_path = os.path.join("integration", "sagemaker")
+    integration_path = os.path.join("integration", "sagemaker") if is_pr_context() else os.path.join("integration", "local")
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
     docker_base_name, tag = image.split("/")[1].split(":")
 
