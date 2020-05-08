@@ -1,20 +1,20 @@
 import os
 import random
-import re
 import sys
 import logging
 import re
 
 from multiprocessing import Pool
 
+import boto3
 import pytest
 
+from botocore.config import Config
 from invoke import run
 from invoke.context import Context
 
-import test_utils.eks as eks_utils
-
-from test_utils import get_dlc_images, is_pr_context
+from test_utils import eks as eks_utils
+from test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair, KEYS_TO_DESTROY_FILE
 
 
 LOGGER = logging.getLogger(__name__)
@@ -164,6 +164,15 @@ def main():
             if test_type == "eks" and eks_terminable_clusters:
                 for cluster in eks_terminable_clusters:
                     eks_utils.delete_eks_cluster(cluster)
+
+            # Delete dangling EC2 KeyPairs
+            if test_type == "ec2" and os.path.exists(KEYS_TO_DESTROY_FILE):
+                with open(KEYS_TO_DESTROY_FILE) as key_destroy_file:
+                    for key_file in key_destroy_file:
+                        LOGGER.info(key_file)
+                        ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
+                        if ".pem" in key_file:
+                            destroy_ssh_keypair(ec2_client, key_file)
     elif test_type == "sagemaker":
         run_sagemaker_tests(
             [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]

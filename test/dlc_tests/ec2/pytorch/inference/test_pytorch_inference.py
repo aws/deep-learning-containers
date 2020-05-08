@@ -1,15 +1,25 @@
+import os
+
 import pytest
 
 from test import test_utils
 from test.dlc_tests.conftest import LOGGER
 
+
+if os.getenv("BUILD_CONTEXT") == "PR":
+    PT_EC2_GPU_INSTANCE_TYPE = ["p3.2xlarge"]
+    PT_EC2_CPU_INSTANCE_TYPE = ["c5.4xlarge"]
+else:
+    PT_EC2_GPU_INSTANCE_TYPE = ["g3.4xlarge", "p2.8xlarge", "p3.16xlarge", "p3dn.24xlarge"]
+    PT_EC2_CPU_INSTANCE_TYPE = ["c4.8xlarge", "c5.18xlarge", "m4.16xlarge", "t2.2xlarge"]
+
 @pytest.mark.skip(reason="Skip irrelavant tests")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gpu_only):
     ec2_pytorch_inference(pytorch_inference, "gpu", ec2_connection, region)
 
 @pytest.mark.skip(reason="Skip irrelavant tests")
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cpu_only):
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
 
