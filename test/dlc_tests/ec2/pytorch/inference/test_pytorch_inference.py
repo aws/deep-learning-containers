@@ -3,12 +3,12 @@ import pytest
 from test import test_utils
 from test.dlc_tests.conftest import LOGGER
 
-
+@pytest.mark.skip(reason="Skip irrelavant tests")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gpu_only):
     ec2_pytorch_inference(pytorch_inference, "gpu", ec2_connection, region)
 
-
+@pytest.mark.skip(reason="Skip irrelavant tests")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cpu_only):
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
