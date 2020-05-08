@@ -2,17 +2,19 @@ import os
 import random
 import sys
 import logging
+import re
 
 from multiprocessing import Pool
 
+import boto3
 import pytest
 
+from botocore.config import Config
 from invoke import run
 from invoke.context import Context
 
-import test_utils.eks as eks_utils
-
-from test_utils import get_dlc_images, is_pr_context
+from test_utils import eks as eks_utils
+from test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair, KEYS_TO_DESTROY_FILE
 
 
 LOGGER = logging.getLogger(__name__)
@@ -59,8 +61,9 @@ def generate_sagemaker_pytest_cmd(image):
         if job_type == "training":
             aws_id_arg = "--account-id"
 
-            # NOTE: We are relying on tag structure to get TF major version. If tagging changes, this will break.
-            tf_major_version = tag.split("-")[-1].split(".")[0]
+            # NOTE: We rely on Framework Version being in "major.minor.patch" format
+            tf_framework_version = re.search(r"\d+(\.\d+){2}", tag).group()
+            tf_major_version = tf_framework_version.split(".")[0]
             path = os.path.join(os.path.dirname(path), f"{framework}{tf_major_version}_training")
         else:
             aws_id_arg = "--registry"
@@ -161,6 +164,15 @@ def main():
             if test_type == "eks" and eks_terminable_clusters:
                 for cluster in eks_terminable_clusters:
                     eks_utils.delete_eks_cluster(cluster)
+
+            # Delete dangling EC2 KeyPairs
+            if test_type == "ec2" and os.path.exists(KEYS_TO_DESTROY_FILE):
+                with open(KEYS_TO_DESTROY_FILE) as key_destroy_file:
+                    for key_file in key_destroy_file:
+                        LOGGER.info(key_file)
+                        ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
+                        if ".pem" in key_file:
+                            destroy_ssh_keypair(ec2_client, key_file)
     elif test_type == "sagemaker":
         run_sagemaker_tests(
             [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
