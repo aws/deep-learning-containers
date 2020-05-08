@@ -1,5 +1,7 @@
+import datetime
 import os
 import logging
+import random
 import sys
 
 import boto3
@@ -9,7 +11,7 @@ from fabric import Connection
 import pytest
 
 from test import test_utils
-from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
+from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, KEYS_TO_DESTROY_FILE
 import test.test_utils.ec2 as ec2_utils
 
 LOGGER = logging.getLogger(__name__)
@@ -134,7 +136,11 @@ def ec2_instance(
     # Define finalizer to terminate instance after this fixture completes
     def terminate_ec2_instance():
         ec2_client.terminate_instances(InstanceIds=[instance_id])
-        test_utils.destroy_ssh_keypair(ec2_client, key_filename)
+        if os.getenv("BUILD_CONTEXT") == "PR":
+            test_utils.destroy_ssh_keypair(ec2_client, key_filename)
+        else:
+            with open(KEYS_TO_DESTROY_FILE, 'a') as destroy_keys:
+                destroy_keys.write(f"{key_filename}\n")
 
     request.addfinalizer(terminate_ec2_instance)
 
@@ -164,7 +170,10 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
         connect_kwargs={"key_filename": [instance_pem_file]}
     )
 
-    artifact_folder = f"{ec2_key_name}-folder"
+    random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
+    unique_id = random.randint(1, 100000)
+
+    artifact_folder = f"{ec2_key_name}-{unique_id}-folder"
     s3_test_artifact_location = test_utils.upload_tests_to_s3(artifact_folder)
 
     def delete_s3_artifact_copy():
@@ -172,7 +181,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
 
     request.addfinalizer(delete_s3_artifact_copy)
 
-    conn.run(f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{ec2_key_name}-folder $HOME/container_tests")
+    conn.run(f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests")
     conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
 
     return conn
