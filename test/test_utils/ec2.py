@@ -3,13 +3,13 @@ import os
 import boto3
 from retrying import retry
 
-from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
+from test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
 
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 def launch_instance(
-    ami_id, instance_type, region=DEFAULT_REGION, user_data=None, iam_instance_profile_arn=None, instance_name="",
+    ami_id, instance_type, region=DEFAULT_REGION, user_data=None, iam_instance_profile_name=None, instance_name="",
 ):
     """
     Launch an instance
@@ -27,6 +27,7 @@ def launch_instance(
 
     # Construct the dictionary with the arguments for API call
     arguments_dict = {
+        "KeyName": "dlc-ec2-keypair-prod",
         "ImageId": ami_id,
         "InstanceType": instance_type,
         "MaxCount": 1,
@@ -37,8 +38,8 @@ def launch_instance(
     }
     if user_data:
         arguments_dict["UserData"] = user_data
-    if iam_instance_profile_arn:
-        arguments_dict["IamInstanceProfile"] = {"Arn": iam_instance_profile_arn}
+    if iam_instance_profile_name:
+        arguments_dict["IamInstanceProfile"] = {"Name": iam_instance_profile_name}
     response = client.run_instances(**arguments_dict)
 
     if not response or len(response["Instances"]) < 1:

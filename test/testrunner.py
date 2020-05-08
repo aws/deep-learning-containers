@@ -13,14 +13,17 @@ from invoke import run
 from invoke.context import Context
 
 import test_utils.eks as eks_utils
-from .test_utils import ec2 as ec2_utils
+from test_utils import ec2 as ec2_utils
 
 from test_utils import get_dlc_images, is_pr_context
-
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+
+SAGEMAKER_AMI_ID = "ami-0eb5a5dcf38497043"
+SAGEMAKER_LOCAL_TEST_TYPE = "local"
+SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 
 def assign_sagemaker_remote_job_instance_type(image):
@@ -29,24 +32,26 @@ def assign_sagemaker_remote_job_instance_type(image):
     else:
         return "ml.p2.8xlarge" if "gpu" in image else "ml.c4.8xlarge"
 
+
 def assign_sagemaker_local_job_instance_type(image):
     if "training" in image:
         return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
     else:
         return "p2.xlarge" if "gpu" in image else "c5.18xlarge"
 
+
 def launch_sagemaker_local_ec2_instance(image, ami_id, region):
     instance_type = assign_sagemaker_local_job_instance_type(image)
-    instance_name=image.split(":")[-1]
+    instance_name = image.split(":")[-1]
     instance = ec2_utils.launch_instance(
         ami_id,
         region=region,
         instance_type=instance_type,
         user_data=None,
-        iam_instance_profile_arn=ec2_utils.EC2_INSTANCE_ROLE_NAME,
+        iam_instance_profile_name=ec2_utils.EC2_INSTANCE_ROLE_NAME,
         instance_name=f"{instance_name}",
     )
-    instance_id = instance["InstanceId"
+    instance_id = instance["InstanceId"]
     public_ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
     ec2_utils.check_system_state(
@@ -54,7 +59,8 @@ def launch_sagemaker_local_ec2_instance(image, ami_id, region):
     )
     return instance_id, public_ip_address
 
-def generate_sagemaker_pytest_cmd(image):
+
+def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     """
     Parses the image ECR url and returns appropriate pytest command
 
@@ -63,7 +69,7 @@ def generate_sagemaker_pytest_cmd(image):
     """
     reruns = 4
     region = os.getenv("AWS_REGION", "us-west-2")
-    integration_path = os.path.join("integration", "sagemaker")
+    integration_path = os.path.join("integration", sagemaker_test_type)
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
     docker_base_name, tag = image.split("/")[1].split(":")
 
@@ -80,15 +86,17 @@ def generate_sagemaker_pytest_cmd(image):
     aws_id_arg = "--aws-id"
     docker_base_arg = "--docker-base-name"
     instance_type_arg = "--instance-type"
+    framework_version = re.search(r"\d+(\.\d+){2}", tag).group()
+    processor = "gpu" if "gpu" in image else "cpu"
+    py_version = re.search(r"py(\d)+", image).group()
 
     # Conditions for modifying tensorflow SageMaker pytest commands
-    if framework == "tensorflow":
+    if framework == "tensorflow" and sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE:
         if job_type == "training":
             aws_id_arg = "--account-id"
 
             # NOTE: We rely on Framework Version being in "major.minor.patch" format
-            tf_framework_version = re.search(r"\d+(\.\d+){2}", tag).group()
-            tf_major_version = tf_framework_version.split(".")[0]
+            tf_major_version = framework_version.split(".")[0]
             path = os.path.join(os.path.dirname(path), f"{framework}{tf_major_version}_training")
         else:
             aws_id_arg = "--registry"
@@ -97,10 +105,21 @@ def generate_sagemaker_pytest_cmd(image):
             instance_type_arg = "--instance-types"
 
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
+
+    remote_pytest_cmd = (f"pytest --reruns {reruns} {integration_path} --region {region} {docker_base_arg} "
+                         f"{docker_base_name} --tag {tag} {aws_id_arg} {account_id} {instance_type_arg} {instance_type}"
+                         f"--junitxml {test_report}")
+
+    local_pytest_cmd = (f"pytest --reruns {reruns} {integration_path} --region {region} {docker_base_arg} "
+                        f"{docker_base_name} --tag {tag} --framework-version {framework_version} "
+                        f"--processor {processor} "
+                        f"--junitxml {test_report}")
+    if framework == "tensorflow" and job_type != "inference":
+        local_pytest_cmd = f"{local_pytest_cmd} --py-version {py_version}"
+
+
     return (
-        f"pytest --reruns {reruns} {integration_path} --region {region} {docker_base_arg} "
-        f"{docker_base_name} --tag {tag} {aws_id_arg} {account_id} {instance_type_arg} {instance_type} "
-        f"--junitxml {test_report}",
+        remote_pytest_cmd if sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE else local_pytest_cmd,
         path,
         tag,
     )
@@ -112,17 +131,21 @@ def run_sagemaker_local_tests(image):
     :param image: ECR url
     :return: None
     """
-    SAGEMAKER_AMI_ID = "ami-0eb5a5dcf38497043"
     region = os.getenv("AWS_REGION", "us-west-2")
+    pytest_command, path, tag = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
+    context = Context()
 
     try:
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, SAGEMAKER_AMI_ID, region)
         LOGGER.info(f"Instances {instance_id}, {ip_address}, {image}")
+        with context.cd(path):
+            context.run("pip install -r requirements.txt ", warn=True)
+            context.run(pytest_command)
     finally:
-        ec2_utils.terminate_instance(instance_id,region)
+        ec2_utils.terminate_instance(instance_id, region)
 
 
-def run_sagemaker_pytest_cmd(image):
+def run_sagemaker_remote_tests(image):
     """
     Run pytest in a virtual env for a particular image
 
@@ -130,7 +153,7 @@ def run_sagemaker_pytest_cmd(image):
 
     :param image: ECR url
     """
-    pytest_command, path, tag = generate_sagemaker_pytest_cmd(image)
+    pytest_command, path, tag = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
 
     context = Context()
     with context.cd(path):
@@ -150,7 +173,7 @@ def run_sagemaker_tests(images):
         return
     pool_number = len(images) * 2
     with Pool(pool_number) as p:
-        # p.map(run_sagemaker_pytest_cmd, images)
+        # p.map(run_sagemaker_remote_tests, images)
         p.map(run_sagemaker_local_tests, images)
 
 
@@ -182,6 +205,7 @@ def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
     dlc_images = get_dlc_images()
+    # dlc_images = os.getenv("DLC_IMAGES")
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
