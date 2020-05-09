@@ -28,10 +28,14 @@ export KMP_SETTINGS=0
 
 set -e
 git clone https://github.com/tensorflow/benchmarks.git ${HOME_DIR}/artifacts/tensorflow/benchmarks && cd ${HOME_DIR}/artifacts/tensorflow/benchmarks && git checkout ${GIT_BRANCH}
-{ time python scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --batch_size=256 --model=resnet50_v1.5 --train_dir=$HOME/test00 --device=cpu --data_format=NHWC --num_inter_threads=0 --num_intra_threads=36 --mkl=True --kmp_blocktime=0; } 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
+START=$(date +%s)
+python scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --batch_size=256 --model=resnet50_v1.5 --train_dir=$HOME/test00 --device=cpu --data_format=NHWC --num_inter_threads=0 --num_intra_threads=36 --mkl=True --kmp_blocktime=0 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
+END=$(date +%s)
+DIFF=$(( END - START ))
+echo Script took $(( DIFF/60 )) mins to finish >> ${LOG_DIR}/"${LOG_FILE}"
 echo Benchmark Results: >&2
 echo Tensorflow"${TF_VERSION}" Training py"${PYTHON_VERSION}" cpu synthetic>&2
-tail -7 ${LOG_DIR}/${LOG_FILE} >&2 # Dsiplay only the results to console
+tail -4 ${LOG_DIR}/"${LOG_FILE}" >&2 # Dsiplay only the results to console
 aws s3 cp ${LOG_DIR}/"${LOG_FILE}" s3://dlinfra-dlc-cicd-performance/tensorflow"${TF_VERSION}"/ec2/training/cpu/py"${PYTHON_VERSION}"/"${LOG_FILE}"
 echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/tensorflow"${TF_VERSION}"/ec2/training/cpu/py"${PYTHON_VERSION}"/"${LOG_FILE}" >&2
 set +e
