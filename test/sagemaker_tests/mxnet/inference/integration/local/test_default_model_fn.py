@@ -18,7 +18,7 @@ import pytest
 import requests
 from sagemaker.mxnet.model import MXNetModel
 
-import local_mode_utils
+from ..local import local_mode_utils
 from ...integration import RESOURCE_PATH
 
 DEFAULT_HANDLER_PATH = os.path.join(RESOURCE_PATH, 'default_handlers')

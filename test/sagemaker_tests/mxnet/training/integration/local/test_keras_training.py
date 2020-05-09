@@ -16,7 +16,7 @@ import os
 
 from sagemaker.mxnet import MXNet
 
-import local_mode_utils
+from ..local import local_mode_utils
 from ...integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
 
 

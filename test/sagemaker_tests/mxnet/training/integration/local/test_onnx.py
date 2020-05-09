@@ -16,7 +16,7 @@ import os
 
 from sagemaker.mxnet import MXNet
 
-import local_mode_utils
+from ..local import local_mode_utils
 from ...integration import RESOURCE_PATH
 
 ONNX_PATH = os.path.join(RESOURCE_PATH, 'onnx')
