@@ -87,6 +87,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     docker_base_arg = "--docker-base-name"
     instance_type_arg = "--instance-type"
     framework_version = re.search(r"\d+(\.\d+){2}", tag).group()
+    framework_major_version = framework_version.split(".")[0]
     processor = "gpu" if "gpu" in image else "cpu"
     py_version = re.search(r"py(\d)+", tag).group()
 
@@ -94,10 +95,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     if framework == "tensorflow" and sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE:
         if job_type == "training":
             aws_id_arg = "--account-id"
-
-            # NOTE: We rely on Framework Version being in "major.minor.patch" format
-            tf_major_version = framework_version.split(".")[0]
-            path = os.path.join(os.path.dirname(path), f"{framework}{tf_major_version}_training")
         else:
             aws_id_arg = "--registry"
             docker_base_arg = "--repo"
@@ -115,6 +112,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
                         f"--processor {processor} ")
     if framework == "tensorflow" and job_type != "inference":
         local_pytest_cmd = f"{local_pytest_cmd} --py-version {py_version}"
+    if framework == "tensorflow" and job_type != "training":
+        path = os.path.join(os.path.dirname(path), f"{framework}{framework_major_version}_training")
 
 
     return (
