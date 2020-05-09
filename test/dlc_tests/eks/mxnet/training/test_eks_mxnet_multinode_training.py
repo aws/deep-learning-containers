@@ -13,7 +13,6 @@ from retrying import retry
 import test.test_utils.eks as eks_utils
 import test.test_utils.ec2 as ec2_utils
 
-from src.github import GitHubHandler
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 
@@ -181,8 +180,6 @@ def _run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yam
 
     with ctx.cd(f"{path_to_ksonnet_app}"):
         ctx.run(f"rm -rf {app_name}")
-        github_handler = GitHubHandler("aws", "kubeflow")
-        github_token = github_handler.get_auth_token()
         ctx.run(f"ks init {app_name} --namespace {namespace}")
 
         with ctx.cd(app_name):
@@ -192,12 +189,10 @@ def _run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yam
             if not does_registry_exist:
                 ctx.run(
                     f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{kubeflow_version}/kubeflow",
-                    env={"GITHUB_TOKEN": github_token},
                     hide=True,
                 )
                 ctx.run(
                     f"ks pkg install kubeflow/mxnet-job@{kubeflow_version}",
-                    env={"GITHUB_TOKEN": github_token},
                     hide=True,
                 )
 
@@ -273,9 +268,6 @@ def _run_eks_multi_node_training_mpijob(namespace, app_name, custom_image, job_n
     pod_name = None
     env = f"{namespace}-env"
     ctx = Context()
-    github_handler = GitHubHandler("aws", "kubeflow")
-    github_token = github_handler.get_auth_token()
-
     ctx.run(f"kubectl create namespace {namespace}")
 
     if not os.path.exists(path_to_ksonnet_app):
@@ -283,7 +275,7 @@ def _run_eks_multi_node_training_mpijob(namespace, app_name, custom_image, job_n
 
     with ctx.cd(path_to_ksonnet_app):
         ctx.run(f"rm -rf {app_name}")
-        ctx.run(f"ks init {app_name} --namespace {namespace}", env={"GITHUB_TOKEN": github_token})
+        ctx.run(f"ks init {app_name} --namespace {namespace}")
 
         with ctx.cd(app_name):
             ctx.run(f"ks env add {env} --namespace {namespace}")
@@ -291,12 +283,9 @@ def _run_eks_multi_node_training_mpijob(namespace, app_name, custom_image, job_n
             registry_not_exist = ctx.run("ks registry list | grep kubeflow", warn=True)
 
             if registry_not_exist.return_code:
-                ctx.run(
-                    f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{kubeflow_version}/kubeflow",
-                    env={"GITHUB_TOKEN": github_token}
-                )
-                ctx.run(f"ks pkg install kubeflow/common@{kubeflow_version}", env={"GITHUB_TOKEN": github_token})
-                ctx.run(f"ks pkg install kubeflow/mpi-job@{kubeflow_version}", env={"GITHUB_TOKEN": github_token})
+                ctx.run(f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{kubeflow_version}/kubeflow")
+                ctx.run(f"ks pkg install kubeflow/common@{kubeflow_version}")
+                ctx.run(f"ks pkg install kubeflow/mpi-job@{kubeflow_version}")
 
             try:
                 ctx.run("ks generate mpi-operator mpi-operator")

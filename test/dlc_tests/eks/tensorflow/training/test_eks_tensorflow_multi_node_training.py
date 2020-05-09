@@ -11,7 +11,6 @@ from invoke.context import Context
 import test.test_utils.ec2 as ec2_utils
 import test.test_utils.eks as eks_utils
 
-from src.github import GitHubHandler
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 
@@ -82,9 +81,6 @@ def _run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_i
     pod_name = None
     env = f"{namespace}-env"
     ctx = Context()
-    github_handler = GitHubHandler("aws", "kubeflow")
-    github_token = github_handler.get_auth_token()
-
     ctx.run(f"kubectl create namespace {namespace}")
 
     if not os.path.exists(path_to_ksonnet_app):
@@ -92,7 +88,7 @@ def _run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_i
 
     with ctx.cd(path_to_ksonnet_app):
         ctx.run(f"rm -rf {app_name}")
-        ctx.run(f"ks init {app_name} --namespace {namespace}", env={"GITHUB_TOKEN": github_token})
+        ctx.run(f"ks init {app_name} --namespace {namespace}")
 
         with ctx.cd(app_name):
             ctx.run(f"ks env add {env} --namespace {namespace}")
@@ -100,12 +96,9 @@ def _run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_i
             registry_not_exist = ctx.run("ks registry list | grep kubeflow", warn=True)
 
             if registry_not_exist.return_code:
-                ctx.run(
-                    f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{KUBEFLOW_VERSION}/kubeflow",
-                    env={"GITHUB_TOKEN": github_token}
-                )
-                ctx.run(f"ks pkg install kubeflow/common@{KUBEFLOW_VERSION}", env={"GITHUB_TOKEN": github_token})
-                ctx.run(f"ks pkg install kubeflow/mpi-job@{KUBEFLOW_VERSION}", env={"GITHUB_TOKEN": github_token})
+                ctx.run(f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{KUBEFLOW_VERSION}/kubeflow")
+                ctx.run(f"ks pkg install kubeflow/common@{KUBEFLOW_VERSION}")
+                ctx.run(f"ks pkg install kubeflow/mpi-job@{KUBEFLOW_VERSION}")
 
             try:
                 ctx.run("ks generate mpi-operator mpi-operator")
