@@ -346,7 +346,7 @@ def fetch_dlc_images_for_test_jobs(images):
     DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
 
     for docker_image in images:
-        if docker_image.build_status == constants.SUCCESS:
+        if docker_image.build_status == constants.SUCCESS or docker_image.build_status == constants.NOT_BUILT:
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(docker_image.ecr_url)
             image_job_type = docker_image.info.get("image_type")
