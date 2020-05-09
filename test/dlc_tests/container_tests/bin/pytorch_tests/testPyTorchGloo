@@ -7,7 +7,7 @@ LOG_DIR=${HOME_DIR}/logs
 ${BIN_DIR}/pytorch_tests/setupPyTorchBackendTest || exit 1
 set -e
 cd ${HOME_DIR}
-cd ./dlbs && source ./scripts/environment.sh && cd ..
+source dlbs/scripts/environment.sh
 NUM_GPU=$(nvidia-smi -L | wc -l)
 export OMP_NUM_THREADS=${NUM_GPU}
 
@@ -17,7 +17,7 @@ echo "Training resnet18 using PyTorch Gloo... This may take a few minutes. You c
 set +e
 
 python -m torch.distributed.launch --nproc_per_node=${NUM_GPU} \
-dlcookbook-dlbs/python/pytorch_benchmarks/benchmarks.py \
+dlbs/python/pytorch_benchmarks/benchmarks.py \
 --model resnet18 --batch_size=32 --device gpu --cudnn_fastest --dist_backend=gloo > $TRAINING_LOG 2>&1
 
 RETURN_VAL=`echo $?`
