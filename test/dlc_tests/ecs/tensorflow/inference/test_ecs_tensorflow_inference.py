@@ -5,7 +5,7 @@ import test.test_utils.ec2 as ec2_utils
 from test.test_utils import get_tensorflow_model_name, request_tensorflow_inference
 from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2
 
-
+@pytest.mark.skip(reason="Skip non-benchmark tests")
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 def test_ecs_tensorflow_inference_cpu(tensorflow_inference, ecs_container_instance, region, cpu_only):
@@ -25,7 +25,7 @@ def test_ecs_tensorflow_inference_cpu(tensorflow_inference, ecs_container_instan
     finally:
         ecs_utils.tear_down_ecs_inference_service(ecs_cluster_arn, service_name, task_family, revision)
 
-
+@pytest.mark.skip(reason="Skip non-benchmark tests")
 @pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_tensorflow_inference_gpu(tensorflow_inference, ecs_container_instance, region, gpu_only):
