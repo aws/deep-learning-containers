@@ -4,7 +4,7 @@ import pytest
 
 from test.test_utils import CONTAINER_TESTS_PREFIX
 
-PT_PERFORMANCE_INFERENCE_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "performance_tests", "run_pytorch_inference_performance.py")
+PT_PERFORMANCE_INFERENCE_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inference_performance.py")
 PT_PERFORMANCE_INFERENCE_CPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT}  --iterations 500"
 PT_PERFORMANCE_INFERENCE_GPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT}  --iterations 1000 --gpu"
 

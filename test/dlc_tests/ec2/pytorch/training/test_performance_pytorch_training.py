@@ -6,7 +6,7 @@ from test.test_utils import CONTAINER_TESTS_PREFIX
 from test.test_utils.ec2 import execute_ec2_training_performance_test
 
 
-PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "performance_tests", "run_pytorch_training_performance_gpu_synthetic")
+PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_training_performance_gpu_synthetic")
 
 PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "p3.16xlarge"
 

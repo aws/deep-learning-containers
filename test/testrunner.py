@@ -177,6 +177,29 @@ def main():
         run_sagemaker_tests(
             [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
         )
+    elif "benchmark" in test_type:
+        if "ec2" in test_type:
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+
+            # PyTest must be run in specific directory to avoid conflicting w/ sagemaker_tests conftests
+            os.chdir(os.path.join("test", "dlc_tests", "benchmark"))
+
+            # Execute dlc_tests pytest command
+            pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]
+            try:
+                sys.exit(pytest.main(pytest_cmd))
+            finally:
+
+                # Delete dangling EC2 KeyPairs
+                if "ec2" in test_type and os.path.exists(KEYS_TO_DESTROY_FILE):
+                    with open(KEYS_TO_DESTROY_FILE) as key_destroy_file:
+                        for key_file in key_destroy_file:
+                            LOGGER.info(key_file)
+                            ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
+                            if ".pem" in key_file:
+                                destroy_ssh_keypair(ec2_client, key_file)
+        else:
+            raise NotImplementedError("Not supported test-type for benchmark")
     else:
         raise NotImplementedError("Tests only support sagemaker and sanity currently")
 

@@ -3,12 +3,12 @@ import time
 import pytest
 from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, is_tf1
 
-@pytest.mark.skip(reason="Skip benchmark tests")
+
 @pytest.mark.parametrize("ec2_instance_type", ["p3.16xlarge"], indirect=True)
 def test_performance_ec2_tensorflow_inference_gpu(tensorflow_inference, ec2_connection, region, gpu_only):
     ec2_performance_tensorflow_inference(tensorflow_inference, "gpu", ec2_connection, region)
 
-@pytest.mark.skip(reason="Skip benchmark tests")
+
 @pytest.mark.parametrize("ec2_instance_type", ["c5.18xlarge"], indirect=True)
 def test_performance_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, region, cpu_only):
     ec2_performance_tensorflow_inference(tensorflow_inference, "cpu", ec2_connection, region)
