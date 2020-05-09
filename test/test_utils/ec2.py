@@ -2,14 +2,16 @@ import os
 
 import boto3
 from retrying import retry
+from fabric import Connection
+
 
 from test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
-
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 def launch_instance(
-    ami_id, instance_type, region=DEFAULT_REGION, user_data=None, iam_instance_profile_name=None, instance_name="",
+    ami_id, instance_type, ec2_key_name=None, region=DEFAULT_REGION, user_data=None,
+        iam_instance_profile_name=None, instance_name="",
 ):
     """
     Launch an instance
@@ -23,11 +25,13 @@ def launch_instance(
     """
     if not ami_id:
         raise Exception("No ami_id provided")
+    if not ec2_key_name:
+        raise Exception("Ec2 Key name must be provided")
     client = boto3.Session(region_name=region).client("ec2")
 
     # Construct the dictionary with the arguments for API call
     arguments_dict = {
-        "KeyName": "dlc-ec2-keypair-prod",
+        "KeyName": ec2_key_name,
         "ImageId": ami_id,
         "InstanceType": instance_type,
         "MaxCount": 1,
@@ -287,6 +291,23 @@ def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_R
     instance_info = (get_instance_type_details(instance_type, region=region) if instance_type else
                      get_instance_details(instance_id, region=region))
     return sum(gpu_type["Count"] for gpu_type in instance_info["GpuInfo"]["Gpus"])
+
+
+def ec2_connection(instance_id, instance_pem_file, region):
+    """
+    establish connection with EC2 instance if necessary
+    :param ec2_instance: ec2_instance pytest fixture
+    :param ec2_key_name: unique key name
+    :param region: Region where ec2 instance is launched
+    :return: Fabric connection object
+    """
+    user = get_instance_user(instance_id, region=region)
+    conn = Connection(
+        user=user,
+        host=get_public_ip(instance_id, region),
+        connect_kwargs={"key_filename": [instance_pem_file]}
+    )
+    return conn
 
 
 def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):

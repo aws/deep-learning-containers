@@ -29,6 +29,11 @@ UBUNTU_HOME_DIR = "/home/ubuntu"
 # Reason string for skipping tests in PR context
 SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test will be run in nightly/release pipeline."
 
+# Sagemaker local tests AMI_ID
+SAGEMAKER_AMI_ID = "ami-0eb5a5dcf38497043"
+SAGEMAKER_LOCAL_TEST_TYPE = "local"
+SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
+
 
 def is_tf1(image_uri):
     if "tensorflow" not in image_uri:
