@@ -1,0 +1,9 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - start-dockerd
+  build:
+    commands:
+      - publish_dlc_images --release-spec $(pwd)/release_images.yml
