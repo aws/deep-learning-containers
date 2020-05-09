@@ -14,6 +14,8 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 LOGGER = eks_utils.LOGGER
 
+
+@pytest.mark.skip(reason="TEMPORARY")
 def test_eks_pytorch_single_node_training(pytorch_training):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
@@ -61,6 +63,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
         run("kubectl delete pods {}".format(pod_name))
 
 
+@pytest.mark.skip(reason="TEMPORARY")
 def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
 
     """
@@ -118,7 +121,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
         run("kubectl delete pods {}".format(pod_name))
 
 
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+# @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     """
        Function to create mutliple pods using kubectl and given container image, and run Pytorch training
