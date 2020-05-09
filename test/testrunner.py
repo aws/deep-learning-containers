@@ -159,7 +159,8 @@ def main():
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]
         try:
-            sys.exit(pytest.main(pytest_cmd))
+            # sys.exit(pytest.main(pytest_cmd))
+            sys.exit()
         finally:
             if test_type == "eks" and eks_terminable_clusters:
                 for cluster in eks_terminable_clusters:
