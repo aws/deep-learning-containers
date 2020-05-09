@@ -1,0 +1,6 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - mark_images_as_tested --images-file $CODEBUILD_SRC_DIR_DLC_IMAGES_JSON/test_type_images.json
