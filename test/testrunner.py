@@ -217,8 +217,6 @@ def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
     dlc_images = get_dlc_images()
-    # dlc_images = os.getenv("DLC_IMAGES")
-    LOGGER.info("empty print")
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]

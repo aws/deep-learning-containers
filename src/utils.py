@@ -181,8 +181,8 @@ def parse_modified_sagemaker_test_files(files, framework, pattern=""):
                 if framework_changed == "tensorflow" and "training" in job_name:
                     job_name = "training"
                 if job_name in constants.IMAGE_TYPES:
-                    # JobParameters.add_image_types(job_name)
-                    # JobParameters.build_for_all_device_types_py_versions()
+                    JobParameters.add_image_types(job_name)
+                    JobParameters.build_for_all_device_types_py_versions()
                     update_image_run_test_types(job_name, constants.SAGEMAKER_TESTS)
                 # If file changed is under /test/sagemaker_tests/(mxnet|pytorch|tensorflow)
                 # but not in training/inference dirs
@@ -194,7 +194,7 @@ def parse_modified_sagemaker_test_files(files, framework, pattern=""):
                     break
             # If file changed is under /test/sagemaker_tests but not in (mxnet|pytorch|tensorflow) dirs
             elif framework_changed not in constants.FRAMEWORKS:
-                # JobParameters.build_for_all_images()
+                JobParameters.build_for_all_images()
                 update_image_run_test_types(constants.ALL, constants.SAGEMAKER_TESTS)
                 break
 
@@ -275,11 +275,11 @@ def pr_build_setup(pr_number, framework):
     # when there is a change in any the below files
     parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.yml")
 
-    # parse_modifed_root_files_info(files, pattern="src\/\S+")
-    #
-    # parse_modifed_root_files_info(
-    #     files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
-    # )
+    parse_modifed_root_files_info(files, pattern="src\/\S+")
+
+    parse_modifed_root_files_info(
+        files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
+    )
 
     parse_modifed_root_files_info(files, pattern="testspec\.yml")
 
@@ -346,7 +346,7 @@ def fetch_dlc_images_for_test_jobs(images):
     DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
 
     for docker_image in images:
-        if docker_image.build_status == constants.SUCCESS or docker_image.build_status == constants.NOT_BUILT:
+        if docker_image.build_status == constants.SUCCESS:
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(docker_image.ecr_url)
             image_job_type = docker_image.info.get("image_type")
