@@ -1,6 +1,7 @@
 import os
 import datetime
 import random
+import re
 import sys
 import logging
 
@@ -13,7 +14,6 @@ from invoke import run
 from invoke.context import Context
 
 import test_utils
-import test_utils.eks as eks_utils
 from test_utils import ec2 as ec2_utils
 from test_utils import SAGEMAKER_AMI_ID, SAGEMAKER_LOCAL_TEST_TYPE, SAGEMAKER_REMOTE_TEST_TYPE
 from test_utils import eks as eks_utils
