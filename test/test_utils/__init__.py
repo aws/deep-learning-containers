@@ -2,9 +2,12 @@ import json
 import os
 import re
 import subprocess
+import time
 
-from invoke import run
 import pytest
+
+from botocore.exceptions import ClientError
+from invoke import run
 from retrying import retry
 
 # Constant to represent default region for boto3 commands
@@ -33,6 +36,8 @@ SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test w
 SAGEMAKER_AMI_ID = "ami-0eb5a5dcf38497043"
 SAGEMAKER_LOCAL_TEST_TYPE = "local"
 SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
+
+KEYS_TO_DESTROY_FILE = os.path.join(os.sep, "tmp", "keys_to_destroy.txt")
 
 
 def is_tf1(image_uri):
@@ -241,9 +246,22 @@ def get_tensorflow_model_name(processor, model_name):
 
 
 def generate_ssh_keypair(ec2_client, key_name):
-    key_pair = ec2_client.create_key_pair(KeyName=key_name)
     pwd = run("pwd", hide=True).stdout.strip("\n")
     key_filename = os.path.join(pwd, f"{key_name}.pem")
+    if os.path.exists(key_filename):
+        run(f"chmod 400 {key_filename}")
+        return key_filename
+    try:
+        key_pair = ec2_client.create_key_pair(KeyName=key_name)
+    except ClientError as e:
+        if "InvalidKeyPair.Duplicate" in f"{e}":
+            # Wait 10 seconds for key to be created to avoid race condition
+            time.sleep(10)
+            if os.path.exists(key_filename):
+                run(f"chmod 400 {key_filename}")
+                return key_filename
+        raise ClientError(e)
+
     run(f"echo '{key_pair['KeyMaterial']}' > {key_filename}")
     run(f"chmod 400 {key_filename}")
     return key_filename
