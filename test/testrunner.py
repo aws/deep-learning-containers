@@ -87,7 +87,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     instance_type_arg = "--instance-type"
     framework_version = re.search(r"\d+(\.\d+){2}", tag).group()
     processor = "gpu" if "gpu" in image else "cpu"
-    py_version = re.search(r"py(\d)+", image).group()
+    py_version = re.search(r"py(\d)+", tag).group()
 
     # Conditions for modifying tensorflow SageMaker pytest commands
     if framework == "tensorflow" and sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE:
@@ -131,7 +131,6 @@ def run_sagemaker_local_tests(image):
     """
     region = os.getenv("AWS_REGION", "us-west-2")
     pytest_command, path, tag = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
-    tag = image.split(":")[-1]
     framework = image.split("/")[1].split(":")[0].split("-")[1]
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{tag}_sagemaker_{random.randint(1,1000)}"
