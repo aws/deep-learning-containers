@@ -17,10 +17,13 @@ mkdir -p ${LOG_DIR}
 
 set -e
 cd ${HOME_DIR}
-git clone https://github.com/HewlettPackard/dlcookbook-dlbs.git ./dlbs && cd ./dlbs && source ./scripts/environment.sh && cd ..
-git clone https://github.com/YYStreet/dlcookbook-dlbs
+git clone https://github.com/HewlettPackard/dlcookbook-dlbs.git ./dlbs
+source dlbs/scripts/environment.sh
+sed -i "s/model = DDP(model, shared_param=True)/model = DDP(model, [opts['local_rank']], opts['local_rank'])/g" dlbs/python/pytorch_benchmarks/benchmarks.py
+sed -i '/from apex.fp16_utils import network_to_half, prep_param_lists, model_grads_to_master_grads, master_params_to_model_params/,/raise ImportError("Please install apex from https:\/\/www.github.com\/nvidia\/apex to run this example.")/d' dlbs/python/pytorch_benchmarks/benchmarks.py
+sed -i '/try:[ ]*$/{N;s/try:\s*from apex.parallel import DistributedDataParallel as DDP/from torch.nn.parallel import DistributedDataParallel as DDP/}' dlbs/python/pytorch_benchmarks/benchmarks.py
 export OMP_NUM_THREADS=8
-python -m torch.distributed.launch --nproc_per_node=8 dlcookbook-dlbs/python/pytorch_benchmarks/benchmarks.py --model resnet50 --batch_size=64 --device gpu --cudnn_fastest --dist_backend=nccl  2>&1 | tee ${LOG_DIR}/${LOG_FILE}
+python -m torch.distributed.launch --nproc_per_node=8 dlbs/python/pytorch_benchmarks/benchmarks.py --model resnet50 --batch_size=64 --device gpu --cudnn_fastest --dist_backend=nccl  2>&1 | tee ${LOG_DIR}/${LOG_FILE}
 echo Benchmark Results: >&2
 echo PyTorch Training py"${PYTHON_VERSION}" gpu synthetic>&2
 tail -3 ${LOG_DIR}/${LOG_FILE} >&2 # Dsiplay only the results to console
