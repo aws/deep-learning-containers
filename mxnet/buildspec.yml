@@ -46,7 +46,7 @@
       build: &MXNET_CPU_TRAINING_PY3 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
-      python_version: &DOCKER_PYTHON_VERSION py3
+      python_version: &DOCKER_PYTHON_VERSION py36
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
@@ -56,7 +56,7 @@
       build: &MXNET_GPU_TRAINING_PY3 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
-      python_version: &DOCKER_PYTHON_VERSION py3
+      python_version: &DOCKER_PYTHON_VERSION py36
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
@@ -66,7 +66,7 @@
       build: &MXNET_CPU_TRAINING_PY2 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
-      python_version: &DOCKER_PYTHON_VERSION py2
+      python_version: &DOCKER_PYTHON_VERSION py27
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
@@ -76,7 +76,7 @@
       build: &MXNET_GPU_TRAINING_PY2 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
-      python_version: &DOCKER_PYTHON_VERSION py2
+      python_version: &DOCKER_PYTHON_VERSION py27
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
@@ -86,7 +86,7 @@
       build: &MXNET_CPU_INFERENCE_PY3 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
-      python_version: &DOCKER_PYTHON_VERSION py3
+      python_version: &DOCKER_PYTHON_VERSION py36
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
@@ -96,7 +96,7 @@
       build: &MXNET_GPU_INFERENCE_PY3 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
-      python_version: &DOCKER_PYTHON_VERSION py3
+      python_version: &DOCKER_PYTHON_VERSION py36
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
@@ -106,7 +106,7 @@
       build: &MXNET_CPU_INFERENCE_PY2 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
-      python_version: &DOCKER_PYTHON_VERSION py2
+      python_version: &DOCKER_PYTHON_VERSION py27
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
@@ -116,7 +116,7 @@
       build: &MXNET_GPU_INFERENCE_PY2 false
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
-      python_version: &DOCKER_PYTHON_VERSION py2
+      python_version: &DOCKER_PYTHON_VERSION py27
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
@@ -127,7 +127,7 @@
       image_size_baseline: 4500
       base_image_name: BuildMXNetGPUTrainPy2DockerImage
       device_type: &DEVICE_TYPE gpu
-      python_version: &DOCKER_PYTHON_VERSION py2
+      python_version: &DOCKER_PYTHON_VERSION py27
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
                    "-example" ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /example, /Dockerfile., *DEVICE_TYPE ]
@@ -139,7 +139,7 @@
       image_size_baseline: 5000
       base_image_name: BuildMXNetGPUTrainPy3DockerImage
       device_type: &DEVICE_TYPE gpu
-      python_version: &DOCKER_PYTHON_VERSION py3
+      python_version: &DOCKER_PYTHON_VERSION py36
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *DOCKER_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
                    "-example" ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /example, /Dockerfile., *DEVICE_TYPE ]
