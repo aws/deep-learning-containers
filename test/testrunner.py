@@ -111,7 +111,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
                         f"{sm_local_docker_base_name} --tag {tag} --framework-version {framework_version} "
                         f"--processor {processor} ")
     if framework == "tensorflow" and job_type != "inference":
-        local_pytest_cmd = f"{local_pytest_cmd} --py-version {py_version[2:]}"
+        local_pytest_cmd = f"{local_pytest_cmd} --py-version {py_version[2]}"
     if framework == "tensorflow" and job_type == "training":
         path = os.path.join(os.path.dirname(path), f"{framework}{framework_major_version}_training")
 
