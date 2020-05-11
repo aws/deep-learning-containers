@@ -3,9 +3,12 @@ import random
 
 import test.test_utils.eks as eks_utils
 
+import pytest
+
 from invoke import run
 
 
+@pytest.mark.skip(reason="Temporary")
 def test_eks_tensorflow_single_node_training(tensorflow_training):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training

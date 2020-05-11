@@ -31,6 +31,7 @@ class GitHubHandler:
         self.user = user
         self.repo = repo
         self.commit_hash = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+        self.client = boto3.client("secretsmanager")
 
     def get_auth_token(self):
         """
@@ -45,6 +46,11 @@ class GitHubHandler:
         client = boto3.client("secretsmanager")
         resp = client.get_secret_value(SecretId=self.OAUTH_TOKEN)
         return resp["SecretString"]
+
+    def set_ksonnet_env(self):
+        resp = self.client.get_secret_value(SecretId="/codebuild/github/oauth")
+        token = resp["SecretString"]
+        os.environ["GITHUB_TOKEN"] = token
 
     def get_authorization_header(self):
         """
