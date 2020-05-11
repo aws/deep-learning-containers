@@ -15,3 +15,38 @@ release_images:
       os_version: "ubuntu16.04"
       cuda_version: "cu101"
       dlc_version: "1.1"
+ 2:
+    framework: "pytorch"
+    version: "1.5.0"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu16.04"
+      cuda_version: "cu101"
+      dlc_version: "1.1"
+      example: True
+ 3:
+    framework: "tensorflow"
+    version: "2.1.0"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py27", "py36"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu101"
+      dlc_version: "1.0"
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py27", "py36"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu101"
+      dlc_version: "1.0"
+ 4:
+    framework: "tensorflow"
+    version: "2.1.0"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu101"
+      dlc_version: "1.0"
+      example: True
