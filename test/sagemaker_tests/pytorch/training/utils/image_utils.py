@@ -34,21 +34,6 @@ def build_base_image(framework_name, framework_version, py_version,
     return base_image_uri
 
 
-def build_image(framework_name, framework_version, py_version, processor, tag, cwd='.'):
-    _check_call('python setup.py bdist_wheel')
-
-    image_uri = get_image_uri(framework_name, tag)
-
-    dockerfile_location = os.path.join('docker', framework_version, 'final',
-                                       'Dockerfile.{}'.format(processor))
-
-    subprocess.check_call(
-        ['docker', 'build', '-t', image_uri, '-f', dockerfile_location, '--build-arg',
-         'py_version={}'.format(py_version[-1]), cwd], cwd=cwd)
-    print('created image {}'.format(image_uri))
-    return image_uri
-
-
 def get_base_image_uri(framework_name, base_image_tag):
     return '{}-base:{}'.format(framework_name, base_image_tag)
 
