@@ -5,11 +5,15 @@ Helper functions for EKS Integration Tests
 import os
 import sys
 import json
-import base64
 import logging
 
+import boto3
+
+from botocore.exceptions import ClientError
 from retrying import retry
 from invoke import run
+
+DEFAULT_REGION = "us-west-2"
 
 # Path till directory test/
 ROOT_DIR = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
@@ -48,7 +52,7 @@ KUBETAIL_VERSION = "1.6.7"
 EKS_NVIDIA_PLUGIN_VERSION = "1.12"
 
 # https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
-EKS_AMI_ID = {"cpu": "ami-0d3998d69ebe9b214", "gpu": "ami-0484012ada3522476"}
+EKS_AMI_ID = {"cpu": "ami-010938e49e2ec29ae", "gpu": "ami-06d2bf0a1cbcfee72"}
 
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
 PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"
@@ -142,7 +146,145 @@ def is_eks_training_complete(pod_name):
     return False
 
 
-def eks_setup(framework):
+def init_cfn_client():
+    """Function to initiate the cfn session
+    Args:
+        material_set: str
+    """
+    return boto3.client('cloudformation')
+
+
+def list_cfn_stack_names():
+    """Function to list the cfn stacks in the account.
+    Note: lists all the cfn stacks that aren't
+    Args:
+        material_set: str
+    """
+    stack_statuses = ['CREATE_IN_PROGRESS', 'CREATE_FAILED', 'CREATE_COMPLETE', 'ROLLBACK_IN_PROGRESS',
+                      'ROLLBACK_FAILED', 'ROLLBACK_COMPLETE', 'DELETE_IN_PROGRESS', 'DELETE_FAILED',
+                      'UPDATE_IN_PROGRESS', 'UPDATE_COMPLETE_CLEANUP_IN_PROGRESS', 'UPDATE_COMPLETE',
+                      'UPDATE_ROLLBACK_IN_PROGRESS', 'UPDATE_ROLLBACK_FAILED',
+                      'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS', 'UPDATE_ROLLBACK_COMPLETE',
+                      'REVIEW_IN_PROGRESS', 'DELETE_COMPLETE']
+    cfn = init_cfn_client()
+
+    try:
+        cfn_stacks = cfn.list_stacks(
+            StackStatusFilter=[status for status in stack_statuses if status != 'DELETE_COMPLETE']
+        )
+    except ClientError as e:
+        LOGGER.error(f"Error: Cannot list stack names. Full Exception:\n{e}")
+
+    return [stack['StackName'] for stack in cfn_stacks['StackSummaries']]
+
+
+def describe_cfn_stack_events(stack_name):
+    """
+    Function to describe CFN events.
+    Args:
+        stack_name, materialset: str
+    """
+    cfn = init_cfn_client()
+    max_items = 10
+    try:
+        LOGGER.info("Describing the latest {} events on the stack".format(max_items))
+        for stack_event in cfn.describe_stack_events(StackName=stack_name)["StackEvents"][:max_items]:
+            LOGGER.info(stack_event)
+    except ClientError as e:
+        LOGGER.error(f"Error: Cannot describe events on stack: {stack_name}. Full Exception:\n{e}")
+
+
+def delete_cfn_stack_and_wait(stack_name):
+    """Function to delete cfn stack. The waiter checks if the stack has been deleted every _delay seconds,
+    for a maximum of _max_attempts times i.e. for _max_attempts min.
+    Args:
+        stack_name, material_set: str
+    """
+    cfn = init_cfn_client()
+    _delay = 60
+    _max_attempts = 20
+    try:
+        cfn.delete_stack(StackName=stack_name)
+        cfn_waiter = cfn.get_waiter("stack_delete_complete")
+        cfn_waiter.wait(StackName=stack_name,
+                        WaiterConfig={
+                            'Delay': _delay,
+                            'MaxAttempts': _max_attempts
+                        })
+    except ClientError as e:
+        LOGGER.error(f"Error: Cannot delete stack: {stack_name}. Full Exception:\n{e}")
+        describe_cfn_stack_events(stack_name)
+
+
+def delete_eks_cluster(eks_cluster_name):
+    """Function to delete the EKS cluster, if it exists. Additionally, the function cleans up any cloudformation stacks
+    that are dangling.
+    Args:
+        eks_cluster_name: str
+    """
+
+    run("eksctl delete cluster {} --wait".format(eks_cluster_name), warn=True)
+
+    cfn_stack_names = list_cfn_stack_names()
+    for stack_name in cfn_stack_names:
+        if eks_cluster_name in stack_name:
+            LOGGER.info(f"Deleting dangling cloudformation stack: {stack_name}")
+            delete_cfn_stack_and_wait(stack_name)
+
+
+def setup_eksctl():
+    run_out = run("eksctl version", warn=True)
+
+    eksctl_installed = not run_out.return_code
+
+    if eksctl_installed:
+        return
+
+    platform = run("uname -s").stdout.strip()
+    eksctl_download_command = (
+        f"curl --silent --location https://github.com/weaveworks/eksctl/releases/download/"
+        f"{EKSCTL_VERSION}/eksctl_{platform}_amd64.tar.gz | tar xz -C /tmp"
+    )
+    run(eksctl_download_command)
+    run("mv /tmp/eksctl /usr/local/bin")
+
+
+@retry(stop_max_attempt_number=2, wait_fixed=60000)
+def create_eks_cluster(eks_cluster_name, processor_type, num_nodes,
+                       instance_type, ssh_public_key_name, region=os.getenv("AWS_REGION", DEFAULT_REGION)):
+    """Function to setup an EKS cluster using eksctl. The AWS credentials used to perform eks operations
+    are that the user deepamiuser-beta as used in other functions. The 'deeplearning-ami-beta' public key
+    will be used to access the nodes created as EC2 instances in the EKS cluster.
+    Note: eksctl creates a cloudformation stack by the name of eksctl-${eks_cluster_name}-cluster.
+    Args:
+        eks_cluster_name, processor_type, num_nodes, instance_type, ssh_public_key_name: str
+    """
+    setup_eksctl()
+
+    delete_eks_cluster(eks_cluster_name)
+
+    eksctl_create_cluster_command = f"eksctl create cluster {eks_cluster_name} " \
+                                    f"--node-ami {EKS_AMI_ID[processor_type]} " \
+                                    f"--nodes {num_nodes} " \
+                                    f"--node-type={instance_type} " \
+                                    f"--timeout=40m " \
+                                    f"--ssh-access " \
+                                    f"--ssh-public-key {ssh_public_key_name} " \
+                                    f"--region {region}"
+
+    # In us-east-1 you are likely to get UnsupportedAvailabilityZoneException,
+    # if the allocated zones is us-east-1e as it does not support AmazonEKS
+    if region == "us-east-1":
+        eksctl_create_cluster_command += " --zones=us-east-1a,us-east-1b,us-east-1d "
+    eksctl_create_cluster_command += " --auto-kubeconfig "
+    run(eksctl_create_cluster_command)
+
+    LOGGER.info(f"EKS cluster created successfully, with the following parameters cluster_name: "
+                f"{eks_cluster_name} ami-id: {EKS_AMI_ID[processor_type]} num_nodes: {num_nodes} instance_type: "
+                f"{instance_type} ssh_public_key: {ssh_public_key_name}")
+
+
+def eks_setup(framework, cluster_name=None):
     """Function to download eksctl, kubectl, aws-iam-authenticator and ksonnet binaries
     Utilities:
     1. eksctl: create and manage cluster
@@ -161,18 +303,16 @@ def eks_setup(framework):
     eks_tools_installed = not run_out.return_code
 
     # Assume cluster with such a name is active
-    eks_cluster_name = PR_EKS_CLUSTER_NAME_TEMPLATE.format(framework)
+    if not cluster_name:
+        eks_cluster_name = PR_EKS_CLUSTER_NAME_TEMPLATE.format(framework)
+    else:
+        eks_cluster_name = cluster_name
 
     if eks_tools_installed:
         eks_write_kubeconfig(eks_cluster_name, "us-west-2")
         return
 
     platform = run("uname -s").stdout.strip()
-
-    eksctl_download_command = (
-        f"curl --silent --location https://github.com/weaveworks/eksctl/releases/download/"
-        f"{EKSCTL_VERSION}/eksctl_{platform}_amd64.tar.gz | tar xz -C /tmp"
-    )
 
     kubectl_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
@@ -194,8 +334,8 @@ def eks_setup(framework):
         f"{KUBETAIL_VERSION}/kubetail -o /tmp/kubetail"
     )
 
-    run(eksctl_download_command)
-    run("mv /tmp/eksctl /usr/local/bin")
+    # Separate function handles setting up eksctl
+    setup_eksctl()
 
     run(kubectl_download_command)
     run("chmod +x /tmp/kubectl")
@@ -264,7 +404,7 @@ def is_eks_cluster_active(eks_cluster_name):
         eks_cluster_name
     )
 
-    run_out = run(eksctl_check_cluster_command, warn_only=True)
+    run_out = run(eksctl_check_cluster_command, warn=True)
 
     if run_out.return_code == 0:
         cluster_info = json.loads(run_out.stdout)[0]
@@ -282,15 +422,13 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     Args:
         eks_cluster_name, region: str
     """
-    eksctl_write_kubeconfig_command = """eksctl utils write-kubeconfig \
-                                         --name {} --region {}""".format(
-        eks_cluster_name, region
-    )
+    eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --name {eks_cluster_name} --region {region}"
     run(eksctl_write_kubeconfig_command)
 
     # run(f"aws eks --region us-west-2 update-kubeconfig --name {eks_cluster_name} --kubeconfig /root/.kube/config --role-arn arn:aws:iam::669063966089:role/nikhilsk-eks-test-role")
 
     run("cat /root/.kube/config", warn=True)
+
 
 def eks_forward_port_between_host_and_container(selector_name, host_port, container_port, namespace="default"):
     """Uses kubectl port-forward command to forward a port from the container pods to the host.
@@ -306,6 +444,7 @@ def eks_forward_port_between_host_and_container(selector_name, host_port, contai
     run("nohup kubectl port-forward -n {0} `kubectl get pods -n {0} --selector=app={1} -o "
         "jsonpath='{{.items[0].metadata.name}}'` {2}:{3} > /dev/null 2>&1 &".format(namespace, selector_name, host_port, container_port))
 
+
 @retry(stop_max_attempt_number=20, wait_fixed=30000, retry_on_exception=retry_if_value_error)
 def is_service_running(selector_name, namespace="default"):
     """Check if the service pod is running
@@ -319,3 +458,126 @@ def is_service_running(selector_name, namespace="default"):
     else:
         raise ValueError("Service not running yet, try again")
 
+
+def create_eks_cluster_nodegroup(
+        eks_cluster_name, processor_type, num_nodes, instance_type, ssh_public_key_name, region=DEFAULT_REGION
+):
+    """
+    Function to create and attach a nodegroup to an existing EKS cluster.
+    :param eks_cluster_name: Cluster name of the form PR_EKS_CLUSTER_NAME_TEMPLATE
+    :param processor_type: cpu/gpu
+    :param num_nodes: number of nodes to create in nodegroup
+    :param instance_type: instance type to use for nodegroup instances
+    :param ssh_public_key_name:
+    :param region: Region where EKS cluster is located
+    :return: None
+    """
+    eksctl_create_nodegroup_command = (
+        f"eksctl create nodegroup "
+        f"--cluster {eks_cluster_name} "
+        f"--node-ami {EKS_AMI_ID.get(processor_type)} "
+        f"--nodes {num_nodes} "
+        f"--node-type={instance_type} "
+        f"--timeout=40m "
+        f"--ssh-access "
+        f"--ssh-public-key {ssh_public_key_name} "
+        f"--region {region}"
+    )
+
+    run(eksctl_create_nodegroup_command)
+
+    LOGGER.info("EKS cluster nodegroup created successfully, with the following parameters\n"
+                f"cluster_name: {eks_cluster_name}\n"
+                f"ami-id: {EKS_AMI_ID[processor_type]}\n"
+                f"num_nodes: {num_nodes}\n"
+                f"instance_type: {instance_type}\n"
+                f"ssh_public_key: {ssh_public_key_name}")
+
+
+def eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env):
+    """
+    Function to cleanup resources created by EKS
+    Use namespace as default if you do not create one.
+    :param ctx:
+    :param pod_name:
+    :param job_name:
+    :param namespace:
+    :param env:
+    :return:
+    """
+    # Operator specific cleanup
+    if job_name == "openmpi-job":
+        component, _ = pod_name.split("-master")
+        ctx.run(f"ks component rm {component}", warn=True)
+    else:
+        ctx.run(f"ks delete {env} -c {job_name} -n {namespace}", warn=True)
+
+    if "pytorch" not in namespace:
+        ctx.run(f"ks delete {env}", warn=True)
+    ctx.run(f"kubectl delete namespace {namespace}", warn=True)
+
+
+def eks_multinode_get_logs(ctx, namespace, pod_name):
+    """
+    Function to get logs for a pod in the specified namespace.
+    :param ctx:
+    :param namespace:
+    :param pod_name:
+    :return:
+    """
+    return ctx.run(f"kubectl logs -n {namespace} -f {pod_name}").stdout
+
+
+@retry(stop_max_attempt_number=120, wait_fixed=10000, retry_on_exception=retry_if_value_error)
+def is_mpijob_launcher_pod_ready(ctx, namespace, job_name):
+    """Check if the MpiJob Launcher Pod is Ready
+    Args:
+        ctx: Context
+        namespace: str
+        job_name: str
+    """
+
+    pod_name = ctx.run(
+        f"kubectl get pods -n {namespace} -l mpi_job_name={job_name},mpi_role_type=launcher -o name"
+    ).stdout.strip("\n")
+    if pod_name:
+        return pod_name
+    else:
+        raise ValueError("Launcher pod is not ready yet, try again.")
+
+
+@retry(stop_max_attempt_number=40, wait_fixed=60000, retry_on_exception=retry_if_value_error)
+def is_eks_multinode_training_complete(ctx, namespace, env, pod_name, job_name):
+    """Function to check if the pod status has reached 'Completion' for multinode training.
+    A separate method is required because kubectl commands for logs and status are different with namespaces.
+    Args:
+        namespace, pod_name, job_name: str
+    """
+
+    run_out = ctx.run(f"kubectl get pod -n {namespace} {pod_name} -o json")
+    pod_info = json.loads(run_out.stdout)
+
+    if 'containerStatuses' in pod_info['status']:
+        container_status = pod_info['status']['containerStatuses'][0]
+        LOGGER.info(f"Container Status: {container_status}")
+        if container_status['name'] == job_name:
+            if "terminated" in container_status['state']:
+                if container_status['state']['terminated']['reason'] == "Completed":
+                    LOGGER.info("SUCCESS: The container terminated.")
+                    return True
+                elif container_status['state']['terminated']['reason'] == "Error":
+                    LOGGER.error(f"ERROR: The container run threw an error and terminated. "
+                                 f"kubectl logs: {eks_multinode_get_logs(ctx, namespace, pod_name)}")
+                    eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env)
+                    raise AttributeError("Container Error!")
+            elif 'waiting' in container_status['state'] and \
+                    container_status['state']['waiting']['reason'] == "CrashLoopBackOff":
+                LOGGER.error(f"ERROR: The container run threw an error in waiting state. "
+                             f"kubectl logs: {eks_multinode_get_logs(ctx, namespace, pod_name)}")
+                eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env)
+                raise AttributeError("Error: CrashLoopBackOff!")
+            elif 'waiting' in container_status['state'] or 'running' in container_status['state']:
+                LOGGER.info("IN-PROGRESS: Container is either Creating or Running. Waiting to complete...")
+                raise ValueError("IN-PROGRESS: Retry.")
+
+    return False

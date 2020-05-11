@@ -4,7 +4,7 @@ HOME_DIR=/test
 
 cd ${HOME_DIR}
 git clone https://github.com/HewlettPackard/dlcookbook-dlbs.git ./dlbs
-cd ./dlbs && source ./scripts/environment.sh && cd ..
-git clone https://www.github.com/nvidia/apex
-cd apex  && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ && cd ..
-git clone https://github.com/YYStreet/dlcookbook-dlbs
+source dlbs/scripts/environment.sh
+sed -i "s/model = DDP(model, shared_param=True)/model = DDP(model, [opts['local_rank']], opts['local_rank'])/g" dlbs/python/pytorch_benchmarks/benchmarks.py
+sed -i '/from apex.fp16_utils import network_to_half, prep_param_lists, model_grads_to_master_grads, master_params_to_model_params/,/raise ImportError("Please install apex from https:\/\/www.github.com\/nvidia\/apex to run this example.")/d' dlbs/python/pytorch_benchmarks/benchmarks.py
+sed -i '/try:[ ]*$/{N;s/try:\s*from apex.parallel import DistributedDataParallel as DDP/from torch.nn.parallel import DistributedDataParallel as DDP/}' dlbs/python/pytorch_benchmarks/benchmarks.py

@@ -7,16 +7,21 @@ Pillow
 h5py
 tox
 flake8
-pytest
+pytest==5.3.5
 pytest-cov
+pytest-rerunfailures==9.0
 pytest-xdist
 mock
-sagemaker==1.50.1
-tensorflow<2.0
+sagemaker==1.51.3
 docker-compose
 boto3==1.10.50
 six==1.13.0
 python-dateutil>=2.1,<2.8.1
 botocore==1.13.50
 requests-mock
+# test pipemode fails for 2.x containers with module 'tensorflow' has no attribute 'train'
+# without the below package
+tensorflow
 awscli==1.16.314
+fabric==2.5.0
+sagemaker-experiments==0.1.7

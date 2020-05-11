@@ -20,7 +20,7 @@ from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 from six.moves.urllib.parse import urlparse
 
-from test.sagemaker_tests import is_pr_context, SKIP_PR_REASON
+from test.test_utils import is_pr_context, SKIP_PR_REASON
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from .timeout import timeout
 
@@ -149,6 +149,27 @@ def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
         tuning_job_name = unique_name_from_base('test-tf-sm-tuning', max_length=32)
         tuner.fit(inputs, job_name=tuning_job_name)
         tuner.wait()
+
+
+@pytest.mark.skip_py2_containers
+def test_smdebug(sagemaker_session, ecr_image, instance_type, framework_version):
+    resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
+    script = os.path.join(resource_path, 'mnist', 'mnist_smdebug.py')
+    hyperparameters = {'smdebug_path': '/opt/ml/output/tensors'}
+    estimator = TensorFlow(entry_point=script,
+                           role='SageMakerRole',
+                           train_instance_type=instance_type,
+                           train_instance_count=1,
+                           sagemaker_session=sagemaker_session,
+                           image_name=ecr_image,
+                           framework_version=framework_version,
+                           script_mode=True,
+                           hyperparameters=hyperparameters)
+    inputs = estimator.sagemaker_session.upload_data(
+        path=os.path.join(resource_path, 'mnist', 'data'),
+        key_prefix='scriptmode/mnist_smdebug')
+    estimator.fit(inputs, job_name=unique_name_from_base('test-sagemaker-mnist-smdebug'))
+    _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 
 def _assert_checkpoint_exists(region, model_dir, checkpoint_number):
