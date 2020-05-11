@@ -15,6 +15,6 @@ def test_git_secrets():
             ctx.run("make install")
         ctx.run("git secrets --install")
         ctx.run("git secrets --register-aws")
-        ctx.run("git secrets --list")
-        scan_results = ctx.run("git secrets --scan")
+        ctx.run("git secrets --list", echo=True)
+        scan_results = ctx.run("git secrets --scan", echo=True)
     assert scan_results.ok, scan_results.stderr
