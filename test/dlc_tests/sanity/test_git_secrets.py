@@ -6,7 +6,7 @@ import pytest
 
 from invoke.context import Context
 
-from test.test_utils import is_pr_context, SKIP_NOT_PR_REASON
+from test.test_utils import is_pr_context, PR_ONLY_REASON
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -23,7 +23,7 @@ def _recursive_find_repo_path():
     return repository_path
 
 
-@pytest.mark.skipif(not is_pr_context(), reason=SKIP_NOT_PR_REASON)
+@pytest.mark.skipif(not is_pr_context(), reason=PR_ONLY_REASON)
 def test_git_secrets():
     ctx = Context()
     repository_path = os.getenv("CODEBUILD_SRC_DIR")
