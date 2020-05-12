@@ -2,9 +2,12 @@ import json
 import os
 import re
 import subprocess
+import time
 
-from invoke import run
 import pytest
+
+from botocore.exceptions import ClientError
+from invoke import run
 from retrying import retry
 
 # Constant to represent default region for boto3 commands
@@ -20,23 +23,28 @@ CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 # S3 Bucket to use to transfer tests into an EC2 instance
 TEST_TRANSFER_S3_BUCKET = "s3://dlinfra-tests-transfer-bucket"
 
+# S3 Bucket to use to record benchmark results for further retrieving
+BENCHMARK_RESULTS_S3_BUCKET = "s3://dlinfra-dlc-cicd-performance"
+
 # Ubuntu ami home dir
 UBUNTU_HOME_DIR = "/home/ubuntu"
 
 # Reason string for skipping tests in PR context
 SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test will be run in nightly/release pipeline."
 
+KEYS_TO_DESTROY_FILE = os.path.join(os.sep, "tmp", "keys_to_destroy.txt")
+
 
 def is_tf1(image_uri):
     if "tensorflow" not in image_uri:
         return False
-    return bool(re.search(r'-1.[0-9]', image_uri))
+    return bool(re.search(r'1\.\d+\.\d+', image_uri))
 
 
 def is_tf2(image_uri):
     if "tensorflow" not in image_uri:
         return False
-    return bool(re.search(r'-2.[0-9]', image_uri))
+    return bool(re.search(r'2\.\d+\.\d+', image_uri))
 
 
 def is_pr_context():
@@ -233,9 +241,22 @@ def get_tensorflow_model_name(processor, model_name):
 
 
 def generate_ssh_keypair(ec2_client, key_name):
-    key_pair = ec2_client.create_key_pair(KeyName=key_name)
     pwd = run("pwd", hide=True).stdout.strip("\n")
     key_filename = os.path.join(pwd, f"{key_name}.pem")
+    if os.path.exists(key_filename):
+        run(f"chmod 400 {key_filename}")
+        return key_filename
+    try:
+        key_pair = ec2_client.create_key_pair(KeyName=key_name)
+    except ClientError as e:
+        if "InvalidKeyPair.Duplicate" in f"{e}":
+            # Wait 10 seconds for key to be created to avoid race condition
+            time.sleep(10)
+            if os.path.exists(key_filename):
+                run(f"chmod 400 {key_filename}")
+                return key_filename
+        raise ClientError(e)
+
     run(f"echo '{key_pair['KeyMaterial']}' > {key_filename}")
     run(f"chmod 400 {key_filename}")
     return key_filename
@@ -281,7 +302,7 @@ def delete_uploaded_tests_from_s3(s3_test_location):
 
 
 def get_dlc_images():
-    if os.getenv("BUILD_CONTEXT") == "PR":
+    if is_pr_context():
         return os.getenv("DLC_IMAGES")
     test_env_file = os.path.join(os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json")
     with open(test_env_file) as test_env:
