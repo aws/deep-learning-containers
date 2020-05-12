@@ -9,11 +9,12 @@ from invoke.context import Context
 from retrying import retry
 
 import test.test_utils.eks as eks_utils
-from src.github import GitHubHandler
+from dlc import GitHubHandler
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 
 LOGGER = eks_utils.LOGGER
+
 
 def test_eks_pytorch_single_node_training(pytorch_training):
     """
@@ -186,7 +187,7 @@ def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_ya
         ctx.run(f"rm -rf {app_name}")
         # Create a new ksonnet app.
         github_handler = GitHubHandler("aws", "kubeflow")
-        github_token = github_handler.get_auth_token()
+        github_handler.set_ksonnet_env()
         ctx.run(f"ks init {app_name} --namespace {namespace}")
 
         with ctx.cd(app_name):
@@ -197,11 +198,9 @@ def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_ya
             if not does_registry_exist:
                 ctx.run(
                     f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{KUBEFLOW_VERSION}/kubeflow",
-                    env={"GITHUB_TOKEN": github_token}
                 )
                 ctx.run(
                     f"ks pkg install kubeflow/pytorch-job@{KUBEFLOW_VERSION}",
-                    env={"GITHUB_TOKEN": github_token}
                 )
                 ctx.run(f"ks generate pytorch-operator pytorch-operator")
                 try:
