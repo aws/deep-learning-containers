@@ -38,6 +38,9 @@ SAGEMAKER_AMI_ID = "ami-0eb5a5dcf38497043"
 SAGEMAKER_LOCAL_TEST_TYPE = "local"
 SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
+# Reason string for skipping tests in non-PR context
+PR_ONLY_REASON = "Skipping test that doesn't need to be run outside of PR context."
+
 KEYS_TO_DESTROY_FILE = os.path.join(os.sep, "tmp", "keys_to_destroy.txt")
 
 
