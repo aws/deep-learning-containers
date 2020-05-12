@@ -104,12 +104,11 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
     local_test_report = os.path.join(AML_HOME_DIR, "test", f"{tag}_local.xml")
 
-
     remote_pytest_cmd = (f"pytest --reruns {reruns} {integration_path} --region {region} {docker_base_arg} "
                          f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} {instance_type_arg} {instance_type}"
                          f"--junitxml {test_report}")
 
-    local_pytest_cmd = (f"sudo python3 -m pytest --reruns {reruns} {integration_path} --region {region} {docker_base_arg} "
+    local_pytest_cmd = (f"python3 -m pytest --reruns {reruns} {integration_path} --region {region} {docker_base_arg} "
                         f"{sm_local_docker_base_name} --tag {tag} --framework-version {framework_version} "
                         f"--processor {processor} --junitxml {local_test_report}")
     if framework == "tensorflow" and job_type != "inference":
@@ -142,7 +141,6 @@ def run_sagemaker_local_tests(image):
     ec2_test_report_path = os.path.join(AML_HOME_DIR, "test", f"{tag}_local.xml")
     try:
         key_file = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
-        LOGGER.info(ec2_key_name)
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, SAGEMAKER_AMI_ID, ec2_key_name, region)
         ec2_conn = ec2_utils.ec2_connection(instance_id, key_file, region)
         run(f"tar -czf {sm_tests_tar_name} {sm_tests_path}")
@@ -151,11 +149,11 @@ def run_sagemaker_local_tests(image):
         ec2_conn.run(f"docker pull {image}")
         ec2_conn.run(f"tar -xvf {sm_tests_tar_name}")
         with ec2_conn.cd(path):
-            ec2_conn.run("sudo python3 -m pip install -r requirements.txt ", warn=True)
+            ec2_conn.run("sudo pip3 install -r requirements.txt ", warn=True)
             ec2_conn.run(pytest_command)
-            ec2_conn.get(ec2_test_report_path, "test/{tag}_local.xml")
+            ec2_conn.get(ec2_test_report_path, f"test/{tag}_local.xml")
     finally:
-        # ec2_utils.terminate_instance(instance_id, region)
+        ec2_utils.terminate_instance(instance_id, region)
         test_utils.destroy_ssh_keypair(ec2_client, ec2_key_name)
 
 
@@ -185,12 +183,11 @@ def run_sagemaker_tests(images):
     """
     if not images:
         return
-    pool_number = len(images) * 2
+    pool_number = len(images) * 2 if is_pr_context else len(images)
     with Pool(pool_number) as p:
         # p.map(run_sagemaker_remote_tests, images)
         if is_pr_context():
             p.map(run_sagemaker_local_tests, images)
-
 
 def pull_dlc_images(images):
     """
