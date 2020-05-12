@@ -125,21 +125,6 @@ def fixture_build_base_image(request, framework_version, py_version, processor, 
 
     return tag
 
-
-@pytest.fixture(scope='session', name='build_image', autouse=True)
-def fixture_build_image(request, framework_version, py_version, processor, tag, docker_base_name):
-    build_image = request.config.getoption('--build-image')
-    if build_image:
-        return image_utils.build_image(framework_name=docker_base_name,
-                                       framework_version=framework_version,
-                                       py_version=py_version,
-                                       processor=processor,
-                                       tag=tag,
-                                       cwd=os.path.join(dir_path, '..'))
-
-    return tag
-
-
 @pytest.fixture(scope='session', name='sagemaker_session')
 def fixture_sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
