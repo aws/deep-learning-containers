@@ -31,8 +31,8 @@ def test_git_secrets():
         repository_path = _recursive_find_repo_path(ctx)
     LOGGER.info(f"repository_path = {repository_path}")
 
-    # Fill this section out to run test that ensures scan fails:
-    SOME_FAKE_CREDENTIALS = "ASIA1234567890123456"
+    # Replace the regex pattern below with a matching string to run test that makes scan fail:
+    SOME_FAKE_CREDENTIALS = "ASIA1234567890123456"  # "ASIA[A-Z0-9]{16}"
     WHITELISTED_CREDENTIALS = "AKIAIOSFODNN7EXAMPLE"
     # End of Test Section
 
@@ -45,9 +45,11 @@ def test_git_secrets():
         output = ctx.run("git secrets --list")
         LOGGER.info(f"\n--COMMAND--{output.command}\n"
                     f"--STDOUT--\n{output.stdout}\n"
-                    f"--STDERR--\n{output.stderr}")
+                    f"--STDERR--\n{output.stderr}\n"
+                    f"----------")
         scan_results = ctx.run("git secrets --scan", warn=True)
         LOGGER.info(f"\n--COMMAND--{scan_results.command}\n"
                     f"--STDOUT--\n{scan_results.stdout}\n"
-                    f"--STDERR--\n{scan_results.stderr}")
+                    f"--STDERR--\n{scan_results.stderr}"
+                    f"----------")
     assert scan_results.ok, scan_results.stderr
