@@ -105,12 +105,13 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     local_test_report = os.path.join(AML_HOME_DIR, "test", f"{tag}_local.xml")
 
     remote_pytest_cmd = (f"pytest --reruns {reruns} {integration_path} --region {region} {docker_base_arg} "
-                         f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} {instance_type_arg} {instance_type}"
-                         f"--junitxml {test_report}")
+                         f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
+                         f"{instance_type_arg} {instance_type} --junitxml {test_report}")
 
     local_pytest_cmd = (f"python3 -m pytest --reruns {reruns} {integration_path} --region {region} {docker_base_arg} "
                         f"{sm_local_docker_base_name} --tag {tag} --framework-version {framework_version} "
                         f"--processor {processor} --junitxml {local_test_report}")
+
     if framework == "tensorflow" and job_type != "inference":
         local_pytest_cmd = f"{local_pytest_cmd} --py-version {py_version[2]}"
     if framework == "tensorflow" and job_type == "training":
@@ -166,7 +167,6 @@ def run_sagemaker_remote_tests(image):
     :param image: ECR url
     """
     pytest_command, path, tag = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
-    random.seed()
     context = Context()
     with context.cd(path):
         context.run(f"virtualenv {tag}")
