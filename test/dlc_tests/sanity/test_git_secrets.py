@@ -13,8 +13,8 @@ LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
-def _recursive_find_repo_path(ctx):
-    pwd = ctx.run("pwd", echo=True).stdout.strip("\n")
+def _recursive_find_repo_path():
+    pwd = os.getcwd()
     repository_path = pwd
     while os.path.basename(repository_path) != "deep-learning-containers":
         repository_path = os.path.dirname(repository_path)
@@ -28,7 +28,7 @@ def test_git_secrets():
     ctx = Context()
     repository_path = os.getenv("CODEBUILD_SRC_DIR")
     if not repository_path:
-        repository_path = _recursive_find_repo_path(ctx)
+        repository_path = _recursive_find_repo_path()
     LOGGER.info(f"repository_path = {repository_path}")
 
     # Replace the regex pattern below with a matching string to run test that makes scan fail:
