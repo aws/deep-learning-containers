@@ -10,7 +10,8 @@ phases:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - pip install -r src/requirements.txt
-      - bash src/setup.sh $FRAMEWORK 
+      - bash src/setup.sh $FRAMEWORK
+      - start-dockerd
   build:
     commands:
       - echo Build started on `date`
