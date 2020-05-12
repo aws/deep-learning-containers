@@ -32,7 +32,7 @@ def test_git_secrets():
     LOGGER.info(f"repository_path = {repository_path}")
 
     # Replace the regex pattern below with a matching string to run test that makes scan fail:
-    SOME_FAKE_CREDENTIALS = "ASIA1234567890123456"  # "ASIA[A-Z0-9]{16}"
+    SOME_FAKE_CREDENTIALS = "ASIA[A-Z0-9]{16}"
     WHITELISTED_CREDENTIALS = "AKIAIOSFODNN7EXAMPLE"
     # End of Test Section
 
@@ -43,12 +43,12 @@ def test_git_secrets():
         ctx.run("git secrets --install")
         ctx.run("git secrets --register-aws")
         output = ctx.run("git secrets --list")
-        LOGGER.info(f"\n--COMMAND--{output.command}\n"
+        LOGGER.info(f"\n--COMMAND--\n{output.command}\n"
                     f"--STDOUT--\n{output.stdout}\n"
                     f"--STDERR--\n{output.stderr}\n"
                     f"----------")
-        scan_results = ctx.run("git secrets --scan", warn=True)
-        LOGGER.info(f"\n--COMMAND--{scan_results.command}\n"
+        scan_results = ctx.run("git secrets --scan", hide=True, warn=True)
+        LOGGER.info(f"\n--COMMAND--\n{scan_results.command}\n"
                     f"--STDOUT--\n{scan_results.stdout}\n"
                     f"--STDERR--\n{scan_results.stderr}"
                     f"----------")
