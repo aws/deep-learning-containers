@@ -6,9 +6,9 @@ phases:
       docker: 18
   pre_build:
     commands:
+      - start-dockerd
       - pip install -r src/requirements.txt
       - python src/send_status.py --status 2
-      - start-dockerd
   build:
     commands:
       - echo Logging in to Amazon ECR...
