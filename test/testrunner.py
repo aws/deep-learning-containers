@@ -135,7 +135,7 @@ def run_sagemaker_local_tests(image):
     framework = image.split("/")[1].split(":")[0].split("-")[1]
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{tag}_sagemaker_{random.randint(1,1000)}"
-    ec2_client = boto3.Session(region_name=region).client("ec2")
+    ec2_client = ec2_utils.ec2_client(region)
     sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(AML_HOME_DIR, "test", f"{tag}_local.xml")
@@ -183,11 +183,12 @@ def run_sagemaker_tests(images):
     """
     if not images:
         return
-    pool_number = len(images) * 2 if is_pr_context else len(images)
+    pool_number = len(images)
     with Pool(pool_number) as p:
-        # p.map(run_sagemaker_remote_tests, images)
+        p.map(run_sagemaker_remote_tests, images)
         if is_pr_context():
             p.map(run_sagemaker_local_tests, images)
+
 
 def pull_dlc_images(images):
     """
@@ -217,7 +218,6 @@ def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
     dlc_images = get_dlc_images()
-    # dlc_images = os.getenv("DLC_IMAGES")
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]

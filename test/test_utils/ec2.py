@@ -3,6 +3,7 @@ import os
 import boto3
 from retrying import retry
 from fabric import Connection
+from botocore.config import Config
 
 
 from test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
@@ -53,6 +54,10 @@ def launch_instance(
         )
 
     return response["Instances"][0]
+
+
+def ec2_client(region):
+    return boto3.client("ec2", region_name=region, config=Config(retries={'max_attempts': 10}))
 
 
 def get_instance_from_id(instance_id, region=DEFAULT_REGION):
