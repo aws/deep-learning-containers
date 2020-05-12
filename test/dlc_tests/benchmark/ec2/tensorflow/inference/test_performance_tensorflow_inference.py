@@ -20,6 +20,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     tf_version = "1" if is_tf1(image_uri) else "2"
     tf_api_version = '1.15' if tf_version == '1' else '2.1.0rc1'
+    tf_version_folder = '1.15' if tf_version == '1' else '2.1'
     processor_folder = "CPU-WITH-MKL" if processor == "cpu" else "GPU"
 
     # Make sure we are logged into ECR so we can pull the image
@@ -31,7 +32,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     ec2_connection.run(
         f"pip install boto3 grpcio tensorflow-serving-api=={tf_api_version} --user --no-warn-script-location"
     )
-    ec2_connection.sudo(f"aws s3 cp s3://tensorflow-aws/{tf_api_version}/Serving/{processor_folder}/tensorflow_model_server /usr/bin/")
+    ec2_connection.sudo(f"aws s3 cp s3://tensorflow-aws/{tf_version_folder}/Serving/{processor_folder}/tensorflow_model_server /usr/bin/")
     ec2_connection.sudo(f"chmod +x /usr/bin/tensorflow_model_server")
     time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
