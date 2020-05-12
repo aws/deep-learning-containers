@@ -37,7 +37,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
     log_file = f"inference_benchmark_results_{commit_info}_{time_str}.log"
     ec2_connection.run(
-        f"python {container_test_local_dir}/bin/performance_tests/tf{tf_version}_serving_perf.py "
+        f"python {container_test_local_dir}/bin/benchmark/tf{tf_version}_serving_perf.py "
         f"--processor {processor} --docker_image_name {image_uri} --run_all_s3 --binary /usr/bin/tensorflow_model_server --get_perf --iterations 1000 "
         f"2>&1 | tee {log_file}"
     )
