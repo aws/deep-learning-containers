@@ -5,9 +5,11 @@ from pkg_resources._vendor.packaging.specifiers import SpecifierSet
 from pkg_resources._vendor.packaging.version import Version
 import sys
 
+import pytest
+
 from invoke import run
 
-from test.test_utils import CONTAINER_TESTS_PREFIX
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_pr_context, SKIP_PR_REASON
 
 
 LOGGER = logging.getLogger(__name__)
@@ -67,6 +69,7 @@ def _get_safety_ignore_list(image_uri):
     return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version)
 
 
+@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 def test_safety(image):
     """
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
