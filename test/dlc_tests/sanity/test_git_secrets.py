@@ -30,14 +30,24 @@ def test_git_secrets():
     if not repository_path:
         repository_path = _recursive_find_repo_path(ctx)
     LOGGER.info(f"repository_path = {repository_path}")
+
+    # Fill this section out to run test that ensures scan fails:
+    SOME_FAKE_CREDENTIALS = "ASIA1234567890123456"
+    WHITELISTED_CREDENTIALS = "AKIAIOSFODNN7EXAMPLE"
+    # End of Test Section
+
     with ctx.cd(repository_path):
         ctx.run("git clone https://github.com/awslabs/git-secrets.git")
         with ctx.cd("git-secrets"):
             ctx.run("make install")
         ctx.run("git secrets --install")
         ctx.run("git secrets --register-aws")
-        output = ctx.run("git secrets --list", echo=True)
-        LOGGER.info(f"{output.command}\n{output.stdout}")
-        scan_results = ctx.run("git secrets --scan", echo=True)
-        LOGGER.info(f"{scan_results.command}\n{scan_results.stdout}")
+        output = ctx.run("git secrets --list")
+        LOGGER.info(f"\n--COMMAND--{output.command}\n"
+                    f"--STDOUT--\n{output.stdout}\n"
+                    f"--STDERR--\n{output.stderr}")
+        scan_results = ctx.run("git secrets --scan", warn=True)
+        LOGGER.info(f"\n--COMMAND--{scan_results.command}\n"
+                    f"--STDOUT--\n{scan_results.stdout}\n"
+                    f"--STDERR--\n{scan_results.stderr}")
     assert scan_results.ok, scan_results.stderr
