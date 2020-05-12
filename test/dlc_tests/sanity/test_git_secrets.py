@@ -31,11 +31,13 @@ def test_git_secrets():
         repository_path = _recursive_find_repo_path(ctx)
     LOGGER.info(f"repository_path = {repository_path}")
     with ctx.cd(repository_path):
-        ctx.run("git clone https://github.com/awslabs/git-secrets.git", echo=True)
+        ctx.run("git clone https://github.com/awslabs/git-secrets.git")
         with ctx.cd("git-secrets"):
-            ctx.run("make install", echo=True)
-        ctx.run("git secrets --install", echo=True)
-        ctx.run("git secrets --register-aws", echo=True)
-        ctx.run("git secrets --list", echo=True)
+            ctx.run("make install")
+        ctx.run("git secrets --install")
+        ctx.run("git secrets --register-aws")
+        output = ctx.run("git secrets --list", echo=True)
+        LOGGER.info(f"{output.command}\n{output.stdout}")
         scan_results = ctx.run("git secrets --scan", echo=True)
+        LOGGER.info(f"{scan_results.command}\n{scan_results.stdout}")
     assert scan_results.ok, scan_results.stderr
