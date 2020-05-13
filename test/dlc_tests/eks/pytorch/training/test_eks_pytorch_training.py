@@ -9,7 +9,7 @@ from invoke.context import Context
 from retrying import retry
 
 import test.test_utils.eks as eks_utils
-from github_handler import GitHubHandler
+from dlc.github_handler import GitHubHandler
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 

@@ -11,7 +11,7 @@ from invoke.context import Context
 import test.test_utils.ec2 as ec2_utils
 import test.test_utils.eks as eks_utils
 
-from github_handler import GitHubHandler
+from dlc.github_handler import GitHubHandler
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 
