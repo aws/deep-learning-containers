@@ -15,7 +15,7 @@ else:
     SMDEBUG_EC2_GPU_INSTANCE_TYPE = ["g3.4xlarge", "p2.8xlarge", "p3.16xlarge", "p3dn.24xlarge"]
     SMDEBUG_EC2_CPU_INSTANCE_TYPE = ["c4.8xlarge", "c5.18xlarge", "m4.16xlarge", "t2.2xlarge"]
 
-
+@pytest.mark.skip(reason="Skip non-benchmark tests")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
     test_script = SMDEBUG_SCRIPT
@@ -36,7 +36,7 @@ def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
         hide=True,
     )
 
-
+@pytest.mark.skip(reason="Skip non-benchmark tests")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
     test_script = SMDEBUG_SCRIPT
