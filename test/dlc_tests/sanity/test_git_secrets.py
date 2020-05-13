@@ -8,7 +8,6 @@ from invoke.context import Context
 
 from test.test_utils import is_pr_context, PR_ONLY_REASON
 
-
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
