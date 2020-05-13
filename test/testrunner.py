@@ -152,7 +152,7 @@ def run_sagemaker_local_tests(image):
         with ec2_conn.cd(path):
             ec2_conn.run("sudo pip3 install -r requirements.txt ", warn=True)
             ec2_conn.run(pytest_command)
-            ec2_conn.get(ec2_test_report_path, f"test/{tag}_local.xml")
+            # ec2_conn.get(ec2_test_report_path, f"test/{tag}_local.xml")
     finally:
         ec2_utils.terminate_instance(instance_id, region)
         test_utils.destroy_ssh_keypair(ec2_client, ec2_key_name)
