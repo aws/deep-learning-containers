@@ -3,7 +3,7 @@ import argparse
 
 import utils
 
-from github import GitHubHandler
+from dlc.github_handler import GitHubHandler
 
 
 def get_args():
