@@ -15,7 +15,7 @@ release_images:
       os_version: "ubuntu16.04"
       cuda_version: "cu101"
       dlc_version: "1.1"
- 2:
+  2:
     framework: "pytorch"
     version: "1.5.0"
     training:
@@ -25,7 +25,7 @@ release_images:
       cuda_version: "cu101"
       dlc_version: "1.1"
       example: True
- 3:
+  3:
     framework: "tensorflow"
     version: "2.1.0"
     training:
@@ -40,7 +40,7 @@ release_images:
       os_version: "ubuntu18.04"
       cuda_version: "cu101"
       dlc_version: "1.0"
- 4:
+  4:
     framework: "tensorflow"
     version: "2.1.0"
     training:
