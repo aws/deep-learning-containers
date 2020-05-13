@@ -178,8 +178,8 @@ def main():
             [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
         )
     elif "benchmark" in test_type:
-        if "ec2" in test_type:
-            benchmark_test_type = "ec2"
+        benchmark_test_type = test_type.split("-")[1]
+        if benchmark_test_type in ("ecs", "ec2", "eks"):    # only support ec2 benchmark currently
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
 
             # PyTest must be run in specific directory to avoid conflicting w/ sagemaker_tests conftests
