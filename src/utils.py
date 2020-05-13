@@ -19,7 +19,7 @@ import logging
 import sys
 
 import constants
-from dlc import GitHubHandler
+from github_handler import GitHubHandler
 
 
 LOGGER = logging.getLogger(__name__)
