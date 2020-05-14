@@ -267,8 +267,9 @@ def generate_ssh_keypair(ec2_client, key_name):
 
 def destroy_ssh_keypair(ec2_client, key_filename):
     key_name = os.path.basename(key_filename).strip(".pem")
-    ec2_client.delete_key_pair(KeyName=key_name)
-    run(f"rm -f {key_filename}")
+    response = ec2_client.delete_key_pair(KeyName=key_name)
+    return response
+    # run(f"rm -f {key_filename}")
 
 
 def upload_tests_to_s3(testname_datetime_suffix):
