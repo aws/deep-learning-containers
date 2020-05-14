@@ -169,7 +169,6 @@ RUN ${PIP} install --no-cache-dir -U \
     opencv-python==4.2.0.32 \
     sagemaker==1.58.2 \
     sagemaker-experiments==0.1.13 \
-    "sagemaker-tensorflow>=2.0,<2.1" \
     "sagemaker-tensorflow-training>=3.0<4.0" \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
