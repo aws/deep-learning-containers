@@ -84,6 +84,7 @@ def test_pytorch_mpi(pytorch_training, ec2_connection, gpu_only, py3_only):
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchMpi")
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
-@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_INSTANCE_TYPE], indirect=True)
+
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_nvapex(pytorch_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_APEX_CMD)
