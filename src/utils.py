@@ -20,6 +20,7 @@ import sys
 
 import constants
 from dlc.github_handler import GitHubHandler
+from config import build_config
 
 
 LOGGER = logging.getLogger(__name__)
@@ -333,8 +334,8 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
         for image_type in to_build["image_types"]:
             for py_version in to_build["py_versions"]:
                 env_variable = f"{framework.upper()}_{device_type.upper()}_{image_type.upper()}_{py_version.upper()}"
-                # TODO enable the below line when you want to trigger new builds and remove print
-                os.environ[env_variable] = "true"
+                if not build_config.DISABLE_NEW_BUILDS:
+                    os.environ[env_variable] = "true"
 
 
 def fetch_dlc_images_for_test_jobs(images):
@@ -346,7 +347,10 @@ def fetch_dlc_images_for_test_jobs(images):
     DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
 
     for docker_image in images:
-        if docker_image.build_status == constants.SUCCESS:
+        use_preexisting_images = (
+            True if (build_config.DISABLE_NEW_BUILDS and docker_image.build_status == constants.NOT_BUILT) else False
+        )
+        if docker_image.build_status == constants.SUCCESS or use_preexisting_images:
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(docker_image.ecr_url)
             image_job_type = docker_image.info.get("image_type")
