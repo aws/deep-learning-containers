@@ -17,7 +17,6 @@ TF_EC2_GPU_INSTANCE_TYPE = "p2.xlarge"
 TF_EC2_CPU_INSTANCE_TYPE = "c5.4xlarge"
 
 
-
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_tensorflow_standalone_gpu(tensorflow_training, ec2_connection, gpu_only):
     test_script = TF1_STANDALONE_CMD if is_tf1(tensorflow_training) else TF2_STANDALONE_CMD
