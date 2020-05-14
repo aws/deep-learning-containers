@@ -12,13 +12,13 @@ pytest-cov
 pytest-rerunfailures==9.0
 pytest-xdist
 mock
-sagemaker==1.50.1
+sagemaker
 docker-compose
 boto3==1.10.50
 six==1.13.0
 python-dateutil>=2.1,<2.8.1
-botocore==1.13.50
+botocore
 requests-mock
-awscli==1.16.314
+awscli
 fabric==2.5.0
 sagemaker-experiments==0.1.7
