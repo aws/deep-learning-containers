@@ -110,15 +110,15 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
-    numpy==1.18.1 \
-    scipy==1.2.2 \
-    scikit-learn==0.22 \
-    pandas==1.0.1 \
-    Pillow==7.0.0 \
+    numpy==1.18.4 \
+    scipy==1.4.1 \
+    scikit-learn==0.23 \
+    pandas==1.0.3 \
+    Pillow==7.1.2 \
     h5py==2.10.0 \
     python-dateutil==2.8.1 \
-    pyYAML==5.2 \
-    requests==2.22.0 \
+    pyYAML==5.3.1 \
+    requests==2.23.0 \
     awscli \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
@@ -131,8 +131,8 @@ RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     ${ESTIMATOR_URL} \
     horovod==0.18.2 \
-    werkzeug==0.15.5 \
-    psutil==5.4.8 \
+    werkzeug==1.0.1 \
+    psutil==5.7.0 \
     smdebug==0.7.2
 
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py

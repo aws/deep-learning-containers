@@ -155,15 +155,15 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
-    numpy==1.18.1 \
-    scipy==1.2.2 \
-    scikit-learn==0.22 \
-    pandas==1.0.1 \
-    Pillow==7.0.0 \
+    numpy==1.18.4 \
+    scipy==1.4.1 \
+    scikit-learn==0.23 \
+    pandas==1.0.3 \
+    Pillow==7.1.2 \
     h5py==2.10.0 \
     python-dateutil==2.8.1 \
-    pyYAML==5.2 \
-    requests==2.22.0 \
+    pyYAML==5.3.1 \
+    requests==2.23.0 \
     awscli \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
@@ -175,7 +175,7 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     ${ESTIMATOR_URL} \
-    werkzeug==0.15.5 \
+    werkzeug==1.0.1 \
     smdebug==0.7.2
 
 # Install Horovod, temporarily using CUDA stubs
