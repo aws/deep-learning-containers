@@ -13,7 +13,7 @@
 import argparse
 import os
 
-import keras
+from tensorflow import keras
 import tensorflow as tf
 
 parser = argparse.ArgumentParser()
