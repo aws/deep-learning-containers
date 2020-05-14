@@ -155,28 +155,28 @@ def main():
         os.chdir(os.path.join("test", "dlc_tests"))
 
         # Pull images for necessary tests
-        if test_type == "sanity":
+        if specific_test_type == "sanity":
             pull_dlc_images(all_image_list)
-        if test_type == "eks":
+        if specific_test_type == "eks":
             eks_terminable_clusters = setup_eks_clusters(dlc_images)
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
         try:
             sys.exit(pytest.main(pytest_cmd))
         finally:
-            if test_type == "eks" and eks_terminable_clusters:
+            if specific_test_type == "eks" and eks_terminable_clusters:
                 for cluster in eks_terminable_clusters:
                     eks_utils.delete_eks_cluster(cluster)
 
             # Delete dangling EC2 KeyPairs
-            if test_type == "ec2" and os.path.exists(KEYS_TO_DESTROY_FILE):
+            if specific_test_type == "ec2" and os.path.exists(KEYS_TO_DESTROY_FILE):
                 with open(KEYS_TO_DESTROY_FILE) as key_destroy_file:
                     for key_file in key_destroy_file:
                         LOGGER.info(key_file)
                         ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
                         if ".pem" in key_file:
                             destroy_ssh_keypair(ec2_client, key_file)
-    elif test_type == "sagemaker":
+    elif specific_test_type == "sagemaker":
         run_sagemaker_tests(
             [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
         )
