@@ -170,10 +170,10 @@ def main():
                 with open(KEYS_TO_DESTROY_FILE) as key_destroy_file:
                     for key_file in key_destroy_file:
                         LOGGER.info(key_file)
-                        ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
+                        ec2_client = boto3.Session(region_name="us-west-2").client("ec2", config=Config(retries={'max_attempts': 10}))
                         if ".pem" in key_file:
-                            resp = destroy_ssh_keypair(ec2_client, key_file)
-                            LOGGER.info(resp)
+                            resp, key_name = destroy_ssh_keypair(ec2_client, key_file)
+                            LOGGER.info(resp, key_name)
     elif test_type == "sagemaker":
         run_sagemaker_tests(
             [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
