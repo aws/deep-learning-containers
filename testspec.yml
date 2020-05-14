@@ -6,7 +6,7 @@ phases:
       docker: 18
   pre_build:
     commands:
-      - if [ $TEST_TYPE != 'ec2']; then start-dockerd; fi
+      - start-dockerd
       - pip install -r src/requirements.txt
       - python src/send_status.py --status 2
   build:
