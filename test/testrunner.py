@@ -173,7 +173,7 @@ def main():
                         ec2_client = boto3.Session(region_name="us-west-2").client("ec2", config=Config(retries={'max_attempts': 10}))
                         if ".pem" in key_file:
                             resp, key_name = destroy_ssh_keypair(ec2_client, key_file)
-                            LOGGER.info(resp, key_name)
+                            LOGGER.info(f"{resp}, {key_name}")
     elif test_type == "sagemaker":
         run_sagemaker_tests(
             [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
