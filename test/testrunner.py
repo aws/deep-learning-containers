@@ -181,7 +181,7 @@ def main():
             [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
         )
     else:
-        raise NotImplementedError("Tests only support ec2, ecs, eks, sagemaker and sanity currently")
+        raise NotImplementedError(test_type + " test is not supported. Only support ec2, ecs, eks, sagemaker and sanity currently")
 
 
 if __name__ == "__main__":
