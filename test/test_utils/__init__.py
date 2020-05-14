@@ -267,7 +267,8 @@ def generate_ssh_keypair(ec2_client, key_name):
         raise ClientError(e)
 
     run(f"echo '{key_pair['KeyMaterial']}' > {key_filename}")
-    LOGGER.info(f"{key_name} {key_filename} ")
+    output = run_subprocess_cmd(f"echo {key_filename}")
+    LOGGER.info(f"{key_name} {output}  ")
     run(f"chmod 400 {key_filename}")
     return key_filename
 
