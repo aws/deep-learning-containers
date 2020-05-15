@@ -11,6 +11,8 @@ TF_MNIST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorFlow")
 TF1_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTF1HVD")
 TF2_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTF2HVD")
 TF_OPENCV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testOpenCV")
+TF_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_tf_dlc_telemetry_test")
+#TF_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_tf_dlc_telemetry_test.py")
 
 
 if is_pr_context():
@@ -73,3 +75,13 @@ def test_tensorflow_opencv_cpu(tensorflow_training, ec2_connection, cpu_only):
     if is_tf1(tensorflow_training):
         pytest.skip("This test is for TF2 only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_OPENCV_CMD)
+
+
+@pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
+def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only):
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
+
+
+@pytest.mark.parametrize("ec2_instance_type", [TF_EC2_CPU_INSTANCE_TYPE], indirect=True)
+def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only):
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
