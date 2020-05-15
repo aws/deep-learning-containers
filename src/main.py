@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import utils
 import constants
@@ -32,8 +33,9 @@ if __name__ == "__main__":
         else args.py_versions
     )
     # create the empty json file for images
+    build_context = os.getenv("BUILD_CONTEXT")
     utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
-    if args.framework not in build_config.DISABLE_FRAMEWORK_TESTS:
+    if args.framework not in build_config.DISABLE_FRAMEWORK_TESTS or build_context != "PR":
         utils.build_setup(
             args.framework,
             device_types=device_types,
