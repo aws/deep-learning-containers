@@ -1,4 +1,6 @@
 import os
+import logging
+import sys
 
 import boto3
 
@@ -6,8 +8,11 @@ from retrying import retry
 from invoke import run
 
 from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
-from test.dlc_tests.conftest import LOGGER
 
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
