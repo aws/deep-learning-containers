@@ -276,11 +276,11 @@ def pr_build_setup(pr_number, framework):
     # when there is a change in any the below files
     parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.yml")
 
-    # parse_modifed_root_files_info(files, pattern="src\/\S+")
+    parse_modifed_root_files_info(files, pattern="src\/\S+")
 
-    # parse_modifed_root_files_info(
-    #     files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
-    # )
+    parse_modifed_root_files_info(
+        files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
+    )
 
     parse_modifed_root_files_info(files, pattern="testspec\.yml")
 

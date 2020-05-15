@@ -289,18 +289,11 @@ def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_R
                      get_instance_details(instance_id, region=region))
     return sum(gpu_type["Count"] for gpu_type in instance_info["GpuInfo"]["Gpus"])
 
-class EC2TrainingError(Exception):
-    """
-    Raise for EC2 test failure
-    """
-    pass
-
 
 def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
-    training_result = False
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 

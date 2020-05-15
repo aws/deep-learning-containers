@@ -1,7 +1,6 @@
 import os
 import pytest
 
-
 from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf2, is_pr_context, get_dlc_images
 from test.test_utils.ec2 import execute_ec2_training_test
 

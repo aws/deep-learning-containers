@@ -72,7 +72,7 @@ def image_builder(buildspec):
             if build_context == "PR"
             else image_config["tag"]
         )
-        if not build_config.DISABLE_DATETIME_TAG:
+        if not build_config.DISABLE_DATETIME_TAG or build_context != "PR":
             image_tag = tag_image_with_datetime(image_tag)
         image_repo_uri = (
             image_config["repository"]
