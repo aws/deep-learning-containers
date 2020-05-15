@@ -308,6 +308,7 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
             f"{docker_cmd} exec --user root ec2_training_container {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'",
             hide=True,
         )
+        LOGGER.info(f"training script is completed {run_out.return_code}")
         training_result = True if run_out.return_code == 0 else False
     except Exception as e:
         LOGGER.error(f"{test_cmd} failed with exception {e}")

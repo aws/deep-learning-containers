@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, LOGGER
 from test.test_utils.ec2 import execute_ec2_training_test
 
 
@@ -50,6 +50,7 @@ def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_connection, gpu_on
 def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_only):
     test_script = TF1_HVD_CMD if is_tf1(tensorflow_training) else TF2_HVD_CMD
     training_result = execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
+    LOGGER.info(f"Horovod Training result {training_result}")
     assert training_result, f"test_tensorflow_with_horovod_cpu for {tensorflow_training} failed"
 
 
