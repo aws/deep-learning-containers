@@ -32,7 +32,7 @@ if __name__ == "__main__":
         else args.py_versions
     )
     # create the empty json file for images
-    utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, "{}")
+    utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
     if args.framework not in build_config.DISABLE_FRAMEWORK_TESTS:
         utils.build_setup(
             args.framework,
