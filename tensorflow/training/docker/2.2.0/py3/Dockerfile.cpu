@@ -31,7 +31,7 @@ ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/est
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.7.2
+ARG SMDEBUG_VERSION=0.8.0b20200514
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -128,6 +128,7 @@ RUN ${PIP} install --no-cache-dir -U \
     opencv-python==4.2.0.32 \
     sagemaker==1.58.2 \
     sagemaker-experiments==0.1.13 \
+    "sagemaker-tensorflow>=2.2,<2.3" \
     "sagemaker-tensorflow-training>=3.0<4.0" \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
