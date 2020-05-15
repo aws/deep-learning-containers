@@ -14,7 +14,7 @@ pytest-xdist
 mock
 sagemaker
 docker-compose
-boto3==1.10.50
+boto3
 six==1.13.0
 python-dateutil>=2.1,<2.8.1
 botocore
