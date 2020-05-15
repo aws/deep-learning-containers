@@ -15,11 +15,13 @@ else:
     PT_EC2_CPU_INSTANCE_TYPE = ["c4.8xlarge", "c5.18xlarge", "m4.16xlarge", "t2.2xlarge"]
 
 
+@pytest.mark.skipif(test_utils.is_pr_context(), "Skipping temporarily")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gpu_only):
     ec2_pytorch_inference(pytorch_inference, "gpu", ec2_connection, region)
 
 
+@pytest.mark.skipif(test_utils.is_pr_context(), "Skipping temporarily")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cpu_only):
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
