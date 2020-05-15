@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_pr_context
 from test.test_utils.ec2 import execute_ec2_training_test
 
 
@@ -12,11 +12,12 @@ PT_REGRESSION_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testP
 PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 PT_APEX_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNVApex")
 
-if os.getenv("BUILD_CONTEXT") == "PR":
+if is_pr_context():
     PT_EC2_GPU_INSTANCE_TYPE = ["p3.2xlarge"]
     PT_EC2_CPU_INSTANCE_TYPE = ["c5.9xlarge"]
 else:
-    PT_EC2_GPU_INSTANCE_TYPE = ["g3.4xlarge", "p2.8xlarge", "p3.16xlarge", "p3dn.24xlarge"]
+    # TODO: Add p3dn if releasing
+    PT_EC2_GPU_INSTANCE_TYPE = ["g3.4xlarge", "p2.8xlarge", "p3.16xlarge"]
     PT_EC2_CPU_INSTANCE_TYPE = ["c4.8xlarge", "c5.18xlarge", "m4.16xlarge", "t2.2xlarge"]
 
 
