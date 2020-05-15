@@ -4,6 +4,7 @@ import boto3
 
 from retrying import retry
 
+from test.dlc_tests.conftest import LOGGER
 from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
 
 
@@ -303,11 +304,18 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
         f" -itd {ecr_uri}",
         hide=True,
     )
-    connection.run(
+    test_output = connection.run(
         f"{docker_cmd} exec --user root ec2_training_container {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'",
         hide=True,
-        timeout=3000
+        timeout=1020,
+        warn=True,
     )
+    LOGGER.info(f"test_output.return_code = {test_output.return_code}")
+    LOGGER.info("--------------------------------")
+    LOGGER.info(f"test_output.stdout = {test_output.stdout}")
+    LOGGER.info("--------------------------------")
+    LOGGER.info(f"test_output.stderr = {test_output.stderr}")
+    LOGGER.info("--------------------------------")
 
 
 def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
