@@ -42,16 +42,13 @@ def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_connection, gpu_only):
     test_script = TF1_HVD_CMD if is_tf1(tensorflow_training) else TF2_HVD_CMD
-    training_result = execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
-    assert training_result, f"test_tensorflow_with_horovod_gpu for {tensorflow_training} failed"
+    execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
 
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_CPU_INSTANCE_TYPE], indirect=True)
 def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_only):
     test_script = TF1_HVD_CMD if is_tf1(tensorflow_training) else TF2_HVD_CMD
-    training_result = execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
-    LOGGER.info(f"Horovod Training result {training_result}")
-    assert training_result, f"test_tensorflow_with_horovod_cpu for {tensorflow_training} failed"
+    execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
 
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)

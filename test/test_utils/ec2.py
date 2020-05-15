@@ -288,31 +288,33 @@ def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_R
                      get_instance_details(instance_id, region=region))
     return sum(gpu_type["Count"] for gpu_type in instance_info["GpuInfo"]["Gpus"])
 
+class EC2TrainingError(Exception):
+    """
+    Raise for EC2 test failure
+    """
+    pass
+
 
 def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     training_result = False
-    try:
-        # Make sure we are logged into ECR so we can pull the image
-        connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    # Make sure we are logged into ECR so we can pull the image
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
-        # Run training command
-        connection.run(
-            f"{docker_cmd} run --name ec2_training_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
-            f" -itd {ecr_uri}",
-            hide=True,
-        )
-        run_out = connection.run(
-            f"{docker_cmd} exec --user root ec2_training_container {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'",
-            hide=True,
-        )
-        LOGGER.info(f"training script is completed {run_out.return_code}")
-        training_result = True if run_out.return_code == 0 else False
-    except Exception as e:
-        LOGGER.error(f"{test_cmd} failed with exception {e}")
-    return training_result
+    # Run training command
+    connection.run(
+        f"{docker_cmd} run --name ec2_training_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
+        f" -itd {ecr_uri}",
+        hide=True,
+    )
+    run_out = connection.run(
+        f"{docker_cmd} exec --user root ec2_training_container {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'",
+        hide=True,
+    )
+    if run_out.return_code != 0:
+        raise EC2TrainingError(f"Test failed with return code {run_out.return_code}. See output {run_out}")
 
 
 
