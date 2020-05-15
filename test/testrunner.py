@@ -175,13 +175,15 @@ def main():
                         LOGGER.info(key_file)
                         ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
                         if ".pem" in key_file:
-                            destroy_ssh_keypair(ec2_client, key_file)
+                            resp, key_name = destroy_ssh_keypair(ec2_client, key_name)
+                            LOGGER.info(f"Deleted {key_name}")
     elif specific_test_type == "sagemaker":
         run_sagemaker_tests(
             [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
         )
     else:
-        raise NotImplementedError(test_type + " test is not supported. Only support ec2, ecs, eks, sagemaker and sanity currently")
+        raise NotImplementedError(f"{test_type} test is not supported. "
+                                  f"Only support ec2, ecs, eks, sagemaker and sanity currently")
 
 
 if __name__ == "__main__":

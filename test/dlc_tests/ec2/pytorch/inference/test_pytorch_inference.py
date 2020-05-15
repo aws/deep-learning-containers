@@ -10,7 +10,8 @@ if os.getenv("BUILD_CONTEXT") == "PR":
     PT_EC2_GPU_INSTANCE_TYPE = ["p3.2xlarge"]
     PT_EC2_CPU_INSTANCE_TYPE = ["c5.4xlarge"]
 else:
-    PT_EC2_GPU_INSTANCE_TYPE = ["g3.4xlarge", "p2.8xlarge", "p3.16xlarge", "p3dn.24xlarge"]
+    # TODO: Add p3dn if releasing
+    PT_EC2_GPU_INSTANCE_TYPE = ["g3.4xlarge", "p2.8xlarge", "p3.16xlarge"]
     PT_EC2_CPU_INSTANCE_TYPE = ["c4.8xlarge", "c5.18xlarge", "m4.16xlarge", "t2.2xlarge"]
 
 
