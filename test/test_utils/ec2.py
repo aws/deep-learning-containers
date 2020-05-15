@@ -1,9 +1,12 @@
 import os
 
 import boto3
+
 from retrying import retry
+from invoke import run
 
 from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
+from test.dlc_tests.conftest import LOGGER
 
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
@@ -299,6 +302,8 @@ class EC2TrainingError(Exception):
 def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
+
+    LOGGER.info(f"{run('df -H', echo=True)}")
 
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
