@@ -4,7 +4,7 @@ import boto3
 
 from retrying import retry
 
-from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
+from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
 
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
