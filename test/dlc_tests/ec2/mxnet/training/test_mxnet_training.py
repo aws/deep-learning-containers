@@ -17,73 +17,61 @@ MX_EC2_GPU_INSTANCE_TYPE = "p2.xlarge"
 MX_EC2_CPU_INSTANCE_TYPE = "c5.4xlarge"
 
 
-@pytest.mark.skip(reason="Skipping temporarily")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_mxnet_standalone_gpu(mxnet_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_STANDALONE_CMD)
 
 
-@pytest.mark.skip(reason="Skipping temporarily")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_CPU_INSTANCE_TYPE], indirect=True)
 def test_mxnet_standalone_cpu(mxnet_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_STANDALONE_CMD)
 
 
-@pytest.mark.skip(reason="Skipping temporarily")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_mxnet_train_mnist_gpu(mxnet_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_MNIST_CMD)
 
 
-@pytest.mark.skip(reason="Skipping temporarily")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_CPU_INSTANCE_TYPE], indirect=True)
 def test_mxnet_train_mnist_cpu(mxnet_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_MNIST_CMD)
 
 
-@pytest.mark.skip(reason="Skipping temporarily")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_mxnet_keras_gpu(mxnet_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_KERAS_CMD)
 
 
-@pytest.mark.skip(reason="Skipping temporarily")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_CPU_INSTANCE_TYPE], indirect=True)
 def test_mxnet_keras_cpu(mxnet_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_KERAS_CMD)
 
 
-@pytest.mark.skip(reason="Skipping temporarily")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_mxnet_train_dgl_gpu(mxnet_training, ec2_connection, gpu_only, py3_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_DGL_CMD)
 
 
-@pytest.mark.skip(reason="Skipping temporarily")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_CPU_INSTANCE_TYPE], indirect=True)
 def test_mxnet_train_dgl_cpu(mxnet_training, ec2_connection, cpu_only, py3_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_DGL_CMD)
 
 
-@pytest.mark.skip(reason="Skipping temporarily")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_mxnet_train_nlp_gpu(mxnet_training, ec2_connection, gpu_only, py3_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_NLP_CMD)
 
 
-@pytest.mark.skip(reason="Skipping temporarily")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_CPU_INSTANCE_TYPE], indirect=True)
 def test_mxnet_train_nlp_cpu(mxnet_training, ec2_connection, cpu_only, py3_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_NLP_CMD)
 
 
-@pytest.mark.skip(reason="Skipping temporarily")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_mxnet_with_horovod_gpu(mxnet_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_HVD_CMD)
 
 
-@pytest.mark.skip(reason="Skipping temporarily")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_CPU_INSTANCE_TYPE], indirect=True)
 def test_mxnet_with_horovod_cpu(mxnet_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_HVD_CMD)

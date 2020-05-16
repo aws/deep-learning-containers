@@ -1,18 +1,11 @@
-import logging
 import os
-import sys
 
 import boto3
 
-from invoke.exceptions import CommandTimedOut
 from retrying import retry
 
 from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
 
-
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
-LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
@@ -313,7 +306,7 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
     connection.run(
         f"{docker_cmd} exec -i --user root ec2_training_container {test_cmd}",
         hide=True,
-        timeout=1800,
+        timeout=3000,
     )
 
 
