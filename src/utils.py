@@ -348,9 +348,7 @@ def fetch_dlc_images_for_test_jobs(images):
     DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
 
     for docker_image in images:
-        use_preexisting_images = (
-            True if (build_config.DISABLE_NEW_BUILDS and docker_image.build_status == constants.NOT_BUILT) else False
-        )
+        use_preexisting_images = (build_config.DISABLE_NEW_BUILDS and docker_image.build_status == constants.NOT_BUILT)
         if docker_image.build_status == constants.SUCCESS or use_preexisting_images:
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(docker_image.ecr_url)
