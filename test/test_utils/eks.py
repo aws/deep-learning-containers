@@ -537,10 +537,8 @@ def is_mpijob_launcher_pod_ready(ctx, namespace, job_name):
         job_name: str
     """
 
-    # mpi-job-name and mpi-job-type properties derived from:
-    # https://github.com/kubeflow/mpi-operator/blob/master/pkg/controllers/v1/mpi_job_controller.go#L74
     pod_name = ctx.run(
-        f"kubectl get pods -n {namespace} -l mpi-job-name={job_name},mpi-job-role=launcher -o name"
+        f"kubectl get pods -n {namespace} -l mpi_job_name={job_name},mpi_role_type=launcher -o name"
     ).stdout.strip("\n")
     if pod_name:
         return pod_name
