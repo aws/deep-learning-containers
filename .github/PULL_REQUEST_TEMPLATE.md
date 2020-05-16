@@ -4,7 +4,7 @@
 - [ ] I've prepended PR tag with frameworks/job this applies to : [mxnet, tensorflow, pytorch] | [build] | [test] | [build, test] | [ec2, ecs, eks, sagemaker]
 - [ ] (If applicable) I've documented below the DLC image/dockerfile this relates to
 - [ ] (If applicable) I've documented below the tests I've run on the DLC image
-- [ ] (If applicable) I've reviewed the licenses of updated and new binaries to make sure the licenses are on the list of acceptable license types
+- [ ] (If applicable) I've reviewed the licenses of updated and new binaries and their dependencies to make sure all licenses are on the Apache Software Foundation Third Party License Policy Category A or Category B license list.  See [https://www.apache.org/legal/resolved.html](https://www.apache.org/legal/resolved.html).
 - [ ] (If applicable) I've scanned the updated and new binaries to make sure they do not have vulnerabilities associated with them.
 
 *Description:*
