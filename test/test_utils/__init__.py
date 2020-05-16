@@ -3,12 +3,18 @@ import os
 import re
 import subprocess
 import time
+import logging
+import sys
 
 import pytest
 
 from botocore.exceptions import ClientError
 from invoke import run
 from retrying import retry
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
