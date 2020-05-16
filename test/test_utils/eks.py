@@ -538,7 +538,7 @@ def is_mpijob_launcher_pod_ready(ctx, namespace, job_name):
     """
 
     pod_name = ctx.run(
-        f"kubectl get pods -n {namespace} -l mpi_job_name={job_name},mpi_job_role=launcher -o name"
+        f"kubectl get pods -n {namespace} -l mpi-job-name={job_name},mpi-job-role=launcher -o name"
     ).stdout.strip("\n")
     if pod_name:
         return pod_name
