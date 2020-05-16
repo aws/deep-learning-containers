@@ -58,4 +58,6 @@ If you discover a potential security issue in this project we ask that you notif
 
 See the [LICENSE](LICENSE) file for our project's licensing. We will ask you to confirm the licensing of your contribution.
 
+The licenses for all dependencies included in the image must be on the Apache Software Foundation Third Party License Policy Category A or Category B license list.  See [https://www.apache.org/legal/resolved.html](https://www.apache.org/legal/resolved.html).
+
 We may ask you to sign a [Contributor License Agreement (CLA)](http://en.wikipedia.org/wiki/Contributor_License_Agreement) for larger changes.
