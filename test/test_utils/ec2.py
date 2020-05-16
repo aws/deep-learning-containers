@@ -7,7 +7,7 @@ import boto3
 from invoke.exceptions import CommandTimedOut
 from retrying import retry
 
-from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
+from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
 
 
 LOGGER = logging.getLogger(__name__)
