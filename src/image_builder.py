@@ -27,6 +27,7 @@ from metrics import Metrics
 from image import DockerImage
 from buildspec import Buildspec
 from output import OutputFormatter
+from config import build_config
 
 
 def _find_image_object(images_list, image_name):
@@ -71,7 +72,8 @@ def image_builder(buildspec):
             if build_context == "PR"
             else image_config["tag"]
         )
-        image_tag = tag_image_with_datetime(image_tag)
+        if not build_config.DISABLE_DATETIME_TAG or build_context != "PR":
+            image_tag = tag_image_with_datetime(image_tag)
         image_repo_uri = (
             image_config["repository"]
             if build_context == "PR"
