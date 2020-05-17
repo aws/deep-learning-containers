@@ -304,8 +304,9 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
         hide=True,
     )
     connection.run(
-        f"{docker_cmd} exec -i --user root ec2_training_container {test_cmd}",
+        f"{docker_cmd} exec -it --user root ec2_training_container /bin/bash -c '{test_cmd}'",
         hide=True,
+        pty=True,
         timeout=3000,
     )
 
