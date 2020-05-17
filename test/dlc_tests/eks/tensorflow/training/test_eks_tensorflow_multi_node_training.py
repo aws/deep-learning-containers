@@ -16,8 +16,7 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 
 # Test only runs in region us-west-2, on instance type p3.16xlarge, on PR_EKS_CLUSTER_NAME_TEMPLATE cluster
-# TODO: Unskip multinode test
-@pytest.mark.skip(reason="Skipping while multi-node tests are debugged locally")
+@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example_only):
     eks_cluster_size = 3
     ec2_instance_type = "p3.16xlarge"
@@ -112,6 +111,7 @@ def _run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_i
                 # The latest mpi-operator docker image does not accept the gpus-per-node parameter
                 # which is specified by the older spec file from v0.5.1.
                 ctx.run("ks param set mpi-operator image mpioperator/mpi-operator:0.2.0")
+                ctx.run("ks param set mpi-operator kubectlDeliveryImage mpioperator/kubectl-delivery:0.2.0")
                 mpi_operator_start = ctx.run(f"ks apply {env} -c mpi-operator", warn=True)
                 if mpi_operator_start.return_code:
                     raise RuntimeError(f"Failed to start mpi-operator:\n{mpi_operator_start.stderr}")
