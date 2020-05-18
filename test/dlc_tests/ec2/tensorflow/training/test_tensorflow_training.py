@@ -43,6 +43,8 @@ def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_onl
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
 
+# TODO: Change this back TF_EC2_CPU_INSTANCE_TYPE. Currently this test times out on c4.8x, m4.16x and t2.2x,
+#       though passes on all three when run manually. For now we are pinning to c5.18 until we can resolve the issue.
 @pytest.mark.parametrize("ec2_instance_type", ["c5.18xlarge"], indirect=True)
 def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
@@ -54,6 +56,8 @@ def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_connection, gpu_on
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
 
+# TODO: Change this back TF_EC2_CPU_INSTANCE_TYPE. Currently this test times out on c4.8x, m4.16x and t2.2x,
+#       though passes on all three when run manually. For now we are pinning to c5.18 until we can resolve the issue.
 @pytest.mark.parametrize("ec2_instance_type", ["c5.18xlarge"], indirect=True)
 def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_only):
     test_script = TF1_HVD_CMD if is_tf1(tensorflow_training) else TF2_HVD_CMD
