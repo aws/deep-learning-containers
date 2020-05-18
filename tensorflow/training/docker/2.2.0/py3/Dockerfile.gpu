@@ -131,12 +131,6 @@ RUN mkdir -p /root/.ssh/ \
 
 WORKDIR /
 
-RUN wget -c https://www.openssl.org/source/openssl-1.1.1g.tar.gz \
- && tar -xzvf openssl-1.1.1g.tar.gz \
- && cd openssl-1.1.1g \
- && ./config && make && make test \
- && make install && rm -rf openssl-*
-
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     libbz2-dev \
@@ -160,6 +154,13 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
+
+RUN apt remove -y --purge openssl
+ && wget -c https://www.openssl.org/source/openssl-1.1.1g.tar.gz \
+ && tar -xzvf openssl-1.1.1g.tar.gz \
+ && cd openssl-1.1.1g \
+ && ./config && make && make test \
+ && make install && rm -rf openssl-*
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
