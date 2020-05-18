@@ -22,10 +22,9 @@ else:
     TF_EC2_CPU_INSTANCE_TYPE = ["c4.8xlarge", "c5.18xlarge", "m4.16xlarge", "t2.2xlarge"]
 
     # As our next release is TF2, adding p3dn testing
-    images = get_dlc_images()
-    if is_tf2(images):
-        TF_EC2_GPU_INSTANCE_TYPE.append("p3dn.24xlarge")
-
+    # images = get_dlc_images()
+    # if is_tf2(images):
+    #    TF_EC2_GPU_INSTANCE_TYPE.append("p3dn.24xlarge")
 
 
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -45,6 +44,7 @@ def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_onl
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
 
+@pytest.mark.skip(reason="Skipping the test temporarily due to small instance timeout issue")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
