@@ -155,8 +155,7 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
-RUN apt remove -y --purge openssl
- && wget -c https://www.openssl.org/source/openssl-1.1.1g.tar.gz \
+RUN wget -c https://www.openssl.org/source/openssl-1.1.1g.tar.gz \
  && tar -xzvf openssl-1.1.1g.tar.gz \
  && cd openssl-1.1.1g \
  && ./config && make && make test \
