@@ -26,6 +26,10 @@ ARG PIP=pip3
 
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.1/AmazonLinux/gpu/final/tensorflow_gpu-2.0.1-cp36-cp36m-manylinux2010_x86_64.whl
 
+# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
+# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
+ARG SMDEBUG_VERSION=0.7.2
+
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     python3-dev \
     python3-pip \
@@ -150,7 +154,8 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    "sagemaker-tensorflow-training>=3.0<4.0"
+    "sagemaker-tensorflow-training>=3.0<4.0" \
+    smdebug==${SMDEBUG_VERSION}
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs \

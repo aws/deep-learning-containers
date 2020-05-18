@@ -26,6 +26,10 @@ ARG PIP=pip3
 
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.1/AmazonLinux/cpu/final/tensorflow-2.0.1-cp36-cp36m-manylinux2010_x86_64.whl
 
+# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
+# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
+ARG SMDEBUG_VERSION=0.7.2
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     python3-pip \
@@ -112,7 +116,8 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     horovod==0.18.2 \
-    "sagemaker-tensorflow-training>=3.0<4.0"
+    "sagemaker-tensorflow-training>=3.0<4.0" \
+    smdebug==${SMDEBUG_VERSION}
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0.1/license.txt -o /license.txt
 
