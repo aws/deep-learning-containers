@@ -3,12 +3,18 @@ import os
 import re
 import subprocess
 import time
+import logging
+import sys
 
 import pytest
 
 from botocore.exceptions import ClientError
 from invoke import run
 from retrying import retry
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
@@ -266,9 +272,10 @@ def generate_ssh_keypair(ec2_client, key_name):
 
 
 def destroy_ssh_keypair(ec2_client, key_filename):
-    key_name = os.path.basename(key_filename).strip(".pem")
-    ec2_client.delete_key_pair(KeyName=key_name)
+    key_name = os.path.basename(key_filename).split(".pem")[0]
+    response = ec2_client.delete_key_pair(KeyName=key_name)
     run(f"rm -f {key_filename}")
+    return response, key_name
 
 
 def upload_tests_to_s3(testname_datetime_suffix):
