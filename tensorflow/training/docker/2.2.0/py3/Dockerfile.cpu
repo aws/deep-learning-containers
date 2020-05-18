@@ -38,8 +38,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-client \
     openssh-server \
     ca-certificates \
+    checkinstall \
     curl \
     git \
+    libtemplate-perl \
     wget \
     vim \
     zlib1g-dev \
@@ -82,6 +84,12 @@ RUN mkdir -p /root/.ssh/ \
  && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 WORKDIR /
+
+RUN wget -c https://www.openssl.org/source/openssl-1.1.1g.tar.gz \
+ && tar -xzvf openssl-1.1.1g.tar.gz \
+ && cd openssl-1.1.1g \
+ && ./config && make && make test \
+ && make install && rm -rf openssl-*
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \

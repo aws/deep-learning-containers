@@ -35,6 +35,7 @@ ARG SMDEBUG_VERSION=0.7.2
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
+    checkinstall \
     cuda-command-line-tools-10-1 \
     cuda-cudart-dev-10-1 \
     cuda-cufft-dev-10-1 \
@@ -51,6 +52,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     libhdf5-serial-dev \
     liblzma-dev \
     libpng-dev \
+    libtemplate-perl \
     libzmq3-dev \
     git \
     wget \
@@ -128,6 +130,12 @@ RUN mkdir -p /root/.ssh/ \
  && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 WORKDIR /
+
+RUN wget -c https://www.openssl.org/source/openssl-1.1.1g.tar.gz \
+ && tar -xzvf openssl-1.1.1g.tar.gz \
+ && cd openssl-1.1.1g \
+ && ./config && make && make test \
+ && make install && rm -rf openssl-*
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
