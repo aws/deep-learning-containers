@@ -23,7 +23,7 @@ ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.2/AmazonLinux/
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.7.2
+ARG SMDEBUG_VERSION=0.8.0
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated \
@@ -137,7 +137,7 @@ RUN pip install --no-cache-dir -U \
     keras_preprocessing==1.1.0 \
     requests==2.22.0 \
     keras==2.3.1 \
-    smdebug==0.7.2 \
+    smdebug==${SMDEBUG_VERSION} \
     sagemaker==1.50.17 \
     sagemaker-experiments==0.1.7 \
     mpi4py==3.0.2 \
