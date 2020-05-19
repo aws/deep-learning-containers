@@ -10,6 +10,7 @@ ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 # Set environment variables for MKL
 # For more about MKL with TensorFlow see:
 # https://www.tensorflow.org/performance/performance_guide#tensorflow_with_intel%C2%AE_mkl_dnn
+
 ENV KMP_AFFINITY=granularity=fine,compact,1,0
 ENV KMP_BLOCKTIME=1
 ENV KMP_SETTINGS=0
@@ -24,10 +25,11 @@ ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.7
+ARG OPENSSL_VERSION=1.1.1g
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.2_aws/20200512-213900/642cfe76c52c89efbba711b72df1b88cc38e2c8e/cpu/py37/tensorflow_cpu-2.2.0-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.2_aws/20200518-000848/cpu/py37/tensorflow_cpu-2.2.0-cp37-cp37m-manylinux2010_x86_64.whl
 
-ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.2_aws/20200512-213900/5a9a7becb9c0ee5eeef6c9efc3e5cab435bc3eb1/tf_642cfe76c52c89efbba711b72df1b88cc38e2c8e/tensorflow_estimator-2.2.0-py2.py3-none-any.whl
+ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.2_aws/20200518-000848/tensorflow_estimator-2.2.0-py2.py3-none-any.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
@@ -40,6 +42,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     git \
+    libtemplate-perl \
     wget \
     vim \
     zlib1g-dev \
@@ -108,6 +111,22 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get update \
+ && apt-get install -y \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && cd .. && rm -rf openssl-*
+
+# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+ENV SSL_CERT_DIR=/etc/ssl/certs
+
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
@@ -131,6 +150,7 @@ RUN ${PIP} install --no-cache-dir -U \
     sagemaker-experiments==0.1.13 \
     "sagemaker-tensorflow>=2.2,<2.3" \
     sagemaker-tensorflow-training==4.0.1 \
+
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
