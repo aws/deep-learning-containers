@@ -16,10 +16,14 @@ TF_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_tf_dlc_telemetry_t
 
 if is_pr_context():
     TF_EC2_GPU_INSTANCE_TYPE = ["p2.xlarge"]
+    TELEMETRY_TF_EC2_GPU_INSTANCE_TYPE = TF_EC2_GPU_INSTANCE_TYPE
     TF_EC2_CPU_INSTANCE_TYPE = ["c5.4xlarge"]
+    TELEMETRY_TF_EC2_CPU_INSTANCE_TYPE = TF_EC2_CPU_INSTANCE_TYPE
 else:
     TF_EC2_GPU_INSTANCE_TYPE = ["g3.4xlarge", "p2.8xlarge", "p3.16xlarge"]
+    TELEMETRY_TF_EC2_GPU_INSTANCE_TYPE = ["p2.8xlarge"]
     TF_EC2_CPU_INSTANCE_TYPE = ["c4.8xlarge", "c5.18xlarge", "m4.16xlarge", "t2.2xlarge"]
+    TELEMETRY_TF_EC2_CPU_INSTANCE_TYPE = ["c4.8xlarge"]
 
     # As our next release is TF2, adding p3dn testing
     # images = get_dlc_images()
@@ -79,11 +83,11 @@ def test_tensorflow_opencv_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_OPENCV_CMD)
 
 
-@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", TELEMETRY_TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
 
 
-@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", TELEMETRY_TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)

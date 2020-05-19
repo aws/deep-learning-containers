@@ -44,7 +44,7 @@ def opt_in_opt_out_test():
 
   print("Opt-In/Opt-Out Test passed")
 
-def perf_test():
+def performance_test():
   os.environ['TEST_MODE']='0'
   os.environ["OPT_OUT_TRACKING"]="False"
   NUM_ITERATIONS = 5
@@ -68,9 +68,9 @@ def perf_test():
 
     np.testing.assert_allclose(total_time_in/NUM_ITERATIONS, total_time_out/NUM_ITERATIONS, rtol=0.2, atol=0.5)
 
-    print("DLC Telemetry perf test Passed")
+    print("DLC Telemetry performance test Passed")
 
-perf_test()
+performance_test()
 opt_in_opt_out_test()
 
 print("All DLC telemetry test passed")
