@@ -3,12 +3,18 @@ import os
 import re
 import subprocess
 import time
+import logging
+import sys
 
 import pytest
 
 from botocore.exceptions import ClientError
 from invoke import run
 from retrying import retry
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
@@ -31,6 +37,9 @@ UBUNTU_HOME_DIR = "/home/ubuntu"
 
 # Reason string for skipping tests in PR context
 SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test will be run in nightly/release pipeline."
+
+# Reason string for skipping tests in non-PR context
+PR_ONLY_REASON = "Skipping test that doesn't need to be run outside of PR context."
 
 KEYS_TO_DESTROY_FILE = os.path.join(os.sep, "tmp", "keys_to_destroy.txt")
 
@@ -192,7 +201,7 @@ def get_mms_run_command(model_names, processor="cpu"):
     if processor != "eia":
         mxnet_model_location = {
             "squeezenet": "https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model",
-            "pytorch-densenet": "https://asimov-multi-model-server.s3.amazonaws.com/pytorch/densenet/densenet.mar",
+            "pytorch-densenet": "https://dlc-samples.s3.amazonaws.com/pytorch/multi-model-server/densenet/densenet.mar",
             "bert_sst": "https://aws-dlc-sample-models.s3.amazonaws.com/bert_sst/bert_sst.mar"
         }
     else:
@@ -263,9 +272,10 @@ def generate_ssh_keypair(ec2_client, key_name):
 
 
 def destroy_ssh_keypair(ec2_client, key_filename):
-    key_name = os.path.basename(key_filename).strip(".pem")
-    ec2_client.delete_key_pair(KeyName=key_name)
+    key_name = os.path.basename(key_filename).split(".pem")[0]
+    response = ec2_client.delete_key_pair(KeyName=key_name)
     run(f"rm -f {key_filename}")
+    return response, key_name
 
 
 def upload_tests_to_s3(testname_datetime_suffix):

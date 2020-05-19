@@ -75,7 +75,7 @@ def main():
         LOGGER.debug(f"test_type : {test_type}")
         LOGGER.debug(f"images: {images}")
         if images:
-            pr_test_job = f"dlc-{test_type}-test"
+            pr_test_job = f"dlc-pr-{test_type}-test"
             images_str = " ".join(images)
             if is_test_job_enabled(test_type):
                 run_test_job(commit, pr_test_job, images_str)

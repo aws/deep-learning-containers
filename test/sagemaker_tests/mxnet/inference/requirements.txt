@@ -7,7 +7,7 @@ pytest-cov
 pytest-rerunfailures==9.0
 pytest-xdist
 mock
-sagemaker==1.23.0
+sagemaker
 docker-compose
 mxnet==1.4.0
 awslogs

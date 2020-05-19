@@ -1,4 +1,4 @@
-boto3==1.12.14
+boto3
 coverage==4.5.3
 docker-compose==1.25.4
 flake8==3.7.7
@@ -9,7 +9,7 @@ pytest-cov==2.7.1
 pytest-rerunfailures==8.0
 pytest-xdist==1.28.0
 PyYAML==5.3
-sagemaker==1.48.0
+sagemaker
 sagemaker-containers>=2.5.4
 six==1.12.0
 requests==2.20.0
