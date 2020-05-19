@@ -35,9 +35,9 @@ ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/est
 ARG SMDEBUG_VERSION=0.7.2
 
 
-RUN apt remove -y --purge openssl \
+RUN apt-get update \
+ && apt remove -y --purge openssl \
  && rm -rf /usr/include/openssl \
- && apt-get update \
  && apt-get install -y \
     wget \
     ca-certificates \
