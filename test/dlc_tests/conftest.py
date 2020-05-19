@@ -153,6 +153,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
 
     def delete_s3_artifact_copy():
         test_utils.delete_uploaded_tests_from_s3(s3_test_artifact_location)
+        conn.close()
 
     request.addfinalizer(delete_s3_artifact_copy)
 
