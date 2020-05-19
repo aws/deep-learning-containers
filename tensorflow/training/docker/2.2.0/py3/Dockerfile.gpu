@@ -167,7 +167,8 @@ RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
 
 # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
 # causing sslcertverificationerror the below steps are to fix that
-RUN apt-get install -y ca-certificates
+RUN  apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates
 ENV SSL_CERT_DIR=/etc/ssl/certs
 
 # Some TF tools expect a "python" binary
