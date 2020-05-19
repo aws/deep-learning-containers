@@ -162,6 +162,9 @@ RUN wget -c https://www.openssl.org/source/openssl-1.1.1g.tar.gz \
  && ldconfig \
  && make install && rm -rf openssl-*
 
+RUN update-ca-certificates —fresh
+ENV SSL_CERT_DIR=/etc/ssl/certs
+
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
