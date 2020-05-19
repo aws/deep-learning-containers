@@ -73,7 +73,7 @@ def generate_sagemaker_pytest_cmd(image):
 
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
     return (
-        f"pytest --reruns {reruns} {integration_path} --region {region} {docker_base_arg} "
+        f"pytest --reruns 1 {integration_path} --region {region} {docker_base_arg} "
         f"{docker_base_name} --tag {tag} {aws_id_arg} {account_id} {instance_type_arg} {instance_type} "
         f"--junitxml {test_report}",
         path,
