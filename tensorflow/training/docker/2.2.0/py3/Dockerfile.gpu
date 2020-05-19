@@ -156,9 +156,9 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     setuptools
 
 RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt-get update \
  && apt remove -y --purge openssl \
  && rm -rf /usr/include/openssl \
- && apt-get update \
  && apt-get install -y \
     ca-certificates \
  && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
