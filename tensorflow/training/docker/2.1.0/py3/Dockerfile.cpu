@@ -26,6 +26,10 @@ ARG PIP=pip3
 
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.1/AmazonLinux/cpu/final/tensorflow-2.1.0-cp36-cp36m-manylinux2010_x86_64.whl
 
+# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
+# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
+ARG SMDEBUG_VERSION=0.7.2
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     python3-pip \
@@ -100,7 +104,7 @@ RUN ${PIP} install --no-cache-dir -U \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
     keras==2.3.1 \
-    smdebug==0.7.2 \
+    smdebug==${SMDEBUG_VERSION} \
     python-dateutil==2.8.1 \
     pyYAML==5.3.1 \
     requests==2.22.0 \
@@ -116,6 +120,7 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     horovod==0.18.2
+
 
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
