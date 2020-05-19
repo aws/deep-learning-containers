@@ -35,15 +35,27 @@ ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/est
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=0.7.2
 
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get update \
+ && apt-get install -y \
+    wget \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-*
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     openssh-client \
     openssh-server \
-    ca-certificates \
     curl \
     git \
     libtemplate-perl \
-    wget \
     vim \
     zlib1g-dev \
     # Install dependent library for OpenCV
@@ -110,18 +122,6 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
-
-RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && apt-get update \
- && apt-get install -y \
-    ca-certificates \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test \
- && make install \
- && cd .. && rm -rf openssl-*
 
 # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
 # causing sslcertverificationerror the below steps are to fix that
