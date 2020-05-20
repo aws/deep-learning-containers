@@ -9,6 +9,7 @@ def opt_in_opt_out_test():
   os.environ["OPT_OUT_TRACKING"]="True"
   cmd = "python -c 'import torch'"
   os.system(cmd)
+  time.sleep(1)
   assert(os.path.exists("/tmp/test_request.txt")==False)
 
   if os.path.exists("/tmp/test_request.txt"):
@@ -16,6 +17,7 @@ def opt_in_opt_out_test():
   os.environ["OPT_OUT_TRACKING"]="False"
   cmd = "python -c 'import torch'"
   os.system(cmd)
+  time.sleep(1)
   assert(os.path.exists("/tmp/test_request.txt")==True)
 
 
@@ -24,6 +26,7 @@ def opt_in_opt_out_test():
   os.environ["OPT_OUT_TRACKING"]="TRUE"
   cmd = "python -c 'import torch'"
   os.system(cmd)
+  time.sleep(1)
   assert(os.path.exists("/tmp/test_request.txt")==False)
 
   if os.path.exists("/tmp/test_request.txt"):
@@ -31,6 +34,7 @@ def opt_in_opt_out_test():
   os.environ["OPT_OUT_TRACKING"]="true"
   cmd = "python -c 'import torch'"
   os.system(cmd)
+  time.sleep(1)
   assert(os.path.exists("/tmp/test_request.txt")==False)
 
 
@@ -39,6 +43,7 @@ def opt_in_opt_out_test():
   os.environ["OPT_OUT_TRACKING"]="XYgg"
   cmd = "python -c 'import torch'"
   os.system(cmd)
+  time.sleep(1)
   assert(os.path.exists("/tmp/test_request.txt")==True)
 
 
