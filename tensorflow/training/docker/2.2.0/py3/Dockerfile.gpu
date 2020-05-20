@@ -170,7 +170,7 @@ RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
 
 # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
 # causing sslcertverificationerror the below steps are to fix that
-ENV SSL_CERT_DIR=/etc/ssl/certs
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
