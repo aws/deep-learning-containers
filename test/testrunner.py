@@ -24,9 +24,9 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 def assign_sagemaker_instance_type(image):
     if "tensorflow" in image:
-        return "ml.p3.8xlarge" if "gpu" in image else "ml.c4.4xlarge"
+        return "ml.p3.8xlarge" if "gpu" in image else "ml.c4.8xlarge"
     else:
-        return "ml.p2.8xlarge" if "gpu" in image else "ml.c4.8xlarge"
+        return "ml.p2.8xlarge" if "gpu" in image else "ml.c4.4xlarge"
 
 
 def generate_sagemaker_pytest_cmd(image):
