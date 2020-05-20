@@ -11,6 +11,7 @@ PT_MNIST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorc
 PT_REGRESSION_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchRegression")
 PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 PT_APEX_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNVApex")
+PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test")
 
 if is_pr_context():
     PT_EC2_GPU_INSTANCE_TYPE = ["p3.2xlarge"]
@@ -89,3 +90,13 @@ def test_pytorch_mpi(pytorch_training, ec2_connection, gpu_only, py3_only):
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_nvapex(pytorch_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_APEX_CMD)
+
+
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only):
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)
+
+
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only):
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)

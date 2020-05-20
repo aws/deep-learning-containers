@@ -1,0 +1,29 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+TRAINING_LOG=${LOG_DIR}/pytorch_telemetry_test.log
+set -e
+
+echo "Verify pytorch telemetry test. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
+
+python ${BIN_DIR}/pytorch_tests/test_pt_dlc_telemetry_test.py > ${TRAINING_LOG} 2>&1
+
+if grep "DLC Telemetry perf test Passed" $TRAINING_LOG; then
+  echo "Successfully verified Telemetry perf test."
+else
+  echo "Telemetry perf test failed."
+  cat ${TRAINING_LOG}
+  exit 1
+fi
+
+if grep "Opt-In/Opt-Out Test passed" $TRAINING_LOG; then
+  echo "Successfully verified Opt-In/Opt-Out Test "
+else
+  echo "Opt-In/Opt-Out Test failed."
+  cat ${TRAINING_LOG}
+  exit 1
+fi
+
+exit 0
