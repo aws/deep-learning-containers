@@ -5,7 +5,7 @@ import re
 import sys
 import logging
 
-from multiprocessing import Pool
+from multiprocessing import Pool, Lock
 import boto3
 import pytest
 
@@ -22,6 +22,7 @@ from test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair, KEYS_
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+GLOBALLOCK = Lock()
 
 
 def assign_sagemaker_remote_job_instance_type(image):
@@ -152,7 +153,9 @@ def run_sagemaker_local_tests(image):
         with ec2_conn.cd(path):
             ec2_conn.run("sudo pip3 install -r requirements.txt ", warn=True)
             ec2_conn.run(pytest_command)
+            GLOBALLOCK.acquire()
             ec2_conn.get(ec2_test_report_path, f"test/{tag}_local.xml")
+            GLOBALLOCK.release()
     finally:
         ec2_utils.terminate_instance(instance_id, region)
         test_utils.destroy_ssh_keypair(ec2_client, ec2_key_name)
