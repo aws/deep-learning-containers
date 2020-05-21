@@ -10,10 +10,10 @@ echo "Verify pytorch telemetry test. You can follow progress on the log file : $
 
 python ${BIN_DIR}/pytorch_tests/test_pt_dlc_telemetry_test.py > ${TRAINING_LOG} 2>&1
 
-if grep "DLC Telemetry perf test Passed" $TRAINING_LOG; then
-  echo "Successfully verified Telemetry perf test."
+if grep "DLC Telemetry performance test Passed" $TRAINING_LOG; then
+  echo "Successfully verified Telemetry performance test."
 else
-  echo "Telemetry perf test failed."
+  echo "Telemetry performance test failed."
   cat ${TRAINING_LOG}
   exit 1
 fi

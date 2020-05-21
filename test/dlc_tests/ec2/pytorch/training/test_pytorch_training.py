@@ -92,11 +92,11 @@ def test_nvapex(pytorch_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_APEX_CMD)
 
 
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
 def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)
 
 
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)
