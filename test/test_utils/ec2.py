@@ -8,8 +8,6 @@ from botocore.config import Config
 
 from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
 
-from test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
-
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 def launch_instance(
