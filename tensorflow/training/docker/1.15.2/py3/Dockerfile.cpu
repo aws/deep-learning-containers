@@ -22,28 +22,25 @@ ENV LC_ALL=C.UTF-8
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
 # Define framework-related package sources
-ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.2/AmazonLinux/cpu/final/tensorflow-1.15.2-cp36-cp36m-manylinux2010_x86_64.whl
-
-# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
-# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.7.2
+ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.2/AmazonLinux/cpu/final/tensorflow_cpu-1.15.2-cp37-cp37m-manylinux2010_x86_64.whl
+ARG PYTHON=python3
+ARG PYTHON_PIP=python3-pip
+ARG PIP=pip3
+ARG PYTHON_VERSION=3.7.7
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-    python3-dev \
-    python3-pip \
-    python3-setuptools \
-    software-properties-common \
     build-essential \
-    openssh-client \
-    openssh-server \
     ca-certificates \
     curl \
     git \
-    wget \
+    openssh-client \
+    openssh-server \
     vim \
+    wget \
     zlib1g-dev \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 # Install Open MPI
 RUN mkdir /tmp/openmpi \
@@ -81,7 +78,27 @@ RUN mkdir -p /root/.ssh/ \
 
 WORKDIR /
 
-RUN pip3 --no-cache-dir install --upgrade \
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    libbz2-dev \
+    libc6-dev \
+    libffi-dev \
+    libgdbm-dev \
+    libncursesw5-dev \
+    libreadline-gplv2-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    tk-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xvf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure && make && make install \
+ && make && make install && rm -rf ../Python-$PYTHON_VERSION*
+
+RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
@@ -89,32 +106,28 @@ RUN pip3 --no-cache-dir install --upgrade \
 RUN ln -s $(which python3) /usr/local/bin/python \
  && ln -s $(which pip3) /usr/bin/pip
 
-RUN pip install --no-cache-dir -U \
+RUN ${PIP} install --no-cache-dir -U \
     numpy==1.17.4 \
     scipy==1.2.2 \
     scikit-learn==0.20.3 \
     pandas==0.24.2 \
     Pillow==7.0.0 \
-    h5py==2.9.0 \
-    keras_applications==1.0.8 \
-    keras_preprocessing==1.1.0 \
-    keras==2.3.1 \
+    h5py==2.10.0 \
     requests==2.22.0 \
-    sagemaker==1.50.17 \
+    smdebug==0.7.2 \
     sagemaker-experiments==0.1.7 \
     mpi4py==3.0.2 \
     "cryptography>=2.3" \
     "sagemaker-tensorflow>=1.15,<1.16" \
-    "sagemaker-tensorflow-training>=2,<3" \
+    sagemaker-tensorflow-training==10.1.0 \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
- && pip install --force-reinstall --no-cache-dir -U \
+ && ${PIP} install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
- && pip install --force-reinstall --no-cache-dir -U \
+ && ${PIP} install --force-reinstall --no-cache-dir -U \
     horovod==0.18.2 \
- && pip install --no-cache-dir -U \
-    awscli \
-    smdebug==${SMDEBUG_VERSION}
+ && ${PIP} install --no-cache-dir -U \
+    awscli
 
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

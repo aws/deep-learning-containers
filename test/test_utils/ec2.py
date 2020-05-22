@@ -1,10 +1,12 @@
 import os
 
 import boto3
+
 from retrying import retry
 from fabric import Connection
 from botocore.config import Config
 
+from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
 
 from test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
 
@@ -324,9 +326,14 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
 
     # Run training command
     connection.run(
-        f"{docker_cmd} run -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
-        f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}",
+        f"{docker_cmd} run --name ec2_training_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
+        f" -itd {ecr_uri}",
         hide=True,
+    )
+    connection.run(
+        f"{docker_cmd} exec --user root ec2_training_container {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'",
+        hide=True,
+        timeout=3000
     )
 
 

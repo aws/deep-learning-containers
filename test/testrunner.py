@@ -225,41 +225,46 @@ def main():
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
     eks_terminable_clusters = []
+    benchmark_mode = "benchmark" in test_type
+    specific_test_type = re.sub("benchmark-", "", test_type) if benchmark_mode else test_type
+    test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
-    if test_type in ("sanity", "ecs", "ec2", "eks"):
+    if specific_test_type in ("sanity", "ecs", "ec2", "eks"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
         os.chdir(os.path.join("test", "dlc_tests"))
 
         # Pull images for necessary tests
-        if test_type == "sanity":
+        if specific_test_type == "sanity":
             pull_dlc_images(all_image_list)
-        if test_type == "eks":
+        if specific_test_type == "eks":
             eks_terminable_clusters = setup_eks_clusters(dlc_images)
         # Execute dlc_tests pytest command
-        pytest_cmd = ["-s", "-rA", test_type, f"--junitxml={report}", "-n=auto"]
+        pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
         try:
             sys.exit(pytest.main(pytest_cmd))
         finally:
-            if test_type == "eks" and eks_terminable_clusters:
+            if specific_test_type == "eks" and eks_terminable_clusters:
                 for cluster in eks_terminable_clusters:
                     eks_utils.delete_eks_cluster(cluster)
 
             # Delete dangling EC2 KeyPairs
-            if test_type == "ec2" and os.path.exists(KEYS_TO_DESTROY_FILE):
+            if specific_test_type == "ec2" and os.path.exists(KEYS_TO_DESTROY_FILE):
                 with open(KEYS_TO_DESTROY_FILE) as key_destroy_file:
                     for key_file in key_destroy_file:
                         LOGGER.info(key_file)
                         ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
                         if ".pem" in key_file:
-                            destroy_ssh_keypair(ec2_client, key_file)
-    elif test_type == "sagemaker":
+                            _resp, keyname = destroy_ssh_keypair(ec2_client, key_file)
+                            LOGGER.info(f"Deleted {keyname}")
+    elif specific_test_type == "sagemaker":
         run_sagemaker_tests(
             [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
         )
     else:
-        raise NotImplementedError("Tests only support sagemaker and sanity currently")
+        raise NotImplementedError(f"{test_type} test is not supported. "
+                                  f"Only support ec2, ecs, eks, sagemaker and sanity currently")
 
 
 if __name__ == "__main__":
