@@ -188,7 +188,7 @@ def run_sagemaker_tests(images):
         return
     pool_number = len(images)
     with Pool(pool_number) as p:
-        # p.map(run_sagemaker_remote_tests, images)
+        p.map(run_sagemaker_remote_tests, images)
         if is_pr_context():
             p.map(run_sagemaker_local_tests, images)
 
