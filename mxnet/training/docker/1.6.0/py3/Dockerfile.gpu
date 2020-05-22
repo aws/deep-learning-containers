@@ -146,7 +146,7 @@ RUN ${PIP} install --no-cache --upgrade \
     numpy==1.17.2 \
     onnx==1.6.0 \
     pandas==0.25.1 \
-    Pillow==6.2.2 \
+    Pillow \
     requests==2.22.0 \
     scikit-learn==0.20.4 \
     scipy==1.2.2 \
