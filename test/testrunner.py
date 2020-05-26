@@ -127,7 +127,7 @@ def setup_eks_clusters(dlc_images):
         if long_name in dlc_images:
             cluster_name = None
             if not is_pr_context() or long_name == "mxnet":
-                num_nodes = 3 if long_name != "pytorch" else 4
+                num_nodes = 3 if long_name == "tensorflow" else 4
                 cluster_name = f"dlc-{short_name}-cluster-" \
                                f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
                 eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
