@@ -123,16 +123,21 @@ def pull_dlc_images(images):
 def setup_eks_clusters(dlc_images):
     terminable_clusters = []
     frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
+    num_frameworks_in_images = [framework in dlc_images for framework in frameworks.keys()].count(True)
+    if num_frameworks_in_images != 1:
+        raise ValueError(
+            f"All images in dlc_images must be of a single framework for EKS tests.\n"
+            f"Instead seeing {num_frameworks_in_images} frameworks."
+        )
     for long_name, short_name in frameworks.items():
         if long_name in dlc_images:
-            cluster_name = None
-            if not is_pr_context():
-                num_nodes = 3 if long_name != "pytorch" else 4
-                cluster_name = f"dlc-{short_name}-cluster-" \
-                               f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
-                eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
-                terminable_clusters.append(cluster_name)
+            num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
+            cluster_name = f"dlc-{short_name}-cluster-" \
+                           f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
+            eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
+            terminable_clusters.append(cluster_name)
             eks_utils.eks_setup(long_name, cluster_name)
+            break
     return terminable_clusters
 
 
