@@ -21,7 +21,7 @@ START=$(date +%s)
 pip install psutil gluoncv==0.2.0b20180625 && export KMP_AFFINITY='granularity=fine,compact,1,0' && export OMP_NUM_THREADS=36 && python deeplearning-benchmark/image_classification/infer_imagenet.py \
 --use-rec --batch-size 256 --dtype float32 --num-data-workers 40 --mode hybrid --model resnet50_v2 --use-pretrained \
 --kvstore local --log-interval 1 --rec-val /home/ubuntu/data/val-passthrough.rec --rec-val-idx /home/ubuntu/data/val-passthrough.idx 2>&1 | tee ${LOG_DIR}/"${LOG_FILE}"
-python /test/bin/performance_tests/get_avg_accuracies.py ${LOG_DIR}/"${LOG_FILE}" 1 >> ${LOG_DIR}/"${LOG_FILE}"
+python /test/bin/benchmark/get_avg_accuracies.py ${LOG_DIR}/"${LOG_FILE}" 1 >> ${LOG_DIR}/"${LOG_FILE}"
 END=$(date +%s)
 DIFF=$(( END - START ))
 echo Script took $(( DIFF/60 )) mins to finish >> ${LOG_DIR}/"${LOG_FILE}"
