@@ -115,7 +115,8 @@ def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connecti
     run_out = conn_run(
         (f"curl -X POST http://{ip_address}:{port}/predictions/bert_sst/predict -F "
          "'data=[\"Positive sentiment\", \"Negative sentiment\"]'"),
-        warn=True
+        warn=True,
+        echo=True
     )
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
