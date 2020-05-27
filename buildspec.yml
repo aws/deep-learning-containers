@@ -16,6 +16,11 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
+      - echo "${CODEBUILD_BUILD_ARN}"
+      - |
+        if expr "${CODEBUILD_BUILD_ARN}" : ".*build/tensorflow-1-" >/dev/null; then
+          python src/main.py --buildspec $FRAMEWORK/buildspec-tf1.yml --framework $FRAMEWORK;
+        fi
       - python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK
   post_build:
     commands:
