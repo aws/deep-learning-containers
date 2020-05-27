@@ -343,10 +343,12 @@ def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region
         f"-e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri}"
     )
-    connection.run(
-        f"{docker_cmd} exec {container_name} "
-        f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
-    )
-    connection.run(
-        f"docker rm -f {container_name}"
-    )
+    try:
+        connection.run(
+            f"{docker_cmd} exec {container_name} "
+            f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
+        )
+    except Exception as e:
+        raise Exception("Failed to exec benchmark command.\n", e)
+    finally:
+        connection.run(f"docker rm -f {container_name}")

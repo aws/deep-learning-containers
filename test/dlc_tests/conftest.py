@@ -27,7 +27,7 @@ FRAMEWORK_FIXTURES = (
     "tensorflow_inference",
     "tensorflow_training",
     "training",
-    "inference"
+    "inference",
 )
 
 
@@ -62,12 +62,12 @@ def docker_client(region):
 
 @pytest.fixture(scope="session")
 def ec2_client(region):
-    return boto3.client("ec2", region_name=region, config=Config(retries={'max_attempts': 10}))
+    return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
 
 @pytest.fixture(scope="session")
 def ec2_resource(region):
-    return boto3.resource("ec2", region_name=region, config=Config(retries={'max_attempts': 10}))
+    return boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
 
 @pytest.fixture(scope="function")
@@ -88,7 +88,7 @@ def ec2_instance_ami(request):
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
 def ec2_instance(
-        request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami, region
+    request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami, region
 ):
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
@@ -98,23 +98,13 @@ def ec2_instance(
         "InstanceType": ec2_instance_type,
         "IamInstanceProfile": {"Name": ec2_instance_role_name},
         "TagSpecifications": [
-                {
-                    "ResourceType": "instance",
-                    "Tags": [{"Key": "Name", "Value": f"CI-CD {ec2_key_name}"}]
-                },
-            ],
+            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {ec2_key_name}"}]},
+        ],
         "MaxCount": 1,
-        "MinCount": 1
+        "MinCount": 1,
     }
-    extra_volume_size_mapping = [
-                        {
-                            'DeviceName': '/dev/sda1',
-                            'Ebs': {
-                                'VolumeSize': 300,
-                            }
-                        }
-                    ]
-    if "performance" in ec2_key_name and "mxnet" in ec2_key_name and "training_cpu" not in ec2_key_name:
+    extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300,}}]
+    if "benchmark" in os.getenv("TEST_TYPE") and "mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames:
         params["BlockDeviceMappings"] = extra_volume_size_mapping
     instances = ec2_resource.create_instances(**params)
     instance_id = instances[0].id
@@ -125,15 +115,13 @@ def ec2_instance(
         if test_utils.is_pr_context():
             test_utils.destroy_ssh_keypair(ec2_client, key_filename)
         else:
-            with open(KEYS_TO_DESTROY_FILE, 'a') as destroy_keys:
+            with open(KEYS_TO_DESTROY_FILE, "a") as destroy_keys:
                 destroy_keys.write(f"{key_filename}\n")
 
     request.addfinalizer(terminate_ec2_instance)
 
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
-    ec2_utils.check_system_state(
-        instance_id, system_status="ok", instance_status="ok", region=region
-    )
+    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
     return instance_id, key_filename
 
 
@@ -153,7 +141,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
     conn = Connection(
         user=user,
         host=ec2_utils.get_public_ip(instance_id, region),
-        connect_kwargs={"key_filename": [instance_pem_file]}
+        connect_kwargs={"key_filename": [instance_pem_file]},
     )
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
@@ -252,11 +240,13 @@ def pytest_generate_tests(metafunc):
 
             # Remove all images tagged as "py2" if py3_only is a fixture
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
-                images_to_parametrize = [py3_image for py3_image in images_to_parametrize if 'py2' not in py3_image]
+                images_to_parametrize = [py3_image for py3_image in images_to_parametrize if "py2" not in py3_image]
 
             # Parametrize tests that spin up an ecs cluster or tests that spin up an EC2 instance with a unique name
-            values_to_generate_for_fixture = {"ecs_container_instance": "ecs_cluster_name",
-                                              "ec2_connection": "ec2_key_name"}
+            values_to_generate_for_fixture = {
+                "ecs_container_instance": "ecs_cluster_name",
+                "ec2_connection": "ec2_key_name",
+            }
 
             fixtures_parametrized = generate_unique_values_for_fixtures(
                 metafunc, images_to_parametrize, values_to_generate_for_fixture

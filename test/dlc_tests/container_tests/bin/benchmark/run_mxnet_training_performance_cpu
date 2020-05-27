@@ -25,7 +25,7 @@ export KMP_AFFINITY='granularity=fine,compact,1,0' && export OMP_NUM_THREADS=36 
 python deeplearning-benchmark/image_classification/image_classification.py \
 --model resnet18_v2 --dataset cifar10 --mode symbolic --gpus 0 \
 --epochs 25 --log-interval 50 --kvstore local --dtype='float32' --batch-size=64 2>&1 | tee ${LOG_DIR}/"${LOG_FILE}"
-python /test/bin/benchmark/get_mxnet_avg_speed.py ${LOG_DIR}/"${LOG_FILE}" 4 >> ${LOG_DIR}/"${LOG_FILE}"
+python /test/bin/benchmark/get_mxnet_avg_throughput.py ${LOG_DIR}/"${LOG_FILE}" 4 >> ${LOG_DIR}/"${LOG_FILE}"
 END=$(date +%s)
 DIFF=$(( END - START ))
 echo Script took $(( DIFF/60 )) mins to finish >> ${LOG_DIR}/"${LOG_FILE}"
