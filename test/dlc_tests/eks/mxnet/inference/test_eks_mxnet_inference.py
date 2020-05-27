@@ -9,6 +9,7 @@ import test.test_utils as test_utils
 from invoke import run
 
 
+@pytest.mark.skip(reason="Testing only gluonnlp inference")
 def test_eks_mxnet_squeezenet_inference(mxnet_inference):
     num_replicas = "1"
 
@@ -51,7 +52,6 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
         run(f"kubectl delete service {selector_name}")
 
 
-@pytest.mark.skip(reason="Testing only squeezenet inference")
 def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
     num_replicas = "1"
 
