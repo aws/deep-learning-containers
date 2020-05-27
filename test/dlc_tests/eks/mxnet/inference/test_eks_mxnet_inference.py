@@ -1,12 +1,15 @@
 import os
 import random
 
+import pytest
+
 import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
 from invoke import run
 
 
+@pytest.mark.skip(reason="Testing only gluonnlp inference")
 def test_eks_mxnet_squeezenet_inference(mxnet_inference):
     num_replicas = "1"
 
