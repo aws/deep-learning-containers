@@ -28,7 +28,7 @@ echo Script took $(( DIFF/60 )) mins to finish >> ${LOG_DIR}/"${LOG_FILE}"
 
 echo Benchmark Results: >&2
 echo MXNet Inference py"${PYTHON_VERSION}" cpu >&2
-tail ${LOG_DIR}/"${LOG_FILE}" >&2 # Dsiplay only the results to console
+tail ${LOG_DIR}/"${LOG_FILE}" >&2 # Display only the results to console
 aws s3 cp ${LOG_DIR}/"${LOG_FILE}" s3://dlinfra-dlc-cicd-performance/mxnet/ec2/inference/cpu/py"${PYTHON_VERSION}"/"${LOG_FILE}"
 echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/mxnet/ec2/inference/cpu/py"${PYTHON_VERSION}"/"${LOG_FILE}" >&2
 set +e
