@@ -107,7 +107,7 @@ ENV PATH=/usr/local/nvidia/bin:$PATH
 # with python2
 RUN pip --no-cache-dir install --upgrade \
     pip==19.3.1 \
-    setuptools
+    setuptools==44.1.0
 
 WORKDIR /
 

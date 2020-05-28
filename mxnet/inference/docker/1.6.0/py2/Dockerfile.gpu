@@ -41,7 +41,7 @@ RUN apt-get update \
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
-    setuptools
+    setuptools==44.1.0
 
 WORKDIR /
 
