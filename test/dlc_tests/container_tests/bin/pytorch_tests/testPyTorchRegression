@@ -5,5 +5,6 @@ BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
 git clone https://github.com/pytorch/examples.git ${HOME_DIR}/artifacts/examples
+sed -i "s/param.add_(-0.1 \* param.grad)/param.data.add_(-0.1 \* param.grad)/g" ${HOME_DIR}/artifacts/examples/regression/main.py # temporary patch for isssue https://github.com/pytorch/examples/issues/782
 ${BIN_DIR}/pytorch_tests/testPyTorchRegressionHelper || exit 1
 exit 0
