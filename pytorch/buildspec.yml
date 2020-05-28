@@ -20,6 +20,9 @@
       start_with_right_hostname:
         source: docker/build_artifacts/start_with_right_hostname.sh
         target: start_with_right_hostname.sh
+      example_mnist_file:
+        source: docker/build_artifacts/mnist.py
+        target: mnist.py
 
   images:
     BuildCPUPTTrainPy3DockerImage:
