@@ -134,7 +134,7 @@ RUN ${PIP} install --no-cache-dir -U \
     scipy==1.2.2 \
     scikit-learn==0.22 \
     pandas==0.25.3 \
-    Pillow==6.2.0 \
+    Pillow \
     h5py==2.10.0 \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
