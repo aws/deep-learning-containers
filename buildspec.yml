@@ -20,8 +20,9 @@ phases:
       - |
         if expr "${CODEBUILD_BUILD_ARN}" : ".*build/tensorflow-1-" >/dev/null; then
           python src/main.py --buildspec $FRAMEWORK/buildspec-tf1.yml --framework $FRAMEWORK;
+        else
+          python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK
         fi
-      - python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK
   post_build:
     commands:
       - echo Build step finished on `date`
