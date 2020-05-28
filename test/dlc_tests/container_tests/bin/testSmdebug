@@ -9,18 +9,23 @@ fi
 
 FRAMEWORK=$1
 # declare -A only works with bash 4 and above, and creates an "associate array" in bash
-declare -A ZCC_TEST_NAME=( ["mxnet"]="test_mxnet_gluon_integration.py" \
-                           ["pytorch"]="test_pytorch_integration.py" \
-                           ["tensorflow"]="test_tensorflow_integration.py" \
-                           ["tensorflow2"]="test_tensorflow2_integration.py")
+declare -A ZCC_TEST_NAME=( ["mxnet"]="mxnet_gluon_integration_test.py" \
+                           ["pytorch"]="pytorch_integration_tests.py" \
+                           ["tensorflow"]="tensorflow_integration_tests.py" \
+                           ["tensorflow2"]="tensorflow2_integration_tests.py")
 
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
+# Assuming that if a version is released to pypi, it will have a corresponding release tag on GitHub.
+# Not using master because there could be breaking changes in tests between versions.
+SMDEBUG_RELEASE_TAG=$(python -c "import smdebug; print(smdebug.__version__)")
+
 echo "Simply verify if smdebug is installed correctly."
 set -x
-git clone https://github.com/awslabs/sagemaker-debugger.git sagemaker-debugger || exit 1
+echo "Cloning git repo for release tag $SMDEBUG_RELEASE_TAG"
+git clone -b ${SMDEBUG_RELEASE_TAG} https://github.com/awslabs/sagemaker-debugger.git sagemaker-debugger || exit 1
 
 echo "Changing to sagemaker-debugger."
 cd sagemaker-debugger
@@ -60,8 +65,9 @@ if [ ! ${ZCC_TEST_NAME[$FRAMEWORK]} ]; then
     exit 1
 fi
 if [[ ${FRAMEWORK} == "tensorflow2" ]]; then
-    SMDEBUG_RELEASE_TAG=$(python -c "import smdebug; print(smdebug.__version__)")
-    timeout 720s python mock/tests/zero_code_change/test_${FRAMEWORK}_gradtape_integration.py 2>&1
+    if [ "$(printf '%s\n' "0.7.2" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.7.2" ]; then
+        timeout 720s python mock/tests/zero_code_change/${FRAMEWORK}_gradtape_integration_tests.py 2>&1
+    fi
 fi
 
 echo "Running ZCC tests."
