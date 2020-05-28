@@ -20,8 +20,10 @@ phases:
       - |
         if expr "${CODEBUILD_BUILD_ARN}" : ".*build/tensorflow-1-" >/dev/null; then
           python src/main.py --buildspec $FRAMEWORK/buildspec-tf1.yml --framework $FRAMEWORK;
+          echo Running the TF1 buildspec
         else
-          python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK
+          python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK;
+          echo Not running the TF1 buildspec
         fi
   post_build:
     commands:
