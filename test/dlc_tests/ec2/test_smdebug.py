@@ -3,17 +3,14 @@ import os
 import pytest
 
 from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf2
+from test.test_utils.ec2 import get_ec2_instance_type
 
 
 SMDEBUG_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
 
 
-if os.getenv("BUILD_CONTEXT") == "PR":
-    SMDEBUG_EC2_GPU_INSTANCE_TYPE = ["p3.8xlarge"]
-    SMDEBUG_EC2_CPU_INSTANCE_TYPE = ["c5.9xlarge"]
-else:
-    SMDEBUG_EC2_GPU_INSTANCE_TYPE = ["g3.4xlarge", "p2.8xlarge", "p3.16xlarge"]
-    SMDEBUG_EC2_CPU_INSTANCE_TYPE = ["c4.8xlarge", "c5.18xlarge", "m4.16xlarge", "t2.2xlarge"]
+SMDEBUG_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.8xlarge", processor="gpu")
+SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 
 
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)

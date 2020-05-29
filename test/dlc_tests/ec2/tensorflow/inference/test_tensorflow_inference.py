@@ -5,18 +5,23 @@ from time import sleep
 import pytest
 
 from test import test_utils
+from test.test_utils.ec2 import get_ec2_instance_type
 from test.dlc_tests.conftest import LOGGER
 
 TENSORFLOW1_VERSION = "1."
 TENSORFLOW2_VERSION = "2."
 
 
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu")
+TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
+
+
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tenorflow_inference_gpu(tensorflow_inference, ec2_connection, region, gpu_only):
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
 
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, region, cpu_only):
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 

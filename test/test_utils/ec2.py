@@ -4,10 +4,19 @@ import boto3
 
 from retrying import retry
 
-from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
+from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
 
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
+
+
+def get_ec2_instance_type(default, processor, enable_p3dn=False):
+    # Return the default instance type if we are not in mainline context
+    instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
+    p3dn = "p3dn.24xlarge"
+    if instance_type == p3dn and not enable_p3dn:
+        return [default] if default != p3dn else ["p2.xlarge"]
+    return [instance_type]
 
 
 def launch_instance(

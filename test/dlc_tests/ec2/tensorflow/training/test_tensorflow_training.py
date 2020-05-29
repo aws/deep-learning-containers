@@ -1,8 +1,8 @@
 import os
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf2, is_pr_context, get_dlc_images
-from test.test_utils.ec2 import execute_ec2_training_test
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1
+from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
 TF1_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflow1Standalone")
@@ -13,18 +13,8 @@ TF2_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTF2HVD")
 TF_OPENCV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testOpenCV")
 TF_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_tf_dlc_telemetry_test")
 
-
-if is_pr_context():
-    TF_EC2_GPU_INSTANCE_TYPE = ["p2.xlarge"]
-    TF_EC2_CPU_INSTANCE_TYPE = ["c5.4xlarge"]
-else:
-    TF_EC2_GPU_INSTANCE_TYPE = ["g3.4xlarge", "p2.8xlarge", "p3.16xlarge"]
-    TF_EC2_CPU_INSTANCE_TYPE = ["c4.8xlarge", "c5.18xlarge", "m4.16xlarge", "t2.2xlarge"]
-
-    # As our next release is TF2, adding p3dn testing
-    # images = get_dlc_images()
-    # if is_tf2(images):
-    #    TF_EC2_GPU_INSTANCE_TYPE.append("p3dn.24xlarge")
+TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p2.xlarge", processor="gpu")
+TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 
 
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
