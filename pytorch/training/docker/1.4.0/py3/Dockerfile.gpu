@@ -6,6 +6,7 @@ LABEL maintainer="Amazon AI"
 ARG PYTHON_VERSION=3.6.6
 ARG OPEN_MPI_VERSION=4.0.1
 ARG CUBLAS_VERSION=10.2.1.243-1_amd64
+ARG OPENSSL_VERSION=1.1.1g
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=0.7.2
@@ -50,6 +51,7 @@ RUN apt-get update \
     libhwloc-dev \
     libnuma1 \
     libnuma-dev \
+    libtemplate-perl \
     vim \
     wget \
     zlib1g-dev \
@@ -95,6 +97,23 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     "pyopenssl>=17.5.0" \
  && conda install -c dglteam -y dgl-cuda10.1==0.4.1 \
  && /opt/conda/bin/conda clean -ya
+
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get update \
+ && apt-get install -y \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-*
+
+# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
 RUN conda install -c pytorch magma-cuda101==2.5.1 \
  && conda install -c conda-forge \
