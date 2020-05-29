@@ -23,6 +23,10 @@ def get_ec2_instance_type(default, processor, enable_p3dn=False):
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
     a list.
     """
+    allowed_processors = ("cpu", "gpu")
+    if processor not in allowed_processors:
+        raise RuntimeError(f"Aborting EC2 test run. Unrecognized processor type {processor}. "
+                           f"Please choose from {allowed_processors}")
     instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
     p3dn = "p3dn.24xlarge"
     if instance_type == p3dn and not enable_p3dn:
