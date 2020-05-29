@@ -9,6 +9,7 @@ SQUEEZENET_MODEL = "squeezenet"
 BERT_MODEL = "bert_sst"
 
 
+# TODO: Set enable_p3dn=True when releasing
 MX_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu")
 MX_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 

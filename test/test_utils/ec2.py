@@ -4,18 +4,32 @@ import boto3
 
 from retrying import retry
 
-from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI
+from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
 
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 
 def get_ec2_instance_type(default, processor, enable_p3dn=False):
-    # Return the default instance type if we are not in mainline context
+    """
+    Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
+    for contexts where the variable is not present (i.e. PR, Nightly, local testing)
+
+    :param default: Default instance type to use
+    :param processor: "cpu" or "gpu"
+    :param enable_p3dn: Boolean to determine whether or not to run tests on p3dn. If set to false, default
+    gpu instance type will be used. If default gpu instance type is p3dn, then use small gpu instance type (p2.xlarge)
+
+    :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
+    a list.
+    """
     instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
     p3dn = "p3dn.24xlarge"
     if instance_type == p3dn and not enable_p3dn:
-        return [default] if default != p3dn else ["p2.xlarge"]
+        if default == p3dn:
+            LOGGER.info("Default instance type is p3dn but p3dn testing is disabled. Using p2.xlarge instead.")
+            return ["p2.xlarge"]
+        return [default]
     return [instance_type]
 
 

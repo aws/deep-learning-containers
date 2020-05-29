@@ -7,6 +7,7 @@ from test.test_utils.ec2 import get_ec2_instance_type
 from test.dlc_tests.conftest import LOGGER
 
 
+# TODO: Set enable_p3dn=True when releasing
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu")
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 
