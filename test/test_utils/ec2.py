@@ -24,15 +24,15 @@ def get_ec2_instance_type(default, processor, enable_p3dn=False):
     a list.
     """
     allowed_processors = ("cpu", "gpu")
+    p3dn = "p3dn.24xlarge"
     if processor not in allowed_processors:
         raise RuntimeError(f"Aborting EC2 test run. Unrecognized processor type {processor}. "
                            f"Please choose from {allowed_processors}")
+    if default == p3dn and not enable_p3dn:
+        raise RuntimeError("Default instance type is p3dn but p3dn testing is disabled. Please either enable p3dn "
+                           "by setting enable_p3dn=True, or change the default instance type")
     instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
-    p3dn = "p3dn.24xlarge"
     if instance_type == p3dn and not enable_p3dn:
-        if default == p3dn:
-            LOGGER.info("Default instance type is p3dn but p3dn testing is disabled. Using p2.xlarge instead.")
-            return ["p2.xlarge"]
         return [default]
     return [instance_type]
 
