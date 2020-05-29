@@ -49,12 +49,12 @@ RUN ${PIP} install --no-cache-dir \
     ${MX_URL} \
     # setuptools<45.0.0 because support for py2 stops with 45.0.0
     # https://github.com/pypa/setuptools/blob/master/CHANGES.rst#v4500
-    "setuptools<45" \
+    "setuptools<45.0.0" \
     mxnet-model-server==$MMS_VERSION \
     keras-mxnet==2.2.4.1 \
     numpy==1.16.5 \
     onnx==1.4.1 \
-    sagemaker-mxnet-inference
+    "sagemaker-mxnet-inference<2"
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
