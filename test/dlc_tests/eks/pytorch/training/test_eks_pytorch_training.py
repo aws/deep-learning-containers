@@ -16,6 +16,7 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON
 LOGGER = eks_utils.LOGGER
 
 
+@pytest.mark.skip(reason="Only run pytorch dgl test")
 def test_eks_pytorch_single_node_training(pytorch_training):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training

@@ -1,12 +1,15 @@
 import os
 import random
 
+import pytest
+
 import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
 from invoke import run
 
 
+@pytest.mark.skip(reason="Only run pytorch dgl test")
 def test_eks_pytorch_densenet_inference(pytorch_inference):
     num_replicas = "1"
 
