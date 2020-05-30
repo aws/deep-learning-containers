@@ -67,11 +67,12 @@ WORKDIR /
 RUN ${PIP} install --no-cache-dir \
     ${MX_URL} \
     git+git://github.com/dmlc/gluon-nlp.git@v0.9.0 \
+    gluoncv==0.6.0 \
     mxnet-model-server==$MMS_VERSION \
     keras-mxnet==2.2.4.1 \
     numpy==1.17.4 \
     onnx==1.4.1 \
-    sagemaker-mxnet-inference
+    "sagemaker-mxnet-inference<2"
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
