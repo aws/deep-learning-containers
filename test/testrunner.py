@@ -121,19 +121,21 @@ def pull_dlc_images(images):
 
 
 def setup_eks_clusters(dlc_images):
-    terminable_clusters = []
     frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
-    for long_name, short_name in frameworks.items():
-        if long_name in dlc_images:
-            cluster_name = None
-            if not is_pr_context():
-                num_nodes = 3 if long_name != "pytorch" else 4
-                cluster_name = f"dlc-{short_name}-cluster-" \
-                               f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
-                eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
-                terminable_clusters.append(cluster_name)
-            eks_utils.eks_setup(long_name, cluster_name)
-    return terminable_clusters
+    frameworks_in_images = [framework for framework in frameworks.keys() if framework in dlc_images]
+    if len(frameworks_in_images) != 1:
+        raise ValueError(
+            f"All images in dlc_images must be of a single framework for EKS tests.\n"
+            f"Instead seeing {frameworks_in_images} frameworks."
+        )
+    long_name = frameworks_in_images[0]
+    short_name = frameworks[long_name]
+    num_nodes = 2 if is_pr_context() else 3 if long_name != "pytorch" else 4
+    cluster_name = f"dlc-{short_name}-cluster-" \
+                   f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
+    eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
+    eks_utils.eks_setup(long_name, cluster_name)
+    return cluster_name
 
 
 def main():
@@ -143,7 +145,7 @@ def main():
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
-    eks_terminable_clusters = []
+    new_eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type
     specific_test_type = re.sub("benchmark-", "", test_type) if benchmark_mode else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
@@ -158,15 +160,14 @@ def main():
         if specific_test_type == "sanity":
             pull_dlc_images(all_image_list)
         if specific_test_type == "eks":
-            eks_terminable_clusters = setup_eks_clusters(dlc_images)
+            new_eks_cluster_name = setup_eks_clusters(dlc_images)
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
         try:
             sys.exit(pytest.main(pytest_cmd))
         finally:
-            if specific_test_type == "eks" and eks_terminable_clusters:
-                for cluster in eks_terminable_clusters:
-                    eks_utils.delete_eks_cluster(cluster)
+            if specific_test_type == "eks":
+                eks_utils.delete_eks_cluster(new_eks_cluster_name)
 
             # Delete dangling EC2 KeyPairs
             if specific_test_type == "ec2" and os.path.exists(KEYS_TO_DESTROY_FILE):
