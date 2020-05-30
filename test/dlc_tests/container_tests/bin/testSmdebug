@@ -9,10 +9,10 @@ fi
 
 FRAMEWORK=$1
 # declare -A only works with bash 4 and above, and creates an "associate array" in bash
-declare -A ZCC_TEST_NAME=( ["mxnet"]="mxnet_gluon_integration_test.py" \
-                           ["pytorch"]="pytorch_integration_tests.py" \
-                           ["tensorflow"]="tensorflow_integration_tests.py" \
-                           ["tensorflow2"]="tensorflow2_integration_tests.py")
+declare -A ZCC_TEST_NAME=( ["mxnet"]="test_mxnet_gluon_integration.py" \
+                           ["pytorch"]="test_pytorch_integration.py" \
+                           ["tensorflow"]="test_tensorflow_integration.py" \
+                           ["tensorflow2"]="test_tensorflow2_integration.py")
 
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
@@ -67,8 +67,8 @@ if [ ! ${ZCC_TEST_NAME[$FRAMEWORK]} ]; then
     exit 1
 fi
 if [[ ${FRAMEWORK} == "tensorflow2" ]]; then
-    if [ "$(printf '%s\n' "0.7.2" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.7.2" ]; then
-        timeout 720s python mock/tests/zero_code_change/${FRAMEWORK}_gradtape_integration_tests.py 2>&1
+    if [ "$(printf '%s\n' "0.8.1" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.8.1" ]; then
+        timeout 720s python mock/tests/zero_code_change/test_${FRAMEWORK}_gradtape_integration.py 2>&1
     fi
 fi
 
