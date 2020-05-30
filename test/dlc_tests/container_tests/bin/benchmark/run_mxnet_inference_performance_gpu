@@ -1,0 +1,39 @@
+#!/bin/bash
+
+PYTHON_VERSION=$(python -c 'import sys; print(sys.version_info[0])' | tr -d "'")
+TIMESTAMP=$(date "+%Y-%m-%d-%H-%M-%S")
+HOME_DIR=/test/benchmark
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs/gpu
+LOG_FILE=inference_results_${COMMIT_INFO}_${TIMESTAMP}.txt
+
+mkdir -p ${HOME_DIR}
+mkdir -p ${BIN_DIR}
+mkdir -p ${LOG_DIR}
+
+set -e
+pip install awscli
+echo Fetch s3 bucket >&2
+aws s3 sync s3://aws-ml-platform-datasets/imagenet/pass-through/ /home/ubuntu/data
+echo Fetch finished >&2
+git clone https://github.com/awslabs/deeplearning-benchmark.git ${HOME_DIR}/artifacts/mxnet/deeplearning-benchmark  && cd ${HOME_DIR}/artifacts/mxnet/
+START=$(date +%s)
+pip install psutil gluoncv && python deeplearning-benchmark/image_classification/infer_imagenet_gpu.py \
+--use-rec --batch-size 128 --dtype float16 --num-data-workers 40 --mode symbolic --model resnet50_v2 --num_gpus 0,1,2,3,4,5,6,7 \
+--use-pretrained --kvstore local --log-interval 1 --num-epochs 1 --rec-val /home/ubuntu/data/val-passthrough.rec --rec-val-idx /home/ubuntu/data/val-passthrough.idx \
+2>&1 | tee ${LOG_DIR}/"${LOG_FILE}"
+python /test/bin/benchmark/get_mxnet_avg_throughput.py ${LOG_DIR}/"${LOG_FILE}" 4 >> ${LOG_DIR}/"${LOG_FILE}"
+END=$(date +%s)
+DIFF=$(( END - START ))
+echo Script took $(( DIFF/60 )) mins to finish >> ${LOG_DIR}/"${LOG_FILE}"
+
+echo Benchmark Results: >&2
+echo MXNet Inference py"${PYTHON_VERSION}" gpu >&2
+tail ${LOG_DIR}/"${LOG_FILE}" >&2 # Display only the results to console
+aws s3 cp ${LOG_DIR}/"${LOG_FILE}" s3://dlinfra-dlc-cicd-performance/mxnet/ec2/inference/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}"
+echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/mxnet/ec2/inference/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}" >&2
+set +e
+
+rm -rf ${HOME_DIR}/artifacts/mxnet/deeplearning-benchmark
+
+exit 0
