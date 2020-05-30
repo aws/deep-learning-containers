@@ -9,10 +9,10 @@ fi
 
 FRAMEWORK=$1
 # declare -A only works with bash 4 and above, and creates an "associate array" in bash
-declare -A ZCC_TEST_NAME=( ["mxnet"]="mxnet_gluon_integration_test.py" \
-                           ["pytorch"]="pytorch_integration_tests.py" \
-                           ["tensorflow"]="tensorflow_integration_tests.py" \
-                           ["tensorflow2"]="tensorflow2_integration_tests.py")
+declare -A ZCC_TEST_NAME=( ["mxnet"]="test_mxnet_gluon_integration.py" \
+                           ["pytorch"]="test_pytorch_integration.py" \
+                           ["tensorflow"]="test_tensorflow_integration.py" \
+                           ["tensorflow2"]="test_tensorflow2_integration.py")
 
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
