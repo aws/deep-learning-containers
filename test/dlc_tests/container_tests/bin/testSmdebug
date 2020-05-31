@@ -73,7 +73,7 @@ if [[ ${FRAMEWORK} == "tensorflow2" ]]; then
 fi
 
 echo "Running ZCC tests."
-timeout 1800s python mock/tests/zero_code_change/${ZCC_TEST_NAME[$FRAMEWORK]}
+timeout 1800s pytest mock/tests/zero_code_change/${ZCC_TEST_NAME[$FRAMEWORK]}
 
 if [ "$?" -eq "0" ]
 then
