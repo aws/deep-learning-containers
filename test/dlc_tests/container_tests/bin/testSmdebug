@@ -8,6 +8,10 @@ if [ $# -lt 1 ]; then
 fi
 
 FRAMEWORK=$1
+# Assuming that if a version is released to pypi, it will have a corresponding release tag on GitHub.
+# Not using master because there could be breaking changes in tests between versions.
+SMDEBUG_RELEASE_TAG=$(python -c "import smdebug; print(smdebug.__version__)")
+
 # declare -A only works with bash 4 and above, and creates an "associate array" in bash
 if [ "$(printf '%s\n' "0.8.0" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.8.0" ]; then
     declare -A ZCC_TEST_NAME=( ["mxnet"]="test_mxnet_gluon_integration.py" \
@@ -24,10 +28,6 @@ fi
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
-
-# Assuming that if a version is released to pypi, it will have a corresponding release tag on GitHub.
-# Not using master because there could be breaking changes in tests between versions.
-SMDEBUG_RELEASE_TAG=$(python -c "import smdebug; print(smdebug.__version__)")
 
 echo "Simply verify if smdebug is installed correctly."
 set -x
