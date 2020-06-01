@@ -156,7 +156,7 @@ def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
 def test_smdebug(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_smdebug.py')
-    hyperparameters = {'smdebug_path': '/opt/ml/output/tensors'}
+    hyperparameters = {'smdebug_path': '/tmp/ml/output/tensors'}
     estimator = TensorFlow(entry_point=script,
                            role='SageMakerRole',
                            train_instance_type=instance_type,
