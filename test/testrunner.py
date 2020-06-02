@@ -163,6 +163,10 @@ def main():
             new_eks_cluster_name = setup_eks_clusters(dlc_images)
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
+        pytest_cmds = [
+            ["-s", "-rA", os.path.join(test_path, "mxnet", "training"), f"--junitxml={report}", "-n=auto"],
+            ["-s", "-rA", os.path.join(test_path, "mxnet", "inference"), f"--junitxml={report}", "-n=auto"],
+        ]
         try:
             sys.exit(pytest.main(pytest_cmd))
         finally:
