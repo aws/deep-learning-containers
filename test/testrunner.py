@@ -152,6 +152,7 @@ def main():
 
     if specific_test_type in ("sanity", "ecs", "ec2", "eks"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+        report_2 = os.path.join(os.getcwd(), "test", f"{test_type}_2.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
         os.chdir(os.path.join("test", "dlc_tests"))
@@ -165,10 +166,12 @@ def main():
         pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
         pytest_cmds = [
             ["-s", "-rA", os.path.join(test_path, "mxnet", "training"), f"--junitxml={report}", "-n=auto"],
-            ["-s", "-rA", os.path.join(test_path, "mxnet", "inference"), f"--junitxml={report}", "-n=auto"],
+            ["-s", "-rA", os.path.join(test_path, "mxnet", "inference"), f"--junitxml={report_2}", "-n=auto"],
         ]
         try:
-            sys.exit(pytest.main(pytest_cmd))
+            for pytest_cmd in pytest_cmds[:-1]:
+                pytest.main(pytest_cmd)
+            sys.exit(pytest.main(pytest_cmds[-1]))
         finally:
             if specific_test_type == "eks":
                 eks_utils.delete_eks_cluster(new_eks_cluster_name)
