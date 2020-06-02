@@ -1,10 +1,6 @@
 # usage: python <script_name>.py <log_file> 4 Training & Inference GPU
 # usage: python <script_name>.py <log_file> 1 Inference CPU
 import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument("filepath")
-parser.add_argument("index", type=int)
-args = parser.parse_args()
 
 
 def get_avg_speed(filepath, index):
@@ -25,6 +21,10 @@ def get_avg_speed(filepath, index):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("filepath")
+    parser.add_argument("index", type=int)
+    args = parser.parse_args()
     filepath = args.filepath
     index = args.index
     avg_speed = get_avg_speed(filepath, index)
