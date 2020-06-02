@@ -24,10 +24,8 @@ ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 
+ARG FRAMEWORK_SUPPORT_INSTALLABLE=sagemaker_tensorflow_training*.tar.gz
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.2/AmazonLinux/cpu/final/tensorflow-2.0.2-cp36-cp36m-manylinux2010_x86_64.whl
-# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
-# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.8.1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
@@ -83,6 +81,8 @@ RUN mkdir -p /root/.ssh/ \
 
 WORKDIR /
 
+COPY $FRAMEWORK_SUPPORT_INSTALLABLE .
+
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
@@ -98,12 +98,11 @@ RUN ${PIP} install --no-cache-dir -U \
     scipy==1.2.2 \
     scikit-learn==0.22 \
     pandas==0.25.3 \
-    Pillow \
+    Pillow==6.2.1 \
     h5py==2.10.0 \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
     keras==2.3.1 \
-    smdebug==${SMDEBUG_VERSION} \
     python-dateutil==2.8.0 \
     PyYAML==5.1.2 \
     requests==2.22.0 \
@@ -118,7 +117,9 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     horovod==0.18.2 \
-    "sagemaker-tensorflow-training>=3.0<4.0"
+ && ${PIP} install --no-cache-dir -U \
+    $FRAMEWORK_SUPPORT_INSTALLABLE \
+ && rm -f $FRAMEWORK_SUPPORT_INSTALLABLE 
 
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

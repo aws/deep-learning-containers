@@ -13,6 +13,7 @@ ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8 
 ENV LC_ALL=C.UTF-8
 
+ARG FRAMEWORK_SUPPORT_INSTALLABLE=sagemaker_tensorflow_training*.tar.gz
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.2/AmazonLinux/gpu/final/tensorflow_gpu-2.0.2-cp27-cp27mu-manylinux2010_x86_64.whl
 
 ARG PYTHON=python
@@ -116,6 +117,8 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
 
+COPY $FRAMEWORK_SUPPORT_INSTALLABLE .
+
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
@@ -123,7 +126,7 @@ RUN ${PIP} install --no-cache-dir -U \
     scipy==1.2.2 \
     scikit-learn==0.20.4 \
     pandas==0.24.2 \
-    Pillow==6.2.2 \
+    Pillow==6.2.1 \
     h5py==2.10.0 \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
@@ -140,7 +143,9 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    "sagemaker-tensorflow-training>=3.0<4.0"
+ && ${PIP} install --no-cache-dir -U \
+    $FRAMEWORK_SUPPORT_INSTALLABLE \
+ && rm -f $FRAMEWORK_SUPPORT_INSTALLABLE 
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs \

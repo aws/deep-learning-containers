@@ -24,10 +24,8 @@ ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 
+ARG FRAMEWORK_SUPPORT_INSTALLABLE=sagemaker_tensorflow_training*.tar.gz
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.2/AmazonLinux/gpu/final/tensorflow_gpu-2.0.2-cp36-cp36m-manylinux2010_x86_64.whl
-# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
-# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.8.1
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     python3-dev \
@@ -130,6 +128,8 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
+COPY $FRAMEWORK_SUPPORT_INSTALLABLE .
+
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
@@ -137,13 +137,12 @@ RUN ${PIP} install --no-cache-dir -U \
     scipy==1.2.2 \
     scikit-learn==0.22 \
     pandas==0.25.3 \
-    Pillow \
+    Pillow==6.2.0 \
     h5py==2.10.0 \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
     requests==2.22.0 \
     keras==2.3.1 \
-    smdebug==${SMDEBUG_VERSION} \
     python-dateutil==2.8.0 \
     PyYAML==5.1.2 \
     awscli \
@@ -156,7 +155,9 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    "sagemaker-tensorflow-training>=3.0<4.0"
+ && ${PIP} install --no-cache-dir -U \
+    $FRAMEWORK_SUPPORT_INSTALLABLE \
+ && rm -f $FRAMEWORK_SUPPORT_INSTALLABLE 
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs \
