@@ -151,7 +151,7 @@ def main():
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
     if specific_test_type in ("sanity", "ecs", "ec2", "eks"):
-        report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+        # report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         report_train = os.path.join(os.getcwd(), "test", f"{test_type}_train.xml")
         report_infer = os.path.join(os.getcwd(), "test", f"{test_type}_infer.xml")
 
@@ -167,7 +167,7 @@ def main():
         # pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
         pytest_cmds = [
             ["-s", "-rA", os.path.join(test_path, "mxnet", "inference"), f"--junitxml={report_infer}", "-n=auto"],
-            ["-s", "-rA", os.path.join(test_path, "mxnet", "training"), f"--junitxml={report}", "-n=auto"],
+            ["-s", "-rA", os.path.join(test_path, "mxnet", "training"), f"--junitxml={report_train}", "-n=auto"],
         ]
         try:
             for pytest_cmd in pytest_cmds[:-1]:
