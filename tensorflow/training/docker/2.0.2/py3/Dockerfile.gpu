@@ -130,18 +130,18 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
-    numpy==1.17.4 \
+    numpy==1.18.1 \
     scipy==1.2.2 \
     scikit-learn==0.22 \
-    pandas==0.25.3 \
-    Pillow==6.2.0 \
+    pandas==1.0.1 \
+    Pillow==6.2.2 \
     h5py==2.10.0 \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
     requests==2.22.0 \
     keras==2.3.1 \
-    python-dateutil==2.8.0 \
-    PyYAML==5.1.2 \
+    python-dateutil==2.8.1 \
+    PyYAML==5.3.1 \
     awscli \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
