@@ -133,8 +133,12 @@ def setup_eks_clusters(dlc_images):
     num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
     cluster_name = f"dlc-{short_name}-cluster-" \
                    f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
-    eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
-    eks_utils.eks_setup(long_name, cluster_name)
+    try:
+        eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
+        eks_utils.eks_setup(long_name, cluster_name)
+    except Exception as e:
+        eks_utils.delete_eks_cluster(cluster_name)
+        raise RuntimeError(e)
     return cluster_name
 
 
@@ -145,13 +149,13 @@ def main():
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
-    new_eks_cluster_name = None
+    eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type
     specific_test_type = re.sub("benchmark-", "", test_type) if benchmark_mode else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
     if specific_test_type in ("sanity", "ecs", "ec2", "eks"):
-        # report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+        report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         report_train = os.path.join(os.getcwd(), "test", f"{test_type}_train.xml")
         report_infer = os.path.join(os.getcwd(), "test", f"{test_type}_infer.xml")
 
@@ -162,20 +166,23 @@ def main():
         if specific_test_type == "sanity":
             pull_dlc_images(all_image_list)
         if specific_test_type == "eks":
-            new_eks_cluster_name = setup_eks_clusters(dlc_images)
-        # Execute dlc_tests pytest command
-        # pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
-        pytest_cmds = [
-            ["-s", "-rA", os.path.join(test_path, "mxnet", "inference"), f"--junitxml={report_infer}", "-n=auto"],
-            ["-s", "-rA", os.path.join(test_path, "mxnet", "training"), f"--junitxml={report_train}", "-n=auto"],
-        ]
+            eks_cluster_name = setup_eks_clusters(dlc_images)
+            # We expect image URIs of only one framework for EKS tests.
+            framework = "mxnet" if "mxnet" in dlc_images else "pytorch" if "pytorch" in dlc_images else "tensorflow"
+            # Split training and inference, and run one after the other, to prevent scheduling issues
+            pytest_cmds = [
+                ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=auto"],
+                ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=auto"],
+            ]
+        else:
+            # Execute dlc_tests pytest command
+            pytest_cmds = [["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]]
         try:
-            for pytest_cmd in pytest_cmds[:-1]:
-                pytest.main(pytest_cmd)
-            sys.exit(pytest.main(pytest_cmds[-1]))
+            cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
+            sys.exit(0) if all([status == 0 for status in cmd_exit_statuses]) else sys.exit(1)
         finally:
-            if specific_test_type == "eks":
-                eks_utils.delete_eks_cluster(new_eks_cluster_name)
+            if specific_test_type == "eks" and eks_cluster_name:
+                eks_utils.delete_eks_cluster(eks_cluster_name)
 
             # Delete dangling EC2 KeyPairs
             if specific_test_type == "ec2" and os.path.exists(KEYS_TO_DESTROY_FILE):
