@@ -10,11 +10,13 @@ from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET
 
 
 @pytest.mark.parametrize("num_nodes", [1, 4], indirect=True)
-@pytest.mark.parametrize("ec2_instance_type", ["c5.18xlarge"], indirect=True)
-def test_tensorflow_sagemaker_training_performance(tensorflow_training, ec2_instance_type, num_nodes, region, cpu_only):
+def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_nodes, region):
 
     framework_version = re.search(r"[1,2](\.\d+){2}", tensorflow_training).group()
     processor = "gpu" if "gpu" in tensorflow_training else "cpu"
+
+    ec2_instance_type = "p3.16xlarge" if processor == "gpu" else "c5.18xlarge"
+
     py_version_search = re.search(r"py\d+", tensorflow_training)
     py_version = "py3" if py_version_search is None else py_version_search.group()
 
@@ -24,20 +26,20 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, ec2_inst
         BENCHMARK_RESULTS_S3_BUCKET, "tensorflow", framework_version, "sagemaker", "training", processor, py_version
     )
 
-    test_dir = os.path.join(os.path.realpath(__file__), "resources")
+    test_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "resources")
     venv_dir = os.path.join(test_dir, "sm_benchmark_venv")
 
     ctx = Context()
 
-    with ctx.cd(test_dir), ctx.prefix(f"source activate {venv_dir}/bin/activate"):
+    with ctx.cd(test_dir), ctx.prefix(f"source {venv_dir}/bin/activate"):
         log_file = f"results-{commit_info}-{time_str}-{num_nodes}-node.txt"
         run_out = ctx.run(f"timeout 45m python tf_sm_benchmark.py "
-                          f"--framework-version {framework_version}"
-                          f"--image-uri {tensorflow_training}"
-                          f"--instance-type ml.{ec2_instance_type}"
+                          f"--framework-version {framework_version} "
+                          f"--image-uri {tensorflow_training} "
+                          f"--instance-type ml.{ec2_instance_type} "
                           f"--node-count {num_nodes} "
                           f"--python {py_version} "
-                          f"--region {region}"
+                          f"--region {region} "
                           f"> {log_file}",
                           warn=True, echo=True)
 

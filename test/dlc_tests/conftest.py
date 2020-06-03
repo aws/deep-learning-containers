@@ -43,6 +43,11 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture(scope="function")
+def num_nodes(request):
+    return request.param
+
+
+@pytest.fixture(scope="function")
 def ec2_key_name(request):
     return request.param
 
