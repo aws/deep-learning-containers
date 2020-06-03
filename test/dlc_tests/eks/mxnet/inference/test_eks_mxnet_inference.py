@@ -1,12 +1,10 @@
 import os
 import random
 
-import pytest
+from invoke import run
 
 import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
-
-from invoke import run
 
 
 def test_eks_mxnet_squeezenet_inference(mxnet_inference):
