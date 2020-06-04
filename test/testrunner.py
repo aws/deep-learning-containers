@@ -120,15 +120,9 @@ def pull_dlc_images(images):
         run(f"docker pull {image}", hide="out")
 
 
-def setup_eks_clusters(dlc_images):
+def setup_eks_clusters(framework_name):
     frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
-    frameworks_in_images = [framework for framework in frameworks.keys() if framework in dlc_images]
-    if len(frameworks_in_images) != 1:
-        raise ValueError(
-            f"All images in dlc_images must be of a single framework for EKS tests.\n"
-            f"Instead seeing {frameworks_in_images} frameworks."
-        )
-    long_name = frameworks_in_images[0]
+    long_name = framework_name
     short_name = frameworks[long_name]
     num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
     cluster_name = f"dlc-{short_name}-cluster-" \
@@ -156,6 +150,8 @@ def main():
 
     if specific_test_type in ("sanity", "ecs", "ec2", "eks"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+        # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
+        # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.
         report_train = os.path.join(os.getcwd(), "test", f"{test_type}_train.xml")
         report_infer = os.path.join(os.getcwd(), "test", f"{test_type}_infer.xml")
 
@@ -166,9 +162,15 @@ def main():
         if specific_test_type == "sanity":
             pull_dlc_images(all_image_list)
         if specific_test_type == "eks":
+            frameworks_in_images = [framework for framework in ("mxnet", "pytorch", "tensorflow")
+                                    if framework in dlc_images]
+            if len(frameworks_in_images) != 1:
+                raise ValueError(
+                    f"All images in dlc_images must be of a single framework for EKS tests.\n"
+                    f"Instead seeing {frameworks_in_images} frameworks."
+                )
+            framework = frameworks_in_images[0]
             eks_cluster_name = setup_eks_clusters(dlc_images)
-            # We expect image URIs of only one framework for EKS tests.
-            framework = "mxnet" if "mxnet" in dlc_images else "pytorch" if "pytorch" in dlc_images else "tensorflow"
             # Split training and inference, and run one after the other, to prevent scheduling issues
             pytest_cmds = [
                 ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=auto"],
