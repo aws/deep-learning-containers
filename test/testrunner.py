@@ -132,7 +132,7 @@ def setup_eks_clusters(framework_name):
         eks_utils.eks_setup(long_name, cluster_name)
     except Exception as e:
         eks_utils.delete_eks_cluster(cluster_name)
-        raise RuntimeError(e)
+        raise Exception(e)
     return cluster_name
 
 
