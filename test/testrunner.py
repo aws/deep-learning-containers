@@ -120,7 +120,7 @@ def pull_dlc_images(images):
         run(f"docker pull {image}", hide="out")
 
 
-def setup_eks_clusters(framework_name):
+def setup_eks_cluster(framework_name):
     frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
     long_name = framework_name
     short_name = frameworks[long_name]
@@ -130,9 +130,9 @@ def setup_eks_clusters(framework_name):
     try:
         eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
         eks_utils.eks_setup(long_name, cluster_name)
-    except Exception as e:
+    except Exception:
         eks_utils.delete_eks_cluster(cluster_name)
-        raise Exception(e)
+        raise
     return cluster_name
 
 
@@ -170,7 +170,7 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
-            eks_cluster_name = setup_eks_clusters(dlc_images)
+            eks_cluster_name = setup_eks_cluster(framework)
             # Split training and inference, and run one after the other, to prevent scheduling issues
             pytest_cmds = [
                 ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=auto"],
