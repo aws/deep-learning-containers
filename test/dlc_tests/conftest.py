@@ -207,14 +207,16 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
             if key in metafunc_obj.fixturenames:
                 fixtures_parametrized[new_fixture_name] = []
                 for index, image in enumerate(images_to_parametrize):
-                    if "gpu" in image:
-                        gpu_env = os.getenv("EC2_GPU_INSTANCE_TYPE")
-                        instance_tag = f"-{gpu_env.replace('.', '-')}" if gpu_env else ""
-                    elif "cpu" in image:
-                        cpu_env = os.getenv("EC2_CPU_INSTANCE_TYPE")
-                        instance_tag = f"-{cpu_env.replace('.', '-')}" if cpu_env else ""
-                    else:
-                        instance_tag = ""
+
+                    # Tag fixtures with EC2 instance types if env variable is present
+                    allowed_processors = ("gpu", "cpu", "eia")
+                    instance_tag = ""
+                    for processor in allowed_processors:
+                        if processor in image:
+                            instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE")
+                            if instance_type:
+                                instance_tag = f"-{instance_type.replace('.', '-')}"
+                                break
 
                     image_tag = image.split(":")[-1].replace(".", "-")
                     fixtures_parametrized[new_fixture_name].append(
