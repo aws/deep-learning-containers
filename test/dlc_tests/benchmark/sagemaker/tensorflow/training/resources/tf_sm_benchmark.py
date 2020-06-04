@@ -44,16 +44,16 @@ tf_estimator = TensorFlow(
           ),
         }
     },
-    output_path="s3://asimov-bai-results-sagemaker",
+    output_path=f"s3://dlc-bai-results-sagemaker-{args.region}",
     **kwargs
 )
 
 data = {
-    "train": "s3://mxnet-asimov-data-sagemaker/imagenet/raw/train-480px",
-    "validate": "s3://mxnet-asimov-data-sagemaker/imagenet/raw/validation-480px",
+    "train": f"s3://dlc-data-sagemaker-{args.region}/imagenet/raw/train-480px",
+    "validate": f"s3://dlc-data-sagemaker-{args.region}/imagenet/raw/validation-480px",
 } if processor == "gpu" else {
     # Just to make sm happy
-    "s1": "s3://mxnet-asimov-data-sagemaker/small"
+    "s1": f"s3://dlc-data-sagemaker-{args.region}/small"
 }
 
 tf_estimator.fit(data, logs=True, wait=True)

@@ -9,7 +9,7 @@ from invoke.context import Context
 from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET
 
 
-@pytest.mark.parametrize("num_nodes", [1, 4], indirect=True)
+@pytest.mark.parametrize("num_nodes", [1], indirect=True)
 def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_nodes, region):
 
     framework_version = re.search(r"[1,2](\.\d+){2}", tensorflow_training).group()
