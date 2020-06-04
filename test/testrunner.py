@@ -140,9 +140,10 @@ def setup_eks_clusters(dlc_images):
 
 
 def setup_sm_benchmark_env(dlc_images, test_path):
+    # The plan is to have a separate if/elif-condition for each type of image
     if "tensorflow-training" in dlc_images:
-        tf1_images_in_list = re.match(r"tensorflow-training:.*1(\.\d+){2}", dlc_images)
-        tf2_images_in_list = re.match(r"tensorflow-training:.*2(\.\d+){2}", dlc_images)
+        tf1_images_in_list = (re.search(r"tensorflow-training:(^ )*1(\.\d+){2}", dlc_images) is not None)
+        tf2_images_in_list = (re.search(r"tensorflow-training:(^ )*2(\.\d+){2}", dlc_images) is not None)
         resources_location = os.path.join(test_path, "tensorflow", "training", "resources")
         setup_sm_benchmark_tf_train_env(resources_location, tf1_images_in_list, tf2_images_in_list)
 
