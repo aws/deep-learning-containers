@@ -1,4 +1,4 @@
-FROM nvidia/cuda:10.1-base-ubuntu18.04
+FROM nvidia/cuda:10.2-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
 
@@ -26,9 +26,9 @@ ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.7
 ARG OPENSSL_VERSION=1.1.1g
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.2_aws/20200518-000848/gpu/py37/tensorflow_gpu-2.2.0-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.2_aws/20200603-025047/gpu/py37/tensorflow_gpu-2.2.0-cp37-cp37m-manylinux2010_x86_64.whl
 
-ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.2_aws/20200518-000848/tensorflow_estimator-2.2.0-py2.py3-none-any.whl
+ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.2_aws/20200603-213840/tensorflow_estimator-2.2.0-py2.py3-none-any.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
@@ -36,18 +36,18 @@ ARG SMDEBUG_VERSION=0.8.1
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
-    cuda-command-line-tools-10-1 \
-    cuda-cudart-dev-10-1 \
-    cuda-cufft-dev-10-1 \
-    cuda-curand-dev-10-1 \
-    cuda-cusolver-dev-10-1 \
-    cuda-cusparse-dev-10-1 \
+    cuda-command-line-tools-10-2 \
+    cuda-cudart-dev-10-2 \
+    cuda-cufft-dev-10-2 \
+    cuda-curand-dev-10-2 \
+    cuda-cusolver-dev-10-2 \
+    cuda-cusparse-dev-10-2 \
     curl \
-    libcudnn7=7.6.2.24-1+cuda10.1 \
+    libcudnn7=7.6.5.32-1+cuda10.2 \
     # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
-    libnccl2=2.4.7-1+cuda10.1 \
+    libnccl2=2.6.4-1+cuda10.2 \
     libgomp1 \
-    libnccl-dev=2.4.7-1+cuda10.1 \
+    libnccl-dev=2.6.4-1+cuda10.2 \
     libfreetype6-dev \
     libhdf5-serial-dev \
     liblzma-dev \
@@ -68,8 +68,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     #adding an extra flag --allow-downgrades for it
     && apt-get update \
     && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades \
-    libcublas10=10.1.0.105-1 \
-    libcublas-dev=10.1.0.105-1 \
+    libcublas10=10.2.1.243-1 \
+    libcublas-dev=10.2.1.243-1 \
     # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0
     # adds a new list which contains libnvinfer library, so it needs another
     # 'apt-get update' to retrieve that list before it can actually install the
@@ -81,7 +81,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
  && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
     nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0 \
  && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
-    libnvinfer6=6.0.1-1+cuda10.1 \
+    libnvinfer6=6.0.1-1+cuda10.2 \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/run/sshd
 
