@@ -3,16 +3,13 @@ import os
 import pytest
 
 from test import test_utils
+from test.test_utils.ec2 import get_ec2_instance_type
 from test.dlc_tests.conftest import LOGGER
 
 
-if os.getenv("BUILD_CONTEXT") == "PR":
-    PT_EC2_GPU_INSTANCE_TYPE = ["p3.2xlarge"]
-    PT_EC2_CPU_INSTANCE_TYPE = ["c5.4xlarge"]
-else:
-    # TODO: Add p3dn if releasing
-    PT_EC2_GPU_INSTANCE_TYPE = ["g3.4xlarge", "p2.8xlarge", "p3.16xlarge"]
-    PT_EC2_CPU_INSTANCE_TYPE = ["c4.8xlarge", "c5.18xlarge", "m4.16xlarge", "t2.2xlarge"]
+# TODO: Set enable_p3dn=True when releasing
+PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu")
+PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 
 
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
