@@ -9,8 +9,13 @@ from invoke.context import Context
 from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET
 
 
-@pytest.mark.parametrize("num_nodes", [1], indirect=True)
+@pytest.mark.parametrize("num_nodes", [1, 4], indirect=True)
 def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_nodes, region):
+
+    # This sleep has been inserted because all the parametrized training jobs are automatically created
+    # by SageMaker with the same name, due to being started around the same time, and with the same image uri.
+    if num_nodes > 1:
+        time.sleep(num_nodes * 1)
 
     framework_version = re.search(r"[1,2](\.\d+){2}", tensorflow_training).group()
     processor = "gpu" if "gpu" in tensorflow_training else "cpu"

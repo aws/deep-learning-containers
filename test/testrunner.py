@@ -194,7 +194,7 @@ def main():
             os.chdir(os.path.join("test", "dlc_tests"))
 
             setup_sm_benchmark_env(dlc_images, test_path)
-            pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
+            pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
             sys.exit(pytest.main(pytest_cmd))
         else:
             run_sagemaker_tests(
