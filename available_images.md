@@ -1,5 +1,7 @@
 # Available Deep Learning Containers Images
 
+The following table lists the Docker image URLs that will be used by Amazon ECS in task definitions. Replace the `<repository-name>` and `<image-tag>` values based on your desired container.
+
 Once you've selected your desired Deep Learning Containers image, continue with the one of the following:
 
 -   To run training and inference on Deep Learning Containers for Amazon EC2 using MXNet, PyTorch, TensorFlow, and TensorFlow 2, see [Amazon EC2 Tutorials](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/deep-learning-containers-ec2.html)
@@ -12,7 +14,6 @@ Once you've selected your desired Deep Learning Containers image, continue with 
 
 -   For a list of the latest Deep Learning Containers release notes, see [Release Notes for Deep Learning Containers](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/dlc-release-notes.html)
 
-The following table lists the Docker image URLs that will be used by Amazon ECS in task definitions. Replace the `<repository-name>` and `<image-tag>` values based on your desired container.
 
 Deep Learning Containers Docker Images are available in the following regions:
 | Region 			                      |  			 Code 			           |  			 General Container 			 |  			 Elastic Inference Container 			 |  			 Example URL 			                                                                       |
@@ -53,7 +54,7 @@ example:
 
 **Important**
 
-You must login to access to the DLAC image repository before pulling
+You must login to access to the DLC image repository before pulling
 the image. Ensure your CLI is up to date using the steps in [Installing the current AWS CLI Version](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv1.html#install-tool-bundled)
     Then, specify your region and its corresponding ECR Registry from
     the previous table in the following command:
