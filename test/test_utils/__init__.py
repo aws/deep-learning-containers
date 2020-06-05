@@ -222,7 +222,7 @@ def get_mms_run_command(model_names, processor="cpu"):
         "{}={}".format(name, mxnet_model_location[name]) for name in model_names
     ]
     mms_command = (
-        "mxnet-model-server --start --mms-config /home/model-server/config.properties --models "
+        "multi-model-server --start --mms-config /home/model-server/config.properties --models "
         + " ".join(parameters)
     )
     return mms_command
