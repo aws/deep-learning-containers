@@ -70,10 +70,10 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
 
 RUN conda install -c conda-forge \
     opencv==4.0.1 \
+    Pillow==6.2.2 \
  && conda install -y \
     scikit-learn==0.20.3 \
     pandas==0.24.2 \
-    Pillow==6.2.2 \
     h5py==2.9.0 \
     requests==2.22.0 \
  && conda clean -ya \
