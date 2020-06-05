@@ -14,7 +14,9 @@ from invoke import run
 from invoke.context import Context
 
 from test_utils import eks as eks_utils
-from test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair, setup_sm_benchmark_tf_train_env
+from test_utils import (
+    get_dlc_images, is_pr_context, destroy_ssh_keypair, setup_sm_benchmark_tf_train_env, setup_sm_benchmark_mx_train_env
+)
 from test_utils import KEYS_TO_DESTROY_FILE
 
 
@@ -146,6 +148,9 @@ def setup_sm_benchmark_env(dlc_images, test_path):
         tf2_images_in_list = (re.search(r"tensorflow-training:(^ )*2(\.\d+){2}", dlc_images) is not None)
         resources_location = os.path.join(test_path, "tensorflow", "training", "resources")
         setup_sm_benchmark_tf_train_env(resources_location, tf1_images_in_list, tf2_images_in_list)
+    elif "mxnet-training" in dlc_images:
+        resources_location = os.path.join(test_path, "mxnet", "training", "resources")
+        setup_sm_benchmark_mx_train_env(resources_location)
 
 
 def main():
