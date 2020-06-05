@@ -22,8 +22,7 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
 
     ec2_instance_type = "p3.16xlarge" if processor == "gpu" else "c5.18xlarge"
 
-    py_version_search = re.search(r"py\d+", tensorflow_training)
-    py_version = "py3" if py_version_search is None else py_version_search.group()
+    py_version = "py2" if "py2" in tensorflow_training else "py37" if "py37" in tensorflow_training else "py3"
 
     time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
