@@ -17,6 +17,7 @@ args = parser.parse_args()
 
 source_dir = "tensorflow1" if args.framework_version.startswith("1.") else "tensorflow2"
 processor = "gpu" if "gpu" in args.image_uri else "cpu"
+entrypoint_script = f"singletrain_{processor}.sh"
 processes_per_host = 8 if processor == "gpu" else 1
 kwargs = {"train_volume_size": 200} if processor == "gpu" else {}
 
@@ -25,7 +26,7 @@ sagemaker_session = sagemaker.Session(boto_session=boto3.Session(region_name=arg
 tf_estimator = TensorFlow(
     sagemaker_session=sagemaker_session,
     script_mode=True,
-    entry_point="singletrain_gpu.sh",
+    entry_point=entrypoint_script,
     source_dir=source_dir,
     role="SageMakerRole",
     train_instance_count=args.node_count,

@@ -1,4 +1,5 @@
 import os
+import random
 import re
 import time
 
@@ -14,8 +15,7 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
 
     # This sleep has been inserted because all the parametrized training jobs are automatically created
     # by SageMaker with the same name, due to being started around the same time, and with the same image uri.
-    if num_nodes > 1:
-        time.sleep(num_nodes * 1)
+    time.sleep(random.Random(x=f"{tensorflow_training}{num_nodes}").random() * 60)
 
     framework_version = re.search(r"[1,2](\.\d+){2}", tensorflow_training).group()
     processor = "gpu" if "gpu" in tensorflow_training else "cpu"
