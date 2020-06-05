@@ -7,7 +7,7 @@ import pytest
 
 from invoke.context import Context
 
-from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET
+from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
 
 
 @pytest.mark.parametrize("num_nodes", [1, 4], indirect=True)
@@ -51,6 +51,8 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
             target_upload_location = os.path.join(target_upload_location, "failure_log")
 
         ctx.run(f"aws s3 cp {log_file} {os.path.join(target_upload_location, log_file)}")
-        ctx.run(f"cat {log_file}", echo=True)
 
-    assert run_out.ok, f"Benchmark Test failed with return code {run_out.return_code}"
+    LOGGER.info(f"Test results can be found at {os.path.join(target_upload_location, log_file)}")
+
+    assert run_out.ok, (f"Benchmark Test failed with return code {run_out.return_code}. "
+                        f"Test results can be found at {os.path.join(target_upload_location, log_file)}")
