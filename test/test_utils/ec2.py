@@ -10,6 +10,33 @@ from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 
+def get_ec2_instance_type(default, processor, enable_p3dn=False):
+    """
+    Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
+    for contexts where the variable is not present (i.e. PR, Nightly, local testing)
+
+    :param default: Default instance type to use
+    :param processor: "cpu" or "gpu"
+    :param enable_p3dn: Boolean to determine whether or not to run tests on p3dn. If set to false, default
+    gpu instance type will be used. If default gpu instance type is p3dn, then use small gpu instance type (p2.xlarge)
+
+    :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
+    a list.
+    """
+    allowed_processors = ("cpu", "gpu")
+    p3dn = "p3dn.24xlarge"
+    if processor not in allowed_processors:
+        raise RuntimeError(f"Aborting EC2 test run. Unrecognized processor type {processor}. "
+                           f"Please choose from {allowed_processors}")
+    if default == p3dn and not enable_p3dn:
+        raise RuntimeError("Default instance type is p3dn but p3dn testing is disabled. Please either enable p3dn "
+                           "by setting enable_p3dn=True, or change the default instance type")
+    instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
+    if instance_type == p3dn and not enable_p3dn:
+        return [default]
+    return [instance_type]
+
+
 def launch_instance(
     ami_id, instance_type, region=DEFAULT_REGION, user_data=None, iam_instance_profile_arn=None, instance_name="",
 ):
@@ -317,10 +344,38 @@ def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
-    connection.run(f"{docker_cmd} pull -q {ecr_uri} ", hide=False)
+    connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
     # Run training command, display benchmark results to console
     connection.run(
         f"{docker_cmd} run -e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
         f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
     )
+
+
+def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
+    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+
+    # Make sure we are logged into ECR so we can pull the image
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+
+    connection.run(f"{docker_cmd} pull -q {ecr_uri}")
+
+    # Run training command, display benchmark results to console
+    repo_name, image_tag = ecr_uri.split("/")[-1].split(":")
+    container_name = f"{repo_name}-performance-{image_tag}-ec2"
+    connection.run(
+        f"{docker_cmd} run -d --name {container_name} "
+        f"-e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} "
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri}"
+    )
+    try:
+        connection.run(
+            f"{docker_cmd} exec {container_name} "
+            f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
+        )
+    except Exception as e:
+        raise Exception("Failed to exec benchmark command.\n", e)
+    finally:
+        connection.run(f"docker rm -f {container_name}")

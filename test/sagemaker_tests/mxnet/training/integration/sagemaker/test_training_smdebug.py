@@ -29,7 +29,7 @@ SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist_gluon_basic_hook_demo.py')
 def test_training(sagemaker_session, ecr_image, instance_type, instance_count):
     hyperparameters = {'random_seed': True,
                        'num_steps': 50,
-                       'smdebug_path': '/opt/ml/output/tensors',
+                       'smdebug_path': '/tmp/ml/output/tensors',
                        'epochs': 1}
 
     mx = MXNet(entry_point=SCRIPT_PATH,
