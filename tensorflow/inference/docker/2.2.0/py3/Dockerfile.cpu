@@ -25,8 +25,6 @@ ENV MODEL_BASE_PATH=/models
 ENV MODEL_NAME=model
 ENV DEBIAN_FRONTEND=noninteractive
 
-
-
 # nginx + njs 
 RUN apt-get update \
  && apt-get -y install --no-install-recommends \
