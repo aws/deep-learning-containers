@@ -8,7 +8,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 # Add arguments to achieve the version, python and url
 ARG PYTHON=python3
 ARG PIP=pip3
-ARG TFS_SHORT_VERSION=1.15.2
+ARG TFS_SHORT_VERSION=1.15.3
 ARG TF_S3_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com
 ARG TF_MODEL_SERVER_SOURCE=${TF_S3_URL}/${TFS_SHORT_VERSION}/Serving/CPU-WITH-MKL/tensorflow_model_server
 

@@ -22,7 +22,7 @@ ENV LC_ALL=C.UTF-8
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
 # Define framework-related package sources
-ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.2/AmazonLinux/cpu/final/tensorflow_cpu-1.15.2-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws/20200609-012254/cpu/py37/tensorflow_cpu-1.15.3-cp37-cp37m-manylinux2010_x86_64.whl
 ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
