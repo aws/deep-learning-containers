@@ -175,7 +175,8 @@ def main():
         pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
         try:
             # TODO: Temporary debug statement
-            sys.exit(pytest.main(["-s", "-rA", "--junitxml=canary_out.xml", "-n=auto", "--canary"]))
+            sys.exit(pytest.main(["-s", "-rA", "--junitxml=canary_out.xml", "-n=auto", "--canary",
+                                  "--ignore=container_tests/"]))
         finally:
             if specific_test_type == "eks":
                 eks_utils.delete_eks_cluster(new_eks_cluster_name)
