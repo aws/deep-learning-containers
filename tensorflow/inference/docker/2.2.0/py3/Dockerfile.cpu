@@ -25,6 +25,17 @@ ENV MODEL_BASE_PATH=/models
 ENV MODEL_NAME=model
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Install python3.7
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xvf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure && make && make install \
+ && make && make install && rm -rf ../Python-$PYTHON_VERSION*
+
+RUN ${PIP} --no-cache-dir install --upgrade \
+    pip \
+    setuptools
+
 # nginx + njs 
 RUN apt-get update \
  && apt-get -y install --no-install-recommends \
@@ -42,9 +53,6 @@ RUN apt-get update \
  && apt-get -y install --no-install-recommends \
     nginx \
     nginx-module-njs \
-    python3 \
-    python3-pip \
-    python3-setuptools \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
