@@ -19,7 +19,7 @@ import logging
 import sys
 
 import constants
-from dlc.github_handler import GitHubHandler
+
 from config import build_config
 
 
@@ -66,6 +66,8 @@ def get_pr_modified_files(pr_number):
     :param pr_number: int
     :return: str with all the modified files
     """
+    from dlc.github_handler import GitHubHandler
+
     github_handler = GitHubHandler("aws", "deep-learning-containers")
     files = github_handler.get_pr_files_changed(pr_number)
     files = "\n".join(files)
