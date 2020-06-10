@@ -34,6 +34,7 @@ RUN apt-get update \
     git \
     wget \
     vim \
+    libffi-dev \
     build-essential \
     zlib1g-dev \
  && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \ 
@@ -44,6 +45,23 @@ RUN apt-get update \
     nginx-module-njs \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+ RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt-get update \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get install -y \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-*
+
+# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
 # Install python3.7
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
@@ -74,7 +92,7 @@ COPY ./sagemaker /sagemaker
 
 # put tensorflow library (with only error_codes) to python dist-packages
 WORKDIR /
-RUN cd /usr/local/lib/python3.*/dist-packages/ \
+RUN cd /usr/local/lib/python3.*/site-packages/ \
  && mv /sagemaker/tensorflow-2.2 ./tensorflow \
 # Delete the remaining tensorflow folder to avoid confusing python import
  && rm -rf /sagemaker/tensorflow
