@@ -123,7 +123,7 @@ RUN ${PIP} install -U --no-cache-dir \
     gunicorn==20.0.4 \
     gevent==1.4.0 \
     requests==2.22.0 \
-    grpcio==1.27.1  \
+    grpcio==1.29.0  \
     protobuf==3.11.1 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
