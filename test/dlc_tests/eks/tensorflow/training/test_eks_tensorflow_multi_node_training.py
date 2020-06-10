@@ -20,9 +20,6 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON
 def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example_only):
     eks_cluster_size = 3
     ec2_instance_type = "p3.16xlarge"
-    cluster_name = eks_utils.PR_EKS_CLUSTER_NAME_TEMPLATE.format("tensorflow")
-
-    assert eks_utils.is_eks_cluster_active(cluster_name), f"EKS Cluster {cluster_name} is inactive. Exiting test"
 
     eks_gpus_per_worker = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)
 
