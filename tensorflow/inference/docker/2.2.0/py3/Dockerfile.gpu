@@ -80,7 +80,8 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # Some TF tools expect a "python" binary
-RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
+ && ln -s $(which ${PIP}) /usr/bin/pip
 
 # nginx + njs
 RUN apt-get update \
