@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM nvidia/cuda:10.1-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
 
@@ -7,19 +7,18 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
-# Set environment variables for MKL
-# For more about MKL with TensorFlow see:
-# https://www.tensorflow.org/performance/performance_guide#tensorflow_with_intel%C2%AE_mkl_dnn
-
-ENV KMP_AFFINITY=granularity=fine,compact,1,0
-ENV KMP_BLOCKTIME=1
-ENV KMP_SETTINGS=0
-
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
+
+# Set environment variables for MKL
+# For more about MKL with TensorFlow see:
+# https://www.tensorflow.org/performance/performance_guide#tensorflow_with_intel%C2%AE_mkl_dnn
+ENV KMP_AFFINITY=granularity=fine,compact,1,0
+ENV KMP_BLOCKTIME=1
+ENV KMP_SETTINGS=0
 
 ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
@@ -27,7 +26,7 @@ ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.7
 ARG OPENSSL_VERSION=1.1.1g
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.2_aws/20200518-000848/cpu/py37/tensorflow_cpu-2.2.0-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.2_aws/20200518-000848/gpu/py37/tensorflow_gpu-2.2.0-cp37-cp37m-manylinux2010_x86_64.whl
 
 ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.2_aws/20200518-000848/tensorflow_estimator-2.2.0-py2.py3-none-any.whl
 
@@ -35,25 +34,65 @@ ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/est
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=0.8.1
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
+    ca-certificates \
+    cuda-command-line-tools-10-1 \
+    cuda-cudart-dev-10-1 \
+    cuda-cufft-dev-10-1 \
+    cuda-curand-dev-10-1 \
+    cuda-cusolver-dev-10-1 \
+    cuda-cusparse-dev-10-1 \
+    curl \
+    libcudnn7=7.6.2.24-1+cuda10.1 \
+    # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
+    libnccl2=2.4.7-1+cuda10.1 \
+    libgomp1 \
+    libnccl-dev=2.4.7-1+cuda10.1 \
+    libfreetype6-dev \
+    libhdf5-serial-dev \
+    liblzma-dev \
+    libpng-dev \
+    libtemplate-perl \
+    libzmq3-dev \
+    git \
+    wget \
+    vim \
     build-essential \
     openssh-client \
     openssh-server \
-    ca-certificates \
-    curl \
-    git \
-    libtemplate-perl \
-    wget \
-    vim \
     zlib1g-dev \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
- && rm -rf /var/lib/apt/lists/*
+    #cuda-cublas-dev not available with 10-1, install libcublas instead
+    #it will downgrade the cublas from 10-2 to 10-1
+    #adding an extra flag --allow-downgrades for it
+    && apt-get update \
+    && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades \
+    libcublas10=10.1.0.105-1 \
+    libcublas-dev=10.1.0.105-1 \
+    # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0
+    # adds a new list which contains libnvinfer library, so it needs another
+    # 'apt-get update' to retrieve that list before it can actually install the
+    # library.
+    # We don't install libnvinfer-dev since we don't need to build against TensorRT,
+    # and libnvinfer4 doesn't contain libnvinfer.a static library.
+    # nvinfer-runtime-trt-repo doesn't have a 1804-cuda10.1 version yet. see:
+    # https://developer.download.nvidia.cn/compute/machine-learning/repos/ubuntu1804/x86_64/
+ && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
+    nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0 \
+ && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
+    libnvinfer6=6.0.1-1+cuda10.1 \
+ && rm -rf /var/lib/apt/lists/* \
+ && mkdir -p /var/run/sshd
+
+###########################################################################
+# Horovod & its dependencies
+###########################################################################
 
 # Install Open MPI
-RUN mkdir /tmp/openmpi && \
-    cd /tmp/openmpi && \
-    curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.1.tar.gz \
+RUN mkdir /tmp/openmpi \
+ && cd /tmp/openmpi \
+ && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.1.tar.gz \
  && tar zxf openmpi-4.0.1.tar.gz \
  && cd openmpi-4.0.1 \
  && ./configure --enable-orterun-prefix-by-default \
@@ -68,18 +107,28 @@ RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real \
  && echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun \
  && chmod a+x /usr/local/bin/mpirun
 
+# Configure OpenMPI to run good defaults:
+#   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0
 RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf \
  && echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
 
+# Set default NCCL parameters
+RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
+
 ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
+# Resolve missing libcuda.so issue
+RUN cp /usr/local/cuda-10.1/extras/CUPTI/lib64/libcupti* /usr/local/cuda/lib64/
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64/:$LD_LIBRARY_PATH
+
 ENV PATH /usr/local/openmpi/bin/:$PATH
+ENV PATH=/usr/local/nvidia/bin:$PATH
 
 # SSH login fix. Otherwise user is kicked off after login
-RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+RUN mkdir -p /var/run/sshd \
+ && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 
 # Create SSH key.
 RUN mkdir -p /root/.ssh/ \
- && mkdir -p /var/run/sshd \
  && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
  && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
  && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
@@ -92,7 +141,6 @@ RUN apt-get update \
     libc6-dev \
     libffi-dev \
     libgdbm-dev \
-    liblzma-dev \
     libncursesw5-dev \
     libreadline-gplv2-dev \
     libsqlite3-dev \
@@ -112,9 +160,9 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     setuptools
 
 RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt-get update \
  && apt remove -y --purge openssl \
  && rm -rf /usr/include/openssl \
- && apt-get update \
  && apt-get install -y \
     ca-certificates \
  && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
@@ -151,16 +199,23 @@ RUN ${PIP} install --no-cache-dir -U \
     sagemaker-experiments==0.1.13 \
     "sagemaker-tensorflow>=2.2,<2.3" \
     "sagemaker-tensorflow-training>=20" \
-
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     ${ESTIMATOR_URL} \
-    horovod==0.18.2 \
     werkzeug==1.0.1 \
-    psutil==5.7.0 \
     smdebug==${SMDEBUG_VERSION}
+
+# Install Horovod, temporarily using CUDA stubs
+RUN ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.18.2 \
+ && ldconfig
+
+# Allow OpenSSH to talk to containers without asking for confirmation
+RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
 
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
