@@ -48,7 +48,7 @@ ECR is a regional service and the Image table contains the URLs for
 previously, insert the region in the repository URL following this
 example:
 
-::
+
 
      763104351884.dkr.ecr.<region>.amazonaws.com/tensorflow-training:1.15.2-cpu-py27-ubuntu18.04
 
@@ -59,13 +59,13 @@ the image. Ensure your CLI is up to date using the steps in [Installing the curr
     Then, specify your region and its corresponding ECR Registry from
     the previous table in the following command:
 
-::
+
 
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-east-1.amazonaws.com
 
 You can then pull these Docker images from ECR by running:
 
-::
+
 
     docker pull <name of container image>
 
