@@ -78,7 +78,7 @@ job type is either ``training`` or ``inference``. Your Python version is
 either ``py27`` or ``py36``. Plug this information into the replaceable
 portions of the URL as shown in the example URL.
 
-You can pin your version by adding the latest version tag to your URL as follows:
+You can pin your version by adding the version tag to your URL as follows:
 
      763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.2.0-cpu-py37-ubuntu18.04-v1.0
 
