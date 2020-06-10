@@ -3,7 +3,7 @@ FROM ubuntu:16.04
 LABEL maintainer="Amazon AI"
 
 # Add arguments to achieve the version, python and url
-ARG PYTHON_VERSION=3.6.6
+ARG PYTHON_VERSION=3.6.10
 ARG OPEN_MPI_VERSION=4.0.1
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
