@@ -29,17 +29,6 @@ ENV MODEL_NAME=model
 # Fix for the interactive mode during an install in step 21
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install python3.7
-RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
- && tar -xvf Python-$PYTHON_VERSION.tgz \
- && cd Python-$PYTHON_VERSION \
- && ./configure && make && make install \
- && make && make install && rm -rf ../Python-$PYTHON_VERSION*
-
-RUN ${PIP} --no-cache-dir install --upgrade \
-    pip \
-    setuptools
-
 # allow unauthenticated and allow downgrades for special libcublas library
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades\
@@ -63,6 +52,17 @@ RUN apt-get update \
     zlib1g-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+# Install python3.7
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xvf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure && make && make install \
+ && make && make install && rm -rf ../Python-$PYTHON_VERSION*
+
+RUN ${PIP} --no-cache-dir install --upgrade \
+    pip \
+    setuptools
 
 # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-4.0.1-ga-cuda10.0
 # adds a new list which contains libnvinfer library, so it needs another
