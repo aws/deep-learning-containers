@@ -160,7 +160,7 @@ def main():
     specific_test_type = re.sub("benchmark-", "", test_type) if benchmark_mode else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
-    if specific_test_type in ("sanity", "ecs", "ec2", "eks"):
+    if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
@@ -173,10 +173,12 @@ def main():
             new_eks_cluster_name = setup_eks_clusters(dlc_images)
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
+
+        # Execute separate cmd for canaries
+        if specific_test_type == "canary":
+            pytest_cmd = ["-s", "-rA", f"--junitxml={report}", "-n=auto", "--canary", "--ignore=container_tests/"]
         try:
-            # TODO: Temporary debug statement
-            sys.exit(pytest.main(["-s", "-rA", "--junitxml=canary_out.xml", "-n=auto", "--canary",
-                                  "--ignore=container_tests/"]))
+            sys.exit(pytest.main(pytest_cmd))
         finally:
             if specific_test_type == "eks":
                 eks_utils.delete_eks_cluster(new_eks_cluster_name)
