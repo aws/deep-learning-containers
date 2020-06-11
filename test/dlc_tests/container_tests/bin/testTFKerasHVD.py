@@ -1,5 +1,11 @@
 import tensorflow as tf
 import horovod.tensorflow.keras as hvd
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("data_type")
+args = parser.parse_args()
+data_type = args.data_type
 
 # Horovod: initialize Horovod.
 hvd.init()
@@ -20,8 +26,13 @@ dataset = tf.data.Dataset.from_tensor_slices(
 )
 dataset = dataset.repeat().shuffle(10000).batch(128)
 
-policy = tf.keras.mixed_precision.experimental.Policy('mixed_float16', 128)
-tf.keras.mixed_precision.experimental.set_policy(policy)
+if data_type == "AMP":
+    # if this code block get excecuted, data type is mixed-precision AKA AMP. If not, it is FP32.
+    # When ampere comes and TF32 is available, we need to extend the test to run TF32 as well
+    policy = tf.keras.mixed_precision.experimental.Policy('mixed_float16', 128)
+    tf.keras.mixed_precision.experimental.set_policy(policy)
+elif data_type != "FP32":
+    raise Exception("not supported data type.\n")
 
 mnist_model = tf.keras.Sequential([
     tf.keras.layers.Conv2D(32, [3, 3], activation='relu'),
