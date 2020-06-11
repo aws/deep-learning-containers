@@ -4,11 +4,12 @@ release_images:
     framework: "tensorflow"
     version: "2.2.0"
     training:
-      device_types: ["cpu", "gpu"]
+      device_types: ["gpu"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu101"
-      dlc_version: "1.1"
+      cuda_version: "cu102"
+      dlc_version: "1.0"
+      disable_sm_tag: True
   2:
     framework: "tensorflow"
     version: "2.2.0"
@@ -16,6 +17,6 @@ release_images:
       device_types: ["gpu"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu101"
-      dlc_version: "1.1"
+      cuda_version: "cu102"
+      dlc_version: "1.0"
       example: True
