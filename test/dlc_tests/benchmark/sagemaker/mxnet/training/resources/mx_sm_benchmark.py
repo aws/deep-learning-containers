@@ -14,17 +14,18 @@ parser.add_argument("--instance-type", type=str, help="instance type to use for 
 parser.add_argument("--node-count", type=int, help="number of nodes to train", default=4)
 parser.add_argument("--python", help="python version", default="py3")
 parser.add_argument("--region", help="region in which to run test", default="us-west-2")
+parser.add_argument("--job-name", help="SageMaker Training Job Name", default=None)
 
 args = parser.parse_args()
 
 sagemaker_session = sagemaker.Session(boto3.Session(region_name=args.region))
 
-cur_dir_realpath = os.path.dirname(os.path.realpath(__file__))
+source_path = "scripts"
 
 mx_estimator = MXNet(
     sagemaker_session=sagemaker_session,
     entry_point="smtrain-resnet50-imagenet.sh",
-    source_dir=os.path.join(cur_dir_realpath, "scripts"),
+    source_dir=source_path,
     role="SageMakerRole",
     train_instance_count=args.node_count,
     train_instance_type=args.instance_type,
@@ -43,4 +44,4 @@ data = {
     "validx": f"s3://dlc-data-sagemaker-{args.region}/imagenet/processed/val-480px-q95.idx",
 }
 
-mx_estimator.fit(data, logs=True, wait=True)
+mx_estimator.fit(data, job_name=args.job_name, logs=True, wait=True)
