@@ -102,7 +102,7 @@ RUN conda install -c pytorch magma-cuda101==2.5.1 \
  && conda install -y \
     scikit-learn==0.20.3 \
     pandas==0.24.2 \
-    Pillow==6.2.0 \
+    Pillow==6.2.2 \
     h5py==2.9.0 \
     requests==2.22.0 \
  && pip install -U \

@@ -3,12 +3,12 @@ FROM nvidia/cuda@sha256:4979db047661dc0003594fb20d37cce6d6c7e989252f4e3fb0beb398
 
 LABEL maintainer="Amazon AI"
 
-ARG PYTHON_VERSION=3.6.6
+ARG PYTHON_VERSION=3.6.10
 ARG OPEN_MPI_VERSION=4.0.1
 ARG CUBLAS_VERSION=10.2.1.243-1_amd64
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.7.2
+ARG SMDEBUG_VERSION=0.8.1
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -101,7 +101,7 @@ RUN conda install -c pytorch magma-cuda101==2.5.1 \
     opencv==4.0.1 \
  && conda install -y scikit-learn==0.21.2 \
     pandas==0.25.0 \
-    Pillow==6.2.0 \
+    Pillow \
     h5py==2.9.0 \
     requests==2.22.0 \
  && conda clean -ya

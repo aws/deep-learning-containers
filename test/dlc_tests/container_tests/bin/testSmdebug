@@ -8,19 +8,26 @@ if [ $# -lt 1 ]; then
 fi
 
 FRAMEWORK=$1
+# Assuming that if a version is released to pypi, it will have a corresponding release tag on GitHub.
+# Not using master because there could be breaking changes in tests between versions.
+SMDEBUG_RELEASE_TAG=$(python -c "import smdebug; print(smdebug.__version__)")
+
 # declare -A only works with bash 4 and above, and creates an "associate array" in bash
-declare -A ZCC_TEST_NAME=( ["mxnet"]="mxnet_gluon_integration_test.py" \
+if [ "$(printf '%s\n' "0.8.0" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.8.0" ]; then
+    declare -A ZCC_TEST_NAME=( ["mxnet"]="test_mxnet_gluon_integration.py" \
+                           ["pytorch"]="test_pytorch_integration.py" \
+                           ["tensorflow"]="test_tensorflow_integration.py" \
+                           ["tensorflow2"]="test_tensorflow2_integration.py")
+else
+    declare -A ZCC_TEST_NAME=( ["mxnet"]="mxnet_gluon_integration_test.py" \
                            ["pytorch"]="pytorch_integration_tests.py" \
                            ["tensorflow"]="tensorflow_integration_tests.py" \
                            ["tensorflow2"]="tensorflow2_integration_tests.py")
+fi
 
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
-
-# Assuming that if a version is released to pypi, it will have a corresponding release tag on GitHub.
-# Not using master because there could be breaking changes in tests between versions.
-SMDEBUG_RELEASE_TAG=$(python -c "import smdebug; print(smdebug.__version__)")
 
 echo "Simply verify if smdebug is installed correctly."
 set -x
@@ -42,7 +49,9 @@ echo "Running framework tests."
 
 
 if [ $FRAMEWORK = "tensorflow" ]; then
-    timeout 1800s pytest mock/tests/${FRAMEWORK} -k "not test_mnist_s3 and not test_mnist_s3_multi_save_configs" --ignore=mock/tests/mxnet/test_training_end.py  2>&1
+    timeout 1800s pytest mock/tests/${FRAMEWORK} \
+                            -k "not test_keras and not test_mnist_s3 and not test_mnist_s3_multi_save_configs" \
+                            --ignore=mock/tests/mxnet/test_training_end.py 2>&1
 else
     timeout 1800s pytest mock/tests/${FRAMEWORK} --ignore=mock/tests/mxnet/test_training_end.py  2>&1
 fi
@@ -66,12 +75,16 @@ if [ ! ${ZCC_TEST_NAME[$FRAMEWORK]} ]; then
 fi
 if [[ ${FRAMEWORK} == "tensorflow2" ]]; then
     if [ "$(printf '%s\n' "0.7.2" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.7.2" ]; then
-        timeout 720s python mock/tests/zero_code_change/${FRAMEWORK}_gradtape_integration_tests.py 2>&1
+        if [ "$(printf '%s\n' "0.8.0" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.8.0" ]; then
+            timeout 720s pytest mock/tests/zero_code_change/test_${FRAMEWORK}_gradtape_integration.py 2>&1
+        else
+            timeout 720s python mock/tests/zero_code_change/${FRAMEWORK}_gradtape_integration_tests.py 2>&1
+        fi
     fi
 fi
 
 echo "Running ZCC tests."
-timeout 1800s python mock/tests/zero_code_change/${ZCC_TEST_NAME[$FRAMEWORK]}
+timeout 1800s pytest mock/tests/zero_code_change/${ZCC_TEST_NAME[$FRAMEWORK]}
 
 if [ "$?" -eq "0" ]
 then
