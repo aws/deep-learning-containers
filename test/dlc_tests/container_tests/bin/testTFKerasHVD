@@ -1,0 +1,9 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+
+${BIN_DIR}/testTFKerasHVD.py python || exit 1
+
+exit 0
