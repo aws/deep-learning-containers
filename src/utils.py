@@ -66,6 +66,8 @@ def get_pr_modified_files(pr_number):
     :param pr_number: int
     :return: str with all the modified files
     """
+    # This import statement has been placed inside this function because it creates a dependency that is unnecessary
+    # for local builds and builds outside of Pull Requests.
     from dlc.github_handler import GitHubHandler
 
     github_handler = GitHubHandler("aws", "deep-learning-containers")

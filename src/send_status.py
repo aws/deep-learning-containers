@@ -3,6 +3,8 @@ import argparse
 
 import utils
 
+from dlc.github_handler import GitHubHandler
+
 
 def get_args():
     """
@@ -55,8 +57,6 @@ def post_status(state):
 
     :param state: <str> choices are "success", "failure", "error" or "pending"
     """
-    from dlc.github_handler import GitHubHandler
-
     project_name = utils.get_codebuild_project_name()
     trigger_job = os.getenv("TEST_TRIGGER", "UNKNOWN-TEST-TRIGGER")
     target_url = get_target_url(project_name)
