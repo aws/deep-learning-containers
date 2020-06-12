@@ -1,0 +1,21 @@
+version: 0.2sa
+
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+  pre_build:
+    commands:
+      - echo Starting tests.....
+  build:
+    commands:
+      - echo Running pytest $TEST_TYPE tests on $DLC_IMAGES...
+      - python test/sagemakertestrunner.py
+  post_build:
+    commands:
+      - echo Finishing tests.....
+reports:
+  test_reports:
+    files:
+      - /*.xml
+    file-format: JunitXml
