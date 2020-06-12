@@ -20,7 +20,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
 # Constant to represent AMI Id used to spin up EC2 instances
-UBUNTU_16_BASE_DLAMI = "ami-0e57002aaafd42113"
+UBUNTU_16_BASE_DLAMI = "ami-084752e1881a46693"
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 
@@ -35,13 +35,11 @@ BENCHMARK_RESULTS_S3_BUCKET = "s3://dlinfra-dlc-cicd-performance"
 
 # Ubuntu ami home dir
 UBUNTU_HOME_DIR = "/home/ubuntu"
-AML_HOME_DIR="/home/ec2-user"
 
 # Reason string for skipping tests in PR context
 SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test will be run in nightly/release pipeline."
 
-# Sagemaker local tests AMI_ID
-SAGEMAKER_AMI_ID = "ami-0eb5a5dcf38497043"
+# Sagemaker local tests
 SAGEMAKER_LOCAL_TEST_TYPE = "local"
 SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 

@@ -6,7 +6,7 @@ import sys
 import logging
 import traceback
 
-from multiprocessing import Pool, Lock
+from multiprocessing import Pool
 import boto3
 import pytest
 
@@ -18,15 +18,13 @@ import test_utils
 from test_utils import ec2 as ec2_utils
 from test_utils import eks as eks_utils
 from test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair, setup_sm_benchmark_tf_train_env
-from test_utils import KEYS_TO_DESTROY_FILE, SAGEMAKER_AMI_ID, SAGEMAKER_LOCAL_TEST_TYPE, \
-    SAGEMAKER_REMOTE_TEST_TYPE, AML_HOME_DIR
+from test_utils import KEYS_TO_DESTROY_FILE, UBUNTU_16_BASE_DLAMI, SAGEMAKER_LOCAL_TEST_TYPE, \
+    SAGEMAKER_REMOTE_TEST_TYPE, UBUNTU_HOME_DIR
 
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
-GLOBALLOCK = Lock()
-
 
 def assign_sagemaker_remote_job_instance_type(image):
     if "tensorflow" in image:
@@ -106,7 +104,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             instance_type_arg = "--instance-types"
 
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
-    local_test_report = os.path.join(AML_HOME_DIR, "test", f"{tag}_local.xml")
+    local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{tag}_local.xml")
 
     remote_pytest_cmd = (f"pytest {integration_path} --region {region} {docker_base_arg} "
                          f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
@@ -143,30 +141,21 @@ def run_sagemaker_local_tests(image):
     ec2_client = ec2_utils.ec2_client(region)
     sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
-    ec2_test_report_path = os.path.join(AML_HOME_DIR, "test", f"{tag}_local.xml")
+    ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{tag}_local.xml")
     try:
         key_file = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
-        instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, SAGEMAKER_AMI_ID, ec2_key_name, region)
+        instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, UBUNTU_16_BASE_DLAMI, ec2_key_name, region)
         ec2_conn = ec2_utils.ec2_connection(instance_id, key_file, region)
         run(f"tar -cz --exclude='*.pytest_cache' -f {sm_tests_tar_name} {sm_tests_path}")
-        ec2_conn.put(sm_tests_tar_name, f"{AML_HOME_DIR}")
+        ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
-        ec2_conn.run(f"docker pull {image}")
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         with ec2_conn.cd(path):
-            ec2_conn.run("sudo pip3 install -r requirements.txt ", warn=True)
+            ec2_conn.run("sudo pip3 install --upgrade -r requirements.txt ", warn=True)
             ec2_conn.run(pytest_command)
-            GLOBALLOCK.acquire()
-            ec2_conn.get(ec2_test_report_path, f"test/{tag}_local.xml")
-            GLOBALLOCK.release
-    except Exception as e:
-        LOGGER.error(f"sagemaker Local tests failed for {image}")
-        traceback.print_exc()
-        return False
     finally:
-        # ec2_utils.terminate_instance(instance_id, region)
-        # test_utils.destroy_ssh_keypair(ec2_client, ec2_key_name)
-        pass
+        ec2_utils.terminate_instance(instance_id, region)
+        test_utils.destroy_ssh_keypair(ec2_client, ec2_key_name)
     return True
 
 
