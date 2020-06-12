@@ -10,6 +10,7 @@ phases:
       - echo Starting tests.....
   build:
     commands:
+      - pip install -r test/requirements.txt
       - echo Running pytest $TEST_TYPE tests on $DLC_IMAGES...
       - python test/sagemakertestrunner.py
   post_build:
