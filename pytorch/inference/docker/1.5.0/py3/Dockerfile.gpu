@@ -5,8 +5,6 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.6.10
-ARG PYTORCH_VERSION=1.5.0
-ARG TORCHVISION_VERSION=0.6.0
 ARG MMS_VERSION=1.0.8
 
 # See http://bugs.python.org/issue19846
@@ -79,8 +77,10 @@ RUN conda install -c \
 
 # Uninstall and re-install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
+ && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/inference/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
  && pip uninstall -y torchvision \
- && pip install torch==$PYTORCH_VERSION+cu101 torchvision==$TORCHVISION_VERSION+cu101 -f https://download.pytorch.org/whl/torch_stable.html
+ && pip install --no-deps --no-cache-dir -U \
+    https://torchvision-build.s3.amazonaws.com/1.5.0/gpu/torchvision-0.6.0-cp36-cp36m-manylinux1_x86_64.whl
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
@@ -90,6 +90,10 @@ COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+
+ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
 
