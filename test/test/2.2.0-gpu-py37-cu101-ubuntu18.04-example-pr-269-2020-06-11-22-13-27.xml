@@ -1,0 +1,976 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite errors="0" failures="10" hostname="freeip.amazon.com" name="pytest" skipped="1" tests="11" time="112.159" timestamp="2020-06-12T17:59:09.466242"><testcase classname="integration.sagemaker.test_experiments" file="integration/sagemaker/test_experiments.py" line="34" name="test_training" time="14.717"><failure message="botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 1 Instances. Please contact AWS support to request an increase for this limit.">sagemaker_session = &lt;sagemaker.session.Session object at 0x1166cb8d0&gt;
+ecr_image = &apos;170805133606.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:2.2.0-gpu-py37-cu101-ubuntu18.04-example-pr-269-2020-06-11-22-13-27&apos;
+instance_type = &apos;ml.p3.8xlarge&apos;, framework_version = &apos;2.2.0&apos;
+
+    @pytest.mark.skip_py2_containers
+    def test_training(sagemaker_session, ecr_image, instance_type, framework_version):
+    
+        sm_client = sagemaker_session.sagemaker_client
+        random.seed(f&quot;{datetime.datetime.now().strftime(&apos;%Y%m%d%H%M%S%f&apos;)}&quot;)
+        unique_id = random.randint(1, 6000)
+    
+        experiment_name = f&quot;tf-container-integ-test-{unique_id}-{int(time.time())}&quot;
+    
+        experiment = Experiment.create(
+            experiment_name=experiment_name,
+            description=&quot;Integration test experiment from sagemaker-tf-container&quot;,
+            sagemaker_boto_client=sm_client,
+        )
+    
+        trial_name = f&quot;tf-container-integ-test-{unique_id}-{int(time.time())}&quot;
+    
+        trial = Trial.create(
+            experiment_name=experiment_name, trial_name=trial_name, sagemaker_boto_client=sm_client
+        )
+    
+        training_job_name = utils.unique_name_from_base(&quot;test-tf-experiments-mnist&quot;)
+    
+        # create a training job and wait for it to complete
+        with timeout(minutes=DEFAULT_TIMEOUT):
+            resource_path = os.path.join(os.path.dirname(__file__), &quot;..&quot;, &quot;..&quot;, &quot;resources&quot;)
+            script = os.path.join(resource_path, &quot;mnist&quot;, &quot;mnist.py&quot;)
+            estimator = TensorFlow(
+                entry_point=script,
+                role=&quot;SageMakerRole&quot;,
+                train_instance_type=instance_type,
+                train_instance_count=1,
+                sagemaker_session=sagemaker_session,
+                image_name=ecr_image,
+                framework_version=framework_version,
+                script_mode=True,
+            )
+            inputs = estimator.sagemaker_session.upload_data(
+                path=os.path.join(resource_path, &quot;mnist&quot;, &quot;data&quot;), key_prefix=&quot;scriptmode/mnist&quot;
+            )
+&gt;           estimator.fit(inputs, job_name=training_job_name)
+
+integration/sagemaker/test_experiments.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:485: in fit
+    fit_super()
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:464: in fit_super
+    super(TensorFlow, self).fit(inputs, wait, logs, job_name, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:494: in fit
+    self.latest_training_job = _TrainingJob.start_new(self, inputs, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:1061: in start_new
+    estimator.sagemaker_session.train(**train_args)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/session.py:590: in train
+    self.sagemaker_client.create_training_job(**train_request)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:316: in _api_call
+    return self._make_api_call(operation_name, kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;botocore.client.SageMaker object at 0x14452e6a0&gt;
+operation_name = &apos;CreateTrainingJob&apos;
+api_params = {&apos;AlgorithmSpecification&apos;: {&apos;EnableSageMakerMetricsTimeSeries&apos;: True, &apos;TrainingImage&apos;: &apos;170805133606.dkr.ecr.us-west-2...FullyReplicated&apos;, &apos;S3DataType&apos;: &apos;S3Prefix&apos;, &apos;S3Uri&apos;: &apos;s3://sagemaker-us-west-2-170805133606/scriptmode/mnist&apos;}}}], ...}
+
+    def _make_api_call(self, operation_name, api_params):
+        operation_model = self._service_model.operation_model(operation_name)
+        service_name = self._service_model.service_name
+        history_recorder.record(&apos;API_CALL&apos;, {
+            &apos;service&apos;: service_name,
+            &apos;operation&apos;: operation_name,
+            &apos;params&apos;: api_params,
+        })
+        if operation_model.deprecated:
+            logger.debug(&apos;Warning: %s.%s() is deprecated&apos;,
+                         service_name, operation_name)
+        request_context = {
+            &apos;client_region&apos;: self.meta.region_name,
+            &apos;client_config&apos;: self.meta.config,
+            &apos;has_streaming_input&apos;: operation_model.has_streaming_input,
+            &apos;auth_type&apos;: operation_model.auth_type,
+        }
+        request_dict = self._convert_to_request_dict(
+            api_params, operation_model, context=request_context)
+    
+        service_id = self._service_model.service_id.hyphenize()
+        handler, event_response = self.meta.events.emit_until_response(
+            &apos;before-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            model=operation_model, params=request_dict,
+            request_signer=self._request_signer, context=request_context)
+    
+        if event_response is not None:
+            http, parsed_response = event_response
+        else:
+            http, parsed_response = self._make_request(
+                operation_model, request_dict, request_context)
+    
+        self.meta.events.emit(
+            &apos;after-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            http_response=http, parsed=parsed_response,
+            model=operation_model, context=request_context
+        )
+    
+        if http.status_code &gt;= 300:
+            error_code = parsed_response.get(&quot;Error&quot;, {}).get(&quot;Code&quot;)
+            error_class = self.exceptions.from_code(error_code)
+&gt;           raise error_class(parsed_response, operation_name)
+E           botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 1 Instances. Please contact AWS support to request an increase for this limit.
+
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:635: ResourceLimitExceeded</failure><system-err>INFO:botocore.credentials:Found credentials in environment variables.
+WARNING:root:Parameter image_name will be renamed to image_uri in SageMaker Python SDK v2.
+WARNING:sagemaker:&apos;s3_input&apos; class will be renamed to &apos;TrainingInput&apos; in SageMaker Python SDK v2.
+INFO:sagemaker:Creating training-job with name: test-tf-experiments-mnist-1591999151-f6e8
+</system-err></testcase><testcase classname="integration.sagemaker.test_horovod" file="integration/sagemaker/test_horovod.py" line="24" name="test_distributed_training_horovod[cpu-3]" time="2.023"><failure message="botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 2 Instances. Please contact AWS support to request an increase for this limit.">sagemaker_session = &lt;sagemaker.session.Session object at 0x1166cb8d0&gt;
+instance_type = &apos;ml.p3.8xlarge&apos;
+ecr_image = &apos;170805133606.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:2.2.0-gpu-py37-cu101-ubuntu18.04-example-pr-269-2020-06-11-22-13-27&apos;
+tmpdir = local(&apos;/private/var/folders/1g/wq6vxntn6fbc44yc6lj61ds45zkwvg/T/pytest-of-huahq/pytest-5/test_distributed_training_horo0&apos;)
+framework_version = &apos;2.2.0&apos;
+
+    def test_distributed_training_horovod(sagemaker_session,
+                                          instance_type,
+                                          ecr_image,
+                                          tmpdir,
+                                          framework_version):
+    
+        mpi_options = &apos;-verbose -x orte_base_help_aggregate=0&apos;
+        estimator = TensorFlow(
+            entry_point=os.path.join(RESOURCE_PATH, &apos;mnist&apos;, &apos;horovod_mnist.py&apos;),
+            role=&apos;SageMakerRole&apos;,
+            train_instance_type=instance_type,
+            train_instance_count=2,
+            image_name=ecr_image,
+            framework_version=framework_version,
+            py_version=&apos;py3&apos;,
+            script_mode=True,
+            hyperparameters={&apos;sagemaker_mpi_enabled&apos;: True,
+                             &apos;sagemaker_mpi_custom_mpi_options&apos;: mpi_options,
+                             &apos;sagemaker_mpi_num_of_processes_per_host&apos;: 1},
+            sagemaker_session=sagemaker_session)
+    
+&gt;       estimator.fit(job_name=unique_name_from_base(&apos;test-tf-horovod&apos;))
+
+integration/sagemaker/test_horovod.py:46: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:485: in fit
+    fit_super()
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:464: in fit_super
+    super(TensorFlow, self).fit(inputs, wait, logs, job_name, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:494: in fit
+    self.latest_training_job = _TrainingJob.start_new(self, inputs, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:1061: in start_new
+    estimator.sagemaker_session.train(**train_args)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/session.py:590: in train
+    self.sagemaker_client.create_training_job(**train_request)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:316: in _api_call
+    return self._make_api_call(operation_name, kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;botocore.client.SageMaker object at 0x14452e6a0&gt;
+operation_name = &apos;CreateTrainingJob&apos;
+api_params = {&apos;AlgorithmSpecification&apos;: {&apos;EnableSageMakerMetricsTimeSeries&apos;: True, &apos;TrainingImage&apos;: &apos;170805133606.dkr.ecr.us-west-2...f-horovod-1591999166-4e07&quot;&apos;, ...}, &apos;OutputDataConfig&apos;: {&apos;S3OutputPath&apos;: &apos;s3://sagemaker-us-west-2-170805133606/&apos;}, ...}
+
+    def _make_api_call(self, operation_name, api_params):
+        operation_model = self._service_model.operation_model(operation_name)
+        service_name = self._service_model.service_name
+        history_recorder.record(&apos;API_CALL&apos;, {
+            &apos;service&apos;: service_name,
+            &apos;operation&apos;: operation_name,
+            &apos;params&apos;: api_params,
+        })
+        if operation_model.deprecated:
+            logger.debug(&apos;Warning: %s.%s() is deprecated&apos;,
+                         service_name, operation_name)
+        request_context = {
+            &apos;client_region&apos;: self.meta.region_name,
+            &apos;client_config&apos;: self.meta.config,
+            &apos;has_streaming_input&apos;: operation_model.has_streaming_input,
+            &apos;auth_type&apos;: operation_model.auth_type,
+        }
+        request_dict = self._convert_to_request_dict(
+            api_params, operation_model, context=request_context)
+    
+        service_id = self._service_model.service_id.hyphenize()
+        handler, event_response = self.meta.events.emit_until_response(
+            &apos;before-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            model=operation_model, params=request_dict,
+            request_signer=self._request_signer, context=request_context)
+    
+        if event_response is not None:
+            http, parsed_response = event_response
+        else:
+            http, parsed_response = self._make_request(
+                operation_model, request_dict, request_context)
+    
+        self.meta.events.emit(
+            &apos;after-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            http_response=http, parsed=parsed_response,
+            model=operation_model, context=request_context
+        )
+    
+        if http.status_code &gt;= 300:
+            error_code = parsed_response.get(&quot;Error&quot;, {}).get(&quot;Code&quot;)
+            error_class = self.exceptions.from_code(error_code)
+&gt;           raise error_class(parsed_response, operation_name)
+E           botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 2 Instances. Please contact AWS support to request an increase for this limit.
+
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:635: ResourceLimitExceeded</failure><system-err>WARNING:root:Parameter image_name will be renamed to image_uri in SageMaker Python SDK v2.
+INFO:sagemaker:Creating training-job with name: test-tf-horovod-1591999166-4e07
+</system-err></testcase><testcase classname="integration.sagemaker.test_mnist" file="integration/sagemaker/test_mnist.py" line="27" name="test_mnist[cpu-3]" time="17.101"><failure message="botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 1 Instances. Please contact AWS support to request an increase for this limit.">sagemaker_session = &lt;sagemaker.session.Session object at 0x1166cb8d0&gt;
+ecr_image = &apos;170805133606.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:2.2.0-gpu-py37-cu101-ubuntu18.04-example-pr-269-2020-06-11-22-13-27&apos;
+instance_type = &apos;ml.p3.8xlarge&apos;, framework_version = &apos;2.2.0&apos;
+
+    @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+    @pytest.mark.deploy_test
+    def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
+        resource_path = os.path.join(os.path.dirname(__file__), &apos;..&apos;, &apos;..&apos;, &apos;resources&apos;)
+        script = os.path.join(resource_path, &apos;mnist&apos;, &apos;mnist.py&apos;)
+        estimator = TensorFlow(entry_point=script,
+                               role=&apos;SageMakerRole&apos;,
+                               train_instance_type=instance_type,
+                               train_instance_count=1,
+                               sagemaker_session=sagemaker_session,
+                               image_name=ecr_image,
+                               framework_version=framework_version,
+                               script_mode=True)
+        inputs = estimator.sagemaker_session.upload_data(
+            path=os.path.join(resource_path, &apos;mnist&apos;, &apos;data&apos;),
+            key_prefix=&apos;scriptmode/mnist&apos;)
+&gt;       estimator.fit(inputs, job_name=unique_name_from_base(&apos;test-sagemaker-mnist&apos;))
+
+integration/sagemaker/test_mnist.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:485: in fit
+    fit_super()
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:464: in fit_super
+    super(TensorFlow, self).fit(inputs, wait, logs, job_name, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:494: in fit
+    self.latest_training_job = _TrainingJob.start_new(self, inputs, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:1061: in start_new
+    estimator.sagemaker_session.train(**train_args)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/session.py:590: in train
+    self.sagemaker_client.create_training_job(**train_request)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:316: in _api_call
+    return self._make_api_call(operation_name, kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;botocore.client.SageMaker object at 0x14452e6a0&gt;
+operation_name = &apos;CreateTrainingJob&apos;
+api_params = {&apos;AlgorithmSpecification&apos;: {&apos;EnableSageMakerMetricsTimeSeries&apos;: True, &apos;TrainingImage&apos;: &apos;170805133606.dkr.ecr.us-west-2...FullyReplicated&apos;, &apos;S3DataType&apos;: &apos;S3Prefix&apos;, &apos;S3Uri&apos;: &apos;s3://sagemaker-us-west-2-170805133606/scriptmode/mnist&apos;}}}], ...}
+
+    def _make_api_call(self, operation_name, api_params):
+        operation_model = self._service_model.operation_model(operation_name)
+        service_name = self._service_model.service_name
+        history_recorder.record(&apos;API_CALL&apos;, {
+            &apos;service&apos;: service_name,
+            &apos;operation&apos;: operation_name,
+            &apos;params&apos;: api_params,
+        })
+        if operation_model.deprecated:
+            logger.debug(&apos;Warning: %s.%s() is deprecated&apos;,
+                         service_name, operation_name)
+        request_context = {
+            &apos;client_region&apos;: self.meta.region_name,
+            &apos;client_config&apos;: self.meta.config,
+            &apos;has_streaming_input&apos;: operation_model.has_streaming_input,
+            &apos;auth_type&apos;: operation_model.auth_type,
+        }
+        request_dict = self._convert_to_request_dict(
+            api_params, operation_model, context=request_context)
+    
+        service_id = self._service_model.service_id.hyphenize()
+        handler, event_response = self.meta.events.emit_until_response(
+            &apos;before-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            model=operation_model, params=request_dict,
+            request_signer=self._request_signer, context=request_context)
+    
+        if event_response is not None:
+            http, parsed_response = event_response
+        else:
+            http, parsed_response = self._make_request(
+                operation_model, request_dict, request_context)
+    
+        self.meta.events.emit(
+            &apos;after-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            http_response=http, parsed=parsed_response,
+            model=operation_model, context=request_context
+        )
+    
+        if http.status_code &gt;= 300:
+            error_code = parsed_response.get(&quot;Error&quot;, {}).get(&quot;Code&quot;)
+            error_class = self.exceptions.from_code(error_code)
+&gt;           raise error_class(parsed_response, operation_name)
+E           botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 1 Instances. Please contact AWS support to request an increase for this limit.
+
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:635: ResourceLimitExceeded</failure><system-err>WARNING:root:Parameter image_name will be renamed to image_uri in SageMaker Python SDK v2.
+WARNING:sagemaker:&apos;s3_input&apos; class will be renamed to &apos;TrainingInput&apos; in SageMaker Python SDK v2.
+INFO:sagemaker:Creating training-job with name: test-sagemaker-mnist-1591999184-1884
+</system-err></testcase><testcase classname="integration.sagemaker.test_mnist" file="integration/sagemaker/test_mnist.py" line="47" name="test_distributed_mnist_no_ps[cpu-3]" time="12.448"><failure message="botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 2 Instances. Please contact AWS support to request an increase for this limit.">sagemaker_session = &lt;sagemaker.session.Session object at 0x1166cb8d0&gt;
+ecr_image = &apos;170805133606.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:2.2.0-gpu-py37-cu101-ubuntu18.04-example-pr-269-2020-06-11-22-13-27&apos;
+instance_type = &apos;ml.p3.8xlarge&apos;, framework_version = &apos;2.2.0&apos;
+
+    @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+    def test_distributed_mnist_no_ps(sagemaker_session, ecr_image, instance_type, framework_version):
+        resource_path = os.path.join(os.path.dirname(__file__), &apos;..&apos;, &apos;..&apos;, &apos;resources&apos;)
+        script = os.path.join(resource_path, &apos;mnist&apos;, &apos;mnist.py&apos;)
+        estimator = TensorFlow(entry_point=script,
+                               role=&apos;SageMakerRole&apos;,
+                               train_instance_count=2,
+                               train_instance_type=instance_type,
+                               sagemaker_session=sagemaker_session,
+                               image_name=ecr_image,
+                               framework_version=framework_version,
+                               script_mode=True)
+        inputs = estimator.sagemaker_session.upload_data(
+            path=os.path.join(resource_path, &apos;mnist&apos;, &apos;data&apos;),
+            key_prefix=&apos;scriptmode/mnist&apos;)
+&gt;       estimator.fit(inputs, job_name=unique_name_from_base(&apos;test-tf-sm-distributed-mnist&apos;))
+
+integration/sagemaker/test_mnist.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:485: in fit
+    fit_super()
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:464: in fit_super
+    super(TensorFlow, self).fit(inputs, wait, logs, job_name, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:494: in fit
+    self.latest_training_job = _TrainingJob.start_new(self, inputs, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:1061: in start_new
+    estimator.sagemaker_session.train(**train_args)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/session.py:590: in train
+    self.sagemaker_client.create_training_job(**train_request)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:316: in _api_call
+    return self._make_api_call(operation_name, kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;botocore.client.SageMaker object at 0x14452e6a0&gt;
+operation_name = &apos;CreateTrainingJob&apos;
+api_params = {&apos;AlgorithmSpecification&apos;: {&apos;EnableSageMakerMetricsTimeSeries&apos;: True, &apos;TrainingImage&apos;: &apos;170805133606.dkr.ecr.us-west-2...FullyReplicated&apos;, &apos;S3DataType&apos;: &apos;S3Prefix&apos;, &apos;S3Uri&apos;: &apos;s3://sagemaker-us-west-2-170805133606/scriptmode/mnist&apos;}}}], ...}
+
+    def _make_api_call(self, operation_name, api_params):
+        operation_model = self._service_model.operation_model(operation_name)
+        service_name = self._service_model.service_name
+        history_recorder.record(&apos;API_CALL&apos;, {
+            &apos;service&apos;: service_name,
+            &apos;operation&apos;: operation_name,
+            &apos;params&apos;: api_params,
+        })
+        if operation_model.deprecated:
+            logger.debug(&apos;Warning: %s.%s() is deprecated&apos;,
+                         service_name, operation_name)
+        request_context = {
+            &apos;client_region&apos;: self.meta.region_name,
+            &apos;client_config&apos;: self.meta.config,
+            &apos;has_streaming_input&apos;: operation_model.has_streaming_input,
+            &apos;auth_type&apos;: operation_model.auth_type,
+        }
+        request_dict = self._convert_to_request_dict(
+            api_params, operation_model, context=request_context)
+    
+        service_id = self._service_model.service_id.hyphenize()
+        handler, event_response = self.meta.events.emit_until_response(
+            &apos;before-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            model=operation_model, params=request_dict,
+            request_signer=self._request_signer, context=request_context)
+    
+        if event_response is not None:
+            http, parsed_response = event_response
+        else:
+            http, parsed_response = self._make_request(
+                operation_model, request_dict, request_context)
+    
+        self.meta.events.emit(
+            &apos;after-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            http_response=http, parsed=parsed_response,
+            model=operation_model, context=request_context
+        )
+    
+        if http.status_code &gt;= 300:
+            error_code = parsed_response.get(&quot;Error&quot;, {}).get(&quot;Code&quot;)
+            error_class = self.exceptions.from_code(error_code)
+&gt;           raise error_class(parsed_response, operation_name)
+E           botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 2 Instances. Please contact AWS support to request an increase for this limit.
+
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:635: ResourceLimitExceeded</failure><system-err>WARNING:root:Parameter image_name will be renamed to image_uri in SageMaker Python SDK v2.
+WARNING:sagemaker:&apos;s3_input&apos; class will be renamed to &apos;TrainingInput&apos; in SageMaker Python SDK v2.
+INFO:sagemaker:Creating training-job with name: test-tf-sm-distributed-mnist-1591999197-f25f
+</system-err></testcase><testcase classname="integration.sagemaker.test_mnist" file="integration/sagemaker/test_mnist.py" line="66" name="test_distributed_mnist_ps[cpu-3]" time="11.047"><failure message="botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 2 Instances. Please contact AWS support to request an increase for this limit.">sagemaker_session = &lt;sagemaker.session.Session object at 0x1166cb8d0&gt;
+ecr_image = &apos;170805133606.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:2.2.0-gpu-py37-cu101-ubuntu18.04-example-pr-269-2020-06-11-22-13-27&apos;
+instance_type = &apos;ml.p3.8xlarge&apos;, framework_version = &apos;2.2.0&apos;
+
+    def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, framework_version):
+        resource_path = os.path.join(os.path.dirname(__file__), &apos;..&apos;, &apos;..&apos;, &apos;resources&apos;)
+        script = os.path.join(resource_path, &apos;mnist&apos;, &apos;mnist_estimator.py&apos;)
+        estimator = TensorFlow(entry_point=script,
+                               role=&apos;SageMakerRole&apos;,
+                               hyperparameters={&apos;sagemaker_parameter_server_enabled&apos;: True},
+                               train_instance_count=2,
+                               train_instance_type=instance_type,
+                               sagemaker_session=sagemaker_session,
+                               image_name=ecr_image,
+                               framework_version=framework_version,
+                               script_mode=True)
+        inputs = estimator.sagemaker_session.upload_data(
+            path=os.path.join(resource_path, &apos;mnist&apos;, &apos;data-distributed&apos;),
+            key_prefix=&apos;scriptmode/mnist-distributed&apos;)
+&gt;       estimator.fit(inputs, job_name=unique_name_from_base(&apos;test-tf-sm-distributed-mnist&apos;))
+
+integration/sagemaker/test_mnist.py:82: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:485: in fit
+    fit_super()
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:464: in fit_super
+    super(TensorFlow, self).fit(inputs, wait, logs, job_name, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:494: in fit
+    self.latest_training_job = _TrainingJob.start_new(self, inputs, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:1061: in start_new
+    estimator.sagemaker_session.train(**train_args)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/session.py:590: in train
+    self.sagemaker_client.create_training_job(**train_request)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:316: in _api_call
+    return self._make_api_call(operation_name, kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;botocore.client.SageMaker object at 0x14452e6a0&gt;
+operation_name = &apos;CreateTrainingJob&apos;
+api_params = {&apos;AlgorithmSpecification&apos;: {&apos;EnableSageMakerMetricsTimeSeries&apos;: True, &apos;TrainingImage&apos;: &apos;170805133606.dkr.ecr.us-west-2...ted&apos;, &apos;S3DataType&apos;: &apos;S3Prefix&apos;, &apos;S3Uri&apos;: &apos;s3://sagemaker-us-west-2-170805133606/scriptmode/mnist-distributed&apos;}}}], ...}
+
+    def _make_api_call(self, operation_name, api_params):
+        operation_model = self._service_model.operation_model(operation_name)
+        service_name = self._service_model.service_name
+        history_recorder.record(&apos;API_CALL&apos;, {
+            &apos;service&apos;: service_name,
+            &apos;operation&apos;: operation_name,
+            &apos;params&apos;: api_params,
+        })
+        if operation_model.deprecated:
+            logger.debug(&apos;Warning: %s.%s() is deprecated&apos;,
+                         service_name, operation_name)
+        request_context = {
+            &apos;client_region&apos;: self.meta.region_name,
+            &apos;client_config&apos;: self.meta.config,
+            &apos;has_streaming_input&apos;: operation_model.has_streaming_input,
+            &apos;auth_type&apos;: operation_model.auth_type,
+        }
+        request_dict = self._convert_to_request_dict(
+            api_params, operation_model, context=request_context)
+    
+        service_id = self._service_model.service_id.hyphenize()
+        handler, event_response = self.meta.events.emit_until_response(
+            &apos;before-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            model=operation_model, params=request_dict,
+            request_signer=self._request_signer, context=request_context)
+    
+        if event_response is not None:
+            http, parsed_response = event_response
+        else:
+            http, parsed_response = self._make_request(
+                operation_model, request_dict, request_context)
+    
+        self.meta.events.emit(
+            &apos;after-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            http_response=http, parsed=parsed_response,
+            model=operation_model, context=request_context
+        )
+    
+        if http.status_code &gt;= 300:
+            error_code = parsed_response.get(&quot;Error&quot;, {}).get(&quot;Code&quot;)
+            error_class = self.exceptions.from_code(error_code)
+&gt;           raise error_class(parsed_response, operation_name)
+E           botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 2 Instances. Please contact AWS support to request an increase for this limit.
+
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:635: ResourceLimitExceeded</failure><system-err>WARNING:root:Parameter image_name will be renamed to image_uri in SageMaker Python SDK v2.
+WARNING:sagemaker:&apos;s3_input&apos; class will be renamed to &apos;TrainingInput&apos; in SageMaker Python SDK v2.
+INFO:sagemaker:Creating training-job with name: test-tf-sm-distributed-mnist-1591999208-1a82
+</system-err></testcase><testcase classname="integration.sagemaker.test_mnist" file="integration/sagemaker/test_mnist.py" line="86" name="test_s3_plugin[cpu-3]" time="1.166"><failure message="botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 1 Instances. Please contact AWS support to request an increase for this limit.">sagemaker_session = &lt;sagemaker.session.Session object at 0x1166cb8d0&gt;
+ecr_image = &apos;170805133606.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:2.2.0-gpu-py37-cu101-ubuntu18.04-example-pr-269-2020-06-11-22-13-27&apos;
+instance_type = &apos;ml.p3.8xlarge&apos;, region = &apos;us-west-2&apos;
+framework_version = &apos;2.2.0&apos;
+
+    @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+    def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framework_version):
+        resource_path = os.path.join(os.path.dirname(__file__), &apos;..&apos;, &apos;..&apos;, &apos;resources&apos;)
+        script = os.path.join(resource_path, &apos;mnist&apos;, &apos;mnist_estimator.py&apos;)
+        estimator = TensorFlow(entry_point=script,
+                               role=&apos;SageMakerRole&apos;,
+                               hyperparameters={
+                                   # Saving a checkpoint after every 5 steps to hammer the S3 plugin
+                                   &apos;save-checkpoint-steps&apos;: 10,
+                                   # Reducing throttling for checkpoint and model saving
+                                   &apos;throttle-secs&apos;: 1,
+                                   # Without the patch training jobs would fail around 100th to
+                                   # 150th step
+                                   &apos;max-steps&apos;: 200,
+                                   # Large batch size would result in a larger checkpoint file
+                                   &apos;batch-size&apos;: 1024,
+                                   # This makes the training job exporting model during training.
+                                   # Stale model garbage collection will also be performed.
+                                   &apos;export-model-during-training&apos;: True
+                               },
+                               train_instance_count=1,
+                               train_instance_type=instance_type,
+                               sagemaker_session=sagemaker_session,
+                               image_name=ecr_image,
+                               framework_version=framework_version,
+                               script_mode=True)
+        estimator.fit(&apos;s3://sagemaker-sample-data-{}/tensorflow/mnist&apos;.format(region),
+&gt;                     job_name=unique_name_from_base(&apos;test-tf-sm-s3-mnist&apos;))
+
+integration/sagemaker/test_mnist.py:114: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:485: in fit
+    fit_super()
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:464: in fit_super
+    super(TensorFlow, self).fit(inputs, wait, logs, job_name, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:494: in fit
+    self.latest_training_job = _TrainingJob.start_new(self, inputs, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:1061: in start_new
+    estimator.sagemaker_session.train(**train_args)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/session.py:590: in train
+    self.sagemaker_client.create_training_job(**train_request)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:316: in _api_call
+    return self._make_api_call(operation_name, kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;botocore.client.SageMaker object at 0x14452e6a0&gt;
+operation_name = &apos;CreateTrainingJob&apos;
+api_params = {&apos;AlgorithmSpecification&apos;: {&apos;EnableSageMakerMetricsTimeSeries&apos;: True, &apos;TrainingImage&apos;: &apos;170805133606.dkr.ecr.us-west-2...&apos;FullyReplicated&apos;, &apos;S3DataType&apos;: &apos;S3Prefix&apos;, &apos;S3Uri&apos;: &apos;s3://sagemaker-sample-data-us-west-2/tensorflow/mnist&apos;}}}], ...}
+
+    def _make_api_call(self, operation_name, api_params):
+        operation_model = self._service_model.operation_model(operation_name)
+        service_name = self._service_model.service_name
+        history_recorder.record(&apos;API_CALL&apos;, {
+            &apos;service&apos;: service_name,
+            &apos;operation&apos;: operation_name,
+            &apos;params&apos;: api_params,
+        })
+        if operation_model.deprecated:
+            logger.debug(&apos;Warning: %s.%s() is deprecated&apos;,
+                         service_name, operation_name)
+        request_context = {
+            &apos;client_region&apos;: self.meta.region_name,
+            &apos;client_config&apos;: self.meta.config,
+            &apos;has_streaming_input&apos;: operation_model.has_streaming_input,
+            &apos;auth_type&apos;: operation_model.auth_type,
+        }
+        request_dict = self._convert_to_request_dict(
+            api_params, operation_model, context=request_context)
+    
+        service_id = self._service_model.service_id.hyphenize()
+        handler, event_response = self.meta.events.emit_until_response(
+            &apos;before-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            model=operation_model, params=request_dict,
+            request_signer=self._request_signer, context=request_context)
+    
+        if event_response is not None:
+            http, parsed_response = event_response
+        else:
+            http, parsed_response = self._make_request(
+                operation_model, request_dict, request_context)
+    
+        self.meta.events.emit(
+            &apos;after-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            http_response=http, parsed=parsed_response,
+            model=operation_model, context=request_context
+        )
+    
+        if http.status_code &gt;= 300:
+            error_code = parsed_response.get(&quot;Error&quot;, {}).get(&quot;Code&quot;)
+            error_class = self.exceptions.from_code(error_code)
+&gt;           raise error_class(parsed_response, operation_name)
+E           botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 1 Instances. Please contact AWS support to request an increase for this limit.
+
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:635: ResourceLimitExceeded</failure><system-err>WARNING:root:Parameter image_name will be renamed to image_uri in SageMaker Python SDK v2.
+WARNING:sagemaker:&apos;s3_input&apos; class will be renamed to &apos;TrainingInput&apos; in SageMaker Python SDK v2.
+INFO:sagemaker:Creating training-job with name: test-tf-sm-s3-mnist-1591999209-e381
+</system-err></testcase><testcase classname="integration.sagemaker.test_mnist" file="integration/sagemaker/test_mnist.py" line="118" name="test_tuning[cpu-3]" time="22.487"><failure message="botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateHyperParameterTuningJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 2 Instances. Please contact AWS support to request an increase for this limit.">sagemaker_session = &lt;sagemaker.session.Session object at 0x1166cb8d0&gt;
+ecr_image = &apos;170805133606.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:2.2.0-gpu-py37-cu101-ubuntu18.04-example-pr-269-2020-06-11-22-13-27&apos;
+instance_type = &apos;ml.p3.8xlarge&apos;, framework_version = &apos;2.2.0&apos;
+
+    @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+    def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
+        resource_path = os.path.join(os.path.dirname(__file__), &apos;..&apos;, &apos;..&apos;, &apos;resources&apos;)
+        script = os.path.join(resource_path, &apos;mnist&apos;, &apos;mnist.py&apos;)
+    
+        estimator = TensorFlow(entry_point=script,
+                               role=&apos;SageMakerRole&apos;,
+                               train_instance_type=instance_type,
+                               train_instance_count=1,
+                               sagemaker_session=sagemaker_session,
+                               image_name=ecr_image,
+                               framework_version=framework_version,
+                               script_mode=True)
+    
+        hyperparameter_ranges = {&apos;epochs&apos;: IntegerParameter(1, 2)}
+        objective_metric_name = &apos;accuracy&apos;
+        metric_definitions = [{&apos;Name&apos;: objective_metric_name, &apos;Regex&apos;: &apos;accuracy = ([0-9\\.]+)&apos;}]
+    
+        tuner = HyperparameterTuner(estimator,
+                                    objective_metric_name,
+                                    hyperparameter_ranges,
+                                    metric_definitions,
+                                    max_jobs=2,
+                                    max_parallel_jobs=2)
+    
+        with timeout(minutes=20):
+            inputs = estimator.sagemaker_session.upload_data(
+                path=os.path.join(resource_path, &apos;mnist&apos;, &apos;data&apos;),
+                key_prefix=&apos;scriptmode/mnist&apos;)
+    
+            tuning_job_name = unique_name_from_base(&apos;test-tf-sm-tuning&apos;, max_length=32)
+&gt;           tuner.fit(inputs, job_name=tuning_job_name)
+
+integration/sagemaker/test_mnist.py:150: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tuner.py:432: in fit
+    self._fit_with_estimator(inputs, job_name, include_cls_metadata, **kwargs)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tuner.py:440: in _fit_with_estimator
+    self.latest_tuning_job = _TuningJob.start_new(self, inputs)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tuner.py:1501: in start_new
+    tuner.sagemaker_session.create_tuning_job(**tuner_args)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/session.py:1723: in create_tuning_job
+    self.sagemaker_client.create_hyper_parameter_tuning_job(**tune_request)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:316: in _api_call
+    return self._make_api_call(operation_name, kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;botocore.client.SageMaker object at 0x14452e6a0&gt;
+operation_name = &apos;CreateHyperParameterTuningJob&apos;
+api_params = {&apos;HyperParameterTuningJobConfig&apos;: {&apos;HyperParameterTuningJobObjective&apos;: {&apos;MetricName&apos;: &apos;accuracy&apos;, &apos;Type&apos;: &apos;Maximize&apos;},...2-170805133606/&apos;}, &apos;ResourceConfig&apos;: {&apos;InstanceCount&apos;: 1, &apos;InstanceType&apos;: &apos;ml.p3.8xlarge&apos;, &apos;VolumeSizeInGB&apos;: 30}, ...}}
+
+    def _make_api_call(self, operation_name, api_params):
+        operation_model = self._service_model.operation_model(operation_name)
+        service_name = self._service_model.service_name
+        history_recorder.record(&apos;API_CALL&apos;, {
+            &apos;service&apos;: service_name,
+            &apos;operation&apos;: operation_name,
+            &apos;params&apos;: api_params,
+        })
+        if operation_model.deprecated:
+            logger.debug(&apos;Warning: %s.%s() is deprecated&apos;,
+                         service_name, operation_name)
+        request_context = {
+            &apos;client_region&apos;: self.meta.region_name,
+            &apos;client_config&apos;: self.meta.config,
+            &apos;has_streaming_input&apos;: operation_model.has_streaming_input,
+            &apos;auth_type&apos;: operation_model.auth_type,
+        }
+        request_dict = self._convert_to_request_dict(
+            api_params, operation_model, context=request_context)
+    
+        service_id = self._service_model.service_id.hyphenize()
+        handler, event_response = self.meta.events.emit_until_response(
+            &apos;before-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            model=operation_model, params=request_dict,
+            request_signer=self._request_signer, context=request_context)
+    
+        if event_response is not None:
+            http, parsed_response = event_response
+        else:
+            http, parsed_response = self._make_request(
+                operation_model, request_dict, request_context)
+    
+        self.meta.events.emit(
+            &apos;after-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            http_response=http, parsed=parsed_response,
+            model=operation_model, context=request_context
+        )
+    
+        if http.status_code &gt;= 300:
+            error_code = parsed_response.get(&quot;Error&quot;, {}).get(&quot;Code&quot;)
+            error_class = self.exceptions.from_code(error_code)
+&gt;           raise error_class(parsed_response, operation_name)
+E           botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateHyperParameterTuningJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 2 Instances. Please contact AWS support to request an increase for this limit.
+
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:635: ResourceLimitExceeded</failure><system-err>WARNING:root:Parameter image_name will be renamed to image_uri in SageMaker Python SDK v2.
+INFO:root:_TuningJob.start_new!!!
+WARNING:sagemaker:&apos;s3_input&apos; class will be renamed to &apos;TrainingInput&apos; in SageMaker Python SDK v2.
+INFO:sagemaker:Creating hyperparameter tuning job with name: test-tf-sm-tunin-1591999232-19b1
+</system-err></testcase><testcase classname="integration.sagemaker.test_mnist" file="integration/sagemaker/test_mnist.py" line="153" name="test_smdebug[cpu-3]" time="0.000"><skipped message="skip the test temporarily due to timeout issue" type="pytest.skip">integration/sagemaker/test_mnist.py:154: skip the test temporarily due to timeout issue</skipped></testcase><testcase classname="integration.sagemaker.test_pipemode" file="integration/sagemaker/test_pipemode.py" line="97" name="test_single_record[cpu-3]" time="23.368"><failure message="botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 1 Instances. Please contact AWS support to request an increase for this limit.">sagemaker_session = &lt;sagemaker.session.Session object at 0x1166cb8d0&gt;
+ecr_image = &apos;170805133606.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:2.2.0-gpu-py37-cu101-ubuntu18.04-example-pr-269-2020-06-11-22-13-27&apos;
+instance_type = &apos;ml.p3.8xlarge&apos;, framework_version = &apos;2.2.0&apos;
+single_record_test_data = &apos;s3://sagemaker-us-west-2-170805133606/pipemode-single-files&apos;
+
+    def test_single_record(sagemaker_session, ecr_image, instance_type, framework_version,
+                           single_record_test_data):
+        run_test(sagemaker_session,
+                 ecr_image,
+                 instance_type,
+                 framework_version,
+                 single_record_test_data,
+&gt;                &apos;RecordIO&apos;)
+
+integration/sagemaker/test_pipemode.py:105: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+integration/sagemaker/test_pipemode.py:95: in run_test
+    job_name=unique_name_from_base(&apos;test-sagemaker-pipemode&apos;))
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:485: in fit
+    fit_super()
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:464: in fit_super
+    super(TensorFlow, self).fit(inputs, wait, logs, job_name, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:494: in fit
+    self.latest_training_job = _TrainingJob.start_new(self, inputs, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:1061: in start_new
+    estimator.sagemaker_session.train(**train_args)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/session.py:590: in train
+    self.sagemaker_client.create_training_job(**train_request)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:316: in _api_call
+    return self._make_api_call(operation_name, kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;botocore.client.SageMaker object at 0x14452e6a0&gt;
+operation_name = &apos;CreateTrainingJob&apos;
+api_params = {&apos;AlgorithmSpecification&apos;: {&apos;EnableSageMakerMetricsTimeSeries&apos;: True, &apos;TrainingImage&apos;: &apos;170805133606.dkr.ecr.us-west-2...sagemaker-us-west-2-170805133606/pipemode-single-files&apos;}}, &apos;InputMode&apos;: &apos;Pipe&apos;, &apos;RecordWrapperType&apos;: &apos;RecordIO&apos;}], ...}
+
+    def _make_api_call(self, operation_name, api_params):
+        operation_model = self._service_model.operation_model(operation_name)
+        service_name = self._service_model.service_name
+        history_recorder.record(&apos;API_CALL&apos;, {
+            &apos;service&apos;: service_name,
+            &apos;operation&apos;: operation_name,
+            &apos;params&apos;: api_params,
+        })
+        if operation_model.deprecated:
+            logger.debug(&apos;Warning: %s.%s() is deprecated&apos;,
+                         service_name, operation_name)
+        request_context = {
+            &apos;client_region&apos;: self.meta.region_name,
+            &apos;client_config&apos;: self.meta.config,
+            &apos;has_streaming_input&apos;: operation_model.has_streaming_input,
+            &apos;auth_type&apos;: operation_model.auth_type,
+        }
+        request_dict = self._convert_to_request_dict(
+            api_params, operation_model, context=request_context)
+    
+        service_id = self._service_model.service_id.hyphenize()
+        handler, event_response = self.meta.events.emit_until_response(
+            &apos;before-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            model=operation_model, params=request_dict,
+            request_signer=self._request_signer, context=request_context)
+    
+        if event_response is not None:
+            http, parsed_response = event_response
+        else:
+            http, parsed_response = self._make_request(
+                operation_model, request_dict, request_context)
+    
+        self.meta.events.emit(
+            &apos;after-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            http_response=http, parsed=parsed_response,
+            model=operation_model, context=request_context
+        )
+    
+        if http.status_code &gt;= 300:
+            error_code = parsed_response.get(&quot;Error&quot;, {}).get(&quot;Code&quot;)
+            error_class = self.exceptions.from_code(error_code)
+&gt;           raise error_class(parsed_response, operation_name)
+E           botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 1 Instances. Please contact AWS support to request an increase for this limit.
+
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:635: ResourceLimitExceeded</failure><system-err>WARNING:root:Parameter image_name will be renamed to image_uri in SageMaker Python SDK v2.
+WARNING:sagemaker:&apos;s3_input&apos; class will be renamed to &apos;TrainingInput&apos; in SageMaker Python SDK v2.
+INFO:sagemaker:Creating training-job with name: test-sagemaker-pipemode-1591999255-9be2
+</system-err></testcase><testcase classname="integration.sagemaker.test_pipemode" file="integration/sagemaker/test_pipemode.py" line="107" name="test_multi_records[cpu-3]" time="3.425"><failure message="botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 1 Instances. Please contact AWS support to request an increase for this limit.">sagemaker_session = &lt;sagemaker.session.Session object at 0x1166cb8d0&gt;
+ecr_image = &apos;170805133606.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:2.2.0-gpu-py37-cu101-ubuntu18.04-example-pr-269-2020-06-11-22-13-27&apos;
+instance_type = &apos;ml.p3.8xlarge&apos;, framework_version = &apos;2.2.0&apos;
+multi_records_test_data = &apos;s3://sagemaker-us-west-2-170805133606/pipemode-multi-files&apos;
+
+    def test_multi_records(sagemaker_session, ecr_image, instance_type, framework_version,
+                           multi_records_test_data):
+        run_test(sagemaker_session,
+                 ecr_image,
+                 instance_type,
+                 framework_version,
+&gt;                multi_records_test_data)
+
+integration/sagemaker/test_pipemode.py:114: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+integration/sagemaker/test_pipemode.py:95: in run_test
+    job_name=unique_name_from_base(&apos;test-sagemaker-pipemode&apos;))
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:485: in fit
+    fit_super()
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tensorflow/estimator.py:464: in fit_super
+    super(TensorFlow, self).fit(inputs, wait, logs, job_name, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:494: in fit
+    self.latest_training_job = _TrainingJob.start_new(self, inputs, experiment_config)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/estimator.py:1061: in start_new
+    estimator.sagemaker_session.train(**train_args)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/session.py:590: in train
+    self.sagemaker_client.create_training_job(**train_request)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:316: in _api_call
+    return self._make_api_call(operation_name, kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;botocore.client.SageMaker object at 0x14452e6a0&gt;
+operation_name = &apos;CreateTrainingJob&apos;
+api_params = {&apos;AlgorithmSpecification&apos;: {&apos;EnableSageMakerMetricsTimeSeries&apos;: True, &apos;TrainingImage&apos;: &apos;170805133606.dkr.ecr.us-west-2...Type&apos;: &apos;S3Prefix&apos;, &apos;S3Uri&apos;: &apos;s3://sagemaker-us-west-2-170805133606/pipemode-multi-files&apos;}}, &apos;InputMode&apos;: &apos;Pipe&apos;}], ...}
+
+    def _make_api_call(self, operation_name, api_params):
+        operation_model = self._service_model.operation_model(operation_name)
+        service_name = self._service_model.service_name
+        history_recorder.record(&apos;API_CALL&apos;, {
+            &apos;service&apos;: service_name,
+            &apos;operation&apos;: operation_name,
+            &apos;params&apos;: api_params,
+        })
+        if operation_model.deprecated:
+            logger.debug(&apos;Warning: %s.%s() is deprecated&apos;,
+                         service_name, operation_name)
+        request_context = {
+            &apos;client_region&apos;: self.meta.region_name,
+            &apos;client_config&apos;: self.meta.config,
+            &apos;has_streaming_input&apos;: operation_model.has_streaming_input,
+            &apos;auth_type&apos;: operation_model.auth_type,
+        }
+        request_dict = self._convert_to_request_dict(
+            api_params, operation_model, context=request_context)
+    
+        service_id = self._service_model.service_id.hyphenize()
+        handler, event_response = self.meta.events.emit_until_response(
+            &apos;before-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            model=operation_model, params=request_dict,
+            request_signer=self._request_signer, context=request_context)
+    
+        if event_response is not None:
+            http, parsed_response = event_response
+        else:
+            http, parsed_response = self._make_request(
+                operation_model, request_dict, request_context)
+    
+        self.meta.events.emit(
+            &apos;after-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            http_response=http, parsed=parsed_response,
+            model=operation_model, context=request_context
+        )
+    
+        if http.status_code &gt;= 300:
+            error_code = parsed_response.get(&quot;Error&quot;, {}).get(&quot;Code&quot;)
+            error_class = self.exceptions.from_code(error_code)
+&gt;           raise error_class(parsed_response, operation_name)
+E           botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateTrainingJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 1 Instances. Please contact AWS support to request an increase for this limit.
+
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:635: ResourceLimitExceeded</failure><system-err>WARNING:root:Parameter image_name will be renamed to image_uri in SageMaker Python SDK v2.
+WARNING:sagemaker:&apos;s3_input&apos; class will be renamed to &apos;TrainingInput&apos; in SageMaker Python SDK v2.
+INFO:sagemaker:Creating training-job with name: test-sagemaker-pipemode-1591999259-240d
+</system-err></testcase><testcase classname="integration.sagemaker.test_tuning_model_dir" file="integration/sagemaker/test_tuning_model_dir.py" line="22" name="test_model_dir_with_training_job_name[cpu-3]" time="1.129"><failure message="botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateHyperParameterTuningJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 1 Instances. Please contact AWS support to request an increase for this limit.">sagemaker_session = &lt;sagemaker.session.Session object at 0x1166cb8d0&gt;
+ecr_image = &apos;170805133606.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:2.2.0-gpu-py37-cu101-ubuntu18.04-example-pr-269-2020-06-11-22-13-27&apos;
+instance_type = &apos;ml.p3.8xlarge&apos;, framework_version = &apos;2.2.0&apos;
+
+    def test_model_dir_with_training_job_name(sagemaker_session, ecr_image, instance_type, framework_version):
+        resource_path = os.path.join(os.path.dirname(__file__), &apos;../..&apos;, &apos;resources&apos;)
+        script = os.path.join(resource_path, &apos;tuning_model_dir&apos;, &apos;entry.py&apos;)
+    
+        estimator = TensorFlow(entry_point=script,
+                               role=&apos;SageMakerRole&apos;,
+                               train_instance_type=instance_type,
+                               train_instance_count=1,
+                               image_name=ecr_image,
+                               framework_version=framework_version,
+                               py_version=&apos;py3&apos;,
+                               sagemaker_session=sagemaker_session)
+    
+        tuner = HyperparameterTuner(estimator=estimator,
+                                    objective_metric_name=&apos;accuracy&apos;,
+                                    hyperparameter_ranges={&apos;arbitrary_value&apos;: IntegerParameter(0, 1)},
+                                    metric_definitions=[{&apos;Name&apos;: &apos;accuracy&apos;, &apos;Regex&apos;: &apos;accuracy=([01])&apos;}],
+                                    max_jobs=1,
+                                    max_parallel_jobs=1)
+    
+        # User script has logic to check for the correct model_dir
+&gt;       tuner.fit(job_name=unique_name_from_base(&apos;test-tf-model-dir&apos;, max_length=32))
+
+integration/sagemaker/test_tuning_model_dir.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tuner.py:432: in fit
+    self._fit_with_estimator(inputs, job_name, include_cls_metadata, **kwargs)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tuner.py:440: in _fit_with_estimator
+    self.latest_tuning_job = _TuningJob.start_new(self, inputs)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/tuner.py:1501: in start_new
+    tuner.sagemaker_session.create_tuning_job(**tuner_args)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/sagemaker/session.py:1723: in create_tuning_job
+    self.sagemaker_client.create_hyper_parameter_tuning_job(**tune_request)
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:316: in _api_call
+    return self._make_api_call(operation_name, kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;botocore.client.SageMaker object at 0x14452e6a0&gt;
+operation_name = &apos;CreateHyperParameterTuningJob&apos;
+api_params = {&apos;HyperParameterTuningJobConfig&apos;: {&apos;HyperParameterTuningJobObjective&apos;: {&apos;MetricName&apos;: &apos;accuracy&apos;, &apos;Type&apos;: &apos;Maximize&apos;},...InstanceType&apos;: &apos;ml.p3.8xlarge&apos;, &apos;VolumeSizeInGB&apos;: 30}, &apos;RoleArn&apos;: &apos;arn:aws:iam::170805133606:role/SageMakerRole&apos;, ...}}
+
+    def _make_api_call(self, operation_name, api_params):
+        operation_model = self._service_model.operation_model(operation_name)
+        service_name = self._service_model.service_name
+        history_recorder.record(&apos;API_CALL&apos;, {
+            &apos;service&apos;: service_name,
+            &apos;operation&apos;: operation_name,
+            &apos;params&apos;: api_params,
+        })
+        if operation_model.deprecated:
+            logger.debug(&apos;Warning: %s.%s() is deprecated&apos;,
+                         service_name, operation_name)
+        request_context = {
+            &apos;client_region&apos;: self.meta.region_name,
+            &apos;client_config&apos;: self.meta.config,
+            &apos;has_streaming_input&apos;: operation_model.has_streaming_input,
+            &apos;auth_type&apos;: operation_model.auth_type,
+        }
+        request_dict = self._convert_to_request_dict(
+            api_params, operation_model, context=request_context)
+    
+        service_id = self._service_model.service_id.hyphenize()
+        handler, event_response = self.meta.events.emit_until_response(
+            &apos;before-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            model=operation_model, params=request_dict,
+            request_signer=self._request_signer, context=request_context)
+    
+        if event_response is not None:
+            http, parsed_response = event_response
+        else:
+            http, parsed_response = self._make_request(
+                operation_model, request_dict, request_context)
+    
+        self.meta.events.emit(
+            &apos;after-call.{service_id}.{operation_name}&apos;.format(
+                service_id=service_id,
+                operation_name=operation_name),
+            http_response=http, parsed=parsed_response,
+            model=operation_model, context=request_context
+        )
+    
+        if http.status_code &gt;= 300:
+            error_code = parsed_response.get(&quot;Error&quot;, {}).get(&quot;Code&quot;)
+            error_class = self.exceptions.from_code(error_code)
+&gt;           raise error_class(parsed_response, operation_name)
+E           botocore.errorfactory.ResourceLimitExceeded: An error occurred (ResourceLimitExceeded) when calling the CreateHyperParameterTuningJob operation: The account-level service limit &apos;ml.p3.8xlarge for training job usage&apos; is 0 Instances, with current utilization of 0 Instances and a request delta of 1 Instances. Please contact AWS support to request an increase for this limit.
+
+/Users/huahq/Library/Python/3.7/lib/python/site-packages/botocore/client.py:635: ResourceLimitExceeded</failure><system-err>WARNING:root:Parameter image_name will be renamed to image_uri in SageMaker Python SDK v2.
+INFO:root:_TuningJob.start_new!!!
+INFO:sagemaker:Creating hyperparameter tuning job with name: test-tf-model-di-1591999260-0da1
+</system-err></testcase></testsuite></testsuites>
