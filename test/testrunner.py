@@ -4,6 +4,7 @@ import random
 import re
 import sys
 import logging
+import traceback
 
 from multiprocessing import Pool
 import concurrent.futures
@@ -19,7 +20,7 @@ from test_utils import ec2 as ec2_utils
 from test_utils import eks as eks_utils
 from test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair, setup_sm_benchmark_tf_train_env
 from test_utils import KEYS_TO_DESTROY_FILE, UBUNTU_16_BASE_DLAMI, SAGEMAKER_LOCAL_TEST_TYPE, \
-    SAGEMAKER_REMOTE_TEST_TYPE, UBUNTU_HOME_DIR
+    SAGEMAKER_REMOTE_TEST_TYPE, UBUNTU_HOME_DIR, DEFAULT_REGION
 
 
 LOGGER = logging.getLogger(__name__)
@@ -69,7 +70,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     :return: <tuple> pytest command to be run, path where it should be executed, image tag
     """
     reruns = 4
-    region = os.getenv("AWS_REGION", "us-west-2")
+    region = os.getenv("AWS_REGION", DEFAULT_REGION)
     integration_path = os.path.join("integration", sagemaker_test_type)
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
     sm_remote_docker_base_name, tag = image.split("/")[1].split(":")
@@ -104,7 +105,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             instance_type_arg = "--instance-types"
 
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
-    local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{tag}_local.xml")
+    local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{tag}_sm_local.xml")
 
     remote_pytest_cmd = (f"pytest {integration_path} --region {region} {docker_base_arg} "
                          f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
@@ -127,21 +128,19 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
-def run_sagemaker_local_tests(image):
+def run_sagemaker_local_tests(ec2_client, image, region):
     """
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
     :return: None
     """
-    region = os.getenv("AWS_REGION", "us-west-2")
     pytest_command, path, tag = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
     framework = image.split("/")[1].split(":")[0].split("-")[1]
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{tag}_sagemaker_{random.randint(1,1000)}"
-    ec2_client = ec2_utils.ec2_client(region)
     sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
-    ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{tag}_local.xml")
+    ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{tag}_sm_local.xml")
     try:
         key_file = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, UBUNTU_16_BASE_DLAMI, ec2_key_name, region)
@@ -150,13 +149,13 @@ def run_sagemaker_local_tests(image):
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
-        # ec2_conn.run(f"docker pull {image}")
         with ec2_conn.cd(path):
             ec2_conn.run("sudo python3 -m pip install -U pytest pytest-xdist boto3 requests pytest-rerunfailures")
             ec2_conn.run("sleep 2m")
             ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
             ec2_conn.run("sudo python3 -m pip install -r requirements.txt ", warn=True)
             ec2_conn.run(pytest_command)
+            ec2_conn.get(ec2_test_report_path, f"test/{tag}_sm_local.xml")
     finally:
         ec2_utils.terminate_instance(instance_id, region)
         test_utils.destroy_ssh_keypair(ec2_client, ec2_key_name)
@@ -188,18 +187,22 @@ def run_sagemaker_tests(images):
     if not images:
         return
     pool_number = len(images)
+    region = os.getenv("AWS_REGION", DEFAULT_REGION)
+    ec2_client = ec2_utils.ec2_client(region)
     with concurrent.futures.ThreadPoolExecutor(max_workers=pool_number) as executor:
-        thread_results = {executor.submit(run_sagemaker_local_tests, image): image for image in images}
-
+        thread_results = {executor.submit(run_sagemaker_local_tests, ec2_client, image, region): image for image in images}
+        failures = []
         for obj in concurrent.futures.as_completed(thread_results):
             image = thread_results[obj]
             try:
                 result = obj.result()
             except Exception as exc:
-                print(f"{image} generated an exception: {exc}")
-                raise Exception
-            else:
-                print(f"Local tests passed for the image: {image}")
+                print(f"{image} generated an exception: {traceback.print_exc()}")
+                failures.append(image)
+        if len(failures) > 0:
+            sys.exit(1)
+
+
     # with Pool(pool_number) as p:
         # p.map(run_sagemaker_remote_tests, images)
         # if is_pr_context():
