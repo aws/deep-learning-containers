@@ -48,7 +48,7 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
         if not (run_out.ok or run_out.return_code == 124):
             target_upload_location = os.path.join(target_upload_location, "failure_log")
 
-        ctx.run(f"aws s3 cp {log_file} {os.path.join(target_upload_location, log_file)}")
+    ctx.run(f"aws s3 cp {os.path.join(test_dir, log_file)} {os.path.join(target_upload_location, log_file)}")
 
     LOGGER.info(f"Test results can be found at {os.path.join(target_upload_location, log_file)}")
 
