@@ -6,6 +6,7 @@ phases:
       docker: 18
   pre_build:
     commands:
+      - pip install -r src/requirements.txt
       - echo Starting tests.....
   build:
     commands:
