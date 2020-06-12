@@ -4,9 +4,9 @@ import random
 import re
 import sys
 import logging
-import traceback
 
 from multiprocessing import Pool
+import concurrent.futures
 import boto3
 import pytest
 
@@ -152,14 +152,14 @@ def run_sagemaker_local_tests(image):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         # ec2_conn.run(f"docker pull {image}")
         with ec2_conn.cd(path):
-            ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
             ec2_conn.run("sudo python3 -m pip install -U pytest pytest-xdist boto3 requests pytest-rerunfailures")
+            ec2_conn.run("sleep 2m")
+            ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
             ec2_conn.run("sudo python3 -m pip install -r requirements.txt ", warn=True)
             ec2_conn.run(pytest_command)
     finally:
         ec2_utils.terminate_instance(instance_id, region)
         test_utils.destroy_ssh_keypair(ec2_client, ec2_key_name)
-    return True
 
 
 def run_sagemaker_remote_tests(image):
@@ -188,12 +188,24 @@ def run_sagemaker_tests(images):
     if not images:
         return
     pool_number = len(images)
-    with Pool(pool_number) as p:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=pool_number) as executor:
+        thread_results = {executor.submit(run_sagemaker_local_tests, image): image for image in images}
+
+        for obj in concurrent.futures.as_completed(thread_results):
+            image = thread_results[obj]
+            try:
+                result = obj.result()
+            except Exception as exc:
+                print(f"{image} generated an exception: {exc}")
+                raise Exception
+            else:
+                print(f"Local tests passed for the image: {image}")
+    # with Pool(pool_number) as p:
         # p.map(run_sagemaker_remote_tests, images)
-        if is_pr_context():
-            result = p.map(run_sagemaker_local_tests, images)
-            if not result:
-                raise Exception("Sagemaker Local tests failed")
+        # if is_pr_context():
+        #     result = p.map_async(run_sagemaker_local_tests, images)
+        #     if not result:
+        #         raise Exception("Sagemaker Local tests failed")
 
 
 def pull_dlc_images(images):
