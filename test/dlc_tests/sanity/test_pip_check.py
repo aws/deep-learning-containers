@@ -3,6 +3,7 @@ import pytest
 from test.test_utils import run_subprocess_cmd
 
 
+@pytest.mark.canary("Run pip check test regularly on production images")
 def test_pip_check(image):
     """
     Test to run pip sanity tests
