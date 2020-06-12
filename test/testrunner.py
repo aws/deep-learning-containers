@@ -150,7 +150,7 @@ def run_sagemaker_local_tests(image):
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
-        ec2_conn.run(f"docker pull {image}")
+        # ec2_conn.run(f"docker pull {image}")
         with ec2_conn.cd(path):
             ec2_conn.run("sudo pip3 install --upgrade -r requirements.txt ", warn=True)
             ec2_conn.run(pytest_command)
