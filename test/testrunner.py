@@ -152,9 +152,9 @@ def run_sagemaker_local_tests(image):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         # ec2_conn.run(f"docker pull {image}")
         with ec2_conn.cd(path):
-            ec2_conn.sudo("apt-get remove python3-scipy python3-yaml -y")
-            ec2_conn.sudo("python3 -m pip install -U pytest pytest-xdist boto3 requests pytest-rerunfailures")
-            ec2_conn.sudo("python3 -m pip install -r requirements.txt ", warn=True)
+            ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
+            ec2_conn.run("sudo python3 -m pip install -U pytest pytest-xdist boto3 requests pytest-rerunfailures")
+            ec2_conn.run("sudo python3 -m pip install -r requirements.txt ", warn=True)
             ec2_conn.run(pytest_command)
     finally:
         ec2_utils.terminate_instance(instance_id, region)
