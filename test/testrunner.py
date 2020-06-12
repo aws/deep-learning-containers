@@ -193,7 +193,8 @@ def main():
                             _resp, keyname = destroy_ssh_keypair(ec2_client, key_file)
                             LOGGER.info(f"Deleted {keyname}")
     elif specific_test_type == "sagemaker":
-        if benchmark_mode:
+        # Inserted if-condition to trigger benchmark test on PR
+        if benchmark_mode or is_pr_context():
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
             os.chdir(os.path.join("test", "dlc_tests"))
 
