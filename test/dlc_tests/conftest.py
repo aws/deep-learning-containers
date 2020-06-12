@@ -41,7 +41,7 @@ def pytest_addoption(parser):
         "--images", default=default_images.split(" "), nargs="+", help="Specify image(s) to run",
     )
     parser.addoption(
-        "--canary", action="store_true", default=False, help="Add flag to run canary tests",
+        "--canary", action="store_true", default=False, help="Run canary tests",
     )
 
 
@@ -201,9 +201,9 @@ def example_only():
 
 
 def pytest_configure(config):
-    # register an additional marker
+    # register canary marker
     config.addinivalue_line(
-        "markers", "canary(message): mark test to run only on named environment"
+        "markers", "canary(message): mark test to run as a part of canary tests."
     )
 
 
