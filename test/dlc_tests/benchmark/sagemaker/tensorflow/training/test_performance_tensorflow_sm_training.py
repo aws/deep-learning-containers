@@ -24,7 +24,8 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
     target_upload_location = os.path.join(
         BENCHMARK_RESULTS_S3_BUCKET, "tensorflow", framework_version, "sagemaker", "training", processor, py_version
     )
-    training_job_name = f"tf-tr-bench-gpu-{num_nodes}-node-{py_version}-{commit_info[:7]}-{time_str}"
+    training_job_name = (f"tf{framework_version[0]}-tr-bench-{processor}-{num_nodes}-node-{py_version}"
+                         f"-{commit_info[:7]}-{time_str}")
 
     test_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "resources")
     venv_dir = os.path.join(test_dir, "sm_benchmark_venv")
