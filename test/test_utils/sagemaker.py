@@ -92,7 +92,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             instance_type_arg = "--instance-types"
 
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
-    local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{tag}_sm_local.xml")
+    local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"j{job_type}_{tag}_sm_local.xml")
     is_py3 = " python3 -m " if "py3" in image else ""
 
     remote_pytest_cmd = (f"pytest {integration_path} --region {region} {docker_base_arg} "
@@ -113,6 +113,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         remote_pytest_cmd if sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE else local_pytest_cmd,
         path,
         tag,
+        job_type
     )
 
 
@@ -122,13 +123,13 @@ def run_sagemaker_local_tests(ec2_client, image, region):
     :param image: ECR url
     :return: None
     """
-    pytest_command, path, tag = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
+    pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
     framework = image.split("/")[1].split(":")[0].split("-")[1]
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{tag}_sagemaker_{random.randint(1,1000)}"
     sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
-    ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{tag}_sm_local.xml")
+    ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     try:
         key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, UBUNTU_16_BASE_DLAMI, ec2_key_name, region)
@@ -144,7 +145,7 @@ def run_sagemaker_local_tests(ec2_client, image, region):
             ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
             ec2_conn.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
             ec2_conn.run(pytest_command)
-            ec2_conn.get(ec2_test_report_path, f"test/{tag}_sm_local.xml")
+            ec2_conn.get(ec2_test_report_path, f"test/{job_type}_{tag}_sm_local.xml")
     finally:
         ec2_utils.terminate_instance(instance_id, region)
         destroy_ssh_keypair(ec2_client, ec2_key_name)
@@ -158,7 +159,7 @@ def run_sagemaker_remote_tests(image):
 
     :param image: ECR url
     """
-    pytest_command, path, tag = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
+    pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
     context = Context()
     with context.cd(path):
         context.run(f"virtualenv {tag}")

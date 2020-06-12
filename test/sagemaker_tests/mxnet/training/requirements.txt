@@ -1,5 +1,5 @@
 tox
-pluggy==0.11
+pluggy
 flake8
 pytest
 pytest-cov

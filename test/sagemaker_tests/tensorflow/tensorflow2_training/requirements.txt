@@ -7,7 +7,7 @@ Pillow
 h5py
 tox
 flake8
-pytest==5.3.5
+pytest
 pytest-cov
 pytest-rerunfailures==9.0
 pytest-xdist
