@@ -12,6 +12,7 @@ TF1_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTF1HVD")
 TF2_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTF2HVD")
 TF_OPENCV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testOpenCV")
 TF_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_tf_dlc_telemetry_test")
+TF_TENSORBOARD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorBoard")
 
 # TODO: Set enable_p3dn=True when releasing
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p2.xlarge", processor="gpu")
@@ -80,3 +81,13 @@ def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only)
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
+
+# Testing Tensorboard with profiling
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_tensorboard(tensorflow_training, ec2_connection, cpu_only):
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
+
+# Testing Tensorboard with profiling
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_tensorboard(tensorflow_training, ec2_connection, cpu_only):
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
