@@ -1,5 +1,4 @@
 import os
-import random
 import re
 import time
 
@@ -10,13 +9,8 @@ from invoke.context import Context
 from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
 
 
-@pytest.mark.skip(reason="Temp disable it to make pipeline green")
 @pytest.mark.parametrize("num_nodes", [1, 4], indirect=True)
 def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_nodes, region):
-
-    # This sleep has been inserted because all the parametrized training jobs are automatically created
-    # by SageMaker with the same name, due to being started around the same time, and with the same image uri.
-    time.sleep(random.Random(x=f"{tensorflow_training}{num_nodes}").random() * 60)
 
     framework_version = re.search(r"[1,2](\.\d+){2}", tensorflow_training).group()
     processor = "gpu" if "gpu" in tensorflow_training else "cpu"
@@ -30,6 +24,7 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
     target_upload_location = os.path.join(
         BENCHMARK_RESULTS_S3_BUCKET, "tensorflow", framework_version, "sagemaker", "training", processor, py_version
     )
+    training_job_name = f"tf-tr-bench-gpu-{num_nodes}-node-{py_version}-{commit_info[:7]}-{time_str}"
 
     test_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "resources")
     venv_dir = os.path.join(test_dir, "sm_benchmark_venv")
@@ -45,7 +40,8 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
                           f"--node-count {num_nodes} "
                           f"--python {py_version} "
                           f"--region {region} "
-                          f"> {log_file}",
+                          f"--job-name {training_job_name}"
+                          f"2>&1 > {log_file}",
                           warn=True, echo=True)
 
         if not (run_out.ok or run_out.return_code == 124):
