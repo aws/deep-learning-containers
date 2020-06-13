@@ -52,7 +52,7 @@ def generate_sagemaker_pytest_cmd(image):
     # NOTE: We are relying on the fact that repos are defined as <context>-<framework>-<job_type> in our infrastructure
     framework = find_path[1]
     job_type = find_path[2]
-    path = os.path.join("sagemaker_tests", framework, job_type)
+    path = os.path.join("test", "sagemaker_tests", framework, job_type)
     aws_id_arg = "--aws-id"
     docker_base_arg = "--docker-base-name"
     instance_type_arg = "--instance-type"
