@@ -93,7 +93,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
-    is_py3 = " python3 -m " if "py3" in image else ""
+    is_py3 = " python3 -m "
 
     remote_pytest_cmd = (f"pytest {integration_path} --region {region} {docker_base_arg} "
                          f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
@@ -138,7 +138,7 @@ def run_sagemaker_local_tests(ec2_client, image, region):
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
-        is_py3 = " python3 -m" if "py3" in image else ""
+        is_py3 = " python3 -m"
         with ec2_conn.cd(path):
             ec2_conn.run(f"sudo {is_py3} pip install -U pytest pytest-xdist boto3 requests pytest-rerunfailures")
             # To avoid the dpkg lock for apt remove
