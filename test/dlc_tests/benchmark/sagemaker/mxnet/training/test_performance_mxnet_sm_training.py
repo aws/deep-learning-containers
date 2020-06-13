@@ -47,8 +47,7 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
         if not run_out.ok:
             target_upload_location = os.path.join(target_upload_location, "failure_log")
 
-        ctx.run(f"aws s3 cp {log_file} {os.path.join(target_upload_location, log_file)}")
-        ctx.run(f"cat {log_file}", echo=True)
+    ctx.run(f"aws s3 cp {os.path.join(test_dir, log_file)} {os.path.join(target_upload_location, log_file)}")
 
     assert run_out.ok, f"Benchmark Test failed with return code {run_out.return_code}. "\
                        f"Error logs in {os.path.join(target_upload_location, log_file)}"
