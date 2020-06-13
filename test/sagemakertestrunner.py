@@ -137,6 +137,7 @@ def main():
     dlc_images = os.getenv("DLC_IMAGES")
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
+    print(all_image_list)
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
 
     # NOTE: runnign all_image_list now for testing purpose. Will change to standard_images_list. 
