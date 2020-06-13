@@ -92,7 +92,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             instance_type_arg = "--instance-types"
 
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
-    local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"j{job_type}_{tag}_sm_local.xml")
+    local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     is_py3 = " python3 -m " if "py3" in image else ""
 
     remote_pytest_cmd = (f"pytest {integration_path} --region {region} {docker_base_arg} "
@@ -127,11 +127,11 @@ def run_sagemaker_local_tests(ec2_client, image, region):
     framework = image.split("/")[1].split(":")[0].split("-")[1]
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{tag}_sagemaker_{random.randint(1,1000)}"
-    sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     try:
         key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
+        print(f"Launching new Instance for image: {image}")
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, UBUNTU_16_BASE_DLAMI, ec2_key_name, region)
         ec2_conn = ec2_utils.ec2_connection(instance_id, key_file, region)
         run(f"tar -cz --exclude='*.pytest_cache' -f {sm_tests_tar_name} {sm_tests_path}")
@@ -141,13 +141,18 @@ def run_sagemaker_local_tests(ec2_client, image, region):
         is_py3 = " python3 -m" if "py3" in image else ""
         with ec2_conn.cd(path):
             ec2_conn.run(f"sudo {is_py3} pip install -U pytest pytest-xdist boto3 requests pytest-rerunfailures")
+            # To avoid the dpkg lock for apt remove
             ec2_conn.run("sleep 2m")
             ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
             ec2_conn.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
-            ec2_conn.run(pytest_command)
-            ec2_conn.get(ec2_test_report_path, f"test/{job_type}_{tag}_sm_local.xml")
+            ec2_conn.run(pytest_command, timeout=2100)
+            print(f"Downloading Test reports for image: {image}")
+            ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
+            print(f"Test reports downloaded for image: {image}")
     finally:
+        print(f"Terminating Instances for image: {image}")
         ec2_utils.terminate_instance(instance_id, region)
+        print(f"Destroying ssh Key_pair for image: {image}")
         destroy_ssh_keypair(ec2_client, ec2_key_name)
 
 
