@@ -1,9 +1,12 @@
 import json
 import logging
 import os
+import sys
+
 from pkg_resources._vendor.packaging.specifiers import SpecifierSet
 from pkg_resources._vendor.packaging.version import Version
-import sys
+
+import pytest
 
 from invoke import run
 
@@ -67,6 +70,7 @@ def _get_safety_ignore_list(image_uri):
     return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version)
 
 
+@pytest.mark.canary("Run safety tests regularly on production images")
 def test_safety(image):
     """
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
