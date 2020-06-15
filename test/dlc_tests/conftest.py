@@ -112,7 +112,8 @@ def ec2_instance(
         "MinCount": 1,
     }
     extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300,}}]
-    if "benchmark" in os.getenv("TEST_TYPE") and "mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames:
+    if ("benchmark" in os.getenv("TEST_TYPE") and "mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames) or \
+            ("tensorflow_training" in request.fixturenames and "gpu_only" in request.fixturenames and "horovod" in ec2_key_name):
         params["BlockDeviceMappings"] = extra_volume_size_mapping
     instances = ec2_resource.create_instances(**params)
     instance_id = instances[0].id
