@@ -33,17 +33,16 @@ def run_sagemaker_tests(images):
     if not images:
         return
     pool_number = len(images)
-    # with Pool(pool_number) as p:
-    #     p.map(sm_utils.run_sagemaker_remote_tests, images)
+    with Pool(pool_number) as p:
+        p.map(sm_utils.run_sagemaker_remote_tests, images)
     # Run sagemaker Local tests
-    region = os.getenv("AWS_REGION", DEFAULT_REGION)
     if is_pr_context():
-        ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
-        with concurrent.futures.ThreadPoolExecutor(max_workers=pool_number) as executor:
-            thread_results = {executor.submit(sm_utils.run_sagemaker_local_tests, ec2_client, image, region): image for image in images}
+        with concurrent.futures.ProcessPoolExecutor(max_workers=pool_number) as executor:
+            exec_results = {executor.submit(sm_utils.run_sagemaker_local_tests, image): image for
+                              image in images}
             failed_images = []
-            for obj in concurrent.futures.as_completed(thread_results, timeout=2100):
-                image = thread_results[obj]
+            for obj in concurrent.futures.as_completed(exec_results, timeout=2100):
+                image = exec_results[obj]
                 try:
                     result = obj.result()
                 except Exception as exc:
@@ -52,6 +51,7 @@ def run_sagemaker_tests(images):
             if len(failed_images) > 0:
                 print(f"Sagemaker local tests failed for images {' '.join(failed_images)}")
                 sys.exit(1)
+
 
 
 def pull_dlc_images(images):

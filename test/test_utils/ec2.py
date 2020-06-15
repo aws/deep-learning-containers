@@ -158,7 +158,7 @@ def get_instance_state(instance_id, region=DEFAULT_REGION):
     return instance["State"]["Name"]
 
 
-@retry(stop_max_attempt_number=16, wait_fixed=60000)
+@retry(stop_max_attempt_number=16, wait_fixed=30000)
 def check_instance_state(instance_id, state="running", region=DEFAULT_REGION):
     """
     Compares the instance state with the state argument.

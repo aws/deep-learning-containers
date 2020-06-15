@@ -5,7 +5,7 @@ import random
 import re
 
 import boto3
-import pytest
+from botocore.config import Config
 from invoke.context import Context
 from invoke import run
 
@@ -13,6 +13,8 @@ from test_utils import ec2 as ec2_utils
 from test_utils import destroy_ssh_keypair, generate_ssh_keypair
 from test_utils import UBUNTU_16_BASE_DLAMI, SAGEMAKER_LOCAL_TEST_TYPE, \
     SAGEMAKER_REMOTE_TEST_TYPE, UBUNTU_HOME_DIR, DEFAULT_REGION
+
+ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
 
 def assign_sagemaker_remote_job_instance_type(image):
     if "tensorflow" in image:
@@ -30,7 +32,7 @@ def assign_sagemaker_local_job_instance_type(image):
 
 def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
     instance_type = assign_sagemaker_local_job_instance_type(image)
-    instance_name = image.split(":")[-1]
+    instance_name = image.split("/")[-1]
     instance = ec2_utils.launch_instance(
         ami_id,
         region=region,
@@ -117,7 +119,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
-def run_sagemaker_local_tests(ec2_client, image, region):
+def run_sagemaker_local_tests(image):
     """
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
@@ -126,7 +128,8 @@ def run_sagemaker_local_tests(ec2_client, image, region):
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
     framework = image.split("/")[1].split(":")[0].split("-")[1]
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
-    ec2_key_name = f"{tag}_sagemaker_{random.randint(1,1000)}"
+    ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1,1000)}"
+    region = os.getenv("AWS_REGION", DEFAULT_REGION)
     sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
