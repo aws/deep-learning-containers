@@ -3,7 +3,7 @@ FROM nvidia/cuda@sha256:4979db047661dc0003594fb20d37cce6d6c7e989252f4e3fb0beb398
 
 LABEL maintainer="Amazon AI"
 
-ARG PYTHON_VERSION=3.6.6
+ARG PYTHON_VERSION=3.6.10
 ARG OPEN_MPI_VERSION=4.0.1
 ARG CUBLAS_VERSION=10.2.1.243-1_amd64
 
@@ -170,6 +170,10 @@ WORKDIR /
 RUN pip install --no-cache-dir "sagemaker-pytorch-training<2"
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
+
+ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.0/license.txt
 

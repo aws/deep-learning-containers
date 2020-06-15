@@ -40,6 +40,14 @@ def pytest_addoption(parser):
     parser.addoption(
         "--images", default=default_images.split(" "), nargs="+", help="Specify image(s) to run",
     )
+    parser.addoption(
+        "--canary", action="store_true", default=False, help="Run canary tests",
+    )
+
+
+@pytest.fixture(scope="function")
+def num_nodes(request):
+    return request.param
 
 
 @pytest.fixture(scope="function")
@@ -104,7 +112,8 @@ def ec2_instance(
         "MinCount": 1,
     }
     extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300,}}]
-    if "benchmark" in os.getenv("TEST_TYPE") and "mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames:
+    if ("benchmark" in os.getenv("TEST_TYPE") and "mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames) or \
+            ("tensorflow_training" in request.fixturenames and "gpu_only" in request.fixturenames and "horovod" in ec2_key_name):
         params["BlockDeviceMappings"] = extra_volume_size_mapping
     instances = ec2_resource.create_instances(**params)
     instance_id = instances[0].id
@@ -192,6 +201,20 @@ def example_only():
     pass
 
 
+def pytest_configure(config):
+    # register canary marker
+    config.addinivalue_line(
+        "markers", "canary(message): mark test to run as a part of canary tests."
+    )
+
+
+def pytest_runtest_setup(item):
+    if item.config.getoption("--canary"):
+        canary_opts = [mark for mark in item.iter_markers(name="canary")]
+        if not canary_opts:
+            pytest.skip("Skipping non-canary tests")
+
+
 def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, values_to_generate_for_fixture):
     """
     Take a dictionary (values_to_generate_for_fixture), that maps a fixture name used in a test function to another
@@ -207,12 +230,23 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
             if key in metafunc_obj.fixturenames:
                 fixtures_parametrized[new_fixture_name] = []
                 for index, image in enumerate(images_to_parametrize):
+
+                    # Tag fixtures with EC2 instance types if env variable is present
+                    allowed_processors = ("gpu", "cpu", "eia")
+                    instance_tag = ""
+                    for processor in allowed_processors:
+                        if processor in image:
+                            instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE")
+                            if instance_type:
+                                instance_tag = f"-{instance_type.replace('.', '-')}"
+                                break
+
                     image_tag = image.split(":")[-1].replace(".", "-")
                     fixtures_parametrized[new_fixture_name].append(
                         (
                             image,
                             f"{metafunc_obj.function.__name__}-{image_tag}-"
-                            f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}",
+                            f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}{instance_tag}",
                         )
                     )
     return fixtures_parametrized
