@@ -17,7 +17,7 @@ import os
 import sys
 
 import cv2 as cv
-import sagemaker_training
+import sagemaker_training.environment
 import torch
 import torch.distributed as dist
 import torch.nn as nn
