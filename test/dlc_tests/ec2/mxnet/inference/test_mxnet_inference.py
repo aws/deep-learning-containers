@@ -1,6 +1,7 @@
 import pytest
 
 from test import test_utils
+from test.test_utils.ec2 import get_ec2_instance_type
 from test.dlc_tests.conftest import LOGGER
 
 
@@ -8,22 +9,27 @@ SQUEEZENET_MODEL = "squeezenet"
 BERT_MODEL = "bert_sst"
 
 
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+# TODO: Set enable_p3dn=True when releasing
+MX_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu")
+MX_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
+
+
+@pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_mxnet_squeezenet_inference_gpu(mxnet_inference, ec2_connection, region, gpu_only):
     run_ec2_mxnet_inference(mxnet_inference, SQUEEZENET_MODEL, "squeezenet", ec2_connection, "gpu", region, 80, 8081)
 
 
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_mxnet_gluonnlp_inference_gpu(mxnet_inference, ec2_connection, region, gpu_only, py3_only):
     run_ec2_mxnet_inference(mxnet_inference, BERT_MODEL, "gluonnlp", ec2_connection, "gpu", region, 90, 9091)
 
 
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_mxnet_squeezenet_inference_cpu(mxnet_inference, ec2_connection, region, cpu_only):
     run_ec2_mxnet_inference(mxnet_inference, SQUEEZENET_MODEL, "squeezenet", ec2_connection, "cpu", region, 80, 8081)
 
 
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_mxnet_gluonnlp_inference_cpu(mxnet_inference, ec2_connection, region, cpu_only, py3_only):
     run_ec2_mxnet_inference(mxnet_inference, BERT_MODEL, "gluonnlp", ec2_connection, "cpu", region, 90, 9091)
 

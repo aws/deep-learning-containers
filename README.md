@@ -10,7 +10,7 @@ The AWS DLCs are used in Amazon SageMaker as the default vehicles for your SageM
 transforms etc. They've been tested for machine
 learning workloads on Amazon EC2, Amazon ECS and Amazon EKS services as well.
 
-The list of DLC images is maintained [here](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/deep-learning-containers-images.html). 
+The list of DLC images is maintained [here](available_images.md). 
 You can find more information on the images available in Sagemaker [here](https://docs.aws.amazon.com/sagemaker/latest/dg/pre-built-containers-frameworks-deep-learning.html)
 
 ## License
