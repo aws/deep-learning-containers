@@ -10,6 +10,12 @@ release_images:
       cuda_version: "cu102"
       dlc_version: "2.0"
       disable_sm_tag: True
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu102"
+      dlc_version: "1.0"
   2:
     framework: "tensorflow"
     version: "2.2.0"
