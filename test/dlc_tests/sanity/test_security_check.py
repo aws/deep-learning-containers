@@ -1,6 +1,5 @@
 import pytest
 
-from test.test_utils import run_subprocess_cmd
 from invoke import run
 
 
