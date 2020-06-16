@@ -26,6 +26,21 @@ ARG PIP=pip3
 
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.2/AmazonLinux/cpu/final/tensorflow-2.0.2-cp36-cp36m-manylinux2010_x86_64.whl
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    software-properties-common \
+    build-essential \
+    openssh-client \
+    openssh-server \
+    ca-certificates \
+    curl \
+    git \
+    wget \
+    vim \
+    zlib1g-dev \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
+ && rm -rf /var/lib/apt/lists/*
+
 RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
  && apt-get update \
  && apt remove -y --purge openssl \
@@ -47,18 +62,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
     python3-pip \
     python3-setuptools \
-    software-properties-common \
-    build-essential \
-    openssh-client \
-    openssh-server \
-    ca-certificates \
-    curl \
-    git \
-    wget \
-    vim \
-    zlib1g-dev \
-    # Install dependent library for OpenCV
-    libgtk2.0-dev \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Open MPI
