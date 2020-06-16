@@ -11,7 +11,7 @@ def test_tmp_dirs(image):
     Test to see if tmp dirs are empty
     """
     ctx = Context()
-    container_name = f"test_tmp_dirs-{image}"
+    container_name = f"test_tmp_dirs-{image.split(':')[-1].replace('.', '-')}"
     _start_container(container_name, image, ctx)
     _run_cmd_on_container(container_name, ctx, "ls -A /tmp")
     _run_cmd_on_container(container_name, ctx, "ls -A /var/tmp")
@@ -21,14 +21,14 @@ def test_tmp_dirs(image):
 
 def test_python_version(image):
     ctx = Context()
-    container_name = f"py-version-{image}"
+    container_name = f"py-version-{image.split(':')[-1].replace('.', '-')}"
     _start_container(container_name, image, ctx)
     _run_cmd_on_container(container_name, ctx, "python --version")
 
 
 def test_ubuntu_version(image):
     ctx = Context()
-    container_name = f"ubuntu-version-{image}"
+    container_name = f"ubuntu-version-{image.split(':')[-1].replace('.', '-')}"
     _start_container(container_name, image, ctx)
     _run_cmd_on_container(container_name, ctx, "cat /etc/os-release")
 
@@ -40,7 +40,7 @@ def test_framework_version(image):
             tested_framework = framework
             break
     ctx = Context()
-    container_name = f"framework-version-{image}"
+    container_name = f"framework-version-{image.split(':')[-1].replace('.', '-')}"
     _start_container(container_name, image, ctx)
     _run_cmd_on_container(container_name, ctx, f"python -c 'import {tested_framework}; {tested_framework}.__version__'")
 
