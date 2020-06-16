@@ -10,4 +10,4 @@ def test_pip_check(image):
     """
     # Add null entrypoint to ensure command exits immediately
     ctx = Context()
-    ctx.run(f"docker run --entrypoint='' {image} pip check")
+    ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
