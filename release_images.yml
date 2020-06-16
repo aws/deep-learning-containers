@@ -11,7 +11,7 @@ release_images:
       dlc_version: "5.2"
     inference:
       device_types: ["cpu", "gpu"]
-      python_versions: ["py2", "py36"]
+      python_versions: ["py27", "py36"]
       os_version: "ubuntu18.04"
       cuda_version: "cu100"
       dlc_version: "5.2"
