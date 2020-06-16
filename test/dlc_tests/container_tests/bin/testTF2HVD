@@ -9,7 +9,11 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-pip install -U --no-deps tensorflow_addons
+if [[ $(python -c 'import tensorflow as tf; print(tf.__version__)') == 2.0.* ]]; then
+  pip install -U --no-deps tensorflow-addons==0.6.0
+else
+  pip install -U --no-deps tensorflow_addons
+fi
 pip install typeguard
 
 ${BIN_DIR}/testTF2HVDHelper || exit 1
