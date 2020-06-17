@@ -118,7 +118,7 @@ RUN ${PIP} install --no-cache --upgrade \
     sagemaker-experiments==0.1.7 \
     PyYAML==5.3.1 \
     mpi4py==3.0.2 \
-    "sagemaker-mxnet-training<4" \
+    sagemaker-mxnet-training==4.2.0 \
     ${MX_URL} \
     smdebug==${SMDEBUG_VERSION} \
     sagemaker==1.50.17 \
