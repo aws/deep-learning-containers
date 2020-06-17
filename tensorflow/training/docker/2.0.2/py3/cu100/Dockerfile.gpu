@@ -28,10 +28,6 @@ ARG OPENSSL_VERSION=1.1.1g
 
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.2/AmazonLinux/gpu/final/tensorflow_gpu-2.0.2-cp36-cp36m-manylinux2010_x86_64.whl
 
-# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
-# causing sslcertverificationerror the below steps are to fix that
-RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
-
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
     cuda-command-line-tools-10-0 \
@@ -89,6 +85,10 @@ RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
  && ldconfig \
  && cd .. && rm -rf openssl-*
 
+ # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
+
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     python3-dev \
     python3-pip \
@@ -125,6 +125,10 @@ RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params
 RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
 
 ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
+# Resolve missing libcuda.so issue
+RUN cp /usr/local/cuda-10.1/extras/CUPTI/lib64/libcupti* /usr/local/cuda/lib64/
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64/:$LD_LIBRARY_PATH
+
 ENV PATH /usr/local/openmpi/bin/:$PATH
 ENV PATH=/usr/local/nvidia/bin:$PATH
 
