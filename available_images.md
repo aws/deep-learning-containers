@@ -14,7 +14,6 @@ Once you've selected your desired Deep Learning Containers image, continue with 
 
 -   For a list of the latest Deep Learning Containers release notes, see [Release Notes for Deep Learning Containers](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/dlc-release-notes.html)
 
-
 Deep Learning Containers Docker Images are available in the following regions:
 | Region 			                      |  			 Code 			           |  			 General Container 			 |  			 Elastic Inference Container 			 |  			 Example URL 			                                                                       |
 |------------------------------|-------------------|----------------------|--------------------------------|--------------------------------------------------------------------------------------|
