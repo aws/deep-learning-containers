@@ -6,6 +6,8 @@ ENV NCCL_VERSION=2.4.7-1+cuda10.0
 ENV CUDNN_VERSION=7.5.1.10-1+cuda10.0
 ENV TF_TENSORRT_VERSION=5.0.2
 
+ARG OPENSSL_VERSION=1.1.1g
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     cuda-command-line-tools-10-0 \
@@ -21,6 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     wget \
     vim \
+    build-essential \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -43,6 +46,23 @@ RUN apt-get update \
 # See http://bugs.python.org/issue19846
 ENV LANG \
     C.UTF-8
+
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt-get update \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get install -y \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-*
+
+ # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
 # Add arguments to achieve the version, python and url
 #  PYTHON=python for 2.7
