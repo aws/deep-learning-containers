@@ -8,6 +8,8 @@ ARG PIP=pip3
 ARG TFS_SHORT_VERSION=2.0.2
 ARG TFS_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/${TFS_SHORT_VERSION}/Serving/CPU-WITH-MKL/tensorflow_model_server
 
+ARG OPENSSL_VERSION=1.1.1g
+
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
 # Python won’t try to write .pyc or .pyo files on the import of source modules
@@ -38,6 +40,28 @@ RUN apt-get update \
  && apt-get -y install --no-install-recommends \
     nginx \
     nginx-module-njs \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt-get update \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get install -y \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-*
+
+# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
+
+RUN apt-get update \
+ && apt-get -y install --no-install-recommends \
     python3 \
     python3-pip \
     python3-setuptools \
