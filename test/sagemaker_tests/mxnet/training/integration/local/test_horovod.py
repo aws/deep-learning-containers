@@ -21,26 +21,38 @@ from sagemaker.mxnet import MXNet
 from test.integration import RESOURCE_PATH
 
 
+@pytest.mark.skip_cpu
+@pytest.mark.skip_generic
+def test_distributed_training_horovod_gpu(
+    sagemaker_local_session, image_uri, tmpdir, framework_version
+):
+    _test_distributed_training_horovod(
+        1, 2, sagemaker_local_session, image_uri, tmpdir, framework_version, 'local_gpu'
+    )
+
+
 @pytest.mark.skip_gpu
-@pytest.mark.parametrize('instances, processes', [
-    [1, 2],
-    (2, 1),
-    (2, 2),
-    (5, 2)])
-def test_distributed_training_horovod_basic(instances,
-                                            processes,
-                                            sagemaker_local_session,
-                                            docker_image,
-                                            tmpdir,
-                                            framework_version):
+@pytest.mark.parametrize(
+    'instances, processes', [(1, 2), (2, 1), (2, 2), (5, 2)])
+def test_distributed_training_horovod_cpu(
+    instances, processes, sagemaker_local_session, image_uri, tmpdir, framework_version
+):
+    _test_distributed_training_horovod(
+        instances, processes, sagemaker_local_session, image_uri, tmpdir, framework_version, 'local'
+    )
+
+
+def _test_distributed_training_horovod(
+    instances, processes, session, image_uri, tmpdir, framework_version, instance_type
+):
     output_path = 'file://%s' % tmpdir
     estimator = MXNet(
         entry_point=os.path.join(RESOURCE_PATH, 'hvdbasic', 'train_hvd_basic.py'),
         role='SageMakerRole',
-        train_instance_type='local',
-        sagemaker_session=sagemaker_local_session,
+        train_instance_type=instance_type,
+        sagemaker_session=session,
         train_instance_count=instances,
-        image_name=docker_image,
+        image_name=image_uri,
         output_path=output_path,
         framework_version=framework_version,
         hyperparameters={'sagemaker_mpi_enabled': True,
