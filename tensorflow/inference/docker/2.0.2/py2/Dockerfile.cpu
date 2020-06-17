@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     wget \
     vim \
+    build-essential \
  && rm -rf /var/lib/apt/lists/*
 
 RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
