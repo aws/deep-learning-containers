@@ -85,10 +85,10 @@ def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only)
 
 # Testing Tensorboard with profiling
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_tensorboard(tensorflow_training, ec2_connection, gpu_only):
+def test_tensorflow_tensorboard_gpu(tensorflow_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
 
 # Testing Tensorboard with profiling
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_tensorboard(tensorflow_training, ec2_connection, cpu_only):
+def test_tensorflow_tensorboard_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
