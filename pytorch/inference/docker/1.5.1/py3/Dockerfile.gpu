@@ -77,7 +77,7 @@ RUN conda install -c \
 
 # Uninstall and re-install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.1/inference/gpu/torch-1.5.1-cp36-cp36m-manylinux1_x86_64.whl \
+ && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.1/Inference/gpu/torch-1.5.1-cp36-cp36m-manylinux1_x86_64.whl \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U \
     https://torchvision-build.s3.amazonaws.com/1.5.0/gpu/torchvision-0.6.0-cp36-cp36m-manylinux1_x86_64.whl
