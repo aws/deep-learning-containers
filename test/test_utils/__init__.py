@@ -333,7 +333,6 @@ def get_dlc_images():
 
 def parse_canary_images(framework, region):
     tf1 = "1.15"
-    tf1_long = "1.15.2"
     tf2 = "2.2"
     mx = "1.6"
     pt = "1.5"
@@ -348,9 +347,7 @@ def parse_canary_images(framework, region):
             f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py2 "
             f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py2 "
             f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-gpu "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-cpu "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1_long}-gpu-py27-cu100-ubuntu18.04 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1_long}-cpu-py27-ubuntu18.04",
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-cpu",
         "tensorflow2":
             f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-gpu-py37 "
             f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-cpu-py37",
