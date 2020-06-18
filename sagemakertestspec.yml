@@ -16,8 +16,3 @@ phases:
   post_build:
     commands:
       - echo Finishing tests.....
-reports:
-  test_reports:
-    files:
-      - /*.xml
-    file-format: JunitXml

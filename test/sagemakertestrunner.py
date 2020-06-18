@@ -99,8 +99,6 @@ def run_sagemaker_pytest_cmd(image):
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
             context.run(pytest_command)
-            print("running test commands succeed")
-
 
 def run_sagemaker_tests(images):
     """
@@ -111,8 +109,9 @@ def run_sagemaker_tests(images):
     if not images:
         return
     pool_number = len(images)
-    with Pool(pool_number) as p:
-        p.map(run_sagemaker_pytest_cmd, images)
+    run_sagemaker_pytest_cmd(images)
+    # with Pool(pool_number) as p:
+    #     p.map(run_sagemaker_pytest_cmd, images)
 
 def pull_dlc_images(images):
     """
@@ -131,23 +130,45 @@ def setup_sm_benchmark_env(dlc_images, test_path):
         setup_sm_benchmark_tf_train_env(resources_location, tf1_images_in_list, tf2_images_in_list)
 
 
+def log_locater():
+    arn = os.getenv("CODEBUILD_BUILD_ARN")
+    #arn:aws:codebuild:us-west-2:754106851545:build/TestRequester:0cc57b4b-7db3-4c87-b5c9-7af8c8b4d7af
+    log_group_name = "/aws/codebuild/" + arn.split(":")[-2]
+    log_stream_name = arn.split(":")[-1]
+
+    content = {}
+    content["LOG_GROUP_NAME"] = log_group_name
+    content["LOG_STREAM_NAME"] = log_stream_name
+
+    return json.dumps(content)
+
+
+
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
     dlc_images = os.getenv("DLC_IMAGES")
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
-    print(all_image_list)
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
 
     # NOTE: runnign all_image_list now for testing purpose. Will change to standard_images_list. 
-    if test_type == "sagemaker":
-        run_sagemaker_tests(
-            [image for image in all_image_list if not ("tensorflow-inference" in image and "py2" in image)]
-        )
-    else:
-        raise NotImplementedError(f"{test_type} test is not supported. "
-                                  f"Only support ec2, ecs, eks, sagemaker and sanity currently")
+    # if test_type == "sagemaker":
+    #     run_sagemaker_tests(
+    #         [image for image in all_image_list if not ("tensorflow-inference" in image and "py2" in image)]
+    #     )
+    # else:
+    #     raise NotImplementedError(f"{test_type} test is not supported. "
+    #                               f"Only support ec2, ecs, eks, sagemaker and sanity currently")
+
+    # sending log to SQS 
+    log_sqs_url = os.getenv("RETURN_SQS_URL")
+    log_location = log_locater()
+    sqs = boto3.client("sqs")
+    sqs.send_mesasge(QueueUrl=log_sqs_url, MessageBody=log_location)
+
+
+
 
 
 if __name__ == "__main__":
