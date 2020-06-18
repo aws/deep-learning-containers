@@ -22,6 +22,6 @@ release_images:
       device_types: ["gpu"]
       python_versions: ["py27", "py36"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu102"
+      cuda_version: "cu100"
       dlc_version: "5.2"
       example: True
