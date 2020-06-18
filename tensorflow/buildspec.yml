@@ -1,8 +1,8 @@
   account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK tensorflow
-  version: &VERSION 2.0.2
-  cuda_version: &CUDA_VERSION cu100
+  version: &VERSION 2.1.1
+  cuda_version: &CUDA_VERSION cu101
   os_version: &OS_VERSION ubuntu18.04
 
   repository_info:
