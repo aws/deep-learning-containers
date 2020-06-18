@@ -7,6 +7,7 @@ import logging
 import sys
 
 import pytest
+import boto3
 
 from botocore.exceptions import ClientError
 from invoke import run
@@ -59,6 +60,10 @@ def is_tf2(image_uri):
 
 def is_pr_context():
     return os.getenv("BUILD_CONTEXT") == "PR"
+
+
+def is_canary_context():
+    return os.getenv("BUILD_CONTEXT") == "CANARY"
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
@@ -315,6 +320,8 @@ def delete_uploaded_tests_from_s3(s3_test_location):
 def get_dlc_images():
     if is_pr_context():
         return os.getenv("DLC_IMAGES")
+    elif is_canary_context():
+        return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"))
     test_env_file = os.path.join(os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json")
     with open(test_env_file) as test_env:
         test_images = json.load(test_env)
@@ -322,6 +329,47 @@ def get_dlc_images():
         if dlc_test_type == "sanity":
             return " ".join(images)
     raise RuntimeError(f"Cannot find any images for in {test_images}")
+
+
+def parse_canary_images(framework, region):
+    tf1 = "1.15"
+    tf1_long = "1.15.2"
+    tf2 = "2.2"
+    mx = "1.6"
+    pt = "1.5"
+
+    if framework == "tensorflow":
+        framework = "tensorflow2" if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") else "tensorflow1"
+
+    images = {
+        "tensorflow1":
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py2 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py2 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-gpu "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-cpu "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1_long}-gpu-py27-cu100-ubuntu18.04 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1_long}-cpu-py27-ubuntu18.04",
+        "tensorflow2":
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-gpu-py37 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-cpu-py37",
+        "mxnet":
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py2 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py2 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py2 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py2",
+        "pytorch":
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-gpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-cpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-gpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-cpu-py3"
+    }
+    return images[framework]
 
 
 def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2_env):
