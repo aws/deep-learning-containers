@@ -166,7 +166,7 @@ def main():
     log_sqs_url = os.getenv("RETURN_SQS_URL")
     log_location = log_locater()
     sqs = boto3.client("sqs")
-    sqs.send_mesasge(QueueUrl=log_sqs_url, MessageBody=log_location)
+    sqs.send_message(QueueUrl=log_sqs_url, MessageBody=log_location)
 
 
 
