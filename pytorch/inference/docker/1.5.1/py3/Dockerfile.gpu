@@ -97,7 +97,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.0/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.1/license.txt -o /license.txt
 
 RUN conda install -y -c conda-forge pyyaml==5.3.1
 RUN pip install pillow==7.1.0 awscli
