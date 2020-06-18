@@ -91,7 +91,7 @@ RUN pip install --no-cache --upgrade \
     # inotify-simple updated to 1.3.0 and has an issue that prevents the installation
     # of the enum34 package on py2. inotify-simple is used in sagemaker-mxnet-training
     "inotify-simple<1.3" \
-    sagemaker-mxnet-training==4.2.0
+    "sagemaker-mxnet-training<5"
 
 # Install Horovod
 RUN pip install --no-cache-dir horovod==0.19.0
