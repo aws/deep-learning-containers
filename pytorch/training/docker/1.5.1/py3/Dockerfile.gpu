@@ -130,10 +130,10 @@ RUN pip install \
     --no-cache-dir fastai==1.0.59 \
     awscli \
     scipy==1.2.2 \
- && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
+ && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.1/py3/gpu/torch-1.5.1-cp36-cp36m-manylinux1_x86_64.whl \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U \
-     https://torchvision-build.s3.amazonaws.com/1.5.0/gpu/torchvision-0.6.0-cp36-cp36m-linux_x86_64.whl
+     https://torchvision-build.s3.amazonaws.com/1.5.1/gpu/torchvision-0.6.0-cp36-cp36m-linux_x86_64.whl
 
 # Install Horovod
 RUN pip uninstall -y horovod \
@@ -175,7 +175,7 @@ ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/mas
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.0/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.1/license.txt
 
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
