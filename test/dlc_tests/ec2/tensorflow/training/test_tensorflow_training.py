@@ -12,6 +12,7 @@ TF1_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTF1HVD")
 TF2_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTF2HVD")
 TF_OPENCV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testOpenCV")
 TF_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_tf_dlc_telemetry_test")
+TF_TENSORBOARD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorBoard")
 
 # TODO: Set enable_p3dn=True when releasing
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p2.xlarge", processor="gpu")
@@ -41,9 +42,8 @@ def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_onl
 def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
-# TODO: Change this back TF_EC2_GPU_INSTANCE_TYPE. Currently this test times out on p2.8x,
-#       though passes on all three when run manually. For now we are pinning to p2.xlarge until we can resolve the issue.
-@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
+
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_connection, gpu_only):
     test_script = TF1_HVD_CMD if is_tf1(tensorflow_training) else TF2_HVD_CMD
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
@@ -81,3 +81,13 @@ def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only)
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
+
+# Testing Tensorboard with profiling
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_tensorboard_gpu(tensorflow_training, ec2_connection, gpu_only):
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
+
+# Testing Tensorboard with profiling
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_tensorboard_cpu(tensorflow_training, ec2_connection, cpu_only):
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
