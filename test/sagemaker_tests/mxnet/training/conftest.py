@@ -126,6 +126,14 @@ def skip_test_in_region(request, region):
 
 
 @pytest.fixture(autouse=True)
+def skip_by_device_type(request, processor):
+    is_gpu = (processor == 'gpu')
+    if (request.node.get_closest_marker('skip_gpu') and is_gpu) or \
+            (request.node.get_closest_marker('skip_cpu') and not is_gpu):
+        pytest.skip('Skipping because running on \'{}\' instance'.format(processor))
+
+
+@pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
     if region in NO_P2_REGIONS and instance_type.startswith('ml.p2'):
         pytest.skip('Skipping GPU test in region {} to avoid insufficient capacity'.format(region))
