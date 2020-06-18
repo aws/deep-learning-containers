@@ -17,8 +17,8 @@ import os
 import sagemaker
 from sagemaker.mxnet import MXNet
 
-from test.integration import RESOURCE_PATH
-from test.integration.utils import unique_name_from_base
+from ...integration import RESOURCE_PATH
+from ...integration.utils import unique_name_from_base
 
 def test_distributed_training_horovod(sagemaker_session,
                                       instance_type,
@@ -35,7 +35,6 @@ def test_distributed_training_horovod(sagemaker_session,
         image_name=ecr_image,
         framework_version=framework_version,
         py_version='py3',
-        script_mode=True,
         hyperparameters={'sagemaker_mpi_enabled': True,
                          'sagemaker_mpi_custom_mpi_options': mpi_options,
                          'sagemaker_mpi_num_of_processes_per_host': 1},
