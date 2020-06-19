@@ -162,7 +162,7 @@ RUN ${PIP} install --no-cache --upgrade \
     "sagemaker-mxnet-training<5" \
     ${MX_URL} \
     smdebug==${SMDEBUG_VERSION} \
-    sagemaker==1.50.17 \
+    "sagemaker<2" \
     awscli
 
 # Install Horovod, temporarily using CUDA stubs
