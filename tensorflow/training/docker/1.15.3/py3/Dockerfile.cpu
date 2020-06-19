@@ -144,7 +144,7 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
  && ${PIP} install --force-reinstall --no-cache-dir -U \
-    horovod==0.18.2 \
+    horovod==0.19.4 \
  && ${PIP} install --no-cache-dir -U \
     awscli
 

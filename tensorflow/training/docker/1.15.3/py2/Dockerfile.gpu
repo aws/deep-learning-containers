@@ -166,7 +166,7 @@ RUN pip install --no-cache-dir -U \
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 pip install --no-cache-dir \
-    horovod==0.18.2 \
+    horovod==0.19.4 \
  && ldconfig
 
 # Allow OpenSSH to talk to containers without asking for confirmation
