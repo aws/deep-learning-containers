@@ -350,7 +350,10 @@ def parse_canary_images(framework, region):
             f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-cpu",
         "tensorflow2":
             f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-gpu-py37 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-cpu-py37",
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-cpu-py37 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-gpu "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-cpu",
+
         "mxnet":
             f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py3 "
             f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py3 "
