@@ -28,11 +28,10 @@ ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.3/AmazonLinux/
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=0.8.1
 
+ARG OPENSSL_VERSION=1.1.1g
+
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-    python3-dev \
-    python3-pip \
-    python3-setuptools \
     software-properties-common \
     build-essential \
     openssh-client \
@@ -43,6 +42,30 @@ RUN apt-get update \
     wget \
     vim \
     zlib1g-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt-get update \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get install -y \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-*
+
+ # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    python3-dev \
+    python3-pip \
+    python3-setuptools \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Open MPI
