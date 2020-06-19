@@ -168,7 +168,7 @@ RUN apt-get install -y --no-install-recommends openssh-client openssh-server \
 
 WORKDIR /
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-training<2"
+RUN pip install --no-cache-dir "sagemaker-pytorch-training<3"
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
