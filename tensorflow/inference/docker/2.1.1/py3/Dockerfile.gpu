@@ -8,6 +8,8 @@ ARG PIP=pip3
 ARG TFS_SHORT_VERSION=2.1.1
 ARG TFS_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.1.1/Serving/GPU/tensorflow_model_server
 
+ARG OPENSSL_VERSION=1.1.1g
+
 ENV NCCL_VERSION=2.4.7-1+cuda10.1
 ENV CUDNN_VERSION=7.6.2.24-1+cuda10.1
 ENV TF_TENSORRT_VERSION=6.0.1
@@ -66,6 +68,23 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends libnvinfer6=${TF_TENSORRT_VERSION}-1+cuda10.1 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* 
+
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt-get update \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get install -y \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-*
+
+# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \

@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     curl \
     git \
     wget \
+    build-essential \
     vim \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
@@ -58,6 +59,25 @@ ARG PIP=pip
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
+
+ARG OPENSSL_VERSION=1.1.1g
+
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt-get update \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get install -y \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-*
+
+ # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ${PYTHON} \
