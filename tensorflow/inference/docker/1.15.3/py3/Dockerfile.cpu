@@ -34,6 +34,7 @@ RUN apt-get update \
     ca-certificates \
     git \
     wget \
+   build-essential \
     vim \
  && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
  && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
@@ -41,11 +42,33 @@ RUN apt-get update \
  && apt-get -y install --no-install-recommends \
     nginx \
     nginx-module-njs \
-    python3 \
-    python3-pip \
-    python3-setuptools \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+ARG OPENSSL_VERSION=1.1.1g
+
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt-get update \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get install -y \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-*
+
+RUN apt-get update \
+ && apt-get -y install --no-install-recommends \
+    python3 \
+    python3-pip \
+    python3-setuptools
+
+ # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
