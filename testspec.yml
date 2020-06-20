@@ -13,6 +13,7 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - export TEST_TYPE='canary'
       - |
         if expr "${TEST_TYPE}" : "canary" >/dev/null; then
           $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION --registry-ids 763104351884)
