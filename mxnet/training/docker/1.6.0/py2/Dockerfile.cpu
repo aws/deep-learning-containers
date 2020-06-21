@@ -122,3 +122,7 @@ RUN mkdir /root/.keras \
 RUN ln -s /dev/null /dev/raw1394
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/aws-mxnet-1.6.0/license.txt
+
+ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
