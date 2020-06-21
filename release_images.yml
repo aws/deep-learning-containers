@@ -2,26 +2,26 @@
 release_images:
   1:
     framework: "pytorch"
-    version: "1.4.0"
+    version: "1.5.1"
     training:
       device_types: ["cpu", "gpu"]
       python_versions: ["py36"]
       os_version: "ubuntu16.04"
       cuda_version: "cu101"
-      dlc_version: "3.3"
+      dlc_version: "2.0"
     inference:
       device_types: ["cpu", "gpu"]
       python_versions: ["py36"]
       os_version: "ubuntu16.04"
       cuda_version: "cu101"
-      dlc_version: "3.3"
+      dlc_version: "2.0"
   2:
     framework: "pytorch"
-    version: "1.4.0"
+    version: "1.5.1"
     training:
       device_types: ["gpu"]
       python_versions: ["py36"]
       os_version: "ubuntu16.04"
       cuda_version: "cu101"
-      dlc_version: "3.3"
+      dlc_version: "2.0"
       example: True
