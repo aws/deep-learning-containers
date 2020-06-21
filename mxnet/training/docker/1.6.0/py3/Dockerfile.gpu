@@ -205,3 +205,5 @@ ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/mas
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/aws-mxnet-1.6.0/license.txt
+
+CMD ["/bin/bash"]
