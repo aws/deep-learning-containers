@@ -3,7 +3,8 @@ FROM nvidia/cuda:10.1-base-ubuntu16.04
 
 LABEL maintainer="Amazon AI"
 
-ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
+ARG MX_URL=/aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
+ARG MX_WHL_LOCATION=aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8 \
@@ -110,6 +111,8 @@ RUN pip --no-cache-dir install --upgrade \
     setuptools==44.1.0
 
 WORKDIR /
+
+COPY ${MX_WHL_LOCATION} ${MX_URL}
 
 # python-dateutil==2.8.0 to satisfy botocore
 RUN pip install --no-cache-dir --upgrade \

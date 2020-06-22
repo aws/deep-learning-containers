@@ -2,7 +2,8 @@ FROM ubuntu:16.04
 
 LABEL maintainer="Amazon AI"
 
-ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
+ARG MX_URL=/aws_mxnet_mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
+ARG MX_WHL_LOCATION=aws_mxnet_mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -69,6 +70,8 @@ ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
 ENV PATH=/usr/local/openmpi/bin/:$PATH
 
 WORKDIR /
+
+COPY ${MX_WHL_LOCATION} ${MX_URL}
 
 # python-dateutil==2.8.0 to satisfy botocore
 RUN pip install --no-cache --upgrade \
