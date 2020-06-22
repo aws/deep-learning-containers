@@ -138,7 +138,6 @@ def setup_sm_benchmark_env(dlc_images, test_path):
 
 def log_locater():
     arn = os.getenv("CODEBUILD_BUILD_ARN")
-    #arn:aws:codebuild:us-west-2:754106851545:build/TestRequester:0cc57b4b-7db3-4c87-b5c9-7af8c8b4d7af
     log_group_name = "/aws/codebuild/" + arn.split(":")[-2]
     log_stream_name = arn.split(":")[-1]
 
@@ -159,14 +158,14 @@ def main():
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
 
-    # NOTE: runnign all_image_list now for testing purpose. Will change to standard_images_list. 
-    # if test_type == "sagemaker":
-    #     run_sagemaker_tests(
-    #         [image for image in all_image_list if not ("tensorflow-inference" in image and "py2" in image)]
-    #     )
-    # else:
-    #     raise NotImplementedError(f"{test_type} test is not supported. "
-    #                               f"Only support ec2, ecs, eks, sagemaker and sanity currently")
+    # NOTE: runnign all_image_list now for testing purpose. Will change to standard_images_list.
+    if test_type == "sagemaker":
+        run_sagemaker_tests(
+            [image for image in all_image_list if not ("tensorflow-inference" in image and "py2" in image)]
+        )
+    else:
+        raise NotImplementedError(f"{test_type} test is not supported. "
+                                  f"Only support ec2, ecs, eks, sagemaker and sanity currently")
 
     # sending log to SQS 
     log_sqs_url = os.getenv("RETURN_SQS_URL")
