@@ -41,6 +41,7 @@ def generate_sagemaker_pytest_cmd(image):
     reruns = 4
     region = os.getenv("AWS_REGION", "us-west-2")
     integration_path = os.path.join("integration", "sagemaker")
+    print(image)
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
     docker_base_name, tag = image.split("/")[1].split(":")
 
@@ -115,7 +116,7 @@ def run_sagemaker_tests(images):
     if not images:
         return
     pool_number = len(images)
-    run_sagemaker_pytest_cmd(images)
+    run_sagemaker_pytest_cmd(images[0])
     # with Pool(pool_number) as p:
     #     p.map(run_sagemaker_pytest_cmd, images)
 
