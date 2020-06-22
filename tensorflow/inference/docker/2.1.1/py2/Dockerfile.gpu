@@ -1,6 +1,7 @@
 FROM nvidia/cuda:10.1-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="6"
 
 ENV NCCL_VERSION=2.4.7-1+cuda10.1
 ENV CUDNN_VERSION=7.6.2.24-1+cuda10.1
