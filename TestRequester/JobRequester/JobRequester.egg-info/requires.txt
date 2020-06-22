@@ -1,4 +1,0 @@
-awscli
-boto3
-botocore
-pytest
