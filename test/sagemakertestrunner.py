@@ -4,6 +4,7 @@ import sys
 import logging
 import re
 import json
+import xmltodict
 
 from multiprocessing import Pool
 
@@ -101,11 +102,6 @@ def run_sagemaker_pytest_cmd(image):
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
             context.run(pytest_command)
-            os.listdir("test")
-            # .return_logs()
-
-            # parsing xml
-            # send to SQS
 
 def run_sagemaker_tests(images):
     """
@@ -142,10 +138,16 @@ def log_locater():
     log_group_name = "/aws/codebuild/" + arn.split(":")[-2]
     log_stream_name = arn.split(":")[-1]
 
+    with open("test/sagemaker.xml") as xml_file:
+        data_dict = xmltodict.parse(xml_file.read())
+        xml_file.close()
+        report_json_data = json.dumps(data_dict)
+
     content = {}
     content["LOG_GROUP_NAME"] = log_group_name
     content["LOG_STREAM_NAME"] = log_stream_name
     content["TICKET_NAME"] = os.getenv("TICKET_NAME")
+    content["XML_REPORT"] = report_json_data
 
     return json.dumps(content)
 
@@ -160,13 +162,13 @@ def main():
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
 
     # NOTE: runnign all_image_list now for testing purpose. Will change to standard_images_list.
-    if test_type == "sagemaker":
-        run_sagemaker_tests(
-            [image for image in all_image_list if not ("tensorflow-inference" in image and "py2" in image)]
-        )
-    else:
-        raise NotImplementedError(f"{test_type} test is not supported. "
-                                  f"Only support ec2, ecs, eks, sagemaker and sanity currently")
+    # if test_type == "sagemaker":
+    #     run_sagemaker_tests(
+    #         [image for image in all_image_list if not ("tensorflow-inference" in image and "py2" in image)]
+    #     )
+    # else:
+    #     raise NotImplementedError(f"{test_type} test is not supported. "
+    #                               f"Only support ec2, ecs, eks, sagemaker and sanity currently")
 
     # sending log to SQS 
     log_sqs_url = os.getenv("RETURN_SQS_URL")
@@ -174,6 +176,9 @@ def main():
     sqs = boto3.client("sqs")
     print(log_sqs_url)
     sqs.send_message(QueueUrl=log_sqs_url, MessageBody=log_location)
+
+    print("\n\nitems in the test directory:")
+    os.listdir("test")
 
 
 
