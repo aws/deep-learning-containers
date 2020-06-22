@@ -14,6 +14,7 @@ import pytest
 from botocore.config import Config
 from invoke import run
 from invoke.context import Context
+from LogReturn.sendlog import LogReturn
 
 from test_utils import eks as eks_utils
 from test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair, setup_sm_benchmark_tf_train_env
@@ -171,14 +172,15 @@ def main():
     #                               f"Only support ec2, ecs, eks, sagemaker and sanity currently")
 
     # sending log to SQS 
-    log_sqs_url = os.getenv("RETURN_SQS_URL")
-    log_location = log_locater()
-    sqs = boto3.client("sqs")
-    print(log_sqs_url)
-    sqs.send_message(QueueUrl=log_sqs_url, MessageBody=log_location)
-
-    print("\n\nitems in the test directory:")
-    os.listdir("test")
+    # log_sqs_url = os.getenv("RETURN_SQS_URL")
+    # log_location = log_locater()
+    # sqs = boto3.client("sqs")
+    # print(log_sqs_url)
+    # sqs.send_message(QueueUrl=log_sqs_url, MessageBody=log_location)
+    #
+    # print("\n\nitems in the test directory:")
+    # os.listdir("test")
+    LogReturn.send_log()
 
 
 
