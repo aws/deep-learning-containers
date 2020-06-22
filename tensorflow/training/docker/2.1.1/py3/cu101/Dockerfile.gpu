@@ -1,7 +1,6 @@
 FROM nvidia/cuda:10.1-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="6"
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
