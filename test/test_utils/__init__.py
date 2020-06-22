@@ -7,9 +7,11 @@ import logging
 import sys
 
 import pytest
+import boto3
 
 from botocore.exceptions import ClientError
 from invoke import run
+from invoke.context import Context
 from retrying import retry
 
 LOGGER = logging.getLogger(__name__)
@@ -58,6 +60,10 @@ def is_tf2(image_uri):
 
 def is_pr_context():
     return os.getenv("BUILD_CONTEXT") == "PR"
+
+
+def is_canary_context():
+    return os.getenv("BUILD_CONTEXT") == "CANARY"
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
@@ -314,6 +320,8 @@ def delete_uploaded_tests_from_s3(s3_test_location):
 def get_dlc_images():
     if is_pr_context():
         return os.getenv("DLC_IMAGES")
+    elif is_canary_context():
+        return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"))
     test_env_file = os.path.join(os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json")
     with open(test_env_file) as test_env:
         test_images = json.load(test_env)
@@ -321,3 +329,76 @@ def get_dlc_images():
         if dlc_test_type == "sanity":
             return " ".join(images)
     raise RuntimeError(f"Cannot find any images for in {test_images}")
+
+
+def parse_canary_images(framework, region):
+    tf1 = "1.15"
+    tf2 = "2.2"
+    mx = "1.6"
+    pt = "1.5"
+
+    if framework == "tensorflow":
+        framework = "tensorflow2" if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") else "tensorflow1"
+
+    images = {
+        "tensorflow1":
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py2 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py2 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-gpu "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-cpu",
+        "tensorflow2":
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-gpu-py37 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-cpu-py37 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-gpu "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-cpu",
+
+        "mxnet":
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py2 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py2 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py2 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py2",
+        "pytorch":
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-gpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-cpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-gpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-cpu-py3"
+    }
+    return images[framework]
+
+
+def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2_env):
+    """
+    Create a virtual environment for benchmark tests if it doesn't already exist, and download all necessary scripts
+    :param resources_location: <str> directory in which test resources should be placed
+    :param setup_tf1_env: <bool> True if tf1 resources need to be setup
+    :param setup_tf2_env: <bool> True if tf2 resources need to be setup
+    :return: absolute path to the location of the virtual environment
+    """
+    ctx = Context()
+
+    tf_resource_dir_list = []
+    if setup_tf1_env:
+        tf_resource_dir_list.append("tensorflow1")
+    if setup_tf2_env:
+        tf_resource_dir_list.append("tensorflow2")
+
+    for resource_dir in tf_resource_dir_list:
+        with ctx.cd(os.path.join(resources_location, resource_dir)):
+            if not os.path.isdir(os.path.join(resources_location, resource_dir, "horovod")):
+                ctx.run("git clone https://github.com/horovod/horovod.git")
+            if not os.path.isdir(os.path.join(resources_location, resource_dir, "deep-learning-models")):
+                # We clone branch tf2 for both 1.x and 2.x tests because tf2 branch contains all necessary files
+                ctx.run(f"git clone -b tf2 https://github.com/aws-samples/deep-learning-models.git")
+
+    venv_dir = os.path.join(resources_location, "sm_benchmark_venv")
+    if not os.path.isdir(venv_dir):
+        ctx.run(f"virtualenv {venv_dir}")
+        with ctx.prefix(f"source {venv_dir}/bin/activate"):
+            ctx.run("pip install -U sagemaker awscli boto3 botocore six==1.11")
+    return venv_dir

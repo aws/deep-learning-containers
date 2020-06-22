@@ -1,8 +1,8 @@
 import os
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf2, is_pr_context, get_dlc_images
-from test.test_utils.ec2 import execute_ec2_training_test
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1
+from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
 TF1_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflow1Standalone")
@@ -12,19 +12,11 @@ TF1_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTF1HVD")
 TF2_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTF2HVD")
 TF_OPENCV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testOpenCV")
 TF_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_tf_dlc_telemetry_test")
+TF_TENSORBOARD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorBoard")
 
-
-if is_pr_context():
-    TF_EC2_GPU_INSTANCE_TYPE = ["p2.xlarge"]
-    TF_EC2_CPU_INSTANCE_TYPE = ["c5.4xlarge"]
-else:
-    TF_EC2_GPU_INSTANCE_TYPE = ["g3.4xlarge", "p2.8xlarge", "p3.16xlarge"]
-    TF_EC2_CPU_INSTANCE_TYPE = ["c4.8xlarge", "c5.18xlarge", "m4.16xlarge", "t2.2xlarge"]
-
-    # As our next release is TF2, adding p3dn testing
-    # images = get_dlc_images()
-    # if is_tf2(images):
-    #    TF_EC2_GPU_INSTANCE_TYPE.append("p3dn.24xlarge")
+# TODO: Set enable_p3dn=True when releasing
+TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p2.xlarge", processor="gpu")
+TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 
 
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -89,3 +81,13 @@ def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only)
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
+
+# Testing Tensorboard with profiling
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_tensorboard_gpu(tensorflow_training, ec2_connection, gpu_only):
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
+
+# Testing Tensorboard with profiling
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_tensorboard_cpu(tensorflow_training, ec2_connection, cpu_only):
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)

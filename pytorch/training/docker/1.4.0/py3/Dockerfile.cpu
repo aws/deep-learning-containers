@@ -3,12 +3,12 @@ FROM ubuntu:16.04
 LABEL maintainer="Amazon AI"
 
 # Add arguments to achieve the version, python and url
-ARG PYTHON_VERSION=3.6.6
+ARG PYTHON_VERSION=3.6.10
 ARG OPEN_MPI_VERSION=4.0.1
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.7.2
+ARG SMDEBUG_VERSION=0.8.1
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -82,7 +82,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && conda install -y \
     scikit-learn==0.21.2 \
     pandas==0.25.0 \
-    Pillow==6.2.0 \
+    Pillow \
     h5py==2.9.0 \
     requests==2.22.0 \
  && conda install -c dglteam -y dgl==0.4.1 \
