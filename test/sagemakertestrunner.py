@@ -14,7 +14,7 @@ import pytest
 from botocore.config import Config
 from invoke import run
 from invoke.context import Context
-from LogReturn.sendlog import LogReturn
+import LogReturn.sendlog
 
 from test_utils import eks as eks_utils
 from test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair, setup_sm_benchmark_tf_train_env
@@ -180,7 +180,7 @@ def main():
     #
     # print("\n\nitems in the test directory:")
     # os.listdir("test")
-    LogReturn.send_log()
+    LogReturn.sendlog.send_log()
 
 
 
