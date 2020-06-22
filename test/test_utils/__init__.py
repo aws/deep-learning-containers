@@ -402,6 +402,9 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
             ctx.run("pip install -U sagemaker awscli boto3 botocore six==1.11")
+
+            # SageMaker TF estimator is coded to only accept framework versions upto 2.1.0 as py2 compatible.
+            # Fixing this through the following changes:
             estimator_location = ctx.run(
                 "echo $(pip3 show sagemaker |grep 'Location' |sed s/'Location: '//g)/sagemaker/tensorflow/estimator.py"
             ).stdout.strip("\n")

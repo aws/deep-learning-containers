@@ -156,8 +156,8 @@ def main():
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
     new_eks_cluster_name = None
-    benchmark_mode = "benchmark" in test_type or is_pr_context()
-    specific_test_type = "sagemaker" if benchmark_mode else test_type
+    benchmark_mode = "benchmark" in test_type
+    specific_test_type = re.sub("benchmark-", "", test_type) if benchmark_mode else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
     if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary"):
@@ -193,8 +193,7 @@ def main():
                             _resp, keyname = destroy_ssh_keypair(ec2_client, key_file)
                             LOGGER.info(f"Deleted {keyname}")
     elif specific_test_type == "sagemaker":
-        # Inserted if-condition to trigger benchmark test on PR
-        if benchmark_mode or is_pr_context():
+        if benchmark_mode:
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
             os.chdir(os.path.join("test", "dlc_tests"))
 
