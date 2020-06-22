@@ -1,5 +1,5 @@
 tox
-pluggy==0.11
+pluggy>=0.12
 flake8
 pytest==4.5.0
 pytest-cov==2.9.0
@@ -8,9 +8,9 @@ pytest-xdist
 mock
 sagemaker
 docker-compose
-boto3
-six==1.13.0
+boto3>=1.14.8
+six==1.15.0
 python-dateutil>=2.1,<2.8.1
-botocore
+botocore>=1.17.8
 awscli
 requests_mock==1.7.0

@@ -16,8 +16,8 @@ import os
 
 from sagemaker.mxnet import MXNet
 
-import local_mode_utils
-from test.integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
+from ..local import local_mode_utils
+from ...integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
 
 
 def test_keras_training(docker_image, sagemaker_local_session, local_instance_type,

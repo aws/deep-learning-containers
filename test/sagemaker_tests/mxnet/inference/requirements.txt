@@ -9,6 +9,6 @@ pytest-xdist
 mock
 sagemaker
 docker-compose
-mxnet==1.4.0
+mxnet
 awslogs
 requests_mock
