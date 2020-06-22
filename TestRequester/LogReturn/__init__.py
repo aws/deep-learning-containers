@@ -5,6 +5,11 @@ import json
 
 
 def log_locater():
+    """
+    Create message that contains info allowing user to locate the logs
+
+    :return: <json> returned message to SQS for locating the log
+    """
     arn = os.getenv("CODEBUILD_BUILD_ARN")
     log_group_name = "/aws/codebuild/" + arn.split(":")[-2]
     log_stream_name = arn.split(":")[-1]
@@ -22,9 +27,13 @@ def log_locater():
 
     return json.dumps(content)
 
+
 def send_log():
+    """
+    Sending log message to SQS
+    """
     log_sqs_url = os.getenv("RETURN_SQS_URL")
     log_location = log_locater()
     sqs = boto3.client("sqs")
-    print(log_sqs_url)
     sqs.send_message(QueueUrl=log_sqs_url, MessageBody=log_location)
+    print(f"Logs successfully sent to {log_sqs_url}")

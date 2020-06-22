@@ -1,25 +1,14 @@
-import os
-import random
-import sys
-import logging
-import re
 import json
+import logging
+import os
+import re
+import sys
+
+import LogReturn
 import xmltodict
-
-from multiprocessing import Pool
-
-import boto3
-import pytest
-
-from botocore.config import Config
 from invoke import run
 from invoke.context import Context
-import LogReturn
-
-from test_utils import eks as eks_utils
-from test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair, setup_sm_benchmark_tf_train_env
-from test_utils import KEYS_TO_DESTROY_FILE
-
+from test_utils import setup_sm_benchmark_tf_train_env
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -43,7 +32,6 @@ def generate_sagemaker_pytest_cmd(image):
     reruns = 4
     region = os.getenv("AWS_REGION", "us-west-2")
     integration_path = os.path.join("integration", "sagemaker")
-    print(image)
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
     docker_base_name, tag = image.split("/")[1].split(":")
 
@@ -95,7 +83,6 @@ def run_sagemaker_pytest_cmd(image):
     :param image: ECR url
     """
     pytest_command, path, tag = generate_sagemaker_pytest_cmd(image)
-    print(pytest_command)
 
     context = Context()
     with context.cd(path):
@@ -163,23 +150,15 @@ def main():
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
 
     # NOTE: runnign all_image_list now for testing purpose. Will change to standard_images_list.
-    # if test_type == "sagemaker":
-    #     run_sagemaker_tests(
-    #         [image for image in all_image_list if not ("tensorflow-inference" in image and "py2" in image)]
-    #     )
-    # else:
-    #     raise NotImplementedError(f"{test_type} test is not supported. "
-    #                               f"Only support ec2, ecs, eks, sagemaker and sanity currently")
+    if test_type == "sagemaker":
+        run_sagemaker_tests(
+            [image for image in all_image_list if not ("tensorflow-inference" in image and "py2" in image)]
+        )
+    else:
+        raise NotImplementedError(f"{test_type} test is not supported. "
+                                  f"Only support ec2, ecs, eks, sagemaker and sanity currently")
 
-    # sending log to SQS 
-    # log_sqs_url = os.getenv("RETURN_SQS_URL")
-    # log_location = log_locater()
-    # sqs = boto3.client("sqs")
-    # print(log_sqs_url)
-    # sqs.send_message(QueueUrl=log_sqs_url, MessageBody=log_location)
-    #
-    # print("\n\nitems in the test directory:")
-    # os.listdir("test")
+    # sending log back to SQS queue
     LogReturn.send_log()
 
 
