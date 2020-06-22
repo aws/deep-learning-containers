@@ -13,6 +13,9 @@ from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
 def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_nodes, region):
 
     framework_version = re.search(r"[1,2](\.\d+){2}", tensorflow_training).group()
+    if framework_version.startswith("1."):
+        pytest.skip("Skipping benchmark test on TF 1.x images.")
+
     processor = "gpu" if "gpu" in tensorflow_training else "cpu"
 
     ec2_instance_type = "p3.16xlarge" if processor == "gpu" else "c5.18xlarge"
