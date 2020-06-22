@@ -1,7 +1,7 @@
   account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK pytorch
-  version: &VERSION 1.5.0
+  version: &VERSION 1.5.1
   cuda_version: &CUDA_VERSION cu101
   os_version: &OS_VERSION ubuntu16.04
 
@@ -10,7 +10,7 @@
         image_type: &TRAINING_IMAGE_TYPE training
         root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
         repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
-        repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ] 
+        repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
     inference_repository: &INFERENCE_REPOSITORY
         image_type: &INFERENCE_IMAGE_TYPE inference
         root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]

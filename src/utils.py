@@ -19,7 +19,7 @@ import logging
 import sys
 
 import constants
-from dlc.github_handler import GitHubHandler
+
 from config import build_config
 
 
@@ -66,6 +66,10 @@ def get_pr_modified_files(pr_number):
     :param pr_number: int
     :return: str with all the modified files
     """
+    # This import statement has been placed inside this function because it creates a dependency that is unnecessary
+    # for local builds and builds outside of Pull Requests.
+    from dlc.github_handler import GitHubHandler
+
     github_handler = GitHubHandler("aws", "deep-learning-containers")
     files = github_handler.get_pr_files_changed(pr_number)
     files = "\n".join(files)
@@ -274,7 +278,7 @@ def pr_build_setup(pr_number, framework):
 
     # The below code currently overides the device_types, image_types, py_versions with constants.ALL
     # when there is a change in any the below files
-    parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.yml")
+    parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.*yml")
 
     parse_modifed_root_files_info(files, pattern="src\/\S+")
 

@@ -100,7 +100,7 @@ RUN pip install --no-cache-dir -U \
     mpi4py==3.0.2 \
     "cryptography>=2.3" \
     "sagemaker-tensorflow>=1.15,<1.16" \
-    "sagemaker-tensorflow-training>=2,<3" \
+    "sagemaker-tensorflow-training>=10,<20" \
     # Let's install TensorFlow separately in the end to avoid the library version to be overwritten
  && pip install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
