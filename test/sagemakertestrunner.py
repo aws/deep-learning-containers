@@ -100,6 +100,11 @@ def run_sagemaker_pytest_cmd(image):
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
             context.run(pytest_command)
+            os.listdir("test")
+            # .return_logs()
+
+            # parsing xml
+            # send to SQS
 
 def run_sagemaker_tests(images):
     """
@@ -140,6 +145,7 @@ def log_locater():
     content = {}
     content["LOG_GROUP_NAME"] = log_group_name
     content["LOG_STREAM_NAME"] = log_stream_name
+    content["TICKET_NAME"] = os.getenv("TICKET_NAME")
 
     return json.dumps(content)
 

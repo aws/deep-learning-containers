@@ -80,7 +80,7 @@ def generate_sagemaker_pytest_cmd(image):
         path,
         tag,
     )
-
+    # test_report part of the returned value
 
 def run_sagemaker_pytest_cmd(image):
     """
@@ -98,6 +98,10 @@ def run_sagemaker_pytest_cmd(image):
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
             context.run(pytest_command)
+            # .return_logs()
+
+            # parsing xml
+            # send to SQS
 
 
 def run_sagemaker_tests(images):
@@ -142,7 +146,7 @@ def setup_eks_clusters(dlc_images):
 def setup_sm_benchmark_env(dlc_images, test_path):
     # The plan is to have a separate if/elif-condition for each type of image
     if "tensorflow-training" in dlc_images:
-        tf1_images_in_list = (re.search(r"tensorflow-training:(^ )*1(\.\d+){2}", dlc_images) is not None)
+        tf1_images_in_list = (re.search(r'tensorflow-training:(^ )*1(\.\d+){2}', dlc_images) is not None)
         tf2_images_in_list = (re.search(r"tensorflow-training:(^ )*2(\.\d+){2}", dlc_images) is not None)
         resources_location = os.path.join(test_path, "tensorflow", "training", "resources")
         setup_sm_benchmark_tf_train_env(resources_location, tf1_images_in_list, tf2_images_in_list)
@@ -200,6 +204,7 @@ def main():
             setup_sm_benchmark_env(dlc_images, test_path)
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
             sys.exit(pytest.main(pytest_cmd))
+
         else:
             run_sagemaker_tests(
                 [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
