@@ -2,6 +2,8 @@ import os
 import re
 import time
 
+from random import Random
+
 import pytest
 
 from invoke.context import Context
@@ -29,6 +31,10 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
     )
     training_job_name = (f"tf{framework_version[0]}-tr-bench-{processor}-{num_nodes}-node-{py_version}"
                          f"-{commit_info[:7]}-{time_str}")
+
+    # Inserting random sleep because this test starts multiple training jobs around the same time, resulting in
+    # a throttling error for SageMaker APIs.
+    time.sleep(Random(x=training_job_name).random() * 60)
 
     test_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "resources")
     venv_dir = os.path.join(test_dir, "sm_benchmark_venv")
