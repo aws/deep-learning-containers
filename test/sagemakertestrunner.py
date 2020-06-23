@@ -3,7 +3,7 @@ import os
 import re
 import sys
 
-import LogReturn
+import log_return
 from invoke import run
 from invoke.context import Context
 from test_utils import setup_sm_benchmark_tf_train_env
@@ -134,7 +134,7 @@ def main():
     # sending log back to SQS queue
     tag = dlc_image.split("/")[1].split(":")[1]
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
-    LogReturn.send_log(test_report)
+    log_return.send_log(test_report)
 
 
 
