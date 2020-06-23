@@ -22,7 +22,7 @@ import torch.utils.data.distributed
 from sagemaker.pytorch import PyTorchModel
 from sagemaker.predictor import BytesDeserializer, csv_deserializer, csv_serializer, \
     json_deserializer, json_serializer, npy_serializer, numpy_deserializer
-from sagemaker_containers.beta.framework import content_types
+from sagemaker_inference import content_types
 from torchvision import datasets, transforms
 
 from ...integration import training_dir, mnist_script, mnist_1d_script, model_cpu_dir, \

@@ -1,4 +1,3 @@
-sagemaker-containers>=2.6.2
 numpy
 scipy
 sklearn
@@ -21,3 +20,5 @@ botocore
 requests-mock
 awscli
 fabric==2.5.0
+sagemaker-experiments==0.1.7
+retrying==1.3.3
