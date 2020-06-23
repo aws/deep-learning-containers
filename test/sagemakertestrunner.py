@@ -2,7 +2,7 @@ import logging
 import os
 import re
 import sys
-from log_return import LogReturn
+import log_return
 from invoke import run
 from invoke.context import Context
 from test_utils import setup_sm_benchmark_tf_train_env
@@ -82,12 +82,18 @@ def run_sagemaker_pytest_cmd(image):
     """
     pytest_command, path, tag, instance_type = generate_sagemaker_pytest_cmd(image)
     #update resource pool accordingly, then add a try-catch statement here to update the pool in case of failure
-    context = Context()
-    with context.cd(path):
-        context.run(f"python3 -m virtualenv {tag}")
-        with context.prefix(f"source {tag}/bin/activate"):
-            context.run("pip install -r requirements.txt", warn=True)
-            context.run(pytest_command)
+    try:
+        log_return.update_pool("running", instance_type, 1)
+        context = Context()
+        with context.cd(path):
+            context.run(f"python3 -m virtualenv {tag}")
+            with context.prefix(f"source {tag}/bin/activate"):
+                context.run("pip install -r requirements.txt", warn=True)
+                context.run(pytest_command)
+    except Exception as e:
+        log_return.update_pool("failed", instance_type, 1)
+        raise e
+
 
 
 def run_sagemaker_tests(image):
@@ -125,8 +131,7 @@ def main():
     LOGGER.info(f"Images tested: {dlc_image}")
 
     instance_type = assign_sagemaker_instance_type(dlc_image)
-    log_return_obj = LogReturn()
-    log_return_obj.update_pool("preparing", instance_type, 1)
+    log_return.update_pool("preparing", instance_type, 1)
     #
     # if test_type == "sagemaker":
     #     run_sagemaker_tests(dlc_image)
@@ -134,10 +139,11 @@ def main():
     #     raise NotImplementedError(f"{test_type} test is not supported. "
     #                               f"Only support ec2, ecs, eks, sagemaker and sanity currently")
 
+    log_return.update_pool("completed", instance_type, 1)
     # sending log back to SQS queue
-    tag = dlc_image.split("/")[1].split(":")[1]
-    test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
-    log_return_obj.send_log(test_report)
+    # tag = dlc_image.split("/")[1].split(":")[1]
+    # test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
+    # log_return.send_log(test_report)
 
 
 
