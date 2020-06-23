@@ -1,10 +1,7 @@
 import os
-from glob import glob
-from os.path import basename
-from os.path import splitext
 import sys
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 
 def read(fname):
@@ -15,9 +12,9 @@ if sys.version_info.major == 2:
     raise EnvironmentError("This package requires Python 3.6.9 or above.")
 
 
-setup(name='Scheduler',
+setup(name='DLCScheduler',
       version='0.1',
-      packages=["JobRequester", "LogReturn"],
+      packages=["job_requester", "log_return"],
       install_requires=[
           "boto3",
           "botocore",

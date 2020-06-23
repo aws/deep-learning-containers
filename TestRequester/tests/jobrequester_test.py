@@ -2,7 +2,7 @@ import concurrent.futures
 import json
 
 import boto3
-from JobRequester.requester import JobRequester
+from job_requester.requester import JobRequester
 
 
 def testrunner():

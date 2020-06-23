@@ -1,11 +1,9 @@
-import json
 import logging
 import os
 import re
 import sys
 
 import LogReturn
-import xmltodict
 from invoke import run
 from invoke.context import Context
 from test_utils import setup_sm_benchmark_tf_train_env
@@ -40,7 +38,7 @@ def generate_sagemaker_pytest_cmd(image):
 
     # Get path to test directory
     find_path = docker_base_name.split("-")
-    
+
     # NOTE: We are relying on the fact that repos are defined as <context>-<framework>-<job_type> in our infrastructure
     framework = find_path[1]
     job_type = find_path[2]
@@ -91,18 +89,17 @@ def run_sagemaker_pytest_cmd(image):
             context.run("pip install -r requirements.txt", warn=True)
             context.run(pytest_command)
 
-def run_sagemaker_tests(images):
+
+def run_sagemaker_tests(image):
     """
     Function to set up multiprocessing for SageMaker tests
 
     :param images: <list> List of all images to be used in SageMaker tests
     """
-    if not images:
+    if not image:
         return
-    pool_number = len(images)
-    run_sagemaker_pytest_cmd(images[0])
-    # with Pool(pool_number) as p:
-    #     p.map(run_sagemaker_pytest_cmd, images)
+    run_sagemaker_pytest_cmd(image)
+
 
 def pull_dlc_images(images):
     """
@@ -121,50 +118,25 @@ def setup_sm_benchmark_env(dlc_images, test_path):
         setup_sm_benchmark_tf_train_env(resources_location, tf1_images_in_list, tf2_images_in_list)
 
 
-def log_locater():
-    arn = os.getenv("CODEBUILD_BUILD_ARN")
-    log_group_name = "/aws/codebuild/" + arn.split(":")[-2]
-    log_stream_name = arn.split(":")[-1]
-
-    with open("test/sagemaker.xml") as xml_file:
-        data_dict = xmltodict.parse(xml_file.read())
-        xml_file.close()
-        report_json_data = json.dumps(data_dict)
-
-    content = {}
-    content["LOG_GROUP_NAME"] = log_group_name
-    content["LOG_STREAM_NAME"] = log_stream_name
-    content["TICKET_NAME"] = os.getenv("TICKET_NAME")
-    content["XML_REPORT"] = report_json_data
-
-    return json.dumps(content)
-
-
-
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
-    dlc_images = os.getenv("DLC_IMAGES")
-    LOGGER.info(f"Images tested: {dlc_images}")
-    all_image_list = dlc_images.split(" ")
-    standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
+    dlc_image = os.getenv("DLC_IMAGES")
+    LOGGER.info(f"Images tested: {dlc_image}")
 
-    # NOTE: runnign all_image_list now for testing purpose. Will change to standard_images_list.
+    # NOTE: running all_image_list now for testing purpose. Will change to standard_images_list.
     if test_type == "sagemaker":
-        run_sagemaker_tests(
-            [image for image in all_image_list if not ("tensorflow-inference" in image and "py2" in image)]
-        )
+        run_sagemaker_tests(dlc_image)
     else:
         raise NotImplementedError(f"{test_type} test is not supported. "
                                   f"Only support ec2, ecs, eks, sagemaker and sanity currently")
 
     # sending log back to SQS queue
-    LogReturn.send_log()
-
-
+    tag = dlc_image.split("/")[1].split(":")[1]
+    test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
+    LogReturn.send_log(test_report)
 
 
 
 if __name__ == "__main__":
     main()
-
