@@ -13,7 +13,7 @@ def test_tmp_dirs(image):
     Test to see if tmp dirs are empty
     """
     ctx = Context()
-    container_name = f"test_tmp_dirs-{image.split(':')[-1].replace('.', '-')}"
+    container_name = f"test_tmp_dirs-{image.split('/')[-1].replace('.', '-').replace(':', '-')}"
     _start_container(container_name, image, ctx)
     _run_cmd_on_container(container_name, ctx, "ls -A /tmp")
     _run_cmd_on_container(container_name, ctx, "ls -A /var/tmp")
@@ -22,31 +22,68 @@ def test_tmp_dirs(image):
 
 
 def test_python_version(image):
+    """
+    Check that the python version in the image tag is the same as the one on a running container.
+
+    :param image: ECR image URI
+    """
     ctx = Context()
     container_name = f"py-version-{image.split('/')[-1].replace('.', '-').replace(':', '-')}"
+
+    py_version = ""
+    for tag_split in image.split('-'):
+        if tag_split.startswith('py'):
+            py_version = f"Python {a[2]}.{a[3]}"
+
     _start_container(container_name, image, ctx)
-    _run_cmd_on_container(container_name, ctx, "python --version")
+    output = _run_cmd_on_container(container_name, ctx, "python --version")
+    container_py_version = output.stdout
+
+    assert container_py_version.startswith(py_version)
 
 
 def test_ubuntu_version(image):
+    """
+    Check that the ubuntu version in the image tag is the same as the one on a running container.
+    :param image:
+    :return:
+    """
     ctx = Context()
     container_name = f"ubuntu-version-{image.split('/')[-1].replace('.', '-').replace(':', '-')}"
+
+    ubuntu_version = ""
+    for tag_split in image.split('-'):
+        if tag_split.startswith('ubuntu'):
+            ubuntu_version = tag_split.split("ubuntu")[-1]
+
     _start_container(container_name, image, ctx)
-    _run_cmd_on_container(container_name, ctx, "cat /etc/os-release")
+    output = _run_cmd_on_container(container_name, ctx, "cat /etc/os-release")
+    container_ubuntu_version = output.stdout
+
+    assert "Ubuntu" in container_ubuntu_version
+    assert ubuntu_version in container_ubuntu_version
 
 
 def test_framework_version(image):
+    """
+    Check that the framework version in the image tag is the same as the one on a running container.
+    :param image:
+    :return:
+    """
     tested_framework = None
     for framework in ("tensorflow", "mxnet", "pytorch"):
         if framework in image:
             tested_framework = framework
             break
+    tag_framework_version = image.split(':')[-1].split('-')[0]
     ctx = Context()
     container_name = f"framework-version-{image.split('/')[-1].replace('.', '-').replace(':', '-')}"
     _start_container(container_name, image, ctx)
-    _run_cmd_on_container(
+    output = _run_cmd_on_container(
         container_name, ctx, f"import {tested_framework}; {tested_framework}.__version__", executable="python"
     )
+
+    assert tag_framework_version == output.stdout
 
 
 @pytest.mark.canary("Run pip check test regularly on production images")
@@ -78,4 +115,4 @@ def _start_container(container_name, image_uri, context):
 def _run_cmd_on_container(container_name, context, cmd, executable="bash"):
     if executable not in ("bash", "python"):
         LOGGER.warn(f"Unrecognized executable {executable}. It will be run as {executable} -c '{cmd}'")
-    context.run(f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, timeout=30)
+    return context.run(f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, timeout=30)
