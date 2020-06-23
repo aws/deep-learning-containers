@@ -2,8 +2,7 @@ import logging
 import os
 import re
 import sys
-
-import log_return
+from log_return import LogReturn
 from invoke import run
 from invoke.context import Context
 from test_utils import setup_sm_benchmark_tf_train_env
@@ -69,6 +68,7 @@ def generate_sagemaker_pytest_cmd(image):
         f"--junitxml {test_report}",
         path,
         tag,
+        instance_type
     )
 
 
@@ -80,8 +80,8 @@ def run_sagemaker_pytest_cmd(image):
 
     :param image: ECR url
     """
-    pytest_command, path, tag = generate_sagemaker_pytest_cmd(image)
-
+    pytest_command, path, tag, instance_type = generate_sagemaker_pytest_cmd(image)
+    #update resource pool accordingly, then add a try-catch statement here to update the pool in case of failure
     context = Context()
     with context.cd(path):
         context.run(f"python3 -m virtualenv {tag}")
@@ -121,20 +121,22 @@ def setup_sm_benchmark_env(dlc_images, test_path):
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
-    dlc_image = os.getenv("DLC_IMAGES")
+    dlc_image = os.getenv("DLC_IMAGE")
     LOGGER.info(f"Images tested: {dlc_image}")
 
-    # NOTE: running all_image_list now for testing purpose. Will change to standard_images_list.
-    if test_type == "sagemaker":
-        run_sagemaker_tests(dlc_image)
-    else:
-        raise NotImplementedError(f"{test_type} test is not supported. "
-                                  f"Only support ec2, ecs, eks, sagemaker and sanity currently")
+    instance_type = assign_sagemaker_instance_type(dlc_image)
+    LogReturn.update_pool("preparing", instance_type, 1)
+    #
+    # if test_type == "sagemaker":
+    #     run_sagemaker_tests(dlc_image)
+    # else:
+    #     raise NotImplementedError(f"{test_type} test is not supported. "
+    #                               f"Only support ec2, ecs, eks, sagemaker and sanity currently")
 
     # sending log back to SQS queue
     tag = dlc_image.split("/")[1].split(":")[1]
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
-    log_return.send_log(test_report)
+    LogReturn.send_log(test_report)
 
 
 
