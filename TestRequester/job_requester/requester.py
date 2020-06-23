@@ -51,6 +51,7 @@ class JobRequester():
         content["TEST-PATH"] = self.test_path
         content["ECR-URI"] = image
         content["RETURN-SQS-URL"] = self.sqs_queue
+        content["NUM_OF_SCHEDULING_TRIES"] = 0
 
         return content
 
