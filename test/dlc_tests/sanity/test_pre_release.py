@@ -47,9 +47,8 @@ def test_python_version(image):
 
     _start_container(container_name, image, ctx)
     output = _run_cmd_on_container(container_name, ctx, "python --version")
-    container_py_version = output.stdout
 
-    assert container_py_version.startswith(py_version)
+    assert py_version in output.stdout, f"Cannot find {py_version} in {output.stdout}"
 
 
 def test_ubuntu_version(image):
