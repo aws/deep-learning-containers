@@ -7,7 +7,6 @@ from invoke.context import Context
 from test.test_utils import LOGGER, ec2
 
 
-@pytest.mark.canary("Run pip check test regularly on production images")
 def test_stray_files(image):
     """
     Test to ensure that unnecessary build artifacts are not present in any easily visible or tmp directories
@@ -93,7 +92,7 @@ def test_framework_version_cpu(cpu):
         container_name, ctx, f"import {tested_framework}; print({tested_framework}.__version__)", executable="python"
     )
 
-    assert tag_framework_version == output.stdout
+    assert tag_framework_version == output.stdout.strip()
 
 
 @pytest.mark.parametrize("ec2_instance_type", ['p2.xlarge'], indirect=True)
@@ -109,10 +108,10 @@ def test_framework_version_gpu(gpu, ec2_connection):
         pytest.skip(msg="TF inference does not have core tensorflow installed")
 
     tested_framework, tag_framework_version = _get_framework_and_version_from_tag(image)
-    cmd = f"python -c 'import {tested_framework}; print({tested_framework}.__version__)'"
-    output = ec2.execute_ec2_training_test(ec2_connection, image, cmd)
+    cmd = f'import {tested_framework}; print({tested_framework}.__version__)'
+    output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
 
-    assert tag_framework_version == output.stdout
+    assert tag_framework_version == output.stdout.strip()
 
 
 @pytest.mark.canary("Run pip check test regularly on production images")
