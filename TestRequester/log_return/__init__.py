@@ -3,7 +3,7 @@ import boto3
 import xmltodict
 import json
 
-def LogReturn():
+class LogReturn():
 
     def __init__(self):
         self.sqs_client = boto3.client("sqs")
