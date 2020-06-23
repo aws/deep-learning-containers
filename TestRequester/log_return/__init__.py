@@ -3,6 +3,7 @@ import boto3
 import xmltodict
 import json
 
+
 class LogReturn():
 
     def __init__(self):
@@ -35,7 +36,6 @@ class LogReturn():
 
         return json.dumps(content)
 
-
     def send_log(self, report_path):
         """
         Sending log message to SQS
@@ -44,31 +44,23 @@ class LogReturn():
         self.sqs_client.send_message(QueueUrl=self.log_sqs_url, MessageBody=log_location)
         print(f"Logs successfully sent to {self.log_sqs_url}")
 
-
     def update_pool(self, status, instance_type, num_of_instances):
         pool_ticket_content = {}
         pool_ticket_content["TICKET_NAME"] = self.ticket_name
-        pool_ticket_content["STATUS"] = status  #preparing/running/success/failed
+        pool_ticket_content["STATUS"] = status  # preparing/running/success/failed
         pool_ticket_content["INSTANCE_TYPE"] = instance_type
         pool_ticket_content["EXECUTOR_ARN"] = self.codebuild_arn
         pool_ticket_content["INSTANCES_NUM"] = num_of_instances
 
-        #delete existing entries of the job, if present
-        previous_entry = self.s3_client.list_objects(Bucket="dlc-test-tickets", MaxKeys=1, Prefix=f"resource_pool/{instance_type}/{self.ticket_name}")["Contents"]
+        # delete existing entries of the job, if present
+        previous_entry = self.s3_client.list_objects(Bucket="dlc-test-tickets", MaxKeys=1,
+                                                     Prefix=f"resource_pool/{instance_type}/{self.ticket_name}")["Contents"]
+
         if len(previous_entry) != 0:
             self.s3_client.delete_object(Bucket="dlc-test-tickets", Key=previous_entry[0]["Key"])
 
-        #creating json file and upload to S3
+        # creating json file and upload to S3
         filename = f"{self.ticket_name}-{status}"
         with open(filename, "w") as f:
             json.dump(pool_ticket_content, f)
             self.s3_client.upload_fileobj(f, "dlc-test-tickets", f"resource_pool/{instance_type}/{filename}")
-
-
-
-
-
-
-
-
-

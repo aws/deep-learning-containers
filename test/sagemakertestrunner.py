@@ -125,7 +125,8 @@ def main():
     LOGGER.info(f"Images tested: {dlc_image}")
 
     instance_type = assign_sagemaker_instance_type(dlc_image)
-    LogReturn.update_pool("preparing", instance_type, 1)
+    log_return_obj = LogReturn()
+    log_return_obj.update_pool("preparing", instance_type, 1)
     #
     # if test_type == "sagemaker":
     #     run_sagemaker_tests(dlc_image)
@@ -136,7 +137,7 @@ def main():
     # sending log back to SQS queue
     tag = dlc_image.split("/")[1].split(":")[1]
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
-    LogReturn.send_log(test_report)
+    log_return_obj.send_log(test_report)
 
 
 
