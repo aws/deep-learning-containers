@@ -7,6 +7,7 @@ import logging
 import sys
 
 import pytest
+import boto3
 
 from botocore.exceptions import ClientError
 from invoke import run
@@ -59,6 +60,10 @@ def is_tf2(image_uri):
 
 def is_pr_context():
     return os.getenv("BUILD_CONTEXT") == "PR"
+
+
+def is_canary_context():
+    return os.getenv("BUILD_CONTEXT") == "CANARY"
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
@@ -315,6 +320,8 @@ def delete_uploaded_tests_from_s3(s3_test_location):
 def get_dlc_images():
     if is_pr_context():
         return os.getenv("DLC_IMAGES")
+    elif is_canary_context():
+        return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"))
     test_env_file = os.path.join(os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json")
     with open(test_env_file) as test_env:
         test_images = json.load(test_env)
@@ -322,6 +329,47 @@ def get_dlc_images():
         if dlc_test_type == "sanity":
             return " ".join(images)
     raise RuntimeError(f"Cannot find any images for in {test_images}")
+
+
+def parse_canary_images(framework, region):
+    tf1 = "1.15"
+    tf2 = "2.2"
+    mx = "1.6"
+    pt = "1.5"
+
+    if framework == "tensorflow":
+        framework = "tensorflow2" if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") else "tensorflow1"
+
+    images = {
+        "tensorflow1":
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py2 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py2 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-gpu "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-cpu",
+        "tensorflow2":
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-gpu-py37 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-cpu-py37 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-gpu "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-cpu",
+
+        "mxnet":
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py2 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py2 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py2 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py2",
+        "pytorch":
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-gpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-cpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-gpu-py3 "
+            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-cpu-py3"
+    }
+    return images[framework]
 
 
 def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2_env):
@@ -343,7 +391,8 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
     for resource_dir in tf_resource_dir_list:
         with ctx.cd(os.path.join(resources_location, resource_dir)):
             if not os.path.isdir(os.path.join(resources_location, resource_dir, "horovod")):
-                ctx.run("git clone https://github.com/horovod/horovod.git")
+                # v0.19.4 is the last version for which horovod example tests are py2 compatible
+                ctx.run("git clone -b v0.19.4 https://github.com/horovod/horovod.git")
             if not os.path.isdir(os.path.join(resources_location, resource_dir, "deep-learning-models")):
                 # We clone branch tf2 for both 1.x and 2.x tests because tf2 branch contains all necessary files
                 ctx.run(f"git clone -b tf2 https://github.com/aws-samples/deep-learning-models.git")
@@ -353,4 +402,13 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
             ctx.run("pip install -U sagemaker awscli boto3 botocore six==1.11")
+
+            # SageMaker TF estimator is coded to only accept framework versions upto 2.1.0 as py2 compatible.
+            # Fixing this through the following changes:
+            estimator_location = ctx.run(
+                "echo $(pip3 show sagemaker |grep 'Location' |sed s/'Location: '//g)/sagemaker/tensorflow/estimator.py"
+            ).stdout.strip("\n")
+            system = ctx.run("uname -s").stdout.strip("\n")
+            sed_input_arg = "'' " if system == "Darwin" else ""
+            ctx.run(f"sed -i {sed_input_arg}'s/\[2, 1, 0\]/\[2, 1, 1\]/g' {estimator_location}")
     return venv_dir
