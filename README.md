@@ -234,7 +234,7 @@ Example:
        ```
    * Login into the ECR repo where the new docker images built exist
        ```
-       $(aws ecr get-login --no-include-email --registry-ids 669063966089 --region us-west-2)
+       $(aws ecr get-login --no-include-email --registry-ids {aws_id} --region us-west-2)
        ```
    * Change to the appropriate directory (sagemaker_tests/{framework}/{job_type}) based on framework and job type of the image being tested.
        The example below refers to testing mxnet_training images
