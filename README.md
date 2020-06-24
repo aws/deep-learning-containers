@@ -242,7 +242,7 @@ Example:
        cd test/sagemaker_tests/mxnet/training/
        pip3 install -r requirements.txt
        ```
-   * To run the SageMaker local integration tests (aside from tensorflow-inference), use the pytest command below:
+   * To run the SageMaker local integration tests (aside from tensorflow_inference), use the pytest command below:
        ```
        python3 -m  pytest -v integration/local --region us-west-2 \
        --docker-base-name {aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/beta-mxnet-inference \
@@ -250,10 +250,10 @@ Example:
         --py-version 3
        ```
 
-   * To test Tensorflow Inference images, run the command below:
+   * To test tensorflow_inference py3 images, run the command below:
      ```
      python3 -m  pytest -v integration/local \
-     --docker-base-name {aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/beta-tensorflow-inference \
+     --docker-base-name {aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference \
      --tag 1.15.2-cpu-py36-ubuntu16.04 --framework-version 1.15.2 --processor cpu
      ```
 
