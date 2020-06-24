@@ -32,7 +32,7 @@ def test_stray_files(image):
     # We always expect /var/tmp to be empty
     var_tmp = _run_cmd_on_container(container_name, ctx, "ls -A /var/tmp")
     _assert_artifact_free(var_tmp, stray_artifacts)
-    assert var_tmp.stdout.strip() == ". .."
+    assert var_tmp.stdout.strip() == ""
 
     # Additional check of home and root directories to ensure that stray artifacts are not present
     home = _run_cmd_on_container(container_name, ctx, "ls -A ~")
