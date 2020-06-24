@@ -17,16 +17,27 @@ def test_stray_files(image):
     container_name = f"test_tmp_dirs-{image.split('/')[-1].replace('.', '-').replace(':', '-')}"
     _start_container(container_name, image, ctx)
 
-    # Running list of artifacts we do not want in any of the directories
-    stray_artifacts = ["deep-learning-containers.py"]
+    # Running list of artifacts/artifact regular expressions we do not want in any of the directories
+    stray_artifacts = [r"\.py"]
 
-    # Run assertions for each directory
+    # Run assertions for tmp file directory
     tmp = _run_cmd_on_container(container_name, ctx, "ls -A /tmp")
     _assert_artifact_free(tmp, stray_artifacts)
+    allowed_tmp_files = ("hsperfdata_root", ".", "..")
+    tmp_files = tmp.stdout.split()
+    for tmp_file in tmp_files:
+        assert tmp_file in allowed_tmp_files, f"Found unexpected file in tmp dir: {tmp_file}. " \
+                                              f"Allowed tmp files: {allowed_tmp_files}"
+
+    # We always expect /var/tmp to be empty
     var_tmp = _run_cmd_on_container(container_name, ctx, "ls -A /var/tmp")
     _assert_artifact_free(var_tmp, stray_artifacts)
-    tilda = _run_cmd_on_container(container_name, ctx, "ls -A ~")
-    _assert_artifact_free(tilda, stray_artifacts)
+    assert var_tmp.stdout.strip() == ". .."
+
+    # Additional check of home and root directories to ensure that stray artifacts are not present
+    home = _run_cmd_on_container(container_name, ctx, "ls -A ~")
+    _assert_artifact_free(home, stray_artifacts)
+
     root = _run_cmd_on_container(container_name, ctx, "ls -A /")
     _assert_artifact_free(root, stray_artifacts)
 
@@ -201,4 +212,5 @@ def _assert_artifact_free(output, stray_artifacts):
     :param stray_artifacts: List of things that should not be present in these directories
     """
     for artifact in stray_artifacts:
-        assert artifact not in output.stdout, f"Found {artifact} in {output.stdout} while running {output.command}"
+        assert not re.search(artifact, output.stdout), \
+            f"Matched {artifact} in {output.stdout} while running {output.command}"
