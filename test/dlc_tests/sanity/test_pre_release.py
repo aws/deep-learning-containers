@@ -4,7 +4,7 @@ import pytest
 
 from invoke.context import Context
 
-from test.test_utils import LOGGER, ec2
+from test.test_utils import LOGGER, ec2, get_framework_and_version_from_tag
 
 
 def test_stray_files(image):
@@ -25,7 +25,7 @@ def test_stray_files(image):
     _assert_artifact_free(tmp, stray_artifacts)
 
     # Ensure tmp dir is empty except for whitelisted files
-    allowed_tmp_files = ["hsperfdata_root", ".", ".."]
+    allowed_tmp_files = ["hsperfdata_root"]
     tmp_files = tmp.stdout.split()
     for tmp_file in tmp_files:
         assert tmp_file in allowed_tmp_files, f"Found unexpected file in tmp dir: {tmp_file}. " \
@@ -102,7 +102,11 @@ def test_framework_version_cpu(cpu):
     if "tensorflow-inference" in image:
         pytest.skip(msg="TF inference does not have core tensorflow installed")
 
-    tested_framework, tag_framework_version = _get_framework_and_version_from_tag(image)
+    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
+
+    # Module name is torch
+    if tested_framework == "pytorch":
+        tested_framework = "torch"
     ctx = Context()
     container_name = f"framework-version-{image.split('/')[-1].replace('.', '-').replace(':', '-')}"
     _start_container(container_name, image, ctx)
@@ -125,7 +129,11 @@ def test_framework_version_gpu(gpu, ec2_connection):
     if "tensorflow-inference" in image:
         pytest.skip(msg="TF inference does not have core tensorflow installed")
 
-    tested_framework, tag_framework_version = _get_framework_and_version_from_tag(image)
+    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
+
+    # Module name is "torch"
+    if tested_framework == "pytorch":
+        tested_framework = "torch"
     cmd = f'import {tested_framework}; print({tested_framework}.__version__)'
     output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
 
@@ -152,30 +160,6 @@ def test_pip_check(image):
         if not allowed_exception.match(output.stdout):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
-
-
-def _get_framework_and_version_from_tag(image_uri):
-    """
-    Return the framework and version from the image tag. Pytorch is set to "torch" as this is the importable
-    module name.
-
-    :param image_uri: ECR image URI
-    :return: framework name, framework version
-    """
-    tested_framework = None
-    allowed_frameworks = ("tensorflow", "mxnet", "torch")
-    for framework in allowed_frameworks:
-        if framework in image_uri:
-            tested_framework = framework
-            break
-
-    if not tested_framework:
-        raise RuntimeError(f"Cannot find framework in image uri {image_uri} "
-                           f"from allowed frameworks {allowed_frameworks}")
-
-    tag_framework_version = image_uri.split(':')[-1].split('-')[0]
-
-    return tested_framework, tag_framework_version
 
 
 def _start_container(container_name, image_uri, context):
