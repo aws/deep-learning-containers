@@ -68,20 +68,18 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
 
 
 def _print_results_of_test(file_path, processor):
-    with open(file_path, "r") as f:
-        if processor == "cpu":
-            line = f.readline()
-            while line:
-                if "Total img/sec on " in line:
-                    result = line
-                line = f.readline()
-        elif processor == "gpu":
-            line = f.readline()
-            result_dict = dict()
-            while line:
-                if "images/sec: " in line:
-                    key = line.split("<stdout>")[0]
-                    result_dict[key] = line.strip("\n")
-                line = f.readline()
-            result = "\n".join(result_dict.values()) + "\n"
+    last_100_lines = Context().run(f"tail -100 {file_path}").stdout.split("\n")
+    result = ""
+    if processor == "cpu":
+        for line in last_100_lines:
+            if "Total img/sec on " in line:
+                result = line + "\n"
+    elif processor == "gpu":
+        result_dict = dict()
+        for line in last_100_lines:
+            if "images/sec: " in line:
+                key = line.split("<stdout>")[0]
+                result_dict[key] = line.strip("\n")
+        result = "\n".join(result_dict.values()) + "\n"
+    LOGGER.info(result)
     return result
