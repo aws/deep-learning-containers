@@ -234,12 +234,12 @@ Example:
        ```
    * Login into the ECR repo where the new docker images built exist
        ```
-       $(aws ecr get-login --no-include-email --registry-ids {aws_id} --region us-west-2)
+       $(aws ecr get-login --no-include-email --registry-ids {aws_id} --region {aws_region})
        ```
    * Change to the appropriate directory (sagemaker_tests/{framework}/{job_type}) based on framework and job type of the image being tested.
        The example below refers to testing mxnet_training images
        ```
-       cd test/sagemaker_tests/mxnet/traning/
+       cd test/sagemaker_tests/mxnet/training/
        pip3 install -r requirements.txt
        ```
    * To run the SageMaker local integration tests (aside from tensorflow-inference), use the pytest command below:
@@ -266,7 +266,7 @@ Example:
    *  Change to the appropriate directory (sagemaker_tests/{framework}/{job_type}) based on framework and job type of the image being tested."
        The example below refers to testing mxnet_training images
        ```
-       cd test/sagemaker_tests/mxnet/traning/
+       cd test/sagemaker_tests/mxnet/training/
        pip3 install -r requirements.txt
        ```
    *  To run the SageMaker remote integration tests (aside from tensorflow_inference), use the pytest command below:
