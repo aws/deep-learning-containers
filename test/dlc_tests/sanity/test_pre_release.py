@@ -48,11 +48,10 @@ def test_python_version(image):
     _start_container(container_name, image, ctx)
     output = _run_cmd_on_container(container_name, ctx, "python --version")
 
-    if "2.7" in py_version:
-        print(output)
-        return
+    # Due to py2 deprecation, Python2 version gets streamed to stderr
+    container_py_version = output.stderr if "Python 2" in py_version else output.stdout
 
-    assert py_version in output.stdout, f"Cannot find {py_version} in {output.stdout}"
+    assert py_version in container_py_version, f"Cannot find {py_version} in {container_py_version}"
 
 
 def test_ubuntu_version(image):
@@ -140,8 +139,15 @@ def test_pip_check(image):
 
 
 def _get_framework_and_version_from_tag(image_uri):
+    """
+    Return the framework and version from the image tag. Pytorch is set to "torch" as this is the importable
+    module name.
+
+    :param image_uri: ECR image URI
+    :return: framework name, framework version
+    """
     tested_framework = None
-    allowed_frameworks = ("tensorflow", "mxnet", "pytorch")
+    allowed_frameworks = ("tensorflow", "mxnet", "torch")
     for framework in allowed_frameworks:
         if framework in image_uri:
             tested_framework = framework
