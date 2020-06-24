@@ -6,8 +6,7 @@ LABEL maintainer="Amazon AI"
 ARG PYTHON=python3
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.6.8
-ARG MX_URL=/aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
-ARG MX_WHL_LOCATION=aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
+ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
@@ -138,8 +137,6 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     setuptools
 
 WORKDIR /
-
-COPY ${MX_WHL_LOCATION} ${MX_URL}
 
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli

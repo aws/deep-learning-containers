@@ -22,12 +22,6 @@
       deep_learning_container.py:
         source: docker/artifacts/deep_learning_container.py
         target: deep_learning_container.py
-      mx_cu101mkl_binary:
-        source: docker/artifacts/aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
-        target: aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
-      mx_mkl_binary:
-        source: docker/artifacts/aws_mxnet_mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
-        target: aws_mxnet_mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
       training_context: &TRAINING_CONTEXT
         entrypoint:
           source: docker/artifacts/dockerd-entrypoint.py
