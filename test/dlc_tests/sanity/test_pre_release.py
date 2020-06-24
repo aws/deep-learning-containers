@@ -48,6 +48,10 @@ def test_python_version(image):
     _start_container(container_name, image, ctx)
     output = _run_cmd_on_container(container_name, ctx, "python --version")
 
+    if "2.7" in py_version:
+        print(output)
+        return
+
     assert py_version in output.stdout, f"Cannot find {py_version} in {output.stdout}"
 
 
@@ -161,7 +165,7 @@ def _start_container(container_name, image_uri, context):
     :param context: Invoke context object
     """
     context.run(
-        f"docker run --name {container_name} -itd {image_uri}", hide=True,
+        f"docker run --entrypoint='/bin/bash' --name {container_name} -itd {image_uri}", hide=True,
     )
 
 
