@@ -7,9 +7,7 @@ LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG MMS_VERSION=1.0.8
-ARG MX_URL=/aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
-ARG MX_WHL_LOCATION=aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
-
+ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
 ARG PYTHON=python
 ARG PYTHON_PIP=python-pip
 ARG PIP=pip
@@ -46,8 +44,6 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     setuptools==44.1.0
 
 WORKDIR /
-
-COPY ${MX_WHL_LOCATION} ${MX_URL}
 
 RUN ${PIP} install --no-cache-dir \
     ${MX_URL} \
