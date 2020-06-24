@@ -157,7 +157,7 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     ${ESTIMATOR_URL} \
-    horovod==0.19.4 \
+    horovod==0.19.5 \
     werkzeug==1.0.1 \
     psutil==5.7.0 \
     smdebug==${SMDEBUG_VERSION}
