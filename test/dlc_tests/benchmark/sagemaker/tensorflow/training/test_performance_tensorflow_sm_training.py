@@ -42,7 +42,7 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
     ctx = Context()
 
     with ctx.cd(test_dir), ctx.prefix(f"source {venv_dir}/bin/activate"):
-        log_file = f"results-{commit_info}-{time_str}-{num_nodes}-node.txt"
+        log_file = f"results-{commit_info}-{time_str}-{framework_version}-{processor}-{py_version}-{num_nodes}-node.txt"
         run_out = ctx.run(f"timeout 45m python tf_sm_benchmark.py "
                           f"--framework-version {framework_version} "
                           f"--image-uri {tensorflow_training} "
@@ -61,5 +61,27 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
 
     LOGGER.info(f"Test results can be found at {os.path.join(target_upload_location, log_file)}")
 
+    _print_results_of_test(os.path.join(test_dir, log_file), processor)
+
     assert run_out.ok, (f"Benchmark Test failed with return code {run_out.return_code}. "
                         f"Test results can be found at {os.path.join(target_upload_location, log_file)}")
+
+
+def _print_results_of_test(file_path, processor):
+    with open(file_path, "r") as f:
+        if processor == "cpu":
+            line = f.readline()
+            while line:
+                if "Total img/sec on " in line:
+                    result = line
+                line = f.readline()
+        elif processor == "gpu":
+            line = f.readline()
+            result_dict = dict()
+            while line:
+                if "images/sec: " in line:
+                    key = line.split("<stdout>")[0]
+                    result_dict[key] = line.strip("\n")
+                line = f.readline()
+            result = "\n".join(result_dict.values()) + "\n"
+    return result
