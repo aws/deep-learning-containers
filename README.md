@@ -213,7 +213,7 @@ Example:
     # ECS
     pytest -s -rA ecs/ -n=auto
     
-    #EKS (Assumes a cluster with name `dlc-eks-pr-<framework>-test-cluster` is already setup)
+    #EKS
     export TEST_TYPE=eks
     python test/testrunner.py
     ```
