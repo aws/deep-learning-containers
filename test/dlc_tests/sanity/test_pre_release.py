@@ -20,12 +20,14 @@ def test_stray_files(image):
     # Running list of artifacts/artifact regular expressions we do not want in any of the directories
     stray_artifacts = [r"\.py"]
 
+    # Running list of allowed files in the /tmp directory
+    allowed_tmp_files = ["hsperfdata_root"]
+
     # Ensure stray artifacts are not in the tmp directory
     tmp = _run_cmd_on_container(container_name, ctx, "ls -A /tmp")
     _assert_artifact_free(tmp, stray_artifacts)
 
     # Ensure tmp dir is empty except for whitelisted files
-    allowed_tmp_files = ["hsperfdata_root"]
     tmp_files = tmp.stdout.split()
     for tmp_file in tmp_files:
         assert tmp_file in allowed_tmp_files, f"Found unexpected file in tmp dir: {tmp_file}. " \
