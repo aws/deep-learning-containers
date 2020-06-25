@@ -6,6 +6,8 @@ from retrying import retry
 
 from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
 
+import time
+
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
@@ -318,13 +320,18 @@ def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_R
 
 
 def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
+    start = time.time()
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     # Make sure we are logged into ECR so we can pull the image
+    start1 = time.time()
+    print(start1 - start)
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     # Run training command
+    start2 =time.time()
+    print(start2 - start)
     connection.run(
         f"{docker_cmd} run --name ec2_training_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
         f" -itd {ecr_uri}",
@@ -335,6 +342,8 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
         hide=True,
         timeout=3000
     )
+    start3= time.time()
+    print(start3 - start)
 
 
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
