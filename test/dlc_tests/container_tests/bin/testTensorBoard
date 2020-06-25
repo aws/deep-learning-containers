@@ -6,7 +6,7 @@ LOG_DIR=${HOME_DIR}/logs/train/plugins/profile
 
 [ -d $LOG_DIR ] && echo "Cleanning existing logs" && rm -rf $LOG_DIR
 
-python testTensorBoard.py || exit 1
+python ${BIN_DIR}/testTensorBoard.py || exit 1
 
 LOG_RESULT=$(find $LOG_DUR -name "*.pb")
 echo "Checking the logs result: $LOG_RESULT"
