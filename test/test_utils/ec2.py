@@ -26,11 +26,15 @@ def get_ec2_instance_type(default, processor, enable_p3dn=False):
     allowed_processors = ("cpu", "gpu")
     p3dn = "p3dn.24xlarge"
     if processor not in allowed_processors:
-        raise RuntimeError(f"Aborting EC2 test run. Unrecognized processor type {processor}. "
-                           f"Please choose from {allowed_processors}")
+        raise RuntimeError(
+            f"Aborting EC2 test run. Unrecognized processor type {processor}. "
+            f"Please choose from {allowed_processors}"
+        )
     if default == p3dn and not enable_p3dn:
-        raise RuntimeError("Default instance type is p3dn but p3dn testing is disabled. Please either enable p3dn "
-                           "by setting enable_p3dn=True, or change the default instance type")
+        raise RuntimeError(
+            "Default instance type is p3dn but p3dn testing is disabled. Please either enable p3dn "
+            "by setting enable_p3dn=True, or change the default instance type"
+        )
     instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
     if instance_type == p3dn and not enable_p3dn:
         return [default]
@@ -312,12 +316,19 @@ def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_R
     :return: <int> Number of GPUs on instance with matching instance ID
     """
     assert instance_id or instance_type, "Input must be either instance_id or instance_type"
-    instance_info = (get_instance_type_details(instance_type, region=region) if instance_type else
-                     get_instance_details(instance_id, region=region))
+    instance_info = (
+        get_instance_type_details(instance_type, region=region)
+        if instance_type
+        else get_instance_details(instance_id, region=region)
+    )
     return sum(gpu_type["Count"] for gpu_type in instance_info["GpuInfo"]["Gpus"])
 
 
-def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
+def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash"):
+    if executable not in ("bash", "python"):
+        raise RuntimeError(f"This function only supports executing bash or python commands on containers")
+    if executable == "bash":
+        executable = os.path.join(os.sep, 'bin', 'bash')
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
@@ -330,10 +341,30 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
         f" -itd {ecr_uri}",
         hide=True,
     )
-    connection.run(
-        f"{docker_cmd} exec --user root ec2_training_container {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'",
+    return connection.run(
+        f"{docker_cmd} exec --user root ec2_training_container {executable} -c '{test_cmd}'",
         hide=True,
-        timeout=3000
+        timeout=3000,
+    )
+
+
+def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
+    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+
+    # Make sure we are logged into ECR so we can pull the image
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+
+    # Run training command
+    connection.run(
+        f"{docker_cmd} run --name ec2_inference_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
+        f" -itd {ecr_uri} bash",
+        hide=True,
+    )
+    connection.run(
+        f"{docker_cmd} exec --user root ec2_inference_container {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'",
+        hide=True,
+        timeout=3000,
     )
 
 
@@ -371,10 +402,7 @@ def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri}"
     )
     try:
-        connection.run(
-            f"{docker_cmd} exec {container_name} "
-            f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
-        )
+        connection.run(f"{docker_cmd} exec {container_name} " f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}")
     except Exception as e:
         raise Exception("Failed to exec benchmark command.\n", e)
     finally:
