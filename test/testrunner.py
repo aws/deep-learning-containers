@@ -125,7 +125,7 @@ def setup_eks_cluster(framework_name):
     frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
     long_name = framework_name
     short_name = frameworks[long_name]
-    num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
+    num_nodes = 2 if is_pr_context() else 3 if long_name != "pytorch" else 4
     cluster_name = f"dlc-{short_name}-cluster-" \
                    f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
     try:
@@ -158,7 +158,7 @@ def main():
     specific_test_type = re.sub("benchmark-", "", test_type) if benchmark_mode else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
-    if specific_test_type in ("sanity", "ecs", "ec2", "eks"):
+    if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
         # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.
@@ -183,9 +183,12 @@ def main():
             eks_cluster_name = setup_eks_cluster(framework)
             # Split training and inference, and run one after the other, to prevent scheduling issues
             pytest_cmds = [
-                ["-s", "-v", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "--pastebin=all", "-n=auto"],
-                ["-s", "-v", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "--pastebin=all", "-n=auto"],
+                ["-s", "-v", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "--pastebin=all"],
+                ["-s", "-v", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "--pastebin=all"],
             ]
+        # Execute separate cmd for canaries
+        if specific_test_type == "canary":
+            pytest_cmd = ["-s", "-rA", f"--junitxml={report}", "-n=auto", "--canary", "--ignore=container_tests/"]
         else:
             # Execute dlc_tests pytest command
             pytest_cmds = [["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]]
