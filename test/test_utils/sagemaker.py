@@ -118,7 +118,29 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
-def run_sagemaker_local_tests(image):
+def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
+    # Install custom packages which need to be latest version"
+    # To avoid the dpkg lock for apt remove
+    is_py3 = " python3 -m" if "py3" in image else "py2"
+    ec2_conn.run("sleep 1m")
+    if is_py3:
+
+        ec2_conn.run(f"sudo apt-get install python3-venv && {is_py3} venv env")
+        ec2_conn.run(f"source ./env/bin/activate")
+    ec2_conn.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
+    if framework == "pytorch" and job_type == "inference":
+        # The following distutils package conflict with test dependencies
+        ec2_conn.run("apt-get remove python3-scipy python3-yaml -y")
+    if framework == "mxnet" and job_type == "inference":
+        # MXNet serving remote integ tests require dependencies specified in python-sdk to be installed,
+        # this should be made independent in future
+        python_sdk_repo = "sagemaker-python-sdk"
+        run("git clone https://github.com/aws/{}.git".format(python_sdk_repo))
+        with ec2_conn.cd(python_sdk_repo):
+            ec2_conn.run("{}pip install -U .[test]".format(is_py3))
+
+
+def run_sagemaker_local_tests(ec2_client, image):
     """
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
@@ -142,14 +164,7 @@ def run_sagemaker_local_tests(image):
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
-        is_py3 = " python3 -m"
         with ec2_conn.cd(path):
-            # Install custom packages which need to be latest version"
-            ec2_conn.run(f"sudo {is_py3} pip install -U pytest pytest-xdist boto3 requests pytest-rerunfailures")
-            # To avoid the dpkg lock for apt remove
-            ec2_conn.run("sleep 2m")
-            ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
-            ec2_conn.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
             ec2_conn.run(pytest_command, timeout=2100)
             print(f"Downloading Test reports for image: {image}")
             ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
