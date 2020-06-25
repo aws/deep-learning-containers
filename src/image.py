@@ -69,6 +69,9 @@ class DockerImage:
         if self.info.get("base_image_uri"):
             build_args["BASE_IMAGE"] = self.info["base_image_uri"]
 
+        if self.info.get("extra_build_args"):
+            build_args.update(self.info.get("extra_build_args"))
+
         with open(self.context.context_path, "rb") as context_file:
             response = []
 

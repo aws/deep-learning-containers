@@ -16,8 +16,10 @@ language governing permissions and limitations under the License.
 import concurrent.futures
 import datetime
 import os
+import sys
 
 from copy import deepcopy
+from invoke import run
 
 import constants
 import utils
@@ -59,6 +61,8 @@ def image_builder(buildspec):
         image_name = image[0]
         image_config = image[1]
 
+        extra_build_args = {}
+
         if image_config.get("version") is not None:
             if BUILDSPEC["version"] != image_config.get("version"):
                 continue
@@ -83,6 +87,24 @@ def image_builder(buildspec):
         if image_config.get("base_image_name") is not None:
             base_image_object = _find_image_object(IMAGES, image_config["base_image_name"])
             base_image_uri = base_image_object.ecr_url
+
+        # Construct download path around here somewhere
+        if image_config.get("download_artifacts") is not None:
+            for artifact_name, artifact in image_config.get("download_artifacts").items():
+                type = artifact["type"]
+                uri = artifact["URI"]
+                var = artifact["VAR_IN_DOCKERFILE"]
+
+                file_name = utils.download_file(uri, type).strip()
+
+                ARTIFACTS.update({
+                    f"{artifact_name}": {
+                        "source": f"{os.path.join(os.sep, os.path.abspath(os.getcwd()), file_name)}",
+                        "target": file_name
+                    }
+                })
+
+                extra_build_args[var] = file_name
 
         ARTIFACTS.update(
             {
@@ -110,7 +132,8 @@ def image_builder(buildspec):
             "python_version": str(image_config["python_version"]),
             "image_type": str(image_config["image_type"]),
             "image_size_baseline": int(image_config["image_size_baseline"]),
-            "base_image_uri": base_image_uri
+            "base_image_uri": base_image_uri,
+            "extra_build_args": extra_build_args
         }
 
         image_object = DockerImage(
@@ -128,6 +151,8 @@ def image_builder(buildspec):
     FORMATTER.title("Status")
 
     THREADS = {}
+
+    #sys.exit(0)
 
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
     # to it is executed concurrently in a separate thread.

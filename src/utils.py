@@ -17,11 +17,12 @@ import re
 import json
 import logging
 import sys
-
+import boto3
 import constants
 
 from config import build_config
-
+from invoke.context import Context
+from botocore.exceptions import ClientError
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -58,6 +59,48 @@ class JobParameters:
             and JobParameters.image_types == constants.ALL
             and JobParameters.py_versions == constants.ALL
         )
+
+def download_s3_file(bucket_name, filepath, local_file_name):
+    """
+
+    :param bucket_name: string
+    :param filepath: string
+    :param local_file_name: string
+    :return:
+    """
+    _s3 = boto3.Session().resource('s3')
+
+    try:
+        _s3.Bucket(bucket_name).download_file(filepath, local_file_name)
+    except ClientError as e:
+        LOGGER.error("Error: Cannot read file from s3 bucket.")
+        LOGGER.error("Exception: {}".format(e))
+        raise
+
+def download_file(remote_url: str, link_type: str):
+    """
+    Fetch remote files and save with provided local_path name
+    :param link_type: string
+    :param remote_url: string
+    :return: file_name: string
+    """
+    LOGGER.info(f"Downloading {remote_url}")
+
+    ctx = Context()
+    file_name = ctx.run(f"basename {remote_url}").stdout.strip()
+    print(f"basename: {file_name}")
+
+    if link_type in ["s3"] and remote_url.startswith("s3://"):
+        match = re.match(r's3://(.+?)/(.+)', remote_url)
+        bucket_name = match.group(1)
+        filepath = match.group(2)
+        print(f"bucket_name: {bucket_name}")
+        print(f"filepath: {filepath}")
+        download_s3_file(bucket_name, filepath, file_name)
+    else:
+        ctx.run(f"curl -O {remote_url}")
+
+    return file_name
 
 
 def get_pr_modified_files(pr_number):
