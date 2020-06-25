@@ -1,8 +1,8 @@
 tox
-pluggy==0.11
+pluggy
 flake8
-pytest==4.5.0
-pytest-cov==2.9.0
+pytest
+pytest-cov
 pytest-rerunfailures==8.0
 pytest-xdist
 mock

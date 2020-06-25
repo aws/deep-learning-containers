@@ -18,8 +18,8 @@ import pytest
 import requests
 from sagemaker.mxnet.model import MXNetModel
 
-import local_mode_utils
-from test.integration import RESOURCE_PATH
+from test.sagemaker_tests.mxnet.inference.integration.local import local_mode_utils
+from test.sagemaker_tests.mxnet.inference.integration import RESOURCE_PATH
 
 DEFAULT_HANDLER_PATH = os.path.join(RESOURCE_PATH, 'default_handlers')
 MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model')
