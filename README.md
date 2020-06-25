@@ -225,3 +225,62 @@ Example:
     ```
     pytest -s ecs/mxnet/training/test_ecs_mxnet_training.py::test_ecs_mxnet_training_dgl_cpu
     ```
+
+7. To run SageMaker local mode tests, launch a cpu or gpu EC2 instance with latest Deep Learning AMI.
+   * Clone your github branch with changes and run the following commands
+       ```
+       git clone https://github.com/{github_account_id}/deep-learning-containers/
+       cd deep-learning-containers && git checkout {branch_name}
+       ```
+   * Login into the ECR repo where the new docker images built exist
+       ```
+       $(aws ecr get-login --no-include-email --registry-ids {aws_id} --region {aws_region})
+       ```
+   * Change to the appropriate directory (sagemaker_tests/{framework}/{job_type}) based on framework and job type of the image being tested.
+       The example below refers to testing mxnet_training images
+       ```
+       cd test/sagemaker_tests/mxnet/training/
+       pip3 install -r requirements.txt
+       ```
+   * To run the SageMaker local integration tests (aside from tensorflow_inference), use the pytest command below:
+       ```
+       python3 -m  pytest -v integration/local --region us-west-2 \
+       --docker-base-name {aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/beta-mxnet-inference \
+        --tag 1.6.0-cpu-py36-ubuntu18.04 --framework-version 1.6.0 --processor cpu \
+        --py-version 3
+       ```
+
+   * To test tensorflow_inference py3 images, run the command below:
+     ```
+     python3 -m  pytest -v integration/local \
+     --docker-base-name {aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference \
+     --tag 1.15.2-cpu-py36-ubuntu16.04 --framework-version 1.15.2 --processor cpu
+     ```
+
+8) To run SageMaker remote tests on your account please setup following pre-requisites
+
+    * Create an IAM role with name “SageMakerRole” in the above account and add the below AWS Manged policies
+       ```
+       AmazonSageMakerFullAccess
+       ```
+   *  Change to the appropriate directory (sagemaker_tests/{framework}/{job_type}) based on framework and job type of the image being tested."
+       The example below refers to testing mxnet_training images
+       ```
+       cd test/sagemaker_tests/mxnet/training/
+       pip3 install -r requirements.txt
+       ```
+   *  To run the SageMaker remote integration tests (aside from tensorflow_inference), use the pytest command below:
+       ```
+       pytest integration/sagemaker/test_mnist.py \
+       --region us-west-2 --docker-base-name mxnet-training \
+       --tag training-gpu-py3-1.6.0 --aws-id {aws_id} \
+       --instance-type ml.p3.8xlarge
+       ```
+   * For tensorflow_inference py3 images run the below command
+      ```
+      python3 -m pytest test/integration/sagemaker/test_tfs. --registry {aws_account_id} \
+      --region us-west-2  --repo tensorflow-inference --instance-types ml.c5.18xlarge \
+      --tag 1.15.2-py3-cpu-build
+      ```
+
+Note: SageMaker does not support tensorflow_inference py2 images.
