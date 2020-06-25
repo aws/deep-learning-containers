@@ -17,8 +17,8 @@ import os
 import pytest
 from sagemaker.mxnet import MXNet
 
-from test.sagemaker_tests.mxnet.training.integration import local_mode_utils
-from test.sagemaker_tests.mxnet.training.integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
+from ...integration.local import local_mode_utils
+from ...integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
 
 MNIST_PATH = os.path.join(RESOURCE_PATH, 'mnist')
 SCRIPT_PATH = os.path.join(MNIST_PATH, 'mnist.py')

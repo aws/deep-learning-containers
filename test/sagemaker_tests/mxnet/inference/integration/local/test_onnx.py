@@ -17,8 +17,8 @@ import os
 import numpy
 from sagemaker.mxnet import MXNetModel
 
-from test.sagemaker_tests.mxnet.inference.integration.local import local_mode_utils
-from test.sagemaker_tests.mxnet.inference.integration import RESOURCE_PATH
+from ...integration.local import local_mode_utils
+from ...integration import RESOURCE_PATH
 
 ONNX_PATH = os.path.join(RESOURCE_PATH, 'onnx')
 MODEL_PATH = os.path.join(ONNX_PATH, 'onnx_model')

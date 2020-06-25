@@ -18,7 +18,7 @@ import tarfile
 
 import pytest
 from sagemaker.mxnet import MXNet
-from test.sagemaker_tests.mxnet.training.integration import RESOURCE_PATH
+from ...integration import RESOURCE_PATH
 
 
 @pytest.mark.skip_cpu

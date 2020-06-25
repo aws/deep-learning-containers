@@ -16,8 +16,8 @@ import os
 
 from sagemaker.mxnet import MXNet
 
-from test.sagemaker_tests.mxnet.training.integration import local_mode_utils
-from test.sagemaker_tests.mxnet.training.integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
+from ...integration.local import local_mode_utils
+from ...integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
 
 
 def test_linear_regression(docker_image, sagemaker_local_session, local_instance_type,

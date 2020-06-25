@@ -18,7 +18,7 @@ import os
 import tarfile
 import time
 
-from test.sagemaker_tests.mxnet.training.integration import RESOURCE_PATH
+from ...integration import RESOURCE_PATH
 
 LOCK_PATH = os.path.join(RESOURCE_PATH, 'local_mode_lock')
 
