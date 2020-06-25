@@ -16,7 +16,9 @@ elif [[ $(python -c 'import tensorflow as tf; print(tf.__version__)') == 2.1.* &
 else
   pip install -U --no-deps tensorflow_addons
 fi
-pip install typeguard
+if [[ $(python -c ' print(python.__version__)') == 3.* ]]; then
+  pip install typeguard
+fi
 
 ${BIN_DIR}/testTF2HVDHelper || exit 1
 
