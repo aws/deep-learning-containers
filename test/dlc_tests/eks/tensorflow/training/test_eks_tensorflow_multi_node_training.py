@@ -11,7 +11,6 @@ from invoke.context import Context
 import test.test_utils.ec2 as ec2_utils
 import test.test_utils.eks as eks_utils
 
-from dlc.github_handler import GitHubHandler
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 
@@ -79,6 +78,9 @@ def _run_eks_tensorflow_multi_node_training_mpijob(namespace, app_name, custom_i
     pod_name = None
     env = f"{namespace}-env"
     ctx = Context()
+    # This import statement has been placed inside this function because it creates a dependency that is unnecessary
+    # for local builds and builds outside of Pull Requests.
+    from dlc.github_handler import GitHubHandler
     github_handler = GitHubHandler("aws", "kubeflow")
     github_handler.set_ksonnet_env()
 
