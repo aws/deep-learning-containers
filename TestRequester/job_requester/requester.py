@@ -12,6 +12,7 @@ class JobRequester():
 
     def __init__(self, timeout=14400):  # default timeout = 4 hours
         self.s3_ticket_bucket = "dlc-test-tickets"
+        self.s3_ticket_bucket_folder = "request_tickets"
         self.test_path = "test/sagemaker_tests/.../test_<feature>.py::test_function"
         self.timeout_limit = timeout
 
@@ -36,7 +37,7 @@ class JobRequester():
         queue_url = response["QueueUrl"]
         return queue_url
 
-    def create_ticket_content(self, image, context, request_time):
+    def create_ticket_content(self, image, context, num_of_instances, request_time):
         """
 		Create the content of the ticket to be sent to S3
 
@@ -51,7 +52,8 @@ class JobRequester():
         content["TEST-PATH"] = self.test_path
         content["ECR-URI"] = image
         content["RETURN-SQS-URL"] = self.sqs_queue
-        content["NUM_OF_SCHEDULING_TRIES"] = 0
+        content["SCHEDULING_TRIES"] = 0
+        content["INSTANCES_NUM"] = num_of_instances
 
         return content
 
@@ -71,9 +73,9 @@ class JobRequester():
                                              str(self.ticket_name_counter), request_time)
         self.ticket_name_counter += 1
         self.l.release()
-        # change to creating file locally,
-        self.S3.put_object(Bucket=self.s3_ticket_bucket, Key=ticket_name)
-        S3_ticket_object = self.S3_resource.Object(self.s3_ticket_bucket, ticket_name)
+        self.S3.put_object(Bucket=self.s3_ticket_bucket, Key=f"{self.s3_ticket_bucket_folder}/{ticket_name}")
+        S3_ticket_object = self.S3_resource.Object(self.s3_ticket_bucket,
+                                                   f"{self.s3_ticket_bucket_folder}/{ticket_name}")
         S3_ticket_object.put(Body=bytes(json.dumps(ticket_content).encode('UTF-8')))
 
         return ticket_name
@@ -94,7 +96,7 @@ class JobRequester():
             # Do nothing
             return
         elif (datetime.strptime(request_time,
-                                "%m/%d/%Y-%H:%M:%S") - datetime.now()).total_seconds() > self.timeout_limit:
+                                "%Y-%m-%d-%H-%M-%S") - datetime.now()).total_seconds() > self.timeout_limit:
             self.l.acquire()
             self.logs[ticket_name] = "Scheduling {} failed.".format(
                 ticket_name)
@@ -113,7 +115,7 @@ class JobRequester():
                 except:
                     pass
 
-    def send_request(self, image, build_context):
+    def send_request(self, image, build_context, num_of_instances=1):
         """
 		Sending a request to test job executor (set up SQS return queue and place ticket to S3)
 
@@ -123,8 +125,8 @@ class JobRequester():
         :param build_context: <string> PR/MAINLINE/NIGHTLY/DEV
         :return: <Message object>
         """
-        time = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
-        ticket_content = self.create_ticket_content(image, build_context, time)
+        time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        ticket_content = self.create_ticket_content(image, build_context, num_of_instances, time)
         ticket_name = self.send_ticket_to_S3(ticket_content, time)
         identifier = Message(self.sqs_queue, self.s3_ticket_bucket, ticket_name, image, time)
         return identifier

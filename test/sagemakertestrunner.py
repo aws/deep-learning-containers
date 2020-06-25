@@ -131,18 +131,18 @@ def main():
     LOGGER.info(f"Images tested: {dlc_image}")
 
     instance_type = assign_sagemaker_instance_type(dlc_image)
-    #
-    # if test_type == "sagemaker":
-    #     run_sagemaker_tests(dlc_image)
-    # else:
-    #     raise NotImplementedError(f"{test_type} test is not supported. "
-    #                               f"Only support ec2, ecs, eks, sagemaker and sanity currently")
+
+    if test_type == "sagemaker":
+        run_sagemaker_tests(dlc_image)
+    else:
+        raise NotImplementedError(f"{test_type} test is not supported. "
+                                  f"Only support ec2, ecs, eks, sagemaker and sanity currently")
 
     log_return.update_pool("completed", instance_type, 1)
     # sending log back to SQS queue
-    # tag = dlc_image.split("/")[1].split(":")[1]
-    # test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
-    # log_return.send_log(test_report)
+    tag = dlc_image.split("/")[1].split(":")[1]
+    test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
+    log_return.send_log(test_report)
 
 
 
