@@ -5,7 +5,7 @@ from threading import Lock
 
 import boto3
 
-from JobRequester.response import Message
+from job_requester.response import Message
 
 
 class JobRequester():
@@ -55,18 +55,20 @@ class JobRequester():
 
         return content
 
-    def send_ticket_to_S3(self, ticket_content):
+    def send_ticket_to_S3(self, ticket_content, request_time):
         """
 		Send a request ticket to S3 bucket, self.s3_ticket_bucket
 
-		Could run under multithreading context, unique ticket name for each thread
+		Could run under multithreading context, unique ticket name for each threads
 
 		:param ticket_content:
 		:return: <string> name of the ticket
 		"""
-        # create a unique ticekt name, CB execution ID + ticekt_name_counter
+
+        # create a unique ticekt name, CB execution ID - ticekt_name_counter _ datetime_str
         self.l.acquire()
-        ticket_name = "{}-{}.json".format(os.getenv("CODEBUILD_BUILD_ID").split(":")[1], str(self.ticket_name_counter))
+        ticket_name = "{}-{}_{}.json".format(os.getenv("CODEBUILD_BUILD_ID").split(":")[1],
+                                             str(self.ticket_name_counter), request_time)
         self.ticket_name_counter += 1
         self.l.release()
         # change to creating file locally,
@@ -95,7 +97,7 @@ class JobRequester():
                                 "%m/%d/%Y-%H:%M:%S") - datetime.now()).total_seconds() > self.timeout_limit:
             self.l.acquire()
             self.logs[ticket_name] = "Scheduling {} failed.".format(
-                ticket_name)  # [Status: Success/Failed/Pending, Log: .....]
+                ticket_name)
             self.l.release()
 
         else:
@@ -123,9 +125,10 @@ class JobRequester():
         """
         time = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
         ticket_content = self.create_ticket_content(image, build_context, time)
-        ticket_name = self.send_ticket_to_S3(ticket_content)
+        ticket_name = self.send_ticket_to_S3(ticket_content, time)
         identifier = Message(self.sqs_queue, self.s3_ticket_bucket, ticket_name, image, time)
         return identifier
+
 
     def receive_logs(self, identifier):
         """
@@ -154,6 +157,9 @@ class JobRequester():
 		:param identifier: the response object returned from send_request
 		"""
         self.S3.delete_object(Bucket=self.s3_ticket_bucket, Key=identifier.ticket_name)
+
+    def query_status (identifier):
+        pass
 
     def clean_up(self):
         """

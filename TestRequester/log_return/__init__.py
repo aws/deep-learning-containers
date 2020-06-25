@@ -3,13 +3,6 @@ import boto3
 import xmltodict
 import json
 
-sqs_client = boto3.client("sqs")
-s3_client = boto3.client("s3")
-
-ticket_name = os.getenv("TICKET_NAME").split("/")[1].split(".")[0]
-log_sqs_url = os.getenv("RETURN_SQS_URL")
-codebuild_arn = os.getenv("CODEBUILD_BUILD_ARN")
-
 
 def log_locater(report_path):
     """
@@ -17,6 +10,8 @@ def log_locater(report_path):
 
     :return: <json> returned message to SQS for locating the log
     """
+    codebuild_arn = os.getenv("CODEBUILD_BUILD_ARN")
+    ticket_name = os.getenv("TICKET_NAME").split("/")[1].split(".")[0]
     log_group_name = "/aws/codebuild/" + codebuild_arn.split(":")[-2]
     log_stream_name = codebuild_arn.split(":")[-1]
 
@@ -38,6 +33,8 @@ def send_log(report_path):
     """
     Sending log message to SQS
     """
+    log_sqs_url = os.getenv("RETURN_SQS_URL")
+    sqs_client = boto3.client("sqs")
     log_location = log_locater(report_path)
     sqs_client.send_message(QueueUrl=log_sqs_url, MessageBody=log_location)
     print(f"Logs successfully sent to {log_sqs_url}")
@@ -48,13 +45,16 @@ def update_pool(status, instance_type, num_of_instances=1):
     Update the S3 resource pool for usage of SageMaker resources.
     Naming convention of resource usage json: ticket_name-status.
 
-
     :param status: status of the test job, options: preparing/running/completed/failed
     :param instance_type: ml.p3.8xlarge/ml.c4.4xlarge/ml.p2.8xlarge/ml.c4.8xlarge
     :param num_of_instances: number of instances required
     """
+    s3_client = boto3.client("s3")
+    codebuild_arn = os.getenv("CODEBUILD_BUILD_ARN")
+    ticket_name = os.getenv("TICKET_NAME").split("/")[1].split(".")[0]
+
     if status not in {"preparing", "running", "completed", "failed"}:
-        raise ValueError("not a valid status. Test job status could be preapring, running, completed or failed.")
+        raise ValueError("Not a valid status. Test job status could be preparing, running, completed or failed.")
 
     pool_ticket_content = {}
     pool_ticket_content["TICKET_NAME"] = ticket_name

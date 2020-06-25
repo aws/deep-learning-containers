@@ -17,6 +17,5 @@ class Message():
 		self.data = json.dumps(data_set)
 
 
-
 	def __str__(self):
 		return self.data

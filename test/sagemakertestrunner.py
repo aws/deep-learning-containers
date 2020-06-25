@@ -131,7 +131,6 @@ def main():
     LOGGER.info(f"Images tested: {dlc_image}")
 
     instance_type = assign_sagemaker_instance_type(dlc_image)
-    log_return.update_pool("preparing", instance_type, 1)
     #
     # if test_type == "sagemaker":
     #     run_sagemaker_tests(dlc_image)
