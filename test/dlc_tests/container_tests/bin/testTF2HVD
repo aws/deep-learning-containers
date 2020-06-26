@@ -16,7 +16,7 @@ elif [[ $(python -c 'import tensorflow as tf; print(tf.__version__)') == 2.1.* &
 else
   pip install -U --no-deps tensorflow_addons
 fi
-if [[ $(python -c 'print(python.__version__)') == 3.* ]]; then
+if [[ $(python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))') == 3.* ]]; then
   pip install typeguard
 fi
 
