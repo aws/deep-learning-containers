@@ -14,13 +14,16 @@ ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8 
 ENV LC_ALL=C.UTF-8
 
-ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.1.1/AmazonLinux/gpu/final/tensorflow_gpu-2.1.1-cp27-cp27mu-manylinux2010_x86_64.whl
-
 ARG PYTHON=python
 ARG PYTHON_PIP=python-pip
 ARG PIP=pip
 
 ARG OPENSSL_VERSION=1.1.1g
+
+ARG TF_BINARY_WHL
+
+# Binary copies
+COPY ${TF_BINARY_WHL} /
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
@@ -169,7 +172,8 @@ RUN ${PIP} install --no-cache-dir -U \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
-    ${TF_URL}
+    ${TF_BINARY_WHL}
+ && rm ${TF_BINARY_WHL}
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs \

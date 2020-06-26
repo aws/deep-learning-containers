@@ -88,15 +88,15 @@ def download_file(remote_url: str, link_type: str):
 
     ctx = Context()
     file_name = ctx.run(f"basename {remote_url}").stdout.strip()
-    print(f"basename: {file_name}")
+    LOGGER.info(f"basename: {file_name}")
 
     if link_type in ["s3"] and remote_url.startswith("s3://"):
         match = re.match(r's3://(.+?)/(.+)', remote_url)
         bucket_name = match.group(1)
-        filepath = match.group(2)
-        print(f"bucket_name: {bucket_name}")
-        print(f"filepath: {filepath}")
-        download_s3_file(bucket_name, filepath, file_name)
+        bucket_key = match.group(2)
+        LOGGER.info(f"bucket_name: {bucket_name}")
+        LOGGER.info(f"bucket_key: {bucket_key}")
+        download_s3_file(bucket_name, bucket_key, file_name)
     else:
         ctx.run(f"curl -O {remote_url}")
 

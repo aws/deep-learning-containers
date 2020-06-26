@@ -27,9 +27,8 @@ ARG PIP=pip3
 
 ARG OPENSSL_VERSION=1.1.1g
 
-#ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.1.1/AmazonLinux/cpu/final/tensorflow-2.1.1-cp36-cp36m-manylinux2010_x86_64.whl
-
 ARG TF_BINARY_WHL
+
 # Binary copies
 COPY ${TF_BINARY_WHL} /
 
@@ -146,7 +145,7 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_BINARY_WHL} \
     horovod==0.19.4 \
-    && rm ${TF_BINARY_WHL}
+ && rm ${TF_BINARY_WHL}
 
 
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
