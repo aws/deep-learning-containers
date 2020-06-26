@@ -1,9 +1,9 @@
 import pytest
 
-from test.test_utils import run_subprocess_cmd
 from invoke import run
 
 
+@pytest.mark.canary("Run security test regularly on production images")
 def test_security(image):
     repo_name, image_tag = image.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-security"

@@ -28,6 +28,8 @@ FRAMEWORK_FIXTURES = (
     "tensorflow_training",
     "training",
     "inference",
+    "gpu",
+    "cpu"
 )
 
 
@@ -39,6 +41,9 @@ def pytest_addoption(parser):
     default_images = test_utils.get_dlc_images()
     parser.addoption(
         "--images", default=default_images.split(" "), nargs="+", help="Specify image(s) to run",
+    )
+    parser.addoption(
+        "--canary", action="store_true", default=False, help="Run canary tests",
     )
 
 
@@ -109,7 +114,8 @@ def ec2_instance(
         "MinCount": 1,
     }
     extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300,}}]
-    if "benchmark" in os.getenv("TEST_TYPE") and "mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames:
+    if ("benchmark" in os.getenv("TEST_TYPE") and "mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames) or \
+            ("tensorflow_training" in request.fixturenames and "gpu_only" in request.fixturenames and "horovod" in ec2_key_name):
         params["BlockDeviceMappings"] = extra_volume_size_mapping
     instances = ec2_resource.create_instances(**params)
     instance_id = instances[0].id
@@ -195,6 +201,20 @@ def py3_only():
 @pytest.fixture(scope="session")
 def example_only():
     pass
+
+
+def pytest_configure(config):
+    # register canary marker
+    config.addinivalue_line(
+        "markers", "canary(message): mark test to run as a part of canary tests."
+    )
+
+
+def pytest_runtest_setup(item):
+    if item.config.getoption("--canary"):
+        canary_opts = [mark for mark in item.iter_markers(name="canary")]
+        if not canary_opts:
+            pytest.skip("Skipping non-canary tests")
 
 
 def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, values_to_generate_for_fixture):

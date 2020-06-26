@@ -13,13 +13,9 @@
 from __future__ import absolute_import
 import argparse
 import logging
-import os
 import sys
 
-import cv2 as cv
-import sagemaker_containers
 import torch
-import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -58,7 +54,6 @@ class Net(nn.Module):
 
 
 def parse_args():
-    env = sagemaker_containers.training_env()
     parser = argparse.ArgumentParser(description="PyTorch MNIST Example")
 
     parser.add_argument('--data_dir', type=str)
@@ -195,7 +190,7 @@ def main():
 
     print(
         f"trial.tensor_names() = {trial.tensor_names()}"
-    )  
+    )
     # if loss collection tensors not in in trial.tensor_names()
     # means they were not saved
 
@@ -221,4 +216,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

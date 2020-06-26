@@ -12,6 +12,7 @@ parser.add_argument("--instance-type", type=str, help="instance type to use for 
 parser.add_argument("--node-count", type=int, help="number of nodes to train", default=4)
 parser.add_argument("--python", help="python version", default="py3")
 parser.add_argument("--region", help="region in which to run test", default="us-west-2")
+parser.add_argument("--job-name", help="SageMaker Training Job Name", default=None)
 
 args = parser.parse_args()
 
@@ -57,4 +58,4 @@ data = {
     "s1": f"s3://dlc-data-sagemaker-{args.region}/small"
 }
 
-tf_estimator.fit(data, logs=True, wait=True)
+tf_estimator.fit(data, job_name=args.job_name, logs=True, wait=True)
