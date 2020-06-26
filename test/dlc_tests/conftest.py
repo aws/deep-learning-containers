@@ -28,6 +28,8 @@ FRAMEWORK_FIXTURES = (
     "tensorflow_training",
     "training",
     "inference",
+    "gpu",
+    "cpu"
 )
 
 
