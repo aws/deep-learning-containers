@@ -10,14 +10,14 @@ ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 # Set environment variables for MKL
 # For more about MKL with TensorFlow see:
 # https://www.tensorflow.org/performance/performance_guide#tensorflow_with_intel%C2%AE_mkl_dnn
-ENV KMP_AFFINITY=granularity=fine,compact,1,0 
-ENV KMP_BLOCKTIME=1 
+ENV KMP_AFFINITY=granularity=fine,compact,1,0
+ENV KMP_BLOCKTIME=1
 ENV KMP_SETTINGS=0
 
-ENV PYTHONDONTWRITEBYTECODE=1 
-ENV PYTHONUNBUFFERED=1 
-ENV PYTHONIOENCODING=UTF-8 
-ENV LANG=C.UTF-8 
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONIOENCODING=UTF-8
+ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
 ARG PYTHON=python3
@@ -128,7 +128,7 @@ RUN ${PIP} install --no-cache-dir -U \
     awscli \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
-    sagemaker==1.50.17 \
+    "sagemaker<2" \
     sagemaker-experiments==0.1.7 \
     "sagemaker-tensorflow>=2.0,<2.1" \
     smdebug==0.8.1 \
@@ -137,7 +137,7 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    horovod==0.19.4 
+    horovod==0.19.4
 
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

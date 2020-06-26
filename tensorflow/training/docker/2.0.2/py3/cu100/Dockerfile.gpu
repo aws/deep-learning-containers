@@ -7,17 +7,17 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
-ENV PYTHONDONTWRITEBYTECODE=1 
-ENV PYTHONUNBUFFERED=1 
-ENV PYTHONIOENCODING=UTF-8 
-ENV LANG=C.UTF-8 
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONIOENCODING=UTF-8
+ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
 # Set environment variables for MKL
 # For more about MKL with TensorFlow see:
 # https://www.tensorflow.org/performance/performance_guide#tensorflow_with_intel%C2%AE_mkl_dnn
-ENV KMP_AFFINITY=granularity=fine,compact,1,0 
-ENV KMP_BLOCKTIME=1 
+ENV KMP_AFFINITY=granularity=fine,compact,1,0
+ENV KMP_BLOCKTIME=1
 ENV KMP_SETTINGS=0
 
 ARG PYTHON=python3
@@ -170,7 +170,7 @@ RUN ${PIP} install --no-cache-dir -U \
     awscli \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
-    sagemaker==1.50.17 \
+    "sagemaker<2" \
     sagemaker-experiments==0.1.7 \
     "sagemaker-tensorflow>=2.0,<2.1" \
     "sagemaker-tensorflow-training>=3.0<4.0" \
@@ -178,7 +178,7 @@ RUN ${PIP} install --no-cache-dir -U \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
-    ${TF_URL} 
+    ${TF_URL}
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs \
