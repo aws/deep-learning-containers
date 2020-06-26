@@ -172,7 +172,7 @@ RUN ${PIP} install --no-cache-dir -U \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
-    ${TF_BINARY_WHL}
+    ${TF_BINARY_WHL} \
  && rm ${TF_BINARY_WHL}
 
 # Install Horovod, temporarily using CUDA stubs

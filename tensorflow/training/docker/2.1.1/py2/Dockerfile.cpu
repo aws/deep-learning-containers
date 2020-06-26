@@ -137,7 +137,7 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_BINARY_WHL} \
  && ${PIP} install --no-cache-dir -U \
-    horovod==0.19.4
+    horovod==0.19.4 \
  && rm ${TF_BINARY_WHL}
 
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
