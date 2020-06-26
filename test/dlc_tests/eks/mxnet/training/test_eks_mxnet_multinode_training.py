@@ -13,14 +13,12 @@ from retrying import retry
 import test.test_utils.eks as eks_utils
 import test.test_utils.ec2 as ec2_utils
 
-from dlc.github_handler import GitHubHandler
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 
 LOGGER = eks_utils.LOGGER
 
 
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_only):
     """Run MXNet distributed training on EKS using docker images with MNIST dataset"""
 
@@ -40,7 +38,7 @@ def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_onl
 
     namespace = f"mx-multi-node-train-{'py2' if 'py2' in mxnet_training else 'py3'}-{unique_tag}"
     app_name = f"kubeflow-mxnet-hvd-mpijob-{unique_tag}"
-    job_name = f"mxnet-mnist-horovod-job={unique_tag}"
+    job_name = f"mxnet-mnist-horovod-job-{unique_tag}"
 
     command_to_run = "mpirun,-mca,btl_tcp_if_exclude,lo,-mca,pml,ob1,-mca,btl,^openib,--bind-to,none,-map-by,slot," \
                      "-x,LD_LIBRARY_PATH,-x,PATH,-x,NCCL_SOCKET_IFNAME=eth0,-x,NCCL_DEBUG=INFO,python," \
@@ -61,7 +59,6 @@ def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_onl
     return result
 
 
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     """Run MXNet distributed training on EKS using docker images with MNIST dataset"""
     random.seed(f"{mxnet_training}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
@@ -178,6 +175,7 @@ def _run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yam
 
     with ctx.cd(f"{path_to_ksonnet_app}"):
         ctx.run(f"rm -rf {app_name}")
+        from dlc.github_handler import GitHubHandler
         github_handler = GitHubHandler("aws", "kubeflow")
         github_handler.set_ksonnet_env()
         ctx.run(f"ks init {app_name} --namespace {namespace}")
@@ -268,6 +266,7 @@ def _run_eks_multi_node_training_mpijob(namespace, app_name, custom_image, job_n
     pod_name = None
     env = f"{namespace}-env"
     ctx = Context()
+    from dlc.github_handler import GitHubHandler
     github_handler = GitHubHandler("aws", "kubeflow")
     github_handler.set_ksonnet_env()
 
