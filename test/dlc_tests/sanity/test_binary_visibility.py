@@ -18,6 +18,9 @@ def test_binary_visibility(image: str):
     :param image:
     :return:
     """
-
-
-    assert image.startswith("https://")
+    ctx = Context()
+    labels = dict(ctx.run(f"docker inspect --format='{{json .Config.Labels}}' {image}").stdout.strip())
+    
+    for label_name, label_value in labels.items():
+        if "uri" in label_name.lower():
+            assert label_value.startswith("https://")
