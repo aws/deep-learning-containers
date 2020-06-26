@@ -20,7 +20,7 @@ mkdir -p ${LOG_DIR}
 set -e
 git clone https://github.com/tensorflow/benchmarks.git ${HOME_DIR}/artifacts/tensorflow/benchmarks && cd ${HOME_DIR}/artifacts/tensorflow/benchmarks && git checkout ${GIT_BRANCH}
 START=$(date +%s)
-timeout 220m python scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --batch_size=256 --model=resnet50_v1.5 --optimizer=momentum --variable_update=replicated --nodistortions --gradient_repacking=2 --num_gpus=8 --num_epochs=91 --weight_decay=1e-4 --use_fp16 --all_reduce_spec=nccl --save_summaries_steps=0 --summary_verbosity=1 --num_warmup_batches=0 --train_dir=$HOME/test00 --compute_lr_on_cpu=True --single_l2_loss_op=True --loss_type_to_report=base_loss --data_name=imagenet 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
+timeout 100m python scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --batch_size=256 --model=resnet50_v1.5 --optimizer=momentum --variable_update=replicated --nodistortions --gradient_repacking=2 --num_gpus=8 --num_epochs=91 --weight_decay=1e-4 --use_fp16 --all_reduce_spec=nccl --save_summaries_steps=0 --summary_verbosity=1 --num_warmup_batches=0 --train_dir=$HOME/test00 --compute_lr_on_cpu=True --single_l2_loss_op=True --loss_type_to_report=base_loss --data_name=imagenet 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
 END=$(date +%s)
 DIFF=$(( END - START ))
 echo Script took $(( DIFF/60 )) mins to finish >> ${LOG_DIR}/"${LOG_FILE}"
