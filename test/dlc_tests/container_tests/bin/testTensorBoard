@@ -8,7 +8,7 @@ LOG_DIR=${HOME_DIR}/logs/train/plugins/profile
 
 python ${BIN_DIR}/testTensorBoard.py || exit 1
 
-LOG_RESULT=$(find $LOG_DUR -name "*.pb")
+LOG_RESULT=$(find $LOG_DIR -name "*.pb")
 echo "Checking the logs result: $LOG_RESULT"
 
 [ -z "$LOG_RESULT" ] && echo "Cannot find Profiler logs!" && exit 1
