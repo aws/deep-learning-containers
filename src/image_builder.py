@@ -62,6 +62,7 @@ def image_builder(buildspec):
         image_config = image[1]
 
         extra_build_args = {}
+        labels = {}
 
         if image_config.get("version") is not None:
             if BUILDSPEC["version"] != image_config.get("version"):
@@ -105,6 +106,8 @@ def image_builder(buildspec):
                 })
 
                 extra_build_args[var] = file_name
+                labels[var] = file_name
+                labels[f"{var}_URI"] = uri
 
         ARTIFACTS.update(
             {
@@ -133,6 +136,7 @@ def image_builder(buildspec):
             "image_type": str(image_config["image_type"]),
             "image_size_baseline": int(image_config["image_size_baseline"]),
             "base_image_uri": base_image_uri,
+            "labels": labels,
             "extra_build_args": extra_build_args
         }
 
