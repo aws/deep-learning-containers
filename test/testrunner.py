@@ -183,8 +183,8 @@ def main():
             eks_cluster_name = setup_eks_cluster(framework)
             # Split training and inference, and run one after the other, to prevent scheduling issues
             pytest_cmds = [
-                ["-s", "-v", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "--pastebin=all", "-n=auto"],
-                ["-s", "-v", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "--pastebin=all", "-n=auto"],
+                ["-s", "-v", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "--pastebin=all", "-n=4"],
+                ["-s", "-v", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "--pastebin=all", "-n=4"],
             ]
         # Execute separate cmd for canaries
         if specific_test_type == "canary":
