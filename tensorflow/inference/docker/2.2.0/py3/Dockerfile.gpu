@@ -1,6 +1,9 @@
 FROM nvidia/cuda:10.2-base-ubuntu18.04
 
-LABEL maintainer="Amazon AI" 
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+# Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
+# https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON=python3.7

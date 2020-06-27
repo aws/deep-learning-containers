@@ -418,3 +418,26 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
             sed_input_arg = "'' " if system == "Darwin" else ""
             ctx.run(f"sed -i {sed_input_arg}'s/\[2, 1, 0\]/\[2, 1, 1\]/g' {estimator_location}")
     return venv_dir
+
+
+def get_framework_and_version_from_tag(image_uri):
+    """
+    Return the framework and version from the image tag.
+
+    :param image_uri: ECR image URI
+    :return: framework name, framework version
+    """
+    tested_framework = None
+    allowed_frameworks = ("tensorflow", "mxnet", "pytorch")
+    for framework in allowed_frameworks:
+        if framework in image_uri:
+            tested_framework = framework
+            break
+
+    if not tested_framework:
+        raise RuntimeError(f"Cannot find framework in image uri {image_uri} "
+                           f"from allowed frameworks {allowed_frameworks}")
+
+    tag_framework_version = image_uri.split(':')[-1].split('-')[0]
+
+    return tested_framework, tag_framework_version
