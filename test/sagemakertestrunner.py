@@ -139,3 +139,7 @@ def main():
 
     # update in-progress pool
     log_return.update_pool("completed", instance_type, num_of_instances, job_type)
+
+
+if __name__ == "__main__":
+    main()
