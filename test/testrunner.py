@@ -151,7 +151,7 @@ def main():
     test_type = os.getenv("TEST_TYPE")
     dlc_images = get_dlc_images()
     LOGGER.info(f"Images tested: {dlc_images}")
-    all_image_list = [image_uri for image_uri in dlc_images.split(" ") if "py3" in image_uri]
+    all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
     eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type

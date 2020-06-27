@@ -2,13 +2,9 @@ import os
 import random
 import re
 
-import pytest
-
 from invoke import run
 
 import test.test_utils.eks as eks_utils
-
-from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 
 def test_eks_mxnet_single_node_training(mxnet_training):
