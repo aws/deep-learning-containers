@@ -98,7 +98,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     fastai==1.0.59 \
     scipy==1.2.2 \
     smdebug==${SMDEBUG_VERSION} \
-    sagemaker==1.50.17 \
+    "sagemaker<2" \
     sagemaker-experiments==0.1.7 \
     "sagemaker-pytorch-training<3" \
  && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.1/py3/cpu/torch-1.5.1-cp36-cp36m-manylinux1_x86_64.whl \
