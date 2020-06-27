@@ -1,173 +1,184 @@
 import json
+import logging
 import os
 from datetime import datetime
 from threading import Lock
 
 import boto3
 
-from job_requester.response import Message
+from job_requester import Message
+
+MAX_TIMEOUT_IN_SEC = 14400  # 4 hours
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
 class JobRequester():
 
-    def __init__(self, timeout=14400):  # default timeout = 4 hours
+    def __init__(self, timeout=MAX_TIMEOUT_IN_SEC):
         self.s3_ticket_bucket = "dlc-test-tickets"
         self.s3_ticket_bucket_folder = "request_tickets"
-        self.test_path = "test/sagemaker_tests/.../test_<feature>.py::test_function"
-        self.timeout_limit = timeout
+        self.timeout_limit = min(timeout, MAX_TIMEOUT_IN_SEC)
 
-        self.sqs = boto3.client('sqs')
-        self.S3 = boto3.client("s3")
-        self.S3_resource = boto3.resource('s3')
-        self.sqs_queue = self.create_SQS_queue()
+        self.sqs_client = boto3.client('sqs')
+        self.s3_client = boto3.client("s3")
+        self.s3_resource = boto3.resource('s3')
+        self.sqs_queue = self.create_sqs_queue()
 
         self.ticket_name_counter = 0
         self.logs = dict()
-        self.l = Lock()
+        self.request_lock = Lock()
 
-    def create_SQS_queue(self):
+    def __del__(self):
+        # clean up the SQS return queue
+        self.sqs_client.delete_queue(QueueUrl=self.sqs_queue)
+
+    def create_sqs_queue(self):
         """
-		Create a SQS queue named with CODEBULD_BUILD_ID env variable
+        Create a SQS queue named with CODEBUILD_BUILD_ID env variable
 
-		:return: <string> SQS queue url
-		"""
+        :return: <string> SQS queue url
+        """
         # current build id as unique identifier for the SQS queue
         name = os.getenv("CODEBUILD_BUILD_ID").split(":")[1]
-        response = self.sqs.create_queue(QueueName=name)
+        response = self.sqs_client.create_queue(QueueName=name)
         queue_url = response["QueueUrl"]
         return queue_url
 
     def create_ticket_content(self, image, context, num_of_instances, request_time):
         """
-		Create the content of the ticket to be sent to S3
+        Create content of the ticket to be sent to S3
 
-		:param image: ECR url
-		:param context: build context
-		:param request_time: <datetime string> time the request was created
-		:return: <dict>
-		"""
-        content = {}
-        content["CONTEXT"] = context
-        content["TIMESTAMP"] = request_time
-        content["TEST-PATH"] = self.test_path
-        content["ECR-URI"] = image
-        content["RETURN-SQS-URL"] = self.sqs_queue
-        content["SCHEDULING_TRIES"] = 0
-        content["INSTANCES_NUM"] = num_of_instances
+        :param image: <string> ECR URI
+        :param context: <string> build context (PR/MAINLINE/NIGHTLY/DEV)
+        :param num_of_instances: <int> number of instances required by the test job
+        :param request_time: <string> datetime timestamp of when request was made
+        :return: <dict> content of the request ticket
+        """
+        content = {
+            "CONTEXT": context,
+            "TIMESTAMP": request_time,
+            "ECR-URI": image,
+            "RETURN-SQS-URL": self.sqs_queue,
+            "SCHEDULING_TRIES": 0,
+            "INSTANCES_NUM": num_of_instances,
+            "TIMEOUT_LIMIT": self.timeout_limit
+        }
 
         return content
 
-    def send_ticket_to_S3(self, ticket_content, request_time):
+    def get_ticket_name_prefix(self):
         """
-		Send a request ticket to S3 bucket, self.s3_ticket_bucket
+        Create a max length 7 prefix for ticket name
 
-		Could run under multithreading context, unique ticket name for each threads
+        :return: <string> prefix for request ticket name
+        """
+        source_version = os.getenv("CODEBUILD_SOURCE_VERSION", "default")
 
-		:param ticket_content:
-		:return: <string> name of the ticket
-		"""
+        if "pr/" in source_version:
+            # mod the PR ID by 10000 to make the prefix < 7 digits
+            return f"pr{str(int(source_version.split('/')[-1]) % 10000)}"
+        else:
+            return source_version[0:7]
 
-        # create a unique ticekt name, CB execution ID - ticekt_name_counter _ datetime_str
-        self.l.acquire()
-        ticket_name = "{}-{}_{}.json".format(os.getenv("CODEBUILD_BUILD_ID").split(":")[1],
-                                             str(self.ticket_name_counter), request_time)
+    def send_ticket(self, ticket_content):
+        """
+        Send a request ticket to S3 bucket, self.s3_ticket_bucket
+
+        Could run under multi-threading context, unique ticket name for each threads
+
+        :param ticket_content: <dict> content of the ticket
+        :return: <string> name of the ticket
+        """
+
+        # ticket name: {CB source version}-{ticket name counter}_(datetime string)
+        ticket_name_prefix = self.get_ticket_name_prefix()
+        request_time = ticket_content["TIMESTAMP"]
+        self.request_lock.acquire()
+        ticket_name = f"{ticket_name_prefix}-{str(self.ticket_name_counter)}_{request_time}.json"
         self.ticket_name_counter += 1
-        self.l.release()
-        self.S3.put_object(Bucket=self.s3_ticket_bucket, Key=f"{self.s3_ticket_bucket_folder}/{ticket_name}")
-        S3_ticket_object = self.S3_resource.Object(self.s3_ticket_bucket,
+        self.request_lock.release()
+
+        self.s3_client.put_object(Bucket=self.s3_ticket_bucket, Key=f"{self.s3_ticket_bucket_folder}/{ticket_name}")
+        S3_ticket_object = self.s3_resource.Object(self.s3_ticket_bucket,
                                                    f"{self.s3_ticket_bucket_folder}/{ticket_name}")
         S3_ticket_object.put(Body=bytes(json.dumps(ticket_content).encode('UTF-8')))
 
         return ticket_name
 
-    def wait_for_SQS_message(self, ticket_name, request_time):
+    def receive_sqs_message(self):
         """
-		Polling SQS queue (self.queue_url) for messages, add received messages to self.logs
+        Polling SQS queue (self.queue_url) for messages, add received messages to self.logs
+        Could run under multi-threading context
 
-		Could run under multithreading context
-
-		:param ticket_name: <string> name of the ticket for the test request
-		:param request_time: <string> time that the request was placed
-		:return:
-		"""
-        queue_response = self.sqs.receive_message(QueueUrl=self.sqs_queue)
+        :return: None
+        """
+        queue_response = self.sqs_client.receive_message(QueueUrl=self.sqs_queue)
 
         if "Messages" not in queue_response:
             # Do nothing
             return
-        elif (datetime.strptime(request_time,
-                                "%Y-%m-%d-%H-%M-%S") - datetime.now()).total_seconds() > self.timeout_limit:
-            self.l.acquire()
-            self.logs[ticket_name] = "Scheduling {} failed.".format(
-                ticket_name)
-            self.l.release()
 
         else:
             returned_messages = queue_response["Messages"]
             for message in returned_messages:
-                self.l.acquire()
+                self.request_lock.acquire()
                 log_message_in_json = json.loads(message["Body"])
                 self.logs[log_message_in_json["TICKET_NAME"]] = log_message_in_json
-                self.l.release()
+                self.request_lock.release()
                 receipt_handle = message["ReceiptHandle"]
                 try:
-                    self.sqs.delete_message(QueueUrl=self.sqs_queue, ReceiptHandle=receipt_handle)
-                except:
-                    pass
+                    self.sqs_client.delete_message(QueueUrl=self.sqs_queue, ReceiptHandle=receipt_handle)
+                except self.sqs_client.exceptions.ReceiptHandleIsInvalid as e:
+                    LOGGER.warning(f"Not the latest ReceiptHandle, message could already been deleted: {e}")
 
-    def send_request(self, image, build_context, num_of_instances=1):
+    def send_request(self, image, build_context, num_of_instances):
         """
-		Sending a request to test job executor (set up SQS return queue and place ticket to S3)
+        Sending a request to test job executor (set up SQS return queue and place ticket to S3)
 
-		Could run under multithreading context
+        Could run under multi-threading context
 
+        :param num_of_instances: <int> number of instances needed for the test
         :param image: <string> ECR uri
         :param build_context: <string> PR/MAINLINE/NIGHTLY/DEV
         :return: <Message object>
         """
         time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         ticket_content = self.create_ticket_content(image, build_context, num_of_instances, time)
-        ticket_name = self.send_ticket_to_S3(ticket_content, time)
+        ticket_name = self.send_ticket(ticket_content)
         identifier = Message(self.sqs_queue, self.s3_ticket_bucket, ticket_name, image, time)
         return identifier
 
-
     def receive_logs(self, identifier):
         """
-		Requesting for the test logs
+        Requesting for the test logs
 
         :param identifier: <Message object> returned from send_request
-        :return:
+        :return: <json or None> if log received, return the json log. Otherwise return None.
         """
         ticket_name = identifier.ticket_name
-        request_time = identifier.request_time
 
         if ticket_name in self.logs:
             return self.logs[ticket_name]
 
         else:
-            res = self.wait_for_SQS_message(ticket_name, request_time)
+            self.receive_sqs_message()
             if ticket_name in self.logs:
                 return self.logs[ticket_name]
-            return "no returned log received."
+            return None
 
-    # TODO: this is only removing the tickets from S3. How to interrupt the test if it is already running?
+    # TODO: Currently this is only removing the tickets from S3.
+    #  Do nothing if the test is already running
     def cancel_request(self, identifier):
         """
-		Cancel the test request
+        Cancel the test request
 
-		:param identifier: the response object returned from send_request
-		"""
-        self.S3.delete_object(Bucket=self.s3_ticket_bucket, Key=identifier.ticket_name)
-
-    def query_status (identifier):
-        pass
-
-    def clean_up(self):
+        :param identifier: the response object returned from send_request
         """
-		Delete the SQS queue
+        self.s3_client.delete_object(Bucket=self.s3_ticket_bucket, Key=identifier.ticket_name)
 
-		:return:
-		"""
-        self.sqs.delete_queue(QueueUrl=self.sqs_queue)
-        return
+    # TODO: implement querying status from the in-progress pool
+    def query_status(identifier):
+        pass

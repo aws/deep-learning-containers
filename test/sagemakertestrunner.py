@@ -2,6 +2,7 @@ import logging
 import os
 import re
 import sys
+
 import log_return
 from invoke import run
 from invoke.context import Context
@@ -72,7 +73,8 @@ def generate_sagemaker_pytest_cmd(image):
     )
 
 
-def run_sagemaker_pytest_cmd(image):
+
+def run_sagemaker_tests(image, num_of_instances):
     """
     Run pytest in a virtual env for a particular image
 
@@ -81,9 +83,11 @@ def run_sagemaker_pytest_cmd(image):
     :param image: ECR url
     """
     pytest_command, path, tag, instance_type = generate_sagemaker_pytest_cmd(image)
+    job_type = "training" if "training" in image else "inference"
+
     #update resource pool accordingly, then add a try-catch statement here to update the pool in case of failure
     try:
-        log_return.update_pool("running", instance_type, 1)
+        log_return.update_pool("running", instance_type, num_of_instances, job_type)
         context = Context()
         with context.cd(path):
             context.run(f"python3 -m virtualenv {tag}")
@@ -91,20 +95,8 @@ def run_sagemaker_pytest_cmd(image):
                 context.run("pip install -r requirements.txt", warn=True)
                 context.run(pytest_command)
     except Exception as e:
-        log_return.update_pool("failed", instance_type, 1)
+        log_return.update_pool("failed", instance_type, num_of_instances, job_type)
         raise e
-
-
-
-def run_sagemaker_tests(image):
-    """
-    Function to set up multiprocessing for SageMaker tests
-
-    :param images: <list> List of all images to be used in SageMaker tests
-    """
-    if not image:
-        return
-    run_sagemaker_pytest_cmd(image)
 
 
 def pull_dlc_images(images):
@@ -130,21 +122,20 @@ def main():
     dlc_image = os.getenv("DLC_IMAGE")
     LOGGER.info(f"Images tested: {dlc_image}")
 
+    num_of_instances = os.getenv("NUM_INSTANCES")
+    job_type = "training" if "training" in dlc_image else "inference"
+
     instance_type = assign_sagemaker_instance_type(dlc_image)
 
     if test_type == "sagemaker":
-        run_sagemaker_tests(dlc_image)
+        run_sagemaker_tests(dlc_image, num_of_instances)
     else:
-        raise NotImplementedError(f"{test_type} test is not supported. "
-                                  f"Only support ec2, ecs, eks, sagemaker and sanity currently")
+        raise NotImplementedError(f"{test_type} test is not supported. Only support sagemaker currently")
 
-    log_return.update_pool("completed", instance_type, 1)
     # sending log back to SQS queue
     tag = dlc_image.split("/")[1].split(":")[1]
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
     log_return.send_log(test_report)
 
-
-
-if __name__ == "__main__":
-    main()
+    # update in-progress pool
+    log_return.update_pool("completed", instance_type, num_of_instances, job_type)

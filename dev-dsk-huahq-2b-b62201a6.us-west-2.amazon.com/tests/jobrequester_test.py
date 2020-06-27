@@ -6,15 +6,7 @@ from job_requester.requester import JobRequester
 
 
 def testrunner():
-	"""
-	Tests the send_request and receive_logs functions of the Job Requester package.
-	How tests are executed:
-	- create one Job Requester object, and multiple threads. Perform send_request with the Job Requester object in
-	  each of these threads.
-	- send messages to the SQS queue that the Job Requester object created, to imitate the response logs received back
-	  from the Job Executor.
-	- In each of the threads, perform receive_logs to receive the log correspond to the send_request earlier.
-	"""
+
 	threads = 10
 	request_object = JobRequester()
 	response_list = []

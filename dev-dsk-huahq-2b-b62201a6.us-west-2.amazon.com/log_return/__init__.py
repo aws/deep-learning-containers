@@ -1,6 +1,6 @@
 import os
 import boto3
-import xml.etree.ElementTree as ET
+import xmltodict
 import json
 
 
@@ -11,20 +11,20 @@ def log_locater(report_path):
     :return: <json> returned message to SQS for locating the log
     """
     codebuild_arn = os.getenv("CODEBUILD_BUILD_ARN")
-    ticket_name = os.getenv("TICKET_KEY").split("/")[-1].split(".")[0]
-    log_group_name = f"/aws/codebuild/{codebuild_arn.split(':')[-2]}"
+    ticket_name = os.getenv("TICKET_NAME").split("/")[1].split(".")[0]
+    log_group_name = "/aws/codebuild/" + codebuild_arn.split(":")[-2]
     log_stream_name = codebuild_arn.split(":")[-1]
 
     with open(report_path) as xml_file:
-        report_data = ET.parse(xml_file).getroot()
-        report_data_in_string = ET.tostring(report_data).decode("utf-8")
+        data_dict = xmltodict.parse(xml_file.read())
+        xml_file.close()
+        report_json_data = json.dumps(data_dict)
 
-    content = {
-        "LOG_GROUP_NAME": log_group_name,
-        "LOG_STREAM_NAME": log_stream_name,
-        "TICKET_NAME": ticket_name,
-        "XML_REPORT": report_data_in_string
-    }
+    content = {}
+    content["LOG_GROUP_NAME"] = log_group_name
+    content["LOG_STREAM_NAME"] = log_stream_name
+    content["TICKET_NAME"] = ticket_name
+    content["XML_REPORT"] = report_json_data
 
     return json.dumps(content)
 
@@ -40,7 +40,7 @@ def send_log(report_path):
     print(f"Logs successfully sent to {log_sqs_url}")
 
 
-def update_pool(status, instance_type, num_of_instances, job_type):
+def update_pool(status, instance_type, num_of_instances=1):
     """
     Update the S3 resource pool for usage of SageMaker resources.
     Naming convention of resource usage json: ticket_name-status.
@@ -51,30 +51,29 @@ def update_pool(status, instance_type, num_of_instances, job_type):
     """
     s3_client = boto3.client("s3")
     codebuild_arn = os.getenv("CODEBUILD_BUILD_ARN")
-    ticket_name = os.getenv("TICKET_KEY").split("/")[-1].split(".")[0]
+    ticket_name = os.getenv("TICKET_NAME").split("/")[1].split(".")[0]
 
     if status not in {"preparing", "running", "completed", "failed"}:
         raise ValueError("Not a valid status. Test job status could be preparing, running, completed or failed.")
 
-    pool_ticket_content = {
-        "REQUEST_TICKET_KEY": os.getenv("TICKET_KEY"),
-        "STATUS": status,
-        "INSTANCE_TYPE": instance_type,
-        "EXECUTOR_ARN": codebuild_arn,
-        "INSTANCES_NUM": num_of_instances
-    }
+    pool_ticket_content = {}
+    pool_ticket_content["TICKET_NAME"] = ticket_name
+    pool_ticket_content["STATUS"] = status
+    pool_ticket_content["INSTANCE_TYPE"] = instance_type
+    pool_ticket_content["EXECUTOR_ARN"] = codebuild_arn
+    pool_ticket_content["INSTANCES_NUM"] = num_of_instances
 
     # delete existing entries of the job, if present
     response = s3_client.list_objects(Bucket="dlc-test-tickets", MaxKeys=1,
-                                      Prefix=f"resource_pool/{instance_type}-{job_type}/{ticket_name}")
+                                      Prefix=f"resource_pool/{instance_type}/{ticket_name}")
     if "Contents" in response:
         previous_entry = response["Contents"][0]
         s3_client.delete_object(Bucket="dlc-test-tickets", Key=previous_entry["Key"])
 
     # creating json file locally and upload to S3
-    filename = f"{ticket_name}#{num_of_instances}-{status}.json"
+    filename = f"{ticket_name}-{status}.json"
     with open(filename, "w") as f:
         json.dump(pool_ticket_content, f)
 
     with open(filename, "rb") as data:
-        s3_client.upload_fileobj(data, "dlc-test-tickets", f"resource_pool/{instance_type}-{job_type}/{filename}")
+        s3_client.upload_fileobj(data, "dlc-test-tickets", f"resource_pool/{instance_type}/{filename}")
