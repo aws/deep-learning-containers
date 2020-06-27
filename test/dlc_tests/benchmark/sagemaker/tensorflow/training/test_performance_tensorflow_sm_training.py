@@ -42,7 +42,7 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
     ctx = Context()
 
     with ctx.cd(test_dir), ctx.prefix(f"source {venv_dir}/bin/activate"):
-        log_file = f"results-{commit_info}-{time_str}-{num_nodes}-node.txt"
+        log_file = f"results-{commit_info}-{time_str}-{framework_version}-{processor}-{py_version}-{num_nodes}-node.txt"
         run_out = ctx.run(f"timeout 45m python tf_sm_benchmark.py "
                           f"--framework-version {framework_version} "
                           f"--image-uri {tensorflow_training} "
@@ -61,5 +61,25 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
 
     LOGGER.info(f"Test results can be found at {os.path.join(target_upload_location, log_file)}")
 
+    _print_results_of_test(os.path.join(test_dir, log_file), processor)
+
     assert run_out.ok, (f"Benchmark Test failed with return code {run_out.return_code}. "
                         f"Test results can be found at {os.path.join(target_upload_location, log_file)}")
+
+
+def _print_results_of_test(file_path, processor):
+    last_100_lines = Context().run(f"tail -100 {file_path}").stdout.split("\n")
+    result = ""
+    if processor == "cpu":
+        for line in last_100_lines:
+            if "Total img/sec on " in line:
+                result = line + "\n"
+    elif processor == "gpu":
+        result_dict = dict()
+        for line in last_100_lines:
+            if "images/sec: " in line:
+                key = line.split("<stdout>")[0]
+                result_dict[key] = line.strip("\n")
+        result = "\n".join(result_dict.values()) + "\n"
+    LOGGER.info(result)
+    return result
