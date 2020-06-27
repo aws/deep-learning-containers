@@ -58,6 +58,12 @@ def is_tf2(image_uri):
     return bool(re.search(r'2\.\d+\.\d+', image_uri))
 
 
+def is_tf20(image_uri):
+    if "tensorflow" not in image_uri:
+        return False
+    return bool(re.search(r'2\.0\.\d+', image_uri))
+
+
 def is_pr_context():
     return os.getenv("BUILD_CONTEXT") == "PR"
 
@@ -391,7 +397,8 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
     for resource_dir in tf_resource_dir_list:
         with ctx.cd(os.path.join(resources_location, resource_dir)):
             if not os.path.isdir(os.path.join(resources_location, resource_dir, "horovod")):
-                ctx.run("git clone https://github.com/horovod/horovod.git")
+                # v0.19.4 is the last version for which horovod example tests are py2 compatible
+                ctx.run("git clone -b v0.19.4 https://github.com/horovod/horovod.git")
             if not os.path.isdir(os.path.join(resources_location, resource_dir, "deep-learning-models")):
                 # We clone branch tf2 for both 1.x and 2.x tests because tf2 branch contains all necessary files
                 ctx.run(f"git clone -b tf2 https://github.com/aws-samples/deep-learning-models.git")
@@ -401,4 +408,36 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
             ctx.run("pip install -U sagemaker awscli boto3 botocore six==1.11")
+
+            # SageMaker TF estimator is coded to only accept framework versions upto 2.1.0 as py2 compatible.
+            # Fixing this through the following changes:
+            estimator_location = ctx.run(
+                "echo $(pip3 show sagemaker |grep 'Location' |sed s/'Location: '//g)/sagemaker/tensorflow/estimator.py"
+            ).stdout.strip("\n")
+            system = ctx.run("uname -s").stdout.strip("\n")
+            sed_input_arg = "'' " if system == "Darwin" else ""
+            ctx.run(f"sed -i {sed_input_arg}'s/\[2, 1, 0\]/\[2, 1, 1\]/g' {estimator_location}")
     return venv_dir
+
+
+def get_framework_and_version_from_tag(image_uri):
+    """
+    Return the framework and version from the image tag.
+
+    :param image_uri: ECR image URI
+    :return: framework name, framework version
+    """
+    tested_framework = None
+    allowed_frameworks = ("tensorflow", "mxnet", "pytorch")
+    for framework in allowed_frameworks:
+        if framework in image_uri:
+            tested_framework = framework
+            break
+
+    if not tested_framework:
+        raise RuntimeError(f"Cannot find framework in image uri {image_uri} "
+                           f"from allowed frameworks {allowed_frameworks}")
+
+    tag_framework_version = image_uri.split(':')[-1].split('-')[0]
+
+    return tested_framework, tag_framework_version
