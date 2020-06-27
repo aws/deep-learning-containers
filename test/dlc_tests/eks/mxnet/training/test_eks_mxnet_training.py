@@ -21,7 +21,7 @@ def test_eks_mxnet_single_node_training(mxnet_training):
     pod_name = f"mxnet-single-node-training-{rand_int}"
 
     args = (
-        "git clone https://github.com/apache/incubator-mxnet.git && python "
+        "git clone -b v1.6.x https://github.com/apache/incubator-mxnet.git && python "
         "/incubator-mxnet/example/image-classification/train_mnist.py"
     )
 
