@@ -14,6 +14,12 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
 def assign_sagemaker_instance_type(image):
+    """
+    Assigning the instance type that the input image needs for testing
+
+    :param image: <string> ECR URI
+    :return: <string> type of instance used by the image
+    """
     if "tensorflow" in image:
         return "ml.p3.8xlarge" if "gpu" in image else "ml.c4.4xlarge"
     else:
@@ -127,15 +133,15 @@ def main():
 
     instance_type = assign_sagemaker_instance_type(dlc_image)
 
-    if test_type == "sagemaker":
-        run_sagemaker_tests(dlc_image, num_of_instances)
-    else:
-        raise NotImplementedError(f"{test_type} test is not supported. Only support sagemaker currently")
-
-    # sending log back to SQS queue
-    tag = dlc_image.split("/")[1].split(":")[1]
-    test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
-    log_return.send_log(test_report)
+    # if test_type == "sagemaker":
+    #     run_sagemaker_tests(dlc_image, num_of_instances)
+    # else:
+    #     raise NotImplementedError(f"{test_type} test is not supported. Only support sagemaker currently")
+    #
+    # # sending log back to SQS queue
+    # tag = dlc_image.split("/")[1].split(":")[1]
+    # test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
+    # log_return.send_log(test_report)
 
     # update in-progress pool
     log_return.update_pool("completed", instance_type, num_of_instances, job_type)
