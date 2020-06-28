@@ -31,26 +31,11 @@ def run_sagemaker_tests(images):
     if not images:
         return
     # This is to ensure that threads don't lock
-    pool_number = (len(images)*2) + 4
-    # with Pool(pool_number) as p:
+    pool_number = (len(images)*2)
+    with Pool(pool_number) as p:
         # p.map(sm_utils.run_sagemaker_remote_tests, images)
-            # p.map(sm_utils.run_sagemaker_local_tests, images)
-    # Run sagemaker Local tests
-    if is_pr_context():
-        with concurrent.futures.ProcessPoolExecutor(max_workers=pool_number) as executor:
-            exec_results = {executor.submit(sm_utils.run_sagemaker_local_tests, image): image for
-                            image in images}
-            failed_images = []
-            for obj in concurrent.futures.as_completed(exec_results, timeout=2100):
-                image = exec_results[obj]
-                try:
-                    result = obj.result()
-                except Exception as exc:
-                    print(f"{image} generated an exception: {traceback.format_exc()}")
-                    failed_images.append(image)
-            if len(failed_images) > 0:
-                print(f"Sagemaker local tests failed for images {' '.join(failed_images)}")
-                sys.exit(1)
+        # Run sagemaker Local tests
+        p.map(sm_utils.run_sagemaker_local_tests, images)
 
 
 def pull_dlc_images(images):
