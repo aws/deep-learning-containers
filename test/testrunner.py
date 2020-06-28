@@ -30,9 +30,11 @@ def run_sagemaker_tests(images):
     """
     if not images:
         return
-    pool_number = len(images)
+    # This is to ensure that threads don't lock
+    pool_number = (len(images)*2) + 4
     # with Pool(pool_number) as p:
-    #     p.map(sm_utils.run_sagemaker_remote_tests, images)
+        # p.map(sm_utils.run_sagemaker_remote_tests, images)
+            # p.map(sm_utils.run_sagemaker_local_tests, images)
     # Run sagemaker Local tests
     if is_pr_context():
         with concurrent.futures.ProcessPoolExecutor(max_workers=pool_number) as executor:
