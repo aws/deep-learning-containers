@@ -14,6 +14,7 @@ from test_utils import destroy_ssh_keypair, generate_ssh_keypair
 from test_utils import UBUNTU_16_BASE_DLAMI, SAGEMAKER_LOCAL_TEST_TYPE, \
     SAGEMAKER_REMOTE_TEST_TYPE, UBUNTU_HOME_DIR, DEFAULT_REGION
 
+ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}), region_name=DEFAULT_REGION)
 
 def assign_sagemaker_remote_job_instance_type(image):
     if "tensorflow" in image:
@@ -94,7 +95,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
-    is_py3 = " python3 -m "
+    is_py3 = " python3 -m " if "py3" in image else ""
 
     remote_pytest_cmd = (f"pytest {integration_path} --region {region} {docker_base_arg} "
                          f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
@@ -121,7 +122,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     # Install custom packages which need to be latest version"
     # To avoid the dpkg lock for apt remove
-    is_py3 = " python3 -m" if "py3" in image else "py2"
+    is_py3 = " python3 -m" if "py3" in image else ""
     ec2_conn.run("sleep 1m")
     if is_py3:
         ec2_conn.run(f"sudo apt-get install python3-venv -y && {is_py3} venv env")
@@ -130,16 +131,9 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     if framework == "pytorch" and job_type == "inference":
         # The following distutils package conflict with test dependencies
         ec2_conn.run("apt-get remove python3-scipy python3-yaml -y")
-    if framework == "mxnet" and job_type == "inference":
-        # MXNet serving remote integ tests require dependencies specified in python-sdk to be installed,
-        # this should be made independent in future
-        python_sdk_repo = "sagemaker-python-sdk"
-        run("git clone https://github.com/aws/{}.git".format(python_sdk_repo))
-        with ec2_conn.cd(python_sdk_repo):
-            ec2_conn.run("{}pip install -U .[test]".format(is_py3))
 
 
-def run_sagemaker_local_tests(ec2_client, image):
+def run_sagemaker_local_tests(image):
     """
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
@@ -159,7 +153,7 @@ def run_sagemaker_local_tests(ec2_client, image):
         print(f"Launching new Instance for image: {image}")
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, UBUNTU_16_BASE_DLAMI, ec2_key_name, region)
         ec2_conn = ec2_utils.ec2_connection(instance_id, key_file, region)
-        run(f"tar -cz --exclude='*.pytest_cache' -f {sm_tests_tar_name} {sm_tests_path}")
+        # run(f"tar -cz --exclude='*.pytest_cache' -f {sm_tests_tar_name} {sm_tests_path}")
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")

@@ -35,23 +35,20 @@ def run_sagemaker_tests(images):
     #     p.map(sm_utils.run_sagemaker_remote_tests, images)
     # Run sagemaker Local tests
     if is_pr_context():
-        ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}), region_name=DEFAULT_REGION)
-        for image in images:
-            sm_utils.run_sagemaker_local_tests(ec2_client, image)
-        # with concurrent.futures.ProcessPoolExecutor(max_workers=pool_number) as executor:
-        #     exec_results = {executor.submit(sm_utils.run_sagemaker_local_tests, ec2_client, image): image for
-        #                     image in images}
-        #     failed_images = []
-        #     for obj in concurrent.futures.as_completed(exec_results, timeout=2100):
-        #         image = exec_results[obj]
-        #         try:
-        #             result = obj.result()
-        #         except Exception as exc:
-        #             print(f"{image} generated an exception: {traceback.format_exc()}")
-        #             failed_images.append(image)
-        #     if len(failed_images) > 0:
-        #         print(f"Sagemaker local tests failed for images {' '.join(failed_images)}")
-        #         sys.exit(1)
+        with concurrent.futures.ProcessPoolExecutor(max_workers=pool_number) as executor:
+            exec_results = {executor.submit(sm_utils.run_sagemaker_local_tests, image): image for
+                            image in images}
+            failed_images = []
+            for obj in concurrent.futures.as_completed(exec_results, timeout=2100):
+                image = exec_results[obj]
+                try:
+                    result = obj.result()
+                except Exception as exc:
+                    print(f"{image} generated an exception: {traceback.format_exc()}")
+                    failed_images.append(image)
+            if len(failed_images) > 0:
+                print(f"Sagemaker local tests failed for images {' '.join(failed_images)}")
+                sys.exit(1)
 
 
 def pull_dlc_images(images):
