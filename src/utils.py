@@ -86,18 +86,21 @@ def download_file(remote_url: str, link_type: str):
     """
     LOGGER.info(f"Downloading {remote_url}")
 
-    ctx = Context()
-    file_name = ctx.run(f"basename {remote_url}").stdout.strip()
+    file_name = os.path.basename(remote_url).strip()
     LOGGER.info(f"basename: {file_name}")
 
     if link_type in ["s3"] and remote_url.startswith("s3://"):
-        match = re.match(r's3://(.+?)/(.+)', remote_url)
-        bucket_name = match.group(1)
-        bucket_key = match.group(2)
-        LOGGER.info(f"bucket_name: {bucket_name}")
-        LOGGER.info(f"bucket_key: {bucket_key}")
-        download_s3_file(bucket_name, bucket_key, file_name)
+        match = re.match(r's3:\/\/(.+?)\/(.+)', remote_url)
+        if match:
+            bucket_name = match.group(1)
+            bucket_key = match.group(2)
+            LOGGER.info(f"bucket_name: {bucket_name}")
+            LOGGER.info(f"bucket_key: {bucket_key}")
+            download_s3_file(bucket_name, bucket_key, file_name)
+        else:
+            raise ValueError(f"Regex matching on s3 URI failed.")
     else:
+        ctx = Context()
         ctx.run(f"curl -O {remote_url}")
 
     return file_name

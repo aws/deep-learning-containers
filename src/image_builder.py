@@ -16,10 +16,8 @@ language governing permissions and limitations under the License.
 import concurrent.futures
 import datetime
 import os
-import sys
 
 from copy import deepcopy
-from invoke import run
 
 import constants
 import utils
@@ -95,7 +93,10 @@ def image_builder(buildspec):
                 uri = artifact["URI"]
                 var = artifact["VAR_IN_DOCKERFILE"]
 
-                file_name = utils.download_file(uri, type).strip()
+                try:
+                    file_name = utils.download_file(uri, type).strip()
+                except ValueError:
+                    FORMATTER.print(f"Artifact download failed: {uri} of type {type}.")
 
                 ARTIFACTS.update({
                     f"{artifact_name}": {
