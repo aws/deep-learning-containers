@@ -89,7 +89,6 @@ def image_builder(buildspec):
             base_image_object = _find_image_object(IMAGES, image_config["base_image_name"])
             base_image_uri = base_image_object.ecr_url
 
-        # Construct download path around here somewhere
         if image_config.get("download_artifacts") is not None:
             for artifact_name, artifact in image_config.get("download_artifacts").items():
                 type = artifact["type"]
