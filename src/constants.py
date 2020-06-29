@@ -19,7 +19,7 @@ import os
 FRAMEWORKS = {"mxnet", "tensorflow", "pytorch"}
 DEVICE_TYPES = {"cpu", "gpu"}
 IMAGE_TYPES = {"training", "inference"}
-PYTHON_VERSIONS = {"py2", "py3"}
+PYTHON_VERSIONS = {"py2", "py3", "py36"}
 ALL = "all"
 
 # Function Status Codes
