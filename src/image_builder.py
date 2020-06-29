@@ -156,8 +156,6 @@ def image_builder(buildspec):
 
     THREADS = {}
 
-    #sys.exit(0)
-
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
     # to it is executed concurrently in a separate thread.
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
