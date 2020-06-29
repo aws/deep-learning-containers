@@ -43,8 +43,8 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
-EKS_VERSION = "1.13.8"
-EKSCTL_VERSION = "0.5.0"
+EKS_VERSION = "1.14.6"
+EKSCTL_VERSION = "0.22.0"
 KSONNET_VERSION = "0.13.1"
 KUBEFLOW_VERSION = "v0.4.1"
 KUBETAIL_VERSION = "1.6.7"
@@ -52,7 +52,7 @@ KUBETAIL_VERSION = "1.6.7"
 EKS_NVIDIA_PLUGIN_VERSION = "1.12"
 
 # https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
-EKS_AMI_ID = {"cpu": "ami-010938e49e2ec29ae", "gpu": "ami-06d2bf0a1cbcfee72"}
+EKS_AMI_ID = {"cpu": "ami-03086423d09685de3", "gpu": "ami-061798711b2adafb4"}
 
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
 PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"

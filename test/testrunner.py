@@ -182,6 +182,9 @@ def main():
             framework = frameworks_in_images[0]
             eks_cluster_name = setup_eks_cluster(framework)
             # Split training and inference, and run one after the other, to prevent scheduling issues
+            # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in
+            # pods timing-out while they were in the Pending state. Scheduling 4 tests (and hence, 4 pods) at once
+            # seems to be an optimal configuration.
             pytest_cmds = [
                 ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=4"],
                 ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4"],
@@ -193,6 +196,8 @@ def main():
         if specific_test_type == "canary":
             pytest_cmds = [["-s", "-rA", f"--junitxml={report}", "-n=auto", "--canary", "--ignore=container_tests/"]]
         try:
+            # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
+            #        separate pytest reports, both of which must be examined in case of a manual review of results.
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
             sys.exit(0) if all([status == 0 for status in cmd_exit_statuses]) else sys.exit(1)
         finally:
