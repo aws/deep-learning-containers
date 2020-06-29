@@ -23,7 +23,10 @@ phases:
   post_build:
     commands:
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
-      - flake8
+      - |
+        if expr "${TEST_TYPE}" : "sanity" >/dev/null; then
+          flake8
+        fi
 reports:
   test_reports:
     files:
