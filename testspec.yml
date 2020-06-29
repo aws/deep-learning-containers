@@ -28,3 +28,7 @@ reports:
     files:
       - test/*.xml
     file-format: JunitXml
+    type: "S3"
+    location: "dlinfra-dlc-cicd-performance",
+    artifactIdentifier: "artifact",
+    name: "secondary-artifact-name"
