@@ -122,11 +122,11 @@ RUN ${PIP} install --no-cache --upgrade \
     "sagemaker-mxnet-training<5" \
     ${MX_URL} \
     smdebug==${SMDEBUG_VERSION} \
-    sagemaker==1.50.17 \
+    "sagemaker<2" \
     awscli
 
 # Install Horovod
-RUN ${PIP} install --no-cache-dir horovod==0.19.0
+RUN ${PIP} install --no-cache-dir horovod==0.19.5
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
@@ -153,11 +153,10 @@ RUN mkdir /root/.keras \
 # TODO: Should we be installing OpenCV in our image like this? Is there another way we can fix this?
 RUN ln -s /dev/null /dev/raw1394
 
-COPY dockerd-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/aws-mxnet-1.6.0/license.txt
 
-ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["/bin/bash"]
