@@ -1,6 +1,7 @@
 tox
 pluggy>=0.12
 flake8
+coremltools
 pytest==4.5.0
 pytest-cov==2.9.0
 pytest-rerunfailures==8.0
