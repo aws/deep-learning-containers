@@ -1,10 +1,11 @@
+import os
 import re
 
 import pytest
 
 from invoke.context import Context
 
-from test.test_utils import LOGGER, ec2, get_framework_and_version_from_tag
+from test.test_utils import LOGGER, ec2, get_framework_and_version_from_tag, is_canary_context
 
 
 @pytest.mark.canary("Run stray file test regularly on production images")
@@ -120,8 +121,10 @@ def test_framework_version_cpu(cpu):
     output = _run_cmd_on_container(
         container_name, ctx, f"import {tested_framework}; print({tested_framework}.__version__)", executable="python"
     )
-
-    assert tag_framework_version == output.stdout.strip()
+    if is_canary_context():
+        assert tag_framework_version in output.stdout.strip()
+    else:
+        assert tag_framework_version == output.stdout.strip()
 
 
 @pytest.mark.canary("Run gpu framework version test regularly on production images")
@@ -145,7 +148,10 @@ def test_framework_version_gpu(gpu, ec2_connection):
     cmd = f'import {tested_framework}; print({tested_framework}.__version__)'
     output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
 
-    assert tag_framework_version == output.stdout.strip()
+    if is_canary_context():
+        assert tag_framework_version in output.stdout.strip()
+    else:
+        assert tag_framework_version == output.stdout.strip()
 
 
 @pytest.mark.canary("Run pip check test regularly on production images")
