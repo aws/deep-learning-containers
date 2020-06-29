@@ -7,6 +7,7 @@ from invoke.context import Context
 from test.test_utils import LOGGER, ec2, get_framework_and_version_from_tag
 
 
+@pytest.mark.canary("Run stray file test regularly on production images")
 def test_stray_files(image):
     """
     Test to ensure that unnecessary build artifacts are not present in any easily visible or tmp directories
@@ -46,6 +47,7 @@ def test_stray_files(image):
     _assert_artifact_free(root, stray_artifacts)
 
 
+@pytest.mark.canary("Run python version test regularly on production images")
 def test_python_version(image):
     """
     Check that the python version in the image tag is the same as the one on a running container.
@@ -58,8 +60,10 @@ def test_python_version(image):
     py_version = ""
     for tag_split in image.split('-'):
         if tag_split.startswith('py'):
-            py_version = f"Python {tag_split[2]}.{tag_split[3]}"
-
+            if len(tag_split) > 3:
+                py_version = f"Python {tag_split[2]}.{tag_split[3]}"
+            else:
+                py_version = f"Python {tag_split[2]}"
     _start_container(container_name, image, ctx)
     output = _run_cmd_on_container(container_name, ctx, "python --version")
 
@@ -94,6 +98,7 @@ def test_ubuntu_version(image):
     assert ubuntu_version in container_ubuntu_version
 
 
+@pytest.mark.canary("Run cpu framework version test regularly on production images")
 def test_framework_version_cpu(cpu):
     """
     Check that the framework version in the image tag is the same as the one on a running container.
@@ -119,6 +124,7 @@ def test_framework_version_cpu(cpu):
     assert tag_framework_version == output.stdout.strip()
 
 
+@pytest.mark.canary("Run gpu framework version test regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ['p2.xlarge'], indirect=True)
 def test_framework_version_gpu(gpu, ec2_connection):
     """

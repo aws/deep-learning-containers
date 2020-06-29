@@ -172,11 +172,11 @@ def main():
         if specific_test_type == "eks":
             new_eks_cluster_name = setup_eks_clusters(dlc_images)
         # Execute dlc_tests pytest command
-        pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
+        #pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
 
         # Execute separate cmd for canaries
-        if specific_test_type == "canary":
-            pytest_cmd = ["-s", "-rA", f"--junitxml={report}", "-n=auto", "--canary", "--ignore=container_tests/"]
+        #if specific_test_type == "canary":
+        pytest_cmd = ["-s", "-rA", f"--junitxml={report}", "-n=auto", "--canary", "--ignore=container_tests/"]
         try:
             sys.exit(pytest.main(pytest_cmd))
         finally:

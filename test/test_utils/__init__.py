@@ -324,9 +324,10 @@ def delete_uploaded_tests_from_s3(s3_test_location):
 
 
 def get_dlc_images():
-    if is_pr_context():
-        return os.getenv("DLC_IMAGES")
-    elif is_canary_context():
+    # TODO: Remove testing comment
+    #if is_pr_context():
+    #    return os.getenv("DLC_IMAGES")
+    if is_pr_context(): #is_canary_context():
         return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"))
     test_env_file = os.path.join(os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json")
     with open(test_env_file) as test_env:
