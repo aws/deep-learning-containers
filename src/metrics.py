@@ -4,7 +4,7 @@ import random
 
 
 class Metrics(object):
-    def __init__(self, context="DEV", region="us-west-2", namespace="dlc-metrics-sk"):
+    def __init__(self, context="DEV", region="us-west-2", namespace="dlc-metrics"):
         self.client = boto3.Session(region_name=region).client("cloudwatch")
         self.context = context
         self.namespace = namespace
