@@ -1,9 +1,10 @@
-import re
 import os
 import random
-import test.test_utils.eks as eks_utils
+import re
 
 from invoke import run
+
+import test.test_utils.eks as eks_utils
 
 
 def test_eks_mxnet_single_node_training(mxnet_training):
@@ -17,12 +18,18 @@ def test_eks_mxnet_single_node_training(mxnet_training):
 
     rand_int = random.randint(4001, 6000)
 
+    framework_version_search = re.search(r"\d+(\.\d+){2}", mxnet_training)
+    framework_version = framework_version_search.group()
+    if not framework_version_search:
+        framework_version_search = re.search(r"\d+\.\d+", mxnet_training)
+        framework_version = framework_version_search.group() + ".0"
+
     yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_training_{rand_int}.yaml")
     pod_name = f"mxnet-single-node-training-{rand_int}"
 
     args = (
-        "git clone https://github.com/apache/incubator-mxnet.git && python "
-        "/incubator-mxnet/example/image-classification/train_mnist.py"
+        f"git clone -b {framework_version} https://github.com/apache/incubator-mxnet.git && python "
+        f"/incubator-mxnet/example/image-classification/train_mnist.py"
     )
 
     processor_type = "gpu" if "gpu" in mxnet_training else "cpu"
