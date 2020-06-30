@@ -338,22 +338,17 @@ def eks_setup(framework, cluster_name=None):
     # Separate function handles setting up eksctl
     setup_eksctl()
 
-    output = run(kubectl_download_command, echo=True)
-    LOGGER.info(output.stdout + "\n" + output.stderr)
+    run(kubectl_download_command, echo=True)
     run("chmod +x /usr/local/bin/kubectl")
 
-    output = run(aws_iam_authenticator_download_command, echo=True)
-    LOGGER.info(output.stdout + "\n" + output.stderr)
+    run(aws_iam_authenticator_download_command, echo=True)
     run("chmod +x /usr/local/bin/aws-iam-authenticator")
-    run("mv /tmp/aws-iam-authenticator /usr/local/bin")
 
-    output = run(ksonnet_download_command, echo=True)
-    LOGGER.info(output.stdout + "\n" + output.stderr)
+    run(ksonnet_download_command, echo=True)
     run("tar -xf /tmp/{}.tar.gz -C /tmp --strip-components=1".format(KSONNET_VERSION))
     run("mv /tmp/ks /usr/local/bin")
 
-    output = run(kubetail_download_command, echo=True)
-    LOGGER.info(output.stdout + "\n" + output.stderr)
+    run(kubetail_download_command, echo=True)
     run("chmod +x /usr/local/bin/kubetail")
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
