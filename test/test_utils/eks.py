@@ -233,19 +233,19 @@ def delete_eks_cluster(eks_cluster_name):
 
 
 def setup_eksctl():
-    run_out = run("eksctl version", warn=True)
+    run_out = run("eksctl version", echo=True, warn=True)
 
     eksctl_installed = not run_out.return_code
 
     if eksctl_installed:
         return
 
-    platform = run("uname -s").stdout.strip()
+    platform = run("uname -s", echo=True).stdout.strip()
     eksctl_download_command = (
         f"curl --silent --location https://github.com/weaveworks/eksctl/releases/download/"
         f"{EKSCTL_VERSION}/eksctl_{platform}_amd64.tar.gz | tar xz -C /tmp"
     )
-    run(eksctl_download_command)
+    run(eksctl_download_command, echo=True)
     run("mv /tmp/eksctl /usr/local/bin")
 
 
@@ -337,27 +337,31 @@ def eks_setup(framework, cluster_name=None):
     # Separate function handles setting up eksctl
     setup_eksctl()
 
-    run(kubectl_download_command)
+    output = run(kubectl_download_command, echo=True).stdout
+    LOGGER.info(output)
     run("chmod +x /tmp/kubectl")
     run("mv /tmp/kubectl /usr/local/bin")
 
-    run(aws_iam_authenticator_download_command)
+    output = run(aws_iam_authenticator_download_command, echo=True).stdout
+    LOGGER.info(output)
     run("chmod +x /tmp/aws-iam-authenticator")
     run("mv /tmp/aws-iam-authenticator /usr/local/bin")
 
-    run(ksonnet_download_command)
+    output = run(ksonnet_download_command, echo=True).stdout
+    LOGGER.info(output)
     run("tar -xf /tmp/{}.tar.gz -C /tmp --strip-components=1".format(KSONNET_VERSION))
     run("mv /tmp/ks /usr/local/bin")
 
-    run(kubetail_download_command)
+    output = run(kubetail_download_command, echo=True).stdout
+    LOGGER.info(output)
     run("chmod +x /tmp/kubetail")
     run("mv /tmp/kubetail /usr/local/bin")
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
-    run("eksctl version")
-    run("kubectl version --short --client")
-    run("aws-iam-authenticator version")
-    run("ks version")
+    run("eksctl version", echo=True)
+    run("kubectl version --short --client", echo=True)
+    run("aws-iam-authenticator version", echo=True)
+    run("ks version", echo=True)
 
     eks_write_kubeconfig(eks_cluster_name, "us-west-2")
 
