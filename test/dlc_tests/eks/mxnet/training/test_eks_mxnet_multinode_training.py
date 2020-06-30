@@ -40,7 +40,7 @@ def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_onl
 
     namespace = f"mx-multi-node-train-{'py2' if 'py2' in mxnet_training else 'py3'}-{unique_tag}"
     app_name = f"kubeflow-mxnet-hvd-mpijob-{unique_tag}"
-    job_name = f"mxnet-mnist-horovod-job={unique_tag}"
+    job_name = f"mxnet-mnist-horovod-job-{unique_tag}"
 
     command_to_run = "mpirun,-mca,btl_tcp_if_exclude,lo,-mca,pml,ob1,-mca,btl,^openib,--bind-to,none,-map-by,slot," \
                      "-x,LD_LIBRARY_PATH,-x,PATH,-x,NCCL_SOCKET_IFNAME=eth0,-x,NCCL_DEBUG=INFO,python," \
