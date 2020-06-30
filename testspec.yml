@@ -24,13 +24,9 @@ phases:
     commands:
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
       - echo Test finished
-      - flake8
+      - printenv
 reports:
   test_reports:
     files:
       - test/*.xml
     file-format: JunitXml
-    type: "S3"
-    location: "dlinfra-dlc-cicd-performance",
-    artifactIdentifier: "artifact",
-    name: "secondary-artifact-name"
