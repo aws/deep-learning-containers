@@ -27,6 +27,7 @@ phases:
         if expr "${TEST_TYPE}" : "sanity" >/dev/null; then
           flake8
         fi
+      - printenv
 reports:
   test_reports:
     files:
