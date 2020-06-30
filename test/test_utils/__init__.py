@@ -7,7 +7,6 @@ import logging
 import sys
 
 import pytest
-import boto3
 
 from botocore.exceptions import ClientError
 from invoke import run
@@ -324,16 +323,10 @@ def delete_uploaded_tests_from_s3(s3_test_location):
 
 
 def get_dlc_images():
-    # TODO: Remove testing comment
-    #if is_pr_context():
-    #    return os.getenv("DLC_IMAGES")
-    if is_pr_context(): #is_canary_context():
-        framework = None
-        for fw in ('tensorflow', 'pytorch', 'mxnet'):
-            if fw in os.getenv("DLC_IMAGES"):
-                framework = fw
-                break
-        return parse_canary_images(framework, os.getenv("AWS_REGION"))
+    if is_pr_context():
+        return os.getenv("DLC_IMAGES")
+    elif is_canary_context():
+        return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"))
     test_env_file = os.path.join(os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json")
     with open(test_env_file) as test_env:
         test_images = json.load(test_env)
@@ -350,7 +343,7 @@ def parse_canary_images(framework, region):
     pt = "1.5"
 
     if framework == "tensorflow":
-        framework = "tensorflow2" if is_tf2(os.getenv("DLC_IMAGES")) else "tensorflow1"
+        framework = "tensorflow2" if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") else "tensorflow1"
 
     images = {
         "tensorflow1":

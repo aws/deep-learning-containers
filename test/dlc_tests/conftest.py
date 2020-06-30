@@ -168,9 +168,9 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
 
     conn.run(f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests")
     conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
-    # TODO: remove testing
-    #if test_utils.is_canary_context():
-    if test_utils.is_pr_context():
+
+    # Log into ECR if we are in canary context
+    if test_utils.is_canary_context():
         conn.run(f"$(aws ecr get-login --no-include-email --region "
                  f"{os.getenv('AWS_REGION')} --registry-ids 763104351884)")
 
