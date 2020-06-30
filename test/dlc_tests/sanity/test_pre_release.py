@@ -141,7 +141,7 @@ def test_framework_version_gpu(gpu, ec2_connection):
 
     assert tag_framework_version == output.stdout.strip()
 
-
+@pytest.mark.skip()
 @pytest.mark.canary("Run pip check test regularly on production images")
 def test_pip_check(image):
     """
