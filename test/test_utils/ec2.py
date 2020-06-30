@@ -339,7 +339,6 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
     )
     connection.run(
         f"{docker_cmd} exec --user root ec2_training_container {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'",
-        hide=True,
         timeout=7000
     )
     start3= time.time()
@@ -361,7 +360,6 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
     )
     connection.run(
         f"{docker_cmd} exec --user root ec2_inference_container {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'",
-        hide=True,
         timeout=5000
     )
 
