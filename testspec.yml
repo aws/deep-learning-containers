@@ -6,9 +6,11 @@ phases:
       docker: 18
   pre_build:
     commands:
+      - printenv
       - start-dockerd
       - pip install -r src/requirements.txt
       - python src/send_status.py --status 2
+      - python src/update_report_group.py
   build:
     commands:
       - echo Logging in to Amazon ECR...
@@ -23,8 +25,6 @@ phases:
   post_build:
     commands:
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
-      - echo Test finished
-      - printenv
 reports:
   test_reports:
     files:
