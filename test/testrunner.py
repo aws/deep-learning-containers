@@ -14,7 +14,7 @@ from invoke import run
 from invoke.context import Context
 
 from test_utils import eks as eks_utils
-from test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair, setup_sm_benchmark_tf_train_env
+from test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair, setup_sm_benchmark_tf_train_env, get_source_version
 from test_utils import KEYS_TO_DESTROY_FILE
 
 
@@ -133,7 +133,7 @@ def setup_eks_clusters(dlc_images):
     short_name = frameworks[long_name]
     num_nodes = 2 if is_pr_context() else 3 if long_name != "pytorch" else 4
     cluster_name = f"dlc-{short_name}-cluster-" \
-                   f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
+                   f"{get_source_version()}-{random.randint(1, 10000)}"
     eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
     eks_utils.eks_setup(long_name, cluster_name)
     return cluster_name

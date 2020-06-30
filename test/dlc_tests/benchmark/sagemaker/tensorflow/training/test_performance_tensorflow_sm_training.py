@@ -8,7 +8,7 @@ import pytest
 
 from invoke.context import Context
 
-from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
+from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER, get_source_version
 
 
 @pytest.mark.parametrize("num_nodes", [1, 4], indirect=True)
@@ -25,7 +25,7 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
     py_version = "py2" if "py2" in tensorflow_training else "py37" if "py37" in tensorflow_training else "py3"
 
     time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
-    commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+    commit_info = get_source_version()
     target_upload_location = os.path.join(
         BENCHMARK_RESULTS_S3_BUCKET, "tensorflow", framework_version, "sagemaker", "training", processor, py_version
     )

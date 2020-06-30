@@ -4,7 +4,7 @@ import boto3
 
 from retrying import retry
 
-from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
+from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER, get_source_version
 
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
@@ -369,6 +369,7 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
 
 
 def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
+    source_version = get_source_version()
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
@@ -379,12 +380,13 @@ def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=
 
     # Run training command, display benchmark results to console
     connection.run(
-        f"{docker_cmd} run -e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
+        f"{docker_cmd} run -e COMMIT_INFO={source_version} -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
         f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
     )
 
 
 def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
+    source_version = get_source_version()
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
@@ -398,7 +400,7 @@ def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
     connection.run(
         f"{docker_cmd} run -d --name {container_name} "
-        f"-e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} "
+        f"-e COMMIT_INFO={source_version} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri}"
     )
     try:

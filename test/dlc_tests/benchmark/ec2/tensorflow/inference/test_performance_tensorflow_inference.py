@@ -1,7 +1,7 @@
 import os
 import time
 import pytest
-from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, is_tf1
+from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, is_tf1, get_source_version
 
 
 @pytest.mark.parametrize("ec2_instance_type", ["p3.16xlarge"], indirect=True)
@@ -35,7 +35,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     ec2_connection.sudo(f"aws s3 cp s3://tensorflow-aws/{tf_version_folder}/Serving/{processor_folder}/tensorflow_model_server /usr/bin/")
     ec2_connection.sudo(f"chmod +x /usr/bin/tensorflow_model_server")
     time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
-    commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+    commit_info = get_source_version()
     log_file = f"inference_benchmark_results_{commit_info}_{time_str}.log"
     ec2_connection.run(
         f"python {container_test_local_dir}/bin/benchmark/tf{tf_version}_serving_perf.py "

@@ -72,6 +72,14 @@ def is_canary_context():
     return os.getenv("BUILD_CONTEXT") == "CANARY"
 
 
+def is_empty_build_context():
+    return not os.getenv("BUILD_CONTEXT")
+
+
+def get_source_version():
+    return os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", run("git rev-parse --verify HEAD").stdout)
+
+
 def run_subprocess_cmd(cmd, failure="Command failed"):
     command = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
     if command.returncode:
@@ -324,7 +332,7 @@ def delete_uploaded_tests_from_s3(s3_test_location):
 
 
 def get_dlc_images():
-    if is_pr_context():
+    if is_pr_context() or is_empty_build_context():
         return os.getenv("DLC_IMAGES")
     elif is_canary_context():
         return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"))

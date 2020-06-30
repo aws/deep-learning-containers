@@ -227,6 +227,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
     :return: <dict> Mapping of "Fixture to be parametrized" -> "Unique values for fixture to be parametrized"
     """
     fixtures_parametrized = {}
+    source_version = test_utils.get_source_version()
     if images_to_parametrize:
         for key, new_fixture_name in values_to_generate_for_fixture.items():
             if key in metafunc_obj.fixturenames:
@@ -248,7 +249,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                         (
                             image,
                             f"{metafunc_obj.function.__name__}-{image_tag}-"
-                            f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}{instance_tag}",
+                            f"{source_version}-{index}{instance_tag}",
                         )
                     )
     return fixtures_parametrized
