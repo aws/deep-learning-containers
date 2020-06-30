@@ -316,12 +316,13 @@ def eks_setup(framework, cluster_name=None):
 
     kubectl_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-14/bin/{platform.lower()}/amd64/kubectl -o /tmp/kubectl"
+        f"{EKS_VERSION}/2019-08-14/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
     )
 
     aws_iam_authenticator_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-14/bin/{platform.lower()}/amd64/aws-iam-authenticator -o /tmp/aws-iam-authenticator"
+        f"{EKS_VERSION}/2019-08-14/bin/{platform.lower()}/amd64/aws-iam-authenticator "
+        f"-o /usr/local/bin/aws-iam-authenticator"
     )
 
     ksonnet_download_command = (
@@ -331,31 +332,29 @@ def eks_setup(framework, cluster_name=None):
 
     kubetail_download_command = (
         f"curl --silent --location https://raw.githubusercontent.com/johanhaleby/kubetail/"
-        f"{KUBETAIL_VERSION}/kubetail -o /tmp/kubetail"
+        f"{KUBETAIL_VERSION}/kubetail -o /usr/local/bin/kubetail"
     )
 
     # Separate function handles setting up eksctl
     setup_eksctl()
 
-    output = run(kubectl_download_command, echo=True).stdout
-    LOGGER.info(output)
-    run("chmod +x /tmp/kubectl")
-    run("mv /tmp/kubectl /usr/local/bin")
+    output = run(kubectl_download_command, echo=True)
+    LOGGER.info(output.stdout + "\n" + output.stderr)
+    run("chmod +x /usr/local/bin/kubectl")
 
-    output = run(aws_iam_authenticator_download_command, echo=True).stdout
-    LOGGER.info(output)
-    run("chmod +x /tmp/aws-iam-authenticator")
+    output = run(aws_iam_authenticator_download_command, echo=True)
+    LOGGER.info(output.stdout + "\n" + output.stderr)
+    run("chmod +x /usr/local/bin/aws-iam-authenticator")
     run("mv /tmp/aws-iam-authenticator /usr/local/bin")
 
-    output = run(ksonnet_download_command, echo=True).stdout
-    LOGGER.info(output)
+    output = run(ksonnet_download_command, echo=True)
+    LOGGER.info(output.stdout + "\n" + output.stderr)
     run("tar -xf /tmp/{}.tar.gz -C /tmp --strip-components=1".format(KSONNET_VERSION))
     run("mv /tmp/ks /usr/local/bin")
 
-    output = run(kubetail_download_command, echo=True).stdout
-    LOGGER.info(output)
-    run("chmod +x /tmp/kubetail")
-    run("mv /tmp/kubetail /usr/local/bin")
+    output = run(kubetail_download_command, echo=True)
+    LOGGER.info(output.stdout + "\n" + output.stderr)
+    run("chmod +x /usr/local/bin/kubetail")
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
     run("eksctl version", echo=True)
