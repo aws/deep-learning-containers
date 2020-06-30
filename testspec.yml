@@ -23,6 +23,7 @@ phases:
   post_build:
     commands:
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
+      - echo Test finished
 reports:
   test_reports:
     files:
