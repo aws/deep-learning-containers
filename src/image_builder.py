@@ -59,6 +59,9 @@ def image_builder(buildspec):
         image_name = image[0]
         image_config = image[1]
 
+        extra_build_args = {}
+        labels = {}
+
         if image_config.get("version") is not None:
             if BUILDSPEC["version"] != image_config.get("version"):
                 continue
@@ -83,6 +86,28 @@ def image_builder(buildspec):
         if image_config.get("base_image_name") is not None:
             base_image_object = _find_image_object(IMAGES, image_config["base_image_name"])
             base_image_uri = base_image_object.ecr_url
+
+        if image_config.get("download_artifacts") is not None:
+            for artifact_name, artifact in image_config.get("download_artifacts").items():
+                type = artifact["type"]
+                uri = artifact["URI"]
+                var = artifact["VAR_IN_DOCKERFILE"]
+
+                try:
+                    file_name = utils.download_file(uri, type).strip()
+                except ValueError:
+                    FORMATTER.print(f"Artifact download failed: {uri} of type {type}.")
+
+                ARTIFACTS.update({
+                    f"{artifact_name}": {
+                        "source": f"{os.path.join(os.sep, os.path.abspath(os.getcwd()), file_name)}",
+                        "target": file_name
+                    }
+                })
+
+                extra_build_args[var] = file_name
+                labels[var] = file_name
+                labels[f"{var}_URI"] = uri
 
         ARTIFACTS.update(
             {
@@ -110,7 +135,9 @@ def image_builder(buildspec):
             "python_version": str(image_config["python_version"]),
             "image_type": str(image_config["image_type"]),
             "image_size_baseline": int(image_config["image_size_baseline"]),
-            "base_image_uri": base_image_uri
+            "base_image_uri": base_image_uri,
+            "labels": labels,
+            "extra_build_args": extra_build_args
         }
 
         image_object = DockerImage(
