@@ -27,7 +27,6 @@ phases:
       - echo Build step finished on `date`
       - echo Starting test jobs
       - python src/start_testbuilds.py
-      - flake8
 artifacts:
   files:
     - $HOME/test_type_images.json

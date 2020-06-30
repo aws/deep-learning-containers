@@ -24,6 +24,7 @@ phases:
     commands:
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
       - echo Test finished
+      - flake8
 reports:
   test_reports:
     files:
