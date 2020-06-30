@@ -129,8 +129,8 @@ def setup_eks_cluster(framework_name):
     cluster_name = f"dlc-{short_name}-cluster-" \
                    f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
     try:
+        eks_utils.eks_setup()
         eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
-        eks_utils.eks_setup(long_name, cluster_name)
     except Exception:
         eks_utils.delete_eks_cluster(cluster_name)
         raise

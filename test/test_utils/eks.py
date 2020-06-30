@@ -49,7 +49,7 @@ KSONNET_VERSION = "0.13.1"
 KUBEFLOW_VERSION = "v0.4.1"
 KUBETAIL_VERSION = "1.6.7"
 
-EKS_NVIDIA_PLUGIN_VERSION = "1.12"
+EKS_NVIDIA_PLUGIN_VERSION = "0.6.0"
 
 # https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
 EKS_AMI_ID = {"cpu": "ami-03086423d09685de3", "gpu": "ami-061798711b2adafb4"}
@@ -279,19 +279,25 @@ def create_eks_cluster(eks_cluster_name, processor_type, num_nodes,
     eksctl_create_cluster_command += " --auto-kubeconfig "
     run(eksctl_create_cluster_command)
 
+    eks_write_kubeconfig(eks_cluster_name, "us-west-2")
+
+    run(
+        f"kubectl apply -f https://raw.githubusercontent.com/NVIDIA"
+        f"/k8s-device-plugin/v{EKS_NVIDIA_PLUGIN_VERSION}/nvidia-device-plugin.yml"
+    )
+
     LOGGER.info(f"EKS cluster created successfully, with the following parameters cluster_name: "
                 f"{eks_cluster_name} ami-id: {EKS_AMI_ID[processor_type]} num_nodes: {num_nodes} instance_type: "
                 f"{instance_type} ssh_public_key: {ssh_public_key_name}")
 
 
-def eks_setup(framework, cluster_name=None):
+def eks_setup():
     """Function to download eksctl, kubectl, aws-iam-authenticator and ksonnet binaries
     Utilities:
     1. eksctl: create and manage cluster
     2. kubectl: create and manage runs on eks cluster
     3. aws-iam-authenticator: authenticate the instance to access eks with the appropriate aws credentials
     4. ksonnet: configure pod files and apply changes to the EKS cluster (will be deprecated soon, but no replacement available yet)
-    :param framework: str
     """
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
@@ -302,14 +308,7 @@ def eks_setup(framework, cluster_name=None):
 
     eks_tools_installed = not run_out.return_code
 
-    # Assume cluster with such a name is active
-    if not cluster_name:
-        eks_cluster_name = PR_EKS_CLUSTER_NAME_TEMPLATE.format(framework)
-    else:
-        eks_cluster_name = cluster_name
-
     if eks_tools_installed:
-        eks_write_kubeconfig(eks_cluster_name, "us-west-2")
         return
 
     platform = run("uname -s").stdout.strip()
@@ -356,15 +355,6 @@ def eks_setup(framework, cluster_name=None):
     run("kubectl version --short --client", echo=True)
     run("aws-iam-authenticator version", echo=True)
     run("ks version", echo=True)
-
-    eks_write_kubeconfig(eks_cluster_name, "us-west-2")
-
-    run(
-        "kubectl apply -f https://raw.githubusercontent.com/NVIDIA"
-        "/k8s-device-plugin/v{}/nvidia-device-plugin.yml".format(
-            EKS_NVIDIA_PLUGIN_VERSION
-        )
-    )
 
 
 def write_eks_yaml_file_from_template(
