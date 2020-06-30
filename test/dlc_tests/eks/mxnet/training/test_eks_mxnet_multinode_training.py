@@ -14,14 +14,14 @@ import test.test_utils.eks as eks_utils
 import test.test_utils.ec2 as ec2_utils
 
 from dlc.github_handler import GitHubHandler
-from test.test_utils import is_pr_context, SKIP_PR_REASON, TEMP_REASON
+from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 
 LOGGER = eks_utils.LOGGER
 
 #Skip these test for temporary basis
 #TODO : unskip this test and find a fix for this
-@pytest.mark.skip(reason=TEMP_REASON)
+@pytest.mark.skip(reason="Skipping the EKS Multinode Test for temporary basics. It passes manually, but fails in the pipeline currently")
 def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_only):
     """Run MXNet distributed training on EKS using docker images with MNIST dataset"""
 
@@ -64,7 +64,7 @@ def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_onl
 
 #Skip these test for temporary basis
 #TODO : unskip this test and find a fix for this
-@pytest.mark.skip(reason=TEMP_REASON)
+@pytest.mark.skip(reason="Skipping the EKS Multinode Test for temporary basics. It passes manually, but fails in the pipeline currently")
 def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     """Run MXNet distributed training on EKS using docker images with MNIST dataset"""
     random.seed(f"{mxnet_training}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
