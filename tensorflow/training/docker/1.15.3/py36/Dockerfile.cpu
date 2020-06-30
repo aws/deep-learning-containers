@@ -123,7 +123,7 @@ RUN pip install --no-cache-dir -U \
     keras_preprocessing==1.1.0 \
     keras==2.3.1 \
     requests==2.22.0 \
-    sagemaker==1.50.17 \
+    "sagemaker<2" \
     sagemaker-experiments==0.1.7 \
     mpi4py==3.0.2 \
     "cryptography>=2.3" \
@@ -134,7 +134,7 @@ RUN pip install --no-cache-dir -U \
  && pip install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
  && pip install --force-reinstall --no-cache-dir -U \
-    horovod==0.19.4 \
+    horovod==0.19.5 \
  && pip install --no-cache-dir -U \
     awscli \
     smdebug==${SMDEBUG_VERSION}
