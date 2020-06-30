@@ -163,7 +163,7 @@ RUN pip install --no-cache-dir -U \
     requests==2.22.0 \
     keras==2.3.1 \
     smdebug==0.8.1 \
-    sagemaker==1.50.17 \
+    "sagemaker<2" \
     sagemaker-experiments==0.1.7 \
     mpi4py==3.0.2 \
     "cryptography>=2.3" \
@@ -181,7 +181,7 @@ RUN pip install --no-cache-dir -U \
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 pip install --no-cache-dir \
-    horovod==0.19.4 \
+    horovod==0.19.5 \
  && ldconfig
 
 # Allow OpenSSH to talk to containers without asking for confirmation
