@@ -316,12 +316,12 @@ def eks_setup(framework, cluster_name=None):
 
     kubectl_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-14/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
+        f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
     )
 
     aws_iam_authenticator_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-14/bin/{platform.lower()}/amd64/aws-iam-authenticator "
+        f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/aws-iam-authenticator "
         f"-o /usr/local/bin/aws-iam-authenticator"
     )
 
