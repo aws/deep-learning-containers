@@ -1,6 +1,7 @@
 FROM nvidia/cuda:10.1-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -195,7 +196,7 @@ RUN ${PIP} install --no-cache-dir -U \
     awscli \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
-    sagemaker==1.58.2 \
+    "sagemaker<2" \
     sagemaker-experiments==0.1.13 \
     "sagemaker-tensorflow>=2.2,<2.3" \
     "sagemaker-tensorflow-training>=20" \
@@ -209,7 +210,7 @@ RUN ${PIP} install --no-cache-dir -U \
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.19.4 \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.19.5 \
  && ldconfig
 
 # Allow OpenSSH to talk to containers without asking for confirmation
