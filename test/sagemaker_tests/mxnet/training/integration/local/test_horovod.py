@@ -21,7 +21,6 @@ from sagemaker.mxnet import MXNet
 from ...integration import RESOURCE_PATH
 
 
-@pytest.mark.skip(reason="skipping the test due to assertion error ")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_generic
 def test_distributed_training_horovod_gpu(
@@ -32,7 +31,6 @@ def test_distributed_training_horovod_gpu(
     )
 
 
-@pytest.mark.skip(reason="skipping the test due to assertion error ")
 @pytest.mark.skip_gpu
 @pytest.mark.parametrize(
     'instances, processes', [(1, 2), (2, 1), (2, 2), (5, 2)])
