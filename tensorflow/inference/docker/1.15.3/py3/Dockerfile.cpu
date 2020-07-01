@@ -101,7 +101,7 @@ RUN mv /sagemaker/tensorflow/ /usr/local/lib/python3.*/dist-packages/
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
- && ln -s /usr/local/bin/pip3 /usr/bin/pip
+ && ln -s $(which ${PIP}) /usr/bin/pip
 
 RUN curl ${TF_S3_URL}/MKL-Libraries/libiomp5.so -o /usr/local/lib/libiomp5.so \
  && curl ${TF_S3_URL}/MKL-Libraries/libmklml_intel.so -o /usr/local/lib/libmklml_intel.so
