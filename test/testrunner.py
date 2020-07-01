@@ -46,21 +46,19 @@ def pull_dlc_images(images):
         run(f"docker pull {image}", hide="out")
 
 
-def setup_eks_clusters(dlc_images):
+def setup_eks_cluster(framework_name):
     frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
-    frameworks_in_images = [framework for framework in frameworks.keys() if framework in dlc_images]
-    if len(frameworks_in_images) != 1:
-        raise ValueError(
-            f"All images in dlc_images must be of a single framework for EKS tests.\n"
-            f"Instead seeing {frameworks_in_images} frameworks."
-        )
-    long_name = frameworks_in_images[0]
+    long_name = framework_name
     short_name = frameworks[long_name]
-    num_nodes = 2 if is_pr_context() else 3 if long_name != "pytorch" else 4
+    num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
     cluster_name = f"dlc-{short_name}-cluster-" \
                    f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
-    eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
-    eks_utils.eks_setup(long_name, cluster_name)
+    try:
+        eks_utils.eks_setup()
+        eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
+    except Exception:
+        eks_utils.delete_eks_cluster(cluster_name)
+        raise
     return cluster_name
 
 
@@ -80,13 +78,17 @@ def main():
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
-    new_eks_cluster_name = None
+    eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type
     specific_test_type = re.sub("benchmark-", "", test_type) if benchmark_mode else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
     if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+        # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
+        # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.
+        report_train = os.path.join(os.getcwd(), "test", f"{test_type}_train.xml")
+        report_infer = os.path.join(os.getcwd(), "test", f"{test_type}_infer.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
         os.chdir(os.path.join("test", "dlc_tests"))
@@ -95,18 +97,37 @@ def main():
         if specific_test_type == "sanity":
             pull_dlc_images(all_image_list)
         if specific_test_type == "eks":
-            new_eks_cluster_name = setup_eks_clusters(dlc_images)
-        # Execute dlc_tests pytest command
-        pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
-
+            frameworks_in_images = [framework for framework in ("mxnet", "pytorch", "tensorflow")
+                                    if framework in dlc_images]
+            if len(frameworks_in_images) != 1:
+                raise ValueError(
+                    f"All images in dlc_images must be of a single framework for EKS tests.\n"
+                    f"Instead seeing {frameworks_in_images} frameworks."
+                )
+            framework = frameworks_in_images[0]
+            eks_cluster_name = setup_eks_cluster(framework)
+            # Split training and inference, and run one after the other, to prevent scheduling issues
+            # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in
+            # pods timing-out while they were in the Pending state. Scheduling 4 tests (and hence, 4 pods) at once
+            # seems to be an optimal configuration.
+            pytest_cmds = [
+                ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=4"],
+                ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4"],
+            ]
+        else:
+            # Execute dlc_tests pytest command
+            pytest_cmds = [["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]]
         # Execute separate cmd for canaries
         if specific_test_type == "canary":
-            pytest_cmd = ["-s", "-rA", f"--junitxml={report}", "-n=auto", "--canary", "--ignore=container_tests/"]
+            pytest_cmds = [["-s", "-rA", f"--junitxml={report}", "-n=auto", "--canary", "--ignore=container_tests/"]]
         try:
-            sys.exit(pytest.main(pytest_cmd))
+            # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
+            #        separate pytest reports, both of which must be examined in case of a manual review of results.
+            cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
+            sys.exit(0) if all([status == 0 for status in cmd_exit_statuses]) else sys.exit(1)
         finally:
-            if specific_test_type == "eks":
-                eks_utils.delete_eks_cluster(new_eks_cluster_name)
+            if specific_test_type == "eks" and eks_cluster_name:
+                eks_utils.delete_eks_cluster(eks_cluster_name)
 
             # Delete dangling EC2 KeyPairs
             if specific_test_type == "ec2" and os.path.exists(KEYS_TO_DESTROY_FILE):

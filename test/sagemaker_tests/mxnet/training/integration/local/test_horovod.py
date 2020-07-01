@@ -37,15 +37,15 @@ def test_distributed_training_horovod_gpu(
 @pytest.mark.parametrize(
     'instances, processes', [(1, 2), (2, 1), (2, 2), (5, 2)])
 def test_distributed_training_horovod_cpu(
-    instances, processes, sagemaker_local_session, ecr_image, tmpdir, framework_version
+    instances, processes, sagemaker_local_session, image_uri, tmpdir, framework_version
 ):
     _test_distributed_training_horovod(
-        instances, processes, sagemaker_local_session, ecr_image, tmpdir, framework_version, 'local'
+        instances, processes, sagemaker_local_session, image_uri, tmpdir, framework_version, 'local'
     )
 
 
 def _test_distributed_training_horovod(
-    instances, processes, session, ecr_image, tmpdir, framework_version, instance_type
+    instances, processes, session, image_uri, tmpdir, framework_version, instance_type
 ):
     output_path = 'file://%s' % tmpdir
     estimator = MXNet(
@@ -54,7 +54,7 @@ def _test_distributed_training_horovod(
         train_instance_type=instance_type,
         sagemaker_session=session,
         train_instance_count=instances,
-        image_name=ecr_image,
+        image_name=image_uri,
         output_path=output_path,
         framework_version=framework_version,
         hyperparameters={'sagemaker_mpi_enabled': True,

@@ -21,7 +21,7 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
     yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_training_{rand_int}.yaml")
     pod_name = f"tensorflow-single-node-training-{rand_int}"
 
-    args = ("git clone https://github.com/fchollet/keras.git "
+    args = ("git clone https://github.com/keras-team/keras "
             "&& sed -i 's/import keras/from tensorflow import keras/g; "
             "s/from keras/from tensorflow.keras/g' /keras/examples/mnist_cnn.py "
             "&& python /keras/examples/mnist_cnn.py")

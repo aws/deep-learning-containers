@@ -1,6 +1,7 @@
 FROM nvidia/cuda:10.1-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="6"
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -155,7 +156,7 @@ RUN ${PIP} install --no-cache-dir -U \
     awscli \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
-    sagemaker==1.50.17 \
+    "sagemaker<2" \
     sagemaker-experiments==0.1.7 \
     "sagemaker-tensorflow>=2.1,<2.2" \
     "sagemaker-tensorflow-training>2,<4" \

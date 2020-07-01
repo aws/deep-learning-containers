@@ -124,9 +124,10 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     # To avoid the dpkg lock for apt remove
     is_py3 = " python3 -m" if "py3" in image else ""
     ec2_conn.run("sleep 1m")
-    if is_py3:
-        ec2_conn.run(f"sudo apt-get install python3-venv -y && {is_py3} venv env")
-        ec2_conn.run(f"source ./env/bin/activate")
+    # using virtualenv to avoid package conflicts with the current packages
+    ec2_conn.run(f"sudo apt-get install virtualenv  -y ")
+    ec2_conn.run(f"virtualenv env") if is_py3 else ec2_conn.run(f"virtualenv -p /usr/bin/python env")
+    ec2_conn.run(f"source ./env/bin/activate")
     ec2_conn.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
     if framework == "pytorch" and job_type == "inference":
         # The following distutils package conflict with test dependencies

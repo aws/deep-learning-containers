@@ -100,6 +100,11 @@ def docker_image(docker_base_name, tag):
 
 @pytest.fixture(scope='session')
 def ecr_image(aws_id, docker_base_name, tag, region):
+    return '{}.dkr.ecr.{}.amazonaws.com/{}:{}'.format(aws_id, region, docker_base_name, tag)
+
+
+@pytest.fixture(scope='session')
+def image_uri(docker_base_name, tag):
     return '{}:{}'.format(docker_base_name, tag)
 
 
