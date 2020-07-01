@@ -101,7 +101,9 @@ RUN ${PIP} install --no-cache-dir \
     keras-mxnet==2.2.4.1 \
     numpy==1.17.4 \
     onnx==1.4.1 \
-    "sagemaker-mxnet-inference<2"
+    "sagemaker-mxnet-inference<2" \
+    awscli \
+    rsa
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
