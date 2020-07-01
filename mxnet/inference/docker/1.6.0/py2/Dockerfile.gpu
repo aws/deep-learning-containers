@@ -55,6 +55,13 @@ RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
 RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
 RUN apt-get update \
+ && apt-get -y install --no-install-recommends \
+    openjdk-8-jdk \
+    openjdk-8-jre \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update \
  && apt-get install -y \
     ${PYTHON} \
     ${PYTHON_PIP}
