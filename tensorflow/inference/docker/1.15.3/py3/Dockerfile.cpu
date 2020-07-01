@@ -6,8 +6,10 @@ LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 # Add arguments to achieve the version, python and url
-ARG PYTHON=python3
+ARG PYTHON=python3.7
+ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
+ARG PYTHON_VERSION=3.7.7
 ARG TFS_SHORT_VERSION=1.15.3
 ARG TF_S3_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com
 ARG TF_MODEL_SERVER_SOURCE=${TF_S3_URL}/${TFS_SHORT_VERSION}/Serving/CPU-WITH-MKL/tensorflow_model_server
@@ -60,15 +62,16 @@ RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
  && ldconfig \
  && cd .. && rm -rf openssl-*
 
-RUN apt-get update \
- && apt-get -y install --no-install-recommends \
-    python3 \
-    python3-pip \
-    python3-setuptools
-
- # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
 # causing sslcertverificationerror the below steps are to fix that
 RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
+
+# Install python3.7
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xvf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure && make && make install \
+ && make && make install && rm -rf ../Python-$PYTHON_VERSION*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
