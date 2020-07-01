@@ -5,6 +5,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="3"
 
 ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
+ARG OPENSSL_VERSION=1.1.1g
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8 \
@@ -34,16 +35,38 @@ RUN apt-get update \
     libgomp1 \
     libnccl-dev=${NCCL_VERSION} \
     libopencv-dev \
-    python \
-    # python-dev needed to pip install mxnet and user's dependencies (e.g. requirements.txt)
-    python-dev \
-    python-pip \
     openssh-client \
     openssh-server \
     vim \
     wget \
     # zlib1g-dev needed to pip install sagemaker_mxnet_training
     zlib1g-dev \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt-get update \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get install -y \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-*
+
+# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    python \
+    # python-dev needed to pip install mxnet and user's dependencies (e.g. requirements.txt)
+    python-dev \
+    python-pip \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
  && ln -s $(which python) /usr/local/bin/python
