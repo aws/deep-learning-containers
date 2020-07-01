@@ -22,6 +22,10 @@ phases:
         else
           python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK
         fi
+      - |
+        if expr "${CODEBUILD_BUILD_ARN}" : "pytorch" >/dev/null; then
+                  python src/main.py --buildspec $FRAMEWORK/buildspec-ei.yml --framework $FRAMEWORK
+        fi
   post_build:
     commands:
       - echo Build step finished on `date`
