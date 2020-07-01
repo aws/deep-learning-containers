@@ -400,8 +400,6 @@ def fetch_dlc_images_for_test_jobs(images):
     for docker_image in images:
         use_preexisting_images = (build_config.DISABLE_NEW_BUILDS and docker_image.build_status == constants.NOT_BUILT)
         if docker_image.build_status == constants.SUCCESS or use_preexisting_images:
-            if "mxnet-inference" in docker_image.ecr_url or "gpu" in docker_image.ecr_url:
-                continue
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(docker_image.ecr_url)
             image_job_type = docker_image.info.get("image_type")
