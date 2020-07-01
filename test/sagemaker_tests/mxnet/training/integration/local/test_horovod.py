@@ -24,10 +24,10 @@ from ...integration import RESOURCE_PATH
 @pytest.mark.skip_cpu
 @pytest.mark.skip_generic
 def test_distributed_training_horovod_gpu(
-    sagemaker_local_session, ecr_image, tmpdir, framework_version
+    sagemaker_local_session, image_uri, tmpdir, framework_version
 ):
     _test_distributed_training_horovod(
-        1, 2, sagemaker_local_session, ecr_image, tmpdir, framework_version, 'local_gpu'
+        1, 2, sagemaker_local_session, image_uri, tmpdir, framework_version, 'local_gpu'
     )
 
 
