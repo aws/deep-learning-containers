@@ -171,8 +171,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
 
     # Log into ECR if we are in canary context
     if test_utils.is_canary_context():
-        conn.run(f"$(aws ecr get-login --no-include-email --region "
-                 f"{os.getenv('AWS_REGION')} --registry-ids 763104351884)")
+        test_utils.login_to_ecr_registry(conn, '763104351884', region)
 
     return conn
 

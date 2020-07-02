@@ -19,8 +19,8 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
-# Constant to represent AMI Id used to spin up EC2 instances
-UBUNTU_16_BASE_DLAMI = "ami-0e57002aaafd42113"
+# Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
+UBUNTU_16_BASE_DLAMI = "ami-0e5a388144f62e4f5"
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 
@@ -76,6 +76,18 @@ def run_subprocess_cmd(cmd, failure="Command failed"):
     if command.returncode:
         pytest.fail(f"{failure}. Error log:\n{command.stdout.decode()}")
     return command
+
+
+def login_to_ecr_registry(context, account_id, region):
+    """
+    Function to log into an ecr registry
+
+    :param context: either invoke context object or fabric connection object
+    :param account_id: Account ID with the desired ecr registry
+    :param region: i.e. us-west-2
+    """
+    context.run(f"aws ecr get-login-password --region {region} | docker login --username AWS "
+                f"--password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com")
 
 
 def retry_if_result_is_false(result):
