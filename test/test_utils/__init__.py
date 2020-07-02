@@ -21,7 +21,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
 # Constant to represent AMI Id used to spin up EC2 instances
-UBUNTU_16_BASE_DLAMI = "ami-0e57002aaafd42113"
+UBUNTU_16_BASE_DLAMI = "ami-0e5a388144f62e4f5"
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 
@@ -44,6 +44,10 @@ SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test w
 PR_ONLY_REASON = "Skipping test that doesn't need to be run outside of PR context."
 
 KEYS_TO_DESTROY_FILE = os.path.join(os.sep, "tmp", "keys_to_destroy.txt")
+
+# Sagemaker test types
+SAGEMAKER_LOCAL_TEST_TYPE = "local"
+SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 
 def is_tf1(image_uri):

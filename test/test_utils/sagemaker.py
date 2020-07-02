@@ -124,7 +124,7 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     # Install custom packages which need to be latest version"
     is_py3 = " python3 -m" if "py3" in image else ""
     # To remove the dpkg lock if exists
-    ec2_conn.run("sudo rm /var/lib/dpkg/lock && sudo dpkg --configure -a")
+    ec2_conn.run("sudo rm /var/lib/dpkg/lock && sudo rm /var/cache/apt/archives/lock")
     # using virtualenv to avoid package conflicts with the current packages
     ec2_conn.run(f"sudo apt-get install virtualenv -y ")
     ec2_conn.run(f"virtualenv env") if is_py3 else ec2_conn.run(f"virtualenv -p /usr/bin/python env")
