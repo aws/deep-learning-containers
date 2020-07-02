@@ -163,7 +163,7 @@ def run_sagemaker_local_tests(image):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         with ec2_conn.cd(path):
             install_sm_local_dependencies(framework, job_type, image, ec2_conn)
-            ec2_conn.run(pytest_command, timeout=2100)
+            ec2_conn.run(pytest_command, timeout=4200)
             print(f"Downloading Test reports for image: {image}")
             ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
     finally:
