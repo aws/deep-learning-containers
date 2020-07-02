@@ -47,14 +47,14 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir \
-    awscli==1.18.32 \
-    cython==0.29.16 \
-    falcon==2.0.0 \
-    gunicorn==20.0.4 \
-    gevent==1.4.0 \
-    requests==2.23.0 \
-    grpcio==1.27.2 \
-    protobuf==3.11.3 \
+    awscli \
+    cython \
+    falcon \
+    gunicorn \
+    gevent \
+    requests \
+    grpcio \
+    protobuf \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
     tensorflow-serving-api==1.15.0
@@ -62,8 +62,7 @@ RUN ${PIP} install --no-cache-dir \
 WORKDIR /
 
 # Some TF tools expect a "python" binary
-RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
- && ln -s /usr/local/bin/pip /usr/bin/pip
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
 
 # Get EI tools
 RUN wget https://amazonei-tools.s3.amazonaws.com/v${HEALTH_CHECK_VERSION}/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz -O /opt/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz \
