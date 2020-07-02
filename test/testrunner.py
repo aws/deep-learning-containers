@@ -3,114 +3,43 @@ import random
 import sys
 import logging
 import re
+import traceback
 
 from multiprocessing import Pool
-
+import concurrent.futures
 import boto3
 import pytest
 
 from botocore.config import Config
 from invoke import run
-from invoke.context import Context
 
 from test_utils import eks as eks_utils
+from test_utils import sagemaker as sm_utils
 from test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair, setup_sm_benchmark_tf_train_env
-from test_utils import KEYS_TO_DESTROY_FILE
-
+from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def assign_sagemaker_instance_type(image):
-    if "tensorflow" in image:
-        return "ml.p3.8xlarge" if "gpu" in image else "ml.c4.4xlarge"
-    else:
-        return "ml.p2.8xlarge" if "gpu" in image else "ml.c4.8xlarge"
-
-
-def generate_sagemaker_pytest_cmd(image):
-    """
-    Parses the image ECR url and returns appropriate pytest command
-
-    :param image: ECR url of image
-    :return: <tuple> pytest command to be run, path where it should be executed, image tag
-    """
-    reruns = 4
-    region = os.getenv("AWS_REGION", "us-west-2")
-    integration_path = os.path.join("integration", "sagemaker")
-    account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
-    docker_base_name, tag = image.split("/")[1].split(":")
-
-    # Assign instance type
-    instance_type = assign_sagemaker_instance_type(image)
-
-    # Get path to test directory
-    find_path = docker_base_name.split("-")
-
-    # NOTE: We are relying on the fact that repos are defined as <context>-<framework>-<job_type> in our infrastructure
-    framework = find_path[1]
-    job_type = find_path[2]
-    path = os.path.join("test", "sagemaker_tests", framework, job_type)
-    aws_id_arg = "--aws-id"
-    docker_base_arg = "--docker-base-name"
-    instance_type_arg = "--instance-type"
-
-    # Conditions for modifying tensorflow SageMaker pytest commands
-    if framework == "tensorflow":
-        if job_type == "training":
-            aws_id_arg = "--account-id"
-
-            # NOTE: We rely on Framework Version being in "major.minor.patch" format
-            tf_framework_version = re.search(r"\d+(\.\d+){2}", tag).group()
-            tf_major_version = tf_framework_version.split(".")[0]
-            path = os.path.join(os.path.dirname(path), f"{framework}{tf_major_version}_training")
-        else:
-            aws_id_arg = "--registry"
-            docker_base_arg = "--repo"
-            integration_path = os.path.join(integration_path, "test_tfs.py")
-            instance_type_arg = "--instance-types"
-
-    test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
-    return (
-        f"pytest --reruns {reruns} {integration_path} --region {region} {docker_base_arg} "
-        f"{docker_base_name} --tag {tag} {aws_id_arg} {account_id} {instance_type_arg} {instance_type} "
-        f"--junitxml {test_report}",
-        path,
-        tag,
-    )
-
-
-def run_sagemaker_pytest_cmd(image):
-    """
-    Run pytest in a virtual env for a particular image
-
-    Expected to run via multiprocessing
-
-    :param image: ECR url
-    """
-    pytest_command, path, tag = generate_sagemaker_pytest_cmd(image)
-
-    context = Context()
-    with context.cd(path):
-        context.run(f"virtualenv {tag}")
-        with context.prefix(f"source {tag}/bin/activate"):
-            context.run("pip install -r requirements.txt", warn=True)
-            context.run(pytest_command)
-
-
 def run_sagemaker_tests(images):
     """
     Function to set up multiprocessing for SageMaker tests
-
     :param images: <list> List of all images to be used in SageMaker tests
     """
     if not images:
         return
-    pool_number = len(images)
+    # This is to ensure that threads don't lock
+    pool_number = (len(images)*2)
     with Pool(pool_number) as p:
-        p.map(run_sagemaker_pytest_cmd, images)
+        # p.map(sm_utils.run_sagemaker_remote_tests, images)
+        # Run sagemaker Local tests
+        framework = images[0].split("/")[1].split(":")[0].split("-")[1]
+        sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
+        sm_tests_tar_name = "sagemaker_tests.tar.gz"
+        run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
+        p.map(sm_utils.run_sagemaker_local_tests, images)
 
 
 def pull_dlc_images(images):
