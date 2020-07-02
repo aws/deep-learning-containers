@@ -44,6 +44,8 @@ PR_ONLY_REASON = "Skipping test that doesn't need to be run outside of PR contex
 
 KEYS_TO_DESTROY_FILE = os.path.join(os.sep, "tmp", "keys_to_destroy.txt")
 
+PUBLIC_DLC_REGISTRY = "763104351884"
+
 
 def is_tf1(image_uri):
     if "tensorflow" not in image_uri:
@@ -357,34 +359,36 @@ def parse_canary_images(framework, region):
     if framework == "tensorflow":
         framework = "tensorflow2" if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") else "tensorflow1"
 
+    registry = PUBLIC_DLC_REGISTRY
+
     images = {
         "tensorflow1":
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py2 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py2 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-gpu "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-cpu",
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py2 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py2 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-gpu "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-cpu",
         "tensorflow2":
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-gpu-py37 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-cpu-py37 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-gpu "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-cpu",
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-gpu-py37 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-cpu-py37 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-gpu "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-cpu",
 
         "mxnet":
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py2 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py2 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py2 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py2",
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py2 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py2 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py2 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py2",
         "pytorch":
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-gpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-cpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-gpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-cpu-py3"
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-gpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-cpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-gpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-cpu-py3"
     }
     return images[framework]
 
