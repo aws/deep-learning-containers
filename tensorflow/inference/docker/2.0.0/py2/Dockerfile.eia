@@ -1,8 +1,8 @@
 FROM ubuntu:18.04
 
 # Add arguments to achieve the version, python and url
-ARG PYTHON=python3
-ARG PIP=pip3
+ARG PYTHON=python
+ARG PIP=pip
 ARG HEALTH_CHECK_VERSION=1.6.3
 ARG S3_TF_EI_VERSION=1-5
 ARG S3_TF_VERSION=2-0-0
@@ -35,9 +35,9 @@ RUN apt-get update \
  && apt-get -y install --no-install-recommends \
     nginx \
     nginx-module-njs \
-    python3 \
-    python3-pip \
-    python3-setuptools \
+    python \
+    python-pip \
+    python-setuptools \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -63,7 +63,7 @@ WORKDIR /
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
- && ln -s /usr/local/bin/pip3 /usr/bin/pip
+ && ln -s /usr/local/bin/pip /usr/bin/pip
 
 # Get EI tools
 RUN wget https://amazonei-tools.s3.amazonaws.com/v${HEALTH_CHECK_VERSION}/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz -O /opt/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz \
