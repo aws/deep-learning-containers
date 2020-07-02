@@ -12,16 +12,16 @@
         repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
   context:
+    deep_learning_container.py:
+      source: docker/artifacts/deep_learning_container.py
+      target: deep_learning_container.py
     inference_context: &INFERENCE_CONTEXT
-      mms-entrypoint:
-        source: docker/build_artifacts/mms-entrypoint.py
-        target: mms-entrypoint.py
       config:
-        source: docker/build_artifacts/config.properties
+        source: docker/artifacts/config.properties
         target: config.properties
-      deep_learning_container:
-        source: docker/build_artifacts/deep_learning_container.py
-        target: deep_learning_container.py
+      entrypoint:
+        source: docker/artifacts/mms-entrypoint.py
+        target:  mms-entrypoint.py
 
   images:
     BuildCPUPTInferencePy3DockerImage:

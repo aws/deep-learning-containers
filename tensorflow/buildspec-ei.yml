@@ -13,15 +13,18 @@
 
   context:
     inference_context: &INFERENCE_CONTEXT
-      mms-entrypoint:
-        source: docker/build_artifacts/mms-entrypoint.py
-        target: mms-entrypoint.py
-      config:
-        source: docker/build_artifacts/config.properties
-        target: config.properties
+      sagemaker_package_name:
+        source: docker/build_artifacts/sagemaker
+        target: sagemaker
       deep_learning_container:
         source: docker/build_artifacts/deep_learning_container.py
         target: deep_learning_container.py
+      init:
+        source: docker/build_artifacts/__init__.py
+        target: __init__.py
+      dockerd-entrypoint:
+        source: docker/build_artifacts/dockerd-entrypoint.py
+        target: dockerd-entrypoint.py
 
   images:
     BuildCPUPTInferencePy3DockerImage:
