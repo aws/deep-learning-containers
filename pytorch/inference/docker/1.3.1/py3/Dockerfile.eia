@@ -35,7 +35,7 @@ RUN apt-get update \
     openjdk-8-jdk-headless \
     vim \
     wget \
-    zlib1g-dev 
+    zlib1g-dev
 
 # Install OpenSSH. Allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get install -y --no-install-recommends \
