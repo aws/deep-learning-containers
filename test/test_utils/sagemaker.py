@@ -60,7 +60,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     """
     reruns = 4
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
-    integration_path = os.path.join("integration", sagemaker_test_type)
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
     print("image name {}".format(image))
     sm_remote_docker_base_name, tag = image.split("/")[1].split(":")
@@ -83,6 +82,11 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     framework_major_version = framework_version.split(".")[0]
     processor = "gpu" if "gpu" in image else "cpu"
     py_version = re.search(r"py(\d)+", tag).group()
+
+    if framework == "tensorflow" and job_type == "inference":
+        integration_path = os.path.join("test", "integration", sagemaker_test_type)
+    else:
+        integration_path = os.path.join("integration", sagemaker_test_type)
 
     # Conditions for modifying tensorflow SageMaker pytest commands
     if framework == "tensorflow" and sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE:
@@ -120,6 +124,13 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
+def install_custom_python(python_version, ec2_conn):
+    ec2_conn.run("sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt-get update")
+    ec2_conn.run(f"sudo apt-get install python{python_version}")
+    ec2_conn.run(f"wget https://bootstrap.pypa.io/get-pip.py && sudo python{python_version} get-pip.py")
+    ec2_conn.run(f"alias python3=python{python_version}")
+
+
 def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     # Install custom packages which need to be latest version"
     is_py3 = " python3 -m" if "py3" in image else ""
@@ -128,14 +139,16 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     # ec2_conn.run("sudo rm /var/lib/dpkg/lock && sudo rm /var/cache/apt/archives/lock")
     # using virtualenv to avoid package conflicts with the current packages
     ec2_conn.run(f"sudo apt-get install virtualenv -y ")
-    ec2_conn.run(f"virtualenv env") if is_py3 else ec2_conn.run(f"virtualenv -p /usr/bin/python env")
+    if framework == "tensorflow" and job_type == "inference":
+        install_custom_python("3.6", ec2_conn)
+    ec2_conn.run(f"virtualenv env")
     ec2_conn.run(f"source ./env/bin/activate")
     ec2_conn.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
     if framework == "pytorch" and job_type == "inference":
         # The following distutils package conflict with test dependencies
         ec2_conn.run("apt-get remove python3-scipy python3-yaml -y")
     if is_py3 and framework == "tensorflow" and job_type == "training":
-        ec2_conn.run("pip install -U sagemaker-experiments")
+        ec2_conn.run(f"sudo {is_py3} pip install -U sagemaker-experiments")
 
 
 def run_sagemaker_local_tests(image):
@@ -148,7 +161,7 @@ def run_sagemaker_local_tests(image):
     print(pytest_command)
     framework = image.split("/")[1].split(":")[0].split("-")[1]
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
-    ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1,1000)}"
+    ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
     sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
@@ -173,6 +186,7 @@ def run_sagemaker_local_tests(image):
         ec2_utils.terminate_instance(instance_id, region)
         print(f"Destroying ssh Key_pair for image: {image}")
         destroy_ssh_keypair(ec2_client, ec2_key_name)
+
 
 
 def run_sagemaker_remote_tests(image):
