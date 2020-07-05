@@ -128,7 +128,8 @@ def install_custom_python(python_version, ec2_conn):
     ec2_conn.run("sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt-get update")
     ec2_conn.run(f"sudo apt-get install python{python_version} -y ")
     ec2_conn.run(f"wget https://bootstrap.pypa.io/get-pip.py && sudo python{python_version} get-pip.py")
-    ec2_conn.run(f"alias python3=python{python_version}")
+    ec2_conn.run(f"echo alias python3=python{python_version} >> ~/.bashrc")
+    ec2_conn.run(f"source ~/.bashrc")
 
 
 def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
@@ -147,7 +148,7 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     if framework == "pytorch" and job_type == "inference":
         # The following distutils package conflict with test dependencies
         ec2_conn.run("apt-get remove python3-scipy python3-yaml -y")
-    if is_py3 and framework == "tensorflow" and job_type == "training":
+    if "py3" in image and framework == "tensorflow" and job_type == "training":
         ec2_conn.run(f"sudo {is_py3} pip install -U sagemaker-experiments")
 
 
