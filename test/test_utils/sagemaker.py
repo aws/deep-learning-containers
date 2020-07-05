@@ -126,7 +126,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
 def install_custom_python(python_version, ec2_conn):
     ec2_conn.run("sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt-get update")
-    ec2_conn.run(f"sudo apt-get install python{python_version}")
+    ec2_conn.run(f"sudo apt-get install python{python_version} -y ")
     ec2_conn.run(f"wget https://bootstrap.pypa.io/get-pip.py && sudo python{python_version} get-pip.py")
     ec2_conn.run(f"alias python3=python{python_version}")
 
