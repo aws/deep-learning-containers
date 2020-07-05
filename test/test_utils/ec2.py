@@ -6,7 +6,7 @@ from retrying import retry
 from fabric import Connection
 from botocore.config import Config
 
-from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
+from . import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
