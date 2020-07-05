@@ -39,7 +39,9 @@ def run_sagemaker_tests(images):
         sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
         sm_tests_tar_name = "sagemaker_tests.tar.gz"
         run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
-        p.map(sm_utils.run_sagemaker_local_tests, images)
+        for image in images:
+            sm_utils.run_sagemaker_local_tests(image)
+        # p.map(sm_utils.run_sagemaker_local_tests, images)
 
 
 def pull_dlc_images(images):
