@@ -11,17 +11,10 @@ from invoke import run
 
 from test_utils import ec2 as ec2_utils
 from test_utils import destroy_ssh_keypair, generate_ssh_keypair
-from test_utils import (
-    UBUNTU_16_BASE_DLAMI,
-    UBUNTU_18_BASE_DLAMI,
-    SAGEMAKER_LOCAL_TEST_TYPE,
-    SAGEMAKER_REMOTE_TEST_TYPE,
-    UBUNTU_HOME_DIR,
-    DEFAULT_REGION,
-)
+from test_utils import UBUNTU_16_BASE_DLAMI, SAGEMAKER_LOCAL_TEST_TYPE, \
+    SAGEMAKER_REMOTE_TEST_TYPE, UBUNTU_HOME_DIR, DEFAULT_REGION
 
-ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
-
+ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}), region_name=DEFAULT_REGION)
 
 def assign_sagemaker_remote_job_instance_type(image):
     if "tensorflow" in image:
@@ -52,7 +45,9 @@ def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
     instance_id = instance["InstanceId"]
     public_ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
-    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
+    ec2_utils.check_system_state(
+        instance_id, system_status="ok", instance_status="ok", region=region
+    )
     return instance_id, public_ip_address
 
 
@@ -107,29 +102,33 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     is_py3 = " python3 -m " if "py3" in image else ""
 
-    remote_pytest_cmd = (
-        f"pytest {integration_path} --region {region} {docker_base_arg} "
-        f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
-        f"{instance_type_arg} {instance_type} --junitxml {test_report}"
-    )
+    remote_pytest_cmd = (f"pytest {integration_path} --region {region} {docker_base_arg} "
+                         f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
+                         f"{instance_type_arg} {instance_type} --junitxml {test_report}")
 
-    local_pytest_cmd = (
-        f"{is_py3} pytest -v {integration_path} {docker_base_arg} "
-        f"{sm_local_docker_base_name} --tag {tag} --framework-version {framework_version} "
-        f"--processor {processor} --aws-id {account_id} --junitxml {local_test_report}"
-    )
+    local_pytest_cmd = (f"{is_py3} pytest -v {integration_path} {docker_base_arg} "
+                        f"{sm_local_docker_base_name} --tag {tag} --framework-version {framework_version} "
+                        f"--processor {processor} --aws-id {account_id} --junitxml {local_test_report}")
 
     if framework == "tensorflow" and job_type != "inference":
         local_pytest_cmd = f"{local_pytest_cmd} --py-version {py_version[2]} --region {region}"
     if framework == "tensorflow" and job_type == "training":
         path = os.path.join(os.path.dirname(path), f"{framework}{framework_major_version}_training")
 
+
     return (
         remote_pytest_cmd if sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE else local_pytest_cmd,
         path,
         tag,
-        job_type,
+        job_type
     )
+
+
+def install_custom_python(python_version, ec2_conn):
+    ec2_conn.run("sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt-get update")
+    ec2_conn.run(f"sudo apt-get install python{python_version} -y ")
+    ec2_conn.run(f"wget https://bootstrap.pypa.io/get-pip.py && sudo python{python_version} get-pip.py")
+    ec2_conn.run(f"sudo ln -sf /usr/bin/python3.6 /usr/bin/python3")
 
 
 def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
@@ -140,6 +139,8 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     # ec2_conn.run("sudo rm /var/lib/dpkg/lock && sudo rm /var/cache/apt/archives/lock")
     # using virtualenv to avoid package conflicts with the current packages
     ec2_conn.run(f"sudo apt-get install virtualenv -y ")
+    if framework == "tensorflow" and job_type == "inference":
+        install_custom_python("3.6", ec2_conn)
     ec2_conn.run(f"virtualenv env")
     ec2_conn.run(f"source ./env/bin/activate")
     ec2_conn.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
@@ -168,8 +169,7 @@ def run_sagemaker_local_tests(image):
     try:
         key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
         print(f"Launching new Instance for image: {image}")
-        ami_id = UBUNTU_18_BASE_DLAMI if framework == "tensorflow" and job_type == "inference" else UBUNTU_16_BASE_DLAMI
-        instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region)
+        instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, UBUNTU_16_BASE_DLAMI, ec2_key_name, region)
         ec2_conn = ec2_utils.ec2_connection(instance_id, key_file, region)
         print(f"before ec2 put {image}")
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
@@ -186,6 +186,7 @@ def run_sagemaker_local_tests(image):
         ec2_utils.terminate_instance(instance_id, region)
         print(f"Destroying ssh Key_pair for image: {image}")
         destroy_ssh_keypair(ec2_client, ec2_key_name)
+
 
 
 def run_sagemaker_remote_tests(image):
