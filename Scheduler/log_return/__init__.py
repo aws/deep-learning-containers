@@ -47,7 +47,7 @@ def update_pool(status, instance_type, num_of_instances, job_type):
     Update the S3 resource pool for usage of SageMaker resources.
     Naming convention of resource usage json: request ticket_name#num_of_instances-status.
 
-    :param status: status of the test job, options: preparing/running/completed/failed
+    :param status: status of the test job, options: preparing/running/completed/runtimeError
     :param instance_type: ml.p3.8xlarge/ml.c4.4xlarge/ml.p2.8xlarge/ml.c4.8xlarge
     :param num_of_instances: number of instances required
     """
@@ -55,8 +55,8 @@ def update_pool(status, instance_type, num_of_instances, job_type):
     codebuild_arn = os.getenv("CODEBUILD_BUILD_ARN")
     ticket_name = os.getenv("TICKET_KEY").split("/")[-1].split(".")[0]
 
-    if status not in {"preparing", "running", "completed", "failed"}:
-        raise ValueError("Not a valid status. Test job status could be preparing, running, completed or failed.")
+    if status not in {"preparing", "running", "completed", "runtimeError"}:
+        raise ValueError("Not a valid status. Test job status could be preparing, running, completed or runtimeError.")
 
     pool_ticket_content = {
         "REQUEST_TICKET_KEY": os.getenv("TICKET_KEY"),

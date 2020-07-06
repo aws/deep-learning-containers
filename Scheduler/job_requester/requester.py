@@ -220,10 +220,11 @@ class JobRequester:
     def create_query_response(self, status, reason=None, queueNum=None):
         """
         Create query response for query_status calls
-        
-        :param status: <string> queuing/preparing/completed/failed
+
+        :param status: <string> queuing/preparing/completed/runtimeError
         :param reason: <string> maxRetries/timeout
         :param queueNum: <int>
+        :return: <dict> response for the ticket query
         """
         query_response = {"status": status}
         if reason != None:
@@ -233,15 +234,37 @@ class JobRequester:
 
         return query_response
 
+    def search_ticket_folder(self, folder, path):
+        """
+        Search folder/path on S3 to find the target ticket. If found, return a query response for the search. Otherwise
+        return None.
+
+        :param folder: <string> folder to search
+        :param path: <string> path within the folder
+        :return: <dict or None>
+        """
+        objects = self.s3_client.list_objects(Bucket=self.s3_ticket_bucket, Prefix=f"{folder}/{path}")
+        if "Contents" in objects:
+            ticket_key = objects["Contents"][0]["Key"]
+            suffix_pattern = re.compile(".*-(.*).json")
+            suffix = suffix_pattern.match(ticket_key).group(1)
+            if folder == "dead_letter_queue" or folder == "duplicate_pr_requests":
+                return self.create_query_response("failed", reason=suffix)
+            else:
+                return self.create_query_response(suffix)
+
+        return None
+
     def query_status(self, identifier):
         """
         :param identifier: <Message object> unique identifier returned from call to send_request
         :return: <dict> {"status": <string> queuing/preparing/completed/failed,
-                         "reason" (if status == failed): <string> maxRetries/timeout,
+                         "reason" (if status == failed): <string> maxRetries/timeout/duplicatePR/runtimeError,
                          "queueNum" (if status == queuing): <int>
                          }
         """
         request_ticket_name = identifier.ticket_name
+        ticket_without_extension = request_ticket_name.rstrip(".json")
         request_image = identifier.image
         instance_type = self.assign_sagemaker_instance_type(request_image)
         job_type = "training" if "training" in request_image else "inference"
@@ -263,23 +286,18 @@ class JobRequester:
                 return self.create_query_response("queuing", queueNum=queue_num)
 
         # check if ticket is on the dead letter queue
-        dead_letter_objects = self.s3_client.list_objects(
-            Bucket=self.s3_ticket_bucket, Prefix=f"dead_letter_queue/{request_ticket_name}"
-        )
-        if "Contents" in dead_letter_objects:
-            dead_letter_ticket_key = dead_letter_objects["Contents"][0]["Key"]
-            failed_reason_pattern = re.compile(".*-(.*).json")
-            failed_reason = failed_reason_pattern.match(dead_letter_ticket_key).group(1)
-            return self.create_query_response("failed", reason=failed_reason)
+        ticket_in_dead_letter = self.search_ticket_folder("dead_letter_queue", ticket_without_extension)
+        if ticket_in_dead_letter != None:
+            return ticket_in_dead_letter
 
-        # check if ticket is on the in-progress pool
-        in_progress_objects = self.s3_client.list_objects(
-            Bucket=self.s3_ticket_bucket, Prefix=f"resource_pool/{instance_type}-{job_type}/{request_ticket_name}"
+        ticket_in_duplicate = self.search_ticket_folder("duplicate_pr_requests", ticket_without_extension)
+        if ticket_in_duplicate != None:
+            return ticket_in_duplicate
+
+        ticket_in_progress = self.search_ticket_folder(
+            "resource_pool", f"{instance_type}-{job_type}/{ticket_without_extension}"
         )
-        if "Contents" in in_progress_objects:
-            in_progress_ticket_key = in_progress_objects["Contents"][0]["Key"]
-            in_progress_status_pattern = re.compile(".*-(.*).json")
-            in_progress_status = in_progress_status_pattern.match(in_progress_ticket_key).group(1)
-            return self.create_query_response(in_progress_status)
+        if ticket_in_progress != None:
+            return ticket_in_progress
 
         raise AssertionError(f"Request ticket name {request_ticket_name} could not be found.")

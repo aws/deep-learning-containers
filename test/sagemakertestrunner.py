@@ -101,7 +101,7 @@ def run_sagemaker_tests(image, num_of_instances):
                 context.run("pip install -r requirements.txt", warn=True)
                 context.run(pytest_command)
     except Exception as e:
-        log_return.update_pool("failed", instance_type, num_of_instances, job_type)
+        log_return.update_pool("runtimeError", instance_type, num_of_instances, job_type)
         raise e
 
 

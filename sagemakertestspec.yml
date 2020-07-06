@@ -11,7 +11,7 @@ phases:
   build:
     commands:
       - pip install -r test/requirements.txt
-      - pip install TestRequester/.
+      - pip install Scheduler/.
       - echo Running pytest $TEST_TYPE tests on $DLC_IMAGES...
       - python test/sagemakertestrunner.py
   post_build:

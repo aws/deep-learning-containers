@@ -22,7 +22,7 @@ def testrunner():
 
     # creating unique image names and build_context strings
     for i in range(threads):
-        input_list.append(("image" + str(i), "build_context" + str(i)))
+        input_list.append((f"image{str(i)}", f"build_context{str(i)}"))
 
     # sending requests
     with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
@@ -41,7 +41,7 @@ def testrunner():
     prefix = sqs_url.split("/")[-1]
     for m in range(threads):
         content = {}
-        content["TICKET_NAME"] = "{}-{}.json".format(prefix, str(m))
+        content["TICKET_NAME"] = f"{prefix}-{str(m)}.json"
         content["TEXT"] = str(m)
         sqs_client.send_message(QueueUrl=sqs_url, MessageBody=json.dumps(content))
 
