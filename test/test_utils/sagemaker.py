@@ -4,10 +4,7 @@ import traceback
 import random
 import re
 
-import boto3
-from botocore.config import Config
 from invoke.context import Context
-from invoke import run
 
 from test_utils import ec2 as ec2_utils
 from test_utils import destroy_ssh_keypair, generate_ssh_keypair
@@ -30,6 +27,14 @@ def assign_sagemaker_local_job_instance_type(image):
 
 
 def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
+    """
+    Launch Ec2 instance for running sagemaker local tests
+    :param image: str
+    :param ami_id: str
+    :param ec2_key_name: srt
+    :param region: srt
+    :return: str, str
+    """
     instance_type = assign_sagemaker_local_job_instance_type(image)
     instance_name = image.split("/")[-1]
     instance = ec2_utils.launch_instance(
@@ -166,7 +171,7 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
         ec2_conn.run(f"sudo {is_py3} pip install -U sagemaker-experiments")
 
 
-def run_sagemaker_local_tests(image, ec2_client):
+def execute_local_tests(image, ec2_client):
     """
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
@@ -203,7 +208,7 @@ def run_sagemaker_local_tests(image, ec2_client):
         destroy_ssh_keypair(ec2_client, ec2_key_name)
 
 
-def run_sagemaker_remote_tests(image):
+def execute_sagemaker_remote_tests(image):
     """
     Run pytest in a virtual env for a particular image
 

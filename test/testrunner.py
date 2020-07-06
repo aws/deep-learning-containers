@@ -23,7 +23,7 @@ LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def run_sagemaker_tests(images):
+def run_sagemaker_local_tests(images):
     """
     Function to set up multiprocessing for SageMaker tests
     :param images: <list> List of all images to be used in SageMaker tests
@@ -41,7 +41,19 @@ def run_sagemaker_tests(images):
         run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
         ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}), region_name=DEFAULT_REGION)
         for image in images:
-            sm_utils.run_sagemaker_local_tests(image, ec2_client)
+            sm_utils.execute_local_tests(image, ec2_client)
+
+
+def run_sagemaker_remote_tests(images):
+    """
+    Function to set up multiprocessing for SageMaker tests
+    :param images: <list> List of all images to be used in SageMaker tests
+    """
+    if not images:
+        return
+    pool_number = len(images)
+    with Pool(pool_number) as p:
+        p.map(sm_utils.execute_sagemaker_remote_tests, images)
 
 
 def pull_dlc_images(images):
@@ -153,9 +165,13 @@ def main():
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
             sys.exit(pytest.main(pytest_cmd))
         else:
-            run_sagemaker_tests(
+            run_sagemaker_remote_tests(
                 [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
             )
+    elif specific_test_type == "sagemaker-local":
+        run_sagemaker_local_tests(
+            [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
+        )
     else:
         raise NotImplementedError(f"{test_type} test is not supported. "
                                   f"Only support ec2, ecs, eks, sagemaker and sanity currently")
