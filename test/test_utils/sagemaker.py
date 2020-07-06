@@ -14,7 +14,6 @@ from test_utils import destroy_ssh_keypair, generate_ssh_keypair
 from test_utils import UBUNTU_16_BASE_DLAMI, SAGEMAKER_LOCAL_TEST_TYPE, \
     SAGEMAKER_REMOTE_TEST_TYPE, UBUNTU_HOME_DIR, DEFAULT_REGION
 
-ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}), region_name=DEFAULT_REGION)
 
 def assign_sagemaker_remote_job_instance_type(image):
     if "tensorflow" in image:
@@ -84,6 +83,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     py_version = re.search(r"py(\d)+", tag).group()
 
     if framework == "tensorflow" and job_type == "inference":
+        # Tf Inference tests have an additional sub directory with test
         integration_path = os.path.join("test", "integration", sagemaker_test_type)
     else:
         integration_path = os.path.join("integration", sagemaker_test_type)
@@ -125,6 +125,13 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
 
 def install_custom_python(python_version, ec2_conn):
+    """
+    Install python 3.6 on Ubuntu 16 AMI.
+    Test files for tensorflow inference require python version > 3.6
+    :param python_version:
+    :param ec2_conn:
+    :return:
+    """
     ec2_conn.run("sudo add-apt-repository ppa:deadsnakes/ppa -y && sudo apt-get update")
     ec2_conn.run(f"sudo apt-get install python{python_version} -y ")
     ec2_conn.run(f"wget https://bootstrap.pypa.io/get-pip.py && sudo python{python_version} get-pip.py")
@@ -132,6 +139,14 @@ def install_custom_python(python_version, ec2_conn):
 
 
 def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
+    """
+    Install sagemaker local test dependencies
+    :param framework: str
+    :param job_type: str
+    :param image: str
+    :param ec2_conn: Fabric_obj
+    :return: None
+    """
     # Install custom packages which need to be latest version"
     is_py3 = " python3 -m" if "py3" in image else ""
     # To remove the dpkg lock if exists
@@ -151,10 +166,11 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
         ec2_conn.run(f"sudo {is_py3} pip install -U sagemaker-experiments")
 
 
-def run_sagemaker_local_tests(image):
+def run_sagemaker_local_tests(image, ec2_client):
     """
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
+    :param ec2_client: boto3_obj
     :return: None
     """
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
@@ -185,7 +201,6 @@ def run_sagemaker_local_tests(image):
         ec2_utils.terminate_instance(instance_id, region)
         print(f"Destroying ssh Key_pair for image: {image}")
         destroy_ssh_keypair(ec2_client, ec2_key_name)
-
 
 
 def run_sagemaker_remote_tests(image):
