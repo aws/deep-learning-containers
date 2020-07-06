@@ -2,7 +2,7 @@
   
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
-LOG_DIR=${HOME_DIR}/logs/train/plugins/profile
+LOG_DIR=/logs/train/plugins/profile
 
 [ -d $LOG_DIR ] && echo "Cleanning existing logs" && rm -rf $LOG_DIR
 
