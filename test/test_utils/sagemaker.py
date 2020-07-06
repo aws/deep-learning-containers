@@ -125,7 +125,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
 
 def install_custom_python(python_version, ec2_conn):
-    ec2_conn.run("sudo add-apt-repository ppa:deadsnakes/ppa && sudo apt-get update")
+    ec2_conn.run("sudo add-apt-repository ppa:deadsnakes/ppa -y && sudo apt-get update")
     ec2_conn.run(f"sudo apt-get install python{python_version} -y ")
     ec2_conn.run(f"wget https://bootstrap.pypa.io/get-pip.py && sudo python{python_version} get-pip.py")
     ec2_conn.run(f"sudo ln -sf /usr/bin/python3.6 /usr/bin/python3")
@@ -171,10 +171,9 @@ def run_sagemaker_local_tests(image):
         print(f"Launching new Instance for image: {image}")
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, UBUNTU_16_BASE_DLAMI, ec2_key_name, region)
         ec2_conn = ec2_utils.ec2_connection(instance_id, key_file, region)
-        print(f"before ec2 put {image}")
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
-        print(f"after ec2 put {image}")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
+        ec2_conn.run(f"docker pull {image}")
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         with ec2_conn.cd(path):
             install_sm_local_dependencies(framework, job_type, image, ec2_conn)
