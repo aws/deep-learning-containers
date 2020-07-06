@@ -379,7 +379,7 @@ def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=
 
     # Run training command, display benchmark results to console
     connection.run(
-        f"{docker_cmd} run -e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
+        f"{docker_cmd} run --user root -e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
         f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
     )
 
@@ -402,7 +402,7 @@ def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri}"
     )
     try:
-        connection.run(f"{docker_cmd} exec {container_name} " f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}")
+        connection.run(f"{docker_cmd} exec --user root {container_name} " f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}")
     except Exception as e:
         raise Exception("Failed to exec benchmark command.\n", e)
     finally:
