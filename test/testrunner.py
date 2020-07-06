@@ -82,6 +82,7 @@ def generate_sagemaker_pytest_cmd(image):
     )
     # test_report part of the returned value
 
+
 def run_sagemaker_pytest_cmd(image):
     """
     Run pytest in a virtual env for a particular image
@@ -98,10 +99,50 @@ def run_sagemaker_pytest_cmd(image):
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
             context.run(pytest_command)
-            # .return_logs()
 
-            # parsing xml
-            # send to SQS
+
+def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
+    """
+    Run pytest in a virtual env for a particular image
+
+    Expected to run via multiprocessing
+
+    :param num_of_instances: <int> number of instances the image test requires
+    :param instance_type: type of sagemaker instance the test needs
+    :param image: ECR url
+    :return:
+    """
+    import log_return
+
+    pytest_command, path, tag = generate_sagemaker_pytest_cmd(image)
+    job_type = "training" if "training" in image else "inference"
+    # update resource pool accordingly, then add a try-catch statement here to update the pool in case of failure
+    try:
+        log_return.update_pool("running", instance_type, num_of_instances, job_type)
+        context = Context()
+        with context.cd(path):
+            context.run(f"python3 -m virtualenv {tag}")
+            with context.prefix(f"source {tag}/bin/activate"):
+                context.run("pip install -r requirements.txt", warn=True)
+                context.run(pytest_command)
+    except Exception as e:
+        LOGGER.error(e)
+        return False
+
+    return True
+
+
+def send_scheduler_requests(requester, image):
+    identifier = requester.send_request(image, "PR", 1)
+    image_tag = re.match(r".*\:(.*)", image)
+    report_path = os.path.join(os.getcwd(), "test", f"{image_tag}.xml")
+    while True:
+        query_status_response = requester.query_status()
+        if query_status_response["status"] == "completed":
+            logs_response = requester.receive_logs(identifier)
+            with open(report_path, "w") as xml_report:
+                xml_report.write(logs_response["XML_REPORT"])
+            break
 
 
 def run_sagemaker_tests(images):
@@ -110,11 +151,44 @@ def run_sagemaker_tests(images):
 
     :param images: <list> List of all images to be used in SageMaker tests
     """
-    if not images:
+    use_scheduler = os.getenv("USE_SCHEDULER")
+    executor_mode = os.getenv("EXECUTOR_MODE")
+
+    if executor_mode == "True":
+        import log_return
+
+        num_of_instances = os.getenv("NUM_INSTANCES")
+        image = dlc_image = os.getenv("DLC_IMAGE")
+        job_type = "training" if "training" in image else "inference"
+        instance_type = assign_sagemaker_instance_type(dlc_image)
+        test_succeeded = run_sagemaker_test_in_executor(dlc_image, num_of_instances, instance_type)
+
+        # sending log back to SQS queue
+        tag = dlc_image.split("/")[-1].split(":")[-1]
+        test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
+        log_return.send_log(test_report)
+
+        # update in-progress pool
+        if test_succeeded:
+            log_return.update_pool("completed", instance_type, num_of_instances, job_type)
+        else:
+            log_return.update_pool("runtimeError", instance_type, num_of_instances, job_type)
         return
-    pool_number = len(images)
-    with Pool(pool_number) as p:
-        p.map(run_sagemaker_pytest_cmd, images)
+
+    if use_scheduler == "True":
+        import concurrent.futures
+        from job_requester import JobRequester
+
+        job_requester = JobRequester()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(images)) as executor:
+            executor.map(send_scheduler_requests, [(job_requester, image) for image in images])
+
+    else:
+        if not images:
+            return
+        pool_number = len(images)
+        with Pool(pool_number) as p:
+            p.map(run_sagemaker_pytest_cmd, images)
 
 
 def pull_dlc_images(images):
@@ -136,8 +210,9 @@ def setup_eks_clusters(dlc_images):
     long_name = frameworks_in_images[0]
     short_name = frameworks[long_name]
     num_nodes = 2 if is_pr_context() else 3 if long_name != "pytorch" else 4
-    cluster_name = f"dlc-{short_name}-cluster-" \
-                   f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
+    cluster_name = (
+        f"dlc-{short_name}-cluster-" f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
+    )
     eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
     eks_utils.eks_setup(long_name, cluster_name)
     return cluster_name
@@ -146,8 +221,8 @@ def setup_eks_clusters(dlc_images):
 def setup_sm_benchmark_env(dlc_images, test_path):
     # The plan is to have a separate if/elif-condition for each type of image
     if "tensorflow-training" in dlc_images:
-        tf1_images_in_list = (re.search(r'tensorflow-training:(^ )*1(\.\d+){2}', dlc_images) is not None)
-        tf2_images_in_list = (re.search(r"tensorflow-training:(^ )*2(\.\d+){2}", dlc_images) is not None)
+        tf1_images_in_list = re.search(r"tensorflow-training:(^ )*1(\.\d+){2}", dlc_images) is not None
+        tf2_images_in_list = re.search(r"tensorflow-training:(^ )*2(\.\d+){2}", dlc_images) is not None
         resources_location = os.path.join(test_path, "tensorflow", "training", "resources")
         setup_sm_benchmark_tf_train_env(resources_location, tf1_images_in_list, tf2_images_in_list)
 
@@ -192,7 +267,7 @@ def main():
                 with open(KEYS_TO_DESTROY_FILE) as key_destroy_file:
                     for key_file in key_destroy_file:
                         LOGGER.info(key_file)
-                        ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
+                        ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}))
                         if ".pem" in key_file:
                             _resp, keyname = destroy_ssh_keypair(ec2_client, key_file)
                             LOGGER.info(f"Deleted {keyname}")
@@ -210,8 +285,9 @@ def main():
                 [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
             )
     else:
-        raise NotImplementedError(f"{test_type} test is not supported. "
-                                  f"Only support ec2, ecs, eks, sagemaker and sanity currently")
+        raise NotImplementedError(
+            f"{test_type} test is not supported. " f"Only support ec2, ecs, eks, sagemaker and sanity currently"
+        )
 
 
 if __name__ == "__main__":

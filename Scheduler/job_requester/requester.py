@@ -68,6 +68,7 @@ class JobRequester:
             "SCHEDULING_TRIES": 0,
             "INSTANCES_NUM": num_of_instances,
             "TIMEOUT_LIMIT": self.timeout_limit,
+            "COMMIT": os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", ""),
         }
 
         return content
@@ -78,10 +79,10 @@ class JobRequester:
 
         :return: <string> prefix for request ticket name
         """
-        source_version = os.getenv("CODEBUILD_SOURCE_VERSION", "default")
+        source_version = os.getenv("PR_NUMBER", "default")
 
         if "pr/" in source_version:
-            # mod the PR ID by 10000 to make the prefix 7 digits
+            # mod the PR ID by 100000 to make the prefix 7 digits
             return f"pr{(int(source_version.split('/')[-1]) % 100000):05}"
         else:
             return source_version[:7]
