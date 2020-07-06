@@ -39,7 +39,7 @@ def pytest_addoption(parser):
     parser.addoption('--framework-version', default=TensorFlow.LATEST_VERSION)
     parser.addoption('--processor', default='cpu', choices=['cpu', 'gpu', 'cpu,gpu'])
     parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37'])
-    parser.addoption('--aws-id', default='142577830533')
+    parser.addoption('--account-id', default='142577830533')
     parser.addoption('--instance-type', default=None)
 
 
@@ -82,7 +82,7 @@ def sagemaker_local_session(region):
 
 @pytest.fixture(scope='session')
 def account_id(request):
-    return request.config.getoption('--aws-id')
+    return request.config.getoption('--account-id')
 
 
 @pytest.fixture
