@@ -14,7 +14,7 @@ ENV PATH /opt/conda/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
 
-ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.5.1_inference/20200703-232004/0b06577051b5422e2f22195fc823bc85872229aa/gpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
+ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.5.1_inference/20200706-181158/c5758f6f3979915787452e6b35a9a5683f3fb925/gpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
 
 RUN apt-get update \
  && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
