@@ -209,6 +209,11 @@ def execute_local_tests(image, ec2_client):
         destroy_ssh_keypair(ec2_client, ec2_key_name)
 
 
+def install_sagemaker_remote_dependencies(framework, job_type, image, ctx):
+    if "py3" in image and framework == "tensorflow" and job_type == "training":
+        ctx.run(f"pip install -U sagemaker-experiments")
+
+
 def execute_sagemaker_remote_tests(image):
     """
     Run pytest in a virtual env for a particular image
@@ -218,9 +223,11 @@ def execute_sagemaker_remote_tests(image):
     :param image: ECR url
     """
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
+    framework = image.split("/")[1].split(":")[0].split("-")[1]
     context = Context()
     with context.cd(path):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
+            install_sagemaker_remote_dependencies(framework, job_type, image, context)
             context.run(pytest_command)
