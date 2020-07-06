@@ -7,6 +7,6 @@ FROM $BASE_IMAGE
 RUN git clone -b v1.6.x https://github.com/apache/incubator-mxnet.git
 
 # Repository to run EKS test case
-RUN git clone -b v0.19.0 https://github.com/horovod/horovod.git
+RUN git clone -b v0.19.5 https://github.com/horovod/horovod.git
 
 ENTRYPOINT ["python", "/incubator-mxnet/example/image-classification/train_mnist.py"]
