@@ -13,6 +13,8 @@ ARG PYTHON=python
 ARG PYTHON_PIP=python-pip
 ARG PIP=pip
 
+ARG OPENSSL_VERSION=1.1.1g
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib" \
@@ -32,6 +34,30 @@ RUN apt-get update \
     vim \
     wget \
     zlib1g-dev \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt-get update \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get install -y \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-*
+
+# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
+
+RUN apt-get update \
+ && apt-get -y install --no-install-recommends \
+    openjdk-8-jdk \
+    openjdk-8-jre \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -70,6 +96,10 @@ COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+
+ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mxnet-1.6.0/license.txt -o /license.txt
 

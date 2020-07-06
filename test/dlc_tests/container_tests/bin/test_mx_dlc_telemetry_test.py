@@ -7,7 +7,7 @@ def opt_in_opt_out_test():
     if os.path.exists("/tmp/test_request.txt"):
         os.system("rm /tmp/test_request.txt")
     os.environ["OPT_OUT_TRACKING"]="True"
-    cmd = "python -c 'import torch'"
+    cmd = "python -c 'import mxnet'"
     os.system(cmd)
     time.sleep(1)
     assert not os.path.exists("/tmp/test_request.txt"), "Test failed on OPT_OUT_TRACKING."
@@ -15,16 +15,15 @@ def opt_in_opt_out_test():
     if os.path.exists("/tmp/test_request.txt"):
         os.system("rm /tmp/test_request.txt")
     os.environ["OPT_OUT_TRACKING"]="False"
-    cmd = "python -c 'import torch'"
+    cmd = "python -c 'import mxnet'"
     os.system(cmd)
     time.sleep(1)
     assert os.path.exists("/tmp/test_request.txt")
 
-
     if os.path.exists("/tmp/test_request.txt"):
         os.system("rm /tmp/test_request.txt")
     os.environ["OPT_OUT_TRACKING"]="TRUE"
-    cmd = "python -c 'import torch'"
+    cmd = "python -c 'import mxnet'"
     os.system(cmd)
     time.sleep(1)
     assert not os.path.exists("/tmp/test_request.txt"), "Test failed on OPT_OUT_TRACKING."
@@ -32,16 +31,15 @@ def opt_in_opt_out_test():
     if os.path.exists("/tmp/test_request.txt"):
         os.system("rm /tmp/test_request.txt")
     os.environ["OPT_OUT_TRACKING"]="true"
-    cmd = "python -c 'import torch'"
+    cmd = "python -c 'import mxnet'"
     os.system(cmd)
     time.sleep(1)
     assert not os.path.exists("/tmp/test_request.txt"), "Test failed on OPT_OUT_TRACKING."
 
-
     if os.path.exists("/tmp/test_request.txt"):
         os.system("rm /tmp/test_request.txt")
     os.environ["OPT_OUT_TRACKING"]="XYgg"
-    cmd = "python -c 'import torch'"
+    cmd = "python -c 'import mxnet'"
     os.system(cmd)
     time.sleep(1)
     assert os.path.exists("/tmp/test_request.txt")
@@ -49,7 +47,7 @@ def opt_in_opt_out_test():
 
     print("Opt-In/Opt-Out Test passed")
 
-def perf_test():
+def performance_test():
     os.environ['TEST_MODE']='0'
     os.environ["OPT_OUT_TRACKING"]="False"
     NUM_ITERATIONS = 5
@@ -57,7 +55,7 @@ def perf_test():
     for itr in range(NUM_ITERATIONS):
         total_time_in = 0
         for x in range(NUM_ITERATIONS):
-            cmd = "python -c 'import torch;'"
+            cmd = "python -c 'import mxnet'"
             start = time.time()
             os.system(cmd)
             total_time_in += time.time()-start
@@ -65,7 +63,7 @@ def perf_test():
 
         total_time_out = 0
         for x in range(NUM_ITERATIONS):
-            cmd = "export OPT_OUT_TRACKING='true' && python -c 'import torch'"
+            cmd = "export OPT_OUT_TRACKING='true' && python -c 'import mxnet'"
             start = time.time()
             os.system(cmd)
             total_time_out += time.time()-start
@@ -75,7 +73,7 @@ def perf_test():
 
         print("DLC Telemetry performance test Passed")
 
-perf_test()
+performance_test()
 opt_in_opt_out_test()
 
 print("All DLC telemetry test passed")
