@@ -80,7 +80,6 @@ def generate_sagemaker_pytest_cmd(image):
         path,
         tag,
     )
-    # test_report part of the returned value
 
 
 def run_sagemaker_pytest_cmd(image):
@@ -133,16 +132,35 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
 
 
 def send_scheduler_requests(requester, image):
+    """
+    Send a PR test request through the requester, and wait for the response.
+    If test completed or encountered runtime error, create local XML reports.
+    Otherwise the test failed due to scheduling failure, print the failure reason.
+
+    :param requester: JobRequester object
+    :param image: <string> ECR URI
+    """
     identifier = requester.send_request(image, "PR", 1)
-    image_tag = re.match(r".*\:(.*)", image)
+    image_tag = image.split(":")[-1]
     report_path = os.path.join(os.getcwd(), "test", f"{image_tag}.xml")
     while True:
         query_status_response = requester.query_status()
-        if query_status_response["status"] == "completed":
+        test_status = query_status_response["status"]
+        if test_status == "completed":
             logs_response = requester.receive_logs(identifier)
             with open(report_path, "w") as xml_report:
                 xml_report.write(logs_response["XML_REPORT"])
             break
+
+        elif test_status == "runtimeError":
+            LOGGER.warning(f"Tests for image {image} ran into runtime error.")
+            logs_response = requester.receive_logs(identifier)
+            with open(report_path, "w") as xml_report:
+                xml_report.write(logs_response["XML_REPORT"])
+            break
+
+        elif test_status == "failed":
+            LOGGER.warning(f"Scheduling failed. Reason: {query_status_response['reason']}")
 
 
 def run_sagemaker_tests(images):
@@ -154,7 +172,7 @@ def run_sagemaker_tests(images):
     use_scheduler = os.getenv("USE_SCHEDULER")
     executor_mode = os.getenv("EXECUTOR_MODE")
 
-    if executor_mode == "True":
+    if executor_mode.lower() == "true":
         import log_return
 
         num_of_instances = os.getenv("NUM_INSTANCES")
@@ -175,7 +193,7 @@ def run_sagemaker_tests(images):
             log_return.update_pool("runtimeError", instance_type, num_of_instances, job_type)
         return
 
-    if use_scheduler == "True":
+    if use_scheduler.lower() == "true":
         import concurrent.futures
         from job_requester import JobRequester
 

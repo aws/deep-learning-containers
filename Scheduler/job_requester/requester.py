@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import sys
+import time
 
 from datetime import datetime
 from threading import Lock
@@ -68,7 +69,7 @@ class JobRequester:
             "SCHEDULING_TRIES": 0,
             "INSTANCES_NUM": num_of_instances,
             "TIMEOUT_LIMIT": self.timeout_limit,
-            "COMMIT": os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", ""),
+            "COMMIT": os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "default"),
         }
 
         return content
@@ -177,21 +178,6 @@ class JobRequester:
                 return self.logs[ticket_name]
             return None
 
-    def cancel_request(self, identifier):
-        """
-        Cancel the test request by removing ticket from the queue.
-        If the test request is already running, do nothing.
-
-        :param identifier: <Message object> the response object returned from send_request
-        """
-        ticket_objects = self.s3_client.list_objects(
-            Bucket=self.s3_ticket_bucket, Prefix=f"request_tickets/{identifier.ticket_name}"
-        )
-        if "Contents" in ticket_objects:
-            self.s3_client.delete_object(Bucket=self.s3_ticket_bucket, Key=f"request_tickets/{identifier.ticket_name}")
-            return
-        LOGGER.info(f"{identifier.ticket_name} is already running, test request could not be cancelled.")
-
     def assign_sagemaker_instance_type(self, image):
         """
         Assign the instance type that the input image needs for testing
@@ -204,6 +190,14 @@ class JobRequester:
         else:
             return "ml.p2.8xlarge" if "gpu" in image else "ml.c4.8xlarge"
 
+    def extract_timestamp(self, ticket_key):
+        """
+        extract the timestamp string from S3 request ticket key
+        :param ticket_key: <string> key of the request ticket
+        :return: <string> timestamp in format "%Y-%m-%d-%H-%M-%S" that is encoded in the ticket name
+        """
+        return re.match(r".*_(\d{4}(-\d{2}){5})\.json", ticket_key).group(1)
+
     def ticket_timestamp_cmp_function(self, ticket1, ticket2):
         """
         Compares the timestamp of the two request tickets
@@ -211,14 +205,11 @@ class JobRequester:
         :param ticket1, ticket2: <dict> S3 object descriptors from s3_client.list_objects
         :return: <bool>
         """
-        timestamp_pattern = re.compile(".*_(.*).json")
-        ticket1_time, ticket2_time = (
-            timestamp_pattern.match(ticket1).group(1),
-            timestamp_pattern.match(ticket2).group(1),
-        )
-        return ticket1_time > ticket2_time
+        ticket1_key, ticket2_key = ticket1["Key"], ticket2["Key"]
+        ticket1_timestamp, ticket2_timestamp = self.extract_timestamp(ticket1_key), self.extract_timestamp(ticket2_key)
+        return ticket1_timestamp > ticket2_timestamp
 
-    def create_query_response(self, status, reason=None, queueNum=None):
+    def construct_query_response(self, status, reason=None, queueNum=None):
         """
         Create query response for query_status calls
 
@@ -250,55 +241,81 @@ class JobRequester:
             suffix_pattern = re.compile(".*-(.*).json")
             suffix = suffix_pattern.match(ticket_key).group(1)
             if folder == "dead_letter_queue" or folder == "duplicate_pr_requests":
-                return self.create_query_response("failed", reason=suffix)
+                return self.construct_query_response("failed", reason=suffix)
             else:
-                return self.create_query_response(suffix)
+                return self.construct_query_response(suffix)
 
         return None
+
+    def cancel_request(self, identifier):
+        """
+        Cancel the test request by removing ticket from the queue.
+        If the test request is already running, do nothing.
+
+        :param identifier: <Message object> the response object returned from send_request
+        """
+
+        # check if ticket is on the queue
+        ticket_in_queue = self.search_ticket_folder("request_tickets", identifier.ticket_name.rstrip(".json"))
+        if ticket_in_queue:
+            self.s3_client.delete_object(Bucket=self.s3_ticket_bucket, Key=f"request_tickets/{identifier.ticket_name}")
+            return
+
+        # check if ticket is a PR duplicate
+        ticket_in_duplicate = self.search_ticket_folder("duplicate_pr_requests", identifier.ticket_name.rstrip(".json"))
+        if ticket_in_duplicate:
+            LOGGER.info(f"{identifier.ticket_name} is a duplicate PR test, test request will not be scheduled.")
+            return
+
+        LOGGER.info(f"{identifier.ticket_name} test has begun, test request could not be cancelled.")
 
     def query_status(self, identifier):
         """
         :param identifier: <Message object> unique identifier returned from call to send_request
-        :return: <dict> {"status": <string> queuing/preparing/completed/failed,
-                         "reason" (if status == failed): <string> maxRetries/timeout/duplicatePR/runtimeError,
+        :return: <dict> {"status": <string> queuing/preparing/completed/failed/runtimeError,
+                         "reason" (if status == failed): <string> maxRetries/timeout/duplicatePR,
                          "queueNum" (if status == queuing): <int>
                          }
         """
+        retries = 2
         request_ticket_name = identifier.ticket_name
         ticket_without_extension = request_ticket_name.rstrip(".json")
         request_image = identifier.image
         instance_type = self.assign_sagemaker_instance_type(request_image)
         job_type = "training" if "training" in request_image else "inference"
 
-        # check if ticket is on the queue
-        ticket_objects = self.s3_client.list_objects(Bucket=self.s3_ticket_bucket, Prefix="request_tickets/")
-        # "Contents" in the API response only if there are objects satisfy the prefix
-        if "Contents" in ticket_objects:
-            ticket_name_pattern = re.compile(".*\/(.*)")
-            ticket_names_list = [
-                ticket_name_pattern.match(ticket["Key"]).group(1)
-                for ticket in ticket_objects["Contents"]
-                if ticket["Key"].endswith(".json")
-            ]
-            # ticket is on the queue, find the queue number
-            if request_ticket_name in ticket_names_list:
-                ticket_names_list.sort(key=cmp_to_key(self.ticket_timestamp_cmp_function))
-                queue_num = ticket_names_list.index(request_ticket_name)
-                return self.create_query_response("queuing", queueNum=queue_num)
+        for _ in range(retries):
+            # check if ticket is on the queue
+            ticket_objects = self.s3_client.list_objects(Bucket=self.s3_ticket_bucket, Prefix="request_tickets/")
+            # "Contents" in the API response only if there are objects satisfy the prefix
+            if "Contents" in ticket_objects:
+                ticket_name_pattern = re.compile(".*\/(.*)")
+                ticket_names_list = [
+                    ticket_name_pattern.match(ticket["Key"]).group(1)
+                    for ticket in ticket_objects["Contents"]
+                    if ticket["Key"].endswith(".json")
+                ]
+                # ticket is on the queue, find the queue number
+                if request_ticket_name in ticket_names_list:
+                    ticket_names_list.sort(key=cmp_to_key(self.ticket_timestamp_cmp_function))
+                    queue_num = ticket_names_list.index(request_ticket_name)
+                    return self.construct_query_response("queuing", queueNum=queue_num)
 
-        # check if ticket is on the dead letter queue
-        ticket_in_dead_letter = self.search_ticket_folder("dead_letter_queue", ticket_without_extension)
-        if ticket_in_dead_letter != None:
-            return ticket_in_dead_letter
+            # check if ticket is on the dead letter queue
+            ticket_in_dead_letter = self.search_ticket_folder("dead_letter_queue", ticket_without_extension)
+            if ticket_in_dead_letter:
+                return ticket_in_dead_letter
 
-        ticket_in_duplicate = self.search_ticket_folder("duplicate_pr_requests", ticket_without_extension)
-        if ticket_in_duplicate != None:
-            return ticket_in_duplicate
+            ticket_in_duplicate = self.search_ticket_folder("duplicate_pr_requests", ticket_without_extension)
+            if ticket_in_duplicate:
+                return ticket_in_duplicate
 
-        ticket_in_progress = self.search_ticket_folder(
-            "resource_pool", f"{instance_type}-{job_type}/{ticket_without_extension}"
-        )
-        if ticket_in_progress != None:
-            return ticket_in_progress
+            ticket_in_progress = self.search_ticket_folder(
+                "resource_pool", f"{instance_type}-{job_type}/{ticket_without_extension}"
+            )
+            if ticket_in_progress:
+                return ticket_in_progress
+
+            time.sleep(2)
 
         raise AssertionError(f"Request ticket name {request_ticket_name} could not be found.")
