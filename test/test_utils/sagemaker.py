@@ -161,10 +161,11 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     # using virtualenv to avoid package conflicts with the current packages
     ec2_conn.run(f"sudo apt-get install virtualenv -y ")
     if framework == "tensorflow" and job_type == "inference":
-        install_custom_python("3.6", ec2_conn)
         # TF inference test fail if run as soon as instance boots, even after health check pass. rootcause:
         # sockets?/nginx startup?/?
-        ec2_conn.run("sleep 400")
+        print("sleep 200s for tensorflow inference images to avoid socket issues")
+        sleep(200)
+        install_custom_python("3.6", ec2_conn)
     ec2_conn.run(f"virtualenv env")
     ec2_conn.run(f"source ./env/bin/activate")
     if framework == "pytorch" and job_type == "inference":
