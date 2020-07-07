@@ -244,7 +244,7 @@ class JobRequester:
 
         for _ in range(retries):
             # check if ticket is on the queue
-            ticket_objects = self.s3_client.list_objects(Bucket=self.s3_ticket_bucket, Prefix="request_tickets/")
+
             # "Contents" in the API response only if there are objects satisfy the prefix
             if "Contents" in ticket_objects:
                 ticket_name_pattern = re.compile(".*\/(.*)")
