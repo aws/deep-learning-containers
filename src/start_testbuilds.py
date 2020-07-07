@@ -47,7 +47,7 @@ def run_test_job(commit, codebuild_project, images_str=""):
             {"name": "PR_NUMBER", "value": pr_num, "type": "PLAINTEXT"},
             # USE_SCHEDULER is passed as an env variable here because it is more convenient to set this in
             # config/test_config, compared to having another config file under dlc/tests/.
-            {"name": "USE_SCHEDULER", "value": test_config.USE_SCHEDULER, "type": "PLAINTEXT"}
+            {"name": "USE_SCHEDULER", "value": str(test_config.USE_SCHEDULER), "type": "PLAINTEXT"}
         ]
     )
     LOGGER.debug(f"env_overrides dict: {env_overrides}")
