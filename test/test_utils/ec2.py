@@ -88,7 +88,7 @@ def launch_instance(
     return response["Instances"][0]
 
 
-def ec2_client(region):
+def get_ec2_client(region):
     return boto3.client("ec2", region_name=region, config=Config(retries={'max_attempts': 10}))
 
 
@@ -333,11 +333,11 @@ def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_R
     return sum(gpu_type["Count"] for gpu_type in instance_info["GpuInfo"]["Gpus"])
 
 
-def ec2_connection(instance_id, instance_pem_file, region):
+def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     """
     establish connection with EC2 instance if necessary
-    :param ec2_instance: ec2_instance pytest fixture
-    :param ec2_key_name: unique key name
+    :param instance_id: ec2_instance id
+    :param instance_pem_file: instance key name
     :param region: Region where ec2 instance is launched
     :return: Fabric connection object
     """

@@ -14,7 +14,11 @@ from invoke import run
 
 from test_utils import eks as eks_utils
 from test_utils import sagemaker as sm_utils
-from test_utils import get_dlc_images, is_pr_context, destroy_ssh_keypair, setup_sm_benchmark_tf_train_env
+from test_utils import (get_dlc_images,
+                        is_pr_context,
+                        destroy_ssh_keypair,
+                        setup_sm_benchmark_tf_train_env,
+                        get_framework_and_version_from_tag)
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 
 LOGGER = logging.getLogger(__name__)
@@ -30,7 +34,7 @@ def run_sagemaker_local_tests(images):
     if not images:
         return
     # Run sagemaker Local tests
-    framework = images[0].split("/")[1].split(":")[0].split("-")[1]
+    framework, _ = get_framework_and_version_from_tag(images[0])
     sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
