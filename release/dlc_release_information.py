@@ -93,11 +93,16 @@ class DLCReleaseInformation:
 
     @property
     def bom_pip_packages(self):
-        return self.get_container_command_output("pip freeze").replace("\n", "<br />")
+        return self.get_container_command_output("pip freeze")
 
     @property
     def bom_apt_packages(self):
-        return self.get_container_command_output("apt list --installed").replace("\n", "<br />")
+        return self.get_container_command_output("apt list --installed")
+
+    @property
+    def bom_pipdeptree(self):
+        self.get_container_command_output("pip install pipdeptree")
+        return self.get_container_command_output("pipdeptree")
 
     @property
     def imp_pip_packages(self):

@@ -3,6 +3,7 @@ import logging
 import json
 import os
 import sys
+import shutil
 import tarfile
 
 import boto3
@@ -23,7 +24,7 @@ def write_to_file(file_name, content):
     :return:
     """
     with open(file_name, "w") as fp:
-        json.dump(content, fp)
+        fp.write(content)
         LOGGER.info(f"Content written to file: {file_name}")
 
 
@@ -69,6 +70,7 @@ if __name__ == "__main__":
     release_info = {
         "bom_pip_packages": dlc_release_information.bom_pip_packages,
         "bom_apt_packages": dlc_release_information.bom_apt_packages,
+        "bom_pipdeptree": dlc_release_information.bom_pipdeptree,
         "imp_pip_packages": dlc_release_information.imp_pip_packages,
         "imp_apt_packages": dlc_release_information.imp_apt_packages,
         "image_digest": dlc_release_information.image_digest,
@@ -85,31 +87,35 @@ if __name__ == "__main__":
     # Zip the BOM for pip and apt packages. Store the tar in S3, and save its s3URI in release_info as reference.
     bom_pip_packages_local_path = os.path.join(os.sep, directory, "bom_pip_packages.md")
     bom_apt_packages_local_path = os.path.join(os.sep, directory, "bom_apt_packages.md")
+    bom_pipdeptree_local_path = os.path.join(os.sep, directory, "bom_pipdeptree.md")
 
     write_to_file(bom_pip_packages_local_path, release_info["bom_pip_packages"])
     write_to_file(bom_apt_packages_local_path, release_info["bom_apt_packages"])
+    write_to_file(bom_pipdeptree_local_path, release_info["bom_pipdeptree"])
 
     # Save the zip as <dlc_tag>_BOM.zip
     tarfile_path = f"{dlc_tag}_BOM.tar.gz"
     with tarfile.open(tarfile_path, "w:gz") as dlc_bom_tar:
         dlc_bom_tar.add(bom_pip_packages_local_path, arcname=os.path.basename(bom_pip_packages_local_path))
         dlc_bom_tar.add(bom_apt_packages_local_path, arcname=os.path.basename(bom_apt_packages_local_path))
+        dlc_bom_tar.add(bom_pipdeptree_local_path, arcname=os.path.basename(bom_pipdeptree_local_path))
 
     LOGGER.info(f"Created BOM zip: {tarfile_path}")
 
     upload_to_S3(tarfile_path, dlc_artifact_bucket, f"{dlc_folder}/{dlc_tag}/{tarfile_path}")
-
-    # Remove zipfile
-    os.remove(tarfile_path)
 
     s3URI = f"s3://{dlc_artifact_bucket}/{dlc_folder}/{dlc_tag}/"
 
     release_info["bom_tar_s3_uri"] = f"{s3URI}{tarfile_path}"
 
     dlc_release_info_json = os.path.join(os.sep, directory, "dlc_release_info.json")
-    write_to_file(dlc_release_info_json, release_info)
+    write_to_file(dlc_release_info_json, json.dumps(release_info))
 
     upload_to_S3(dlc_release_info_json, dlc_artifact_bucket, f"{dlc_folder}/{dlc_tag}/dlc_release_info.json")
+
+    # Cleanup
+    os.remove(tarfile_path)
+    shutil.rmtree(directory)
 
     LOGGER.info(f"Release Information collected for image: {dlc_release_information.image}")
     LOGGER.info(f"Release information and BOM uploaded to: s3://{dlc_artifact_bucket}/{dlc_folder}/{dlc_tag}")
