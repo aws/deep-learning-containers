@@ -107,7 +107,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
-    is_py3 = " python3 -m " if "py3" in image else ""
+    is_py3 = " python3 -m "
 
     remote_pytest_cmd = (f"pytest {integration_path} --region {region} {docker_base_arg} "
                          f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
@@ -155,7 +155,7 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     :return: None
     """
     # Install custom packages which need to be latest version"
-    is_py3 = " python3 -m" if "py3" in image else ""
+    is_py3 = " python3 -m"
     # To avoid the dpkg lock with apt-daily service if exists
     sleep(200)
     # using virtualenv to avoid package conflicts with the current packages
@@ -163,8 +163,8 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     if framework == "tensorflow" and job_type == "inference":
         # TF inference test fail if run as soon as instance boots, even after health check pass. rootcause:
         # sockets?/nginx startup?/?
-        print("sleep 200s for tensorflow inference images to avoid socket issues")
-        sleep(200)
+        print("sleep 400s for tensorflow inference images to avoid socket issues")
+        sleep(400)
         install_custom_python("3.6", ec2_conn)
     ec2_conn.run(f"virtualenv env")
     ec2_conn.run(f"source ./env/bin/activate")
@@ -172,8 +172,6 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
         # The following distutils package conflict with test dependencies
         ec2_conn.run("apt-get remove python3-scipy python3-yaml -y")
     ec2_conn.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
-    if "py3" in image and framework == "tensorflow" and job_type == "training":
-        ec2_conn.run(f"sudo {is_py3} pip install -U sagemaker-experiments")
 
 
 def execute_local_tests(image, ec2_client):
@@ -212,11 +210,6 @@ def execute_local_tests(image, ec2_client):
         destroy_ssh_keypair(ec2_client, ec2_key_name)
 
 
-def install_sagemaker_remote_dependencies(framework, job_type, image, ctx):
-    if "py3" in image and framework == "tensorflow" and job_type == "training":
-        ctx.run(f"pip install -U sagemaker-experiments")
-
-
 def execute_sagemaker_remote_tests(image):
     """
     Run pytest in a virtual env for a particular image
@@ -232,5 +225,4 @@ def execute_sagemaker_remote_tests(image):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
-            install_sagemaker_remote_dependencies(framework, job_type, image, context)
             context.run(pytest_command)
