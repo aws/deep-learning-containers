@@ -155,19 +155,18 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     """
     # Install custom packages which need to be latest version"
     is_py3 = " python3 -m" if "py3" in image else ""
-    # To remove the dpkg lock if exists
+    # To avoid the dpkg lock with apt-daily service if exists
     ec2_conn.run("sleep 3m")
-    # ec2_conn.run("sudo rm /var/lib/dpkg/lock && sudo rm /var/cache/apt/archives/lock")
     # using virtualenv to avoid package conflicts with the current packages
     ec2_conn.run(f"sudo apt-get install virtualenv -y ")
     if framework == "tensorflow" and job_type == "inference":
         install_custom_python("3.6", ec2_conn)
     ec2_conn.run(f"virtualenv env")
     ec2_conn.run(f"source ./env/bin/activate")
-    ec2_conn.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
     if framework == "pytorch" and job_type == "inference":
         # The following distutils package conflict with test dependencies
         ec2_conn.run("apt-get remove python3-scipy python3-yaml -y")
+    ec2_conn.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
     if "py3" in image and framework == "tensorflow" and job_type == "training":
         ec2_conn.run(f"sudo {is_py3} pip install -U sagemaker-experiments")
 
@@ -185,7 +184,6 @@ def execute_local_tests(image, ec2_client):
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
-    sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     try:

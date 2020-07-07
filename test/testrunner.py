@@ -6,7 +6,6 @@ import re
 import traceback
 
 from multiprocessing import Pool
-import concurrent.futures
 import boto3
 import pytest
 
@@ -25,23 +24,19 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 def run_sagemaker_local_tests(images):
     """
-    Function to set up multiprocessing for SageMaker tests
+    Function to run the SageMaker Local tests
     :param images: <list> List of all images to be used in SageMaker tests
     """
     if not images:
         return
-    # This is to ensure that threads don't lock
-    pool_number = (len(images)*2)
-    with Pool(pool_number) as p:
-        # p.map(sm_utils.run_sagemaker_remote_tests, images)
-        # Run sagemaker Local tests
-        framework = images[0].split("/")[1].split(":")[0].split("-")[1]
-        sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
-        sm_tests_tar_name = "sagemaker_tests.tar.gz"
-        run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
-        ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}), region_name=DEFAULT_REGION)
-        for image in images:
-            sm_utils.execute_local_tests(image, ec2_client)
+    # Run sagemaker Local tests
+    framework = images[0].split("/")[1].split(":")[0].split("-")[1]
+    sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
+    sm_tests_tar_name = "sagemaker_tests.tar.gz"
+    run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
+    ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}), region_name=DEFAULT_REGION)
+    for image in images:
+        sm_utils.execute_local_tests(image, ec2_client)
 
 
 def run_sagemaker_remote_tests(images):
