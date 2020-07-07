@@ -83,6 +83,64 @@ def launch_instance(
     return response["Instances"][0]
 
 
+def launch_instance_with_eia(
+    ami_id, instance_type, region=DEFAULT_REGION, user_data=None, iam_instance_profile_arn=None, instance_name="", ei_accelerator_type=None,
+):
+    """
+    Launch an instance
+    :param ami_id: AMI ID to be used for launched instance
+    :param instance_type: Instance type of launched instance
+    :param region: Region where instance will be launched
+    :param user_data: Script to run when instance is launched as a str
+    :param iam_instance_profile_arn: EC2 Role to be attached
+    :param instance_name: Tag to display as Name on EC2 Console
+    :return: <dict> Information about the instance that was launched
+    """
+    if not ami_id:
+        raise Exception("No ami_id provided")
+    client = boto3.Session(region_name=region).client("ec2")
+
+    # Construct the dictionary with the arguments for API call
+    arguments_dict = {
+        "ImageId": ami_id,
+        "InstanceType": instance_type,
+        "MaxCount": 1,
+        "MinCount": 1,
+        "TagSpecifications": [
+            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}],},
+        ],
+    }
+    if user_data:
+        arguments_dict["UserData"] = user_data
+    if iam_instance_profile_arn:
+        arguments_dict["IamInstanceProfile"] = {"Arn": iam_instance_profile_arn}
+    if ei_accelerator_type:
+        arguments_dict["ElasticInferenceAccelerators"] = ei_accelerator_type
+        availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c", "us-east-1a", "us-east-1b", "us-east-1c"]
+        res = {}
+        for a_zone in availability_zones:
+            arguments_dict["Placement"] = {
+                'AvailabilityZone': a_zone
+            }
+            try:
+                response = res = client.run_instances(**arguments_dict)
+                if res and len(res['Instances']) >= 1:
+                    break
+            except ClientError as e:
+                print(f"Failed to launch in AZ {a_zone} with Error: {e}")
+                continue
+    '''else:
+        response = client.run_instances(**arguments_dict)'''
+
+    if not response or len(response["Instances"]) < 1:
+        raise Exception(
+            "Unable to launch the instance. \
+                         Did not return any response"
+        )
+
+    return response["Instances"][0]
+
+
 def get_instance_from_id(instance_id, region=DEFAULT_REGION):
     """
     Get instance information using instance ID
