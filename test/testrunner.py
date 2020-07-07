@@ -104,7 +104,7 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
     """
     Run pytest in a virtual env for a particular image
 
-    Expected to run via multiprocessing
+    Expected to run under multi-threading
 
     :param num_of_instances: <int> number of instances the image test requires
     :param instance_type: type of sagemaker instance the test needs
@@ -161,6 +161,7 @@ def send_scheduler_requests(requester, image):
 
         elif test_status == "failed":
             LOGGER.warning(f"Scheduling failed. Reason: {query_status_response['reason']}")
+            break
 
 
 def run_sagemaker_tests(images):
@@ -176,21 +177,19 @@ def run_sagemaker_tests(images):
         import log_return
 
         num_of_instances = os.getenv("NUM_INSTANCES")
-        image = dlc_image = os.getenv("DLC_IMAGE")
+        image = os.getenv("DLC_IMAGE")
         job_type = "training" if "training" in image else "inference"
-        instance_type = assign_sagemaker_instance_type(dlc_image)
-        test_succeeded = run_sagemaker_test_in_executor(dlc_image, num_of_instances, instance_type)
+        instance_type = assign_sagemaker_instance_type(image)
+        test_succeeded = run_sagemaker_test_in_executor(image, num_of_instances, instance_type)
 
-        # sending log back to SQS queue
-        tag = dlc_image.split("/")[-1].split(":")[-1]
+        tag = image.split("/")[-1].split(":")[-1]
         test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
-        log_return.send_log(test_report)
 
-        # update in-progress pool
+        # update in-progress pool, send the xml reports
         if test_succeeded:
-            log_return.update_pool("completed", instance_type, num_of_instances, job_type)
+            log_return.update_pool("completed", instance_type, num_of_instances, job_type, test_report)
         else:
-            log_return.update_pool("runtimeError", instance_type, num_of_instances, job_type)
+            log_return.update_pool("runtimeError", instance_type, num_of_instances, job_type, test_report)
         return
 
     if use_scheduler.lower() == "true":
