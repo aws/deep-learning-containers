@@ -170,8 +170,8 @@ def run_sagemaker_tests(images):
 
     :param images: <list> List of all images to be used in SageMaker tests
     """
-    use_scheduler = os.getenv("USE_SCHEDULER")
-    executor_mode = os.getenv("EXECUTOR_MODE")
+    use_scheduler = os.getenv("USE_SCHEDULER", "False")
+    executor_mode = os.getenv("EXECUTOR_MODE", "False")
 
     if executor_mode.lower() == "true":
         import log_return
