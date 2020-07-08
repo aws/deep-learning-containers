@@ -3,9 +3,10 @@ import os
 import boto3
 
 from retrying import retry
+from fabric import Connection
+from botocore.config import Config
 
-from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
-
+from . import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
@@ -42,7 +43,8 @@ def get_ec2_instance_type(default, processor, enable_p3dn=False):
 
 
 def launch_instance(
-    ami_id, instance_type, region=DEFAULT_REGION, user_data=None, iam_instance_profile_arn=None, instance_name="",
+    ami_id, instance_type, ec2_key_name=None, region=DEFAULT_REGION, user_data=None,
+        iam_instance_profile_name=None, instance_name="",
 ):
     """
     Launch an instance
@@ -56,22 +58,25 @@ def launch_instance(
     """
     if not ami_id:
         raise Exception("No ami_id provided")
+    if not ec2_key_name:
+        raise Exception("Ec2 Key name must be provided")
     client = boto3.Session(region_name=region).client("ec2")
 
     # Construct the dictionary with the arguments for API call
     arguments_dict = {
+        "KeyName": ec2_key_name,
         "ImageId": ami_id,
         "InstanceType": instance_type,
         "MaxCount": 1,
         "MinCount": 1,
         "TagSpecifications": [
-            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}],},
+            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}]},
         ],
     }
     if user_data:
         arguments_dict["UserData"] = user_data
-    if iam_instance_profile_arn:
-        arguments_dict["IamInstanceProfile"] = {"Arn": iam_instance_profile_arn}
+    if iam_instance_profile_name:
+        arguments_dict["IamInstanceProfile"] = {"Name": iam_instance_profile_name}
     response = client.run_instances(**arguments_dict)
 
     if not response or len(response["Instances"]) < 1:
@@ -81,6 +86,10 @@ def launch_instance(
         )
 
     return response["Instances"][0]
+
+
+def get_ec2_client(region):
+    return boto3.client("ec2", region_name=region, config=Config(retries={'max_attempts': 10}))
 
 
 def get_instance_from_id(instance_id, region=DEFAULT_REGION):
@@ -324,6 +333,23 @@ def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_R
     return sum(gpu_type["Count"] for gpu_type in instance_info["GpuInfo"]["Gpus"])
 
 
+def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
+    """
+    establish connection with EC2 instance if necessary
+    :param instance_id: ec2_instance id
+    :param instance_pem_file: instance key name
+    :param region: Region where ec2 instance is launched
+    :return: Fabric connection object
+    """
+    user = get_instance_user(instance_id, region=region)
+    conn = Connection(
+        user=user,
+        host=get_public_ip(instance_id, region),
+        connect_kwargs={"key_filename": [instance_pem_file]}
+    )
+    return conn
+
+
 def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash"):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
@@ -379,7 +405,7 @@ def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=
 
     # Run training command, display benchmark results to console
     connection.run(
-        f"{docker_cmd} run -e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
+        f"{docker_cmd} run --user root -e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
         f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
     )
 
@@ -402,7 +428,7 @@ def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri}"
     )
     try:
-        connection.run(f"{docker_cmd} exec {container_name} " f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}")
+        connection.run(f"{docker_cmd} exec --user root {container_name} " f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}")
     except Exception as e:
         raise Exception("Failed to exec benchmark command.\n", e)
     finally:

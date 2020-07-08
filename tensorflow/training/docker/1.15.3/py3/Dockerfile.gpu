@@ -179,7 +179,7 @@ RUN ${PIP} install --no-cache-dir -U \
     mpi4py==3.0.2 \
     "cryptography>=2.3" \
     "sagemaker-tensorflow>=1.15,<1.16" \
-    sagemaker-tensorflow-training==10.1.0 \
+    "sagemaker-tensorflow-training>=10,<20" \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --force-reinstall --no-cache-dir -U \
@@ -190,7 +190,7 @@ RUN ${PIP} install --no-cache-dir -U \
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 pip install --no-cache-dir \
-    horovod==0.19.4 \
+    horovod==0.19.5 \
  && ldconfig
 
 # Allow OpenSSH to talk to containers without asking for confirmation
