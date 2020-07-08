@@ -27,22 +27,22 @@
         target: dockerd-entrypoint.py
 
   images:
-    BuildCPUPTInferencePy3DockerImage:
+    BuildEIAPTInferencePy3DockerImage:
       <<: *INFERENCE_REPOSITORY
-      build: &TENSORFLOW_CPU_INFERENCE_PY3 false
+      build: &TENSORFLOW_EIA_INFERENCE_PY3 false
       image_size_baseline: 5000
-      device_type: &DEVICE_TYPE cpu
+      device_type: &DEVICE_TYPE eia
       python_version: &DOCKER_PYTHON_VERSION py3
       tag_python_version: &TAG_PYTHON_VERSION py36
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *TAG_PYTHON_VERSION, /Dockerfile., eia ]
       context:
         <<: *INFERENCE_CONTEXT
-    BuildCPUPTInferencePy2DockerImage:
+    BuildEIAPTInferencePy2DockerImage:
       <<: *INFERENCE_REPOSITORY
-      build: &TENSORFLOW_CPU_INFERENCE_PY2 false
+      build: &TENSORFLOW_EIA_INFERENCE_PY2 false
       image_size_baseline: 5000
-      device_type: &DEVICE_TYPE cpu
+      device_type: &DEVICE_TYPE eia
       python_version: &DOCKER_PYTHON_VERSION py2
       tag_python_version: &TAG_PYTHON_VERSION py27
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]

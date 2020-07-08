@@ -107,6 +107,7 @@ def ec2_instance(
 ):
     print(f"Creating instance: CI-CD {ec2_key_name}")
     #debugging statement will be removed later
+    LOGGER.info(f"Request details {request.param, request.fixturenames, region, ei_accelerator_type }")
     print(request.param)
     print(request.fixturenames)
     print(region)
