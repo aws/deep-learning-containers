@@ -21,6 +21,7 @@ def pytest_addoption(parser):
     parser.addoption('--docker-base-name', default=TFS_DOCKER_BASE_NAME)
     parser.addoption('--framework-version', default=FRAMEWORK_LATEST_VERSION, required=True)
     parser.addoption('--processor', default='cpu', choices=['cpu', 'gpu', 'eia'])
+    parser.addoption('--aws-id', default=None)
     parser.addoption('--tag')
 
 

@@ -203,6 +203,11 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
     conn.run(f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests")
     conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
 
+    # Log into ECR if we are in canary context
+    if test_utils.is_canary_context():
+        public_registry = test_utils.PUBLIC_DLC_REGISTRY
+        test_utils.login_to_ecr_registry(conn, public_registry, region)
+
     return conn
 
 
