@@ -341,7 +341,7 @@ def get_dlc_images():
     if is_pr_context():
         return os.getenv("DLC_IMAGES")
     elif is_canary_context():
-        return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"))
+        return get_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"))
     test_env_file = os.path.join(os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json")
     with open(test_env_file) as test_env:
         test_images = json.load(test_env)
