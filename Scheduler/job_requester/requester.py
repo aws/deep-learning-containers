@@ -99,6 +99,7 @@ class JobRequester:
         self.s3_client.put_object_acl(ACL="bucket-owner-full-control",Bucket=self.s3_ticket_bucket,
             Key=f"{self.s3_ticket_bucket_folder}/{ticket_name}")
         LOGGER.info("configured object acl")
+        LOGGER.info(f"object key: {self.s3_ticket_bucket_folder}/{ticket_name}")
         LOGGER.info(f"Ticket sent successfully, ticket name: {ticket_name}")
         return ticket_name
 
