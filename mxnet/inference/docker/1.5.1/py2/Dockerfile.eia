@@ -41,15 +41,12 @@ RUN wget https://amazonei-tools.s3.amazonaws.com/v${HEALTH_CHECK_VERSION}/ei_too
 
 RUN pip install --no-cache-dir --upgrade \
     pip \
-    setuptools
+    "setuptools<45.0.0"
 
 RUN pip install --no-cache-dir \
     https://s3.amazonaws.com/amazonei-apachemxnet/amazonei_mxnet-1.5.1-py2.py3-none-manylinux1_x86_64.whl \
     mxnet-model-server==$MMS_VERSION \
     keras-mxnet==2.2.4.1 \
-    # setuptools<45.0.0 because support for py2 stops with 45.0.0
-    # https://github.com/pypa/setuptools/blob/master/CHANGES.rst#v4500
-    "setuptools<45.0.0" \
     numpy==1.16.5 \
     onnx==1.4.1 \
     "sagemaker-mxnet-inference<2"

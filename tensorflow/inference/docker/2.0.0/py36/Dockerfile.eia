@@ -1,4 +1,3 @@
-
 FROM ubuntu:18.04
 
 # Add arguments to achieve the version, python and url
