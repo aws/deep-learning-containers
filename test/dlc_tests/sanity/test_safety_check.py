@@ -42,6 +42,14 @@ IGNORE_SAFETY_IDS = {
             # numpy<=1.16.0 -- This has to only be here while we publish MXNet 1.4.1 EI DLC v1.0
             "py2": ['36810'],
             "py3": ['36810']
+        },
+        "inference": {
+            # for shipping pillow<=6.2.2 - the last available version for py2
+            "py2": ['38449', '38450', '38451', '38452']
+        },
+        "training": {
+            # for shipping pillow<=6.2.2 - the last available version for py2
+            "py2": ['38449', '38450', '38451', '38452']
         }
     },
     "pytorch": {
