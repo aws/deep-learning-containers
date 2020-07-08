@@ -78,6 +78,10 @@ def is_canary_context():
     return os.getenv("BUILD_CONTEXT") == "CANARY"
 
 
+def is_dlc_cicd_context():
+    return os.getenv("BUILD_CONTEXT") in ["PR", "CANARY", "NIGHTLY", "MAINLINE"]
+
+
 def run_subprocess_cmd(cmd, failure="Command failed"):
     command = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
     if command.returncode:
