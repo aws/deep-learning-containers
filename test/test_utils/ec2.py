@@ -42,48 +42,6 @@ def get_ec2_instance_type(default, processor, enable_p3dn=False):
 
 
 def launch_instance(
-    ami_id, instance_type, region=DEFAULT_REGION, user_data=None, iam_instance_profile_arn=None, instance_name="",
-):
-    """
-    Launch an instance
-    :param ami_id: AMI ID to be used for launched instance
-    :param instance_type: Instance type of launched instance
-    :param region: Region where instance will be launched
-    :param user_data: Script to run when instance is launched as a str
-    :param iam_instance_profile_arn: EC2 Role to be attached
-    :param instance_name: Tag to display as Name on EC2 Console
-    :return: <dict> Information about the instance that was launched
-    """
-    if not ami_id:
-        raise Exception("No ami_id provided")
-    client = boto3.Session(region_name=region).client("ec2")
-
-    # Construct the dictionary with the arguments for API call
-    arguments_dict = {
-        "ImageId": ami_id,
-        "InstanceType": instance_type,
-        "MaxCount": 1,
-        "MinCount": 1,
-        "TagSpecifications": [
-            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}],},
-        ],
-    }
-    if user_data:
-        arguments_dict["UserData"] = user_data
-    if iam_instance_profile_arn:
-        arguments_dict["IamInstanceProfile"] = {"Arn": iam_instance_profile_arn}
-    response = client.run_instances(**arguments_dict)
-
-    if not response or len(response["Instances"]) < 1:
-        raise Exception(
-            "Unable to launch the instance. \
-                         Did not return any response"
-        )
-
-    return response["Instances"][0]
-
-
-def launch_instance_with_eia(
     ami_id, instance_type, region=DEFAULT_REGION, user_data=None, iam_instance_profile_arn=None, instance_name="", ei_accelerator_type=None,
 ):
     """
@@ -116,9 +74,10 @@ def launch_instance_with_eia(
         arguments_dict["IamInstanceProfile"] = {"Arn": iam_instance_profile_arn}
     if ei_accelerator_type:
         arguments_dict["ElasticInferenceAccelerators"] = ei_accelerator_type
-        availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c", "us-east-1a", "us-east-1b", "us-east-1c"]
+        availability_zones = {"us-west": ["us-west-2a", "us-west-2b", "us-west-2c"],
+                              "us-east": ["us-east-1a", "us-east-1b", "us-east-1c"]}
         res = {}
-        for a_zone in availability_zones:
+        for a_zone in availability_zones[region]:
             arguments_dict["Placement"] = {
                 'AvailabilityZone': a_zone
             }
@@ -129,8 +88,8 @@ def launch_instance_with_eia(
             except ClientError as e:
                 print(f"Failed to launch in AZ {a_zone} with Error: {e}")
                 continue
-    '''else:
-        response = client.run_instances(**arguments_dict)'''
+    else:
+        response = client.run_instances(**arguments_dict)
 
     if not response or len(response["Instances"]) < 1:
         raise Exception(

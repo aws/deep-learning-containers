@@ -114,6 +114,35 @@ def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80", connec
     return True
 
 
+@retry(
+    stop_max_attempt_number=10,
+    wait_fixed=10000,
+    retry_on_result=retry_if_result_is_false,
+)
+def request_mxnet_inference_resnet(ip_address="127.0.0.1", port="80", connection=None):
+    """
+    Send request to container to test inference on kitten.jpg
+    :param ip_address:
+    :param port:
+    :connection: ec2_connection object to run the commands remotely over ssh
+    :return: <bool> True/False based on result of inference
+    """
+    conn_run = connection.run if connection is not None else run
+
+    # Check if image already exists
+    run_out = conn_run("[ -f kitten.jpg ]", warn=True)
+    if run_out.return_code != 0:
+        conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg", hide=True)
+
+    run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/resnet-152-eia -T kitten.jpg", warn=True)
+
+    # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
+    # is 404. Hence the extra check.
+    if run_out.return_code != 0 or "probability" not in run_out.stdout:
+        return False
+
+    return True
+
 @retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
 def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connection=None):
     """
@@ -218,7 +247,8 @@ def get_mms_run_command(model_names, processor="cpu"):
         }
     else:
         mxnet_model_location = {
-            "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar"
+            "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar",
+            "pytorch-densenet": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia.mar",
         }
 
     if not isinstance(model_names, list):

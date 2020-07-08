@@ -94,13 +94,23 @@ def ec2_instance_ami(request):
     return request.param if hasattr(request, "param") else UBUNTU_16_BASE_DLAMI
 
 
+@pytest.fixture(scope="function")
+def ei_accelerator_type(request):
+    return request.param if hasattr(request, "param") else None
+
+
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
 def ec2_instance(
         request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami,
-        region
+        region,ei_accelerator_type=None
 ):
     print(f"Creating instance: CI-CD {ec2_key_name}")
+    #debugging statement will be removed later
+    print(request.param)
+    print(request.fixturenames)
+    print(region)
+    print(ei_accelerator_type)
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
     params = {
         "KeyName": ec2_key_name,
@@ -117,7 +127,29 @@ def ec2_instance(
     if ("benchmark" in os.getenv("TEST_TYPE") and (("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames) or "mxnet_inference" in request.fixturenames)) \
             or ("tensorflow_training" in request.fixturenames and "gpu_only" in request.fixturenames and "horovod" in ec2_key_name):
         params["BlockDeviceMappings"] = extra_volume_size_mapping
-    instances = ec2_resource.create_instances(**params)
+    if ei_accelerator_type:
+        params["ElasticInferenceAccelerators"] = [
+            {
+                'Type': ei_accelerator_type,
+                'Count': 1
+            }
+        ]
+        availability_zones = {"us-west": ["us-west-2a", "us-west-2b", "us-west-2c"],
+                              "us-east": ["us-east-1a", "us-east-1b", "us-east-1c"]}
+        res = {}
+        for a_zone in availability_zones[region]:
+            params["Placement"] = {
+                'AvailabilityZone': a_zone
+            }
+            try:
+                instances = ec2_client.run_instances(**params)
+                if res and len(res['Instances']) >= 1:
+                    break
+            except ClientError as e:
+                print(f"Failed to launch in AZ {a_zone} with Error: {e}")
+                continue
+    else:
+        instances = ec2_resource.create_instances(**params)
     instance_id = instances[0].id
 
     # Define finalizer to terminate instance after this fixture completes
@@ -130,69 +162,6 @@ def ec2_instance(
                 destroy_keys.write(f"{key_filename}\n")
 
     request.addfinalizer(terminate_ec2_instance)
-
-    ec2_utils.check_instance_state(instance_id, state="running", region=region)
-    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
-    return instance_id, key_filename
-
-
-@pytest.mark.timeout(300)
-@pytest.fixture(scope="function")
-def ec2_instance_with_eia(
-        request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami,
-        region,ei_accelerator_type=None
-):
-    print(f"Creating instance: CI-CD {ec2_key_name}")
-    key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
-    params = {
-        "KeyName": ec2_key_name,
-        "ImageId": ec2_instance_ami,
-        "InstanceType": ec2_instance_type,
-        "IamInstanceProfile": {"Name": ec2_instance_role_name},
-        "TagSpecifications": [
-            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {ec2_key_name}"}]},
-        ],
-        "ElasticInferenceAccelerators": [
-            {
-                'Type': ei_accelerator_type,
-                'Count': 1
-            }
-        ],
-        "MaxCount": 1,
-        "MinCount": 1,
-    }
-    extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300, }}]
-    if ("benchmark" in os.getenv("TEST_TYPE") and (("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames) or "mxnet_inference" in request.fixturenames)) \
-            or ("tensorflow_training" in request.fixturenames and "gpu_only" in request.fixturenames and "horovod" in ec2_key_name):
-        params["BlockDeviceMappings"] = extra_volume_size_mapping
-    if ei_accelerator_type:
-        availability_zones = ["us-west-2a", "us-west-2b", "us-west-2c", "us-east-1a", "us-east-1b", "us-east-1c"]
-        res = {}
-        for a_zone in availability_zones:
-            params["Placement"] = {
-                'AvailabilityZone': a_zone
-            }
-            try:
-                instances = ec2_client.run_instances(**params)
-                if res and len(res['Instances']) >= 1:
-                    break
-            except ClientError as e:
-                print(f"Failed to launch in AZ {a_zone} with Error: {e}")
-                continue
-    '''else:
-        instances = ec2_resource.create_instances(**params)'''
-    instance_id = instances[0].id
-
-    # Define finalizer to terminate instance after this fixture completes
-    def terminate_ec2_instance_eia():
-        ec2_client.terminate_instances(InstanceIds=[instance_id])
-        if test_utils.is_pr_context():
-            test_utils.destroy_ssh_keypair(ec2_client, key_filename)
-        else:
-            with open(KEYS_TO_DESTROY_FILE, "a") as destroy_keys:
-                destroy_keys.write(f"{key_filename}\n")
-
-    request.addfinalizer(terminate_ec2_instance_eia)
 
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
     ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
@@ -255,6 +224,10 @@ def cpu_only():
 def gpu_only():
     pass
 
+
+@pytest.fixture(scope="session")
+def eia_only():
+    pass
 
 @pytest.fixture(scope="session")
 def py3_only():
@@ -333,6 +306,8 @@ def pytest_generate_tests(metafunc):
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
+                            images_to_parametrize.append(image)
+                        elif "eia_only" in metafunc.fixturenames and "eia" in image:
                             images_to_parametrize.append(image)
                         elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames:
                             images_to_parametrize.append(image)

@@ -11,6 +11,7 @@ from test.dlc_tests.conftest import LOGGER
 # TODO: Set enable_p3dn=True when releasing
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu")
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
+PT_EC2_EIA_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="eia")
 PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test")
 
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -22,6 +23,10 @@ def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gp
 def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cpu_only):
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
 
+
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_EIA_INSTANCE_TYPE, indirect=True)
+def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, eia_only):
+    ec2_pytorch_inference(pytorch_inference, "eia", ec2_connection, region)
 
 def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
