@@ -19,6 +19,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
+
 # Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
 UBUNTU_16_BASE_DLAMI = "ami-0e5a388144f62e4f5"
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
@@ -43,6 +44,10 @@ SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test w
 PR_ONLY_REASON = "Skipping test that doesn't need to be run outside of PR context."
 
 KEYS_TO_DESTROY_FILE = os.path.join(os.sep, "tmp", "keys_to_destroy.txt")
+
+# Sagemaker test types
+SAGEMAKER_LOCAL_TEST_TYPE = "local"
+SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
 
@@ -71,6 +76,10 @@ def is_pr_context():
 
 def is_canary_context():
     return os.getenv("BUILD_CONTEXT") == "CANARY"
+
+
+def is_dlc_cicd_context():
+    return os.getenv("BUILD_CONTEXT") in ["PR", "CANARY", "NIGHTLY", "MAINLINE"]
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
@@ -456,3 +465,24 @@ def get_framework_and_version_from_tag(image_uri):
     tag_framework_version = image_uri.split(':')[-1].split('-')[0]
 
     return tested_framework, tag_framework_version
+
+
+def get_job_type_from_image(image_uri):
+    """
+    Return the Job type from the image tag.
+
+    :param image_uri: ECR image URI
+    :return: Job Type
+    """
+    tested_job_type = None
+    allowed_job_types = ("training", "inference")
+    for job_type in allowed_job_types:
+        if job_type in image_uri:
+            tested_job_type = job_type
+            break
+
+    if not tested_job_type:
+        raise RuntimeError(f"Cannot find Job Type in image uri {image_uri} "
+                           f"from allowed frameworks {allowed_job_types}")
+
+    return tested_job_type
