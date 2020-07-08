@@ -1,6 +1,7 @@
 FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -147,7 +148,7 @@ RUN ${PIP} install --no-cache-dir -U \
     awscli \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
-    sagemaker==1.58.2 \
+    "sagemaker<2" \
     sagemaker-experiments==0.1.13 \
     "sagemaker-tensorflow>=2.2,<2.3" \
     "sagemaker-tensorflow-training>=20" \
@@ -157,7 +158,7 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     ${ESTIMATOR_URL} \
-    horovod==0.19.4 \
+    horovod==0.19.5 \
     werkzeug==1.0.1 \
     psutil==5.7.0 \
     smdebug==${SMDEBUG_VERSION}
