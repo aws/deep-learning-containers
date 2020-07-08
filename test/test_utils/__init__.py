@@ -7,6 +7,7 @@ import logging
 import sys
 
 import pytest
+import boto3
 
 from botocore.exceptions import ClientError
 from invoke import run
@@ -348,6 +349,45 @@ def get_dlc_images():
         if dlc_test_type == "sanity":
             return " ".join(images)
     raise RuntimeError(f"Cannot find any images for in {test_images}")
+
+
+def get_canary_images(framework, region):
+    """
+    Get every sagemaker tag in repo
+
+    :param framework: ML framework
+    :param region: AWS region
+    :return: list of images to run canaries on
+    """
+    sm_tag_regex = re.compile(r"^\d\.\d+\-[c|g]pu-py\d+$")
+    tf_inf_sm_tag_regex = re.compile(r"^\d\.\d+\-[c|g]pu$")
+    client = boto3.client("ecr")
+    registry = PUBLIC_DLC_REGISTRY
+    registry_extension = f"{registry}.dkr.ecr.{region}.amazonaws.com"
+    repos = []
+    for job_type in ("training", "inference"):
+        repos.append(f"{registry_extension}/{framework}-{job_type}")
+
+    if framework == "tensorflow":
+        framework = "tensorflow2" if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") else "tensorflow1"
+
+    images = []
+    next_token = 1
+    for repo in repos:
+        response = client.describe_images(registryId=registry, repositoryName=repo, maxResults=100)
+        while next_token:
+            for image in response.get('imageDetails'):
+                for tag in image.get('imageTags'):
+                    if framework == "tensorflow2" and not is_tf2(tag):
+                        continue
+                    elif framework == "tensorflow1" and not is_tf1(tag):
+                        continue
+                    tag_str = tag.split(":")[-1]
+                    if sm_tag_regex.match(tag_str) or tf_inf_sm_tag_regex.match(tag_str):
+                        images.append(tag_str)
+            next_token = response.get('nextToken')
+
+    return " ".join(images)
 
 
 def parse_canary_images(framework, region):

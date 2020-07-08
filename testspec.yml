@@ -19,6 +19,8 @@ phases:
         fi
       - pip install -r test/requirements.txt
       - echo Running pytest $TEST_TYPE tests on $DLC_IMAGES...
+      - export BUILD_CONTEXT="CANARY"
+      - export FRAMEWORK="mxnet"
       - python test/testrunner.py
   post_build:
     commands:
