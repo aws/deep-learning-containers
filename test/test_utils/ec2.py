@@ -43,7 +43,8 @@ def get_ec2_instance_type(default, processor, enable_p3dn=False):
 
 
 def launch_instance(
-    ami_id, instance_type, region=DEFAULT_REGION, user_data=None, iam_instance_profile_arn=None, instance_name="", ei_accelerator_type=None,
+        ami_id, instance_type, ec2_key_name=None, region=DEFAULT_REGION, user_data=None,
+        iam_instance_profile_name=None, instance_name="", ei_accelerator_type=None,
 ):
     """
     Launch an instance
@@ -74,7 +75,7 @@ def launch_instance(
     }
     if user_data:
         arguments_dict["UserData"] = user_data
-    if iam_instance_profile_arn:
+    if iam_instance_profile_name:
         arguments_dict["IamInstanceProfile"] = {"Name": iam_instance_profile_name}
     if ei_accelerator_type:
         arguments_dict["ElasticInferenceAccelerators"] = ei_accelerator_type

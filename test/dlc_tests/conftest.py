@@ -314,7 +314,7 @@ def pytest_generate_tests(metafunc):
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
-                        elif "eia_only" in metafunc.fixturenames and "cpu" in image:
+                        elif "eia_only" in metafunc.fixturenames and ("cpu" in image or "eia" in image):
                             images_to_parametrize.append(image)
                         elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames:
                             images_to_parametrize.append(image)
