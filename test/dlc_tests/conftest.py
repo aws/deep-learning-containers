@@ -29,7 +29,8 @@ FRAMEWORK_FIXTURES = (
     "training",
     "inference",
     "gpu",
-    "cpu"
+    "cpu",
+    "eia"
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
