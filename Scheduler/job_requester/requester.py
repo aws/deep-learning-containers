@@ -86,7 +86,11 @@ class JobRequester:
         self.ticket_name_counter += 1
         self.request_lock.release()
 
-        self.s3_client.put_object(Bucket=self.s3_ticket_bucket, Key=f"{self.s3_ticket_bucket_folder}/{ticket_name}")
+        self.s3_client.put_object(
+            ACL="bucket-owner-full-control",
+            Bucket=self.s3_ticket_bucket,
+            Key=f"{self.s3_ticket_bucket_folder}/{ticket_name}",
+        )
         S3_ticket_object = self.s3_resource.Object(
             self.s3_ticket_bucket, f"{self.s3_ticket_bucket_folder}/{ticket_name}"
         )
@@ -121,7 +125,10 @@ class JobRequester:
         :param ticket1, ticket2: <dict> S3 object descriptors from s3_client.list_objects
         :return: <bool>
         """
-        ticket1_timestamp, ticket2_timestamp = self.extract_timestamp(ticket1_name), self.extract_timestamp(ticket2_name)
+        ticket1_timestamp, ticket2_timestamp = (
+            self.extract_timestamp(ticket1_name),
+            self.extract_timestamp(ticket2_name),
+        )
         return ticket1_timestamp > ticket2_timestamp
 
     def construct_query_response(self, status, reason=None, queueNum=None):
