@@ -15,6 +15,7 @@ TENSORFLOW2_VERSION = "2."
 # TODO: Set enable_p3dn=True when releasing
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
+TF_EC2_EIA_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="eia")
 
 
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -26,6 +27,10 @@ def test_ec2_tenorflow_inference_gpu(tensorflow_inference, ec2_connection, regio
 def test_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, region, cpu_only):
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
+
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_EIA_INSTANCE_TYPE, indirect=True)
+def test_ec2_tensorflow_inference_eia(tensorflow_inference, ec2_connection, region, eia_only):
+    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
 def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")

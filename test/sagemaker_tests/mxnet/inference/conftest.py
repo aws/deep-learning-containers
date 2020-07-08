@@ -37,7 +37,7 @@ def pytest_addoption(parser):
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default=MXNet.LATEST_VERSION)
     parser.addoption('--py-version', default='3', choices=['2', '3', '2,3'])
-    parser.addoption('--processor', default='cpu', choices=['gpu', 'cpu', 'cpu,gpu'])
+    parser.addoption('--processor', default='cpu', choices=['gpu', 'cpu', 'cpu,gpu', 'eia'])
     parser.addoption('--aws-id', default=None)
     parser.addoption('--instance-type', default=None)
     parser.addoption('--accelerator-type', default=None)
