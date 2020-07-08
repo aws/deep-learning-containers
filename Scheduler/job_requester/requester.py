@@ -95,9 +95,12 @@ class JobRequester:
         )
         S3_ticket_object.put(Body=bytes(json.dumps(ticket_content).encode("UTF-8")))
         LOGGER.info("Put content successful")
-        # change object acl to make ticket accessible to dev account.
-        self.s3_client.put_object_acl(ACL="bucket-owner-full-control",Bucket=self.s3_ticket_bucket,
-            Key=f"{self.s3_ticket_bucket_folder}/{ticket_name}")
+        try:
+            # change object acl to make ticket accessible to dev account.
+            self.s3_client.put_object_acl(ACL="bucket-owner-full-control",Bucket=self.s3_ticket_bucket,
+                Key=f"{self.s3_ticket_bucket_folder}/{ticket_name}")
+        except Exception as e:
+            raise e
         LOGGER.info("configured object acl")
         LOGGER.info(f"object key: {self.s3_ticket_bucket_folder}/{ticket_name}")
         LOGGER.info(f"Ticket sent successfully, ticket name: {ticket_name}")
