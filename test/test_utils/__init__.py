@@ -374,7 +374,7 @@ def get_canary_images(framework, region):
     images = []
     next_token = 1
     for repo in repos:
-        response = client.describe_images(repositoryName=repo, maxResults=100)
+        response = client.describe_images(registryId=registry, repositoryName=repo, maxResults=100)
         while next_token:
             for image in response.get('imageDetails'):
                 for tag in image.get('imageTags'):
