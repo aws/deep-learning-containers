@@ -140,11 +140,15 @@ def send_scheduler_requests(requester, image):
     :param requester: JobRequester object
     :param image: <string> ECR URI
     """
+    LOGGER.info(f"scheduler requests function invoked, image: {image}")
     identifier = requester.send_request(image, "PR", 1)
     image_tag = image.split(":")[-1]
     report_path = os.path.join(os.getcwd(), "test", f"{image_tag}.xml")
+    LOGGER.info(f"report path: {report_path}")
     while True:
-        query_status_response = requester.query_status()
+        LOGGER.info(f"Querying status....")
+        query_status_response = requester.query_status(identifier)
+        print(query_status_response)
         test_status = query_status_response["status"]
         if test_status == "completed":
             logs_response = requester.receive_logs(identifier)
@@ -174,6 +178,7 @@ def run_sagemaker_tests(images):
     executor_mode = os.getenv("EXECUTOR_MODE", "False")
 
     if executor_mode.lower() == "true":
+        LOGGER.info("entered executor mode.")
         import log_return
 
         num_of_instances = os.getenv("NUM_INSTANCES")
@@ -193,6 +198,7 @@ def run_sagemaker_tests(images):
         return
 
     if use_scheduler.lower() == "true":
+        LOGGER.info("entered scheduler mode.")
         import concurrent.futures
         from job_requester import JobRequester
 

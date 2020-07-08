@@ -77,7 +77,7 @@ class JobRequester:
         :param ticket_content: <dict> content of the ticket
         :return: <string> name of the ticket
         """
-
+        LOGGER.info("send ticket is invoked")
         # ticket name: {CB source version}-{ticket name counter}_(datetime string)
         ticket_name_prefix = self.get_ticket_name_prefix()
         request_time = ticket_content["TIMESTAMP"]
@@ -91,7 +91,7 @@ class JobRequester:
             self.s3_ticket_bucket, f"{self.s3_ticket_bucket_folder}/{ticket_name}"
         )
         S3_ticket_object.put(Body=bytes(json.dumps(ticket_content).encode("UTF-8")))
-
+        LOGGER.info(f"Ticket sent successfully, ticket name: {ticket_name}")
         return ticket_name
 
     def assign_sagemaker_instance_type(self, image):
@@ -244,7 +244,7 @@ class JobRequester:
 
         for _ in range(retries):
             # check if ticket is on the queue
-
+            ticket_objects = self.s3_client.list_objects(Bucket=self.s3_ticket_bucket, Prefix="request_tickets/")
             # "Contents" in the API response only if there are objects satisfy the prefix
             if "Contents" in ticket_objects:
                 ticket_name_pattern = re.compile(".*\/(.*)")
