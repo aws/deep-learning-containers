@@ -204,7 +204,7 @@ def run_sagemaker_tests(images):
 
         job_requester = JobRequester()
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(images)) as executor:
-            executor.map(send_scheduler_requests, [(job_requester, image) for image in images])
+            [executor.submit(send_scheduler_requests, job_requester, image) for image in images]
 
     else:
         if not images:

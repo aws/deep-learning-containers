@@ -114,15 +114,14 @@ class JobRequester:
         """
         return re.match(r".*_(\d{4}(-\d{2}){5})\.json", ticket_key).group(1)
 
-    def ticket_timestamp_cmp_function(self, ticket1, ticket2):
+    def ticket_timestamp_cmp_function(self, ticket1_name, ticket2_name):
         """
         Compares the timestamp of the two request tickets
 
         :param ticket1, ticket2: <dict> S3 object descriptors from s3_client.list_objects
         :return: <bool>
         """
-        ticket1_key, ticket2_key = ticket1["Key"], ticket2["Key"]
-        ticket1_timestamp, ticket2_timestamp = self.extract_timestamp(ticket1_key), self.extract_timestamp(ticket2_key)
+        ticket1_timestamp, ticket2_timestamp = self.extract_timestamp(ticket1_name), self.extract_timestamp(ticket2_name)
         return ticket1_timestamp > ticket2_timestamp
 
     def construct_query_response(self, status, reason=None, queueNum=None):
