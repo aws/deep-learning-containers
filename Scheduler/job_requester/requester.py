@@ -89,12 +89,15 @@ class JobRequester:
             Bucket=self.s3_ticket_bucket,
             Key=f"{self.s3_ticket_bucket_folder}/{ticket_name}",
         )
+        LOGGER.info("put object successful")
         S3_ticket_object = self.s3_resource.Object(
             self.s3_ticket_bucket, f"{self.s3_ticket_bucket_folder}/{ticket_name}"
         )
         S3_ticket_object.put(Body=bytes(json.dumps(ticket_content).encode("UTF-8")))
+        LOGGER.info("Put content successful")
         self.s3_client.put_object_acl(ACL="bucket-owner-full-control",Bucket=self.s3_ticket_bucket,
-            Key=f"{self.s3_ticket_bucket_folder}/{ticket_name}",)
+            Key=f"{self.s3_ticket_bucket_folder}/{ticket_name}")
+        LOGGER.info("configured object acl")
         LOGGER.info(f"Ticket sent successfully, ticket name: {ticket_name}")
         return ticket_name
 
