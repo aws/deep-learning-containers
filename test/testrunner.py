@@ -252,7 +252,11 @@ def setup_sm_benchmark_env(dlc_images, test_path):
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
-    dlc_images = get_dlc_images()
+    executor_mode = os.getenv("EXECUTOR_MODE", "False")
+    if executor_mode.lower() == "true":
+        dlc_images = os.getenv("DLC_IMAGE")
+    else:
+        dlc_images = get_dlc_images()
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
