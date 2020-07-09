@@ -123,6 +123,10 @@ def main():
                 )
             framework = frameworks_in_images[0]
             eks_cluster_name = setup_eks_cluster(framework)
+
+            #setup kubeflow
+            eks_utils.setup_kubeflow(eks_cluster_name)
+            
             # Split training and inference, and run one after the other, to prevent scheduling issues
             # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in
             # pods timing-out while they were in the Pending state. Scheduling 4 tests (and hence, 4 pods) at once
