@@ -35,7 +35,6 @@ phases:
       - echo Build step finished on `date`
       - echo Starting test jobs
       - python src/start_testbuilds.py
-      - printenv
 artifacts:
   files:
     - $HOME/test_type_images.json
