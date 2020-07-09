@@ -64,7 +64,7 @@ def launch_instance(
 
     # Construct the dictionary with the arguments for API call
     arguments_dict = {
-        "KeyName": ec2_key_name,
+        "KeyName": "sgollapr_dlcontainers_infra.pem",
         "ImageId": ami_id,
         "InstanceType": instance_type,
         "MaxCount": 1,

@@ -193,12 +193,14 @@ def execute_local_tests(image, ec2_client):
     print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
-    ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
+    # ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
+    ec2_key_name = "sgollapr_dlcontainers_infra.pem"
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     try:
-        key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
+        # key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
+        key_file = "sgollapr_dlcontainers_infrapem.pem"
         print(f"Launching new Instance for image: {image}")
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, UBUNTU_16_BASE_DLAMI, ec2_key_name, region)
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
