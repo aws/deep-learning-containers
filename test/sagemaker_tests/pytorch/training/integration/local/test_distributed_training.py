@@ -17,8 +17,8 @@ import os
 import pytest
 from sagemaker.pytorch import PyTorch
 
-from test.integration import data_dir, dist_operations_path, mnist_script, ROLE
-from test.utils.local_mode_utils import assert_files_exist
+from ...integration import data_dir, dist_operations_path, mnist_script, ROLE
+from ...utils.local_mode_utils import assert_files_exist
 
 MODEL_SUCCESS_FILES = {
     'model': ['success'],

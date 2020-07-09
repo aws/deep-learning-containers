@@ -13,8 +13,6 @@ def test_binary_visibility(image: str):
     This will mandate specifying all public links as ones beginning with 'https://'. While s3 objects beginning with
     'https://' may still be private, codebuild 'build' job uses 'curl' i.e. unsigned request to fetch them and hence should
     fail if an 'https://' link is still private
-    :param image:
-    :return:
     """
     ctx = Context()
     labels = json.loads(ctx.run("docker inspect --format='{{json .Config.Labels}}' " + image).stdout.strip())
