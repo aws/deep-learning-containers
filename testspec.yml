@@ -8,7 +8,6 @@ phases:
     commands:
       - start-dockerd
       - pip install -r src/requirements.txt
-      - python src/send_status.py --status 2
   build:
     commands:
       - echo Logging in to Amazon ECR...
@@ -19,7 +18,7 @@ phases:
       - python test/testrunner.py
   post_build:
     commands:
-      - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
+      - echo finishing tests...
 reports:
   test_reports:
     files:
