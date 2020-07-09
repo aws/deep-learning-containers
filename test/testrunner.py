@@ -146,11 +146,10 @@ def send_scheduler_requests(requester, image):
     report_path = os.path.join(os.getcwd(), "test", f"{image_tag}.xml")
     LOGGER.info(f"report path: {report_path}")
     while True:
-        LOGGER.info(f"Querying status....")
         query_status_response = requester.query_status(identifier)
-        print(query_status_response)
         test_status = query_status_response["status"]
         if test_status == "completed":
+            LOGGER.info(f"Test for image {image} completed.")
             logs_response = requester.receive_logs(identifier)
             with open(report_path, "w") as xml_report:
                 xml_report.write(logs_response["XML_REPORT"])
