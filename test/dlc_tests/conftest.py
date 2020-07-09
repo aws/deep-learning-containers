@@ -323,7 +323,7 @@ def get_marker_arg_value(item_obj, marker_name, default=None):
 
     :param item_obj: pytest item object
     :param marker_name: name of the pytest marker
-    :param default: default return value -- if none,
+    :param default: default return value -- if None, assume this is a required marker
     :return: First arg value for the marker or the default value
     """
     markers = [mark for mark in item_obj.iter_markers(name=marker_name)]
