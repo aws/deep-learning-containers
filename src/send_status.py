@@ -57,6 +57,10 @@ def post_status(state):
 
     :param state: <str> choices are "success", "failure", "error" or "pending"
     """
+    # Executor does not send logs to GitHub when using the Scheduler
+    if os.getenv("EXECUTOR_MODE", "False").lower() == "true":
+        return
+
     project_name = utils.get_codebuild_project_name()
     trigger_job = os.getenv("TEST_TRIGGER", "UNKNOWN-TEST-TRIGGER")
     target_url = get_target_url(project_name)
