@@ -147,7 +147,7 @@ def main():
                 eks_utils.delete_eks_cluster(eks_cluster_name)
 
             # Delete dangling EC2 KeyPairs
-            if specific_test_type == "ec2" and os.path.exists(KEYS_TO_DESTROY_FILE):
+            if os.path.exists(KEYS_TO_DESTROY_FILE):
                 with open(KEYS_TO_DESTROY_FILE) as key_destroy_file:
                     for key_file in key_destroy_file:
                         LOGGER.info(key_file)
