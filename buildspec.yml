@@ -17,10 +17,18 @@ phases:
       - echo Build started on `date`
       - echo Building the Docker image...
       - |
-        if expr "${CODEBUILD_BUILD_ARN}" : ".*tensorflow-1" >/dev/null; then
-          python src/main.py --buildspec $FRAMEWORK/buildspec-tf1-ei.yml --framework $FRAMEWORK
+        if expr "${CODEBUILD_BUILD_ARN}" : ".*eia" >/dev/null; then
+          if expr "${CODEBUILD_BUILD_ARN}" : ".*tensorflow-1" >/dev/null; then
+            python src/main.py --buildspec $FRAMEWORK/buildspec-tf1-eia.yml --framework $FRAMEWORK
+          else
+            python src/main.py --buildspec $FRAMEWORK/buildspec-eia.yml --framework $FRAMEWORK
+          fi
         else
-          python src/main.py --buildspec $FRAMEWORK/buildspec-ei.yml --framework $FRAMEWORK
+          if expr "${CODEBUILD_BUILD_ARN}" : ".*tensorflow-1" >/dev/null; then
+            python src/main.py --buildspec $FRAMEWORK/buildspec-tf1.yml --framework $FRAMEWORK
+          else
+            python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK
+          fi
         fi
   post_build:
     commands:

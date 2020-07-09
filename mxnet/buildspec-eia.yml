@@ -1,8 +1,8 @@
   account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
   region: &REGION <set-$REGION-in-environment>
-  framework: &FRAMEWORK tensorflow
-  version: &VERSION 1.15.0
-  os_version: &OS_VERSION ubuntu18.04
+  framework: &FRAMEWORK mxnet
+  version: &VERSION 1.5.1
+  os_version: &OS_VERSION ubuntu16.04
 
   repository_info:
     inference_repository: &INFERENCE_REPOSITORY
@@ -12,35 +12,32 @@
         repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
   context:
+    deep_learning_container.py:
+      source: docker/artifacts/deep_learning_container.py
+      target: deep_learning_container.py
     inference_context: &INFERENCE_CONTEXT
-      sagemaker_package_name:
-        source: docker/build_artifacts/sagemaker
-        target: sagemaker
-      deep_learning_container:
-        source: docker/build_artifacts/deep_learning_container.py
-        target: deep_learning_container.py
-      init:
-        source: docker/build_artifacts/__init__.py
-        target: __init__.py
-      dockerd-entrypoint:
-        source: docker/build_artifacts/dockerd-entrypoint.py
-        target: dockerd-entrypoint.py
+      config:
+        source: docker/artifacts/config.properties
+        target: config.properties
+      entrypoint:
+        source: docker/artifacts/mms-entrypoint.py
+        target:  mms-entrypoint.py
 
   images:
-    BuildEIATFInferencePy3DockerImage:
+    BuildEIAMXNetInferencePy3DockerImage:
       <<: *INFERENCE_REPOSITORY
-      build: &TENSORFLOW_EIA_INFERENCE_PY3 false
+      build: &MXNET_CPU_INFERENCE_PY3 false
       image_size_baseline: 5000
       device_type: &DEVICE_TYPE eia
       python_version: &DOCKER_PYTHON_VERSION py3
       tag_python_version: &TAG_PYTHON_VERSION py36
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
-      docker_file: !join [ docker/, *VERSION, /, *TAG_PYTHON_VERSION, /Dockerfile., eia ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., eia ]
       context:
         <<: *INFERENCE_CONTEXT
-    BuildEIATFInferencePy2DockerImage:
+    BuildEIAMXNetInferencePy2DockerImage:
       <<: *INFERENCE_REPOSITORY
-      build: &TENSORFLOW_EIA_INFERENCE_PY2 false
+      build: &MXNET_CPU_INFERENCE_PY2 false
       image_size_baseline: 5000
       device_type: &DEVICE_TYPE eia
       python_version: &DOCKER_PYTHON_VERSION py2

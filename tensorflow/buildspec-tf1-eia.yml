@@ -1,7 +1,7 @@
   account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK tensorflow
-  version: &VERSION 2.0.0
+  version: &VERSION 1.15.0
   os_version: &OS_VERSION ubuntu18.04
 
   repository_info:
@@ -29,7 +29,7 @@
   images:
     BuildEIATFInferencePy3DockerImage:
       <<: *INFERENCE_REPOSITORY
-      build: &TENSORFLOW_EIA_INFERENCE_PY3 false
+      build: &TENSORFLOW_CPU_INFERENCE_PY3 false
       image_size_baseline: 5000
       device_type: &DEVICE_TYPE eia
       python_version: &DOCKER_PYTHON_VERSION py3
@@ -40,7 +40,7 @@
         <<: *INFERENCE_CONTEXT
     BuildEIATFInferencePy2DockerImage:
       <<: *INFERENCE_REPOSITORY
-      build: &TENSORFLOW_EIA_INFERENCE_PY2 false
+      build: &TENSORFLOW_CPU_INFERENCE_PY2 false
       image_size_baseline: 5000
       device_type: &DEVICE_TYPE eia
       python_version: &DOCKER_PYTHON_VERSION py2
