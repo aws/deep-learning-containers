@@ -215,9 +215,9 @@ def execute_local_tests(image, ec2_client):
             ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
     finally:
         print(f"Terminating Instances for image: {image}")
-        ec2_utils.terminate_instance(instance_id, region)
+        # ec2_utils.terminate_instance(instance_id, region)
         print(f"Destroying ssh Key_pair for image: {image}")
-        destroy_ssh_keypair(ec2_client, ec2_key_name)
+        # destroy_ssh_keypair(ec2_client, ec2_key_name)
 
 
 def execute_sagemaker_remote_tests(image):
