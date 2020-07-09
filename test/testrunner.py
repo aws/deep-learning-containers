@@ -113,6 +113,7 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
     """
     import log_return
 
+    LOGGER.info("Started running SageMaker test.....")
     pytest_command, path, tag = generate_sagemaker_pytest_cmd(image)
     job_type = "training" if "training" in image else "inference"
     # update resource pool accordingly, then add a try-catch statement here to update the pool in case of failure
