@@ -51,6 +51,9 @@ SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
 
+# Test coverage file name
+TEST_COVERAGE_FILE = "test_coverage_report.csv"
+
 
 def is_tf1(image_uri):
     if "tensorflow" not in image_uri:

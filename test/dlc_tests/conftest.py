@@ -237,6 +237,7 @@ def pytest_runtest_setup(item):
 
 def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
+        test_coverage_file = test_utils.TEST_COVERAGE_FILE
         test_cov = {}
         for item in items:
             # Define additional csv options
@@ -280,7 +281,7 @@ def pytest_collection_modifyitems(session, config, items):
                                             "Model": get_marker_arg_value(item, "model", model),
                                             "Github_Link": github_link,
                                            }
-        with open("test_coverage_report.csv", "w+") as tmp_file:
+        with open(test_coverage_file, "w+") as tc_file:
             # Assemble the list of headers from one item in the dictionary
             field_names = []
             for _key, header in test_cov.items():
@@ -288,7 +289,7 @@ def pytest_collection_modifyitems(session, config, items):
                     field_names.append(field_name)
                 break
 
-            writer = csv.DictWriter(tmp_file, delimiter=",", fieldnames=field_names)
+            writer = csv.DictWriter(tc_file, delimiter=",", fieldnames=field_names)
             writer.writeheader()
 
             for _func_key, info in test_cov.items():
