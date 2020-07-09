@@ -211,3 +211,4 @@ def test_invalid_model_version():
     code, res = make_load_model_request(json.dumps(invalid_model_version_data))
     assert code == 404
     assert 'Could not find valid base path {} for servable {}'.format(base_path, model_name) in str(res)
+
