@@ -320,7 +320,7 @@ def eks_setup():
     )
 
     kfctl_download_command = (
-        f"curl --silent --location https://github.com/kubeflow/kfctl/releases/download/{KFCTL_VERSION}/kfctl_{KFCTL_VERSION}-0-ga476281_linux.tar.gz"
+        f"curl --silent --location https://github.com/kubeflow/kfctl/releases/download/{KFCTL_VERSION}/kfctl_{KFCTL_VERSION}-0-ga476281_linux.tar.gz "
         f"-o /tmp/kfctl_{KFCTL_VERSION}_linux.tar.gz"
     )
 

@@ -199,11 +199,6 @@ def _run_eks_multi_node_training_mpijob(namespace, job_name, remote_yaml_file_pa
         LOGGER.info("Check pods")
         run(f"kubectl get pods -n {namespace} -o wide")
 
-        LOGGER.info(
-            "First the mpi-operator and the n-worker pods will be created and then "
-            "the launcher pod is created in the end. Use retries until launcher "
-            "pod's name is available to read logs."
-        )
         complete_pod_name = eks_utils.is_mpijob_launcher_pod_ready(namespace, job_name)
 
         _, pod_name = complete_pod_name.split("/")
