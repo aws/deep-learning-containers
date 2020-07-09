@@ -248,8 +248,14 @@ def pytest_collection_modifyitems(session, config, items):
             # Based on keywords and filepaths, assign values
             scope = infer_field_value("all", ("mxnet", "tensorflow", "pytorch"), str_fspath)
             train_inf = infer_field_value("both", ("training", "inference"), str_fspath, str_keywords)
-            integration = infer_field_value("general integration", ("_dgl_", "_smdebug_", "_gluonnlp_"), str_keywords)
-            model = infer_field_value("N/A", ("mnist", "densenet"), str_keywords)
+            integration = infer_field_value("general integration",
+                                            ("_dgl_", "smdebug", "gluonnlp", "smexperiments", "_mme_", "pipemode",
+                                             "tensorboard", "_s3_"),
+                                            str_keywords)
+            model = infer_field_value("N/A",
+                                      ("mnist", "densenet", "squeezenet", "half_plus_two", "half_plus_three"),
+                                      str_keywords)
+            num_instances = infer_field_value(1, ("_multinode_", "_multi-node_"), str_fspath, str_keywords)
             cpu_gpu = infer_field_value("all", ("cpu", "gpu", "eia"), str_keywords)
             if cpu_gpu == "gpu":
                 if "p2.xlarge" in str_keywords:
@@ -268,7 +274,7 @@ def pytest_collection_modifyitems(session, config, items):
                                             "Name": function_name,
                                             "Scope": scope,
                                             "Job_Type": train_inf,
-                                            "Num_Instances": get_marker_arg_value(item, "multinode", 1),
+                                            "Num_Instances": get_marker_arg_value(item, "multinode", num_instances),
                                             "Processor": cpu_gpu,
                                             "Integration": get_marker_arg_value(item, "integration", integration),
                                             "Model": get_marker_arg_value(item, "model", model),
