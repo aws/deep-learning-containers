@@ -6,6 +6,7 @@ import sys
 
 import boto3
 from botocore.config import Config
+from botocore.exceptions import ClientError
 import docker
 from fabric import Connection
 import pytest
@@ -30,7 +31,10 @@ FRAMEWORK_FIXTURES = (
     "inference",
     "gpu",
     "cpu",
-    "eia"
+    "eia",
+    "pytorch_eia",
+    "mxnet_eia",
+    "tensorflow_eia"
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -104,15 +108,15 @@ def ei_accelerator_type(request):
 @pytest.fixture(scope="function")
 def ec2_instance(
         request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami,
-        region,ei_accelerator_type=None
+        region,ei_accelerator_type
 ):
     print(f"Creating instance: CI-CD {ec2_key_name}")
     #debugging statement will be removed later
-    LOGGER.info(f"Request details {request.param, request.fixturenames, region, ei_accelerator_type }")
-    print(request.param)
+    LOGGER.info(f"Request details {request.fixturenames, region, ei_accelerator_type }")
     print(request.fixturenames)
     print(region)
     print(ei_accelerator_type)
+    print(ec2_instance_ami,ec2_instance_role_name,ec2_instance_type,ec2_client)
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
     params = {
         "KeyName": ec2_key_name,
@@ -136,16 +140,15 @@ def ec2_instance(
                 'Count': 1
             }
         ]
-        availability_zones = {"us-west": ["us-west-2a", "us-west-2b", "us-west-2c"],
-                              "us-east": ["us-east-1a", "us-east-1b", "us-east-1c"]}
-        res = {}
+        availability_zones = {"us-west-2": ["us-west-2a", "us-west-2b", "us-west-2c"],
+                              "us-east-1": ["us-east-1a", "us-east-1b", "us-east-1c"]}
         for a_zone in availability_zones[region]:
             params["Placement"] = {
                 'AvailabilityZone': a_zone
             }
             try:
-                instances = ec2_client.run_instances(**params)
-                if res and len(res['Instances']) >= 1:
+                instances = ec2_resource.create_instances(**params)
+                if instances:
                     break
             except ClientError as e:
                 print(f"Failed to launch in AZ {a_zone} with Error: {e}")
@@ -303,22 +306,29 @@ def pytest_generate_tests(metafunc):
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
+            #print(fixture, metafunc.fixturenames, FRAMEWORK_FIXTURES)
             lookup = fixture.replace("_", "-")
             images_to_parametrize = []
             for image in images:
+                #print(image)
+                #print(lookup)
                 if lookup in image:
+                    print(image)
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
                     if is_example_lookup or is_standard_lookup:
+                        #print("yes")
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
                         elif "eia_only" in metafunc.fixturenames and ("cpu" in image or "eia" in image):
+                            print("okay")
+                            #print(image)
                             images_to_parametrize.append(image)
-                        elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames:
+                        elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames and "eia_only" not in metafunc.fixturenames:
                             images_to_parametrize.append(image)
-
+                        print(images_to_parametrize)
             # Remove all images tagged as "py2" if py3_only is a fixture
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
                 images_to_parametrize = [py3_image for py3_image in images_to_parametrize if "py2" not in py3_image]
