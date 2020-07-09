@@ -21,6 +21,7 @@ TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p2.xlarge", processor=
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 
 
+@pytest.mark.integration('general_tensorflow')
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_standalone_gpu(tensorflow_training, ec2_connection, gpu_only):
     test_script = TF1_STANDALONE_CMD if is_tf1(tensorflow_training) else TF2_STANDALONE_CMD
@@ -33,6 +34,7 @@ def test_tensorflow_standalone_cpu(tensorflow_training, ec2_connection, cpu_only
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
 
+@pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)

@@ -1,5 +1,6 @@
 import datetime
 import os
+import csv
 import logging
 import random
 import sys
@@ -43,6 +44,9 @@ def pytest_addoption(parser):
     )
     parser.addoption(
         "--canary", action="store_true", default=False, help="Run canary tests",
+    )
+    parser.addoption(
+        "--generate-coverage-doc", action="store_true", default=False, help="Generate a test coverage doc",
     )
 
 
@@ -213,6 +217,15 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "canary(message): mark test to run as a part of canary tests."
     )
+    config.addinivalue_line(
+        "markers", "integration(ml_integration): mark what the test is testing."
+    )
+    config.addinivalue_line(
+        "markers", "model(model_name): The name of the pytest model being tested"
+    )
+    config.addinivalue_line(
+        "markers", "multinode(num_instances): The number of instances the test is run on"
+    )
 
 
 def pytest_runtest_setup(item):
@@ -222,10 +235,105 @@ def pytest_runtest_setup(item):
             pytest.skip("Skipping non-canary tests")
 
 
+def pytest_collection_modifyitems(session, config, items):
+    if config.getoption("--generate-coverage-doc"):
+        test_cov = {}
+        for item in items:
+            # Define additional csv options
+            function_name = item.name.split("[")[0]
+            function_key = f"{item.fspath}::{function_name}"
+            str_fspath = str(item.fspath)
+            str_keywords = str(item.keywords)
+
+            # Based on keywords and filepaths, assign values
+            scope = infer_field_value("all", ("mxnet", "tensorflow", "pytorch"), str_fspath)
+            train_inf = infer_field_value("both", ("training", "inference"), str_fspath, str_keywords)
+            integration = infer_field_value("general integration", ("_dgl_", "_smdebug_", "_gluonnlp_"), str_keywords)
+            model = infer_field_value("N/A", ("mnist", "densenet"), str_keywords)
+            cpu_gpu = infer_field_value("all", ("cpu", "gpu", "eia"), str_keywords)
+            if cpu_gpu == "gpu":
+                if "p2.xlarge" in str_keywords:
+                    cpu_gpu = "single_gpu"
+
+            # Construct Category and Github_Link fields based on the filepath
+            category = str_fspath.split('/dlc_tests/')[-1].split('/')[0]
+            github_link = f"https://github.com/aws/deep-learning-containers/blob/master/" \
+                          f"{str_fspath.split('/deep-learning-containers/')[-1]}"
+
+            # Create a new test coverage item if we have not seen the function before. This is a necessary step,
+            # as parametrization can make it appear as if the same test function is a unique test function
+            if not test_cov.get(function_key):
+                test_cov[function_key] = {
+                                            "Category": category,
+                                            "Name": function_name,
+                                            "Scope": scope,
+                                            "Job_Type": train_inf,
+                                            "Num_Instances": get_marker_arg_value(item, "multinode", 1),
+                                            "Processor": cpu_gpu,
+                                            "Integration": get_marker_arg_value(item, "integration", integration),
+                                            "Model": get_marker_arg_value(item, "model", model),
+                                            "Github_Link": github_link,
+                                           }
+        with open("test_coverage_report.csv", "w+") as tmp_file:
+            # Assemble the list of headers from one item in the dictionary
+            field_names = []
+            for _key, header in test_cov.items():
+                for field_name, _value in header.items():
+                    field_names.append(field_name)
+                break
+
+            writer = csv.DictWriter(tmp_file, delimiter=",", fieldnames=field_names)
+            writer.writeheader()
+
+            for _func_key, info in test_cov.items():
+                writer.writerow(info)
+
+
+class RequiredMarkerNotFound(Exception):
+    pass
+
+
+def infer_field_value(default, options, *comparison_str):
+    """
+    For a given test coverage report field, determine the value based on whether the options are in keywords or
+    file paths.
+
+    :param default: default return value if the field is not found
+    :param options: tuple of possible options -- i.e. ("training", "inference")
+    :param comparison_str: keyword string, filepath string
+    :return: field value <str>
+    """
+    for comp in comparison_str:
+        for option in options:
+            if option in comp:
+                return option.strip("_")
+    return default
+
+
+def get_marker_arg_value(item_obj, marker_name, default=None):
+    """
+    Function to return the argument value of a pytest marker -- if it does not exist, fall back to a default.
+    If the default does not exist and the option does not exist, raise an error.
+
+    :param item_obj: pytest item object
+    :param marker_name: name of the pytest marker
+    :param default: default return value -- if none,
+    :return: First arg value for the marker or the default value
+    """
+    markers = [mark for mark in item_obj.iter_markers(name=marker_name)]
+    if not markers:
+        if not default:
+            raise RequiredMarkerNotFound(f"PyTest Marker {marker_name} is required on function {item_obj.name}")
+        return default
+    else:
+        return markers[0].args[0]
+
+
 def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, values_to_generate_for_fixture):
     """
     Take a dictionary (values_to_generate_for_fixture), that maps a fixture name used in a test function to another
     fixture that needs to be parametrized, and parametrize to create unique resources for a test.
+
     :param metafunc_obj: pytest metafunc object
     :param images_to_parametrize: <list> list of image URIs which are used in a test
     :param values_to_generate_for_fixture: <dict> Mapping of "Fixture used" -> "Fixture to be parametrized"
