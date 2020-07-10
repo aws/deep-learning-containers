@@ -218,7 +218,7 @@ class JobRequester:
             ticket_body = json.loads(ticket_object["Body"].read().decode("utf-8"))
             LOGGER.info("Ticket content successfully loaded.")
             return ticket_body["LOGS"]
-g
+
         return None
 
     def cancel_request(self, identifier):
