@@ -5,6 +5,7 @@ import boto3
 from retrying import retry
 from fabric import Connection
 from botocore.config import Config
+from botocore.exceptions import ClientError
 
 from . import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
 
@@ -43,8 +44,8 @@ def get_ec2_instance_type(default, processor, enable_p3dn=False):
 
 
 def launch_instance(
-        ami_id, instance_type, ec2_key_name=None, region=DEFAULT_REGION, user_data=None,
-        iam_instance_profile_name=None, instance_name="", ei_accelerator_type=None,
+        ami_id, instance_type, ei_accelerator_type, ec2_key_name=None, region=DEFAULT_REGION, user_data=None,
+        iam_instance_profile_name=None, instance_name=""
 ):
     """
     Launch an instance
@@ -81,14 +82,13 @@ def launch_instance(
         arguments_dict["ElasticInferenceAccelerators"] = ei_accelerator_type
         availability_zones = {"us-west": ["us-west-2a", "us-west-2b", "us-west-2c"],
                               "us-east": ["us-east-1a", "us-east-1b", "us-east-1c"]}
-        res = {}
         for a_zone in availability_zones[region]:
             arguments_dict["Placement"] = {
                 'AvailabilityZone': a_zone
             }
             try:
-                response = res = client.run_instances(**arguments_dict)
-                if res and len(res['Instances']) >= 1:
+                response = client.run_instances(**arguments_dict)
+                if response and len(response['Instances']) >= 1:
                     break
             except ClientError as e:
                 print(f"Failed to launch in AZ {a_zone} with Error: {e}")

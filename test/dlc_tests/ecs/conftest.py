@@ -2,19 +2,25 @@ import time
 
 import pytest
 import boto3
+from botocore.exceptions import ClientError
 
 from test import test_utils
 import test.test_utils.ecs as ecs_utils
 
 
 @pytest.fixture(scope="session")
-def ecs_client():
-    return boto3.client("ecs")
+def ecs_client(region):
+    return boto3.client("ecs", region_name=region)
 
 
 @pytest.fixture(scope="function")
 def ecs_cluster_name(request):
     return request.param
+
+
+@pytest.fixture(scope="function")
+def ei_accelerator_type(request):
+    return request.param if hasattr(request, "param") else None
 
 
 @pytest.mark.timeout(300)
@@ -79,7 +85,7 @@ def ecs_instance_type(request):
 
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
-def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_instance_type, ecs_ami):
+def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_instance_type, ecs_ami, region, ei_accelerator_type):
     """
     Fixture to handle spin up and tear down of ECS container instance
 
@@ -98,26 +104,41 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_ins
 
     user_data = f"#!/bin/bash\necho ECS_CLUSTER={ecs_cluster} >> /etc/ecs/ecs.config"
 
-    instances = ec2_client.run_instances(
-        KeyName="pytest.pem",
-        ImageId=image_id,
-        InstanceType=instance_type,
-        MaxCount=1,
-        MinCount=1,
-        UserData=user_data,
-        IamInstanceProfile={"Name": "ecsInstanceRole"},
-        TagSpecifications=[
+    params = {
+        "KeyName": "pytest.pem",
+        "ImageId": image_id,
+        "InstanceType": instance_type,
+        "UserData": user_data,
+        "IamInstanceProfile": {"Name": "ecsInstanceRole"},
+        "TagSpecifications": [
+            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD ecs worker {cluster_name}"}]},
+        ],
+        "MaxCount": 1,
+        "MinCount": 1,
+    }
+    if ei_accelerator_type:
+        params["ElasticInferenceAccelerators"] = [
             {
-                "ResourceType": "instance",
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": f"CI-CD ecs worker {cluster_name}"
-                    }
-                ]
+                'Type': ei_accelerator_type,
+                'Count': 1
             }
         ]
-    )
+        availability_zones = {"us-west-2": ["us-west-2a", "us-west-2b", "us-west-2c"],
+                              "us-east-1": ["us-east-1a", "us-east-1b", "us-east-1c"]}
+        for a_zone in availability_zones[region]:
+            params["Placement"] = {
+                'AvailabilityZone': a_zone
+            }
+            print(params["Placement"])
+            try:
+                instances = ec2_client.run_instances(**params)
+                if instances:
+                    break
+            except ClientError as e:
+                print(f"Failed to launch in AZ {a_zone} with Error: {e}")
+                continue
+    else:
+        instances = ec2_client.run_instances(**params)
     instance_id = instances.get("Instances")[0].get("InstanceId")
 
     # Define finalizer to terminate instance after this fixture completes
