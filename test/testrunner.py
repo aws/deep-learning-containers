@@ -60,8 +60,6 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
     LOGGER.info("Started running SageMaker test.....")
     pytest_command, path, tag, job_type = sm_utils.generate_sagemaker_pytest_cmd(image, "sagemaker")
 
-    # job_type = "training" if "training" in image else "inference"
-
     # update resource pool accordingly, then add a try-catch statement here to update the pool in case of failure
     try:
         log_return.update_pool("running", instance_type, num_of_instances, job_type)
@@ -70,7 +68,7 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
             context.run(f"python3 -m virtualenv {tag}")
             with context.prefix(f"source {tag}/bin/activate"):
                 context.run("pip install -r requirements.txt", warn=True)
-                # context.run(pytest_command)
+                context.run(pytest_command)
     except Exception as e:
         LOGGER.error(e)
         return False
@@ -82,24 +80,22 @@ def send_scheduler_requests(requester, image):
     """
     Send a PR test request through the requester, and wait for the response.
     If test completed or encountered runtime error, create local XML reports.
-    Otherwise the test failed due to scheduling failure, print the failure reason.
+    Otherwise the test failed, print the failure reason.
 
     :param requester: JobRequester object
     :param image: <string> ECR URI
     """
-    LOGGER.info(f"scheduler requests function invoked, image: {image}")
     identifier = requester.send_request(image, "PR", 1)
     image_tag = image.split(":")[-1]
     report_path = os.path.join(os.getcwd(), "test", f"{image_tag}.xml")
-    LOGGER.info(f"report path: {report_path}")
     while True:
         query_status_response = requester.query_status(identifier)
         test_status = query_status_response["status"]
         if test_status == "completed":
             LOGGER.info(f"Test for image {image} completed.")
             logs_response = requester.receive_logs(identifier)
-            LOGGER.info(f"Receive logs success for ticket {identifier.ticket_name}")
-            LOGGER.info(f"Report path: {report_path}")
+            LOGGER.info(f"Receive logs success for ticket {identifier.ticket_name}, report path: {report_path}")
+
             with open(report_path, "w") as xml_report:
                 xml_report.write(logs_response["XML_REPORT"])
             LOGGER.info("Write XML report success, exiting...")

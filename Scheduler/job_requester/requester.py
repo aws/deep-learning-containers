@@ -210,12 +210,12 @@ class JobRequester:
             Prefix=f"resource_pool/{identifier.instance_type}-{identifier.job_type}/{ticket_name_without_extension}",
         )
         ticket_prefix = f"resource_pool/{identifier.instance_type}-{identifier.job_type}/{ticket_name_without_extension}"
-        LOGGER.info(f"Receive Logs called, ticket prefix: {ticket_prefix}")
+
         if "Contents" in objects:
             entry = objects["Contents"][0]
             ticket_object = self.s3_client.get_object(Bucket="dlc-test-tickets", Key=entry["Key"])
             ticket_body = json.loads(ticket_object["Body"].read().decode("utf-8"))
-            LOGGER.info("Ticket content successfully loaded.")
+
             return ticket_body["LOGS"]
 
         return None
