@@ -29,7 +29,7 @@ def test_ecs_tensorflow_inference_cpu(tensorflow_inference, ecs_container_instan
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", ["eia1.large"], indirect=True)
-def test_ecs_tensorflow_inference_eia(tensorflow_inference, ecs_container_instance, region, eia_only):
+def test_ecs_tensorflow_inference_eia(tensorflow_eia, ecs_container_instance, region, eia_only):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
 
@@ -37,7 +37,7 @@ def test_ecs_tensorflow_inference_eia(tensorflow_inference, ecs_container_instan
     service_name = task_family = revision = None
     try:
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
-            tensorflow_inference, "tensorflow", ecs_cluster_arn, model_name, worker_instance_id, region=region, ACCELERATOR_TYPE="eia1.large",
+            tensorflow_eia, "tensorflow", ecs_cluster_arn, model_name, worker_instance_id, region=region, ACCELERATOR_TYPE="eia1.large",
         )
         model_name = get_tensorflow_model_name("eia", model_name)
         inference_result = request_tensorflow_inference(model_name, ip_address=public_ip_address)
