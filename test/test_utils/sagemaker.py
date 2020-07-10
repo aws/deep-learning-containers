@@ -210,7 +210,12 @@ def execute_local_tests(image, ec2_client):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         with ec2_conn.cd(path):
             install_sm_local_dependencies(framework, job_type, image, ec2_conn)
-            ec2_conn.run(pytest_command)
+            # Workaround for mxnet cpu training images as test distributed
+            # causes an issue with fabric ec2_connection
+            if framework == "mxnet" and job_type == "training" and "cpu" in image:
+                ec2_conn.run(pytest_command, timeout=1200, warn=True)
+            else:
+                ec2_conn.run(pytest_command)
             print(f"Downloading Test reports for image: {image}")
             ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
     finally:
