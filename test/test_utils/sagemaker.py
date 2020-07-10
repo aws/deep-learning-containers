@@ -214,18 +214,21 @@ def execute_local_tests(image, ec2_client):
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
             if framework == "mxnet" and job_type == "training" and "cpu" in image:
-                ec2_conn.run(pytest_command, timeout=900, warn=True)
+                try:
+                    ec2_conn.run(pytest_command, timeout=1000, warn=True)
+                except exceptions.CommandTimedOut as exc:
+                    print(f"Ec2 connection timed out for {image}, {exc}")
+                finally:
+                    if not ec2_conn.is_connected():
+                        ec2_conn.open()
+                    if ec2_conn.get(ec2_test_report_path,
+                                    os.path.join("test", f"{job_type}_{tag}_sm_local.xml"),
+                                    warn=True).failed:
+                        raise RuntimeError(f"Sagemaker Local test failed for {image}")
             else:
                 ec2_conn.run(pytest_command)
-            print(f"Downloading Test reports for image: {image}")
-            ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
-    except exceptions.CommandTimedOut as exc:
-        print(f"Ec2 connection timed out for {image}, {exc}")
-        if framework == "mxnet" and job_type == "training" and "cpu" in image:
-            print(f"Downloading Test reports for image: {image}")
-            ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
-        else:
-            raise RuntimeError(f"Ec2 connection timed out for {image}")
+                print(f"Downloading Test reports for image: {image}")
+                ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
     finally:
         print(f"Terminating Instances for image: {image}")
         # ec2_utils.terminate_instance(instance_id, region)

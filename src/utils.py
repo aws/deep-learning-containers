@@ -405,6 +405,8 @@ def fetch_dlc_images_for_test_jobs(images):
             image_job_type = docker_image.info.get("image_type")
             image_device_type = docker_image.info.get("device_type")
             image_python_version = docker_image.info.get("python_version")
+            if image_job_type == "inference" or image_device_type == "gpu":
+                continue
             image_tag = f"{image_job_type}_{image_device_type}_{image_python_version}"
             # when image_run_test_types has key all values can be (all , ecs, eks, ec2, sagemaker)
             if constants.ALL in JobParameters.image_run_test_types.keys():
