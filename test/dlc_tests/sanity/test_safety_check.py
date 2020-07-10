@@ -10,8 +10,7 @@ import pytest
 
 from invoke import run
 
-from test.test_utils import CONTAINER_TESTS_PREFIX
-
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_dlc_cicd_context
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -43,6 +42,14 @@ IGNORE_SAFETY_IDS = {
             # numpy<=1.16.0 -- This has to only be here while we publish MXNet 1.4.1 EI DLC v1.0
             "py2": ['36810'],
             "py3": ['36810']
+        },
+        "inference": {
+            # for shipping pillow<=6.2.2 - the last available version for py2
+            "py2": ['38449', '38450', '38451', '38452']
+        },
+        "training": {
+            # for shipping pillow<=6.2.2 - the last available version for py2
+            "py2": ['38449', '38450', '38451', '38452']
         }
     },
     "pytorch": {
@@ -71,14 +78,19 @@ def _get_safety_ignore_list(image_uri):
 
 
 @pytest.mark.canary("Run safety tests regularly on production images")
+@pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
 def test_safety(image):
     """
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
     error if an issue is fixable.
     """
+    from dlc.safety_check import SafetyCheck
+    safety_check = SafetyCheck()
+
     repo_name, image_tag = image.split('/')[-1].split(':')
     ignore_ids_list = _get_safety_ignore_list(image)
-    ignore_str = "" if not ignore_ids_list else " ".join(ignore_ids_list)
+    sep = " -i "
+    ignore_str = "" if not ignore_ids_list else f"{sep}{sep.join(ignore_ids_list)}"
 
     container_name = f"{repo_name}-{image_tag}-safety"
     docker_exec_cmd = f"docker exec -i {container_name}"
@@ -91,8 +103,7 @@ def test_safety(image):
         f"{image}", hide=True)
     try:
         run(f"{docker_exec_cmd} pip install safety yolk3k ", hide=True)
-        run_out = run(f"{docker_exec_cmd} safety check --json ", warn=True, hide=True)
-        json_str_safety_result = run_out.stdout
+        json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
         safety_result = json.loads(json_str_safety_result)
         for package, affected_versions, curr_version, _, vulnerability_id in safety_result:
             run_out = run(f"{docker_exec_cmd} yolk -M {package} -f version ", warn=True, hide=True)
@@ -105,11 +116,8 @@ def test_safety(image):
                 # SpecifierSet(x) takes a version constraint, such as "<=4.5.6", ">1.2.3", or ">=1.2,<3.4.5", and
                 # gives an object that can be easily compared against a Version object.
                 # https://packaging.pypa.io/en/latest/specifiers/
-                ignore_str += f" {vulnerability_id}"
-
-        run(f"{docker_exec_cmd} chmod +x {test_file_path}", hide=True)
-        output = run(f"{docker_exec_cmd} {test_file_path} {ignore_str} ", warn=True)
-        LOGGER.info(f"{test_file_path} log for {image}\n{output.stdout}")
-        assert output.return_code == 0, f"Safety test failed for {image}\n{output.stdout}"
+                ignore_str += f" -i {vulnerability_id}"
+        assert (safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str) == 0), \
+            f"Safety test failed for {image}"
     finally:
         run(f"docker rm -f {container_name}", hide=True)
