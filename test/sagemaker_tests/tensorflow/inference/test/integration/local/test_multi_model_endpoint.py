@@ -20,7 +20,7 @@ import time
 import pytest
 import requests
 
-from multi_model_endpoint_test_utils import make_invocation_request, make_list_model_request, \
+from .multi_model_endpoint_test_utils import make_invocation_request, make_list_model_request, \
     make_get_model_request, make_load_model_request, make_unload_model_request
 
 PING_URL = 'http://localhost:8080/ping'
@@ -211,4 +211,3 @@ def test_invalid_model_version():
     code, res = make_load_model_request(json.dumps(invalid_model_version_data))
     assert code == 404
     assert 'Could not find valid base path {} for servable {}'.format(base_path, model_name) in str(res)
-
