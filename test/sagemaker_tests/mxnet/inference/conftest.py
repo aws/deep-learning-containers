@@ -132,3 +132,10 @@ def skip_py2_containers(request, tag):
     if request.node.get_closest_marker('skip_py2_containers'):
         if 'py2' in tag:
             pytest.skip('Skipping python2 container with tag {}'.format(tag))
+
+
+@pytest.fixture(autouse=True)
+def skip_eia_containers(request, docker_base_name):
+    if request.node.get_closest_marker('skip_eia_containers'):
+        if 'eia' in docker_base_name:
+            pytest.skip('Skipping eia container with tag {}'.format(docker_base_name))

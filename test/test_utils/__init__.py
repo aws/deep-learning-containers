@@ -511,6 +511,9 @@ def get_job_type_from_image(image_uri):
             tested_job_type = job_type
             break
 
+    if not tested_job_type and "eia" in image_uri:
+        tested_job_type = "inference"
+
     if not tested_job_type:
         raise RuntimeError(f"Cannot find Job Type in image uri {image_uri} "
                            f"from allowed frameworks {allowed_job_types}")

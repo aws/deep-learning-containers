@@ -306,25 +306,20 @@ def pytest_generate_tests(metafunc):
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
-            #print(fixture, metafunc.fixturenames, FRAMEWORK_FIXTURES)
             lookup = fixture.replace("_", "-")
             images_to_parametrize = []
             for image in images:
-                #print(image)
-                #print(lookup)
                 if lookup in image:
                     print(image)
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
                     if is_example_lookup or is_standard_lookup:
-                        #print("yes")
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
                         elif "eia_only" in metafunc.fixturenames and ("cpu" in image or "eia" in image):
                             print("okay")
-                            #print(image)
                             images_to_parametrize.append(image)
                         elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames and "eia_only" not in metafunc.fixturenames:
                             images_to_parametrize.append(image)
