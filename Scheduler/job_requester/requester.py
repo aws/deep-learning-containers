@@ -204,7 +204,6 @@ class JobRequester:
         :param identifier: <Message object> returned from send_request
         :return: <json or None> if log received, return the json log. Otherwise return None.
         """
-        LOGGER.info("Receive logs called.")
         ticket_name_without_extension = identifier.ticket_name.rstrip(".json")
         objects = self.s3_client.list_objects(
             Bucket=self.s3_ticket_bucket,

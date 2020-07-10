@@ -1,8 +1,14 @@
-import os
 import boto3
-import xml.etree.ElementTree as ET
 import json
+import logging
+import os
+import sys
+import xml.etree.ElementTree as ET
 
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 def construct_log_content(report_path):
     """
@@ -14,9 +20,13 @@ def construct_log_content(report_path):
     log_group_name = f"/aws/codebuild/{codebuild_arn.split(':')[-2]}"
     log_stream_name = codebuild_arn.split(":")[-1]
 
-    with open(report_path) as xml_file:
-        report_data = ET.parse(xml_file).getroot()
-        report_data_in_string = ET.tostring(report_data).decode("utf-8")
+    try:
+        with open(report_path) as xml_file:
+            report_data = ET.parse(xml_file).getroot()
+            report_data_in_string = ET.tostring(report_data).decode("utf-8")
+    except FileNotFoundError as e:
+        LOGGER.error(e)
+        report_data_in_string = ""
 
     content = {
         "LOG_GROUP_NAME": log_group_name,

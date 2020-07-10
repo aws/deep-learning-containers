@@ -11,6 +11,7 @@ import pytest
 
 from botocore.config import Config
 from invoke import run
+from invoke.context import Context
 
 from test_utils import eks as eks_utils
 from test_utils import sagemaker as sm_utils
@@ -57,8 +58,10 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
     import log_return
 
     LOGGER.info("Started running SageMaker test.....")
-    pytest_command, path, tag = generate_sagemaker_pytest_cmd(image)
-    job_type = "training" if "training" in image else "inference"
+    pytest_command, path, tag, job_type = sm_utils.generate_sagemaker_pytest_cmd(image, "sagemaker")
+
+    # job_type = "training" if "training" in image else "inference"
+
     # update resource pool accordingly, then add a try-catch statement here to update the pool in case of failure
     try:
         log_return.update_pool("running", instance_type, num_of_instances, job_type)
@@ -67,7 +70,7 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
             context.run(f"python3 -m virtualenv {tag}")
             with context.prefix(f"source {tag}/bin/activate"):
                 context.run("pip install -r requirements.txt", warn=True)
-                context.run(pytest_command)
+                # context.run(pytest_command)
     except Exception as e:
         LOGGER.error(e)
         return False
@@ -129,7 +132,7 @@ def run_sagemaker_remote_tests(images):
         num_of_instances = os.getenv("NUM_INSTANCES")
         image = os.getenv("DLC_IMAGE")
         job_type = "training" if "training" in image else "inference"
-        instance_type = assign_sagemaker_instance_type(image)
+        instance_type = sm_utils.assign_sagemaker_remote_job_instance_type(image)
         test_succeeded = run_sagemaker_test_in_executor(image, num_of_instances, instance_type)
 
         tag = image.split("/")[-1].split(":")[-1]
@@ -141,6 +144,7 @@ def run_sagemaker_remote_tests(images):
         else:
             log_return.update_pool("runtimeError", instance_type, num_of_instances, job_type, test_report)
         return
+
     if use_scheduler.lower() == "true":
         LOGGER.info("entered scheduler mode.")
         import concurrent.futures
@@ -154,8 +158,7 @@ def run_sagemaker_remote_tests(images):
             return
         pool_number = len(images)
         with Pool(pool_number) as p:
-            p.map(run_sagemaker_pytest_cmd, images)
-
+            p.map(sm_utils.execute_sagemaker_remote_tests, images)
 
 
 def pull_dlc_images(images):
