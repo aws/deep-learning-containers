@@ -152,6 +152,7 @@ def send_scheduler_requests(requester, image):
         if test_status == "completed":
             LOGGER.info(f"Test for image {image} completed.")
             logs_response = requester.receive_logs(identifier)
+            LOGGER.info(f"Receive logs success for ticket {identifier.ticket_name}")
             with open(report_path, "w") as xml_report:
                 xml_report.write(logs_response["XML_REPORT"])
             break

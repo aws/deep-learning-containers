@@ -89,20 +89,16 @@ class JobRequester:
             Bucket=self.s3_ticket_bucket,
             Key=f"{self.s3_ticket_bucket_folder}/{ticket_name}",
         )
-        LOGGER.info("put object successful")
         S3_ticket_object = self.s3_resource.Object(
             self.s3_ticket_bucket, f"{self.s3_ticket_bucket_folder}/{ticket_name}"
         )
         S3_ticket_object.put(Body=bytes(json.dumps(ticket_content).encode("UTF-8")))
-        LOGGER.info("Put content successful")
         try:
             # change object acl to make ticket accessible to dev account.
             self.s3_client.put_object_acl(ACL="bucket-owner-full-control",Bucket=self.s3_ticket_bucket,
                 Key=f"{self.s3_ticket_bucket_folder}/{ticket_name}")
         except Exception as e:
             raise e
-        LOGGER.info("configured object acl")
-        LOGGER.info(f"object key: {self.s3_ticket_bucket_folder}/{ticket_name}")
         LOGGER.info(f"Ticket sent successfully, ticket name: {ticket_name}")
         return ticket_name
 
@@ -208,17 +204,21 @@ class JobRequester:
         :param identifier: <Message object> returned from send_request
         :return: <json or None> if log received, return the json log. Otherwise return None.
         """
+        LOGGER.info("Receive logs called.")
         ticket_name_without_extension = identifier.ticket_name.rstrip(".json")
         objects = self.s3_client.list_objects(
             Bucket=self.s3_ticket_bucket,
             Prefix=f"resource_pool/{identifier.instance_type}-{identifier.job_type}/{ticket_name_without_extension}",
         )
+        ticket_prefix = f"resource_pool/{identifier.instance_type}-{identifier.job_type}/{ticket_name_without_extension}"
+        LOGGER.info(f"Receive Logs called, ticket prefix: {ticket_prefix}")
         if "Contents" in objects:
             entry = objects["Contents"][0]
             ticket_object = self.s3_client.get_object(Bucket="dlc-test-tickets", Key=entry["Key"])
             ticket_body = json.loads(ticket_object["Body"].read().decode("utf-8"))
+            LOGGER.info("Ticket content successfully loaded.")
             return ticket_body["LOGS"]
-
+g
         return None
 
     def cancel_request(self, identifier):
