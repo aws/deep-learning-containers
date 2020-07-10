@@ -214,7 +214,7 @@ def execute_local_tests(image, ec2_client):
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
             if framework == "mxnet" and job_type == "training" and "cpu" in image:
-                ec2_conn.run(pytest_command, timeout=1200, warn=True)
+                ec2_conn.run(pytest_command, timeout=900, warn=True)
             else:
                 ec2_conn.run(pytest_command)
             print(f"Downloading Test reports for image: {image}")
