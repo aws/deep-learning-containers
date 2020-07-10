@@ -11,7 +11,9 @@ from fabric import Connection
 import pytest
 
 from test import test_utils
-from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, KEYS_TO_DESTROY_FILE
+from test.test_utils import (
+    DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2, KEYS_TO_DESTROY_FILE
+)
 import test.test_utils.ec2 as ec2_utils
 
 LOGGER = logging.getLogger(__name__)
@@ -57,8 +59,8 @@ def ec2_key_name(request):
 
 
 @pytest.fixture(scope="session")
-def region():
-    return os.getenv("AWS_REGION", DEFAULT_REGION)
+def region(request):
+    return request.param if hasattr(request, "param") else os.getenv("AWS_REGION", DEFAULT_REGION)
 
 
 @pytest.fixture(scope="session")
@@ -90,8 +92,12 @@ def ec2_instance_role_name(request):
 
 
 @pytest.fixture(scope="function")
-def ec2_instance_ami(request):
-    return request.param if hasattr(request, "param") else UBUNTU_16_BASE_DLAMI
+def ec2_instance_ami(request, region):
+    return (
+        request.param if hasattr(request, "param") else
+        UBUNTU_16_BASE_DLAMI_US_EAST_1 if region == P3DN_REGION else
+        UBUNTU_16_BASE_DLAMI_US_WEST_2
+    )
 
 
 @pytest.mark.timeout(300)
@@ -147,11 +153,13 @@ def ec2_connection(request, ec2_instance, ec2_key_name, region):
     :return: Fabric connection object
     """
     instance_id, instance_pem_file = ec2_instance
-    LOGGER.info(f"Instance ip_address: {ec2_utils.get_public_ip(instance_id, region)}")
+    ip_address = ec2_utils.get_public_ip(instance_id, region=region)
+    LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
+    LOGGER.info(f"Connecting to {user}@{ip_address}")
     conn = Connection(
         user=user,
-        host=ec2_utils.get_public_ip(instance_id, region),
+        host=ip_address,
         connect_kwargs={"key_filename": [instance_pem_file]},
     )
 

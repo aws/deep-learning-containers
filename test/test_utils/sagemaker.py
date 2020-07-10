@@ -14,7 +14,7 @@ from test_utils import (destroy_ssh_keypair,
                         get_framework_and_version_from_tag,
                         get_job_type_from_image)
 
-from test_utils import (UBUNTU_16_BASE_DLAMI,
+from test_utils import (UBUNTU_16_BASE_DLAMI_US_WEST_2,
                         SAGEMAKER_LOCAL_TEST_TYPE,
                         SAGEMAKER_REMOTE_TEST_TYPE,
                         UBUNTU_HOME_DIR,
@@ -200,7 +200,7 @@ def execute_local_tests(image, ec2_client):
     try:
         key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
         print(f"Launching new Instance for image: {image}")
-        instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, UBUNTU_16_BASE_DLAMI, ec2_key_name, region)
+        instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, UBUNTU_16_BASE_DLAMI_US_WEST_2, ec2_key_name, region)
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
