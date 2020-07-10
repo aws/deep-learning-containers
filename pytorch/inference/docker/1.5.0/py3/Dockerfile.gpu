@@ -9,7 +9,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.6.10
-ARG MMS_VERSION=1.0.8
+ARG TS_VERSION=0.0.1
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
@@ -19,7 +19,10 @@ ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
 
 RUN apt-get update \
- && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
+    && apt-get install -y --no-install-recommends software-properties-common \
+    && add-apt-repository ppa:openjdk-r/ppa \
+    && apt-get update \
+    && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
     build-essential \
     ca-certificates \
     cmake \
@@ -33,7 +36,7 @@ RUN apt-get update \
     libsm6 \
     libxext6 \
     libxrender-dev \
-    openjdk-8-jdk-headless \
+    openjdk-11-jdk \
     vim \
     wget \
     zlib1g-dev
@@ -77,7 +80,10 @@ RUN conda install -c \
  && /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install mxnet-model-server==$MMS_VERSION
+ && pip install torchserve==$TS_VERSION \
+ && pip install torch-model-archiver==$TS_VERSION
+
+
 
 # Uninstall and re-install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
@@ -90,7 +96,7 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
  && chown -R model-server /home/model-server
 
-COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
@@ -108,4 +114,4 @@ RUN pip install pillow==7.1.0 awscli
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["mxnet-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
+CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
