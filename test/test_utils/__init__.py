@@ -19,8 +19,9 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
-# Constant to represent AMI Id used to spin up EC2 instances
-UBUNTU_16_BASE_DLAMI = "ami-0e57002aaafd42113"
+
+# Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
+UBUNTU_16_BASE_DLAMI = "ami-0e5a388144f62e4f5"
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 
@@ -44,6 +45,12 @@ PR_ONLY_REASON = "Skipping test that doesn't need to be run outside of PR contex
 
 KEYS_TO_DESTROY_FILE = os.path.join(os.sep, "tmp", "keys_to_destroy.txt")
 
+# Sagemaker test types
+SAGEMAKER_LOCAL_TEST_TYPE = "local"
+SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
+
+PUBLIC_DLC_REGISTRY = "763104351884"
+
 
 def is_tf1(image_uri):
     if "tensorflow" not in image_uri:
@@ -57,8 +64,22 @@ def is_tf2(image_uri):
     return bool(re.search(r'2\.\d+\.\d+', image_uri))
 
 
+def is_tf20(image_uri):
+    if "tensorflow" not in image_uri:
+        return False
+    return bool(re.search(r'2\.0\.\d+', image_uri))
+
+
 def is_pr_context():
     return os.getenv("BUILD_CONTEXT") == "PR"
+
+
+def is_canary_context():
+    return os.getenv("BUILD_CONTEXT") == "CANARY"
+
+
+def is_dlc_cicd_context():
+    return os.getenv("BUILD_CONTEXT") in ["PR", "CANARY", "NIGHTLY", "MAINLINE"]
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
@@ -66,6 +87,18 @@ def run_subprocess_cmd(cmd, failure="Command failed"):
     if command.returncode:
         pytest.fail(f"{failure}. Error log:\n{command.stdout.decode()}")
     return command
+
+
+def login_to_ecr_registry(context, account_id, region):
+    """
+    Function to log into an ecr registry
+
+    :param context: either invoke context object or fabric connection object
+    :param account_id: Account ID with the desired ecr registry
+    :param region: i.e. us-west-2
+    """
+    context.run(f"aws ecr get-login-password --region {region} | docker login --username AWS "
+                f"--password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com")
 
 
 def retry_if_result_is_false(result):
@@ -315,6 +348,8 @@ def delete_uploaded_tests_from_s3(s3_test_location):
 def get_dlc_images():
     if is_pr_context():
         return os.getenv("DLC_IMAGES")
+    elif is_canary_context():
+        return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"))
     test_env_file = os.path.join(os.getenv("CODEBUILD_SRC_DIR_DLC_IMAGES_JSON"), "test_type_images.json")
     with open(test_env_file) as test_env:
         test_images = json.load(test_env)
@@ -322,6 +357,49 @@ def get_dlc_images():
         if dlc_test_type == "sanity":
             return " ".join(images)
     raise RuntimeError(f"Cannot find any images for in {test_images}")
+
+
+def parse_canary_images(framework, region):
+    tf1 = "1.15"
+    tf2 = "2.2"
+    mx = "1.6"
+    pt = "1.5"
+
+    if framework == "tensorflow":
+        framework = "tensorflow2" if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") else "tensorflow1"
+
+    registry = PUBLIC_DLC_REGISTRY
+
+    images = {
+        "tensorflow1":
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py2 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py2 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-gpu "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-cpu",
+        "tensorflow2":
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-gpu-py37 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-cpu-py37 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-gpu "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-cpu",
+
+        "mxnet":
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py2 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py2 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py2 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py2",
+        "pytorch":
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-gpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-cpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-gpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-cpu-py3"
+    }
+    return images[framework]
 
 
 def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2_env):
@@ -343,7 +421,8 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
     for resource_dir in tf_resource_dir_list:
         with ctx.cd(os.path.join(resources_location, resource_dir)):
             if not os.path.isdir(os.path.join(resources_location, resource_dir, "horovod")):
-                ctx.run("git clone https://github.com/horovod/horovod.git")
+                # v0.19.4 is the last version for which horovod example tests are py2 compatible
+                ctx.run("git clone -b v0.19.4 https://github.com/horovod/horovod.git")
             if not os.path.isdir(os.path.join(resources_location, resource_dir, "deep-learning-models")):
                 # We clone branch tf2 for both 1.x and 2.x tests because tf2 branch contains all necessary files
                 ctx.run(f"git clone -b tf2 https://github.com/aws-samples/deep-learning-models.git")
@@ -353,4 +432,57 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
             ctx.run("pip install -U sagemaker awscli boto3 botocore six==1.11")
+
+            # SageMaker TF estimator is coded to only accept framework versions upto 2.1.0 as py2 compatible.
+            # Fixing this through the following changes:
+            estimator_location = ctx.run(
+                "echo $(pip3 show sagemaker |grep 'Location' |sed s/'Location: '//g)/sagemaker/tensorflow/estimator.py"
+            ).stdout.strip("\n")
+            system = ctx.run("uname -s").stdout.strip("\n")
+            sed_input_arg = "'' " if system == "Darwin" else ""
+            ctx.run(f"sed -i {sed_input_arg}'s/\[2, 1, 0\]/\[2, 1, 1\]/g' {estimator_location}")
     return venv_dir
+
+
+def get_framework_and_version_from_tag(image_uri):
+    """
+    Return the framework and version from the image tag.
+
+    :param image_uri: ECR image URI
+    :return: framework name, framework version
+    """
+    tested_framework = None
+    allowed_frameworks = ("tensorflow", "mxnet", "pytorch")
+    for framework in allowed_frameworks:
+        if framework in image_uri:
+            tested_framework = framework
+            break
+
+    if not tested_framework:
+        raise RuntimeError(f"Cannot find framework in image uri {image_uri} "
+                           f"from allowed frameworks {allowed_frameworks}")
+
+    tag_framework_version = image_uri.split(':')[-1].split('-')[0]
+
+    return tested_framework, tag_framework_version
+
+
+def get_job_type_from_image(image_uri):
+    """
+    Return the Job type from the image tag.
+
+    :param image_uri: ECR image URI
+    :return: Job Type
+    """
+    tested_job_type = None
+    allowed_job_types = ("training", "inference")
+    for job_type in allowed_job_types:
+        if job_type in image_uri:
+            tested_job_type = job_type
+            break
+
+    if not tested_job_type:
+        raise RuntimeError(f"Cannot find Job Type in image uri {image_uri} "
+                           f"from allowed frameworks {allowed_job_types}")
+
+    return tested_job_type

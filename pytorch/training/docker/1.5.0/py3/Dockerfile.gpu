@@ -2,6 +2,7 @@
 FROM nvidia/cuda@sha256:4979db047661dc0003594fb20d37cce6d6c7e989252f4e3fb0beb39874a078e2
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
 
 ARG PYTHON_VERSION=3.6.10
 ARG OPEN_MPI_VERSION=4.0.1
@@ -125,7 +126,7 @@ RUN /opt/conda/bin/conda config --set ssl_verify False \
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install \
     --no-cache-dir smdebug==${SMDEBUG_VERSION} \
-    sagemaker==1.50.17 \
+    "sagemaker<2" \
     sagemaker-experiments==0.1.7 \
     --no-cache-dir fastai==1.0.59 \
     awscli \
@@ -167,7 +168,7 @@ RUN apt-get install -y --no-install-recommends openssh-client openssh-server \
 
 WORKDIR /
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-training<2"
+RUN pip install --no-cache-dir "sagemaker-pytorch-training<3"
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 

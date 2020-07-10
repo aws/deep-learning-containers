@@ -1,6 +1,10 @@
 FROM nvidia/cuda:10.1-cudnn7-devel-ubuntu16.04
 # NCCL_VERSION=2.4.7, CUDNN_VERSION=7.6.2.24
+
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="3"
+# Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
+# https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON_VERSION=2.7
@@ -105,7 +109,7 @@ RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.4.0/license.txt -o /license.txt
 
 RUN conda install -y -c conda-forge pyyaml==5.3.1
-RUN pip install -U sagemaker-containers==2.8.6 pillow==6.2.2 urllib3==1.25.8 awscli
+RUN pip install -U pillow==6.2.2 urllib3==1.25.8 awscli
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]

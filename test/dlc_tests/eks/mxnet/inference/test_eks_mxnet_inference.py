@@ -1,10 +1,10 @@
 import os
 import random
 
+from invoke import run
+
 import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
-
-from invoke import run
 
 
 def test_eks_mxnet_squeezenet_inference(mxnet_inference):
@@ -26,7 +26,7 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
         "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference
     }
 
-    if processor is "gpu":
+    if processor == "gpu":
         search_replace_dict["<NUM_GPUS>"] = "1"
 
     eks_utils.write_eks_yaml_file_from_template(
@@ -68,7 +68,7 @@ def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
         "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference
     }
 
-    if processor is "gpu":
+    if processor == "gpu":
         search_replace_dict["<NUM_GPUS>"] = "1"
 
     eks_utils.write_eks_yaml_file_from_template(
