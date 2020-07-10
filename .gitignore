@@ -4,6 +4,3 @@ venv
 .idea
 .DS_Store
 *.pyc
-Scheduler/trigger.py
-Scheduler/buildspec.yml
-debug.py

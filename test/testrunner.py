@@ -154,7 +154,6 @@ def send_scheduler_requests(requester, image):
             logs_response = requester.receive_logs(identifier)
             LOGGER.info(f"Receive logs success for ticket {identifier.ticket_name}")
             LOGGER.info(f"Report path: {report_path}")
-            print(logs_response)
             with open(report_path, "w") as xml_report:
                 xml_report.write(logs_response["XML_REPORT"])
             LOGGER.info("Write XML report success, exiting...")
