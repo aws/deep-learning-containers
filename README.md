@@ -10,7 +10,7 @@ The AWS DLCs are used in Amazon SageMaker as the default vehicles for your SageM
 transforms etc. They've been tested for machine
 learning workloads on Amazon EC2, Amazon ECS and Amazon EKS services as well.
 
-The list of DLC images is maintained [here](available_images.md). 
+For the list of available DLC images, see [Available Deep Learning Containers Images](available_images.md). 
 You can find more information on the images available in Sagemaker [here](https://docs.aws.amazon.com/sagemaker/latest/dg/pre-built-containers-frameworks-deep-learning.html)
 
 ## License
@@ -166,6 +166,7 @@ inference images, add it under training_context or inference_context.
     ```
 4. Build the container as described above.
 ### Adding a package
+The following steps outline how to add a package to your image. For more information on customizing your container, see [Building AWS Deep Learning Containers Custom Images](custom_images.md).
 1. Suppose you want to add a package to the MXNet 1.6.0 py3 GPU docker image, then change the dockerfile from:
     ```
     # mxnet/training/docker/1.6.0/py3/Dockerfile.gpu
