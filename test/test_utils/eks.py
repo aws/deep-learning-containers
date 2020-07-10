@@ -388,7 +388,7 @@ def deploy_mxnet_operator():
     )
 
     run(clone_mxnet_command, echo=True)
-    run("kubectl create -k manifests/overlays/v1beta1/", echo=True)
+    run("kubectl create -k $HOME/mxnet-operator/manifests/overlays/v1beta1/", echo=True)
 
 def deploy_mpi_operator():
     """Function to deploy mpi operator in the EKS cluster. This will support v1alpha2 crd for mpijobs.
