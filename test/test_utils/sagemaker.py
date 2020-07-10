@@ -3,6 +3,7 @@ import os
 import traceback
 import random
 import re
+import socket
 
 from time import sleep
 
@@ -218,6 +219,10 @@ def execute_local_tests(image, ec2_client):
                 ec2_conn.run(pytest_command)
             print(f"Downloading Test reports for image: {image}")
             ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
+    except socket.timeout as exc:
+        print(f"Ec2 connection timed out for {image} {exc}")
+        if not (framework == "mxnet" and job_type == "training" and "cpu" in image):
+            raise RuntimeError(f"Ec2 connection timed out")
     finally:
         print(f"Terminating Instances for image: {image}")
         # ec2_utils.terminate_instance(instance_id, region)
