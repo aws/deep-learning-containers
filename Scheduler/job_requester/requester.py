@@ -68,7 +68,7 @@ class JobRequester:
         else:
             return source_version[:7]
 
-    def send_ticket(self, ticket_content):
+    def send_ticket(self, ticket_content, framework):
         """
         Send a request ticket to S3 bucket, self.s3_ticket_bucket
 
@@ -78,11 +78,11 @@ class JobRequester:
         :return: <string> name of the ticket
         """
         LOGGER.info("send ticket is invoked")
-        # ticket name: {CB source version}-{ticket name counter}_(datetime string)
+        # ticket name: {CB source version}-{framework}{ticket name counter}_(datetime string)
         ticket_name_prefix = self.get_ticket_name_prefix()
         request_time = ticket_content["TIMESTAMP"]
         self.request_lock.acquire()
-        ticket_name = f"{ticket_name_prefix}-{str(self.ticket_name_counter)}_{request_time}.json"
+        ticket_name = f"{ticket_name_prefix}-{framework}{str(self.ticket_name_counter)}_{request_time}.json"
         self.ticket_name_counter += 1
         self.request_lock.release()
         self.s3_client.put_object(
@@ -193,7 +193,8 @@ class JobRequester:
         ), f"Job type (training/inference) not stated in image tag: {image}"
         time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         ticket_content = self.create_ticket_content(image, build_context, num_of_instances, time)
-        ticket_name = self.send_ticket(ticket_content)
+        framework = "mxnet" if "mxnet" in image else "pytorch" if "pytorch" in image else "tensorflow"
+        ticket_name = self.send_ticket(ticket_content, framework)
 
         instance_type = self.assign_sagemaker_instance_type(image)
         job_type = "training" if "training" in image else "inference"
