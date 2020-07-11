@@ -56,17 +56,18 @@ if __name__ == "__main__":
     args = parse_args()
     dlc_artifact_bucket = args.artifact_bucket
 
-    dlc_tag = os.getenv("ASIMOV_TAG_WITH_VERSION")
     dlc_account_id = os.getenv("TARGET_ACCOUNT_ID_CLASSIC")
+    dlc_tag = os.getenv("TAG_WITH_DLC_VERSION")
     dlc_repository = os.getenv("TARGET_ECR_REPOSITORY")
     dlc_region = os.getenv("REGION")
 
     if not dlc_tag:
         raise ValueError(
-            "Environment variable ASIMOV_TAG_WITH_VERSION not set. This environment variable is expected to be set by the promoter stage.")
+            "Environment variable TAG_WITH_DLC_VERSION not set. This environment variable is expected to be set by the promoter stage.")
 
     dlc_release_information = DLCReleaseInformation(dlc_account_id, dlc_region, dlc_repository, dlc_tag)
 
+    # bom objects below are used to create .tar.gz file to be uploaded as an asset, 'imp' objects are used as release information
     release_info = {
         "bom_pip_packages": dlc_release_information.bom_pip_packages,
         "bom_apt_packages": dlc_release_information.bom_apt_packages,
@@ -74,6 +75,7 @@ if __name__ == "__main__":
         "imp_pip_packages": dlc_release_information.imp_pip_packages,
         "imp_apt_packages": dlc_release_information.imp_apt_packages,
         "image_digest": dlc_release_information.image_digest,
+        "image_uri_with_dlc_version": dlc_release_information.image,
         "image_tags": dlc_release_information.image_tags
     }
 
@@ -94,28 +96,28 @@ if __name__ == "__main__":
     write_to_file(bom_pipdeptree_local_path, release_info["bom_pipdeptree"])
 
     # Save the zip as <dlc_tag>_BOM.zip
-    tarfile_path = f"{dlc_tag}_BOM.tar.gz"
-    with tarfile.open(tarfile_path, "w:gz") as dlc_bom_tar:
+    tarfile_name = f"{dlc_tag}_BOM.tar.gz"
+    with tarfile.open(tarfile_name, "w:gz") as dlc_bom_tar:
         dlc_bom_tar.add(bom_pip_packages_local_path, arcname=os.path.basename(bom_pip_packages_local_path))
         dlc_bom_tar.add(bom_apt_packages_local_path, arcname=os.path.basename(bom_apt_packages_local_path))
         dlc_bom_tar.add(bom_pipdeptree_local_path, arcname=os.path.basename(bom_pipdeptree_local_path))
 
-    LOGGER.info(f"Created BOM zip: {tarfile_path}")
+    LOGGER.info(f"Created BOM zip: {tarfile_name}")
 
-    upload_to_S3(tarfile_path, dlc_artifact_bucket, f"{dlc_folder}/{dlc_tag}/{tarfile_path}")
+    s3BucketURI = f"s3://{dlc_artifact_bucket}/{dlc_folder}/{dlc_repository}:{dlc_tag}/"
 
-    s3URI = f"s3://{dlc_artifact_bucket}/{dlc_folder}/{dlc_tag}/"
+    upload_to_S3(tarfile_name, dlc_artifact_bucket, f"{dlc_folder}/{dlc_repository}:{dlc_tag}/{tarfile_name}")
 
-    release_info["bom_tar_s3_uri"] = f"{s3URI}{tarfile_path}"
+    release_info["bom_tar_s3_uri"] = f"{s3BucketURI}{tarfile_name}"
 
     dlc_release_info_json = os.path.join(os.sep, directory, "dlc_release_info.json")
     write_to_file(dlc_release_info_json, json.dumps(release_info))
 
-    upload_to_S3(dlc_release_info_json, dlc_artifact_bucket, f"{dlc_folder}/{dlc_tag}/dlc_release_info.json")
+    upload_to_S3(dlc_release_info_json, dlc_artifact_bucket, f"{dlc_folder}/{dlc_repository}:{dlc_tag}/dlc_release_info.json")
 
     # Cleanup
-    os.remove(tarfile_path)
+    os.remove(tarfile_name)
     shutil.rmtree(directory)
 
     LOGGER.info(f"Release Information collected for image: {dlc_release_information.image}")
-    LOGGER.info(f"Release information and BOM uploaded to: s3://{dlc_artifact_bucket}/{dlc_folder}/{dlc_tag}")
+    LOGGER.info(f"Release information and BOM uploaded to: {s3BucketURI}")

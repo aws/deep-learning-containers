@@ -32,3 +32,5 @@ apt_packages:
   - libnccl
   - libnccl-dev
   - libcublas
+  - libstdc++
+  - libgcc
