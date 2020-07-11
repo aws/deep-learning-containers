@@ -216,14 +216,14 @@ def execute_local_tests(image, ec2_client):
                 except exceptions.CommandTimedOut as exc:
                     print(f"Ec2 connection timed out for {image}, {exc}")
                 finally:
-                    print("update report file")
+                    print(f"Downloading Test reports for image: {image}")
                     ec2_conn.close()
                     ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
                     ec2_conn_new.get(ec2_test_report_path,
                                      os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
                     output = subprocess.check_output(f"cat test/{job_type}_{tag}_sm_local.xml", shell=True,
                                                      executable="/bin/bash")
-                    if 'failures="0"' not in output:
+                    if 'failures="0"' not in str(output):
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
                 ec2_conn.run(pytest_command)
