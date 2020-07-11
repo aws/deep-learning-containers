@@ -1,6 +1,6 @@
 import datetime
 import os
-import traceback
+import subprocess
 import random
 import re
 
@@ -193,14 +193,12 @@ def execute_local_tests(image, ec2_client):
     print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
-    # ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
-    ec2_key_name = "sgollapr_dlcontainers_infra.pem"
+    ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     try:
-        # key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
-        key_file = "sgollapr_dlcontainers_infrapem.pem"
+        key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
         print(f"Launching new Instance for image: {image}")
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, UBUNTU_16_BASE_DLAMI, ec2_key_name, region)
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
@@ -222,16 +220,20 @@ def execute_local_tests(image, ec2_client):
                     ec2_conn.close()
                     ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
                     ec2_conn_new.get(ec2_test_report_path,
-                                 os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
+                                     os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
+                    output = subprocess.check_output(f"cat test/{job_type}_{tag}_sm_local.xml", shell=True,
+                                                     executable="/bin/bash")
+                    if 'failures="0"' not in output:
+                        raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
                 ec2_conn.run(pytest_command)
                 print(f"Downloading Test reports for image: {image}")
                 ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
     finally:
         print(f"Terminating Instances for image: {image}")
-        # ec2_utils.terminate_instance(instance_id, region)
+        ec2_utils.terminate_instance(instance_id, region)
         print(f"Destroying ssh Key_pair for image: {image}")
-        # destroy_ssh_keypair(ec2_client, ec2_key_name)
+        destroy_ssh_keypair(ec2_client, ec2_key_name)
 
 
 def execute_sagemaker_remote_tests(image):
