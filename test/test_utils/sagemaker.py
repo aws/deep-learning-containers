@@ -131,7 +131,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     if framework == "tensorflow" and job_type == "training":
         path = os.path.join(os.path.dirname(path), f"{framework}{framework_major_version}_training")
 
-
     return (
         remote_pytest_cmd if sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE else local_pytest_cmd,
         path,
@@ -219,12 +218,11 @@ def execute_local_tests(image, ec2_client):
                 except exceptions.CommandTimedOut as exc:
                     print(f"Ec2 connection timed out for {image}, {exc}")
                 finally:
-                    if not ec2_conn.is_connected():
-                        ec2_conn.open()
-                    if ec2_conn.get(ec2_test_report_path,
-                                    os.path.join("test", f"{job_type}_{tag}_sm_local.xml"),
-                                    warn=True).failed:
-                        raise RuntimeError(f"Sagemaker Local test failed for {image}")
+                    print("update report file")
+                    ec2_conn.close()
+                    ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
+                    ec2_conn_new.get(ec2_test_report_path,
+                                 os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
             else:
                 ec2_conn.run(pytest_command)
                 print(f"Downloading Test reports for image: {image}")
