@@ -360,16 +360,26 @@ def get_dlc_images():
 
 
 def parse_canary_images(framework, region):
-    tf1 = "1.15"
+    tf1 = ["1.15", "1.14", "1.13"]
     tf2 = "2.2"
-    mx = "1.6"
-    pt = "1.5"
+    mx = ["1.6", "1.4"]
+    pt = ["1.5", "1.4", "1.3"]
 
     if framework == "tensorflow":
         framework = "tensorflow2" if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") else "tensorflow1"
 
     registry = PUBLIC_DLC_REGISTRY
-
+    imgs = ""
+    for m in mx:
+        imgs += f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{m}-gpu-py3 "
+        f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{m}-cpu-py3 "
+        f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{m}-gpu-py2 "
+        f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{m}-cpu-py2 "
+        f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{m}-gpu-py3 "
+        f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{m}-cpu-py3 "
+        f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{m}-gpu-py2 "
+        f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{m}-cpu-py2 "
+    return imgs
     images = {
         "tensorflow1":
             f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py3 "
