@@ -1,9 +1,9 @@
 tox
 pluggy
 flake8
-pytest
+pytest==5.3.5
 pytest-cov
-pytest-rerunfailures==8.0
+pytest-rerunfailures==9.0
 pytest-xdist
 mock
 sagemaker
