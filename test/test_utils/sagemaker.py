@@ -74,7 +74,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     reruns = 4
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
-    print(os.environ)
     print("image name {}".format(image))
     sm_remote_docker_base_name, tag = image.split("/")[1].split(":")
     sm_local_docker_repo_uri = image.split(":")[0]
@@ -129,7 +128,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     if processor == "eia" :
         remote_pytest_cmd += (f" {accelerator_type_arg} {eia_arg}")
-    print(remote_pytest_cmd)
 
     local_pytest_cmd = (f"{is_py3} pytest -v {integration_path} {docker_base_arg} "
                         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "

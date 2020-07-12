@@ -112,11 +112,6 @@ def ec2_instance(
 ):
     print(f"Creating instance: CI-CD {ec2_key_name}")
     #debugging statement will be removed later
-    LOGGER.info(f"Request details {request.fixturenames, region, ei_accelerator_type }")
-    print(request.fixturenames)
-    print(region)
-    print(ei_accelerator_type)
-    print(ec2_instance_ami,ec2_instance_role_name,ec2_instance_type,ec2_client)
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
     params = {
         "KeyName": ec2_key_name,
@@ -310,7 +305,6 @@ def pytest_generate_tests(metafunc):
             images_to_parametrize = []
             for image in images:
                 if lookup in image:
-                    print(image)
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
                     if is_example_lookup or is_standard_lookup:
@@ -319,11 +313,9 @@ def pytest_generate_tests(metafunc):
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
                         elif "eia_only" in metafunc.fixturenames and ("cpu" in image or "eia" in image):
-                            print("okay")
                             images_to_parametrize.append(image)
                         elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames and "eia_only" not in metafunc.fixturenames:
                             images_to_parametrize.append(image)
-                        print(images_to_parametrize)
             # Remove all images tagged as "py2" if py3_only is a fixture
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
                 images_to_parametrize = [py3_image for py3_image in images_to_parametrize if "py2" not in py3_image]

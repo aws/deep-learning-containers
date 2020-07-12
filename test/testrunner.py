@@ -169,7 +169,7 @@ def main():
             )
     elif specific_test_type == "sagemaker-local":
         run_sagemaker_local_tests(
-            [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
+            [image for image in standard_images_list if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))]
         )
     else:
         raise NotImplementedError(f"{test_type} test is not supported. "

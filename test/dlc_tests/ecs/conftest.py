@@ -129,7 +129,6 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_ins
             params["Placement"] = {
                 'AvailabilityZone': a_zone
             }
-            print(params["Placement"])
             try:
                 instances = ec2_client.run_instances(**params)
                 if instances:
