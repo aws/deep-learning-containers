@@ -1,12 +1,13 @@
 import datetime
 import os
-import traceback
+import subprocess
 import random
 import re
 
 from time import sleep
 
 from invoke.context import Context
+from invoke import exceptions
 
 from test_utils import ec2 as ec2_utils
 from test_utils import (destroy_ssh_keypair,
@@ -138,7 +139,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     if framework == "tensorflow" and job_type == "training":
         path = os.path.join(os.path.dirname(path), f"{framework}{framework_major_version}_training")
 
-
     return (
         remote_pytest_cmd if sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE else local_pytest_cmd,
         path,
@@ -216,9 +216,27 @@ def execute_local_tests(image, ec2_client):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         with ec2_conn.cd(path):
             install_sm_local_dependencies(framework, job_type, image, ec2_conn)
-            ec2_conn.run(pytest_command)
-            print(f"Downloading Test reports for image: {image}")
-            ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
+            # Workaround for mxnet cpu training images as test distributed
+            # causes an issue with fabric ec2_connection
+            if framework == "mxnet" and job_type == "training" and "cpu" in image:
+                try:
+                    ec2_conn.run(pytest_command, timeout=1000, warn=True)
+                except exceptions.CommandTimedOut as exc:
+                    print(f"Ec2 connection timed out for {image}, {exc}")
+                finally:
+                    print(f"Downloading Test reports for image: {image}")
+                    ec2_conn.close()
+                    ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
+                    ec2_conn_new.get(ec2_test_report_path,
+                                     os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
+                    output = subprocess.check_output(f"cat test/{job_type}_{tag}_sm_local.xml", shell=True,
+                                                     executable="/bin/bash")
+                    if 'failures="0"' not in str(output):
+                        raise ValueError(f"Sagemaker Local tests failed for {image}")
+            else:
+                ec2_conn.run(pytest_command)
+                print(f"Downloading Test reports for image: {image}")
+                ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
     finally:
         print(f"Terminating Instances for image: {image}")
         ec2_utils.terminate_instance(instance_id, region)
