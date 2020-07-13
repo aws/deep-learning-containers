@@ -13,7 +13,7 @@ import boto3
 
 from job_requester import Message
 
-MAX_TIMEOUT_IN_SEC = 14400  # 4 hours
+MAX_TIMEOUT_IN_SEC = 5000
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
