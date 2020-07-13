@@ -139,7 +139,7 @@ RUN pip install --no-cache-dir -U \
  && pip install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
  && pip install --no-cache-dir -U \
-    awscli
+    "awscli<2"
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs \

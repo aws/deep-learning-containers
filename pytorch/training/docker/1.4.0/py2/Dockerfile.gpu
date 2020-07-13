@@ -107,7 +107,7 @@ RUN conda install -c pytorch magma-cuda101==2.5.1 \
     h5py==2.9.0 \
     requests==2.22.0 \
  && pip install -U \
-    awscli \
+    "awscli<2" \
     scipy==1.2.2 \
     sphinxcontrib-websupport==1.1.2 \
     "spyder<4.0" \

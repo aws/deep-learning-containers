@@ -163,7 +163,7 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
  && ${PIP} install --no-cache-dir -U \
-    awscli
+    "awscli<2"
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs \

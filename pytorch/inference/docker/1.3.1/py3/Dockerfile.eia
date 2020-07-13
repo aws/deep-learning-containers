@@ -95,7 +95,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch/license.txt -o /licen
 RUN conda install -y -c conda-forge pyyaml==5.3.1 \
  && pip install -U \
     sagemaker-containers==2.8.6 \
-    awscli
+    "awscli<2"
 
 RUN wget https://amazonei-tools.s3.amazonaws.com/v${HEALTH_CHECK_VERSION}/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz -O /opt/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz \
  && tar -xvf /opt/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz -C /opt/ \

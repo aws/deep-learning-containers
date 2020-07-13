@@ -69,7 +69,7 @@ RUN conda install -c \
     pytorch magma-cuda101==2.5.1 \
  && conda install -c \
     conda-forge \
-    awscli==1.18.23 \
+    "awscli<2" \
     opencv==4.0.1 \
  && conda install -y \
     scikit-learn==0.21.2 \

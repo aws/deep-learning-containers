@@ -72,7 +72,7 @@ RUN ${PIP} --no-cache-dir install --upgrade pip setuptools
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir \
-    awscli==1.18.72 \
+    "awscli<2" \
     cython==0.29.14 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
