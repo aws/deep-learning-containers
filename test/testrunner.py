@@ -3,9 +3,10 @@ import random
 import sys
 import logging
 import re
-import traceback
 
 from multiprocessing import Pool
+from datetime import datetime
+
 import boto3
 import pytest
 
@@ -15,6 +16,7 @@ from invoke.context import Context
 
 from test_utils import eks as eks_utils
 from test_utils import sagemaker as sm_utils
+from test_utils import metrics as metrics_utils
 from test_utils import (get_dlc_images,
                         is_pr_context,
                         destroy_ssh_keypair,
@@ -106,10 +108,12 @@ def send_scheduler_requests(requester, image):
             logs_response = requester.receive_logs(identifier)
             with open(report_path, "w") as xml_report:
                 xml_report.write(logs_response["XML_REPORT"])
+            metrics_utils.send_test_result_metrics(1)
             break
 
         elif test_status == "failed":
             LOGGER.warning(f"Scheduling failed. Reason: {query_status_response['reason']}")
+            metrics_utils.send_test_result_metrics(1)
             break
 
 
@@ -192,6 +196,7 @@ def setup_sm_benchmark_env(dlc_images, test_path):
 
 def main():
     # Define constants
+    start_time = datetime.now()
     test_type = os.getenv("TEST_TYPE")
     executor_mode = os.getenv("EXECUTOR_MODE", "False")
     if executor_mode.lower() == "true":
@@ -274,6 +279,8 @@ def main():
             run_sagemaker_remote_tests(
                 [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
             )
+        metrics_utils.send_test_duration_metrics(start_time)
+
     elif specific_test_type == "sagemaker-local":
         run_sagemaker_local_tests(
             [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
@@ -282,6 +289,7 @@ def main():
         raise NotImplementedError(
             f"{test_type} test is not supported. " f"Only support ec2, ecs, eks, sagemaker and sanity currently"
         )
+
 
 
 if __name__ == "__main__":

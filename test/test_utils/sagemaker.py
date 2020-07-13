@@ -9,6 +9,7 @@ from time import sleep
 from invoke.context import Context
 
 from test_utils import ec2 as ec2_utils
+from test_utils import metrics as metrics_utils
 from test_utils import (destroy_ssh_keypair,
                         generate_ssh_keypair,
                         get_framework_and_version_from_tag,
@@ -232,4 +233,5 @@ def execute_sagemaker_remote_tests(image):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
-            context.run(pytest_command)
+            res = context.run(pytest_command, warn=True)
+            metrics_utils.send_test_result_metrics(res.return_code)
