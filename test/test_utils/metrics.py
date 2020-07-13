@@ -6,25 +6,33 @@ import boto3
 
 
 def construct_duration_metrics_data(start_time, test_path):
+    """
+    construct test duration metrics data to be sent to cloudwatch
+    :param start_time: <datetime> start time of the test execution
+    :param test_path: <string> With Scheduler/Without Scheduler
+    :return: <dict>
+    """
     duration = (datetime.now() - start_time).total_seconds()
-    data = {
-        "MetricName": "Test Duration",
-        "Dimensions": [{"Name": "Test Path", "Value": test_path}],
-        "Value": duration,
-    }
+    data = {"MetricName": "Test Duration", "Dimensions": [{"Name": "Test Path", "Value": test_path}], "Value": duration}
     return data
 
 
 def construct_test_result_metrics_data(stdout, test_path):
-    data = {
-        "MetricName": "Test Errors",
-        "Dimensions": [{"Name": "Test Path", "Value": test_path}],
-        "Value": stdout,
-    }
+    """
+    construct test results metrics data to be sent to cloudwatch
+    :param stdout: <int> 0/1. 0 indicates no error during test execution, 1 indicates errors occurred
+    :param test_path: <string> With Scheduler/Without Scheduler
+    :return: <dict>
+    """
+    data = {"MetricName": "Test Errors", "Dimensions": [{"Name": "Test Path", "Value": test_path}], "Value": stdout}
     return data
 
 
 def send_test_duration_metrics(start_time):
+    """
+    send custom metrics about test duration to cloudwatch
+    :param start_time: <datetime> start time of the test execution
+    """
     cloudwatch_client = boto3.client("cloudwatch")
     use_scheduler = os.getenv("USE_SCHEDULER", "False")
     executor_mode = os.getenv("EXECUTOR_MODE", "False")
@@ -40,8 +48,11 @@ def send_test_duration_metrics(start_time):
 
 
 def send_test_result_metrics(stdout):
+    """
+    Send custom metrics about test results to cloudwatch.
+    :param stdout: <int> 0/1. 0 indicates no error during test execution, 1 indicates errors occurred
+    """
     cloudwatch_client = boto3.client("cloudwatch")
-
     use_scheduler = os.getenv("USE_SCHEDULER", "False")
     executor_mode = os.getenv("EXECUTOR_MODE", "False")
     if executor_mode.lower() == "false":
@@ -52,4 +63,3 @@ def send_test_result_metrics(stdout):
             metric_data = construct_test_result_metrics_data(stdout, "Without Scheduler")
 
         cloudwatch_client.put_metric_data(Namespace="DLCCI", MetricData=[metric_data])
-

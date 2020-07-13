@@ -10,16 +10,20 @@ from invoke.context import Context
 
 from test_utils import ec2 as ec2_utils
 from test_utils import metrics as metrics_utils
-from test_utils import (destroy_ssh_keypair,
-                        generate_ssh_keypair,
-                        get_framework_and_version_from_tag,
-                        get_job_type_from_image)
+from test_utils import (
+    destroy_ssh_keypair,
+    generate_ssh_keypair,
+    get_framework_and_version_from_tag,
+    get_job_type_from_image,
+)
 
-from test_utils import (UBUNTU_16_BASE_DLAMI,
-                        SAGEMAKER_LOCAL_TEST_TYPE,
-                        SAGEMAKER_REMOTE_TEST_TYPE,
-                        UBUNTU_HOME_DIR,
-                        DEFAULT_REGION)
+from test_utils import (
+    UBUNTU_16_BASE_DLAMI,
+    SAGEMAKER_LOCAL_TEST_TYPE,
+    SAGEMAKER_REMOTE_TEST_TYPE,
+    UBUNTU_HOME_DIR,
+    DEFAULT_REGION,
+)
 
 
 def assign_sagemaker_remote_job_instance_type(image):
@@ -59,9 +63,7 @@ def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
     instance_id = instance["InstanceId"]
     public_ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
-    ec2_utils.check_system_state(
-        instance_id, system_status="ok", instance_status="ok", region=region
-    )
+    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
     return instance_id, public_ip_address
 
 
@@ -111,32 +113,35 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             integration_path = os.path.join(integration_path, "test_tfs.py")
             instance_type_arg = "--instance-types"
 
-    if framework == "tensorflow" and job_type == 'training':
+    if framework == "tensorflow" and job_type == "training":
         aws_id_arg = "--account-id"
 
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     is_py3 = " python3 -m "
 
-    remote_pytest_cmd = (f"pytest {integration_path} --region {region} {docker_base_arg} "
-                         f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
-                         f"{instance_type_arg} {instance_type} --junitxml {test_report}")
+    remote_pytest_cmd = (
+        f"pytest {integration_path} --region {region} {docker_base_arg} "
+        f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
+        f"{instance_type_arg} {instance_type} --junitxml {test_report}"
+    )
 
-    local_pytest_cmd = (f"{is_py3} pytest -v {integration_path} {docker_base_arg} "
-                        f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
-                        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}")
+    local_pytest_cmd = (
+        f"{is_py3} pytest -v {integration_path} {docker_base_arg} "
+        f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
+        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}"
+    )
 
     if framework == "tensorflow" and job_type != "inference":
         local_pytest_cmd = f"{local_pytest_cmd} --py-version {sm_local_py_version} --region {region}"
     if framework == "tensorflow" and job_type == "training":
         path = os.path.join(os.path.dirname(path), f"{framework}{framework_major_version}_training")
 
-
     return (
         remote_pytest_cmd if sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE else local_pytest_cmd,
         path,
         tag,
-        job_type
+        job_type,
     )
 
 

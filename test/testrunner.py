@@ -17,11 +17,13 @@ from invoke.context import Context
 from test_utils import eks as eks_utils
 from test_utils import sagemaker as sm_utils
 from test_utils import metrics as metrics_utils
-from test_utils import (get_dlc_images,
-                        is_pr_context,
-                        destroy_ssh_keypair,
-                        setup_sm_benchmark_tf_train_env,
-                        get_framework_and_version_from_tag)
+from test_utils import (
+    get_dlc_images,
+    is_pr_context,
+    destroy_ssh_keypair,
+    setup_sm_benchmark_tf_train_env,
+    get_framework_and_version_from_tag,
+)
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 
 LOGGER = logging.getLogger(__name__)
@@ -41,7 +43,7 @@ def run_sagemaker_local_tests(images):
     sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
-    ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}), region_name=DEFAULT_REGION)
+    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
     for image in images:
         sm_utils.execute_local_tests(image, ec2_client)
 
@@ -174,8 +176,9 @@ def setup_eks_cluster(framework_name):
     long_name = framework_name
     short_name = frameworks[long_name]
     num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
-    cluster_name = f"dlc-{short_name}-cluster-" \
-                   f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
+    cluster_name = (
+        f"dlc-{short_name}-cluster-" f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
+    )
     try:
         eks_utils.eks_setup()
         eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
@@ -225,8 +228,9 @@ def main():
         if specific_test_type == "sanity":
             pull_dlc_images(all_image_list)
         if specific_test_type == "eks":
-            frameworks_in_images = [framework for framework in ("mxnet", "pytorch", "tensorflow")
-                                    if framework in dlc_images]
+            frameworks_in_images = [
+                framework for framework in ("mxnet", "pytorch", "tensorflow") if framework in dlc_images
+            ]
             if len(frameworks_in_images) != 1:
                 raise ValueError(
                     f"All images in dlc_images must be of a single framework for EKS tests.\n"
@@ -289,7 +293,6 @@ def main():
         raise NotImplementedError(
             f"{test_type} test is not supported. " f"Only support ec2, ecs, eks, sagemaker and sanity currently"
         )
-
 
 
 if __name__ == "__main__":
