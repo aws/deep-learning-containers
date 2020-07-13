@@ -371,7 +371,7 @@ def parse_canary_images(framework, region):
     registry = PUBLIC_DLC_REGISTRY
     imgs = ""
     for m in mx:
-        imgs += f" {registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{m}-gpu-py3 "
+        addition = f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{m}-gpu-py3 "
         f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{m}-cpu-py3 "
         f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{m}-gpu-py2 "
         f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{m}-cpu-py2 "
@@ -379,6 +379,10 @@ def parse_canary_images(framework, region):
         f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{m}-cpu-py3 "
         f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{m}-gpu-py2 "
         f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{m}-cpu-py2"
+        if imgs:
+            imgs += f" {addition}"
+        else:
+            imgs = addition
     return imgs
     images = {
         "tensorflow1":
