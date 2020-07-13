@@ -6,7 +6,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON_VERSION=3.6.10
-ARG MMS_VERSION=1.1.1
+ARG MMS_VERSION=1.1.2
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8

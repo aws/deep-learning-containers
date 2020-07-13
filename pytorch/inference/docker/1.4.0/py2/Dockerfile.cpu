@@ -12,7 +12,7 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 ARG PYTHON_VERSION=2.7
 ARG PYTORCH_VERSION=1.4.0
 ARG TORCHVISION_VERSION=0.5.0
-ARG MMS_VERSION=1.1.1
+ARG MMS_VERSION=1.1.2
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
