@@ -104,6 +104,11 @@ def ecr_image(aws_id, docker_base_name, tag, region):
 
 
 @pytest.fixture(scope='session')
+def image_uri(docker_base_name, tag):
+    return '{}:{}'.format(docker_base_name, tag)
+
+
+@pytest.fixture(scope='session')
 def sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
 
