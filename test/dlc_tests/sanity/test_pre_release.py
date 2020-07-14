@@ -175,6 +175,21 @@ def test_pip_check(image):
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
 
+def test_emacs(image):
+    """
+    Ensure that emacs is installed on every image
+
+    :param image: ECR image URI
+    """
+    ctx = Context()
+    container_name = f"emacs-{image.split('/')[-1].replace('.', '-').replace(':', '-')}"
+    _start_container(container_name, image, ctx)
+
+    # Make sure the following emacs sanity tests exit with code 0
+    _run_cmd_on_container(container_name, ctx, "which emacs")
+    _run_cmd_on_container(container_name, ctx, "emacs -version")
+
+
 def _start_container(container_name, image_uri, context):
     """
     Helper function to start a container locally
