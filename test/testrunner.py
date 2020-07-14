@@ -168,8 +168,10 @@ def run_sagemaker_remote_tests(images):
         from job_requester import JobRequester
 
         job_requester = JobRequester()
-        with concurrent.futures.ThreadPoolExecutor(max_workers=len(images)) as executor:
-            [executor.submit(send_scheduler_requests, job_requester, image) for image in images]
+        # with concurrent.futures.ThreadPoolExecutor(max_workers=len(images)) as executor:
+        #     [executor.submit(send_scheduler_requests, job_requester, image) for image in images]
+        send_scheduler_requests(job_requester, images[0])
+        
     else:
         if not images:
             return

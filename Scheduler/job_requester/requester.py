@@ -77,7 +77,6 @@ class JobRequester:
         :param ticket_content: <dict> content of the ticket
         :return: <string> name of the ticket
         """
-        LOGGER.info("send ticket is invoked")
         # ticket name: {CB source version}-{framework}{ticket name counter}_(datetime string)
         ticket_name_prefix = self.get_ticket_name_prefix()
         request_time = ticket_content["TIMESTAMP"]
