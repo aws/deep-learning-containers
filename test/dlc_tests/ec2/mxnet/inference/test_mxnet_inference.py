@@ -15,7 +15,6 @@ RESNET_MODEL = "resnet-152-eia"
 # TODO: Set enable_p3dn=True when releasing
 MX_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu")
 MX_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
-MX_EC2_EIA_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="eia")
 MX_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_mx_dlc_telemetry_test")
 
 
@@ -36,7 +35,13 @@ def test_ec2_mxnet_squeezenet_inference_cpu(mxnet_inference, ec2_connection, reg
 
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", ["eia1.large"], indirect=True)
-def test_ec2_mxnet_resnet_inference_eia(mxnet_eia, ec2_connection, region, eia_only):
+def test_ec2_mxnet_resnet_inference_eia_cpu(mxnet_eia, ec2_connection, region, eia_only):
+    run_ec2_mxnet_inference(mxnet_eia, RESNET_MODEL, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
+
+
+@pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ei_accelerator_type", ["eia1.large"], indirect=True)
+def test_ec2_mxnet_resnet_inference_eia_gpu(mxnet_eia, ec2_connection, region, eia_only):
     run_ec2_mxnet_inference(mxnet_eia, RESNET_MODEL, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
 
 
