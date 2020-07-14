@@ -51,6 +51,8 @@ def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
         region=region,
         ec2_key_name=ec2_key_name,
         instance_type=instance_type,
+        #EIA does not have SM Local test
+        ei_accelerator_type=None,
         user_data=None,
         iam_instance_profile_name=ec2_utils.EC2_INSTANCE_ROLE_NAME,
         instance_name=f"sm-local-{instance_name}",
