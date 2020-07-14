@@ -49,6 +49,7 @@ RUN apt-get update \
     libgomp1 \
     libffi-dev \
     curl \
+    emacs \
     git \
     wget \
     vim \
