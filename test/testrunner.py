@@ -89,7 +89,8 @@ def send_scheduler_requests(requester, image):
     :param requester: JobRequester object
     :param image: <string> ECR URI
     """
-    identifier = requester.send_request(image, "PR", 1)
+    # Note: 3 is the max number of instances required for any tests. Here we schedule tests conservatively.
+    identifier = requester.send_request(image, "PR", 3)
     image_tag = image.split(":")[-1]
     report_path = os.path.join(os.getcwd(), "test", f"{image_tag}.xml")
     while True:
