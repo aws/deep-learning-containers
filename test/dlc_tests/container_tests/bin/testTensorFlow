@@ -6,7 +6,8 @@ LOG_DIR=${HOME_DIR}/logs
 
 set -e
 
-export KERAS_BACKEND=$1
+export KERAS_BACKEND="tensorflow"
+
 if [ -z "$KERAS_BACKEND" ]; then
     echo "usage: testBackendWithKeras theano OR testBackendWithKeras tensorflow OR testBackendWithKeras mxnet OR cntk"
     exit 1
@@ -22,6 +23,7 @@ set -e
 
 if [ ${RETURN_VAL} -eq 0 ]; then
     echo "Training mnist Complete using $KERAS_BACKEND."
+    cat $TRAINING_LOG
 
     # TensorFlow time to time might output different warnings after printing the accuracy. This makes the test flaky.
     if [ "$KERAS_BACKEND" !=  "tensorflow" ]; then
