@@ -77,7 +77,7 @@ RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.1/Serving/GPU/tenso
 
 RUN pip install -U --no-cache-dir \
     docutils==0.15.2 \
-    awscli \
+    "awscli<2" \
     requests==2.22.0
 
 #CMD ["bin/bash"]
