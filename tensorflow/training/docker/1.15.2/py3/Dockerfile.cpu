@@ -129,7 +129,7 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --force-reinstall --no-cache-dir -U \
     horovod==0.18.2 \
  && ${PIP} install --no-cache-dir -U \
-    awscli
+    "awscli<2"
 
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

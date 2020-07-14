@@ -115,7 +115,7 @@ RUN apt-get update \
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install -U --no-cache-dir \
-    awscli \
+    "awscli<2" \
     cython==0.29.14 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \

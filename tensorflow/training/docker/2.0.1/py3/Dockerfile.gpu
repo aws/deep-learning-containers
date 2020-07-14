@@ -148,7 +148,7 @@ RUN ${PIP} install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
     python-dateutil==2.8.0 \
     PyYAML==5.1.2 \
-    awscli \
+    "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
     "sagemaker-tensorflow>=2.0,<2.1" \
