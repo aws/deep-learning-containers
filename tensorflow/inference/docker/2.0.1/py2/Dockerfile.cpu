@@ -6,6 +6,7 @@ LABEL dlc_major_version="5"
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
+    emacs \
     git \
     wget \
     vim \

@@ -35,6 +35,7 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     curl \
+    emacs \
     git \
     openssh-client \
     openssh-server \
