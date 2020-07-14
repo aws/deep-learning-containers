@@ -29,6 +29,8 @@ RUN apt-get update \
     libglib2.0-0 \
     libgomp1 \
     libibverbs-dev \
+    libnuma1 \
+    libnuma-dev \
     libsm6 \
     libxext6 \
     libxrender-dev \
