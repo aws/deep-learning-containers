@@ -16,9 +16,12 @@ def construct_log_content(report_path):
 
     :return: <json> returned message to SQS for locating the log
     """
+    logs_client = boto3.client("logs")
     codebuild_arn = os.getenv("CODEBUILD_BUILD_ARN")
     log_group_name = "/aws/codebuild/DLCTestJobExecutor"
     log_stream_name = codebuild_arn.split(":")[-1]
+    log_events = logs_client.get_log_events(logGroupName=log_group_name, logStreamName=log_stream_name)
+    log_stream = "\n".join([event["message"] for event in log_events["events"]])
 
     try:
         with open(report_path) as xml_file:
@@ -29,8 +32,7 @@ def construct_log_content(report_path):
         report_data_in_string = ""
 
     content = {
-        "LOG_GROUP_NAME": log_group_name,
-        "LOG_STREAM_NAME": log_stream_name,
+        "LOG_STREAM": log_stream,
         "XML_REPORT": report_data_in_string,
     }
 

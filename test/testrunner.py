@@ -85,11 +85,8 @@ def print_log_stream(logs):
     print the log stream from Job Executor
     :param logs: <dict> the returned dict from JobRequester.receive_logs
     """
-    logs_client = boto3.client("logs")
-    log_events = logs_client.get_log_events(logGroupName=logs["LOG_GROUP_NAME"], logStreamName=logs["LOG_STREAM_NAME"])
     LOGGER.info("Log stream from Job Executor.....")
-    for event in log_events["events"]:
-        print(event["message"])
+    print(logs["LOG_STREAM"])
     LOGGER.info("Print log stream complete.")
 
 
@@ -171,7 +168,7 @@ def run_sagemaker_remote_tests(images):
         # with concurrent.futures.ThreadPoolExecutor(max_workers=len(images)) as executor:
         #     [executor.submit(send_scheduler_requests, job_requester, image) for image in images]
         send_scheduler_requests(job_requester, images[0])
-        
+
     else:
         if not images:
             return
