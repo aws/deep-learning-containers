@@ -18,9 +18,9 @@ phases:
       - echo Building the Docker image...
       - |
         if expr "${CODEBUILD_BUILD_ARN}" : ".*tensorflow-1" >/dev/null; then
-          python src/main.py --buildspec $FRAMEWORK/buildspec-tf1-ei.yml --framework $FRAMEWORK
+          python src/main.py --buildspec $FRAMEWORK/buildspec-tf1.yml --framework $FRAMEWORK
         else
-          python src/main.py --buildspec $FRAMEWORK/buildspec-ei.yml --framework $FRAMEWORK
+          python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK
         fi
   post_build:
     commands:
