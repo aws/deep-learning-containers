@@ -4,51 +4,8 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-set -e
-
-export KERAS_BACKEND=$1
-if [ -z "$KERAS_BACKEND" ]; then
-    echo "usage: testBackendWithKeras theano OR testBackendWithKeras tensorflow OR testBackendWithKeras mxnet OR cntk"
-    exit 1
-fi
-
-TRAINING_LOG=${LOG_DIR}/${KERAS_BACKEND}_train_mnist.log
-
-echo "Training mnist using $KERAS_BACKEND... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
-set +e
-python ${BIN_DIR}/testTensorflow.py >$TRAINING_LOG 2>&1
-RETURN_VAL=`echo $?`
-set -e
-
-if [ ${RETURN_VAL} -eq 0 ]; then
-    echo "Training mnist Complete using $KERAS_BACKEND."
-
-    # TensorFlow time to time might output different warnings after printing the accuracy. This makes the test flaky.
-    if [ "$KERAS_BACKEND" !=  "tensorflow" ]; then
-        ACCURACY=0.50
-        for i in $(sed "s/Test accuracy: //g" $TRAINING_LOG); do
-            ACCURACY=$i
-        done
-
-        ACCURACY=`python -c "print(str($ACCURACY*100))"`
-        ACCURACY=${ACCURACY%.*}
-
-        if [[ $ACCURACY -lt 95 ]]; then
-          echo "Failed Validation Accuracy using $KERAS_BACKEND: $ACCURACY"
-          echo "Training Log: "
-          cat $TRAINING_LOG
-          exit 1
-        fi
-        echo "Successful Validation Accuracy using $KERAS_BACKEND: $ACCURACY"
-    fi
-else
-    echo "Training mnist Failed using $KERAS_BACKEND. LOG:"
-    cat $TRAINING_LOG
-    exit 1
-fi
-
-#Delete the downloaded mnist database
-set +e
-rm -rf ${HOME_DIR}/.keras/datasets
-set -e
+git clone https://github.com/keras-team/keras.git ${HOME_DIR}/artifacts/keras
+cd ${HOME_DIR}/artifacts/keras
+${BIN_DIR}/testBackendWithKeras tensorflow python || exit 1
+rm -rf ${HOME_DIR}/src/keras
 exit 0
