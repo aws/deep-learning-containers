@@ -41,6 +41,7 @@ RUN apt-get update \
     libnccl2=${NCCL_VERSION} \
     libgomp1 \
     curl \
+    emacs \
     git \
     wget \
     vim \

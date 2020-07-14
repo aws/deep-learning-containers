@@ -44,6 +44,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     cuda-cusolver-dev-10-2 \
     cuda-cusparse-dev-10-2 \
     curl \
+    emacs \
     libcudnn7=7.6.5.32-1+cuda10.2 \
     # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
     libnccl2=2.6.4-1+cuda10.2 \

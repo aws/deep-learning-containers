@@ -40,6 +40,7 @@ RUN apt-get update \
     openssh-server \
     ca-certificates \
     curl \
+    emacs \
     git \
     wget \
     vim \

@@ -5,6 +5,7 @@ LABEL maintainer="Amazon AI"
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
+    emacs \
     git \
     wget \
     build-essential \
