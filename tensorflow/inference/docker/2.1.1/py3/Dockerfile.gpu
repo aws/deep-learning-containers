@@ -64,7 +64,7 @@ RUN apt-get update \
  && apt-get update \
  && apt-get install -y --no-install-recommends libnvinfer6=${TF_TENSORRT_VERSION}-1+cuda10.1 \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/* 
+ && rm -rf /var/lib/apt/lists/*
 
 RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
  && apt-get update \

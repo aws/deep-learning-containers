@@ -43,16 +43,16 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
-EKS_VERSION = "1.13.8"
-EKSCTL_VERSION = "0.5.0"
+EKS_VERSION = "1.14.6"
+EKSCTL_VERSION = "0.22.0"
 KSONNET_VERSION = "0.13.1"
 KUBEFLOW_VERSION = "v0.4.1"
 KUBETAIL_VERSION = "1.6.7"
 
-EKS_NVIDIA_PLUGIN_VERSION = "1.12"
+EKS_NVIDIA_PLUGIN_VERSION = "0.6.0"
 
 # https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
-EKS_AMI_ID = {"cpu": "ami-010938e49e2ec29ae", "gpu": "ami-06d2bf0a1cbcfee72"}
+EKS_AMI_ID = {"cpu": "ami-03086423d09685de3", "gpu": "ami-061798711b2adafb4"}
 
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
 PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"
@@ -233,19 +233,19 @@ def delete_eks_cluster(eks_cluster_name):
 
 
 def setup_eksctl():
-    run_out = run("eksctl version", warn=True)
+    run_out = run("eksctl version", echo=True, warn=True)
 
     eksctl_installed = not run_out.return_code
 
     if eksctl_installed:
         return
 
-    platform = run("uname -s").stdout.strip()
+    platform = run("uname -s", echo=True).stdout.strip()
     eksctl_download_command = (
         f"curl --silent --location https://github.com/weaveworks/eksctl/releases/download/"
         f"{EKSCTL_VERSION}/eksctl_{platform}_amd64.tar.gz | tar xz -C /tmp"
     )
-    run(eksctl_download_command)
+    run(eksctl_download_command, echo=True)
     run("mv /tmp/eksctl /usr/local/bin")
 
 
@@ -280,19 +280,25 @@ def create_eks_cluster(eks_cluster_name, processor_type, num_nodes,
     eksctl_create_cluster_command += " --auto-kubeconfig "
     run(eksctl_create_cluster_command)
 
+    eks_write_kubeconfig(eks_cluster_name, "us-west-2")
+
+    run(
+        f"kubectl apply -f https://raw.githubusercontent.com/NVIDIA"
+        f"/k8s-device-plugin/v{EKS_NVIDIA_PLUGIN_VERSION}/nvidia-device-plugin.yml"
+    )
+
     LOGGER.info(f"EKS cluster created successfully, with the following parameters cluster_name: "
                 f"{eks_cluster_name} ami-id: {EKS_AMI_ID[processor_type]} num_nodes: {num_nodes} instance_type: "
                 f"{instance_type} ssh_public_key: {ssh_public_key_name}")
 
 
-def eks_setup(framework, cluster_name=None):
+def eks_setup():
     """Function to download eksctl, kubectl, aws-iam-authenticator and ksonnet binaries
     Utilities:
     1. eksctl: create and manage cluster
     2. kubectl: create and manage runs on eks cluster
     3. aws-iam-authenticator: authenticate the instance to access eks with the appropriate aws credentials
     4. ksonnet: configure pod files and apply changes to the EKS cluster (will be deprecated soon, but no replacement available yet)
-    :param framework: str
     """
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
@@ -303,26 +309,20 @@ def eks_setup(framework, cluster_name=None):
 
     eks_tools_installed = not run_out.return_code
 
-    # Assume cluster with such a name is active
-    if not cluster_name:
-        eks_cluster_name = PR_EKS_CLUSTER_NAME_TEMPLATE.format(framework)
-    else:
-        eks_cluster_name = cluster_name
-
     if eks_tools_installed:
-        eks_write_kubeconfig(eks_cluster_name, "us-west-2")
         return
 
     platform = run("uname -s").stdout.strip()
 
     kubectl_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-14/bin/{platform.lower()}/amd64/kubectl -o /tmp/kubectl"
+        f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
     )
 
     aws_iam_authenticator_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-14/bin/{platform.lower()}/amd64/aws-iam-authenticator -o /tmp/aws-iam-authenticator"
+        f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/aws-iam-authenticator "
+        f"-o /usr/local/bin/aws-iam-authenticator"
     )
 
     ksonnet_download_command = (
@@ -332,42 +332,30 @@ def eks_setup(framework, cluster_name=None):
 
     kubetail_download_command = (
         f"curl --silent --location https://raw.githubusercontent.com/johanhaleby/kubetail/"
-        f"{KUBETAIL_VERSION}/kubetail -o /tmp/kubetail"
+        f"{KUBETAIL_VERSION}/kubetail -o /usr/local/bin/kubetail"
     )
 
     # Separate function handles setting up eksctl
     setup_eksctl()
 
-    run(kubectl_download_command)
-    run("chmod +x /tmp/kubectl")
-    run("mv /tmp/kubectl /usr/local/bin")
+    run(kubectl_download_command, echo=True)
+    run("chmod +x /usr/local/bin/kubectl")
 
-    run(aws_iam_authenticator_download_command)
-    run("chmod +x /tmp/aws-iam-authenticator")
-    run("mv /tmp/aws-iam-authenticator /usr/local/bin")
+    run(aws_iam_authenticator_download_command, echo=True)
+    run("chmod +x /usr/local/bin/aws-iam-authenticator")
 
-    run(ksonnet_download_command)
+    run(ksonnet_download_command, echo=True)
     run("tar -xf /tmp/{}.tar.gz -C /tmp --strip-components=1".format(KSONNET_VERSION))
     run("mv /tmp/ks /usr/local/bin")
 
-    run(kubetail_download_command)
-    run("chmod +x /tmp/kubetail")
-    run("mv /tmp/kubetail /usr/local/bin")
+    run(kubetail_download_command, echo=True)
+    run("chmod +x /usr/local/bin/kubetail")
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
-    run("eksctl version")
-    run("kubectl version --short --client")
-    run("aws-iam-authenticator version")
-    run("ks version")
-
-    eks_write_kubeconfig(eks_cluster_name, "us-west-2")
-
-    run(
-        "kubectl apply -f https://raw.githubusercontent.com/NVIDIA"
-        "/k8s-device-plugin/v{}/nvidia-device-plugin.yml".format(
-            EKS_NVIDIA_PLUGIN_VERSION
-        )
-    )
+    run("eksctl version", echo=True)
+    run("kubectl version --short --client", echo=True)
+    run("aws-iam-authenticator version", echo=True)
+    run("ks version", echo=True)
 
 
 def write_eks_yaml_file_from_template(
