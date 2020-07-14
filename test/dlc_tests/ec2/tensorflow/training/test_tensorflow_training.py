@@ -111,11 +111,17 @@ def test_tensorflow_tensorboard_gpu(tensorflow_training, ec2_connection, gpu_onl
 def test_tensorflow_tensorboard_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
 
+# TensorFlow Addons is actively working towards forward compatibility with TensorFlow 2.x
+# https://github.com/tensorflow/addons#python-op-compatility
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_addons_gpu(tensorflow_training, ec2_connection, gpu_only):
+    if is_tf1(tensorflow_training):
+        pytest.skip("This test is for TF2 only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
 
 
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, cpu_only):
+    if is_tf1(tensorflow_training):
+        pytest.skip("This test is for TF2 only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
