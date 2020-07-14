@@ -80,6 +80,19 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
     return True
 
 
+def print_log_stream(logs):
+    """
+    print the log stream from Job Executor
+    :param logs: <dict> the returned dict from JobRequester.receive_logs
+    """
+    logs_client = boto3.client("logs")
+    log_events = logs_client.get_log_events(logGroupName=logs["LOG_GROUP_NAME"], logStreamName=logs["LOG_STREAM_NAME"])
+    LOGGER.info("Log stream from Job Executor.....")
+    for event in log_events["events"]:
+        print(event["message"])
+    LOGGER.info("Print log stream complete.")
+
+
 def send_scheduler_requests(requester, image):
     """
     Send a PR test request through the requester, and wait for the response.
@@ -100,10 +113,10 @@ def send_scheduler_requests(requester, image):
             LOGGER.info(f"Test for image {image} completed.")
             logs_response = requester.receive_logs(identifier)
             LOGGER.info(f"Receive logs success for ticket {identifier.ticket_name}, report path: {report_path}")
+            print_log_stream(logs_response)
 
             with open(report_path, "w") as xml_report:
                 xml_report.write(logs_response["XML_REPORT"])
-            LOGGER.info("Write XML report success, exiting...")
             break
 
         elif test_status == "runtimeError":
@@ -111,6 +124,7 @@ def send_scheduler_requests(requester, image):
             logs_response = requester.receive_logs(identifier)
             with open(report_path, "w") as xml_report:
                 xml_report.write(logs_response["XML_REPORT"])
+            print_log_stream(logs_response)
             metrics_utils.send_test_result_metrics(1)
             break
 

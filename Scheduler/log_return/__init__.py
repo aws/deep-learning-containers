@@ -17,7 +17,7 @@ def construct_log_content(report_path):
     :return: <json> returned message to SQS for locating the log
     """
     codebuild_arn = os.getenv("CODEBUILD_BUILD_ARN")
-    log_group_name = f"/aws/codebuild/{codebuild_arn.split(':')[-2]}"
+    log_group_name = "/aws/codebuild/DLCTestJobExecutor"
     log_stream_name = codebuild_arn.split(":")[-1]
 
     try:
