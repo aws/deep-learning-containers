@@ -42,6 +42,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-server \
     ca-certificates \
     curl \
+    emacs \
     git \
     libtemplate-perl \
     wget \

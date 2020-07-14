@@ -30,6 +30,7 @@ RUN apt-get update \
     curl \
     gnupg2 \
     ca-certificates \
+    emacs \
     git \
     wget \
     vim \
