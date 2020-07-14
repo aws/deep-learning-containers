@@ -99,7 +99,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && conda install -c dglteam -y dgl-cuda10.1==0.4.3 \
  && /opt/conda/bin/conda clean -ya
 
-RUN conda install -c pytorch magma-cuda101==2.5.1 \
+RUN conda install -c pytorch magma-cuda101==2.5.2 \
  && conda install -c conda-forge \
     opencv==4.0.1 \
  && conda install -y scikit-learn==0.21.2 \
