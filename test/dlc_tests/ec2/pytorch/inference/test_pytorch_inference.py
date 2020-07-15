@@ -3,7 +3,7 @@ import os
 import pytest
 
 from test import test_utils
-from test.test_utils import CONTAINER_TESTS_PREFIX, DEFAULT_REGION
+from test.test_utils import CONTAINER_TESTS_PREFIX
 from test.test_utils.ec2 import get_ec2_instance_type, execute_ec2_inference_test
 from test.dlc_tests.conftest import LOGGER
 

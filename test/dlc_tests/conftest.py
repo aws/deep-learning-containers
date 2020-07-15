@@ -109,6 +109,11 @@ def ec2_instance_ami(request):
 def ec2_instance(
     request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami, region
 ):
+    if ec2_instance_type == "p3dn.24xlarge":
+        region = P3DN_REGION
+        ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
+        ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
+        ec2_instance_ami = UBUNTU_16_BASE_DLAMI_US_EAST_1
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
     params = {
@@ -155,16 +160,18 @@ def ec2_instance(
 
 
 @pytest.fixture(scope="function")
-def ec2_connection(request, ec2_instance, ec2_key_name, region):
+def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, region):
     """
     Fixture to establish connection with EC2 instance if necessary
     :param request: pytest test request
     :param ec2_instance: ec2_instance pytest fixture
     :param ec2_key_name: unique key name
+    :param ec2_instance_type: ec2_instance_type pytest fixture
     :param region: Region where ec2 instance is launched
     :return: Fabric connection object
     """
     instance_id, instance_pem_file = ec2_instance
+    region = P3DN_REGION if ec2_instance_type == "p3dn.24xlarge" else region
     ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)

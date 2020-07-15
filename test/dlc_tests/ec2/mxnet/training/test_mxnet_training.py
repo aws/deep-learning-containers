@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, DEFAULT_REGION
+from test.test_utils import CONTAINER_TESTS_PREFIX
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
