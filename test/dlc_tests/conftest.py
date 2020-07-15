@@ -34,8 +34,11 @@ FRAMEWORK_FIXTURES = (
     "cpu",
 )
 
+# Tests with these substrings will be allowed to run on single gpu instances
+ALLOWED_SINGLE_GPU_TESTS = ("telemetry", "test_framework_version_gpu")
+
 # Ignore container_tests collection, as they will be called separately from test functions
-collect_ignore = [os.path.join("container_tests", "*")]
+collect_ignore = [os.path.join("container_tests")]
 
 
 def pytest_addoption(parser):
@@ -318,7 +321,7 @@ def _handle_single_gpu_instances(function_key, function_keywords, failures, proc
 
     # Define conditions where we allow a test function to run with a single gpu instance
     whitelist_single_gpu = False
-    allowed_single_gpu = ("telemetry", "test_framework_version_gpu")
+    allowed_single_gpu = ALLOWED_SINGLE_GPU_TESTS
 
     # Regex in order to determine the gpu instance type
     gpu_instance_pattern = re.compile(r"\w+\.\d*xlarge")
@@ -336,8 +339,7 @@ def _handle_single_gpu_instances(function_key, function_keywords, failures, proc
             processor = "single_gpu"
             if not whitelist_single_gpu:
                 single_gpu_failure_message = (
-                    f"Function {function_key} uses single-gpu instance type {instance_type}. "
-                    f"Please use multi-gpu instance type."
+                    f"Function uses single-gpu instance type {instance_type}. " f"Please use multi-gpu instance type."
                 )
                 if not failures.get(function_key):
                     failures[function_key] = [single_gpu_failure_message]
