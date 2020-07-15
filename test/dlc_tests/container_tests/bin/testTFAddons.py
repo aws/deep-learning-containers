@@ -1,41 +1,39 @@
+# Tensorflow addons layers_normalizations example
+
 import tensorflow as tf
 import tensorflow_addons as tfa
 
-def test():
-  batch_size=64
-  epochs=10
-  model = tf.keras.Sequential([
-    tf.keras.layers.Dense(64, input_shape=(784,), activation='relu', name='dense_1'),
-    tf.keras.layers.Dense(64, activation='relu', name='dense_2'),
-    tf.keras.layers.Dense(10, activation='softmax', name='predictions'),
+def train():
+  mnist = tf.keras.datasets.mnist
+
+  (x_train, y_train),(x_test, y_test) = mnist.load_data()
+  x_train, x_test = x_train / 255.0, x_test / 255.0
+
+  model = tf.keras.models.Sequential([
+    # Reshape into "channels last" setup.
+    tf.keras.layers.Reshape((28,28,1), input_shape=(28,28)),
+    tf.keras.layers.Conv2D(filters=10, kernel_size=(3,3),data_format="channels_last"),
+    # LayerNorm Layer
+    tfa.layers.InstanceNormalization(axis=3, 
+                                     center=True, 
+                                     scale=True,
+                                     beta_initializer="random_uniform",
+                                     gamma_initializer="random_uniform"),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(128, activation='relu'),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(10, activation='softmax')
   ])
-  
-  # Load MNIST dataset as NumPy arrays
-  dataset = {}
-  num_validation = 10000
-  (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+  callbacks = [tf.keras.callbacks.TensorBoard(log_dir='logs', profile_batch=1)]
+  model.compile(optimizer='adam',
+                loss='sparse_categorical_crossentropy',
+                metrics=['accuracy'])
 
-  # Preprocess the data
-  x_train = x_train.reshape(-1, 784).astype('float32') / 255
-  x_test = x_test.reshape(-1, 784).astype('float32') / 255 
+  model.fit(x_test, y_test, callbacks)
 
-  # Compile the model
-  model.compile(
-      optimizer=tfa.optimizers.LazyAdam(0.001),  # Utilize TFA optimizer
-      loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-      metrics=['accuracy'])
-
-  # Train the network
-  history = model.fit(
-      x_train,
-      y_train,
-      batch_size=batch_size,
-      epochs=epochs)
-
-  print('Evaluate on test data:')
-  results = model.evaluate(x_test, y_test, batch_size=128, verbose = 2)
-  print('Test loss = {0}, Test acc: {1}'.format(results[0], results[1]))
-
+  score = model.evaluate(x_test, y_test, verbose=0)
+  print('Test loss:', score[0])
+  print('Test accuracy:', score[1])
 
 if __name__ == '__main__':
-    test()
+    train()
