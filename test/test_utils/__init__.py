@@ -262,13 +262,13 @@ def get_mms_run_command(model_names, processor="cpu"):
     :return: <str> Command to start MMS server with given model
     """
     if processor != "eia":
-        mxnet_model_location = {
+        multi_model_location = {
             "squeezenet": "https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model",
             "pytorch-densenet": "https://dlc-samples.s3.amazonaws.com/pytorch/multi-model-server/densenet/densenet.mar",
             "bert_sst": "https://aws-dlc-sample-models.s3.amazonaws.com/bert_sst/bert_sst.mar"
         }
     else:
-        mxnet_model_location = {
+        multi_model_location = {
             "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar",
             "pytorch-densenet": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia.mar",
         }
@@ -277,16 +277,16 @@ def get_mms_run_command(model_names, processor="cpu"):
         model_names = [model_names]
 
     for model_name in model_names:
-        if model_name not in mxnet_model_location:
+        if model_name not in multi_model_location:
             raise Exception(
                 "No entry found for model {} in dictionary".format(model_name)
             )
 
     parameters = [
-        "{}={}".format(name, mxnet_model_location[name]) for name in model_names
+        "{}={}".format(name, multi_model_location[name]) for name in model_names
     ]
     mms_command = (
-        "mxnet-model-server --start --mms-config /home/model-server/config.properties --models "
+        "multi-model-server --start --mms-config /home/model-server/config.properties --models "
         + " ".join(parameters)
     )
     return mms_command
