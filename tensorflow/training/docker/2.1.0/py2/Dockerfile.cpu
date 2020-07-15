@@ -105,7 +105,7 @@ RUN ${PIP} install --no-cache-dir -U \
     python-dateutil==2.8.1 \
     pyYAML==5.3.1 \
     requests==2.22.0 \
-    awscli \
+    "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
     "cryptography>=2.3" \

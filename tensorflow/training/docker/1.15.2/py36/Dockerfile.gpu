@@ -133,7 +133,7 @@ RUN pip install --no-cache-dir -U \
     scipy==1.2.2 \
     scikit-learn==0.20.3 \
     pandas==0.24.2 \
-    Pillow==7.0.0 \
+    Pillow \
     h5py==2.9.0 \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
@@ -151,7 +151,7 @@ RUN pip install --no-cache-dir -U \
  && pip install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
  && pip install --no-cache-dir -U \
-    awscli \
+    "awscli<2" \
     smdebug==${SMDEBUG_VERSION}
 
 
