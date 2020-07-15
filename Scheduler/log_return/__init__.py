@@ -21,7 +21,7 @@ def construct_log_content(report_path):
     log_group_name = "/aws/codebuild/DLCTestJobExecutor"
     log_stream_name = codebuild_arn.split(":")[-1]
     log_events = logs_client.get_log_events(logGroupName=log_group_name, logStreamName=log_stream_name)
-    log_stream = "\n".join([event["message"] for event in log_events["events"]])
+    log_stream = "".join([event["message"] for event in log_events["events"]])
 
     try:
         with open(report_path) as xml_file:
