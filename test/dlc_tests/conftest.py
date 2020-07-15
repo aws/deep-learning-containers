@@ -59,8 +59,8 @@ def ec2_key_name(request):
 
 
 @pytest.fixture(scope="session")
-def region(request):
-    return request.param if hasattr(request, "param") else os.getenv("AWS_REGION", DEFAULT_REGION)
+def region():
+    return os.getenv("AWS_REGION", DEFAULT_REGION)
 
 
 @pytest.fixture(scope="session")
@@ -92,12 +92,8 @@ def ec2_instance_role_name(request):
 
 
 @pytest.fixture(scope="function")
-def ec2_instance_ami(request, region):
-    return (
-        request.param if hasattr(request, "param") else
-        UBUNTU_16_BASE_DLAMI_US_EAST_1 if region == P3DN_REGION else
-        UBUNTU_16_BASE_DLAMI_US_WEST_2
-    )
+def ec2_instance_ami(request):
+    return request.param if hasattr(request, "param") else UBUNTU_16_BASE_DLAMI_US_WEST_2
 
 
 @pytest.mark.timeout(300)

@@ -6,7 +6,7 @@ from retrying import retry
 from fabric import Connection
 from botocore.config import Config
 
-from . import DEFAULT_REGION, P3DN_REGION, UL_AMI_LIST, LOGGER
+from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
@@ -21,8 +21,8 @@ def get_ec2_instance_type(default, processor, enable_p3dn=False):
     :param enable_p3dn: Boolean to determine whether or not to run tests on p3dn. If set to false, default
     gpu instance type will be used. If default gpu instance type is p3dn, then use small gpu instance type (p2.xlarge)
 
-    :return: one item list of tuple(region, instance type) -- this is used to parametrize tests, and parameter is
-    required to be a list.
+    :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
+    a list.
     """
     allowed_processors = ("cpu", "gpu")
     p3dn = "p3dn.24xlarge"
@@ -39,8 +39,7 @@ def get_ec2_instance_type(default, processor, enable_p3dn=False):
     instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
     if instance_type == p3dn and not enable_p3dn:
         instance_type = default
-    region = P3DN_REGION if instance_type == p3dn else DEFAULT_REGION
-    return [(region, instance_type)]
+    return [instance_type]
 
 
 def launch_instance(

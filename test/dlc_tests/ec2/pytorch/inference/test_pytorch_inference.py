@@ -13,12 +13,12 @@ PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor
 PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test")
 
 
-@pytest.mark.parametrize("region,ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gpu_only):
     ec2_pytorch_inference(pytorch_inference, "gpu", ec2_connection, region)
 
 
-@pytest.mark.parametrize("region,ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cpu_only):
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
 
@@ -52,11 +52,11 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
 
 
-@pytest.mark.parametrize("region,ec2_instance_type", [(DEFAULT_REGION, "p2.xlarge")], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
 def test_pytorch_inference_telemetry_gpu(pytorch_inference, ec2_connection, gpu_only):
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TELEMETRY_CMD)
 
 
-@pytest.mark.parametrize("region,ec2_instance_type", [(DEFAULT_REGION, "c5.4xlarge")], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_pytorch_inference_telemetry_cpu(pytorch_inference, ec2_connection, cpu_only):
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TELEMETRY_CMD)
