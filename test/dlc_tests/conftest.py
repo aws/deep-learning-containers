@@ -3,6 +3,7 @@ import os
 import csv
 import logging
 import random
+import re
 import sys
 
 import boto3
@@ -237,6 +238,7 @@ def pytest_runtest_setup(item):
 
 def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
+        failure_conditions = {}
         test_coverage_file = test_utils.TEST_COVERAGE_FILE
         test_cov = {}
         for item in items:
@@ -246,61 +248,149 @@ def pytest_collection_modifyitems(session, config, items):
             str_fspath = str(item.fspath)
             str_keywords = str(item.keywords)
 
-            # Based on keywords and filepaths, assign values
-            scope = infer_field_value("all", ("mxnet", "tensorflow", "pytorch"), str_fspath)
-            train_inf = infer_field_value("both", ("training", "inference"), str_fspath, str_keywords)
-            integration = infer_field_value("general integration",
-                                            ("_dgl_", "smdebug", "gluonnlp", "smexperiments", "_mme_", "pipemode",
-                                             "tensorboard", "_s3_"),
-                                            str_keywords)
-            model = infer_field_value("N/A",
-                                      ("mnist", "densenet", "squeezenet", "half_plus_two", "half_plus_three"),
-                                      str_keywords)
-            num_instances = infer_field_value(1, ("_multinode_", "_multi-node_"), str_fspath, str_keywords)
-            cpu_gpu = infer_field_value("all", ("cpu", "gpu", "eia"), str_keywords)
-            if cpu_gpu == "gpu":
-                if "p2.xlarge" in str_keywords:
-                    cpu_gpu = "single_gpu"
-
             # Construct Category and Github_Link fields based on the filepath
             category = str_fspath.split('/dlc_tests/')[-1].split('/')[0]
             github_link = f"https://github.com/aws/deep-learning-containers/blob/master/" \
                           f"{str_fspath.split('/deep-learning-containers/')[-1]}"
 
+            # Only create a new test coverage item if we have not seen the function before. This is a necessary step,
+            # as parametrization can make it appear as if the same test function is a unique test function
+            if test_cov.get(function_key):
+                continue
+
+            # Based on keywords and filepaths, assign values
+            scope = _infer_field_value("all", ("mxnet", "tensorflow", "pytorch"), str_fspath)
+            train_inf = _infer_field_value("both", ("training", "inference"), str_fspath, str_keywords)
+            integration = _infer_field_value("general integration",
+                                             ("_dgl_", "smdebug", "gluonnlp", "smexperiments", "_mme_", "pipemode",
+                                             "tensorboard", "_s3_"),
+                                             str_keywords)
+            model = _infer_field_value("N/A",
+                                       ("mnist", "densenet", "squeezenet", "half_plus_two", "half_plus_three"),
+                                       str_keywords)
+            num_instances = _infer_field_value(1, ("_multinode_", "_multi-node_"), str_fspath, str_keywords)
+            cpu_gpu = _infer_field_value("all", ("cpu", "gpu", "eia"), str_keywords)
+            if cpu_gpu == "gpu":
+                cpu_gpu = _handle_single_gpu_instances(function_key, str_keywords, failure_conditions)
+
             # Create a new test coverage item if we have not seen the function before. This is a necessary step,
             # as parametrization can make it appear as if the same test function is a unique test function
-            if not test_cov.get(function_key):
-                test_cov[function_key] = {
-                                            "Category": category,
-                                            "Name": function_name,
-                                            "Scope": scope,
-                                            "Job_Type": train_inf,
-                                            "Num_Instances": get_marker_arg_value(item, "multinode", num_instances),
-                                            "Processor": cpu_gpu,
-                                            "Integration": get_marker_arg_value(item, "integration", integration),
-                                            "Model": get_marker_arg_value(item, "model", model),
-                                            "Github_Link": github_link,
-                                           }
-        with open(test_coverage_file, "w+") as tc_file:
-            # Assemble the list of headers from one item in the dictionary
-            field_names = []
-            for _key, header in test_cov.items():
-                for field_name, _value in header.items():
-                    field_names.append(field_name)
+            test_cov[function_key] = {
+                                        "Category": category,
+                                        "Name": function_name,
+                                        "Scope": scope,
+                                        "Job_Type": train_inf,
+                                        "Num_Instances": get_marker_arg_value(item, "multinode", num_instances),
+                                        "Processor": cpu_gpu,
+                                        "Integration": get_marker_arg_value(item, "integration", integration),
+                                        "Model": get_marker_arg_value(item, "model", model),
+                                        "Github_Link": github_link,
+                                        }
+        write_test_coverage_file(test_cov, test_coverage_file)
+
+        if failure_conditions:
+            message, total_issues = _assemble_report_failure_message(failure_conditions)
+            if total_issues == 0:
+                LOGGER.warning(f"Found failure message, but no issues. Message:\n{message}")
+            else:
+                raise TestReportGenerationFailure(message)
+
+
+def _handle_single_gpu_instances(function_key, function_keywords, failures, cpu_gpu="gpu"):
+    """
+    Generally, we do not want tests running on single gpu instance types. However, there are exceptions to this rule.
+    This function is used to determine whether we need to raise an error with report generation or not, based on
+    whether we are using single gpu instanecs or not in a given test function.
+
+    :param function_key: local/path/to/function::function_name
+    :param function_keywords: string of keywords associated with the test function
+    :param failures: running dictionary of failures associated with the github link
+    :param cpu_gpu: whether the test is for cpu, gpu or both
+    :return: cpu_gpu if not single gpu instance, else "single_gpu", and a dict with updated failure messages
+    """
+
+    # Define conditions where we allow a test function to run with a single gpu instance
+    whitelist_single_gpu = False
+    allowed_single_gpu = ("telemetry", "test_framework_version_gpu")
+
+    # Regex in order to determine the gpu instance type
+    gpu_instance_pattern = re.compile(r'\w+\.\d*xlarge')
+    gpu_match = gpu_instance_pattern.search(function_keywords)
+
+    if gpu_match:
+        instance_type = gpu_match.group()
+        num_gpus = ec2_utils.get_instance_num_gpus(instance_type=instance_type)
+
+        for test in allowed_single_gpu:
+            if test in function_key:
+                whitelist_single_gpu = True
                 break
+        if num_gpus == 1:
+            cpu_gpu = "single_gpu"
+            if not whitelist_single_gpu:
+                single_gpu_failure_message = f"Function {function_key} uses single-gpu instance type " \
+                                             f"{instance_type}. Please use multi-gpu instance type."
+                if not failures.get(function_key):
+                    failures[function_key] = [single_gpu_failure_message]
+                else:
+                    failures[function_key].append(single_gpu_failure_message)
 
-            writer = csv.DictWriter(tc_file, delimiter=",", fieldnames=field_names)
-            writer.writeheader()
+    return cpu_gpu, failures
 
-            for _func_key, info in test_cov.items():
-                writer.writerow(info)
+
+def _assemble_report_failure_message(failure_messages):
+    """
+    Function to assemble the failure message if there are any to raise
+
+    :param failure_messages: dict where key is the function, and value is a list of failures associated with the
+    function
+    :return: the final failure message string
+    """
+    final_message = ""
+    total_issues = 0
+    for func, messages in failure_messages.items():
+        final_message += f"******Problems with {func}:******\n"
+        for idx, message in enumerate(messages):
+            final_message += f"{idx+1}. {message}\n"
+            total_issues += 1
+    final_message += f"TOTAL ISSUES: {total_issues}"
+
+    return final_message, total_issues
+
+
+def write_test_coverage_file(test_coverage_info, test_coverage_file):
+    """
+    Function to write out the test coverage file based on a dictionary defining key/value pairs of test coverage
+    information
+
+    :param test_coverage_info: dict representing the test coverage information
+    :param test_coverage_file: outfile to write to
+    """
+    # Assemble the list of headers from one item in the dictionary
+    field_names = []
+    for _key, header in test_coverage_info.items():
+        for field_name, _value in header.items():
+            field_names.append(field_name)
+        break
+
+    # Write to the test coverage file
+    with open(test_coverage_file, "w+") as tc_file:
+        writer = csv.DictWriter(tc_file, delimiter=",", fieldnames=field_names)
+        writer.writeheader()
+
+        for _func_key, info in test_coverage_info.items():
+            writer.writerow(info)
+
+
+class TestReportGenerationFailure(Exception):
+    pass
 
 
 class RequiredMarkerNotFound(Exception):
     pass
 
 
-def infer_field_value(default, options, *comparison_str):
+def _infer_field_value(default, options, *comparison_str):
     """
     For a given test coverage report field, determine the value based on whether the options are in keywords or
     file paths.

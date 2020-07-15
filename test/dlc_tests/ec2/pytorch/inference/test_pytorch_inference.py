@@ -9,9 +9,10 @@ from test.dlc_tests.conftest import LOGGER
 
 
 # TODO: Set enable_p3dn=True when releasing
-PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu")
+PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g4dn.12xlarge", processor="gpu")
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test")
+
 
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gpu_only):
@@ -51,11 +52,12 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
     finally:
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
 
+
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_inference_telemetry_gpu(pytorch_inference, ec2_connection, gpu_only):
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TELEMETRY_CMD)
 
+
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_inference_telemetry_cpu(pytorch_inference, ec2_connection, cpu_only):
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TELEMETRY_CMD)
-    
