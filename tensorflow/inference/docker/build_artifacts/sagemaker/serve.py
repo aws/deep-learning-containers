@@ -12,11 +12,11 @@
 # language governing permissions and limitations under the License.
 
 import logging
-import multiprocessing
 import os
 import re
 import signal
 import subprocess
+import tfs_utils
 
 from contextlib import contextmanager
 
@@ -24,7 +24,6 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
 JS_PING = 'js_content ping'
-JS_PING_WITHOUT_MODEL = 'js_content ping_without_model'
 JS_INVOCATIONS = 'js_content invocations'
 GUNICORN_PING = 'proxy_pass http://gunicorn_upstream/ping'
 GUNICORN_INVOCATIONS = 'proxy_pass http://gunicorn_upstream/invocations'
@@ -46,29 +45,31 @@ class ServiceManager(object):
         self._nginx_http_port = os.environ.get('SAGEMAKER_BIND_TO_PORT', '8080')
         self._nginx_loglevel = os.environ.get('SAGEMAKER_TFS_NGINX_LOGLEVEL', 'error')
         self._tfs_default_model_name = os.environ.get('SAGEMAKER_TFS_DEFAULT_MODEL_NAME', 'None')
+        self._sagemaker_port_range = os.environ.get('SAGEMAKER_SAFE_PORT_RANGE', None)
+        self._tfs_config_path = '/sagemaker/model-config.cfg'
+        self._tfs_batching_config_path = '/sagemaker/batching-config.cfg'
 
         _enable_batching = os.environ.get('SAGEMAKER_TFS_ENABLE_BATCHING', 'false').lower()
-        _enable_dynamic_endpoint = os.environ.get('SAGEMAKER_MULTI_MODEL',
-                                                  'false').lower()
+        _enable_multi_model_endpoint = os.environ.get('SAGEMAKER_MULTI_MODEL',
+                                                      'false').lower()
 
         if _enable_batching not in ['true', 'false']:
             raise ValueError('SAGEMAKER_TFS_ENABLE_BATCHING must be "true" or "false"')
         self._tfs_enable_batching = _enable_batching == 'true'
 
-        if _enable_dynamic_endpoint not in ['true', 'false']:
+        if _enable_multi_model_endpoint not in ['true', 'false']:
             raise ValueError('SAGEMAKER_MULTI_MODEL must be "true" or "false"')
-        self._tfs_enable_dynamic_endpoint = _enable_dynamic_endpoint == 'true'
+        self._tfs_enable_multi_model_endpoint = _enable_multi_model_endpoint == 'true'
 
-        self._use_gunicorn = self._enable_python_service or self._tfs_enable_dynamic_endpoint
+        self._use_gunicorn = self._enable_python_service or self._tfs_enable_multi_model_endpoint
 
-        if 'SAGEMAKER_SAFE_PORT_RANGE' in os.environ:
-            port_range = os.environ['SAGEMAKER_SAFE_PORT_RANGE']
-            parts = port_range.split('-')
+        if self._sagemaker_port_range is not None:
+            parts = self._sagemaker_port_range.split('-')
             low = int(parts[0])
             hi = int(parts[1])
             if low + 2 > hi:
                 raise ValueError('not enough ports available in SAGEMAKER_SAFE_PORT_RANGE ({})'
-                                 .format(port_range))
+                                 .format(self._sagemaker_port_range))
             self._tfs_grpc_port = str(low)
             self._tfs_rest_port = str(low + 1)
         else:
@@ -81,112 +82,32 @@ class ServiceManager(object):
         os.environ['TFS_REST_PORT'] = self._tfs_rest_port
 
     def _create_tfs_config(self):
+        models = tfs_utils.find_models()
+        if not models:
+            raise ValueError('no SavedModel bundles found!')
+
+        if self._tfs_default_model_name == 'None':
+            default_model = os.path.basename(models[0])
+            if default_model:
+                self._tfs_default_model_name = default_model
+                log.info('using default model name: {}'.format(self._tfs_default_model_name))
+            else:
+                log.info('no default model detected')
+
         # config (may) include duplicate 'config' keys, so we can't just dump a dict
-        if self._tfs_enable_dynamic_endpoint:
-            config = 'model_config_list: {\n}\n'
-            with open('/sagemaker/model-config.cfg', 'w') as f:
-                f.write(config)
-        else:
-            models = self._find_models()
-            if not models:
-                raise ValueError('no SavedModel bundles found!')
+        config = 'model_config_list: {\n'
+        for m in models:
+            config += '  config: {\n'
+            config += '    name: "{}",\n'.format(os.path.basename(m))
+            config += '    base_path: "{}",\n'.format(m)
+            config += '    model_platform: "tensorflow"\n'
+            config += '  }\n'
+        config += '}\n'
 
-            if self._tfs_default_model_name == 'None':
-                default_model = os.path.basename(models[0])
-                if default_model:
-                    self._tfs_default_model_name = default_model
-                    log.info('using default model name: {}'.format(self._tfs_default_model_name))
-                else:
-                    log.info('no default model detected')
+        log.info('tensorflow serving model config: \n%s\n', config)
 
-            # config (may) include duplicate 'config' keys, so we can't just dump a dict
-            config = 'model_config_list: {\n'
-            for m in models:
-                config += '  config: {\n'
-                config += '    name: "{}",\n'.format(os.path.basename(m))
-                config += '    base_path: "{}",\n'.format(m)
-                config += '    model_platform: "tensorflow"\n'
-                config += '  }\n'
-            config += '}\n'
-
-            log.info('tensorflow serving model config: \n%s\n', config)
-
-            with open('/sagemaker/model-config.cfg', 'w') as f:
-                f.write(config)
-
-    def _create_batching_config(self):
-
-        class _BatchingParameter:
-            def __init__(self, key, env_var, value, defaulted_message):
-                self.key = key
-                self.env_var = env_var
-                self.value = value
-                self.defaulted_message = defaulted_message
-
-        cpu_count = multiprocessing.cpu_count()
-        batching_parameters = [
-            _BatchingParameter('max_batch_size', 'SAGEMAKER_TFS_MAX_BATCH_SIZE', 8,
-                               "max_batch_size defaulted to {}. Set {} to override default. "
-                               "Tuning this parameter may yield better performance."),
-            _BatchingParameter('batch_timeout_micros', 'SAGEMAKER_TFS_BATCH_TIMEOUT_MICROS', 1000,
-                               "batch_timeout_micros defaulted to {}. Set {} to override "
-                               "default. Tuning this parameter may yield better performance."),
-            _BatchingParameter('num_batch_threads', 'SAGEMAKER_TFS_NUM_BATCH_THREADS',
-                               cpu_count, "num_batch_threads defaulted to {},"
-                               "the number of CPUs. Set {} to override default."),
-            _BatchingParameter('max_enqueued_batches', 'SAGEMAKER_TFS_MAX_ENQUEUED_BATCHES',
-                               # Batch limits number of concurrent requests, which limits number
-                               # of enqueued batches, so this can be set high for Batch
-                               100000000 if 'SAGEMAKER_BATCH' in os.environ else cpu_count,
-                               "max_enqueued_batches defaulted to {}. Set {} to override default. "
-                               "Tuning this parameter may be necessary to tune out-of-memory "
-                               "errors occur."),
-        ]
-
-        warning_message = ''
-        for batching_parameter in batching_parameters:
-            if batching_parameter.env_var in os.environ:
-                batching_parameter.value = os.environ[batching_parameter.env_var]
-            else:
-                warning_message += batching_parameter.defaulted_message.format(
-                    batching_parameter.value, batching_parameter.env_var)
-                warning_message += '\n'
-        if warning_message:
-            log.warning(warning_message)
-
-        config = ''
-        for batching_parameter in batching_parameters:
-            config += '%s { value: %s }\n' % (batching_parameter.key, batching_parameter.value)
-
-        log.info('batching config: \n%s\n', config)
-        with open('/sagemaker/batching-config.cfg', 'w') as f:
+        with open('/sagemaker/model-config.cfg', 'w') as f:
             f.write(config)
-
-    def _get_tfs_batching_args(self):
-        if self._tfs_enable_batching:
-            return "--enable_batching=true " \
-                   "--batching_parameters_file=/sagemaker/batching-config.cfg"
-        else:
-            return ""
-
-    def _find_models(self):
-        base_path = '/opt/ml/model'
-        models = []
-        for f in self._find_saved_model_files(base_path):
-            parts = f.split('/')
-            if len(parts) >= 6 and re.match(r'^\d+$', parts[-2]):
-                model_path = '/'.join(parts[0:-2])
-                if model_path not in models:
-                    models.append(model_path)
-        return models
-
-    def _find_saved_model_files(self, path):
-        for e in os.scandir(path):
-            if e.is_dir():
-                yield from self._find_saved_model_files(os.path.join(path, e.name))
-            else:
-                if e.name == 'saved_model.pb':
-                    yield os.path.join(path, e.name)
 
     def _setup_gunicorn(self):
         python_path_content = []
@@ -217,9 +138,10 @@ class ServiceManager(object):
 
         gunicorn_command = (
             'gunicorn -b unix:/tmp/gunicorn.sock -k gevent --chdir /sagemaker '
-            '{}{} -e TFS_GRPC_PORT={} -e SAGEMAKER_MULTI_MODEL={} '
+            '{}{} -e TFS_GRPC_PORT={} -e SAGEMAKER_MULTI_MODEL={} -e SAGEMAKER_SAFE_PORT_RANGE={} '
             'python_service:app').format(python_path_option, ','.join(python_path_content),
-                                         self._tfs_grpc_port, self._tfs_enable_dynamic_endpoint)
+                                         self._tfs_grpc_port, self._tfs_enable_multi_model_endpoint,
+                                         self._sagemaker_port_range)
 
         log.info('gunicorn command: {}'.format(gunicorn_command))
         self._gunicorn_command = gunicorn_command
@@ -227,11 +149,6 @@ class ServiceManager(object):
     def _create_nginx_config(self):
         template = self._read_nginx_template()
         pattern = re.compile(r'%(\w+)%')
-        ping_request = JS_PING
-        if self._enable_python_service:
-            ping_request = GUNICORN_PING
-        if self._tfs_enable_dynamic_endpoint or self._tfs_version:
-            ping_request = JS_PING_WITHOUT_MODEL
 
         template_values = {
             'TFS_VERSION': self._tfs_version,
@@ -239,8 +156,8 @@ class ServiceManager(object):
             'TFS_DEFAULT_MODEL_NAME': self._tfs_default_model_name,
             'NGINX_HTTP_PORT': self._nginx_http_port,
             'NGINX_LOG_LEVEL': self._nginx_loglevel,
-            'FORWARD_PING_REQUESTS': ping_request,
-            'FORWARD_INVOCATION_REQUESTS': GUNICORN_INVOCATIONS if self._enable_python_service
+            'FORWARD_PING_REQUESTS': GUNICORN_PING if self._use_gunicorn else JS_PING,
+            'FORWARD_INVOCATION_REQUESTS': GUNICORN_INVOCATIONS if self._use_gunicorn
             else JS_INVOCATIONS,
         }
 
@@ -260,14 +177,13 @@ class ServiceManager(object):
 
     def _start_tfs(self):
         self._log_version('tensorflow_model_server --version', 'tensorflow version info:')
-        tfs_config_path = '/sagemaker/model-config.cfg'
-        cmd = "tensorflow_model_server " \
-              "--port={} " \
-              "--rest_api_port={} " \
-              "--model_config_file={} " \
-              "--max_num_load_retries=0 {}"\
-            .format(self._tfs_grpc_port, self._tfs_rest_port, tfs_config_path,
-                    self._get_tfs_batching_args())
+        cmd = tfs_utils.tfs_command(
+            self._tfs_grpc_port,
+            self._tfs_rest_port,
+            self._tfs_config_path,
+            self._tfs_enable_batching,
+            self._tfs_batching_config_path,
+        )
         log.info('tensorflow serving command: {}'.format(cmd))
         p = subprocess.Popen(cmd.split())
         log.info('started tensorflow serving (pid: %d)', p.pid)
@@ -339,17 +255,21 @@ class ServiceManager(object):
         self._state = 'starting'
         signal.signal(signal.SIGTERM, self._stop)
 
-        self._create_tfs_config()
         self._create_nginx_config()
 
         if self._tfs_enable_batching:
             log.info('batching is enabled')
-            self._create_batching_config()
+            tfs_utils.create_batching_config(self._tfs_batching_config_path)
 
-        if self._tfs_enable_dynamic_endpoint:
-            log.info('dynamic endpooint is enabled')
-
-        self._start_tfs()
+        if self._tfs_enable_multi_model_endpoint:
+            log.info('multi-model endpoint is enabled, TFS model servers will be started later')
+        else:
+            tfs_utils.create_tfs_config(
+                self._tfs_default_model_name,
+                self._tfs_config_path
+            )
+            self._create_tfs_config()
+            self._start_tfs()
 
         if self._use_gunicorn:
             self._setup_gunicorn()
