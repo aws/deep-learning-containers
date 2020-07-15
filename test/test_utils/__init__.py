@@ -7,7 +7,6 @@ import logging
 import sys
 
 import pytest
-import boto3
 
 from botocore.exceptions import ClientError
 from invoke import run
@@ -20,8 +19,9 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
-# Constant to represent AMI Id used to spin up EC2 instances
-UBUNTU_16_BASE_DLAMI = "ami-0e57002aaafd42113"
+
+# Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
+UBUNTU_16_BASE_DLAMI = "ami-0e5a388144f62e4f5"
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 
@@ -44,6 +44,12 @@ SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test w
 PR_ONLY_REASON = "Skipping test that doesn't need to be run outside of PR context."
 
 KEYS_TO_DESTROY_FILE = os.path.join(os.sep, "tmp", "keys_to_destroy.txt")
+
+# Sagemaker test types
+SAGEMAKER_LOCAL_TEST_TYPE = "local"
+SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
+
+PUBLIC_DLC_REGISTRY = "763104351884"
 
 
 def is_tf1(image_uri):
@@ -72,11 +78,27 @@ def is_canary_context():
     return os.getenv("BUILD_CONTEXT") == "CANARY"
 
 
+def is_dlc_cicd_context():
+    return os.getenv("BUILD_CONTEXT") in ["PR", "CANARY", "NIGHTLY", "MAINLINE"]
+
+
 def run_subprocess_cmd(cmd, failure="Command failed"):
     command = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
     if command.returncode:
         pytest.fail(f"{failure}. Error log:\n{command.stdout.decode()}")
     return command
+
+
+def login_to_ecr_registry(context, account_id, region):
+    """
+    Function to log into an ecr registry
+
+    :param context: either invoke context object or fabric connection object
+    :param account_id: Account ID with the desired ecr registry
+    :param region: i.e. us-west-2
+    """
+    context.run(f"aws ecr get-login-password --region {region} | docker login --username AWS "
+                f"--password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com")
 
 
 def retry_if_result_is_false(result):
@@ -211,13 +233,13 @@ def get_mms_run_command(model_names, processor="cpu"):
     :return: <str> Command to start MMS server with given model
     """
     if processor != "eia":
-        mxnet_model_location = {
+        multi_model_location = {
             "squeezenet": "https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model",
             "pytorch-densenet": "https://dlc-samples.s3.amazonaws.com/pytorch/multi-model-server/densenet/densenet.mar",
             "bert_sst": "https://aws-dlc-sample-models.s3.amazonaws.com/bert_sst/bert_sst.mar"
         }
     else:
-        mxnet_model_location = {
+        multi_model_location = {
             "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar"
         }
 
@@ -225,16 +247,16 @@ def get_mms_run_command(model_names, processor="cpu"):
         model_names = [model_names]
 
     for model_name in model_names:
-        if model_name not in mxnet_model_location:
+        if model_name not in multi_model_location:
             raise Exception(
                 "No entry found for model {} in dictionary".format(model_name)
             )
 
     parameters = [
-        "{}={}".format(name, mxnet_model_location[name]) for name in model_names
+        "{}={}".format(name, multi_model_location[name]) for name in model_names
     ]
     mms_command = (
-        "mxnet-model-server --start --mms-config /home/model-server/config.properties --models "
+        "multi-model-server --start --mms-config /home/model-server/config.properties --models "
         + " ".join(parameters)
     )
     return mms_command
@@ -346,34 +368,36 @@ def parse_canary_images(framework, region):
     if framework == "tensorflow":
         framework = "tensorflow2" if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") else "tensorflow1"
 
+    registry = PUBLIC_DLC_REGISTRY
+
     images = {
         "tensorflow1":
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py2 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py2 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-gpu "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-cpu",
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py2 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py2 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-gpu "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-cpu",
         "tensorflow2":
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-gpu-py37 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-cpu-py37 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-gpu "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-cpu",
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-gpu-py37 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-cpu-py37 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-gpu "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-cpu",
 
         "mxnet":
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py2 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py2 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py2 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py2",
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py2 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py2 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py2 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py2",
         "pytorch":
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-gpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-cpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-gpu-py3 "
-            f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-cpu-py3"
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-gpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-cpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-gpu-py3 "
+            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-cpu-py3"
     }
     return images[framework]
 
@@ -441,3 +465,24 @@ def get_framework_and_version_from_tag(image_uri):
     tag_framework_version = image_uri.split(':')[-1].split('-')[0]
 
     return tested_framework, tag_framework_version
+
+
+def get_job_type_from_image(image_uri):
+    """
+    Return the Job type from the image tag.
+
+    :param image_uri: ECR image URI
+    :return: Job Type
+    """
+    tested_job_type = None
+    allowed_job_types = ("training", "inference")
+    for job_type in allowed_job_types:
+        if job_type in image_uri:
+            tested_job_type = job_type
+            break
+
+    if not tested_job_type:
+        raise RuntimeError(f"Cannot find Job Type in image uri {image_uri} "
+                           f"from allowed frameworks {allowed_job_types}")
+
+    return tested_job_type
