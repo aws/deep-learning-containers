@@ -17,8 +17,8 @@ import os
 import pytest
 from sagemaker.mxnet import MXNet
 
-import local_mode_utils
-from test.integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
+from ...integration.local import local_mode_utils
+from ...integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
 
 MNIST_PATH = os.path.join(RESOURCE_PATH, 'mnist')
 SCRIPT_PATH = os.path.join(MNIST_PATH, 'mnist.py')
@@ -46,7 +46,6 @@ def test_distributed(docker_image, sagemaker_local_session, framework_version, p
                image_name=docker_image, framework_version=framework_version,
                output_path='file://{}'.format(tmpdir),
                hyperparameters={'sagemaker_parameter_server_enabled': True})
-
     _train_and_assert_success(mx, str(tmpdir))
 
 

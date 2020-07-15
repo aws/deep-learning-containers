@@ -14,6 +14,7 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     curl \
+    emacs \
     git \
     libopencv-dev \
     openjdk-8-jdk-headless \
