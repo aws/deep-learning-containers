@@ -25,22 +25,30 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 IGNORE_SAFETY_IDS = {
     "tensorflow": {
         "training": {
-            "py2": ['37524'],
+            "py2": ['37524',
+                    # for shipping pillow<=6.2.2 - the last available version for py2
+                    '38449', '38450', '38451', '38452'],
             "py3": ['37524']
         },
         "inference": {
-            "py2": ['37524'],
+            "py2": ['37524',
+                    # for shipping pillow<=6.2.2 - the last available version for py2
+                    '38449', '38450', '38451', '38452'],
             "py3": ['37524']
         },
         "inference-eia": {
-            "py2": ['37524'],
+            "py2": ['37524',
+                    # for shipping pillow<=6.2.2 - the last available version for py2
+                    '38449', '38450', '38451', '38452'],
             "py3": ['37524']
         }
     },
     "mxnet": {
         "inference-eia": {
             # numpy<=1.16.0 -- This has to only be here while we publish MXNet 1.4.1 EI DLC v1.0
-            "py2": ['36810'],
+            "py2": ['36810',
+                    # for shipping pillow<=6.2.2 - the last available version for py2
+                    '38449', '38450', '38451', '38452'],
             "py3": ['36810']
         },
         "inference": {
@@ -55,7 +63,9 @@ IGNORE_SAFETY_IDS = {
     "pytorch": {
         "training": {
             # astropy<3.0.1
-            "py2": ['35810'],
+            "py2": ['35810',
+                    # for shipping pillow<=6.2.2 - the last available version for py2
+                    '38449', '38450', '38451', '38452'],
             "py3": []
         }
     }
