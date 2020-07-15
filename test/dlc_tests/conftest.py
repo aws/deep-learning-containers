@@ -259,8 +259,8 @@ def pytest_collection_modifyitems(session, config, items):
                 continue
 
             # Based on keywords and filepaths, assign values
-            scope = _infer_field_value("all", ("mxnet", "tensorflow", "pytorch"), str_fspath)
-            train_inf = _infer_field_value("both", ("training", "inference"), str_fspath, str_keywords)
+            framework_scope = _infer_field_value("all", ("mxnet", "tensorflow", "pytorch"), str_fspath)
+            job_type_scope = _infer_field_value("both", ("training", "inference"), str_fspath, str_keywords)
             integration = _infer_field_value("general integration",
                                              ("_dgl_", "smdebug", "gluonnlp", "smexperiments", "_mme_", "pipemode",
                                              "tensorboard", "_s3_"),
@@ -268,18 +268,20 @@ def pytest_collection_modifyitems(session, config, items):
             model = _infer_field_value("N/A",
                                        ("mnist", "densenet", "squeezenet", "half_plus_two", "half_plus_three"),
                                        str_keywords)
-            num_instances = _infer_field_value(1, ("_multinode_", "_multi-node_"), str_fspath, str_keywords)
+            num_instances = _infer_field_value(1, ("_multinode_", "_multi-node_", "_multi_node_"), str_fspath,
+                                               str_keywords)
             cpu_gpu = _infer_field_value("all", ("cpu", "gpu", "eia"), str_keywords)
             if cpu_gpu == "gpu":
-                cpu_gpu = _handle_single_gpu_instances(function_key, str_keywords, failure_conditions)
+                cpu_gpu, failure_conditions = _handle_single_gpu_instances(function_key, str_keywords,
+                                                                           failure_conditions)
 
             # Create a new test coverage item if we have not seen the function before. This is a necessary step,
             # as parametrization can make it appear as if the same test function is a unique test function
             test_cov[function_key] = {
                                         "Category": category,
                                         "Name": function_name,
-                                        "Scope": scope,
-                                        "Job_Type": train_inf,
+                                        "Scope": framework_scope,
+                                        "Job_Type": job_type_scope,
                                         "Num_Instances": get_marker_arg_value(item, "multinode", num_instances),
                                         "Processor": cpu_gpu,
                                         "Integration": get_marker_arg_value(item, "integration", integration),
@@ -300,7 +302,7 @@ def _handle_single_gpu_instances(function_key, function_keywords, failures, cpu_
     """
     Generally, we do not want tests running on single gpu instance types. However, there are exceptions to this rule.
     This function is used to determine whether we need to raise an error with report generation or not, based on
-    whether we are using single gpu instanecs or not in a given test function.
+    whether we are using single gpu instances or not in a given test function.
 
     :param function_key: local/path/to/function::function_name
     :param function_keywords: string of keywords associated with the test function
