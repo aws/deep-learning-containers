@@ -31,7 +31,7 @@ FRAMEWORK_FIXTURES = (
     "training",
     "inference",
     "gpu",
-    "cpu"
+    "cpu",
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -102,8 +102,7 @@ def ec2_instance_ami(request):
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
 def ec2_instance(
-        request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami,
-        region
+    request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami, region
 ):
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
@@ -118,9 +117,18 @@ def ec2_instance(
         "MaxCount": 1,
         "MinCount": 1,
     }
-    extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300, }}]
-    if ("benchmark" in os.getenv("TEST_TYPE") and (("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames) or "mxnet_inference" in request.fixturenames)) \
-            or ("tensorflow_training" in request.fixturenames and "gpu_only" in request.fixturenames and "horovod" in ec2_key_name):
+    extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300,}}]
+    if (
+        "benchmark" in os.getenv("TEST_TYPE")
+        and (
+            ("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames)
+            or "mxnet_inference" in request.fixturenames
+        )
+    ) or (
+        "tensorflow_training" in request.fixturenames
+        and "gpu_only" in request.fixturenames
+        and "horovod" in ec2_key_name
+    ):
         params["BlockDeviceMappings"] = extra_volume_size_mapping
     instances = ec2_resource.create_instances(**params)
     instance_id = instances[0].id
@@ -215,18 +223,10 @@ def example_only():
 
 def pytest_configure(config):
     # register canary marker
-    config.addinivalue_line(
-        "markers", "canary(message): mark test to run as a part of canary tests."
-    )
-    config.addinivalue_line(
-        "markers", "integration(ml_integration): mark what the test is testing."
-    )
-    config.addinivalue_line(
-        "markers", "model(model_name): name of the model being tested"
-    )
-    config.addinivalue_line(
-        "markers", "multinode(num_instances): number of instances the test is run on, if not 1"
-    )
+    config.addinivalue_line("markers", "canary(message): mark test to run as a part of canary tests.")
+    config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
+    config.addinivalue_line("markers", "model(model_name): name of the model being tested")
+    config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
 
 
 def pytest_runtest_setup(item):
@@ -249,9 +249,11 @@ def pytest_collection_modifyitems(session, config, items):
             str_keywords = str(item.keywords)
 
             # Construct Category and Github_Link fields based on the filepath
-            category = str_fspath.split('/dlc_tests/')[-1].split('/')[0]
-            github_link = f"https://github.com/aws/deep-learning-containers/blob/master/" \
-                          f"{str_fspath.split('/deep-learning-containers/')[-1]}"
+            category = str_fspath.split("/dlc_tests/")[-1].split("/")[0]
+            github_link = (
+                f"https://github.com/aws/deep-learning-containers/blob/master/"
+                f"{str_fspath.split('/deep-learning-containers/')[-1]}"
+            )
 
             # Only create a new test coverage item if we have not seen the function before. This is a necessary step,
             # as parametrization can make it appear as if the same test function is a unique test function
@@ -261,33 +263,36 @@ def pytest_collection_modifyitems(session, config, items):
             # Based on keywords and filepaths, assign values
             framework_scope = _infer_field_value("all", ("mxnet", "tensorflow", "pytorch"), str_fspath)
             job_type_scope = _infer_field_value("both", ("training", "inference"), str_fspath, str_keywords)
-            integration_scope = _infer_field_value("general integration",
-                                                   ("_dgl_", "smdebug", "gluonnlp", "smexperiments", "_mme_",
-                                                    "pipemode", "tensorboard", "_s3_"),
-                                                   str_keywords)
-            model_scope = _infer_field_value("N/A",
-                                             ("mnist", "densenet", "squeezenet", "half_plus_two", "half_plus_three"),
-                                             str_keywords)
-            num_instances = _infer_field_value(1, ("_multinode_", "_multi-node_", "_multi_node_"), str_fspath,
-                                               str_keywords)
-            cpu_gpu = _infer_field_value("all", ("cpu", "gpu", "eia"), str_keywords)
-            if cpu_gpu == "gpu":
-                cpu_gpu, failure_conditions = _handle_single_gpu_instances(function_key, str_keywords,
-                                                                           failure_conditions)
+            integration_scope = _infer_field_value(
+                "general integration",
+                ("_dgl_", "smdebug", "gluonnlp", "smexperiments", "_mme_", "pipemode", "tensorboard", "_s3_"),
+                str_keywords,
+            )
+            model_scope = _infer_field_value(
+                "N/A", ("mnist", "densenet", "squeezenet", "half_plus_two", "half_plus_three"), str_keywords
+            )
+            num_instances = _infer_field_value(
+                1, ("_multinode_", "_multi-node_", "_multi_node_"), str_fspath, str_keywords
+            )
+            processor_scope = _infer_field_value("all", ("cpu", "gpu", "eia"), str_keywords)
+            if processor_scope == "gpu":
+                processor_scope, failure_conditions = _handle_single_gpu_instances(
+                    function_key, str_keywords, failure_conditions
+                )
 
             # Create a new test coverage item if we have not seen the function before. This is a necessary step,
             # as parametrization can make it appear as if the same test function is a unique test function
             test_cov[function_key] = {
-                                        "Category": category,
-                                        "Name": function_name,
-                                        "Scope": framework_scope,
-                                        "Job_Type": job_type_scope,
-                                        "Num_Instances": get_marker_arg_value(item, "multinode", num_instances),
-                                        "Processor": cpu_gpu,
-                                        "Integration": get_marker_arg_value(item, "integration", integration_scope),
-                                        "Model": get_marker_arg_value(item, "model", model_scope),
-                                        "GitHub_Link": github_link,
-                                        }
+                "Category": category,
+                "Name": function_name,
+                "Scope": framework_scope,
+                "Job_Type": job_type_scope,
+                "Num_Instances": get_marker_arg_value(item, "multinode", num_instances),
+                "Processor": processor_scope,
+                "Integration": get_marker_arg_value(item, "integration", integration_scope),
+                "Model": get_marker_arg_value(item, "model", model_scope),
+                "GitHub_Link": github_link,
+            }
         write_test_coverage_file(test_cov, test_coverage_file)
 
         if failure_conditions:
@@ -298,7 +303,7 @@ def pytest_collection_modifyitems(session, config, items):
                 raise TestReportGenerationFailure(message)
 
 
-def _handle_single_gpu_instances(function_key, function_keywords, failures, cpu_gpu="gpu"):
+def _handle_single_gpu_instances(function_key, function_keywords, failures, processor="gpu"):
     """
     Generally, we do not want tests running on single gpu instance types. However, there are exceptions to this rule.
     This function is used to determine whether we need to raise an error with report generation or not, based on
@@ -307,8 +312,8 @@ def _handle_single_gpu_instances(function_key, function_keywords, failures, cpu_
     :param function_key: local/path/to/function::function_name
     :param function_keywords: string of keywords associated with the test function
     :param failures: running dictionary of failures associated with the github link
-    :param cpu_gpu: whether the test is for cpu, gpu or both
-    :return: cpu_gpu if not single gpu instance, else "single_gpu", and a dict with updated failure messages
+    :param processor: whether the test is for cpu, gpu or both
+    :return: processor if not single gpu instance, else "single_gpu", and a dict with updated failure messages
     """
 
     # Define conditions where we allow a test function to run with a single gpu instance
@@ -316,7 +321,7 @@ def _handle_single_gpu_instances(function_key, function_keywords, failures, cpu_
     allowed_single_gpu = ("telemetry", "test_framework_version_gpu")
 
     # Regex in order to determine the gpu instance type
-    gpu_instance_pattern = re.compile(r'\w+\.\d*xlarge')
+    gpu_instance_pattern = re.compile(r"\w+\.\d*xlarge")
     gpu_match = gpu_instance_pattern.search(function_keywords)
 
     if gpu_match:
@@ -328,16 +333,18 @@ def _handle_single_gpu_instances(function_key, function_keywords, failures, cpu_
                 whitelist_single_gpu = True
                 break
         if num_gpus == 1:
-            cpu_gpu = "single_gpu"
+            processor = "single_gpu"
             if not whitelist_single_gpu:
-                single_gpu_failure_message = f"Function {function_key} uses single-gpu instance type " \
-                                             f"{instance_type}. Please use multi-gpu instance type."
+                single_gpu_failure_message = (
+                    f"Function {function_key} uses single-gpu instance type {instance_type}. "
+                    f"Please use multi-gpu instance type."
+                )
                 if not failures.get(function_key):
                     failures[function_key] = [single_gpu_failure_message]
                 else:
                     failures[function_key].append(single_gpu_failure_message)
 
-    return cpu_gpu, failures
+    return processor, failures
 
 
 def _assemble_report_failure_message(failure_messages):

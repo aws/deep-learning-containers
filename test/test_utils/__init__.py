@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import re
@@ -52,7 +53,7 @@ SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 PUBLIC_DLC_REGISTRY = "763104351884"
 
 # Test coverage file name
-TEST_COVERAGE_FILE = "test_coverage_report.csv"
+TEST_COVERAGE_FILE = f"test_coverage_report-{datetime.datetime.now().strftime('%Y-%m-%d')}.csv"
 
 
 def is_tf1(image_uri):
