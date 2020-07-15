@@ -20,8 +20,12 @@ import time
 import pytest
 import requests
 
-from .multi_model_endpoint_test_utils import make_invocation_request, make_list_model_request, \
-    make_get_model_request, make_load_model_request, make_unload_model_request
+from .multi_model_endpoint_test_utils import (
+    make_invocation_request,
+    make_list_model_request,
+    make_load_model_request,
+    make_unload_model_request,
+)
 
 PING_URL = 'http://localhost:8080/ping'
 

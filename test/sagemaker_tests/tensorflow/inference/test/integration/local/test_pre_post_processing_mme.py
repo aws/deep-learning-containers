@@ -56,7 +56,7 @@ def container(volume, docker_base_name, tag, runtime_config):
     try:
         command = (
             'docker run {}--name sagemaker-tensorflow-serving-test -p 8080:8080'
-            ' --mount type=volume,source={},target=/opt/ml/models,readonly'
+            ' --mount type=volume,source={},target=/opt/ml/models/half_plus_three/model,readonly'
             ' -e SAGEMAKER_TFS_NGINX_LOGLEVEL=info'
             ' -e SAGEMAKER_BIND_TO_PORT=8080'
             ' -e SAGEMAKER_SAFE_PORT_RANGE=9000-9999'
@@ -86,7 +86,7 @@ def container(volume, docker_base_name, tag, runtime_config):
 def model():
     model_data = {
         'model_name': MODEL_NAME,
-        'url': '/opt/ml/models/half_plus_three'
+        'url': '/opt/ml/models/half_plus_three/model/half_plus_three'
     }
     make_load_model_request(json.dumps(model_data))
     return MODEL_NAME
