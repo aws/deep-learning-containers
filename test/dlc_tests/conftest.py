@@ -261,13 +261,13 @@ def pytest_collection_modifyitems(session, config, items):
             # Based on keywords and filepaths, assign values
             framework_scope = _infer_field_value("all", ("mxnet", "tensorflow", "pytorch"), str_fspath)
             job_type_scope = _infer_field_value("both", ("training", "inference"), str_fspath, str_keywords)
-            integration = _infer_field_value("general integration",
-                                             ("_dgl_", "smdebug", "gluonnlp", "smexperiments", "_mme_", "pipemode",
-                                             "tensorboard", "_s3_"),
+            integration_scope = _infer_field_value("general integration",
+                                                   ("_dgl_", "smdebug", "gluonnlp", "smexperiments", "_mme_",
+                                                    "pipemode", "tensorboard", "_s3_"),
+                                                   str_keywords)
+            model_scope = _infer_field_value("N/A",
+                                             ("mnist", "densenet", "squeezenet", "half_plus_two", "half_plus_three"),
                                              str_keywords)
-            model = _infer_field_value("N/A",
-                                       ("mnist", "densenet", "squeezenet", "half_plus_two", "half_plus_three"),
-                                       str_keywords)
             num_instances = _infer_field_value(1, ("_multinode_", "_multi-node_", "_multi_node_"), str_fspath,
                                                str_keywords)
             cpu_gpu = _infer_field_value("all", ("cpu", "gpu", "eia"), str_keywords)
@@ -284,9 +284,9 @@ def pytest_collection_modifyitems(session, config, items):
                                         "Job_Type": job_type_scope,
                                         "Num_Instances": get_marker_arg_value(item, "multinode", num_instances),
                                         "Processor": cpu_gpu,
-                                        "Integration": get_marker_arg_value(item, "integration", integration),
-                                        "Model": get_marker_arg_value(item, "model", model),
-                                        "Github_Link": github_link,
+                                        "Integration": get_marker_arg_value(item, "integration", integration_scope),
+                                        "Model": get_marker_arg_value(item, "model", model_scope),
+                                        "GitHub_Link": github_link,
                                         }
         write_test_coverage_file(test_cov, test_coverage_file)
 
