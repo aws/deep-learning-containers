@@ -40,6 +40,7 @@ RUN apt-get update \
     cuda-cusolver-10-1 \
     cuda-cusparse-10-1 \
     curl \
+    emacs \
     git \
     jq \
     libglib2.0-0 \
@@ -129,7 +130,7 @@ RUN pip install \
     "sagemaker<2" \
     sagemaker-experiments==0.1.7 \
     --no-cache-dir fastai==1.0.59 \
-    awscli \
+    "awscli<2" \
     scipy==1.2.2 \
  && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
  && pip uninstall -y torchvision \

@@ -1,0 +1,37 @@
+  account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+  region: &REGION <set-$REGION-in-environment>
+  framework: &FRAMEWORK pytorch
+  version: &VERSION 1.3.1
+  os_version: &OS_VERSION ubuntu16.04
+
+  repository_info:
+    inference_repository: &INFERENCE_REPOSITORY
+        image_type: &INFERENCE_IMAGE_TYPE inference
+        root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
+        repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", eia]
+        repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+
+  context:
+    inference_context: &INFERENCE_CONTEXT
+      mms-entrypoint:
+        source: docker/build_artifacts/mms-entrypoint.py
+        target: mms-entrypoint.py
+      config:
+        source: docker/build_artifacts/config.properties
+        target: config.properties
+      deep_learning_container:
+        source: docker/build_artifacts/deep_learning_container.py
+        target: deep_learning_container.py
+
+  images:
+    BuildEIAPTInferencePy3DockerImage:
+      <<: *INFERENCE_REPOSITORY
+      build: &PYTORCH_CPU_INFERENCE_PY3 false
+      image_size_baseline: 4899
+      device_type: &DEVICE_TYPE cpu
+      python_version: &DOCKER_PYTHON_VERSION py3
+      tag_python_version: &TAG_PYTHON_VERSION py36
+      tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., eia ]
+      context:
+        <<: *INFERENCE_CONTEXT

@@ -22,6 +22,7 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     curl \
+    emacs \
     git \
     jq \
     libgl1-mesa-glx \
@@ -102,7 +103,7 @@ RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.1/license.txt -o /license.txt
 
 RUN conda install -y -c conda-forge pyyaml==5.3.1
-RUN pip install pillow==7.1.0 awscli
+RUN pip install pillow==7.1.0 "awscli<2"
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
