@@ -111,7 +111,7 @@ def send_scheduler_requests(requester, image):
             logs_response = requester.receive_logs(identifier)
             LOGGER.info(f"Receive logs success for ticket {identifier.ticket_name}, report path: {report_path}")
             print_log_stream(logs_response)
-
+            metrics_utils.send_test_result_metrics(0)
             with open(report_path, "w") as xml_report:
                 xml_report.write(logs_response["XML_REPORT"])
             break
