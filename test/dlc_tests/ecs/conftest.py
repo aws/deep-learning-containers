@@ -134,7 +134,7 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_ins
                 if instances:
                     break
             except ClientError as e:
-                print(f"Failed to launch in AZ {a_zone} with Error: {e}")
+                print(f"Failed to launch in {a_zone} with Error: {e}")
                 continue
     else:
         instances = ec2_client.run_instances(**params)

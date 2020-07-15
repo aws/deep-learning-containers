@@ -91,7 +91,7 @@ def launch_instance(
                 if response and len(response['Instances']) >= 1:
                     break
             except ClientError as e:
-                print(f"Failed to launch in AZ {a_zone} with Error: {e}")
+                print(f"Failed to launch in {a_zone} with Error: {e}")
                 continue
     else:
         response = client.run_instances(**arguments_dict)

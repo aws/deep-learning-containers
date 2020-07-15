@@ -111,7 +111,6 @@ def ec2_instance(
         region,ei_accelerator_type
 ):
     print(f"Creating instance: CI-CD {ec2_key_name}")
-    #debugging statement will be removed later
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
     params = {
         "KeyName": ec2_key_name,
@@ -146,7 +145,7 @@ def ec2_instance(
                 if instances:
                     break
             except ClientError as e:
-                print(f"Failed to launch in AZ {a_zone} with Error: {e}")
+                print(f"Failed to launch in {a_zone} with Error: {e}")
                 continue
     else:
         instances = ec2_resource.create_instances(**params)
