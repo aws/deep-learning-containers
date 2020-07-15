@@ -36,6 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-server \
     ca-certificates \
     curl \
+    emacs \
     git \
     wget \
     vim \
@@ -126,7 +127,7 @@ RUN ${PIP} install --no-cache-dir -U \
     python-dateutil==2.8.1 \
     PyYAML==5.3.1 \
     requests==2.22.0 \
-    awscli \
+    "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
     "sagemaker<2" \

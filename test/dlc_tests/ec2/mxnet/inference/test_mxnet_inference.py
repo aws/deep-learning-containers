@@ -11,7 +11,7 @@ SQUEEZENET_MODEL = "squeezenet"
 BERT_MODEL = "bert_sst"
 
 
-MX_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu", enable_p3dn=True)
+MX_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu", enable_p3dn=True)
 MX_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 MX_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_mx_dlc_telemetry_test")
 
