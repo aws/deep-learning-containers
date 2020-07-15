@@ -48,7 +48,7 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir \
-    awscli \
+    "awscli<2" \
     cython \
     falcon \
     gunicorn \
