@@ -128,10 +128,10 @@ RUN /opt/conda/bin/conda config --set ssl_verify False \
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install \
     --no-cache-dir smdebug==${SMDEBUG_VERSION} \
-    sagemaker==1.50.17 \
+    "sagemaker<2" \
     sagemaker-experiments==0.1.7 \
     --no-cache-dir fastai==1.0.59 \
-    awscli \
+    "awscli<2" \
     scipy==1.2.2 \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
@@ -178,7 +178,7 @@ ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/mas
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.1/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.6.0/license.txt
 
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
