@@ -112,7 +112,8 @@ ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/mas
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2" \
+ && pip install sagemaker-training
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.1/license.txt -o /license.txt
 
