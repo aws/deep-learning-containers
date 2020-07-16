@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import re
@@ -51,6 +52,9 @@ SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
 
+# Test coverage file name
+TEST_COVERAGE_FILE = f"test_coverage_report-{datetime.datetime.now().strftime('%Y-%m-%d')}.csv"
+
 
 def is_tf1(image_uri):
     if "tensorflow" not in image_uri:
@@ -76,6 +80,10 @@ def is_pr_context():
 
 def is_canary_context():
     return os.getenv("BUILD_CONTEXT") == "CANARY"
+
+
+def is_empty_build_context():
+    return not os.getenv("BUILD_CONTEXT")
 
 
 def is_dlc_cicd_context():
@@ -346,7 +354,7 @@ def delete_uploaded_tests_from_s3(s3_test_location):
 
 
 def get_dlc_images():
-    if is_pr_context():
+    if is_pr_context() or is_empty_build_context():
         return os.getenv("DLC_IMAGES")
     elif is_canary_context():
         return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"))
