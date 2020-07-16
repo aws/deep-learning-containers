@@ -86,7 +86,7 @@ def test_ecs_mxnet_inference_gluonnlp_cpu(
         ecs_utils.tear_down_ecs_inference_service(ecs_cluster_arn, service_name, task_family, revision)
 
 
-@pytest.mark.parametrize("ecs_instance_type", ["g3.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["g4dn.12xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_mxnet_inference_gluonnlp_gpu(
         mxnet_inference, ecs_container_instance, region, gpu_only, py3_only
