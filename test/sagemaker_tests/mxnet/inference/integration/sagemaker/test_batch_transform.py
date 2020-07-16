@@ -16,6 +16,8 @@ import json
 import os
 from urllib.parse import urlparse
 
+import pytest
+
 from sagemaker import utils
 from sagemaker.mxnet.model import MXNetModel
 
@@ -30,6 +32,8 @@ DATA_FILE = '07.csv'
 DATA_PATH = os.path.join(MNIST_PATH, 'images', DATA_FILE)
 
 
+@pytest.mark.integration("SM_batch_transform")
+@pytest.mark.model("mnist")
 def test_batch_transform(sagemaker_session, ecr_image, instance_type, framework_version):
     s3_prefix = 'mxnet-serving/mnist'
     model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=s3_prefix)

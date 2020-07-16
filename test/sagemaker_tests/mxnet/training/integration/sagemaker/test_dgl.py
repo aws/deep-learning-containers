@@ -26,6 +26,8 @@ DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, 'gcn.py')
 
 
 @pytest.mark.skip_py2_containers
+@pytest.mark.integration("dgl")
+@pytest.mark.model("gcn")
 def test_dgl_training(sagemaker_session, ecr_image, instance_type):
 
     dgl = MXNet(entry_point=DGL_SCRIPT_PATH,

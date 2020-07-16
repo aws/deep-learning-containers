@@ -25,6 +25,8 @@ NLP_SCRIPT_PATH = os.path.join(NLP_DATA_PATH, 'word_embedding.py')
 
 
 @pytest.mark.skip_py2_containers
+@pytest.mark.integration("gluonnlp")
+@pytest.mark.model("word_embeddings")
 def test_nlp_training(sagemaker_session, ecr_image, instance_type):
 
     nlp = MXNet(entry_point=NLP_SCRIPT_PATH,

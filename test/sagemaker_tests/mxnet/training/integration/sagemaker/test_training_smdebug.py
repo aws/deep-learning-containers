@@ -26,6 +26,8 @@ SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist_gluon_basic_hook_demo.py')
 
 
 @pytest.mark.skip_py2_containers
+@pytest.mark.integration("smdebug")
+@pytest.mark.model("mnist")
 def test_training(sagemaker_session, ecr_image, instance_type, instance_count):
     hyperparameters = {'random_seed': True,
                        'num_steps': 50,
