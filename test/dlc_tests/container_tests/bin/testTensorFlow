@@ -3,6 +3,7 @@
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
+PROFILER_LOG_DIR="/logs/train/plugins/profile"
 
 set -e
 
@@ -18,14 +19,14 @@ TRAINING_LOG=${LOG_DIR}/${KERAS_BACKEND}_train_mnist.log
 echo "Training mnist using $KERAS_BACKEND... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
 set +e
 
-[ -d $LOG_DIR ] && echo "Cleanning existing logs" && rm -rf $LOG_DIR
+[ -d $PROFILER_LOG_DIR ] && echo "Cleanning existing logs" && rm -rf $PROFILER_LOG_DIR
 
 python ${BIN_DIR}/testTensorflow.py >$TRAINING_LOG 2>&1
 RETURN_VAL=`echo $?`
 set -e
 
 echo "Verify tensorfolow profiler can generate logs."
-LOG_RESULT=$(find $LOG_DIR -name "*.pb")
+LOG_RESULT=$(find $PROFILER_LOG_DIR -name "*.pb")
 echo "Checking the logs result: $LOG_RESULT"
 
 [ -z "$LOG_RESULT" ] && echo "Cannot find Profiler logs!" && exit 1
