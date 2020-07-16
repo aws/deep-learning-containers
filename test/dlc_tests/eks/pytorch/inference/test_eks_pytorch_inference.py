@@ -1,12 +1,15 @@
 import os
 import random
 
-import test.test_utils.eks as eks_utils
-import test.test_utils as test_utils
+import pytest
 
 from invoke import run
 
+import test.test_utils.eks as eks_utils
+import test.test_utils as test_utils
 
+
+@pytest.mark.model("densenet")
 def test_eks_pytorch_densenet_inference(pytorch_inference):
     num_replicas = "1"
 

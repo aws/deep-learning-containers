@@ -36,6 +36,7 @@ def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
     )
 
 
+@pytest.mark.integration("smdebug")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
     test_script = SMDEBUG_SCRIPT
