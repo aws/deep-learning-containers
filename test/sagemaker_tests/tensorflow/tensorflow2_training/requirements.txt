@@ -25,3 +25,4 @@ awscli
 fabric==2.5.0
 sagemaker-experiments==0.1.17
 retrying==1.3.3
+invoke

@@ -171,8 +171,8 @@ def generate_sagemaker_reports():
         framework, job_type = repo.split('-')
         with ctx.cd(os.path.join(git_repo_path, 'test', 'sagemaker_tests', framework, job_type)):
             # We need to install requirements in order to use the SM pytest frameworks
-            with ctx.prefix("pip install -r requirements.txt"):
-                ctx.run("pytest -s --collect-only --generate-coverage-doc integration/")
+            ctx.run("pip install -r requirements.txt", warn=True)
+            ctx.run("pytest -s --collect-only --generate-coverage-doc integration/")
 
     # Handle TF inference remote tests
     tf_inf_path = os.path.join(git_repo_path, 'test', 'sagemaker_tests', "tensorflow",
