@@ -24,12 +24,12 @@ def train():
     tf.keras.layers.Dropout(0.2),
     tf.keras.layers.Dense(10, activation='softmax')
   ])
-  callbacks = [tf.keras.callbacks.TensorBoard(log_dir='logs', profile_batch=1)]
+
   model.compile(optimizer='adam',
                 loss='sparse_categorical_crossentropy',
                 metrics=['accuracy'])
 
-  model.fit(x_test, y_test, callbacks=callbacks)
+  model.fit(x_test, y_test)
 
   score = model.evaluate(x_test, y_test, verbose=0)
   print('Test loss:', score[0])
