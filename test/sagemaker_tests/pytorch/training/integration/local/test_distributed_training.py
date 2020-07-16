@@ -32,6 +32,7 @@ def fixture_dist_gpu_backend(request):
 
 
 @pytest.mark.skip_gpu
+@pytest.mark.processor("cpu")
 def test_dist_operations_path_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpdir):
     estimator = PyTorch(entry_point=dist_operations_path,
                         role=ROLE,
@@ -46,6 +47,8 @@ def test_dist_operations_path_cpu(docker_image, dist_cpu_backend, sagemaker_loca
 
 
 @pytest.mark.skip_cpu
+@pytest.mark.processor("gpu")
+@pytest.mark.integration("nccl")
 def test_dist_operations_path_gpu_nccl(docker_image, sagemaker_local_session, tmpdir):
     estimator = PyTorch(entry_point=dist_operations_path,
                         role=ROLE,
@@ -60,6 +63,8 @@ def test_dist_operations_path_gpu_nccl(docker_image, sagemaker_local_session, tm
 
 
 @pytest.mark.skip_gpu
+@pytest.mark.processor("cpu")
+@pytest.mark.integration("nccl")
 def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
     estimator = PyTorch(entry_point=mnist_script,
                         role=ROLE,
@@ -78,6 +83,8 @@ def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
 
 
 @pytest.mark.skip_gpu
+@pytest.mark.processor("cpu")
+@pytest.mark.model("mnist")
 def test_mnist_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpdir):
     estimator = PyTorch(entry_point=mnist_script,
                         role=ROLE,

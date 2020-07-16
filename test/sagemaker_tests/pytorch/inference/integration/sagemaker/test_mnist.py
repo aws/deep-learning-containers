@@ -24,6 +24,8 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
 @pytest.mark.cpu_test
+@pytest.mark.model("mnist")
+@pytest.mark.multinode("multinode")
 def test_mnist_distributed_cpu(sagemaker_session, ecr_image, instance_type):
     instance_type = instance_type or 'ml.c4.xlarge'
     model_dir = os.path.join(model_cpu_dir, 'model_mnist.tar.gz')
@@ -31,6 +33,8 @@ def test_mnist_distributed_cpu(sagemaker_session, ecr_image, instance_type):
 
 
 @pytest.mark.gpu_test
+@pytest.mark.model("mnist")
+@pytest.mark.multinode("multinode")
 def test_mnist_distributed_gpu(sagemaker_session, ecr_image, instance_type):
     instance_type = instance_type or 'ml.p2.xlarge'
     model_dir = os.path.join(model_cpu_dir, 'model_mnist.tar.gz')
@@ -38,6 +42,9 @@ def test_mnist_distributed_gpu(sagemaker_session, ecr_image, instance_type):
 
 
 @pytest.mark.eia_test
+@pytest.mark.model("mnist")
+@pytest.mark.integration("elastic_inference")
+@pytest.mark.processor("eia")
 def test_mnist_eia(sagemaker_session, ecr_image, instance_type, accelerator_type):
     instance_type = instance_type or 'ml.c4.xlarge'
     # Scripted model is serialized with torch.jit.save().

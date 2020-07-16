@@ -48,6 +48,7 @@ def fixture_test_loader():
     return _get_test_data_loader(batch_size=300)
 
 
+@pytest.mark.model("mnist")
 def test_serve_json_npy(test_loader, use_gpu, docker_image, sagemaker_local_session, instance_type):
     model_dir = model_gpu_dir if use_gpu else model_cpu_dir
     with _predictor(model_dir, mnist_script, docker_image, sagemaker_local_session,
@@ -57,6 +58,7 @@ def test_serve_json_npy(test_loader, use_gpu, docker_image, sagemaker_local_sess
                 _assert_prediction_npy_json(predictor, test_loader, content_type, accept)
 
 
+@pytest.mark.model("mnist")
 def test_serve_csv(test_loader, use_gpu, docker_image, sagemaker_local_session, instance_type):
     with _predictor(model_cpu_1d_dir, mnist_1d_script, docker_image, sagemaker_local_session,
                     instance_type) as predictor:
@@ -65,6 +67,8 @@ def test_serve_csv(test_loader, use_gpu, docker_image, sagemaker_local_session, 
 
 
 @pytest.mark.skip_cpu
+@pytest.mark.model("mnist")
+@pytest.mark.processor("gpu")
 def test_serve_cpu_model_on_gpu(test_loader, docker_image, sagemaker_local_session, instance_type):
     with _predictor(model_cpu_1d_dir, mnist_1d_script, docker_image, sagemaker_local_session,
                     instance_type) as predictor:
@@ -72,6 +76,7 @@ def test_serve_cpu_model_on_gpu(test_loader, docker_image, sagemaker_local_sessi
 
 
 @pytest.mark.skip_gpu_py2
+@pytest.mark.model("mnist")
 def test_serving_calls_model_fn_once(docker_image, sagemaker_local_session, instance_type):
     with _predictor(model_cpu_dir, call_model_fn_once_script, docker_image, sagemaker_local_session,
                     instance_type, model_server_workers=2) as predictor:
