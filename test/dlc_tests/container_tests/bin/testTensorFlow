@@ -29,7 +29,10 @@ echo "Verify tensorfolow profiler can generate logs."
 LOG_RESULT=$(find $PROFILER_LOG_DIR -name "*.pb")
 echo "Checking the logs result: $LOG_RESULT"
 
-[ -z "$LOG_RESULT" ] && echo "Cannot find Profiler logs!" && exit 1
+# Will only generage log files for 2.x
+if [[ $(python -c 'import tensorflow as tf; print(tf.__version__)') == 2.*.* ]]; then
+    [ -z "$LOG_RESULT" ] && echo "Cannot find Profiler logs!" && exit 1
+fi
 
 if [ ${RETURN_VAL} -eq 0 ]; then
     echo "Training mnist Complete using $KERAS_BACKEND."
