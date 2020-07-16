@@ -12,7 +12,7 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 ARG PYTHON_VERSION=2.7
 ARG PYTORCH_VERSION=1.4.0
 ARG TORCHVISION_VERSION=0.5.0
-ARG MMS_VERSION=1.0.8
+ARG MMS_VERSION=1.1.2
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
@@ -71,7 +71,7 @@ RUN conda install -c \
     torchvision==$TORCHVISION_VERSION cpuonly -c pytorch \
  && conda clean -ya \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && pip install mxnet-model-server==$MMS_VERSION
+ && pip install multi-model-server==$MMS_VERSION
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
@@ -91,4 +91,4 @@ RUN pip install -U pillow==6.2.2 urllib3==1.25.8 awscli
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["mxnet-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
+CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
