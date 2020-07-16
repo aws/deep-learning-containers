@@ -32,9 +32,9 @@ FRAMEWORK_FIXTURES = (
     "gpu",
     "cpu",
     "eia",
-    "pytorch_eia",
-    "mxnet_eia",
-    "tensorflow_eia"
+    "pytorch_inference_eia",
+    "mxnet_inference_eia",
+    "tensorflow_inference_eia"
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -303,6 +303,9 @@ def pytest_generate_tests(metafunc):
             lookup = fixture.replace("_", "-")
             images_to_parametrize = []
             for image in images:
+                #For PR and Beta Context, as the name is framework_eia and in Prod Repo, It is framework_inference_eia
+                if "eia" in lookup and ("pr" in image or "beta" in image):
+                    lookup = lookup.replace("inference-","")
                 if lookup in image:
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
@@ -311,7 +314,7 @@ def pytest_generate_tests(metafunc):
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
-                        elif "eia_only" in metafunc.fixturenames and ("cpu" in image or "eia" in image):
+                        elif "eia_only" in metafunc.fixturenames and "eia" in image:
                             images_to_parametrize.append(image)
                         elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames and "eia_only" not in metafunc.fixturenames:
                             images_to_parametrize.append(image)
