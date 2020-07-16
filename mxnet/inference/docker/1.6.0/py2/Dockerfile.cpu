@@ -10,7 +10,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 # https://docs.aws.amazon.com/sagemaker/latest/dg/build-multi-model-build-container.html
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
-ARG MMS_VERSION=1.0.8
+ARG MMS_VERSION=1.1.2
 ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
 ARG PYTHON=python
 ARG PYTHON_PIP=python-pip
@@ -31,6 +31,7 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     curl \
+    emacs \
     git \
     libopencv-dev \
     openjdk-8-jdk-headless \
@@ -80,7 +81,7 @@ RUN ${PIP} install --no-cache-dir \
     # setuptools<45.0.0 because support for py2 stops with 45.0.0
     # https://github.com/pypa/setuptools/blob/master/CHANGES.rst#v4500
     "setuptools<45.0.0" \
-    mxnet-model-server==$MMS_VERSION \
+    multi-model-server==$MMS_VERSION \
     keras-mxnet==2.2.4.1 \
     numpy==1.16.5 \
     onnx==1.4.1 \
@@ -108,4 +109,4 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mxnet-1.6.0/license.txt -
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["mxnet-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
+CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
