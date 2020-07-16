@@ -23,7 +23,7 @@ ENV PATH=/opt/conda/bin:$PATH
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV DGLBACKEND=pytorch
 
-ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_inference/20200716-104213/4672de5f95ee0a4c95fed65e3bd4dbb1a7594bf9/cpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl/
+ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_inference/20200716-214810/a75fa3d0f93c4d9fad701666752f8ae9a6b8350a/cpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl/
 
 WORKDIR /
 
