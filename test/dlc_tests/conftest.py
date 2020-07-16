@@ -6,12 +6,10 @@ import sys
 
 import boto3
 import docker
-import git
 import pytest
 
 from botocore.config import Config
 from fabric import Connection
-from invoke.context import Context
 
 import test.test_utils.ec2 as ec2_utils
 
@@ -241,16 +239,7 @@ def pytest_runtest_setup(item):
 def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
         test_reporting.generate_coverage_doc(items)
-        generate_sagemaker_reports()
-
-
-def generate_sagemaker_reports():
-    ctx = Context()
-    git_repo = git.Repo(os.getcwd(), search_parent_directories=True)
-    git_repo_path = git_repo.git.rev_parse("--show-toplevel")
-
-    with ctx.cd(os.path.join(git_repo_path, 'test', 'sagemaker_tests', 'pytorch', 'training')):
-        ctx.run("pytest -s --collect-only --generate-coverage-doc integration/")
+        test_reporting.generate_sagemaker_reports()
 
 
 def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, values_to_generate_for_fixture):

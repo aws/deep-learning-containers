@@ -19,6 +19,8 @@ import pytest
 
 from botocore.config import Config
 
+from test.test_utils import test_reporting
+
 # these regions have some p2 and p3 instances, but not enough for automated testing
 NO_P2_REGIONS = [
     'ca-central-1',
@@ -55,6 +57,13 @@ def pytest_addoption(parser):
     parser.addoption('--instance-types')
     parser.addoption('--accelerator-type')
     parser.addoption('--tag')
+    parser.addoption('--generate-coverage-doc', default=False, action='store_true',
+                     help='use this option to generate test coverage doc')
+
+
+def pytest_collection_modifyitems(session, config, items):
+    if config.getoption("--generate-coverage-doc"):
+        test_reporting.generate_coverage_doc(items, sagemaker=True, framework="tensorflow", job_type="inference")
 
 
 def pytest_configure(config):

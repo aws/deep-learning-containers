@@ -20,6 +20,7 @@ import pytest
 from sagemaker import LocalSession, Session
 from sagemaker.mxnet import MXNet
 
+from test.test_utils import test_reporting
 from .integration import NO_P2_REGIONS
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,13 @@ def pytest_addoption(parser):
     parser.addoption('--instance-type', default=None)
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
+    parser.addoption('--generate-coverage-doc', default=False, action='store_true',
+                     help='use this option to generate test coverage doc')
+
+
+def pytest_collection_modifyitems(session, config, items):
+    if config.getoption("--generate-coverage-doc"):
+        test_reporting.generate_coverage_doc(items, sagemaker=True, framework="mxnet", job_type="training")
 
 
 def pytest_generate_tests(metafunc):

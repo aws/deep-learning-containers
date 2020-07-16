@@ -24,6 +24,7 @@ import tempfile
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
+from test.test_utils import test_reporting
 from .utils import image_utils
 
 logger = logging.getLogger(__name__)
@@ -57,6 +58,13 @@ def pytest_addoption(parser):
     parser.addoption('--processor', choices=['gpu', 'cpu'], default='cpu')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
+    parser.addoption('--generate-coverage-doc', default=False, action='store_true',
+                     help='use this option to generate test coverage doc')
+
+
+def pytest_collection_modifyitems(session, config, items):
+    if config.getoption("--generate-coverage-doc"):
+        test_reporting.generate_coverage_doc(items, sagemaker=True, framework="pytorch", job_type="inference")
 
 
 @pytest.fixture(scope='session', name='docker_base_name')

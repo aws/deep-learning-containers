@@ -5,6 +5,8 @@ import re
 
 import git
 
+from invoke.context import Context
+
 from test.test_utils import LOGGER
 from test.test_utils.ec2 import get_instance_num_gpus
 
@@ -154,7 +156,46 @@ def get_marker_arg_value(item_obj, marker_name, default=None):
         return markers[0].args[0]
 
 
+def generate_sagemaker_reports():
+    """
+    Helper function to append SageMaker data to the report
+    """
+    ctx = Context()
+    git_repo = git.Repo(os.getcwd(), search_parent_directories=True)
+    git_repo_path = git_repo.git.rev_parse("--show-toplevel")
+
+    sm_repos = ("pytorch-training", "pytorch-inference", "tensorflow-tensorflow1_training",
+                "tensorflow-tensorflow2_training", "mxnet-training", "mxnet-inference")
+
+    for repo in sm_repos:
+        framework, job_type = repo.split('-')
+        with ctx.cd(os.path.join(git_repo_path, 'test', 'sagemaker_tests', framework, job_type)):
+            # We need to install requirements in order to use the SM pytest frameworks
+            with ctx.prefix("pip install -r requirements.txt"):
+                ctx.run("pytest -s --collect-only --generate-coverage-doc integration/")
+
+    # Handle TF inference remote tests
+    tf_inf_path = os.path.join(git_repo_path, 'test', 'sagemaker_tests', "tensorflow",
+                               "inference", "test", "integration")
+
+    # Handle local tests
+    with ctx.cd(tf_inf_path):
+        ctx.run("pytest -s --collect-only --generate-coverage-doc --framework-version 2 local/")
+
+    # Handle remote integration tests
+    with ctx.cd(tf_inf_path):
+        ctx.run("pytest -s --collect-only --generate-coverage-doc sagemaker/")
+
+
 def generate_coverage_doc(items, sagemaker=False, framework=None, job_type=None):
+    """
+    Function that generates the test coverage docs based on pytest item objects
+
+    :param items: pytest item objects representing each test
+    :param sagemaker: bool, if True, we are using a SM pytest framework
+    :param framework: str, ML framework
+    :param job_type: str, training or inference
+    """
     failure_conditions = {}
     test_coverage_file = get_test_coverage_file_path()
     test_cov = {}
