@@ -15,4 +15,13 @@ pip install typeguard
 
 python ${BIN_DIR}/testTFAddons.py || exit 1
 
+[ -d $LOG_DIR ] && echo "Cleanning existing logs" && rm -rf $LOG_DIR
+
+python ${BIN_DIR}/testTensorBoard.py || exit 1
+
+LOG_RESULT=$(find $LOG_DIR -name "*.pb")
+echo "Checking the logs result: $LOG_RESULT"
+
+[ -z "$LOG_RESULT" ] && echo "Cannot find Profiler logs!" && exit 1
+
 exit 0

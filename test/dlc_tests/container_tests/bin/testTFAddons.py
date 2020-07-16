@@ -29,7 +29,7 @@ def train():
                 loss='sparse_categorical_crossentropy',
                 metrics=['accuracy'])
 
-  model.fit(x_test, y_test, callbacks)
+  model.fit(x_test, y_test, callbacks=callbacks)
 
   score = model.evaluate(x_test, y_test, verbose=0)
   print('Test loss:', score[0])
