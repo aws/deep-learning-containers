@@ -96,11 +96,6 @@ RUN ${PIP} install --no-cache-dir \
 
 COPY sagemaker /sagemaker
 
-WORKDIR /
-
-# put tensorflow library (with only error_codes) to python dist-packages
-RUN mv /sagemaker/tensorflow/ /usr/local/lib/python3.*/dist-packages/
-
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
