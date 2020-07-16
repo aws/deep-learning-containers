@@ -4,7 +4,7 @@ LABEL maintainer="Amazon AI"
 
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
-ARG MMS_VERSION=1.0.8
+ARG MMS_VERSION=1.1.2
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.6.8
 ARG HEALTH_CHECK_VERSION=1.6.3
@@ -14,6 +14,7 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     curl \
+    emacs \
     git \
     libopencv-dev \
     openjdk-8-jdk-headless \
@@ -66,7 +67,7 @@ RUN pip install --no-cache-dir --upgrade \
 
 RUN pip install --no-cache-dir \
     https://s3.amazonaws.com/amazonei-apachemxnet/amazonei_mxnet-1.5.1-py2.py3-none-manylinux1_x86_64.whl \
-    mxnet-model-server==$MMS_VERSION \
+    multi-model-server==$MMS_VERSION \
     keras-mxnet==2.2.4.1 \
     numpy==1.17.4 \
     onnx==1.4.1 \
@@ -112,4 +113,4 @@ RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 EXPOSE 8080 8081
 ENV TEMP=/home/model-server/tmp
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["mxnet-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
+CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
