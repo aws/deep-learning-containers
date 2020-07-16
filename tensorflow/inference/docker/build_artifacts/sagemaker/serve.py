@@ -255,12 +255,6 @@ class ServiceManager(object):
         self._state = 'starting'
         signal.signal(signal.SIGTERM, self._stop)
 
-        self._create_nginx_config()
-
-        if self._tfs_enable_batching:
-            log.info('batching is enabled')
-            tfs_utils.create_batching_config(self._tfs_batching_config_path)
-
         if self._tfs_enable_multi_model_endpoint:
             log.info('multi-model endpoint is enabled, TFS model servers will be started later')
         else:
@@ -270,6 +264,12 @@ class ServiceManager(object):
             )
             self._create_tfs_config()
             self._start_tfs()
+
+        self._create_nginx_config()
+
+        if self._tfs_enable_batching:
+            log.info('batching is enabled')
+            tfs_utils.create_batching_config(self._tfs_batching_config_path)
 
         if self._use_gunicorn:
             self._setup_gunicorn()
