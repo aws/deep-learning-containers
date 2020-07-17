@@ -66,6 +66,7 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
 
     finally:
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
+        ec2_connection.run(f"echo succeed")
 
 
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
