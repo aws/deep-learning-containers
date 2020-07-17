@@ -9,7 +9,6 @@ from test.test_utils.ec2 import get_ec2_instance_type
 SMDEBUG_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
 
 
-# TODO: Set enable_p3dn=True when releasing
 SMDEBUG_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.8xlarge", processor="gpu")
 SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 

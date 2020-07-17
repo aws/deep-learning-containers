@@ -27,7 +27,7 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
         "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference
     }
 
-    if processor is "gpu":
+    if processor == "gpu":
         search_replace_dict["<NUM_GPUS>"] = "1"
 
     eks_utils.write_eks_yaml_file_from_template(
