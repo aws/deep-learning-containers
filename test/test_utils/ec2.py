@@ -6,20 +6,20 @@ from retrying import retry
 from fabric import Connection
 from botocore.config import Config
 
-from . import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
+from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 
-def get_ec2_instance_type(default, processor, enable_p3dn=False):
+def get_ec2_instance_type(default, processor, disable_p3dn=False):
     """
     Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
     for contexts where the variable is not present (i.e. PR, Nightly, local testing)
 
-    :param default: Default instance type to use
+    :param default: Default instance type to use - Should never be p3dn
     :param processor: "cpu" or "gpu"
-    :param enable_p3dn: Boolean to determine whether or not to run tests on p3dn. If set to false, default
-    gpu instance type will be used. If default gpu instance type is p3dn, then use small gpu instance type (p2.xlarge)
+    :param disable_p3dn: Boolean to determine whether or not to run tests on p3dn. If set to true, default
+    gpu instance type will be used.
 
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
     a list.
@@ -31,14 +31,13 @@ def get_ec2_instance_type(default, processor, enable_p3dn=False):
             f"Aborting EC2 test run. Unrecognized processor type {processor}. "
             f"Please choose from {allowed_processors}"
         )
-    if default == p3dn and not enable_p3dn:
+    if default == p3dn:
         raise RuntimeError(
-            "Default instance type is p3dn but p3dn testing is disabled. Please either enable p3dn "
-            "by setting enable_p3dn=True, or change the default instance type"
+            "Default instance type should never be p3dn.24xlarge"
         )
     instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
-    if instance_type == p3dn and not enable_p3dn:
-        return [default]
+    if instance_type == p3dn and disable_p3dn:
+        instance_type = default
     return [instance_type]
 
 
@@ -147,7 +146,7 @@ def get_instance_user(instance_id, region=DEFAULT_REGION):
     :return: <str> user name
     """
     instance = get_instance_from_id(instance_id, region)
-    user = "ubuntu" if instance["ImageId"] in [UBUNTU_16_BASE_DLAMI] else "ec2-user"
+    user = "ubuntu" if instance["ImageId"] in UL_AMI_LIST else "ec2-user"
     return user
 
 
