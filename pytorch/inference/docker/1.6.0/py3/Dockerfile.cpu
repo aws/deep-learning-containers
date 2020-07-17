@@ -1,6 +1,7 @@
 FROM ubuntu:16.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
