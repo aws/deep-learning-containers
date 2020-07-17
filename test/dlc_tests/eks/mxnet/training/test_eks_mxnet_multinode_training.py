@@ -11,6 +11,7 @@ from retrying import retry
 
 import test.test_utils.eks as eks_utils
 import test.test_utils.ec2 as ec2_utils
+from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 
