@@ -89,3 +89,4 @@ def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
+        run(f"echo EKS succeed")
