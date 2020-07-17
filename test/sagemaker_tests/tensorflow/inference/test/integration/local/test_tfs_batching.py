@@ -41,7 +41,6 @@ def test_run_tfs_with_batching_parameters(docker_base_name, tag, runtime_config)
             ' -e SAGEMAKER_TFS_BATCH_TIMEOUT_MICROS=500'
             ' -e SAGEMAKER_TFS_NUM_BATCH_THREADS=100'
             ' -e SAGEMAKER_TFS_MAX_ENQUEUED_BATCHES=1'
-            ' -e SAGEMAKER_TFS_DEFAULT_MODEL_NAME=half_plus_three'
             ' -e SAGEMAKER_TFS_NGINX_LOGLEVEL=info'
             ' -e SAGEMAKER_BIND_TO_PORT=8080'
             ' -e SAGEMAKER_SAFE_PORT_RANGE=9000-9999'

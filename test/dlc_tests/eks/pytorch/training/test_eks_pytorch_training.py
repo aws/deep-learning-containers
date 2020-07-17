@@ -9,7 +9,6 @@ from invoke.context import Context
 from retrying import retry
 
 import test.test_utils.eks as eks_utils
-from dlc.github_handler import GitHubHandler
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 
@@ -161,70 +160,35 @@ def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     }
 
     eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_path, replace_dict)
-    run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_yaml_path, unique_id)
+    run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_path)
 
 
-def run_eks_pytorch_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path, unique_id):
+def run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_file_path):
     """Run PyTorch distributed training on EKS using PyTorch Operator
     Args:
-    namespace, app_name, job_name, remote_yaml_file_path
+    namespace, job_name, remote_yaml_file_path
     """
-    KUBEFLOW_VERSION = "v0.6.1"
-    home_dir = run("echo $HOME").stdout.strip("\n")
-    path_to_ksonnet_app = os.path.join(home_dir, f"pytorch_multi_node_eks_test-{unique_id}")
-    env = f"{namespace}-env"
-
-    ctx = Context()
 
     # Namespaces will allow parallel runs on the same cluster. Create namespace if it doesnt exist.
     does_namespace_exist = run(f"kubectl get namespace | grep {namespace}",
                                warn=True)
     if not does_namespace_exist:
         run(f"kubectl create namespace {namespace}")
-
-    if not os.path.exists(path_to_ksonnet_app):
-        ctx.run(f"mkdir -p {path_to_ksonnet_app}")
-
-    with ctx.cd(path_to_ksonnet_app):
-        ctx.run(f"rm -rf {app_name}")
-        # Create a new ksonnet app.
-        github_handler = GitHubHandler("aws", "kubeflow")
-        github_handler.set_ksonnet_env()
-        ctx.run(f"ks init {app_name} --namespace {namespace}")
-
-        with ctx.cd(app_name):
-            ctx.run(f"ks env add {env} --namespace {namespace}")
-
-            # Check if the kubeflow registry exists and create. Registry will be available in each pod.
-            does_registry_exist = ctx.run("ks registry list | grep kubeflow", warn=True)
-            if not does_registry_exist:
-                ctx.run(
-                    f"ks registry add kubeflow github.com/kubeflow/kubeflow/tree/{KUBEFLOW_VERSION}/kubeflow",
-                )
-                ctx.run(
-                    f"ks pkg install kubeflow/pytorch-job@{KUBEFLOW_VERSION}",
-                )
-                ctx.run(f"ks generate pytorch-operator pytorch-operator")
-                try:
-                    # use `$ks show default` to see details.
-                    ctx.run(f"kubectl get pods -n {namespace} -o wide")
-                    LOGGER.debug(f"ks apply {env} -c pytorch-operator -n {namespace}")
-                    ctx.run(f"ks apply {env} -c pytorch-operator -n {namespace}")
-                    # Delete old job with same name if exists
-                    ctx.run(f"kubectl delete -f {remote_yaml_file_path}", warn=True)
-                    ctx.run(f"kubectl create -f {remote_yaml_file_path} -n {namespace}")
-                    training_result = is_pytorch_eks_multinode_training_complete(job_name, namespace)
-                    if training_result:
-                        run_out = run(f"kubectl logs {job_name}-master-0 -n {namespace}", warn=True).stdout
-                        if "accuracy" in run_out:
-                            training_result = True
-                        else:
-                            eks_utils.LOGGER.info("**** training output ****")
-                            eks_utils.LOGGER.debug(run_out)
-                    assert training_result, f"Training for eks pytorch multinode failed"
-                finally:
-                    eks_utils.eks_multinode_cleanup(ctx, "", job_name, namespace, env)
-
+    
+    try:
+        run(f"kubectl delete -f {remote_yaml_file_path}", warn=True)
+        run(f"kubectl create -f {remote_yaml_file_path} -n {namespace}")
+        training_result = is_pytorch_eks_multinode_training_complete(job_name, namespace)
+        if training_result:
+            run_out = run(f"kubectl logs {job_name}-master-0 -n {namespace}", warn=True).stdout
+            if "accuracy" in run_out:
+                training_result = True
+            else:
+                eks_utils.LOGGER.info("**** training output ****")
+                eks_utils.LOGGER.debug(run_out)
+        assert training_result, f"Training for eks pytorch multinode failed"
+    finally:
+        eks_utils.eks_multinode_cleanup(remote_yaml_file_path, namespace)
 
 def retry_if_value_error(exception):
     """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
