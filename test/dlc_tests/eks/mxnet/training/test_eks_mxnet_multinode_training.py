@@ -71,12 +71,12 @@ def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     job_name = f"kubeflow-mxnet-gpu-dist-job-{unique_id}"
 
     # TODO: This should either be dynamic or at least global variables
-    num_workers = 3
-    num_servers = 2
-    gpu_limit = 1
-    epochs = 20
-    layers = 2
-    gpus = 0
+    num_workers = "3"
+    num_servers = "2"
+    gpu_limit = "1"
+    epochs = '"20"'
+    layers = '"2"'
+    gpus = '"0"'
 
     local_template_file_path = os.path.join(
         "eks",
@@ -105,7 +105,7 @@ def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     training_result = _run_eks_mxnet_multi_node_training(namespace, job_name, remote_yaml_file_path)
     assert training_result, "EKS multinode training failed"
 
-def _run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path):
+def _run_eks_mxnet_multi_node_training(namespace, job_name, remote_yaml_file_path):
     """Run MXNet distributed training on EKS using MXNet Operator
     Args:
     namespace, job_name, remote_yaml_file_path
