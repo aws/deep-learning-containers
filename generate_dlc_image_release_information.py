@@ -36,7 +36,7 @@ def upload_to_S3(local_file_path, bucket_name, bucket_key):
     :param bucket_key: string
     :return:
     """
-    _s3 = boto3.client('s3')
+    _s3 = boto3.client("s3")
     try:
         _s3.upload_file(local_file_path, bucket_name, bucket_key)
     except ClientError as e:
@@ -60,10 +60,11 @@ if __name__ == "__main__":
     dlc_tag = os.getenv("TAG_WITH_DLC_VERSION")
     dlc_repository = os.getenv("TARGET_ECR_REPOSITORY")
     dlc_region = os.getenv("REGION")
+    dlc_release_successful = os.getenv("RELEASE_SUCCESSFUL")
 
-    if not dlc_tag:
-        raise ValueError(
-            "Environment variable TAG_WITH_DLC_VERSION not set. This environment variable is expected to be set by the promoter stage.")
+    if dlc_release_successful != "1":
+        LOGGER.error("Skipping generation of release information as the DLC release failed/skipped.")
+        sys.exit(0)
 
     dlc_release_information = DLCReleaseInformation(dlc_account_id, dlc_region, dlc_repository, dlc_tag)
 
@@ -76,13 +77,14 @@ if __name__ == "__main__":
         "imp_apt_packages": dlc_release_information.imp_apt_packages,
         "image_digest": dlc_release_information.image_digest,
         "image_uri_with_dlc_version": dlc_release_information.image,
-        "image_tags": dlc_release_information.image_tags
+        "image_tags": dlc_release_information.image_tags,
+        "dlc_release_successful": dlc_release_successful,
     }
 
     dlc_folder = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
 
     directory = os.path.join(os.sep, os.getcwd(), dlc_folder)
-    if directory != "" and not os.path.isdir(directory):
+    if directory and not os.path.isdir(directory):
         LOGGER.info(f"Creating folder: {directory}")
         os.mkdir(directory)
 
@@ -113,7 +115,9 @@ if __name__ == "__main__":
     dlc_release_info_json = os.path.join(os.sep, directory, "dlc_release_info.json")
     write_to_file(dlc_release_info_json, json.dumps(release_info))
 
-    upload_to_S3(dlc_release_info_json, dlc_artifact_bucket, f"{dlc_folder}/{dlc_repository}:{dlc_tag}/dlc_release_info.json")
+    upload_to_S3(
+        dlc_release_info_json, dlc_artifact_bucket, f"{dlc_folder}/{dlc_repository}:{dlc_tag}/dlc_release_info.json"
+    )
 
     # Cleanup
     os.remove(tarfile_name)

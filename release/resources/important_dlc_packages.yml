@@ -34,3 +34,4 @@ apt_packages:
   - libcublas
   - libstdc++
   - libgcc
+  - emacs
