@@ -6,6 +6,8 @@ from invoke.context import Context
 from test.test_utils import TEST_COVERAGE_FILE
 
 
+#Skipping this test temporary for upcoming release.
+##TODO: Unskip this test and find out why it is failing
 @pytest.mark.skip()
 @pytest.mark.integration("Generating this coverage doc")
 def test_generate_coverage_doc():
