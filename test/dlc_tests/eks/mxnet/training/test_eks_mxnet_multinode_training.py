@@ -12,8 +12,10 @@ from retrying import retry
 
 import test.test_utils.eks as eks_utils
 import test.test_utils.ec2 as ec2_utils
+from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 LOGGER = eks_utils.LOGGER
+
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_only):
