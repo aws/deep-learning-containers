@@ -6,6 +6,7 @@ from invoke.context import Context
 from test.test_utils import TEST_COVERAGE_FILE
 
 
+@pytest.mark.skip()
 @pytest.mark.integration("Generating this coverage doc")
 def test_generate_coverage_doc():
     """
