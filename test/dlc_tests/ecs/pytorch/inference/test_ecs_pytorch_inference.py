@@ -25,7 +25,7 @@ def test_ecs_pytorch_inference_cpu(pytorch_inference, ecs_container_instance, re
         ecs_utils.tear_down_ecs_inference_service(ecs_cluster_arn, service_name, task_family, revision)
 
 
-@pytest.mark.parametrize("ecs_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_pytorch_inference_gpu(pytorch_inference, ecs_container_instance, region, gpu_only):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
