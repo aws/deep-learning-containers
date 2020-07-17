@@ -67,9 +67,10 @@ def setup_eks_cluster(framework_name):
     frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
     long_name = framework_name
     short_name = frameworks[long_name]
+    codebuild_version = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')[0:7]
     num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
     cluster_name = f"dlc-{short_name}-cluster-" \
-                   f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
+                   f"{codebuild_version}-{random.randint(1, 10000)}"
     try:
         eks_utils.eks_setup()
         eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
