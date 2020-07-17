@@ -4,7 +4,6 @@ import random
 import datetime
 
 import pytest
-import yaml
 
 from invoke import run
 from invoke.context import Context
@@ -12,6 +11,8 @@ from retrying import retry
 
 import test.test_utils.eks as eks_utils
 import test.test_utils.ec2 as ec2_utils
+
+from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 LOGGER = eks_utils.LOGGER
 
@@ -29,7 +30,7 @@ def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_onl
 
     eks_gpus_per_worker = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)
     
-    _mxnet_multinode_training_horovod_mpijob(mxnet_training, eks_cluster_size, eks_gpus_per_worker)
+    _run_eks_mxnet_multinode_training_horovod_mpijob(mxnet_training, eks_cluster_size, eks_gpus_per_worker)
 
 
 def _run_eks_mxnet_multinode_training_horovod_mpijob(example_image_uri, cluster_size, eks_gpus_per_worker):
@@ -115,6 +116,7 @@ def test_eks_mxnet_multinode_training(mxnet_training, example_only):
 
     training_result = _run_eks_mxnet_multi_node_training(namespace, job_name, remote_yaml_file_path)
     assert training_result, "EKS multinode training failed"
+
 
 def _run_eks_mxnet_multi_node_training(namespace, app_name, job_name, remote_yaml_file_path):
     """Run MXNet distributed training on EKS using MXNet Operator
