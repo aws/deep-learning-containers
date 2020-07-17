@@ -297,7 +297,7 @@ def eks_setup():
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
     run_out = run(
-        "eksctl version && kubectl version --short --client && aws-iam-authenticator version && ks version",
+        "eksctl version && kubectl version --short --client && aws-iam-authenticator version && kfctl version",
         warn=True,
     )
 
@@ -320,8 +320,8 @@ def eks_setup():
     )
 
     kfctl_download_command = (
-        f"curl --silent --location https://github.com/kubeflow/kfctl/releases/download/{KFCTL_VERSION}/kfctl_{KFCTL_VERSION}-0-ga476281_linux.tar.gz "
-        f"-o /tmp/kfctl_{KFCTL_VERSION}_linux.tar.gz"
+        f"curl --silent --location https://github.com/kubeflow/kfctl/releases/download/{KFCTL_VERSION}/kfctl_{KFCTL_VERSION}-0-ga476281_{platform.lower()}.tar.gz "
+        f"-o /tmp/kfctl_{KFCTL_VERSION}_{platform.lower()}.tar.gz"
     )
 
     kubetail_download_command = (
@@ -337,9 +337,9 @@ def eks_setup():
 
     run(aws_iam_authenticator_download_command, echo=True)
     run("chmod +x /usr/local/bin/aws-iam-authenticator")
-    
+
     run(kfctl_download_command, echo=True)
-    run(f"tar -xvf /tmp/kfctl_{KFCTL_VERSION}_linux.tar.gz -C /tmp --strip-components=1")
+    run(f"tar -xvf /tmp/kfctl_{KFCTL_VERSION}_{platform.lower()}.tar.gz -C /tmp --strip-components=1")
     run("mv /tmp/kfctl /usr/local/bin")
 
     run(kubetail_download_command, echo=True)
@@ -350,6 +350,7 @@ def eks_setup():
     run("kubectl version --short --client", echo=True)
     run("aws-iam-authenticator version", echo=True)
     run("kfctl version", echo=True)
+
 
 def setup_kubeflow(eks_cluster_name,region=os.getenv("AWS_REGION", DEFAULT_REGION)):
     """Function to setup kubeflow v1.0.2

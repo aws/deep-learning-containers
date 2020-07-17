@@ -14,7 +14,7 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 
 # Test only runs in region us-west-2, on instance type p3.16xlarge, on PR_EKS_CLUSTER_NAME_TEMPLATE cluster
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+# @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example_only):
     eks_cluster_size = "3"                                                        
     ec2_instance_type = "p3.16xlarge"

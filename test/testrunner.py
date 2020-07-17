@@ -107,6 +107,7 @@ def main():
         # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.
         report_train = os.path.join(os.getcwd(), "test", f"{test_type}_train.xml")
         report_infer = os.path.join(os.getcwd(), "test", f"{test_type}_infer.xml")
+        report_multinode_train = os.path.join(os.getcwd(), "test", f"eks_multinode_train.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
         os.chdir(os.path.join("test", "dlc_tests"))
@@ -123,18 +124,46 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
+
+            # Separate multi-node EKS tests from single-node tests in execution to prevent resource contention
+            multi_node_tests_per_framework = {
+                "mxnet": {
+                    "test_eks_mxnet_multi_node_training_horovod_mnist":
+                        os.path.join(test_path, "mxnet", "training", "test_eks_mxnet_multinode_training.py"),
+                    "test_eks_mxnet_multinode_training":
+                        os.path.join(test_path, "mxnet", "training", "test_eks_mxnet_multinode_training.py"),
+                },
+                "pytorch": {
+                    "test_eks_pytorch_multinode_node_training":
+                        os.path.join(test_path, "pytorch", "training", "test_eks_pytorch_training.py"),
+                },
+                "tensorflow": {
+                    "test_eks_tensorflow_multi_node_training_gpu":
+                        os.path.join(test_path, "tensorflow", "training", "test_eks_tensorflow_multi_node_training.py"),
+                }
+            }
+            test_skip_arg = " and ".join([
+                f"not {test_name}"
+                for _, tests in multi_node_tests_per_framework.items()
+                for test_name, _ in tests.items()
+            ])
+            multi_node_test_location = list({location for _, location in
+                                             multi_node_tests_per_framework[framework].items()})
+
             eks_cluster_name = setup_eks_cluster(framework)
 
-            #setup kubeflow
+            # setup kubeflow
             eks_utils.setup_kubeflow(eks_cluster_name)
             
-            # Split training and inference, and run one after the other, to prevent scheduling issues
+            # Change 1: Split training and inference, and run one after the other, to prevent scheduling issues
             # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in
             # pods timing-out while they were in the Pending state. Scheduling 4 tests (and hence, 4 pods) at once
             # seems to be an optimal configuration.
             pytest_cmds = [
-                ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=4"],
-                ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4"],
+                # ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=4",
+                #  "-k", test_skip_arg],
+                # ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4"],
+                ["-s", "-rA", *multi_node_test_location, f"--junitxml={report_multinode_train}"],
             ]
         else:
             # Execute dlc_tests pytest command
