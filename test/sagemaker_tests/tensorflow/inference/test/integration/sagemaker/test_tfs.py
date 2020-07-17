@@ -84,6 +84,7 @@ def test_tfs_model(boto_session, sagemaker_client,
                                     image_uri, instance_type, accelerator_type, input_data)
 
 
+@pytest.mark.integration("batch transform")
 def test_batch_transform(region, boto_session, sagemaker_client,
                          model_name, tfs_model, image_uri,
                          instance_type):

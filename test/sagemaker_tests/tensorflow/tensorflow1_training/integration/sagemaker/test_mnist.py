@@ -27,6 +27,7 @@ from .timeout import timeout
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.deploy_test
+@pytest.mark.model("mnist")
 def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
@@ -46,6 +47,9 @@ def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
 
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+@pytest.mark.model("mnist")
+@pytest.mark.multinode("multinode(2)")
+@pytest.mark.integration("no parameter server")
 def test_distributed_mnist_no_ps(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
@@ -64,6 +68,9 @@ def test_distributed_mnist_no_ps(sagemaker_session, ecr_image, instance_type, fr
     _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 
+@pytest.mark.model("mnist")
+@pytest.mark.multinode("multinode(2)")
+@pytest.mark.integration("parameter server")
 def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
@@ -85,6 +92,8 @@ def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, frame
 
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+@pytest.mark.model("mnist")
+@pytest.mark.integration("s3 plugin")
 def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
@@ -117,6 +126,8 @@ def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framewor
 
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+@pytest.mark.model("mnist")
+@pytest.mark.integration("SM model tuning")
 def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
@@ -152,6 +163,8 @@ def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
 
 
 @pytest.mark.skip_py2_containers
+@pytest.mark.model("mnist")
+@pytest.mark.integration("smdebug")
 def test_tf1x_smdebug(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'tf1x_mnist_smdebug.py')

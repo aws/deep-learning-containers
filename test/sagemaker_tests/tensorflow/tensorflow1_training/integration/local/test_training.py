@@ -35,6 +35,7 @@ def py_full_version(py_version):  # noqa: F811
 
 
 @pytest.mark.skip_gpu
+@pytest.mark.processor("cpu")
 def test_py_versions(sagemaker_local_session, docker_image, py_full_version, framework_version, tmpdir):
     output_path = 'file://{}'.format(tmpdir)
     run_tf_training(script=os.path.join(RESOURCE_PATH, 'test_py_version', 'entry.py'),
@@ -55,6 +56,8 @@ def test_py_versions(sagemaker_local_session, docker_image, py_full_version, fra
 
 
 @pytest.mark.skip_gpu
+@pytest.mark.model("mnist")
+@pytest.mark.processor("cpu")
 def test_mnist_cpu(sagemaker_local_session, docker_image, tmpdir, framework_version):
     output_path = 'file://{}'.format(tmpdir)
     run_tf_training(script=os.path.join(RESOURCE_PATH, 'mnist', 'mnist.py'),
@@ -70,6 +73,8 @@ def test_mnist_cpu(sagemaker_local_session, docker_image, tmpdir, framework_vers
 
 
 @pytest.mark.skip_cpu
+@pytest.mark.processor("gpu")
+@pytest.mark.model("mnist")
 def test_gpu(sagemaker_local_session, docker_image, framework_version):
     run_tf_training(script=os.path.join(RESOURCE_PATH, 'gpu_device_placement.py'),
                     instance_type='local_gpu',
@@ -82,6 +87,10 @@ def test_gpu(sagemaker_local_session, docker_image, framework_version):
 
 
 @pytest.mark.skip_gpu
+@pytest.mark.processor("cpu")
+@pytest.mark.model("mnist")
+@pytest.mark.multinode("multinode(2)")
+@pytest.mark.multinode("no parameter server")
 def test_distributed_training_cpu_no_ps(sagemaker_local_session,
                                         docker_image,
                                         tmpdir,
@@ -100,6 +109,10 @@ def test_distributed_training_cpu_no_ps(sagemaker_local_session,
 
 
 @pytest.mark.skip_gpu
+@pytest.mark.processor("cpu")
+@pytest.mark.integration("parameter server")
+@pytest.mark.model("mnist")
+@pytest.mark.multinode("multinode(2)")
 def test_distributed_training_cpu_ps(sagemaker_local_session,
                                      docker_image,
                                      tmpdir,

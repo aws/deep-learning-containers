@@ -30,6 +30,10 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     (2, 1),
     (2, 2),
     (5, 2)])
+@pytest.mark.processor("cpu")
+@pytest.mark.multinode("multinode")
+@pytest.mark.integration("horovod")
+@pytest.mark.model("mnist")
 def test_distributed_training_horovod_basic(instances,
                                             processes,
                                             sagemaker_local_session,
