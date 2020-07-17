@@ -18,6 +18,7 @@ MX_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor
 MX_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 
 
+@pytest.mark.skip()
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_standalone_gpu(mxnet_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_STANDALONE_CMD)
