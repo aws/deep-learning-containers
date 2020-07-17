@@ -7,12 +7,12 @@ release_images:
       device_types: ["cpu", "gpu"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu101"
+      cuda_version: "cu102"
     inference:
       device_types: ["cpu", "gpu"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu101"
+      cuda_version: "cu102"
   2:
     framework: "tensorflow"
     version: "2.2.0"
@@ -20,5 +20,5 @@ release_images:
       device_types: ["gpu"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu101"
+      cuda_version: "cu102"
       example: True
