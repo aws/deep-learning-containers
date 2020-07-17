@@ -15,13 +15,14 @@ from __future__ import absolute_import
 import pytest
 from sagemaker.pytorch import PyTorch
 
+from test.test_utils import ML_Model
 from ...integration import training_dir, mnist_script, DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
 
 
 @pytest.mark.skip_gpu
 @pytest.mark.processor("cpu")
-@pytest.mark.model("mnist")
+@pytest.mark.model(ML_Model.MNIST.value)
 @pytest.mark.multinode("multinode")
 def test_mnist_distributed_cpu(sagemaker_session, ecr_image, instance_type, dist_cpu_backend):
     instance_type = instance_type or 'ml.c4.xlarge'
@@ -30,7 +31,7 @@ def test_mnist_distributed_cpu(sagemaker_session, ecr_image, instance_type, dist
 
 @pytest.mark.skip_cpu
 @pytest.mark.processor("gpu")
-@pytest.mark.model("mnist")
+@pytest.mark.model(ML_Model.MNIST.value)
 @pytest.mark.multinode("multinode")
 def test_mnist_distributed_gpu(sagemaker_session, ecr_image, instance_type, dist_gpu_backend):
     instance_type = instance_type or 'ml.p2.xlarge'

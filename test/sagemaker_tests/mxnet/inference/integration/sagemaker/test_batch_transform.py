@@ -21,6 +21,7 @@ import pytest
 from sagemaker import utils
 from sagemaker.mxnet.model import MXNetModel
 
+from test.test_utils import ML_Model
 from ...integration import RESOURCE_PATH
 from ...integration.sagemaker import timeout
 
@@ -33,7 +34,7 @@ DATA_PATH = os.path.join(MNIST_PATH, 'images', DATA_FILE)
 
 
 @pytest.mark.integration("SM_batch_transform")
-@pytest.mark.model("mnist")
+@pytest.mark.model(ML_Model.MNIST.value)
 def test_batch_transform(sagemaker_session, ecr_image, instance_type, framework_version):
     s3_prefix = 'mxnet-serving/mnist'
     model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=s3_prefix)

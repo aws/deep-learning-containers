@@ -3,7 +3,6 @@ import random
 import sys
 import logging
 import re
-import traceback
 
 from multiprocessing import Pool
 import boto3

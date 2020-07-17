@@ -5,18 +5,18 @@ import datetime
 
 import pytest
 from invoke import run
-from invoke.context import Context
 from retrying import retry
 
 import test.test_utils.eks as eks_utils
-from test.test_utils import is_pr_context, SKIP_PR_REASON
+
+from test.test_utils import is_pr_context, SKIP_PR_REASON, ML_Model
 
 
 LOGGER = eks_utils.LOGGER
 
 
 @pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline")
-@pytest.mark.model("mnist")
+@pytest.mark.model(ML_Model.MNIST.value)
 def test_eks_pytorch_single_node_training(pytorch_training):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
@@ -125,7 +125,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
 
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
-@pytest.mark.model("mnist")
+@pytest.mark.model(ML_Model.MNIST.value)
 @pytest.mark.multinode("multinode")
 def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     """

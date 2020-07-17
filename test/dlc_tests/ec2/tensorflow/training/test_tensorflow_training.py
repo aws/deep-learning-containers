@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf20
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf20, ML_Model
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -34,7 +34,7 @@ def test_tensorflow_standalone_cpu(tensorflow_training, ec2_connection, cpu_only
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
 
-@pytest.mark.model("mnist")
+@pytest.mark.model(ML_Model.MNIST.value)
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
@@ -42,7 +42,7 @@ def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_onl
 
 # TODO: Change this back TF_EC2_CPU_INSTANCE_TYPE. Currently this test times out on c4.8x, m4.16x and t2.2x,
 #       though passes on all three when run manually. For now we are pinning to c5.18 until we can resolve the issue.
-@pytest.mark.model("mnist")
+@pytest.mark.model(ML_Model.MNIST.value)
 @pytest.mark.parametrize("ec2_instance_type", ["c5.18xlarge"], indirect=True)
 def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
@@ -97,7 +97,7 @@ def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only)
 
 
 @pytest.mark.integration("keras, horovod, automatic_mixed_precision (AMP)")
-@pytest.mark.model("mnist")
+@pytest.mark.model(ML_Model.MNIST.value)
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_keras_horovod_amp(tensorflow_training, ec2_connection, gpu_only):
     if is_tf1(tensorflow_training) or is_tf20(tensorflow_training):
@@ -106,7 +106,7 @@ def test_tensorflow_keras_horovod_amp(tensorflow_training, ec2_connection, gpu_o
 
 
 @pytest.mark.integration("keras, horovod, single_precision_floating_point (FP32)")
-@pytest.mark.model("mnist")
+@pytest.mark.model(ML_Model.MNIST.value)
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_keras_horovod_fp32(tensorflow_training, ec2_connection, gpu_only):
     if is_tf1(tensorflow_training):

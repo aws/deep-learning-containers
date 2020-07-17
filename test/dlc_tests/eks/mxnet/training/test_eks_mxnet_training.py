@@ -8,8 +8,9 @@ from invoke import run
 
 import test.test_utils.eks as eks_utils
 
+from test.test_utils import ML_Model
 
-@pytest.mark.model("mnist")
+@pytest.mark.model(ML_Model.MNIST.value)
 def test_eks_mxnet_single_node_training(mxnet_training):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training

@@ -7,6 +7,8 @@ import time
 import logging
 import sys
 
+from enum import Enum
+
 import pytest
 
 from botocore.exceptions import ClientError
@@ -58,6 +60,25 @@ PUBLIC_DLC_REGISTRY = "763104351884"
 
 # Test coverage file name
 TEST_COVERAGE_FILE = f"test_coverage_report-{datetime.datetime.now().strftime('%Y-%m-%d')}.csv"
+
+
+class ML_Model(Enum):
+    MNIST = "mnist"
+    RESNET18 = "resnet18"
+    RESNET18_V2 = "resnet18_v2"
+    RESNET50 = "resnet50"
+    RESNET50_V2 = "resnet50_v2"
+    HALF_PLUS_TWO = "half_plus_two"
+
+
+class ML_Integration(Enum):
+    GLUONNLP = "gluonnlp"
+    DGL = "dgl"
+    HOROVOD = "horovod"
+    NCCL = "nccl"
+    GLOO = "gloo"
+    PARAMETER_SERVER = "parameter_server"
+    NO_PARAMETER_SERVER = "no_parameter_server"
 
 
 def is_tf1(image_uri):
