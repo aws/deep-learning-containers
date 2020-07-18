@@ -242,8 +242,9 @@ def delete_oidc_provider(eks_cluster_name):
     oidc_url = oidc_issuer.rsplit('//', 1)[-1]
     oidc_provider_arn = f"arn:aws:iam::{account_id}:oidc-provider/{oidc_url}"
 
+    LOGGER.info(f"Deleting oidc provider: {oidc_provider_arn}")
     iam_client.delete_open_id_connect_provider(OpenIDConnectProviderArn=oidc_provider_arn)
-
+    
 
 def delete_eks_cluster(eks_cluster_name):
     """Function to delete the EKS cluster, if it exists. Additionally, the function cleans up the oidc provider
