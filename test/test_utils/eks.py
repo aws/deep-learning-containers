@@ -153,6 +153,19 @@ def init_cfn_client():
     """
     return boto3.client('cloudformation')
 
+def init_eks_client():
+    """Function to initiate the eks session
+    Args:
+        material_set: str
+    """
+    return boto3.client('eks')
+
+def init_iam_client():
+    """Function to initiate the iam session
+    Args:
+        material_set: str
+    """
+    return boto3.client('iam')  
 
 def list_cfn_stack_names():
     """Function to list the cfn stacks in the account.
@@ -215,10 +228,26 @@ def delete_cfn_stack_and_wait(stack_name):
         LOGGER.error(f"Error: Cannot delete stack: {stack_name}. Full Exception:\n{e}")
         describe_cfn_stack_events(stack_name)
 
+def delete_oidc_provider(eks_cluster_name):
+    """Function to delete the oidc provider created by kubeflow
+    Args:
+        eks_cluster_name: str
+    """
+    eks_client = init_eks_client()
+    iam_client = init_iam_client()
+    account_id = os.getenv("ACCOUNT_ID")    
+
+    response = eks_client.describe_cluster(name=eks_cluster_name)
+    oidc_issuer = response['cluster']['identity']['oidc']['issuer']
+    oidc_url = oidc_issuer.rsplit('//', 1)[-1]
+    oidc_provider_arn = f"arn:aws:iam::{account_id}:oidc-provider/{oidc_url}"
+
+    iam_client.delete_open_id_connect_provider(OpenIDConnectProviderArn=oidc_provider_arn)
+
 
 def delete_eks_cluster(eks_cluster_name):
-    """Function to delete the EKS cluster, if it exists. Additionally, the function cleans up any cloudformation stacks
-    that are dangling.
+    """Function to delete the EKS cluster, if it exists. Additionally, the function cleans up the oidc provider
+    created by kubeflow and any cloudformation stacks that are dangling. 
     Args:
         eks_cluster_name: str
     """
@@ -231,6 +260,7 @@ def delete_eks_cluster(eks_cluster_name):
             LOGGER.info(f"Deleting dangling cloudformation stack: {stack_name}")
             delete_cfn_stack_and_wait(stack_name)
 
+    delete_oidc_provider(eks_cluster_name)
 
 def setup_eksctl():
     run_out = run("eksctl version", echo=True, warn=True)
