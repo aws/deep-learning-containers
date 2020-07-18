@@ -13,6 +13,7 @@ release_images:
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
       cuda_version: "cu102"
+      force_release: True
   2:
     framework: "tensorflow"
     version: "2.2.0"
