@@ -1,7 +1,7 @@
   account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK pytorch
-  version: &VERSION 1.6.0 
+  version: &VERSION 1.6.0
   cuda_version: &CUDA_VERSION cu101
   os_version: &OS_VERSION ubuntu16.04
 
