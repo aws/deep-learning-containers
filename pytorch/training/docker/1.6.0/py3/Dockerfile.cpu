@@ -24,9 +24,6 @@ ENV PATH=/opt/conda/bin:$PATH
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV DGLBACKEND=pytorch
 
-# test for sagemaker local
-ENV OMP_NUM_THREADS=1
-
 ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_aws/20200714-100458/cb09cb9c44ea599472f20bc088fa6dd53c1d5d0d/cpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
 
 WORKDIR /
