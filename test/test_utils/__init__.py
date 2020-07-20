@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import re
@@ -19,9 +20,13 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
+# Constant to represent region where p3dn tests can be run
+P3DN_REGION = "us-east-1"
 
 # Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
-UBUNTU_16_BASE_DLAMI = "ami-0e5a388144f62e4f5"
+UBUNTU_16_BASE_DLAMI_US_WEST_2 = "ami-0e5a388144f62e4f5"
+UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0da7f2daf5e92c6f2"
+UL_AMI_LIST = [UBUNTU_16_BASE_DLAMI_US_WEST_2, UBUNTU_16_BASE_DLAMI_US_EAST_1]
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 
@@ -51,6 +56,9 @@ SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
 
+# Test coverage file name
+TEST_COVERAGE_FILE = f"test_coverage_report-{datetime.datetime.now().strftime('%Y-%m-%d')}.csv"
+
 
 def is_tf1(image_uri):
     if "tensorflow" not in image_uri:
@@ -76,6 +84,14 @@ def is_pr_context():
 
 def is_canary_context():
     return os.getenv("BUILD_CONTEXT") == "CANARY"
+
+
+def is_empty_build_context():
+    return not os.getenv("BUILD_CONTEXT")
+
+
+def is_dlc_cicd_context():
+    return os.getenv("BUILD_CONTEXT") in ["PR", "CANARY", "NIGHTLY", "MAINLINE"]
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
@@ -229,13 +245,13 @@ def get_mms_run_command(model_names, processor="cpu"):
     :return: <str> Command to start MMS server with given model
     """
     if processor != "eia":
-        mxnet_model_location = {
+        multi_model_location = {
             "squeezenet": "https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model",
             "pytorch-densenet": "https://dlc-samples.s3.amazonaws.com/pytorch/multi-model-server/densenet/densenet.mar",
             "bert_sst": "https://aws-dlc-sample-models.s3.amazonaws.com/bert_sst/bert_sst.mar"
         }
     else:
-        mxnet_model_location = {
+        multi_model_location = {
             "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar"
         }
 
@@ -243,16 +259,16 @@ def get_mms_run_command(model_names, processor="cpu"):
         model_names = [model_names]
 
     for model_name in model_names:
-        if model_name not in mxnet_model_location:
+        if model_name not in multi_model_location:
             raise Exception(
                 "No entry found for model {} in dictionary".format(model_name)
             )
 
     parameters = [
-        "{}={}".format(name, mxnet_model_location[name]) for name in model_names
+        "{}={}".format(name, multi_model_location[name]) for name in model_names
     ]
     mms_command = (
-        "mxnet-model-server --start --mms-config /home/model-server/config.properties --models "
+        "multi-model-server --start --mms-config /home/model-server/config.properties --models "
         + " ".join(parameters)
     )
     return mms_command
@@ -294,7 +310,7 @@ def generate_ssh_keypair(ec2_client, key_name):
             if os.path.exists(key_filename):
                 run(f"chmod 400 {key_filename}")
                 return key_filename
-        raise ClientError(e)
+        raise e
 
     run(f"echo '{key_pair['KeyMaterial']}' > {key_filename}")
     run(f"chmod 400 {key_filename}")
@@ -342,7 +358,7 @@ def delete_uploaded_tests_from_s3(s3_test_location):
 
 
 def get_dlc_images():
-    if is_pr_context():
+    if is_pr_context() or is_empty_build_context():
         return os.getenv("DLC_IMAGES")
     elif is_canary_context():
         return parse_canary_images(os.getenv("FRAMEWORK"), os.getenv("AWS_REGION"))
