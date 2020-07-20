@@ -37,6 +37,8 @@ def test_tensorflow_standalone_cpu(tensorflow_training, ec2_connection, cpu_only
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_only):
+    if is_tf1(tensorflow_training):
+        pytest.skip("This test is for TF2 and later only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
 
@@ -44,6 +46,8 @@ def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_onl
 #       though passes on all three when run manually. For now we are pinning to c5.18 until we can resolve the issue.
 @pytest.mark.parametrize("ec2_instance_type", ["c5.18xlarge"], indirect=True)
 def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_only):
+    if is_tf1(tensorflow_training):
+        pytest.skip("This test is for TF2 and later only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
 
