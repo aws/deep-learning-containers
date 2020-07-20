@@ -18,6 +18,8 @@ pip_packages:
   - sagemaker-mxnet-inference
   - sagemaker-tensorflow-inference
   - sagemaker-pytorch-inference
+  - mxnet-model-server
+  - multi-model-server
   - dgl
   - awscli
   - numpy
