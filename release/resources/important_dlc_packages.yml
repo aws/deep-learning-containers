@@ -1,0 +1,46 @@
+---
+pip_packages:
+  - mxnet
+  - tensorflow
+  - tensorflow-gpu
+  - pytorch
+  - tensorflow-library
+  - tensorflow-serving-api
+  - tensorflow-serving-api-gpu
+  - smdebug
+  - sagemaker
+  - sagemaker-experiments
+  - sagemaker-tensorflow
+  - sagemaker-mxnet-training
+  - sagemaker-tensorflow-training
+  - sagemaker-pytorch-training
+  - sagemaker-inference
+  - sagemaker-mxnet-inference
+  - sagemaker-tensorflow-inference
+  - sagemaker-pytorch-inference
+  - mxnet-model-server
+  - multi-model-server
+  - dgl
+  - awscli
+  - numpy
+  - horovod
+  - scipy
+  - scikit-learn
+  - pandas
+  - pillow
+  - h5py
+  - fastai
+  - requests
+apt_packages:
+  - cuda-command-line-tools
+  - cuda-cufft
+  - cuda-curand
+  - cuda-cusolver
+  - cuda-cuparse
+  - libcudnn
+  - libnccl
+  - libnccl-dev
+  - libcublas
+  - libstdc++
+  - libgcc
+  - emacs
