@@ -237,14 +237,16 @@ def delete_oidc_provider(eks_cluster_name):
     iam_client = init_iam_client()
     account_id = os.getenv("ACCOUNT_ID")    
 
-    response = eks_client.describe_cluster(name=eks_cluster_name)
-    oidc_issuer = response['cluster']['identity']['oidc']['issuer']
-    oidc_url = oidc_issuer.rsplit('//', 1)[-1]
-    oidc_provider_arn = f"arn:aws:iam::{account_id}:oidc-provider/{oidc_url}"
+    try:
+        response = eks_client.describe_cluster(name=eks_cluster_name)
+        oidc_issuer = response['cluster']['identity']['oidc']['issuer']
+        oidc_url = oidc_issuer.rsplit('//', 1)[-1]
+        oidc_provider_arn = f"arn:aws:iam::{account_id}:oidc-provider/{oidc_url}"
 
-    LOGGER.info(f"Deleting oidc provider: {oidc_provider_arn}")
-    iam_client.delete_open_id_connect_provider(OpenIDConnectProviderArn=oidc_provider_arn)
-    
+        LOGGER.info(f"Deleting oidc provider: {oidc_provider_arn}")
+        iam_client.delete_open_id_connect_provider(OpenIDConnectProviderArn=oidc_provider_arn)
+    except ClientError as e:
+        LOGGER.error(f"Error: Cannot delete the EKS cluster: {eks_cluster_name}. Full Exception:\n{e}")
 
 def delete_eks_cluster(eks_cluster_name):
     """Function to delete the EKS cluster, if it exists. Additionally, the function cleans up the oidc provider
