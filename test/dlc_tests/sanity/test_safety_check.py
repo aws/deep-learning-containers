@@ -25,22 +25,16 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 IGNORE_SAFETY_IDS = {
     "tensorflow": {
         "training": {
-            "py2": ['37524',
-                    # for shipping pillow<=6.2.2 - the last available version for py2
-                    '38449', '38450', '38451', '38452'],
-            "py3": ['37524']
+            # for shipping pillow<=6.2.2 - the last available version for py2
+            "py2": ['38449', '38450', '38451', '38452']
         },
         "inference": {
-            "py2": ['37524',
-                    # for shipping pillow<=6.2.2 - the last available version for py2
-                    '38449', '38450', '38451', '38452'],
-            "py3": ['37524']
+            # for shipping pillow<=6.2.2 - the last available version for py2
+            "py2": ['38449', '38450', '38451', '38452']
         },
         "inference-eia": {
-            "py2": ['37524',
-                    # for shipping pillow<=6.2.2 - the last available version for py2
-                    '38449', '38450', '38451', '38452'],
-            "py3": ['37524']
+            # for shipping pillow<=6.2.2 - the last available version for py2
+            "py2": ['38449', '38450', '38451', '38452']
         }
     },
     "mxnet": {
