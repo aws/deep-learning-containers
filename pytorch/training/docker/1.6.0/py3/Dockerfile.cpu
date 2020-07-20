@@ -27,16 +27,16 @@ ENV DGLBACKEND=pytorch
 ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_aws/20200718-095031/d75f76332e00e7a1fdea42ef5a3026e1e5c40259/cpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
 
 # see https://github.com/pytorch/pytorch/issues/3146
-CORES=`lscpu | grep Core | awk '{print $4}'`
-SOCKETS=`lscpu | grep Socket | awk '{print $2}'`
-TOTAL_CORES=`expr $CORES \* $SOCKETS`
+ARG CORES=`lscpu | grep Core | awk '{print $4}'`
+ARG SOCKETS=`lscpu | grep Socket | awk '{print $2}'`
+ARG TOTAL_CORES=`expr $CORES \* $SOCKETS`
 
-KMP_SETTING="KMP_AFFINITY=granularity=fine,compact,1,0"
-KMP_BLOCKTIME=1
+ARG KMP_SETTING="KMP_AFFINITY=granularity=fine,compact,1,0"
+ARG KMP_BLOCKTIME=1
 
-export OMP_NUM_THREADS=$TOTAL_CORES
-export $KMP_SETTING
-export KMP_BLOCKTIME=$KMP_BLOCKTIME
+ENV OMP_NUM_THREADS=$TOTAL_CORES
+ENV $KMP_SETTING
+ENV KMP_BLOCKTIME=$KMP_BLOCKTIME
 
 WORKDIR /
 
