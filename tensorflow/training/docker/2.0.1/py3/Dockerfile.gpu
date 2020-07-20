@@ -1,6 +1,7 @@
 FROM nvidia/cuda:10.0-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="5"
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -42,6 +43,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     cuda-cusolver-dev-10-0 \
     cuda-cusparse-dev-10-0 \
     curl \
+    emacs \
     libcudnn7=7.5.1.10-1+cuda10.0 \
     # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
     libnccl2=2.4.7-1+cuda10.0 \
@@ -146,7 +148,7 @@ RUN ${PIP} install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
     python-dateutil==2.8.0 \
     PyYAML==5.1.2 \
-    awscli \
+    "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
     "sagemaker-tensorflow>=2.0,<2.1" \

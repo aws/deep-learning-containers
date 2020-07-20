@@ -104,6 +104,11 @@ def ecr_image(aws_id, docker_base_name, tag, region):
 
 
 @pytest.fixture(scope='session')
+def image_uri(docker_base_name, tag):
+    return '{}:{}'.format(docker_base_name, tag)
+
+
+@pytest.fixture(scope='session')
 def sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
 
@@ -123,6 +128,14 @@ def skip_test_in_region(request, region):
     if request.node.get_closest_marker('skip_test_in_region'):
         if region == 'me-south-1':
             pytest.skip('Skipping SageMaker test in region {}'.format(region))
+
+
+@pytest.fixture(autouse=True)
+def skip_by_device_type(request, processor):
+    is_gpu = (processor == 'gpu')
+    if (request.node.get_closest_marker('skip_gpu') and is_gpu) or \
+            (request.node.get_closest_marker('skip_cpu') and not is_gpu):
+        pytest.skip('Skipping because running on \'{}\' instance'.format(processor))
 
 
 @pytest.fixture(autouse=True)

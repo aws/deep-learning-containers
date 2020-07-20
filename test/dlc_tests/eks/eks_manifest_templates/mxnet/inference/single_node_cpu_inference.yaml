@@ -32,7 +32,7 @@ spec:
       - name: mms-container
         image: <DOCKER_IMAGE_BUILD_ID>
         args:
-        - mxnet-model-server
+        - multi-model-server
         - --start
         - --mms-config /home/model-server/config.properties
         - --models <MODELS>
@@ -45,7 +45,7 @@ spec:
         resources:
           limits:
             cpu: "1"
-            memory: 1Gi
+            memory: 2Gi
           requests:
             cpu: "1"
             memory: 1Gi

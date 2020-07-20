@@ -19,7 +19,7 @@ import os
 FRAMEWORKS = {"mxnet", "tensorflow", "pytorch"}
 DEVICE_TYPES = {"cpu", "gpu"}
 IMAGE_TYPES = {"training", "inference"}
-PYTHON_VERSIONS = {"py2", "py3"}
+PYTHON_VERSIONS = {"py2", "py3", "py36"}
 ALL = "all"
 
 # Function Status Codes
@@ -57,6 +57,11 @@ JOB_FRAMEWORK_VERSION = os.environ.get("VERSION")
 TEST_ENV_PATH = os.path.join(os.path.expanduser("~"), "testenv.json")
 # Test images for all test types (sm,ecs,eks,ec2) to pass on to code build jobs
 TEST_TYPE_IMAGES_PATH = os.path.join(os.path.expanduser("~"), "test_type_images.json")
+
+# Types of binary links accepted:
+LINK_TYPE = ["s3", "pypi"]
+
+ARTIFACT_DOWNLOAD_PATH = os.path.join(os.sep, "docker", "build_artifacts")
 
 # Test types for running code build test jobs
 SAGEMAKER_TESTS = "sagemaker"

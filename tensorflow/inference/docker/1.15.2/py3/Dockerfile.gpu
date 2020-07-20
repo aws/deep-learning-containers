@@ -1,6 +1,7 @@
 FROM nvidia/cuda:10.0-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="4"
 # Specify LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
@@ -40,6 +41,7 @@ RUN apt-get update \
     libnccl2=${NCCL_VERSION} \
     libgomp1 \
     curl \
+    emacs \
     git \
     wget \
     vim \
@@ -92,7 +94,7 @@ RUN apt-get update \
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install -U --no-cache-dir \
-    awscli==1.18.34 \
+    "awscli<2" \
     pyYAML==5.3.1 \
     cython==0.29.12 \
     falcon==2.0.0 \

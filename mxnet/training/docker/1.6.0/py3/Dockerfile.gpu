@@ -2,15 +2,17 @@
 FROM nvidia/cuda:10.1-base-ubuntu16.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="3"
 
 ARG PYTHON=python3
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.6.8
+ARG PYTHON_VERSION=3.6.10
 ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=0.8.1
+ARG OPENSSL_VERSION=1.1.1g
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -35,6 +37,7 @@ RUN apt-get update \
     cuda-cusolver-10-1 \
     cuda-cusparse-10-1 \
     curl \
+    emacs \
     git \
     libatlas-base-dev \
     libcurl4-openssl-dev \
@@ -106,6 +109,24 @@ ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
 ENV PATH=/usr/local/openmpi/bin/:$PATH
 ENV PATH=/usr/local/nvidia/bin:$PATH
 
+
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt-get update \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get install -y \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-*
+
+# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
+
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
@@ -159,23 +180,33 @@ RUN ${PIP} install --no-cache --upgrade \
     sagemaker-experiments==0.1.7 \
     PyYAML==5.3.1 \
     mpi4py==3.0.2 \
-    "sagemaker-mxnet-training<4" \
+    "sagemaker-mxnet-training<5" \
     ${MX_URL} \
     smdebug==${SMDEBUG_VERSION} \
-    sagemaker==1.50.17 \
+    "sagemaker<2" \
     awscli
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITHOUT_TENSORFLOW=1 \
     HOROVOD_WITHOUT_PYTORCH=1 HOROVOD_WITH_MXNET=1 pip install --no-cache-dir \
-    horovod==0.19.0 \
+    horovod==0.19.5 \
  && ldconfig
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
+
+# OpenSHH config for MPI communication
+RUN mkdir -p /var/run/sshd && \
+  sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+RUN rm -rf /root/.ssh/ && \
+  mkdir -p /root/.ssh/ && \
+  ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
+  cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 # "channels first" is recommended for keras-mxnet
 # https://github.com/awslabs/keras-apache-mxnet/blob/master/docs/mxnet_backend/performance_guide.md#channels-first-image-data-format-for-cnn
@@ -187,11 +218,10 @@ RUN mkdir /root/.keras \
 # TODO: Should we be installing OpenCV in our image like this? Is there another way we can fix this?
 RUN ln -s /dev/null /dev/raw1394
 
-COPY dockerd-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/aws-mxnet-1.6.0/license.txt
 
-ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["/bin/bash"]

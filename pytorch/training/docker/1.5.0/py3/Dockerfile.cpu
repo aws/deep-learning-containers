@@ -1,6 +1,7 @@
 FROM ubuntu:16.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
 
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.6.10
@@ -30,6 +31,7 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     curl \
+    emacs \
     git \
     wget \
     vim \
@@ -93,13 +95,13 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
-    awscli \
+    "awscli<2" \
     fastai==1.0.59 \
     scipy==1.2.2 \
     smdebug==${SMDEBUG_VERSION} \
-    sagemaker==1.50.17 \
+    "sagemaker<2" \
     sagemaker-experiments==0.1.7 \
-    "sagemaker-pytorch-training<2" \
+    "sagemaker-pytorch-training<3" \
  && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/cpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U \

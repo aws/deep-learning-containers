@@ -1,10 +1,12 @@
 FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="5"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
+    emacs \
     git \
     wget \
     vim \
@@ -50,7 +52,7 @@ RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.1/Serving/CPU-WIT
 
 RUN ${PIP} install -U --no-cache-dir \
     docutils==0.15.2 \
-    awscli \
+    "awscli<2" \
     requests==2.22.0
 
 # Expose ports

@@ -1,21 +1,11 @@
 ---
 release_images:
   1:
-    framework: "tensorflow"
-    version: "2.2.0"
-    training:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu101"
-      dlc_version: "1.1"
-  2:
-    framework: "tensorflow"
-    version: "2.2.0"
+    framework: "mxnet"
+    version: "1.6.0"
     training:
       device_types: ["gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
+      python_versions: ["py27"]
+      os_version: "ubuntu16.04"
       cuda_version: "cu101"
-      dlc_version: "1.1"
-      example: True
+      force_release: True

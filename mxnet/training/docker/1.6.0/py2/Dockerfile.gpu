@@ -2,8 +2,10 @@
 FROM nvidia/cuda:10.1-base-ubuntu16.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="3"
 
 ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_cu101mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
+ARG OPENSSL_VERSION=1.1.1g
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8 \
@@ -28,21 +30,44 @@ RUN apt-get update \
     cuda-cusolver-10-1 \
     cuda-cusparse-10-1 \
     curl \
+    emacs \
     git \
     libnccl2=${NCCL_VERSION} \
     libgomp1 \
     libnccl-dev=${NCCL_VERSION} \
     libopencv-dev \
-    python \
-    # python-dev needed to pip install mxnet and user's dependencies (e.g. requirements.txt)
-    python-dev \
-    python-pip \
     openssh-client \
     openssh-server \
     vim \
     wget \
     # zlib1g-dev needed to pip install sagemaker_mxnet_training
     zlib1g-dev \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt-get update \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get install -y \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-*
+
+# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    python \
+    # python-dev needed to pip install mxnet and user's dependencies (e.g. requirements.txt)
+    python-dev \
+    python-pip \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
  && ln -s $(which python) /usr/local/bin/python
@@ -132,19 +157,29 @@ RUN pip install --no-cache-dir --upgrade \
     # inotify-simple updated to 1.3.0 and has an issue that prevents the installation
     # of the enum34 package on py2. inotify-simple is used in sagemaker-mxnet-training
     "inotify-simple<1.3" \
-    "sagemaker-mxnet-training<4"
+    "sagemaker-mxnet-training<5"
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda/targets/x86_64-linux/lib/stubs \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITHOUT_TENSORFLOW=1 \
     HOROVOD_WITHOUT_PYTORCH=1 HOROVOD_WITH_MXNET=1 pip install --no-cache-dir \
-    horovod==0.19.0 \
+    horovod==0.19.5 \
  && ldconfig
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
+
+# OpenSHH config for MPI communication
+RUN mkdir -p /var/run/sshd && \
+  sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+RUN rm -rf /root/.ssh/ && \
+  mkdir -p /root/.ssh/ && \
+  ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
+  cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 # "channels first" is recommended for keras-mxnet
 # https://github.com/awslabs/keras-apache-mxnet/blob/master/docs/mxnet_backend/performance_guide.md#channels-first-image-data-format-for-cnn
@@ -156,11 +191,10 @@ RUN mkdir /root/.keras \
 # TODO: Should we be installing OpenCV in our image like this? Is there another way we can fix this?
 RUN ln -s /dev/null /dev/raw1394
 
-COPY dockerd-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
-
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/aws-mxnet-1.6.0/license.txt
 
-ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
 CMD ["/bin/bash"]

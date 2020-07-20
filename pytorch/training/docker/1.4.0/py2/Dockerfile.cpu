@@ -1,6 +1,7 @@
 FROM ubuntu:16.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="3"
 
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=2.7
@@ -26,6 +27,7 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     curl \
+    emacs \
     git \
     jq \
     libglib2.0-0 \
@@ -86,7 +88,7 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 # The following section uninstalls torch and torchvision before installing the
 # custom versions from an S3 bucket. This will need to be removed in the future
 RUN pip install --no-cache-dir \
-    awscli \
+    "awscli<2" \
     scipy==1.2.2 \
     sphinxcontrib-websupport==1.1.2 \
     future \

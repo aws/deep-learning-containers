@@ -1,6 +1,7 @@
 FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="6"
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -40,6 +41,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-server \
     ca-certificates \
     curl \
+    emacs \
     git \
     wget \
     vim \
@@ -108,13 +110,13 @@ RUN ${PIP} install --no-cache-dir -U \
     python-dateutil==2.8.1 \
     pyYAML==5.3.1 \
     requests==2.22.0 \
-    awscli \
+    "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
-    sagemaker==1.50.17 \
+    "sagemaker<2" \
     sagemaker-experiments==0.1.7 \
     "sagemaker-tensorflow>=2.1,<2.2" \
-    "sagemaker-tensorflow-training>2,<4" \
+    "sagemaker-tensorflow-training>=20" \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \

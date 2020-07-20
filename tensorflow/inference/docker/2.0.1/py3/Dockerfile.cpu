@@ -1,6 +1,9 @@
 FROM ubuntu:18.04 
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="5"
+# Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
+# https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON=python3
@@ -27,6 +30,7 @@ RUN apt-get update \
     curl \
     gnupg2 \
     ca-certificates \
+    emacs \
     git \
     wget \
     vim \
@@ -48,7 +52,7 @@ RUN ${PIP} --no-cache-dir install --upgrade pip setuptools
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir \
-    awscli==1.16.303 \
+    "awscli<2" \
     cython==0.29.14 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \

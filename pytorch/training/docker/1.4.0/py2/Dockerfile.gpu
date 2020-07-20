@@ -2,6 +2,7 @@
 FROM nvidia/cuda@sha256:4979db047661dc0003594fb20d37cce6d6c7e989252f4e3fb0beb39874a078e2
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="3"
 
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=2.7
@@ -36,6 +37,7 @@ RUN apt-get update \
     cuda-cusolver-10-1 \
     cuda-cusparse-10-1 \
     curl \
+    emacs \
     git \
     jq \
     libglib2.0-0 \
@@ -106,7 +108,7 @@ RUN conda install -c pytorch magma-cuda101==2.5.1 \
     h5py==2.9.0 \
     requests==2.22.0 \
  && pip install -U \
-    awscli \
+    "awscli<2" \
     scipy==1.2.2 \
     sphinxcontrib-websupport==1.1.2 \
     "spyder<4.0" \

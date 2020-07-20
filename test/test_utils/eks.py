@@ -6,7 +6,7 @@ import os
 import sys
 import json
 import logging
-
+import random
 import boto3
 
 from botocore.exceptions import ClientError
@@ -43,16 +43,16 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
-EKS_VERSION = "1.13.8"
-EKSCTL_VERSION = "0.5.0"
-KSONNET_VERSION = "0.13.1"
+EKS_VERSION = "1.14.6"
+EKSCTL_VERSION = "0.22.0"
+KFCTL_VERSION = "v1.0.2"
 KUBEFLOW_VERSION = "v0.4.1"
 KUBETAIL_VERSION = "1.6.7"
 
-EKS_NVIDIA_PLUGIN_VERSION = "1.12"
+EKS_NVIDIA_PLUGIN_VERSION = "0.6.0"
 
 # https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
-EKS_AMI_ID = {"cpu": "ami-010938e49e2ec29ae", "gpu": "ami-06d2bf0a1cbcfee72"}
+EKS_AMI_ID = {"cpu": "ami-03086423d09685de3", "gpu": "ami-061798711b2adafb4"}
 
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
 PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"
@@ -233,19 +233,19 @@ def delete_eks_cluster(eks_cluster_name):
 
 
 def setup_eksctl():
-    run_out = run("eksctl version", warn=True)
+    run_out = run("eksctl version", echo=True, warn=True)
 
     eksctl_installed = not run_out.return_code
 
     if eksctl_installed:
         return
 
-    platform = run("uname -s").stdout.strip()
+    platform = run("uname -s", echo=True).stdout.strip()
     eksctl_download_command = (
         f"curl --silent --location https://github.com/weaveworks/eksctl/releases/download/"
         f"{EKSCTL_VERSION}/eksctl_{platform}_amd64.tar.gz | tar xz -C /tmp"
     )
-    run(eksctl_download_command)
+    run(eksctl_download_command, echo=True)
     run("mv /tmp/eksctl /usr/local/bin")
 
 
@@ -279,19 +279,20 @@ def create_eks_cluster(eks_cluster_name, processor_type, num_nodes,
     eksctl_create_cluster_command += " --auto-kubeconfig "
     run(eksctl_create_cluster_command)
 
+    eks_write_kubeconfig(eks_cluster_name, "us-west-2")
+    
     LOGGER.info(f"EKS cluster created successfully, with the following parameters cluster_name: "
                 f"{eks_cluster_name} ami-id: {EKS_AMI_ID[processor_type]} num_nodes: {num_nodes} instance_type: "
                 f"{instance_type} ssh_public_key: {ssh_public_key_name}")
 
 
-def eks_setup(framework, cluster_name=None):
+def eks_setup():
     """Function to download eksctl, kubectl, aws-iam-authenticator and ksonnet binaries
     Utilities:
     1. eksctl: create and manage cluster
     2. kubectl: create and manage runs on eks cluster
     3. aws-iam-authenticator: authenticate the instance to access eks with the appropriate aws credentials
-    4. ksonnet: configure pod files and apply changes to the EKS cluster (will be deprecated soon, but no replacement available yet)
-    :param framework: str
+    4. kfctl: control plane for deploying and managing Kubeflow
     """
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
@@ -302,72 +303,102 @@ def eks_setup(framework, cluster_name=None):
 
     eks_tools_installed = not run_out.return_code
 
-    # Assume cluster with such a name is active
-    if not cluster_name:
-        eks_cluster_name = PR_EKS_CLUSTER_NAME_TEMPLATE.format(framework)
-    else:
-        eks_cluster_name = cluster_name
-
     if eks_tools_installed:
-        eks_write_kubeconfig(eks_cluster_name, "us-west-2")
         return
 
     platform = run("uname -s").stdout.strip()
 
     kubectl_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-14/bin/{platform.lower()}/amd64/kubectl -o /tmp/kubectl"
+        f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
     )
 
     aws_iam_authenticator_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-14/bin/{platform.lower()}/amd64/aws-iam-authenticator -o /tmp/aws-iam-authenticator"
+        f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/aws-iam-authenticator "
+        f"-o /usr/local/bin/aws-iam-authenticator"
     )
 
-    ksonnet_download_command = (
-        f"curl --silent --location https://github.com/ksonnet/ksonnet/releases/download/"
-        f"v{KSONNET_VERSION}/ks_{KSONNET_VERSION}_{platform.lower()}_amd64.tar.gz -o /tmp/{KSONNET_VERSION}.tar.gz"
+    kfctl_download_command = (
+        f"curl --silent --location https://github.com/kubeflow/kfctl/releases/download/{KFCTL_VERSION}/kfctl_{KFCTL_VERSION}-0-ga476281_linux.tar.gz "
+        f"-o /tmp/kfctl_{KFCTL_VERSION}_linux.tar.gz"
     )
 
     kubetail_download_command = (
         f"curl --silent --location https://raw.githubusercontent.com/johanhaleby/kubetail/"
-        f"{KUBETAIL_VERSION}/kubetail -o /tmp/kubetail"
+        f"{KUBETAIL_VERSION}/kubetail -o /usr/local/bin/kubetail"
     )
 
     # Separate function handles setting up eksctl
     setup_eksctl()
 
-    run(kubectl_download_command)
-    run("chmod +x /tmp/kubectl")
-    run("mv /tmp/kubectl /usr/local/bin")
+    run(kubectl_download_command, echo=True)
+    run("chmod +x /usr/local/bin/kubectl")
 
-    run(aws_iam_authenticator_download_command)
-    run("chmod +x /tmp/aws-iam-authenticator")
-    run("mv /tmp/aws-iam-authenticator /usr/local/bin")
+    run(aws_iam_authenticator_download_command, echo=True)
+    run("chmod +x /usr/local/bin/aws-iam-authenticator")
+    
+    run(kfctl_download_command, echo=True)
+    run(f"tar -xvf /tmp/kfctl_{KFCTL_VERSION}_linux.tar.gz -C /tmp --strip-components=1")
+    run("mv /tmp/kfctl /usr/local/bin")
 
-    run(ksonnet_download_command)
-    run("tar -xf /tmp/{}.tar.gz -C /tmp --strip-components=1".format(KSONNET_VERSION))
-    run("mv /tmp/ks /usr/local/bin")
-
-    run(kubetail_download_command)
-    run("chmod +x /tmp/kubetail")
-    run("mv /tmp/kubetail /usr/local/bin")
+    run(kubetail_download_command, echo=True)
+    run("chmod +x /usr/local/bin/kubetail")
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
-    run("eksctl version")
-    run("kubectl version --short --client")
-    run("aws-iam-authenticator version")
-    run("ks version")
+    run("eksctl version", echo=True)
+    run("kubectl version --short --client", echo=True)
+    run("aws-iam-authenticator version", echo=True)
+    run("kfctl version", echo=True)
 
-    eks_write_kubeconfig(eks_cluster_name, "us-west-2")
+def setup_kubeflow(eks_cluster_name,region=os.getenv("AWS_REGION", DEFAULT_REGION)):
+    """Function to setup kubeflow v1.0.2
+        The mxnet operator configuration is not included in the kubeflow v1.0.2 hence installing manually.
+        The mpi operator included in kubeflow v1.0.2 has version v0.1 which has known issues in EKS hence installing the latest
+        version available v0.2
+    """
 
-    run(
-        "kubectl apply -f https://raw.githubusercontent.com/NVIDIA"
-        "/k8s-device-plugin/v{}/nvidia-device-plugin.yml".format(
-            EKS_NVIDIA_PLUGIN_VERSION
-        )
+    unique_id = random.randint(1, 6000)
+    local_template_file_path = os.path.join(
+        "eks",
+        "eks_manifest_templates",
+        "kubeflow",
+        "kfctl_aws_v1.0.2.yaml"
+    )
+    run(f"mkdir -p /tmp/{eks_cluster_name}")
+
+    remote_yaml_path = os.path.join(os.sep, "tmp", eks_cluster_name, f"kfctl_aws_{unique_id}.yaml")
+    replace_dict = {
+        "<REGION>": region
+    }
+    
+    write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_path, replace_dict)
+
+    run(f"kfctl apply -V -f {remote_yaml_path}",echo=True)
+
+    deploy_mxnet_operator()
+    deploy_mpi_operator()
+
+def deploy_mxnet_operator():
+    """Function to deploy mxnet operator in the EKS cluster. This will support v1beta1 crd for mxjobs.
+    """
+
+    clone_mxnet_command = (
+        "cd $HOME && git clone https://github.com/kubeflow/mxnet-operator.git"
     )
 
+    run(clone_mxnet_command, echo=True)
+    run("kubectl create -k $HOME/mxnet-operator/manifests/overlays/v1beta1/", echo=True)
+
+def deploy_mpi_operator():
+    """Function to deploy mpi operator in the EKS cluster. This will support v1alpha2 crd for mpijobs.
+    """
+    clone_mxnet_command = (
+        "cd $HOME && git clone https://github.com/kubeflow/mpi-operator"
+    )
+
+    run(clone_mxnet_command, echo=True)
+    run("kubectl create -f $HOME/mpi-operator/deploy/v1alpha2/mpi-operator.yaml", echo=True)
 
 def write_eks_yaml_file_from_template(
     local_template_file_path, remote_yaml_file_path, search_replace_dict
@@ -494,50 +525,37 @@ def create_eks_cluster_nodegroup(
                 f"ssh_public_key: {ssh_public_key_name}")
 
 
-def eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env):
+def eks_multinode_cleanup(remote_yaml_file_path, namespace):
     """
-    Function to cleanup resources created by EKS
-    Use namespace as default if you do not create one.
-    :param ctx:
-    :param pod_name:
-    :param job_name:
+    Function to cleanup jobs created by EKS
     :param namespace:
-    :param env:
+    :param remote_yaml_file_path:
+    :param namespace:
     :return:
     """
-    # Operator specific cleanup
-    if job_name == "openmpi-job":
-        component, _ = pod_name.split("-master")
-        ctx.run(f"ks component rm {component}", warn=True)
-    else:
-        ctx.run(f"ks delete {env} -c {job_name} -n {namespace}", warn=True)
 
-    if "pytorch" not in namespace:
-        ctx.run(f"ks delete {env}", warn=True)
-    ctx.run(f"kubectl delete namespace {namespace}", warn=True)
+    run(f"kubectl delete -f {remote_yaml_file_path} -n {namespace}", warn=True)
 
 
-def eks_multinode_get_logs(ctx, namespace, pod_name):
+def eks_multinode_get_logs(namespace, pod_name):
     """
     Function to get logs for a pod in the specified namespace.
-    :param ctx:
     :param namespace:
     :param pod_name:
     :return:
     """
-    return ctx.run(f"kubectl logs -n {namespace} -f {pod_name}").stdout
+    return run(f"kubectl logs -n {namespace} -f {pod_name}").stdout
 
 
 @retry(stop_max_attempt_number=120, wait_fixed=10000, retry_on_exception=retry_if_value_error)
-def is_mpijob_launcher_pod_ready(ctx, namespace, job_name):
+def is_mpijob_launcher_pod_ready(namespace, job_name):
     """Check if the MpiJob Launcher Pod is Ready
     Args:
-        ctx: Context
         namespace: str
         job_name: str
     """
 
-    pod_name = ctx.run(
+    pod_name = run(
         f"kubectl get pods -n {namespace} -l mpi_job_name={job_name},mpi_role_type=launcher -o name"
     ).stdout.strip("\n")
     if pod_name:
@@ -547,14 +565,14 @@ def is_mpijob_launcher_pod_ready(ctx, namespace, job_name):
 
 
 @retry(stop_max_attempt_number=40, wait_fixed=60000, retry_on_exception=retry_if_value_error)
-def is_eks_multinode_training_complete(ctx, namespace, env, pod_name, job_name):
+def is_eks_multinode_training_complete(remote_yaml_file_path, namespace, pod_name, job_name):
     """Function to check if the pod status has reached 'Completion' for multinode training.
     A separate method is required because kubectl commands for logs and status are different with namespaces.
     Args:
-        namespace, pod_name, job_name: str
+        remote_yaml_file_path, namespace, pod_name, job_name: str
     """
 
-    run_out = ctx.run(f"kubectl get pod -n {namespace} {pod_name} -o json")
+    run_out = run(f"kubectl get pod -n {namespace} {pod_name} -o json")
     pod_info = json.loads(run_out.stdout)
 
     if 'containerStatuses' in pod_info['status']:
@@ -567,14 +585,18 @@ def is_eks_multinode_training_complete(ctx, namespace, env, pod_name, job_name):
                     return True
                 elif container_status['state']['terminated']['reason'] == "Error":
                     LOGGER.error(f"ERROR: The container run threw an error and terminated. "
-                                 f"kubectl logs: {eks_multinode_get_logs(ctx, namespace, pod_name)}")
-                    eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env)
+                                 f"kubectl logs: {eks_multinode_get_logs(namespace, pod_name)}")
+                    eks_multinode_cleanup(remote_yaml_file_path, namespace)
                     raise AttributeError("Container Error!")
+            elif 'waiting' in container_status['state'] and \
+                    container_status['state']['waiting']['reason'] == "PodInitializing":
+                LOGGER.info("POD-INITIALIZING: Pod is initializing")
+                raise ValueError("IN-PROGRESS: Retry.")
             elif 'waiting' in container_status['state'] and \
                     container_status['state']['waiting']['reason'] == "CrashLoopBackOff":
                 LOGGER.error(f"ERROR: The container run threw an error in waiting state. "
-                             f"kubectl logs: {eks_multinode_get_logs(ctx, namespace, pod_name)}")
-                eks_multinode_cleanup(ctx, pod_name, job_name, namespace, env)
+                             f"kubectl logs: {eks_multinode_get_logs(namespace, pod_name)}")
+                eks_multinode_cleanup(remote_yaml_file_path, namespace)
                 raise AttributeError("Error: CrashLoopBackOff!")
             elif 'waiting' in container_status['state'] or 'running' in container_status['state']:
                 LOGGER.info("IN-PROGRESS: Container is either Creating or Running. Waiting to complete...")
