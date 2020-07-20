@@ -49,7 +49,8 @@ def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_connection, gpu_only):
     test_script = TF1_HVD_CMD if is_tf1(tensorflow_training) else TF2_HVD_CMD
-    execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
+    execute_ec2_training_test(ec2_connection, tensorflow_training, test_script,
+                              large_shm=True if "p2.8xlarge" in TF_EC2_GPU_INSTANCE_TYPE else False)
 
 
 # TODO: Change this back TF_EC2_CPU_INSTANCE_TYPE. Currently this test times out on c4.8x, m4.16x and t2.2x,
