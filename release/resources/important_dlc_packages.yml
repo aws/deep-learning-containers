@@ -22,6 +22,13 @@ pip_packages:
   - awscli
   - numpy
   - horovod
+  - scipy
+  - scikit-learn
+  - pandas
+  - pillow
+  - h5py
+  - fastai
+  - requests
 apt_packages:
   - cuda-command-line-tools
   - cuda-cufft
