@@ -30,10 +30,10 @@ ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6
 ARG CORES=`lscpu | grep Core | awk '{print $4}'`
 ARG SOCKETS=`lscpu | grep Socket | awk '{print $2}'`
 ARG TOTAL_CORES=`expr $CORES \* $SOCKETS`
-ARG KMP_BLOCKTIME=1
 
-ENV OMP_NUM_THREADS=$TOTAL_CORES
 ENV KMP_SETTING="KMP_AFFINITY=granularity=fine,compact,1,0"
+ENV KMP_BLOCKTIME=1
+ENV OMP_NUM_THREADS=$TOTAL_CORES
 ENV KMP_BLOCKTIME=$KMP_BLOCKTIME
 
 WORKDIR /
