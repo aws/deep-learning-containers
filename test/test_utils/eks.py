@@ -11,7 +11,7 @@ import boto3
 
 from botocore.exceptions import ClientError
 from retrying import retry
-from invoke import run
+from invoke import run, Context
 
 DEFAULT_REGION = "us-west-2"
 
@@ -380,26 +380,34 @@ def setup_kubeflow(eks_cluster_name,region=os.getenv("AWS_REGION", DEFAULT_REGIO
     deploy_mxnet_operator()
     deploy_mpi_operator()
 
+
 def deploy_mxnet_operator():
     """Function to deploy mxnet operator in the EKS cluster. This will support v1beta1 crd for mxjobs.
     """
+    ctx = Context()
+    home_dir = ctx.run("echo $HOME").stdout.strip("\n")
+    mxnet_operator_dir = os.path.join(home_dir, "mxnet-operator")
+    if os.path.isdir(mxnet_operator_dir):
+        ctx.run(f"rm -rf {mxnet_operator_dir}")
 
-    clone_mxnet_command = (
-        "cd $HOME && git clone https://github.com/kubeflow/mxnet-operator.git"
-    )
+    clone_mxnet_command = f"git clone https://github.com/kubeflow/mxnet-operator.git {mxnet_operator_dir}"
+    ctx.run(clone_mxnet_command, echo=True)
+    run(f"kubectl create -k {mxnet_operator_dir}/manifests/overlays/v1beta1/", echo=True)
 
-    run(clone_mxnet_command, echo=True)
-    run("kubectl create -k $HOME/mxnet-operator/manifests/overlays/v1beta1/", echo=True)
 
 def deploy_mpi_operator():
     """Function to deploy mpi operator in the EKS cluster. This will support v1alpha2 crd for mpijobs.
     """
-    clone_mxnet_command = (
-        "cd $HOME && git clone https://github.com/kubeflow/mpi-operator"
-    )
+    ctx = Context()
+    home_dir = ctx.run("echo $HOME").stdout.strip("\n")
+    mpi_operator_dir = os.path.join(home_dir, "mpi-operator")
+    if os.path.isdir(mpi_operator_dir):
+        ctx.run(f"rm -rf {mpi_operator_dir}")
 
+    clone_mxnet_command = f"git clone https://github.com/kubeflow/mpi-operator {mpi_operator_dir}"
     run(clone_mxnet_command, echo=True)
-    run("kubectl create -f $HOME/mpi-operator/deploy/v1alpha2/mpi-operator.yaml", echo=True)
+    run(f"kubectl create -f {mpi_operator_dir}/deploy/v1alpha2/mpi-operator.yaml", echo=True)
+
 
 def write_eks_yaml_file_from_template(
     local_template_file_path, remote_yaml_file_path, search_replace_dict

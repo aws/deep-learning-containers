@@ -121,7 +121,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
         run("kubectl delete pods {}".format(pod_name))
 
 
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+# @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     """
        Function to create mutliple pods using kubectl and given container image, and run Pytorch training
@@ -189,6 +189,7 @@ def run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_file_pa
         assert training_result, f"Training for eks pytorch multinode failed"
     finally:
         eks_utils.eks_multinode_cleanup(remote_yaml_file_path, namespace)
+
 
 def retry_if_value_error(exception):
     """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
