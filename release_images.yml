@@ -1,11 +1,25 @@
 ---
 release_images:
   1:
-    framework: "mxnet"
-    version: "1.6.0"
+    framework: "tensorflow"
+    version: "2.2.0"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu102"
+      disable_sm_tag: True
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu102"
+  2:
+    framework: "tensorflow"
+    version: "2.2.0"
     training:
       device_types: ["gpu"]
-      python_versions: ["py27"]
-      os_version: "ubuntu16.04"
-      cuda_version: "cu101"
-      force_release: True
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu102"
+      example: True
