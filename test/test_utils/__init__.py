@@ -372,46 +372,53 @@ def get_dlc_images():
 
 
 def parse_canary_images(framework, region):
-    tf1 = "1.15"
-    tf2 = "2.2"
-    mx = "1.6"
-    pt = "1.5"
-
     if framework == "tensorflow":
         framework = "tensorflow2" if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") else "tensorflow1"
 
-    registry = PUBLIC_DLC_REGISTRY
-
-    images = {
-        "tensorflow1":
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py2 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py2 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-gpu "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-cpu",
-        "tensorflow2":
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-gpu-py37 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-cpu-py37 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-gpu "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-cpu",
-
-        "mxnet":
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py2 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py2 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py2 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py2",
-        "pytorch":
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-gpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-cpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-gpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-cpu-py3"
+    versions = {
+        "tensorflow1": ["1.15", "1.14", "1.13"],
+        "tensorflow2": ["2.2", "2.1", "2.0"],
+        "mxnet": ["1.6", "1.4"],
+        "pytorch": ["1.5", "1.4", "1.3"]
     }
-    return images[framework]
+
+    registry = PUBLIC_DLC_REGISTRY
+    framework_versions = versions[framework]
+    dlc_images = ""
+    for version in framework_versions:
+        images = {
+            "tensorflow1":
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{version}-cpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{version}-gpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{version}-gpu "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{version}-cpu",
+            "tensorflow2":
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{version}-gpu-py37 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{version}-cpu-py37 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{version}-gpu "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{version}-cpu",
+
+            "mxnet":
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{version}-gpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{version}-cpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{version}-gpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{version}-cpu-py2",
+            "pytorch":
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{version}-cpu-py3"
+        }
+        if not dlc_images:
+            dlc_images = images[framework]
+        else:
+            dlc_images += f" {images[framework]}"
 
 
 def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2_env):
