@@ -266,7 +266,7 @@ class TestReportGenerator:
                 "Scope": framework_scope,
                 "Job_Type": job_type_scope,
                 "Num_Instances": get_marker_arg_value(item, "multinode", num_instances),
-                "Processor": processor_scope,
+                "Processor": get_marker_arg_value(item, "processor", processor_scope),
                 "Integration": get_marker_arg_value(item, "integration", integration_scope),
                 "Model": get_marker_arg_value(item, "model", model_scope),
                 "GitHub_Link": github_link,

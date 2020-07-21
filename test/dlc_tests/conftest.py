@@ -239,6 +239,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
+    config.addinivalue_line("markers", "processor(cpu/gpu/eia): explicitly mark which processor is used")
 
 
 def pytest_runtest_setup(item):
