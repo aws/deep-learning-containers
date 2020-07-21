@@ -20,7 +20,7 @@ import pytest
 from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
 
-from test.test_utils import test_reporting
+from test.test_utils.test_reporting import TestReportGenerator
 from ..integration import NO_P2_REGIONS, NO_P3_REGIONS
 
 logger = logging.getLogger(__name__)
@@ -48,7 +48,8 @@ def pytest_addoption(parser):
 
 def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
-        test_reporting.generate_coverage_doc(items, sagemaker=True, framework="tensorflow_1", job_type="training")
+        report_generator = TestReportGenerator(items, is_sagemaker=True)
+        report_generator.generate_coverage_doc(framework="tensorflow_1", job_type="training")
 
 
 def pytest_configure(config):

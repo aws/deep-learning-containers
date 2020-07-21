@@ -1,22 +1,23 @@
 import datetime
 import os
-import csv
 import logging
 import random
-import re
 import sys
 
 import boto3
-from botocore.config import Config
 import docker
-from fabric import Connection
 import pytest
+
+from botocore.config import Config
+from fabric import Connection
+
+import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
 from test.test_utils import (
-    DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2, KEYS_TO_DESTROY_FILE, test_reporting
+    DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2, KEYS_TO_DESTROY_FILE
 )
-import test.test_utils.ec2 as ec2_utils
+from test.test_utils.test_reporting import TestReportGenerator
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -249,8 +250,9 @@ def pytest_runtest_setup(item):
 
 def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
-        test_reporting.generate_coverage_doc(items)
-        test_reporting.generate_sagemaker_reports()
+        report_generator = TestReportGenerator(items)
+        report_generator.generate_coverage_doc()
+        report_generator.generate_sagemaker_reports()
 
 
 def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, values_to_generate_for_fixture):

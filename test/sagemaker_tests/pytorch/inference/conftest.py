@@ -24,7 +24,7 @@ import tempfile
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
-from test.test_utils import test_reporting
+from test.test_utils.test_reporting import TestReportGenerator
 from .utils import image_utils
 
 logger = logging.getLogger(__name__)
@@ -64,7 +64,8 @@ def pytest_addoption(parser):
 
 def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
-        test_reporting.generate_coverage_doc(items, sagemaker=True, framework="pytorch", job_type="inference")
+        report_generator = TestReportGenerator(items, is_sagemaker=True)
+        report_generator.generate_coverage_doc(framework="pytorch", job_type="inference")
 
 
 @pytest.fixture(scope='session', name='docker_base_name')

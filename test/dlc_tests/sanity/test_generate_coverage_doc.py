@@ -3,12 +3,11 @@ import os
 import pytest
 from invoke.context import Context
 
+from test.test_utils import is_pr_context, PR_ONLY_REASON
 from test.test_utils.test_reporting import get_test_coverage_file_path
 
 
-#Skipping this test temporary for upcoming release.
-##TODO: Unskip this test and find out why it is failing
-@pytest.mark.skip()
+@pytest.mark.skipif(not is_pr_context(), reason=PR_ONLY_REASON)
 @pytest.mark.integration("Generating this coverage doc")
 def test_generate_coverage_doc():
     """

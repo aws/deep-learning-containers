@@ -13,9 +13,9 @@
 
 import pytest
 
-from test.test_utils import test_reporting
+from test.test_utils.test_reporting import TestReportGenerator
 
-FRAMEWORK_LATEST_VERSION = '1.13'
+FRAMEWORK_LATEST_VERSION = '2.2'
 TFS_DOCKER_BASE_NAME = 'sagemaker-tensorflow-serving'
 
 
@@ -31,7 +31,8 @@ def pytest_addoption(parser):
 
 def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
-        test_reporting.generate_coverage_doc(items, sagemaker=True, framework="tensorflow", job_type="inference")
+        report_generator = TestReportGenerator(items, is_sagemaker=True)
+        report_generator.generate_coverage_doc(framework="tensorflow", job_type="inference")
 
 
 @pytest.fixture(scope='module')
