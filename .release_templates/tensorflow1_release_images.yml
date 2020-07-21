@@ -12,7 +12,7 @@ release_images:
       disable_sm_tag: True  # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
                             # to images being published.
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-                            # has already been published.
+                            # has already been published. Re-released image will have minor version incremented by 1.
     inference:
       device_types: ["cpu", "gpu"]
       python_versions: ["py37"]
