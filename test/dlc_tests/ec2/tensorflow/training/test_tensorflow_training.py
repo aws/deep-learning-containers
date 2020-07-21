@@ -112,12 +112,16 @@ def test_tensorflow_keras_horovod_fp32(tensorflow_training, ec2_connection, gpu_
 # Testing Tensorboard with profiling
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_tensorboard_gpu(tensorflow_training, ec2_connection, gpu_only):
+    if is_tf1(tensorflow_training):
+        pytest.skip("This test is for TF2 only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
 
 
 # Testing Tensorboard with profiling
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_tensorboard_cpu(tensorflow_training, ec2_connection, cpu_only):
+    if is_tf1(tensorflow_training):
+        pytest.skip("This test is for TF2 only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
 
 # TensorFlow Addons is actively working towards forward compatibility with TensorFlow 2.x
