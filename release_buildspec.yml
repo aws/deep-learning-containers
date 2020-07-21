@@ -7,3 +7,4 @@ phases:
   build:
     commands:
       - publish_dlc_images --release-spec $(pwd)/release_images.yml
+      - generate_release_information
