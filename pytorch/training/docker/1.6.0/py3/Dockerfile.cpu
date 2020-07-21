@@ -26,14 +26,6 @@ ENV DGLBACKEND=pytorch
 
 ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_aws/20200718-095031/d75f76332e00e7a1fdea42ef5a3026e1e5c40259/cpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
 
-# regulate KMP environment variables to address performance issue triggered by dual OpenMP thread pool 
-# see https://github.com/pytorch/pytorch/issues/3146
-RUN export CORES=`lscpu | grep Core | awk '{print $4}'`
-RUN export SOCKETS=`lscpu | grep Socket | awk '{print $2}'`
-RUN export TOTAL_CORES=`expr ${CORES} \* ${SOCKETS}`
-ENV OMP_NUM_THREADS=${TOTAL_CORES}
-ENV KMP_AFFINITY="granularity=fine,compact,1,0"
-
 WORKDIR /
 
 RUN apt-get update \
