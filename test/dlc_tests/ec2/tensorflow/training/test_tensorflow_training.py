@@ -16,6 +16,7 @@ TF_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_tf_dlc_telemetry_t
 TF_KERAS_HVD_CMD_AMP = os.path.join(CONTAINER_TESTS_PREFIX, "testTFKerasHVDAMP")
 TF_KERAS_HVD_CMD_FP32 = os.path.join(CONTAINER_TESTS_PREFIX, "testTFKerasHVDFP32")
 TF_TENSORBOARD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorBoard")
+TF_ADDONS_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTFAddons")
 
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p2.8xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
@@ -56,7 +57,8 @@ def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_connection, gpu_only):
     test_script = TF1_HVD_CMD if is_tf1(tensorflow_training) else TF2_HVD_CMD
-    execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
+    execute_ec2_training_test(ec2_connection, tensorflow_training, test_script,
+                              large_shm=True if "p2.8xlarge" in TF_EC2_GPU_INSTANCE_TYPE else False)
 
 
 # TODO: Change this back TF_EC2_CPU_INSTANCE_TYPE. Currently this test times out on c4.8x, m4.16x and t2.2x,
@@ -117,3 +119,18 @@ def test_tensorflow_tensorboard_gpu(tensorflow_training, ec2_connection, gpu_onl
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_tensorboard_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
+
+# TensorFlow Addons is actively working towards forward compatibility with TensorFlow 2.x
+# https://github.com/tensorflow/addons#python-op-compatility
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_addons_gpu(tensorflow_training, ec2_connection, gpu_only):
+    if is_tf1(tensorflow_training):
+        pytest.skip("This test is for TF2 only")
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
+
+
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, cpu_only):
+    if is_tf1(tensorflow_training):
+        pytest.skip("This test is for TF2 only")
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
