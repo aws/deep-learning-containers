@@ -2,26 +2,24 @@
 release_images:
   1:
     framework: "tensorflow"
-    version: "2.1.1"
+    version: "2.2.0"
     training:
       device_types: ["cpu", "gpu"]
-      python_versions: ["py27", "py36"]
+      python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu101"
-      dlc_version: "6.4"
+      cuda_version: "cu102"
+      disable_sm_tag: True
     inference:
       device_types: ["cpu", "gpu"]
-      python_versions: ["py27", "py36"]
+      python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu101"
-      dlc_version: "6.4"
+      cuda_version: "cu102"
   2:
     framework: "tensorflow"
-    version: "2.1.1"
+    version: "2.2.0"
     training:
       device_types: ["gpu"]
-      python_versions: ["py36"]
+      python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu101"
-      dlc_version: "6.4"
+      cuda_version: "cu102"
       example: True

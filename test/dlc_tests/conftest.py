@@ -1,20 +1,22 @@
 import datetime
 import os
+import csv
 import logging
 import random
+import re
 import sys
 
 import boto3
+from botocore.config import Config
 import docker
+from fabric import Connection
 import pytest
 
-from botocore.config import Config
-from fabric import Connection
-
-import test.test_utils.ec2 as ec2_utils
-
 from test import test_utils
-from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, KEYS_TO_DESTROY_FILE, test_reporting
+from test.test_utils import (
+    DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2, KEYS_TO_DESTROY_FILE, test_reporting
+)
+import test.test_utils.ec2 as ec2_utils
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -96,7 +98,7 @@ def ec2_instance_role_name(request):
 
 @pytest.fixture(scope="function")
 def ec2_instance_ami(request):
-    return request.param if hasattr(request, "param") else UBUNTU_16_BASE_DLAMI
+    return request.param if hasattr(request, "param") else UBUNTU_16_BASE_DLAMI_US_WEST_2
 
 
 @pytest.mark.timeout(300)
@@ -104,6 +106,11 @@ def ec2_instance_ami(request):
 def ec2_instance(
     request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami, region
 ):
+    if ec2_instance_type == "p3dn.24xlarge":
+        region = P3DN_REGION
+        ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
+        ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
+        ec2_instance_ami = UBUNTU_16_BASE_DLAMI_US_EAST_1
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
     params = {
@@ -150,21 +157,25 @@ def ec2_instance(
 
 
 @pytest.fixture(scope="function")
-def ec2_connection(request, ec2_instance, ec2_key_name, region):
+def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, region):
     """
     Fixture to establish connection with EC2 instance if necessary
     :param request: pytest test request
     :param ec2_instance: ec2_instance pytest fixture
     :param ec2_key_name: unique key name
+    :param ec2_instance_type: ec2_instance_type pytest fixture
     :param region: Region where ec2 instance is launched
     :return: Fabric connection object
     """
     instance_id, instance_pem_file = ec2_instance
-    LOGGER.info(f"Instance ip_address: {ec2_utils.get_public_ip(instance_id, region)}")
+    region = P3DN_REGION if ec2_instance_type == "p3dn.24xlarge" else region
+    ip_address = ec2_utils.get_public_ip(instance_id, region=region)
+    LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
+    LOGGER.info(f"Connecting to {user}@{ip_address}")
     conn = Connection(
         user=user,
-        host=ec2_utils.get_public_ip(instance_id, region),
+        host=ip_address,
         connect_kwargs={"key_filename": [instance_pem_file]},
     )
 

@@ -63,3 +63,11 @@ def tag(request, framework_version, processor):
     if not image_tag:
         image_tag = '{}-{}'.format(framework_version, processor)
     return image_tag
+
+
+@pytest.fixture(autouse=True)
+def skip_by_device_type(request, processor):
+    is_gpu = processor == 'gpu'
+    if (request.node.get_closest_marker('skip_gpu') and is_gpu) or \
+            (request.node.get_closest_marker('skip_cpu') and not is_gpu):
+        pytest.skip('Skipping because running on \'{}\' instance'.format(processor))
