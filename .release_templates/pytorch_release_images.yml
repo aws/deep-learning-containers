@@ -2,7 +2,7 @@
 release_images:
   1:
     framework: "pytorch"
-    version: "1.6.0"
+    version: "1.5.1"
     training:
       device_types: ["cpu", "gpu"]
       python_versions: ["py36"]
@@ -23,7 +23,7 @@ release_images:
       force_release: False
   2:
     framework: "pytorch"
-    version: "1.6.0"
+    version: "1.5.1"
     training:
       device_types: ["gpu"]
       python_versions: ["py36"]
