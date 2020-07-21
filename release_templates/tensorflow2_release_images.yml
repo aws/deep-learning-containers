@@ -1,0 +1,34 @@
+---
+release_images:
+  1:
+    framework: "tensorflow"
+    version: "2.2.0"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu102"
+      example: False
+      disable_sm_tag: True  # Set to True to prevent SageMaker Abbreviated Tags from being attached
+                            # to images being published.
+      force_release: False  # Set to True to force images to be published even if the same image
+                            # has already been published.
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu102"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  2:
+    framework: "tensorflow"
+    version: "2.2.0"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu102"
+      example: True         # Set to True to denote that this image is an Example image
+      disable_sm_tag: False
+      force_release: False
