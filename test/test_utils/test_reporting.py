@@ -65,18 +65,16 @@ class TestReportGenerator:
         self.items = items
         self.test_coverage_file = get_test_coverage_file_path() if not test_coverage_file else test_coverage_file
         self.is_sagemaker = is_sagemaker
-        self.total_issues = 0
         self.failure_conditions = {}
 
     def handle_single_gpu_instances_test_report(self, function_key, function_keywords, processor="gpu"):
         """
         Generally, we do not want tests running on single gpu instances. However, there are exceptions to this rule.
-        This function is used to determine whether we need to raise an error with report generation or not, based on
+        This method is used to determine whether we need to raise an error with report generation or not, based on
         whether we are using single gpu instances or not in a given test function.
 
         :param function_key: local/path/to/function::function_name
         :param function_keywords: string of keywords associated with the test function
-        :param failures: running dictionary of failures associated with the github link
         :param processor: whether the test is for cpu, gpu or both
         :return: processor if not single gpu instance, else "single_gpu", and a dict with updated failure messages
         """
@@ -113,10 +111,8 @@ class TestReportGenerator:
 
     def assemble_report_failure_message(self):
         """
-        Function to assemble the failure message if there are any to raise
+        Assemble the failure message if there are any to raise
 
-        :param failure_messages: dict where key is the function, and value is a list of failures associated with the
-        function
         :return: the final failure message string
         """
         final_message = ""
@@ -175,7 +171,7 @@ class TestReportGenerator:
 
     def generate_sagemaker_reports(self):
         """
-        Helper function to append SageMaker data to the report
+        Append SageMaker data to the report
         """
         ctx = Context()
         git_repo = git.Repo(os.getcwd(), search_parent_directories=True)
@@ -203,7 +199,7 @@ class TestReportGenerator:
 
     def generate_coverage_doc(self, framework=None, job_type=None):
         """
-        Generaet the test coverage docs based on pytest item objects
+        Generate the test coverage docs based on pytest item objects
 
         :param framework: str, ML framework
         :param job_type: str, training or inference
