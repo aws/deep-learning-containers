@@ -160,9 +160,9 @@ def main():
             # pods timing-out while they were in the Pending state. Scheduling 4 tests (and hence, 4 pods) at once
             # seems to be an optimal configuration.
             pytest_cmds = [
-                # ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=4",
-                #  "-k", test_skip_arg],
-                # ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4"],
+                ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=4",
+                 "-k", test_skip_arg],
+                ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4"],
                 ["-s", "-rA", *multi_node_test_location, f"--junitxml={report_multinode_train}"],
             ]
         else:
