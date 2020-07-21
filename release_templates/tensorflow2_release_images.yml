@@ -8,10 +8,10 @@ release_images:
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
       cuda_version: "cu102"
-      example: False
-      disable_sm_tag: True  # Set to True to prevent SageMaker Abbreviated Tags from being attached
+      example: False        # [Default: False] Set to True to denote that this image is an Example image
+      disable_sm_tag: True  # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
                             # to images being published.
-      force_release: False  # Set to True to force images to be published even if the same image
+      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
                             # has already been published.
     inference:
       device_types: ["cpu", "gpu"]
@@ -29,6 +29,6 @@ release_images:
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
       cuda_version: "cu102"
-      example: True         # Set to True to denote that this image is an Example image
-      disable_sm_tag: False
+      example: True
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
