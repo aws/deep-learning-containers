@@ -372,6 +372,13 @@ def get_dlc_images():
 
 
 def parse_canary_images(framework, region):
+    """
+    Return which canary images to run canary tests on for a given framework and AWS region
+
+    :param framework: ML framework (mxnet, tensorflow, pytorch)
+    :param region: AWS region
+    :return: dlc_images string (space separated string of image URIs)
+    """
     if framework == "tensorflow":
         framework = "tensorflow2" if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") else "tensorflow1"
 
@@ -419,6 +426,8 @@ def parse_canary_images(framework, region):
             dlc_images = images[framework]
         else:
             dlc_images += f" {images[framework]}"
+
+    return dlc_images
 
 
 def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2_env):
