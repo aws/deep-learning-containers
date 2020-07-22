@@ -27,7 +27,7 @@ ECS_MXNET_PYTORCH_INFERENCE_PORT_MAPPINGS = [
 
 ECS_INSTANCE_ROLE_ARN = "arn:aws:iam::669063966089:instance-profile/ecsInstanceRole"
 ECS_INSTANCE_ROLE_NAME = "ecsInstanceRole"
-TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
+TENSORFLOW_MODELS_BUCKET = "s3://aws-tensorflow-dlc-models"
 
 
 class ECSException(Exception):

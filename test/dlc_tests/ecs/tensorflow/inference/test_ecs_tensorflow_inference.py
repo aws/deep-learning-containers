@@ -33,7 +33,7 @@ def test_ecs_tensorflow_inference_gpu(tensorflow_inference, ecs_container_instan
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
     num_gpus = ec2_utils.get_instance_num_gpus(worker_instance_id)
 
-    model_name = "saved_model_half_plus_two"
+    model_name = "albert"
     service_name = task_family = revision = None
     try:
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
@@ -41,7 +41,7 @@ def test_ecs_tensorflow_inference_gpu(tensorflow_inference, ecs_container_instan
             region=region
         )
         model_name = get_tensorflow_model_name("gpu", model_name)
-        inference_result = request_tensorflow_inference(model_name, ip_address=public_ip_address)
+        inference_result = request_tensorflow_inference_nlp(model_name, ip_address=public_ip_address)
         assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
 
     finally:

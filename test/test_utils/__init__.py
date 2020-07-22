@@ -219,6 +219,27 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
 
     return True
 
+@retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8501"):
+    """
+    Method to run tensorflow inference on half_plus_two model using CURL command
+    :param model_name:
+    :param ip_address:
+    :param port:
+    :connection: ec2_connection object to run the commands remotely over ssh
+    :return:
+    """
+    inference_string = "'{\"instances\": \"Hello, my dog is cute\"}'"
+    run_out = run(
+        f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
+    )
+
+    # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
+    # is 404. Hence the extra check.
+    if run_out.return_code != 0 or 'predictions' not in run_out.stdout:
+        return False
+
+    return True
 
 def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None):
     """
@@ -282,6 +303,11 @@ def get_tensorflow_model_name(processor, model_name):
             "cpu": "saved_model_half_plus_two_cpu",
             "gpu": "saved_model_half_plus_two_gpu",
             "eia": "saved_model_half_plus_two",
+        },
+        "albert": {
+            "cpu": "albert",
+            "gpu": "albert",
+            "eia": "albert",
         },
         "saved_model_half_plus_three": {"eia": "saved_model_half_plus_three"},
     }
