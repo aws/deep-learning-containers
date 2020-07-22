@@ -47,9 +47,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     emacs \
     libcudnn7=7.6.5.32-1+cuda10.2 \
     # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
-    libnccl2=2.6.4-1+cuda10.2 \
+    libnccl2=2.7.6-1+cuda10.2 \
     libgomp1 \
-    libnccl-dev=2.6.4-1+cuda10.2 \
+    libnccl-dev=2.7.6-1+cuda10.2 \
     libfreetype6-dev \
     libhdf5-serial-dev \
     liblzma-dev \
