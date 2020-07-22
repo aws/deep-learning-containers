@@ -8,7 +8,7 @@ from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 TF1_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflow1Standalone")
 TF2_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflow2Standalone")
 TF_MNIST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorFlow")
-TF1_KERAS_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testBackednWithKeras")
+TF1_KERAS_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testBackendWithKeras")
 TF1_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTF1HVD")
 TF2_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTF2HVD")
 TF_OPENCV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testOpenCV")
