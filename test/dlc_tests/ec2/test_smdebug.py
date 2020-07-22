@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf2
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf2, is_tf1, get_dlc_images
 from test.test_utils.ec2 import get_ec2_instance_type
 
 
@@ -13,6 +13,18 @@ SMDEBUG_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.8xlarge", proc
 SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 
 
+# TODO: Remove this condition from the gpu smdebug test once the test timeout problems have been resolved
+def _skip_tf1_p28x():
+    """
+    Temporary boolean function to skip tensorflow1 p2.8x tests
+
+    :return: bool
+    """
+    images = get_dlc_images()
+    return SMDEBUG_EC2_GPU_INSTANCE_TYPE == "p2.8xlarge" and is_tf1(images)
+
+
+@pytest.mark.skipif(_skip_tf1_p28x(), reason="temporarily skipping p2.8x smdebug test")
 @pytest.mark.integration("smdebug")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
