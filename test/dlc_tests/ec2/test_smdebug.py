@@ -13,20 +13,13 @@ SMDEBUG_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.8xlarge", proc
 SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 
 
-# TODO: Remove this condition from the gpu smdebug test once the test timeout problems have been resolved
-def _skip_tf1_p28x():
-    """
-    Temporary boolean function to skip tensorflow1 p2.8x tests
-    :return: bool
-    """
-    images = get_dlc_images()
-    return SMDEBUG_EC2_GPU_INSTANCE_TYPE == "p2.8xlarge" and is_tf1(images)
-
-
-@pytest.mark.skipif(_skip_tf1_p28x(), reason="temporarily skipping p2.8x smdebug test")
 @pytest.mark.integration("smdebug")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
+    # p2.8xlarge and m4.16xlarge TF1 Pipeline Test are failing for unknown reason.
+    # TODO: Remove this line and provide the required solution.
+    if is_tf1(training) and SMDEBUG_EC2_GPU_INSTANCE_TYPE == "p2.8xlarge":
+        pytest.skip("Currently skipping for TF1 until the issue is fixed")
     test_script = SMDEBUG_SCRIPT
     framework = get_framework_from_image_uri(training)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
