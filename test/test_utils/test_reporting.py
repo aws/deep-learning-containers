@@ -3,8 +3,6 @@ import datetime
 import os
 import re
 
-import git
-
 from invoke.context import Context
 
 from test.test_utils import LOGGER
@@ -12,9 +10,12 @@ from test.test_utils.ec2 import get_instance_num_gpus
 
 
 def get_test_coverage_file_path():
-    git_repo = git.Repo(os.getcwd(), search_parent_directories=True)
+    cwd = os.getcwd()
+
+    dlc_dir = cwd.split('/test/')[0]
+
     return os.path.join(
-        git_repo.git.rev_parse("--show-toplevel"),
+        dlc_dir,
         "test",
         f"test_coverage_report-{datetime.datetime.now().strftime('%Y-%m-%d')}.csv",
     )
@@ -174,8 +175,7 @@ class TestReportGenerator:
         Append SageMaker data to the report
         """
         ctx = Context()
-        git_repo = git.Repo(os.getcwd(), search_parent_directories=True)
-        git_repo_path = git_repo.git.rev_parse("--show-toplevel")
+        git_repo_path = os.getcwd().split('/test/')[0]
 
         for repo in self.SM_REPOS:
             framework, job_type = repo.split("-")
