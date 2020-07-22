@@ -95,7 +95,7 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
-      BuildTensorflowGPUTrainPy2DockerImage:
+    BuildTensorflowGPUTrainPy2DockerImage:
         <<: *TRAINING_REPOSITORY
         build: &TENSORFLOW_GPU_TRAINING_PY2 false
         image_size_baseline: 4899
@@ -106,7 +106,7 @@
         docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
         context:
           <<: *TRAINING_CONTEXT
-      BuildTensorflowCPUInferencePy36DockerImage:
+    BuildTensorflowCPUInferencePy36DockerImage:
         <<: *INFERENCE_REPOSITORY
         build: &TENSORFLOW_CPU_INFERENCE_PY36 false
         image_size_baseline: 4899
@@ -117,7 +117,7 @@
         docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
         context:
           <<: *INFERENCE_CONTEXT
-      BuildTensorflowGPUInferencePy36DockerImage:
+    BuildTensorflowGPUInferencePy36DockerImage:
         <<: *INFERENCE_REPOSITORY
         build: &TENSORFLOW_GPU_INFERENCE_PY36 false
         image_size_baseline: 4899
@@ -128,7 +128,7 @@
         docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
         context:
           <<: *INFERENCE_CONTEXT
-      BuildTensorflowCPUInferencePy3DockerImage:
+    BuildTensorflowCPUInferencePy3DockerImage:
         <<: *INFERENCE_REPOSITORY
         build: &TENSORFLOW_CPU_INFERENCE_PY3 false
         image_size_baseline: 4899
@@ -139,7 +139,7 @@
         docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
         context:
           <<: *INFERENCE_CONTEXT
-      BuildTensorflowGPUInferencePy3DockerImage:
+    BuildTensorflowGPUInferencePy3DockerImage:
         <<: *INFERENCE_REPOSITORY
         build: &TENSORFLOW_GPU_INFERENCE_PY3 false
         image_size_baseline: 4899
@@ -150,7 +150,7 @@
         docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
         context:
           <<: *INFERENCE_CONTEXT
-      BuildTensorflowCPUInferencePy2DockerImage:
+    BuildTensorflowCPUInferencePy2DockerImage:
         <<: *INFERENCE_REPOSITORY
         build: &TENSORFLOW_CPU_INFERENCE_PY2 false
         image_size_baseline: 661
@@ -161,7 +161,7 @@
         docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
         context:
           <<: *INFERENCE_CONTEXT
-      BuildTensorflowGPUInferencePy2DockerImage:
+    BuildTensorflowGPUInferencePy2DockerImage:
         <<: *INFERENCE_REPOSITORY
         build: &TENSORFLOW_GPU_INFERENCE_PY2 false
         image_size_baseline: 2870
@@ -172,7 +172,7 @@
         docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
         context:
           <<: *INFERENCE_CONTEXT
-      BuildTensorflowExampleGPUTrainPy2DockerImage:
+    BuildTensorflowExampleGPUTrainPy2DockerImage:
         <<: *TRAINING_REPOSITORY
         build: &TENSORFLOW_GPU_TRAINING_PY2 false
         image_size_baseline: 4899
