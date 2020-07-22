@@ -71,14 +71,18 @@ class ML_Model(Enum):
     HALF_PLUS_TWO = "half_plus_two"
 
 
-class ML_Integration(Enum):
+class DLC_Integration(Enum):
     GLUONNLP = "gluonnlp"
     DGL = "dgl"
     HOROVOD = "horovod"
     NCCL = "nccl"
     GLOO = "gloo"
-    PARAMETER_SERVER = "parameter_server"
-    NO_PARAMETER_SERVER = "no_parameter_server"
+    PS = "parameter_server"
+    NO_PS = "no_parameter_server"
+    HPO = "hpo"
+    IMAGENET = "imagenet dataset"
+    SYNTHETIC = "synthetic dataset"
+    CIFAR10 = "cifar10 dataset"
 
 
 def is_tf1(image_uri):
