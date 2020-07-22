@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf2, is_tf1, get_dlc_images
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf2, is_tf1
 from test.test_utils.ec2 import get_ec2_instance_type
 
 

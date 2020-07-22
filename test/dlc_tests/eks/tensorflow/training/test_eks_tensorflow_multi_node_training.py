@@ -10,7 +10,7 @@ from invoke.context import Context
 from invoke import run
 import test.test_utils.ec2 as ec2_utils
 import test.test_utils.eks as eks_utils
-from test.test_utils import is_pr_context, SKIP_PR_REASON, is_tf1, get_dlc_images
+from test.test_utils import is_pr_context, SKIP_PR_REASON, is_tf1
 
 
 # Test only runs in region us-west-2, on instance type p3.16xlarge, on PR_EKS_CLUSTER_NAME_TEMPLATE cluster
