@@ -15,10 +15,11 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON, is_tf1
 
 # Test only runs in region us-west-2, on instance type p3.16xlarge, on PR_EKS_CLUSTER_NAME_TEMPLATE cluster
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
-# EKS multinode are failing on TF1 Pipeline due to scheduling issues.
-# TODO: Remove this line and add the required scheduling scheme.
-@pytest.mark.skipif(is_tf1(), reason="Skipping it on TF1 currently as it is not able to do the pods scheduling properly")
 def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example_only):
+    # EKS multinode are failing on TF1 Pipeline due to scheduling issues.
+    # TODO: Remove this line and add the required scheduling scheme.
+    if is_tf1(tensorflow_training) :
+        pytest.skip("Skipping it on TF1 currently as it is not able to do the pods scheduling properly")
     eks_cluster_size = "3"                                                        
     ec2_instance_type = "p3.16xlarge"
 
