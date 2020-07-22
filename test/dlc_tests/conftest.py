@@ -55,7 +55,7 @@ def pytest_addoption(parser):
         "--generate-coverage-doc", action="store_true", default=False, help="Generate a test coverage doc",
     )
     parser.addoption(
-        "--multinode", action="store_true", default=False, help="Run EKS multi-node tests",
+        "--multinode", action="store_true", default=False, help="Run only multi-node tests",
     )
 
 
