@@ -17,6 +17,7 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON
 LOGGER = eks_utils.LOGGER
 
 
+# @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_only):
     """Run MXNet distributed training on EKS using docker images with MNIST dataset"""
 
@@ -63,6 +64,7 @@ def _run_eks_mxnet_multinode_training_horovod_mpijob(example_image_uri, cluster_
     _run_eks_multi_node_training_mpijob(namespace, job_name, remote_yaml_file_path)
 
 
+# @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     """Run MXNet distributed training on EKS using docker images with MNIST dataset"""
     random.seed(f"{mxnet_training}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
@@ -100,7 +102,6 @@ def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     }
 
     eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file_path, replace_dict)
-    
 
     training_result = _run_eks_mxnet_multi_node_training(namespace, job_name, remote_yaml_file_path)
     assert training_result, "EKS multinode training failed"

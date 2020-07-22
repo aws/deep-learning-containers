@@ -147,7 +147,7 @@ def main():
                 for _, tests in multi_node_tests_per_framework.items()
                 for test_name, _ in tests.items()
             ])
-            multi_node_test_location = list({location for _, location in
+            multi_node_test_location = list({f"{location}::{test_name}" for test_name, location in
                                              multi_node_tests_per_framework[framework].items()})
 
             eks_cluster_name = setup_eks_cluster(framework)
