@@ -186,16 +186,17 @@ class TestReportGenerator:
 
         # Handle TF inference remote tests
         tf_inf_path = os.path.join(
-            git_repo_path, "test", "sagemaker_tests", "tensorflow", "inference", "test", "integration"
-        )
+            git_repo_path, "test", "sagemaker_tests", "tensorflow", "inference")
 
-        # Handle local tests
         with ctx.cd(tf_inf_path):
-            ctx.run(f"{self.COVERAGE_DOC_EXECUTABLE} --framework-version 2 local/")
+            # Install TF inference pip requirements
+            ctx.run("pip install -r requirements.txt", warn=True)
+            with ctx.cd(os.path.join(tf_inf_path, "test", "integration")):
+                # Handle local tests
+                ctx.run(f"{self.COVERAGE_DOC_EXECUTABLE} --framework-version 2 local/")
 
-        # Handle remote integration tests
-        with ctx.cd(tf_inf_path):
-            ctx.run(f"{self.COVERAGE_DOC_EXECUTABLE} sagemaker/")
+                # Handle remote integration tests
+                ctx.run(f"{self.COVERAGE_DOC_EXECUTABLE} sagemaker/")
 
     def generate_coverage_doc(self, framework=None, job_type=None):
         """
