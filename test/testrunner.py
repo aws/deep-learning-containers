@@ -124,32 +124,6 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
-
-            # Separate multi-node EKS tests from single-node tests in execution to prevent resource contention
-            multi_node_tests_per_framework = {
-                "mxnet": {
-                    "test_eks_mxnet_multi_node_training_horovod_mnist":
-                        os.path.join(test_path, "mxnet", "training", "test_eks_mxnet_multinode_training.py"),
-                    "test_eks_mxnet_multinode_training":
-                        os.path.join(test_path, "mxnet", "training", "test_eks_mxnet_multinode_training.py"),
-                },
-                "pytorch": {
-                    "test_eks_pytorch_multinode_node_training":
-                        os.path.join(test_path, "pytorch", "training", "test_eks_pytorch_training.py"),
-                },
-                "tensorflow": {
-                    "test_eks_tensorflow_multi_node_training_gpu":
-                        os.path.join(test_path, "tensorflow", "training", "test_eks_tensorflow_multi_node_training.py"),
-                }
-            }
-            test_skip_arg = " and ".join([
-                f"not {test_name}"
-                for _, tests in multi_node_tests_per_framework.items()
-                for test_name, _ in tests.items()
-            ])
-            multi_node_test_location = list({f"{location}::{test_name}" for test_name, location in
-                                             multi_node_tests_per_framework[framework].items()})
-
             eks_cluster_name = setup_eks_cluster(framework)
 
             # setup kubeflow
@@ -159,11 +133,13 @@ def main():
             # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in
             # pods timing-out while they were in the Pending state. Scheduling 4 tests (and hence, 4 pods) at once
             # seems to be an optimal configuration.
+            # Change 2: Separate multi-node EKS tests from single-node tests in execution to prevent resource contention
             pytest_cmds = [
                 ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=4",
-                 "-k", test_skip_arg],
+                 "-m", "not multinode"],
                 ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4"],
-                ["-s", "-rA", *multi_node_test_location, f"--junitxml={report_multinode_train}"],
+                ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_multinode_train}",
+                 "--eks-multi-node"],
             ]
         else:
             # Execute dlc_tests pytest command

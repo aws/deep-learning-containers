@@ -122,6 +122,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
 
 
 # @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+@pytest.mark.multinode("multinode(4)")
 def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     """
        Function to create mutliple pods using kubectl and given container image, and run Pytorch training

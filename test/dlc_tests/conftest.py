@@ -54,6 +54,9 @@ def pytest_addoption(parser):
     parser.addoption(
         "--generate-coverage-doc", action="store_true", default=False, help="Generate a test coverage doc",
     )
+    parser.addoption(
+        "--eks-multi-node", action="store_true", default=False, help="Run EKS multi-node tests",
+    )
 
 
 @pytest.fixture(scope="function")
@@ -248,6 +251,10 @@ def pytest_runtest_setup(item):
         canary_opts = [mark for mark in item.iter_markers(name="canary")]
         if not canary_opts:
             pytest.skip("Skipping non-canary tests")
+    if item.config.getoption("--eks-multi-node"):
+        eks_multinode_opts = [mark for mark in item.iter_markers(name="multinode")]
+        if not eks_multinode_opts:
+            pytest.skip("Skipping non-multinode tests")
 
 
 def pytest_collection_modifyitems(session, config, items):
