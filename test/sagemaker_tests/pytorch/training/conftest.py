@@ -26,7 +26,7 @@ from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
 from .utils import image_utils
-from test.test_utils.test_reporting import TestReportGenerator
+
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
@@ -63,6 +63,7 @@ def pytest_addoption(parser):
 
 def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
+        from test.test_utils.test_reporting import TestReportGenerator
         report_generator = TestReportGenerator(items, is_sagemaker=True)
         report_generator.generate_coverage_doc(framework="pytorch", job_type="training")
 

@@ -20,8 +20,8 @@ import pytest
 from sagemaker import LocalSession, Session
 from sagemaker.mxnet import MXNet
 
-from test.test_utils.test_reporting import TestReportGenerator
 from .integration import NO_P2_REGIONS
+
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
@@ -50,6 +50,7 @@ def pytest_addoption(parser):
 
 def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
+        from test.test_utils.test_reporting import TestReportGenerator
         report_generator = TestReportGenerator(items, is_sagemaker=True)
         report_generator.generate_coverage_doc(framework="mxnet", job_type="training")
 
