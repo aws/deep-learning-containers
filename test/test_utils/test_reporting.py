@@ -181,8 +181,10 @@ class TestReportGenerator:
             framework, job_type = repo.split("-")
             with ctx.cd(os.path.join(git_repo_path, "test", "sagemaker_tests", framework, job_type)):
                 # We need to install requirements in order to use the SM pytest frameworks
-                ctx.run("pip install -r requirements.txt", warn=True)
-                ctx.run(f"{self.COVERAGE_DOC_EXECUTABLE} integration/")
+                ctx.run(f"virtualenv .{repo}")
+                with ctx.prefix(f"source .{os.path.join(repo, 'bin', 'activate')}"):
+                    ctx.run("pip install -r requirements.txt", warn=True)
+                    ctx.run(f"{self.COVERAGE_DOC_EXECUTABLE} integration/")
 
         # Handle TF inference remote tests
         tf_inf_path = os.path.join(
@@ -190,13 +192,15 @@ class TestReportGenerator:
 
         with ctx.cd(tf_inf_path):
             # Install TF inference pip requirements
-            ctx.run("pip install -r requirements.txt", warn=True)
-            with ctx.cd(os.path.join(tf_inf_path, "test", "integration")):
-                # Handle local tests
-                ctx.run(f"{self.COVERAGE_DOC_EXECUTABLE} --framework-version 2 local/")
+            ctx.run(f"virtualenv .tf_inference")
+            with ctx.prefix(f"source {os.path.join(tf_inf_path, '.tf_inference', 'bin', 'activate')}"):
+                ctx.run("pip install -r requirements.txt", warn=True)
+                with ctx.cd(os.path.join(tf_inf_path, "test", "integration")):
+                    # Handle local tests
+                    ctx.run(f"{self.COVERAGE_DOC_EXECUTABLE} --framework-version 2 local/")
 
-                # Handle remote integration tests
-                ctx.run(f"{self.COVERAGE_DOC_EXECUTABLE} sagemaker/")
+                    # Handle remote integration tests
+                    ctx.run(f"{self.COVERAGE_DOC_EXECUTABLE} sagemaker/")
 
     def generate_coverage_doc(self, framework=None, job_type=None):
         """
