@@ -12,4 +12,4 @@ docker-compose
 mxnet==1.4.0
 awslogs
 requests_mock
-invoke
+fabric
