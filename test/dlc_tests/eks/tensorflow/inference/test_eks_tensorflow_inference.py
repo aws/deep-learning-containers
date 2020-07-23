@@ -20,7 +20,7 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
 
     search_replace_dict = {
         "<MODEL_NAME>": model_name,
-        "<MODEL_BASE_PATH>": f"s3://tensorflow-dlc-saved-models/{model_name}",
+        "<MODEL_BASE_PATH>": f"s3://aws-tensorflow-dlc-models/{model_name}",
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
