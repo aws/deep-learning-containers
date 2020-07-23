@@ -7,6 +7,7 @@ import time
 import logging
 import sys
 
+import git
 import pytest
 
 from botocore.exceptions import ClientError
@@ -380,47 +381,65 @@ def parse_canary_images(framework, region):
     :return: dlc_images string (space separated string of image URIs)
     """
     if framework == "tensorflow":
-        framework = "tensorflow2" if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") else "tensorflow1"
+        if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") or "tensorflow2" in os.getenv("CODEBUILD_INITIATOR"):
+            framework = "tensorflow2"
+        else:
+            framework = "tensorflow1"
 
-    versions = {
-        "tensorflow1": ["1.15", "1.14", "1.13"],
-        "tensorflow2": ["2.2", "2.1", "2.0"],
-        "mxnet": ["1.6", "1.4"],
-        "pytorch": ["1.5", "1.4", "1.3"]
+    version_regex = {
+        "tensorflow1": r"tf-1.\d+",
+        "tensorflow2": r"tf-2.\d+",
+        "mxnet": r"mx-\d+.\d+",
+        "pytorch": r"pt-\d+.\d+"
     }
 
+    repo = git.Repo(os.getcwd(), search_parent_directories=True)
+
+    versions = []
+
+    for tag in repo.tags:
+        strtag = str(tag)
+        match = re.search(version_regex[framework], strtag)
+        if match:
+            version = match.group().split('-')[-1]
+            if version not in versions:
+                versions.append(version)
+
+    # Sort ascending to descending
+    versions = sorted(versions, reverse=True)
+
     registry = PUBLIC_DLC_REGISTRY
-    framework_versions = versions[framework]
+    framework_versions = versions if len(versions) < 4 else versions[:3]
     dlc_images = ""
-    for version in framework_versions:
+    for fw_version in framework_versions:
         images = {
             "tensorflow1":
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{version}-gpu-py3 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{version}-cpu-py3 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{version}-cpu-py2 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{version}-gpu-py2 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{version}-gpu "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{version}-cpu",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
             "tensorflow2":
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{version}-gpu-py37 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{version}-cpu-py37 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{version}-gpu "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{version}-cpu",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-py37 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-py37 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
 
             "mxnet":
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{version}-gpu-py3 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{version}-cpu-py3 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{version}-gpu-py2 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{version}-cpu-py2 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{version}-gpu-py3 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{version}-cpu-py3 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{version}-gpu-py2 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{version}-cpu-py2",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-py2",
             "pytorch":
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{version}-gpu-py3 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{version}-cpu-py3 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{version}-gpu-py3 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{version}-cpu-py3"
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-py3"
         }
         if not dlc_images:
             dlc_images = images[framework]
