@@ -113,7 +113,8 @@ def ec2_instance(
         region = P3DN_REGION
         ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
-        ec2_instance_ami = UBUNTU_16_BASE_DLAMI_US_EAST_1
+        if ec2_instance_ami == UBUNTU_16_BASE_DLAMI_US_WEST_2:
+            ec2_instance_ami = UBUNTU_16_BASE_DLAMI_US_EAST_1
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
     params = {

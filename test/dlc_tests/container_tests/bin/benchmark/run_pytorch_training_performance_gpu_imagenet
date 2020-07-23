@@ -1,0 +1,37 @@
+#!/bin/bash
+
+PYTHON_VERSION=$(python -c 'import sys; print(sys.version_info[0])' | tr -d "'")
+if [ "$PYTHON_VERSION" -eq 2 ]
+then
+  exit 0
+fi
+TIMESTAMP=$(date "+%Y-%m-%d-%H-%M-%S")
+HOME_DIR=/test/benchmark
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs/gpu
+LOG_FILE=image_results_${COMMIT_INFO}_${TIMESTAMP}.txt
+
+mkdir -p ${HOME_DIR}
+mkdir -p ${BIN_DIR}
+mkdir -p ${LOG_DIR}
+
+set -e
+cd ~
+python examples/imagenet/main.py \
+       -a resnet50 \
+       --dist-url 'tcp://127.0.0.1:8080' \
+       --dist-backend 'nccl' \
+       --multiprocessing-distributed \
+       --world-size 1 \
+       --rank 0 \
+       --workers 30 \
+       --epochs 1 \
+       ~/imagenet 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
+echo Benchmark Results: >&2
+echo PyTorch Training py"${PYTHON_VERSION}" gpu imagenet>&2
+tail -3 ${LOG_DIR}/${LOG_FILE} >&2 # Display only the results to console
+aws s3 cp ${LOG_DIR}/"${LOG_FILE}" s3://dlinfra-dlc-cicd-performance/pytorch/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}"
+echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/pytorch/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}" >&2
+set +e
+
+exit 0
