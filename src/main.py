@@ -34,8 +34,11 @@ if __name__ == "__main__":
     )
     # create the empty json file for images
     build_context = os.getenv("BUILD_CONTEXT")
+    ei_dedicated = os.getenv("EI_DEDICATED")
     utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
-    if args.framework not in build_config.DISABLE_FRAMEWORK_TESTS or build_context != "PR":
+    if (not ei_dedicated and args.framework not in build_config.DISABLE_FRAMEWORK_TESTS) or \
+       (ei_dedicated and args.framework not in build_config.DISABLE_EI_FRAMEWORK_TESTS) or \
+        build_context != "PR":
         utils.build_setup(
             args.framework,
             device_types=device_types,
