@@ -252,8 +252,8 @@ def pytest_runtest_setup(item):
         if not canary_opts:
             pytest.skip("Skipping non-canary tests")
     if item.config.getoption("--multinode"):
-        eks_multinode_opts = [mark for mark in item.iter_markers(name="multinode")]
-        if not eks_multinode_opts:
+        multinode_opts = [mark for mark in item.iter_markers(name="multinode")]
+        if not multinode_opts:
             pytest.skip("Skipping non-multinode tests")
 
 
