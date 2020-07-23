@@ -12,7 +12,7 @@ def test_ecs_tensorflow_inference_cpu(tensorflow_inference, ecs_container_instan
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
 
-    model_name = "saved_model_half_plus_two"
+    model_name = "albert"
     service_name = task_family = revision = None
     try:
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
