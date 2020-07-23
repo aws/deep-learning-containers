@@ -52,6 +52,9 @@ def pytest_addoption(parser):
     parser.addoption(
         "--generate-coverage-doc", action="store_true", default=False, help="Generate a test coverage doc",
     )
+    parser.addoption(
+        "--local-mode", action="store_true", default=False, help="Run the tests locally",
+    )
 
 
 @pytest.fixture(scope="function")
@@ -318,11 +321,14 @@ def pytest_generate_tests(metafunc):
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
                 images_to_parametrize = [py3_image for py3_image in images_to_parametrize if "py2" not in py3_image]
 
-            # Parametrize tests that spin up an ecs cluster or tests that spin up an EC2 instance with a unique name
-            values_to_generate_for_fixture = {
-                "ecs_container_instance": "ecs_cluster_name",
-                "ec2_connection": "ec2_key_name",
-            }
+            if metafunc.config.getoption("--local-mode"):
+                values_to_generate_for_fixture = {}
+            else:
+                # Parametrize tests that spin up an ecs cluster or tests that spin up an EC2 instance with a unique name
+                values_to_generate_for_fixture = {
+                    "ecs_container_instance": "ecs_cluster_name",
+                    "ec2_connection": "ec2_key_name",
+                }
 
             fixtures_parametrized = generate_unique_values_for_fixtures(
                 metafunc, images_to_parametrize, values_to_generate_for_fixture
