@@ -38,7 +38,9 @@ RUN apt-get update \
     emacs \
     git \
     wget \
-   build-essential \
+    libffi-dev \
+    build-essential \
+    zlib1g-dev \
     vim \
  && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
  && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
