@@ -72,6 +72,8 @@ RUN apt-get update \
     python3 \
     python3-pip \
     python3-setuptools \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-4.0.1-ga-cuda10.0
 # adds a new list which contains libnvinfer library, so it needs another

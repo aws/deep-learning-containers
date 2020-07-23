@@ -153,7 +153,7 @@
     BuildTensorflowCPUInferencePy2DockerImage:
       <<: *INFERENCE_REPOSITORY
       build: &TENSORFLOW_CPU_INFERENCE_PY2 false
-      image_size_baseline: 661
+      image_size_baseline: 900
       device_type: &DEVICE_TYPE cpu
       python_version: &DOCKER_PYTHON_VERSION py2
       tag_python_version: &TAG_PYTHON_VERSION py27
