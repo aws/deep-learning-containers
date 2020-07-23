@@ -41,12 +41,14 @@ RUN apt-get update \
     libcudnn7=${CUDNN_VERSION} \
     libnccl2=${NCCL_VERSION} \
     libgomp1 \
+    libffi-dev \
     curl \
     emacs \
     git \
     wget \
     build-essential \
     vim \
+    zlib1g-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
