@@ -25,6 +25,7 @@ def get_marker_arg_value(item_obj, marker_name, default=None):
     """
     Function to return the argument value of a pytest marker -- if it does not exist, fall back to a default.
     If the default does not exist and the option does not exist, raise an error.
+
     :param item_obj: pytest item object
     :param marker_name: name of the pytest marker
     :param default: default return value -- if None, assume this is a required marker
@@ -39,6 +40,23 @@ def get_marker_arg_value(item_obj, marker_name, default=None):
         return markers[0].args[0]
 
 
+def _infer_field_value(default, options, *comparison_str):
+    """
+    For a given test coverage report field, determine the value based on whether the options are in keywords or
+    file paths.
+
+    :param default: default return value if the field is not found
+    :param options: tuple of possible options -- i.e. ("training", "inference")
+    :param comparison_str: keyword string, filepath string
+    :return: field value <str>
+    """
+    for comp in comparison_str:
+        for option in options:
+            if option in comp:
+                return option.strip("_")
+    return default
+
+
 class TestReportGenerator:
     """
     Class to generate test report files
@@ -46,14 +64,15 @@ class TestReportGenerator:
 
     ALLOWED_SINGLE_GPU_TESTS = ("telemetry", "test_framework_version_gpu")
     SM_REPOS = (
-        "pytorch-training",
-        "pytorch-inference",
-        "tensorflow-tensorflow1_training",
-        "tensorflow-tensorflow2_training",
-        "mxnet-training",
-        "mxnet-inference",
+        os.path.join("pytorch", "training"),
+        os.path.join("pytorch", "inference"),
+        os.path.join("tensorflow", "tensorflow1_training"),
+        os.path.join("tensorflow", "tensorflow2_training"),
+        os.path.join("tensorflow", "inference"),
+        os.path.join("mxnet", "training"),
+        os.path.join("mxnet", "inference")
     )
-    COVERAGE_DOC_EXECUTABLE = "pytest -s --collect-only --generate-coverage-doc"
+    COVERAGE_DOC_COMMAND = "pytest -s --collect-only --generate-coverage-doc"
 
     def __init__(self, items, test_coverage_file=None, is_sagemaker=False):
         """
@@ -100,8 +119,9 @@ class TestReportGenerator:
                 processor = "single_gpu"
                 if not whitelist_single_gpu:
                     single_gpu_failure_message = (
-                        f"Function uses single-gpu instance type {instance_type}. "
-                        f"Please use multi-gpu instance type."
+                        f"Function uses single-gpu instance type {instance_type}. Please use multi-gpu instance type "
+                        f"or add test to ALLOWED_SINGLE_GPU_TESTS. "
+                        f"Current allowed tests: {self.ALLOWED_SINGLE_GPU_TESTS}"
                     )
                     if not self.failure_conditions.get(function_key):
                         self.failure_conditions[function_key] = [single_gpu_failure_message]
@@ -153,23 +173,6 @@ class TestReportGenerator:
             for _func_key, info in test_coverage_info.items():
                 writer.writerow(info)
 
-    @staticmethod
-    def _infer_field_value(default, options, *comparison_str):
-        """
-        For a given test coverage report field, determine the value based on whether the options are in keywords or
-        file paths.
-
-        :param default: default return value if the field is not found
-        :param options: tuple of possible options -- i.e. ("training", "inference")
-        :param comparison_str: keyword string, filepath string
-        :return: field value <str>
-        """
-        for comp in comparison_str:
-            for option in options:
-                if option in comp:
-                    return option.strip("_")
-        return default
-
     def generate_sagemaker_reports(self):
         """
         Append SageMaker data to the report
@@ -178,13 +181,24 @@ class TestReportGenerator:
         git_repo_path = os.getcwd().split('/test/')[0]
 
         for repo in self.SM_REPOS:
-            framework, job_type = repo.split("-")
-            with ctx.cd(os.path.join(git_repo_path, "test", "sagemaker_tests", framework, job_type)):
+            framework, job_type = repo.split(os.sep)
+            pytest_framework_path = os.path.join(git_repo_path, "test", "sagemaker_tests", framework, job_type)
+            with ctx.cd(pytest_framework_path):
                 # We need to install requirements in order to use the SM pytest frameworks
-                ctx.run(f"virtualenv .{repo}")
-                with ctx.prefix(f"source .{os.path.join(repo, 'bin', 'activate')}"):
+                venv = os.path.join(pytest_framework_path, f".{repo.replace('/', '-')}")
+                ctx.run(f"virtualenv {venv}")
+                with ctx.prefix(f"source {os.path.join(venv, 'bin', 'activate')}"):
                     ctx.run("pip install -r requirements.txt", warn=True)
-                    ctx.run(f"{self.COVERAGE_DOC_EXECUTABLE} integration/")
+
+                    # TF inference separates remote/local conftests, and must be handled differently
+                    if framework == "tensorflow" and job_type == "inference":
+                        with ctx.cd(os.path.join(pytest_framework_path, "test", "integration")):
+                            # Handle local tests
+                            ctx.run(f"{self.COVERAGE_DOC_COMMAND} --framework-version 2 local/")
+                            # Handle remote integration tests
+                            ctx.run(f"{self.COVERAGE_DOC_COMMAND} sagemaker/")
+                    else:
+                        ctx.run(f"{self.COVERAGE_DOC_COMMAND} integration/")
 
         # Handle TF inference remote tests
         tf_inf_path = os.path.join(
@@ -197,10 +211,10 @@ class TestReportGenerator:
                 ctx.run("pip install -r requirements.txt", warn=True)
                 with ctx.cd(os.path.join(tf_inf_path, "test", "integration")):
                     # Handle local tests
-                    ctx.run(f"{self.COVERAGE_DOC_EXECUTABLE} --framework-version 2 local/")
+                    ctx.run(f"{self.COVERAGE_DOC_COMMAND} --framework-version 2 local/")
 
                     # Handle remote integration tests
-                    ctx.run(f"{self.COVERAGE_DOC_EXECUTABLE} sagemaker/")
+                    ctx.run(f"{self.COVERAGE_DOC_COMMAND} sagemaker/")
 
     def generate_coverage_doc(self, framework=None, job_type=None):
         """
@@ -235,27 +249,27 @@ class TestReportGenerator:
             framework_scope = (
                 framework
                 if framework
-                else self._infer_field_value("all", ("mxnet", "tensorflow", "pytorch"), str_fspath)
+                else _infer_field_value("all", ("mxnet", "tensorflow", "pytorch"), str_fspath)
             )
             job_type_scope = (
                 job_type
                 if job_type
-                else self._infer_field_value("both", ("training", "inference"), str_fspath, str_keywords)
+                else _infer_field_value("both", ("training", "inference"), str_fspath, str_keywords)
             )
-            integration_scope = self._infer_field_value(
+            integration_scope = _infer_field_value(
                 "general integration",
                 ("_dgl_", "smdebug", "gluonnlp", "smexperiments", "_mme_", "pipemode", "tensorboard", "_s3_", "nccl"),
                 str_keywords,
             )
-            model_scope = self._infer_field_value(
+            model_scope = _infer_field_value(
                 "N/A", ("mnist", "densenet", "squeezenet", "half_plus_two", "half_plus_three"), str_keywords
             )
-            num_instances = self._infer_field_value(
+            num_instances = _infer_field_value(
                 1, ("_multinode_", "_multi-node_", "_multi_node_", "_dist_"), str_fspath, str_keywords
             )
             if num_instances != 1:
                 num_instances = "multinode"
-            processor_scope = self._infer_field_value("all", ("cpu", "gpu", "eia"), str_keywords)
+            processor_scope = _infer_field_value("all", ("cpu", "gpu", "eia"), str_keywords)
             if processor_scope == "gpu":
                 processor_scope = self.handle_single_gpu_instances_test_report(function_key, str_keywords)
 

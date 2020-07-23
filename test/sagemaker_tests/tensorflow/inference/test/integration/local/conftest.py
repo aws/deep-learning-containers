@@ -14,13 +14,12 @@
 import pytest
 
 
-FRAMEWORK_LATEST_VERSION = '2.2'
 TFS_DOCKER_BASE_NAME = 'sagemaker-tensorflow-serving'
 
 
 def pytest_addoption(parser):
     parser.addoption('--docker-base-name', default=TFS_DOCKER_BASE_NAME)
-    parser.addoption('--framework-version', default=FRAMEWORK_LATEST_VERSION, required=True)
+    parser.addoption('--framework-version', required=True)
     parser.addoption('--processor', default='cpu', choices=['cpu', 'gpu'])
     parser.addoption('--aws-id', default=None)
     parser.addoption('--tag')
