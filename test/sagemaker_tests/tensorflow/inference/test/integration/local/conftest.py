@@ -13,16 +13,25 @@
 
 import pytest
 
-FRAMEWORK_LATEST_VERSION = '1.13'
+
 TFS_DOCKER_BASE_NAME = 'sagemaker-tensorflow-serving'
 
 
 def pytest_addoption(parser):
     parser.addoption('--docker-base-name', default=TFS_DOCKER_BASE_NAME)
-    parser.addoption('--framework-version', default=FRAMEWORK_LATEST_VERSION, required=True)
+    parser.addoption('--framework-version', required=True)
     parser.addoption('--processor', default='cpu', choices=['cpu', 'gpu'])
     parser.addoption('--aws-id', default=None)
     parser.addoption('--tag')
+    parser.addoption('--generate-coverage-doc', default=False, action='store_true',
+                     help='use this option to generate test coverage doc')
+
+
+def pytest_collection_modifyitems(session, config, items):
+    if config.getoption("--generate-coverage-doc"):
+        from test.test_utils.test_reporting import TestReportGenerator
+        report_generator = TestReportGenerator(items, is_sagemaker=True)
+        report_generator.generate_coverage_doc(framework="tensorflow", job_type="inference")
 
 
 @pytest.fixture(scope='module')

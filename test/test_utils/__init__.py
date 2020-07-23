@@ -1,4 +1,3 @@
-import datetime
 import json
 import os
 import re
@@ -57,9 +56,6 @@ SAGEMAKER_LOCAL_TEST_TYPE = "local"
 SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
-
-# Test coverage file name
-TEST_COVERAGE_FILE = f"test_coverage_report-{datetime.datetime.now().strftime('%Y-%m-%d')}.csv"
 
 
 class ML_Model(Enum):
