@@ -3,9 +3,10 @@ import os
 import pytest
 from invoke.context import Context
 
-from test.test_utils import TEST_COVERAGE_FILE
+from test.test_utils import TEST_COVERAGE_FILE, is_pr_context, PR_ONLY_REASON
 
 
+@pytest.mark.skipif(not is_pr_context(), reason=PR_ONLY_REASON)
 @pytest.mark.integration("Generating this coverage doc")
 def test_generate_coverage_doc():
     """

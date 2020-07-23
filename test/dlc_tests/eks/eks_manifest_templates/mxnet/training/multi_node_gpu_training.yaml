@@ -1,0 +1,46 @@
+apiVersion: "kubeflow.org/v1beta1"
+kind: "MXJob"
+metadata:
+  name: <JOB_NAME>
+spec:
+  jobMode: MXTrain
+  mxReplicaSpecs:
+    Scheduler:
+      replicas: 1
+      restartPolicy: Never
+      template:
+        spec:
+          containers:
+            - name: mxnet
+              image: <CONTAINER_IMAGE>
+    Server:
+      replicas: <NUM_SERVERS>
+      restartPolicy: Never
+      template:
+        spec:
+          containers:
+            - name: mxnet
+              image: <CONTAINER_IMAGE>
+    Worker:
+      replicas: <NUM_WORKERS>
+      restartPolicy: Never
+      template:
+        spec:
+          containers:
+            - name: mxnet
+              image: <CONTAINER_IMAGE>
+              command:
+              - "python"
+              args:
+              - "/incubator-mxnet/example/image-classification/train_mnist.py"
+              - "--num-epochs"
+              - <EPOCHS>
+              - "--num-layers"
+              - <LAYERS>
+              - "--kv-store"
+              - "dist_device_sync"
+              - "--gpus"
+              - <GPUS>
+              resources:
+                limits:
+                  nvidia.com/gpu: <GPU_LIMIT>

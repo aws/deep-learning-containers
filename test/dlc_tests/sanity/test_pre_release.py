@@ -126,7 +126,7 @@ def test_framework_version_cpu(cpu):
         assert tag_framework_version == output.stdout.strip()
 
 
-@pytest.mark.canary("Run gpu framework version test regularly on production images")
+# TODO: Enable as canary once resource cleaning lambda is added
 @pytest.mark.parametrize("ec2_instance_type", ['p2.xlarge'], indirect=True)
 def test_framework_version_gpu(gpu, ec2_connection):
     """
