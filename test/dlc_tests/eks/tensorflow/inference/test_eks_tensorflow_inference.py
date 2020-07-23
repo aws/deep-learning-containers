@@ -14,13 +14,13 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
 
     processor = "gpu" if "gpu" in tensorflow_inference else "cpu"
 
-    model_name = f"saved_model_half_plus_two_{processor}"
+    model_name = f"albert"
     yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_{processor}_inference_{rand_int}.yaml")
-    inference_service_name = selector_name = f"half-plus-two-service-{processor}-{rand_int}"
+    inference_service_name = selector_name = f"albert-{processor}-{rand_int}"
 
     search_replace_dict = {
         "<MODEL_NAME>": model_name,
-        "<MODEL_BASE_PATH>": f"s3://tensoflow-trained-models/{model_name}",
+        "<MODEL_BASE_PATH>": f"s3://aws-tensorflow-dlc-models/{model_name}",
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
@@ -42,7 +42,7 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
         if eks_utils.is_service_running(selector_name):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8500")
 
-        assert test_utils.request_tensorflow_inference(model_name=model_name, port=port_to_forward)
+        assert test_utils.request_tensorflow_inference_nlp(model_name=model_name, port=port_to_forward)
     except ValueError as excp:
         eks_utils.LOGGER.error("Service is not running: %s", excp)
     finally:
