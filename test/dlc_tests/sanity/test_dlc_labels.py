@@ -6,17 +6,28 @@ import pytest
 from test.test_utils import get_repository_and_tag_from_image_uri, LOGGER
 
 
+@pytest.mark.integration("dlc_major_version_label")
 def test_dlc_major_version_label(image, region):
+    """
+    Test to ensure that all DLC images have the LABEL "dlc_major_version"
+
+    :param image: <str> Image URI
+    :param region: <str> region where ECR repository holding the image resides
+    :return:
+    """
     ecr_client = boto3.client("ecr", region_name=region)
 
     image_repository, image_tag = get_repository_and_tag_from_image_uri(image)
+    # Using "acceptedMediaTypes" on the batch_get_image request allows the returned image information to
+    # provide the ECR Image Manifest in the specific format that we need, so that the image LABELS can be found
+    # on the manifest. The default format does not return the image LABELs.
     response = ecr_client.batch_get_image(
         repositoryName=image_repository,
         imageIds=[{"imageTag": image_tag}],
         acceptedMediaTypes=["application/vnd.docker.distribution.manifest.v1+json"],
     )
     if not response.get("images"):
-        raise ValueError(
+        raise KeyError(
             f"Failed to get images through ecr_client.batch_get_image response for image {image_repository}:{image_tag}"
         )
     elif not response["images"][0].get("imageManifest"):
