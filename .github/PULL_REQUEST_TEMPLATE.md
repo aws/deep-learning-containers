@@ -9,7 +9,7 @@
 
 For EI only PR
 * When creating PR:
-- [ ] I've modified https://github.com/aws/deep-learning-containers/blob/master/src/config/build_config.py by disabling all non-EI purpose frameworks and enabling related EI purpose frameworks
+- [ ] I've modified ```src/config/build_config.py``` in my PR branch by disabling all non-EI purpose frameworks and enabling related EI purpose frameworks
 * When PR is reviewed and ready to be merged:
 - [ ] I've revert the code change on the config file mentioned above
 
