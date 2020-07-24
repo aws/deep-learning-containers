@@ -18,15 +18,13 @@ import tarfile
 
 import pytest
 from sagemaker.mxnet import MXNet
-
-from test.test_utils import ML_Model
 from ...integration import RESOURCE_PATH
 
 
 @pytest.mark.skip_cpu
 @pytest.mark.skip_generic
 @pytest.mark.integration("horovod")
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model("mnist")
 def test_distributed_training_horovod_gpu(
     sagemaker_local_session, image_uri, tmpdir, framework_version
 ):
@@ -38,7 +36,7 @@ def test_distributed_training_horovod_gpu(
 @pytest.mark.skip_gpu
 @pytest.mark.parametrize('instances, processes', [(1, 2), (2, 1), (2, 2), (5, 2)])
 @pytest.mark.integration("horovod")
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model("mnist")
 def test_distributed_training_horovod_cpu(
     instances, processes, sagemaker_local_session, image_uri, tmpdir, framework_version
 ):

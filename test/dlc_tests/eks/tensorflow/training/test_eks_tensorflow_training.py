@@ -7,11 +7,9 @@ from invoke import run
 
 import test.test_utils.eks as eks_utils
 
-from test.test_utils import ML_Model
-
 
 @pytest.mark.integration("keras")
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model("mnist")
 def test_eks_tensorflow_single_node_training(tensorflow_training):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training

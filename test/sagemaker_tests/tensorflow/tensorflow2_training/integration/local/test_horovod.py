@@ -19,7 +19,6 @@ import tarfile
 import pytest
 from sagemaker.tensorflow import TensorFlow
 
-from test.test_utils import ML_Model
 from ...integration.utils import processor, py_version  # noqa: F401
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
@@ -34,7 +33,7 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 @pytest.mark.processor("cpu")
 @pytest.mark.multinode("multinode")
 @pytest.mark.integration("horovod")
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model("mnist")
 def test_distributed_training_horovod_basic(instances,
                                             processes,
                                             sagemaker_local_session,

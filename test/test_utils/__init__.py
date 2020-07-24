@@ -6,8 +6,6 @@ import time
 import logging
 import sys
 
-from enum import Enum
-
 import pytest
 
 from botocore.exceptions import ClientError
@@ -56,29 +54,6 @@ SAGEMAKER_LOCAL_TEST_TYPE = "local"
 SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
-
-
-class ML_Model(Enum):
-    MNIST = "mnist"
-    RESNET18 = "resnet18"
-    RESNET18_V2 = "resnet18_v2"
-    RESNET50 = "resnet50"
-    RESNET50_V2 = "resnet50_v2"
-    HALF_PLUS_TWO = "half_plus_two"
-
-
-class DLC_Integration(Enum):
-    GLUONNLP = "gluonnlp"
-    DGL = "dgl"
-    HOROVOD = "horovod"
-    NCCL = "nccl"
-    GLOO = "gloo"
-    PS = "parameter_server"
-    NO_PS = "no_parameter_server"
-    HPO = "hpo"
-    IMAGENET = "imagenet dataset"
-    SYNTHETIC = "synthetic dataset"
-    CIFAR10 = "cifar10 dataset"
 
 
 def is_tf1(image_uri):

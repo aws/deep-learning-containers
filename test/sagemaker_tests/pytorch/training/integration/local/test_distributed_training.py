@@ -17,7 +17,6 @@ import os
 import pytest
 from sagemaker.pytorch import PyTorch
 
-from test.test_utils import ML_Model
 from ...integration import data_dir, dist_operations_path, mnist_script, ROLE
 from ...utils.local_mode_utils import assert_files_exist
 
@@ -85,7 +84,7 @@ def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
 
 @pytest.mark.skip_gpu
 @pytest.mark.processor("cpu")
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model("mnist")
 def test_mnist_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpdir):
     estimator = PyTorch(entry_point=mnist_script,
                         role=ROLE,

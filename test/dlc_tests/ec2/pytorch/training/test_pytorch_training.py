@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, ML_Model
+from test.test_utils import CONTAINER_TESTS_PREFIX
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -30,13 +30,13 @@ def test_pytorch_standalone_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_STANDALONE_CMD)
 
 
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_train_mnist_gpu(pytorch_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_MNIST_CMD)
 
 
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model("mnist")
 @pytest.mark.skip(reason="Test is timing out, will assess in a different ticket")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_train_mnist_cpu(pytorch_training, ec2_connection, cpu_only):
@@ -70,7 +70,7 @@ def test_pytorch_train_dgl_cpu(pytorch_training, ec2_connection, cpu_only, py3_o
 
 
 @pytest.mark.integration("horovod")
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_with_horovod(pytorch_training, ec2_connection, gpu_only):
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPTHVD")

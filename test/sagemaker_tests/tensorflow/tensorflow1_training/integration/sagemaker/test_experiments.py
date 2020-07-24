@@ -21,7 +21,6 @@ import pytest
 from sagemaker import utils
 from sagemaker.tensorflow import TensorFlow
 
-from test.test_utils import ML_Model
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
 
@@ -30,7 +29,7 @@ SCRIPT_PATH = os.path.join(DATA_PATH, "mnist_gluon_basic_hook_demo.py")
 
 
 @pytest.mark.skip_py2_containers
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model("mnist")
 @pytest.mark.integration("smexperiments")
 def test_training(sagemaker_session, ecr_image, instance_type, framework_version, py_version):
 
