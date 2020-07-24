@@ -1,4 +1,3 @@
-import datetime
 import json
 import os
 import re
@@ -56,9 +55,6 @@ SAGEMAKER_LOCAL_TEST_TYPE = "local"
 SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
-
-# Test coverage file name
-TEST_COVERAGE_FILE = f"test_coverage_report-{datetime.datetime.now().strftime('%Y-%m-%d')}.csv"
 
 
 def is_tf1(image_uri):
@@ -499,3 +495,15 @@ def get_job_type_from_image(image_uri):
                            f"from allowed frameworks {allowed_job_types}")
 
     return tested_job_type
+
+
+def get_repository_and_tag_from_image_uri(image_uri):
+    """
+    Return the name of the repository holding the image
+
+    :param image_uri: URI of the image
+    :return: <str> repository name
+    """
+    repository_uri, tag = image_uri.split(":")
+    _, repository_name = repository_uri.split("/")
+    return repository_name, tag
