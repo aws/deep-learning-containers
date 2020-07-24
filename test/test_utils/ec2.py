@@ -6,7 +6,7 @@ from retrying import retry
 from fabric import Connection
 from botocore.config import Config
 
-from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER
+from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, CONTAINER_TESTS_PREFIX
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
@@ -355,6 +355,14 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
     if executable == "bash":
         executable = os.path.join(os.sep, 'bin', 'bash')
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+
+    if connection == None:
+        print("Running test in local mode.")
+
+        container_test_local_dir = os.path.join(os. getcwd(), "container_tests", "bin")
+        test_cmd = test_cmd.replace(CONTAINER_TESTS_PREFIX, container_test_local_dir)
+        os.system(f"{executable} -c '{test_cmd}'")
+    
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     # Make sure we are logged into ECR so we can pull the image

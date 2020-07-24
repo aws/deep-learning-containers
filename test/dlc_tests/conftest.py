@@ -64,6 +64,10 @@ def num_nodes(request):
 
 @pytest.fixture(scope="function")
 def ec2_key_name(request):
+    if request.config.getoption("--local-mode"):
+        print("ec2_key_name: Not creating instances for local mode!")
+        return
+    
     return request.param
 
 
@@ -92,16 +96,25 @@ def ec2_resource(region):
 
 @pytest.fixture(scope="function")
 def ec2_instance_type(request):
+    print("I get this for ec2_instance_type: {}".format(request.param))
     return request.param if hasattr(request, "param") else "g4dn.xlarge"
 
 
 @pytest.fixture(scope="function")
 def ec2_instance_role_name(request):
+    if request.config.getoption("--local-mode"):
+        print("ec2_instance_role_name: Not creating instances for local mode!")
+        return
+
     return request.param if hasattr(request, "param") else ec2_utils.EC2_INSTANCE_ROLE_NAME
 
 
 @pytest.fixture(scope="function")
 def ec2_instance_ami(request):
+    if request.config.getoption("--local-mode"):
+        print("ec2_instance_ami: Not creating instances for local mode!")
+        return
+
     return request.param if hasattr(request, "param") else UBUNTU_16_BASE_DLAMI_US_WEST_2
 
 
@@ -110,6 +123,10 @@ def ec2_instance_ami(request):
 def ec2_instance(
     request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami, region
 ):
+    if request.config.getoption("--local-mode"):
+        print("ec2_instance: Not creating instances for local mode!")
+        return
+
     if ec2_instance_type == "p3dn.24xlarge":
         region = P3DN_REGION
         ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
@@ -171,6 +188,10 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     :param region: Region where ec2 instance is launched
     :return: Fabric connection object
     """
+    if request.config.getoption("--local-mode"):
+        print("ec2_connection: Not creating instances for local mode!")
+        return
+    
     instance_id, instance_pem_file = ec2_instance
     region = P3DN_REGION if ec2_instance_type == "p3dn.24xlarge" else region
     ip_address = ec2_utils.get_public_ip(instance_id, region=region)
@@ -322,6 +343,7 @@ def pytest_generate_tests(metafunc):
                 images_to_parametrize = [py3_image for py3_image in images_to_parametrize if "py2" not in py3_image]
 
             if metafunc.config.getoption("--local-mode"):
+                print("Skip the instance/cluster part for local mode!")
                 values_to_generate_for_fixture = {}
             else:
                 # Parametrize tests that spin up an ecs cluster or tests that spin up an EC2 instance with a unique name
