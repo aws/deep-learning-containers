@@ -7,8 +7,8 @@ from test.test_utils.ec2 import get_ec2_instance_type, execute_ec2_inference_tes
 from test.dlc_tests.conftest import LOGGER
 
 
-SQUEEZENET_MODEL = "squeezenet"
-BERT_MODEL = "bert_sst"
+SQUEEZENET_MODEL = test_utils.MLModel.SQUEEZENET.value
+BERT_MODEL = test_utils.MLModel.BERT_SST.value
 
 
 MX_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")

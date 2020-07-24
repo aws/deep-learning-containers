@@ -19,13 +19,13 @@ import pytest
 import sagemaker
 from sagemaker.pytorch import PyTorchModel
 
-from test.test_utils import ML_Model
+from test.test_utils import MLModel
 from ...integration import model_cpu_dir, mnist_cpu_script, mnist_gpu_script, model_eia_dir, mnist_eia_script
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
 @pytest.mark.cpu_test
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model(MLModel.MNIST.value)
 @pytest.mark.multinode("multinode")
 def test_mnist_distributed_cpu(sagemaker_session, ecr_image, instance_type):
     instance_type = instance_type or 'ml.c4.xlarge'
@@ -34,7 +34,7 @@ def test_mnist_distributed_cpu(sagemaker_session, ecr_image, instance_type):
 
 
 @pytest.mark.gpu_test
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model(MLModel.MNIST.value)
 @pytest.mark.multinode("multinode")
 def test_mnist_distributed_gpu(sagemaker_session, ecr_image, instance_type):
     instance_type = instance_type or 'ml.p2.xlarge'
@@ -43,7 +43,7 @@ def test_mnist_distributed_gpu(sagemaker_session, ecr_image, instance_type):
 
 
 @pytest.mark.eia_test
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model(MLModel.MNIST.value)
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.processor("eia")
 def test_mnist_eia(sagemaker_session, ecr_image, instance_type, accelerator_type):

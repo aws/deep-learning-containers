@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, ML_Model
+from test.test_utils import CONTAINER_TESTS_PREFIX, MLModel
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -30,13 +30,13 @@ def test_mxnet_standalone_cpu(mxnet_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_STANDALONE_CMD)
 
 
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model(MLModel.MNIST.value)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_train_mnist_gpu(mxnet_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_MNIST_CMD)
 
 
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model(MLModel.MNIST.value)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_train_mnist_cpu(mxnet_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_MNIST_CMD)

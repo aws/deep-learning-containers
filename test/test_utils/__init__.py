@@ -58,16 +58,18 @@ SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 PUBLIC_DLC_REGISTRY = "763104351884"
 
 
-class ML_Model(Enum):
+class MLModel(Enum):
     MNIST = "mnist"
     RESNET18 = "resnet18"
     RESNET18_V2 = "resnet18_v2"
     RESNET50 = "resnet50"
     RESNET50_V2 = "resnet50_v2"
     HALF_PLUS_TWO = "half_plus_two"
+    SQUEEZENET = "squeezenet"
+    BERT_SST = "bert_sst"
 
 
-class DLC_Integration(Enum):
+class DLCIntegration(Enum):
     GLUONNLP = "gluonnlp"
     DGL = "dgl"
     HOROVOD = "horovod"

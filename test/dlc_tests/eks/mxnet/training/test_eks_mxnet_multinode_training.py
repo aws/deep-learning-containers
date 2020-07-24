@@ -12,14 +12,14 @@ from retrying import retry
 import test.test_utils.eks as eks_utils
 import test.test_utils.ec2 as ec2_utils
 
-from test.test_utils import is_pr_context, SKIP_PR_REASON, ML_Model
+from test.test_utils import is_pr_context, SKIP_PR_REASON, MLModel
 
 LOGGER = eks_utils.LOGGER
 
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.integration("horovod")
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model(MLModel.MNIST.value)
 @pytest.mark.multinode("multinode(3)")
 def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_only):
     """
@@ -71,7 +71,7 @@ def _run_eks_mxnet_multinode_training_horovod_mpijob(example_image_uri, cluster_
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.integration("parameter server")
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.model(MLModel.MNIST.value)
 @pytest.mark.multinode("multinode")
 def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     """

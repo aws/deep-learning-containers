@@ -18,7 +18,7 @@ import pytest
 from sagemaker import utils
 from sagemaker.mxnet.estimator import MXNet
 
-from test.test_utils import ML_Model
+from test.test_utils import MLModel
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
 
@@ -27,7 +27,8 @@ SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist.py')
 
 
 @pytest.mark.skip_test_in_region
-@pytest.mark.model(ML_Model.MNIST.value)
+@pytest.mark.integration('smexperiments')
+@pytest.mark.model(MLModel.MNIST.value)
 def test_training(sagemaker_session, ecr_image, instance_type, instance_count):
     hyperparameters = {'sagemaker_parameter_server_enabled': True} if instance_count > 1 else {}
     hyperparameters['epochs'] = 1
