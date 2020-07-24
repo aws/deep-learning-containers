@@ -28,7 +28,7 @@ UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0da7f2daf5e92c6f2"
 UL_AMI_LIST = [UBUNTU_16_BASE_DLAMI_US_WEST_2, UBUNTU_16_BASE_DLAMI_US_EAST_1]
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
-PT_GPU_PY3_BENCHMARK_IMAGENET_AMI = "ami-037a914cdcad1798c"
+PT_GPU_PY3_BENCHMARK_IMAGENET_AMI = "ami-0a3c2780e1425f768"
 
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
