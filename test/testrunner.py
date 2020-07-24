@@ -137,7 +137,8 @@ def main():
             pytest_cmds = [
                 ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=4",
                  "-m", "not multinode"],
-                ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4"],
+                ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4",
+                 "-m", "not multinode"],
                 ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
             ]
         else:
