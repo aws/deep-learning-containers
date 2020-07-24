@@ -8,7 +8,6 @@ from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 TF1_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflow1Standalone")
 TF2_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflow2Standalone")
 TF_MNIST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorFlow")
-TF1_KERAS_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testBackendWithKeras")
 TF1_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTF1HVD")
 TF2_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTF2HVD")
 TF_OPENCV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testOpenCV")
@@ -39,10 +38,7 @@ def test_tensorflow_standalone_cpu(tensorflow_training, ec2_connection, cpu_only
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_only):
-    if is_tf1(tensorflow_training):
-        execute_ec2_training_test(ec2_connection, tensorflow_training, TF1_KERAS_CMD)
-    else:
-        execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
 
 # TODO: Change this back TF_EC2_CPU_INSTANCE_TYPE. Currently this test times out on c4.8x, m4.16x and t2.2x,
@@ -50,10 +46,7 @@ def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_onl
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.18xlarge"], indirect=True)
 def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_only):
-    if is_tf1(tensorflow_training):
-        execute_ec2_training_test(ec2_connection, tensorflow_training, TF1_KERAS_CMD)
-    else:
-        execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
 
 @pytest.mark.integration("horovod")
