@@ -14,3 +14,5 @@ python-dateutil>=2.1,<2.8.1
 botocore
 awscli
 requests_mock==1.7.0
+fabric
+retrying
