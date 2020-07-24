@@ -27,7 +27,7 @@ MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model.tar.gz')
 SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'empty_module.py')
 
 
-@pytest.mark.integration("SM_hosting")
+@pytest.mark.integration("hosting")
 @pytest.mark.model("unknown_test_model")
 def test_hosting(sagemaker_session, ecr_image, instance_type, framework_version):
     prefix = 'mxnet-serving/default-handlers'

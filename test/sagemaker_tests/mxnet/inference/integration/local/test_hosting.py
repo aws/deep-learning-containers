@@ -29,7 +29,7 @@ SCRIPT_PATH = os.path.join(HOSTING_RESOURCE_PATH, 'code', 'dummy_hosting_module.
 
 # The image should use the model_fn and transform_fn defined
 # in the user-provided script when serving.
-@pytest.mark.integration("SM_hosting")
+@pytest.mark.integration("hosting")
 @pytest.mark.model("dummy_model")
 def test_hosting(docker_image, sagemaker_local_session, local_instance_type):
     model = MXNetModel('file://{}'.format(MODEL_PATH),

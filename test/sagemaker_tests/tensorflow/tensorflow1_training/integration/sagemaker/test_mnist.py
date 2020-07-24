@@ -127,7 +127,7 @@ def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framewor
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
-@pytest.mark.integration("SM model tuning")
+@pytest.mark.integration("hpo")
 def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')

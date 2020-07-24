@@ -22,7 +22,7 @@ from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 
 
-@pytest.mark.integration("hyperparameter tuning")
+@pytest.mark.integration("hpo")
 def test_model_dir_with_training_job_name(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '../..', 'resources')
     script = os.path.join(resource_path, 'tuning_model_dir', 'entry.py')

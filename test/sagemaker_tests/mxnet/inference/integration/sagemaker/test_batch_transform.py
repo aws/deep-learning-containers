@@ -32,7 +32,7 @@ DATA_FILE = '07.csv'
 DATA_PATH = os.path.join(MNIST_PATH, 'images', DATA_FILE)
 
 
-@pytest.mark.integration("SM_batch_transform")
+@pytest.mark.integration("batch transform")
 @pytest.mark.model("mnist")
 def test_batch_transform(sagemaker_session, ecr_image, instance_type, framework_version):
     s3_prefix = 'mxnet-serving/mnist'
