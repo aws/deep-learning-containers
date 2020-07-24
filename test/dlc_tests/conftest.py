@@ -96,7 +96,6 @@ def ec2_resource(region):
 
 @pytest.fixture(scope="function")
 def ec2_instance_type(request):
-    print("I get this for ec2_instance_type: {}".format(request.param))
     return request.param if hasattr(request, "param") else "g4dn.xlarge"
 
 
