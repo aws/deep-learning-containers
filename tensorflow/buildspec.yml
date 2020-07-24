@@ -2,7 +2,7 @@
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK tensorflow
   version: &VERSION 2.2.0
-  cuda_version: &CUDA_VERSION cu101
+  cuda_version: &CUDA_VERSION cu102
   os_version: &OS_VERSION ubuntu18.04
 
   repository_info:
