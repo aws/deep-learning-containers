@@ -25,7 +25,7 @@ from sagemaker.predictor import BytesDeserializer, csv_deserializer, csv_seriali
 from sagemaker_inference import content_types
 from torchvision import datasets, transforms
 
-from test.test_utils import MLModel
+from test.test_utils import ML_Model
 from ...integration import training_dir, mnist_script, mnist_1d_script, model_cpu_dir, \
     model_gpu_dir, model_cpu_1d_dir, call_model_fn_once_script, ROLE
 from ...utils import local_mode_utils
@@ -49,7 +49,7 @@ def fixture_test_loader():
     return _get_test_data_loader(batch_size=300)
 
 
-@pytest.mark.model(MLModel.MNIST.value)
+@pytest.mark.model(ML_Model.MNIST.value)
 def test_serve_json_npy(test_loader, use_gpu, docker_image, sagemaker_local_session, instance_type):
     model_dir = model_gpu_dir if use_gpu else model_cpu_dir
     with _predictor(model_dir, mnist_script, docker_image, sagemaker_local_session,
@@ -59,7 +59,7 @@ def test_serve_json_npy(test_loader, use_gpu, docker_image, sagemaker_local_sess
                 _assert_prediction_npy_json(predictor, test_loader, content_type, accept)
 
 
-@pytest.mark.model(MLModel.MNIST.value)
+@pytest.mark.model(ML_Model.MNIST.value)
 def test_serve_csv(test_loader, use_gpu, docker_image, sagemaker_local_session, instance_type):
     with _predictor(model_cpu_1d_dir, mnist_1d_script, docker_image, sagemaker_local_session,
                     instance_type) as predictor:
@@ -68,7 +68,7 @@ def test_serve_csv(test_loader, use_gpu, docker_image, sagemaker_local_session, 
 
 
 @pytest.mark.skip_cpu
-@pytest.mark.model(MLModel.MNIST.value)
+@pytest.mark.model(ML_Model.MNIST.value)
 @pytest.mark.processor("gpu")
 def test_serve_cpu_model_on_gpu(test_loader, docker_image, sagemaker_local_session, instance_type):
     with _predictor(model_cpu_1d_dir, mnist_1d_script, docker_image, sagemaker_local_session,
@@ -77,7 +77,7 @@ def test_serve_cpu_model_on_gpu(test_loader, docker_image, sagemaker_local_sessi
 
 
 @pytest.mark.skip_gpu_py2
-@pytest.mark.model(MLModel.MNIST.value)
+@pytest.mark.model(ML_Model.MNIST.value)
 def test_serving_calls_model_fn_once(docker_image, sagemaker_local_session, instance_type):
     with _predictor(model_cpu_dir, call_model_fn_once_script, docker_image, sagemaker_local_session,
                     instance_type, model_server_workers=2) as predictor:

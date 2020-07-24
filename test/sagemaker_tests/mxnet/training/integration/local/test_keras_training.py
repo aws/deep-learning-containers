@@ -18,13 +18,13 @@ import pytest
 
 from sagemaker.mxnet import MXNet
 
-from test.test_utils import MLModel
+from test.test_utils import ML_Model
 from ...integration.local import local_mode_utils
 from ...integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
 
 
 @pytest.mark.integration("keras")
-@pytest.mark.model(MLModel.MNIST.value)
+@pytest.mark.model(ML_Model.MNIST.value)
 def test_keras_training(docker_image, sagemaker_local_session, local_instance_type,
                         framework_version, tmpdir):
     keras_path = os.path.join(RESOURCE_PATH, 'keras')

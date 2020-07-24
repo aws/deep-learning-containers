@@ -15,14 +15,14 @@ from __future__ import absolute_import
 import pytest
 from sagemaker.pytorch import PyTorch
 
-from test.test_utils import MLModel
+from test.test_utils import ML_Model
 from ...integration import training_dir, smdebug_mnist_script, DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
 
 
 @pytest.mark.skip_py2_containers
 @pytest.mark.integration("smdebug")
-@pytest.mark.model(MLModel.MNIST.value)
+@pytest.mark.model(ML_Model.MNIST.value)
 def test_training_smdebug(sagemaker_session, ecr_image, instance_type):
     hyperparameters = {'random_seed': True, 'num_steps': 50, 'smdebug_path': '/tmp/ml/output/tensors', 'epochs': 1,
                        'data_dir': training_dir}

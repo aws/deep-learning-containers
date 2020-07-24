@@ -19,14 +19,14 @@ import pytest
 import sagemaker
 from sagemaker.mxnet import MXNet
 
-from test.test_utils import MLModel
+from test.test_utils import ML_Model
 from ...integration import RESOURCE_PATH
 from ...integration.utils import unique_name_from_base
 
 
 @pytest.mark.multinode("multinode")
 @pytest.mark.integration("horovod")
-@pytest.mark.model(MLModel.MNIST.value)
+@pytest.mark.model(ML_Model.MNIST.value)
 def test_distributed_training_horovod(sagemaker_session,
                                       instance_type,
                                       ecr_image,

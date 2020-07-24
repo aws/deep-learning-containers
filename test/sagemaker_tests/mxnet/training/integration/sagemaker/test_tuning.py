@@ -20,7 +20,7 @@ from sagemaker import utils
 from sagemaker.mxnet.estimator import MXNet
 from sagemaker.tuner import ContinuousParameter, HyperparameterTuner
 
-from test.test_utils import MLModel
+from test.test_utils import ML_Model
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
 
@@ -29,7 +29,7 @@ SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist.py')
 
 
 @pytest.mark.integration("hyperparameter_tuning")
-@pytest.mark.model(MLModel.MNIST.value)
+@pytest.mark.model(ML_Model.MNIST.value)
 def test_tuning(sagemaker_session, ecr_image, instance_type):
     mx = MXNet(entry_point=SCRIPT_PATH,
                role='SageMakerRole',

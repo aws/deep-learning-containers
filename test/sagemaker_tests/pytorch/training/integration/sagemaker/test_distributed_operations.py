@@ -19,7 +19,7 @@ import pytest
 from sagemaker.pytorch import PyTorch
 from six.moves.urllib.parse import urlparse
 
-from test.test_utils import MLModel
+from test.test_utils import ML_Model
 from ...integration import (data_dir, dist_operations_path, fastai_path, mnist_script,
                               DEFAULT_TIMEOUT)
 from ...integration.sagemaker.timeout import timeout
@@ -81,7 +81,7 @@ def test_dist_operations_fastai_gpu(sagemaker_session, ecr_image):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.processor("gpu")
-@pytest.mark.model(MLModel.MNIST.value)
+@pytest.mark.model(ML_Model.MNIST.value)
 def test_mnist_gpu(sagemaker_session, ecr_image, dist_gpu_backend):
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point=mnist_script,
