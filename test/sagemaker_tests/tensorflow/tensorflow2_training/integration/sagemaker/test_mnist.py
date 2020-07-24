@@ -26,8 +26,8 @@ from .timeout import timeout
 
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
-@pytest.mark.deploy_test
 @pytest.mark.model("mnist")
+@pytest.mark.deploy_test
 def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
@@ -163,9 +163,9 @@ def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
 
 
 @pytest.mark.skip(reason="skip the test temporarily due to timeout issue")
-@pytest.mark.skip_py2_containers
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smdebug")
+@pytest.mark.skip_py2_containers
 def test_smdebug(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_smdebug.py')

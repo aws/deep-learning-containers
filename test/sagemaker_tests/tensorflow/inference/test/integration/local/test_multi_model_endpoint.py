@@ -79,8 +79,8 @@ def test_ping():
     assert res.status_code == 200
 
 
-@pytest.mark.skip_gpu
 @pytest.mark.model("half_plus_three")
+@pytest.mark.skip_gpu
 def test_container_start_invocation_fail():
     x = {
         'instances': [1.0, 2.0, 5.0]
@@ -108,9 +108,9 @@ def test_delete_unloaded_model():
     assert 'Model {} is not loaded yet'.format(model_name) in res
 
 
-@pytest.mark.skip_gpu
 @pytest.mark.integration("delete_model")
 @pytest.mark.model("half_plus_three")
+@pytest.mark.skip_gpu
 def test_delete_model():
     model_name = 'half_plus_three'
     model_data = {
@@ -137,8 +137,8 @@ def test_delete_model():
     assert 'Model {} is not loaded yet.'.format(model_name) in str(y2)
 
 
-@pytest.mark.skip_gpu
 @pytest.mark.model("half_plus_three, half_plus_two")
+@pytest.mark.skip_gpu
 def test_load_two_models():
     model_name_1 = 'half_plus_two'
     model_data_1 = {
@@ -179,8 +179,8 @@ def test_load_two_models():
     assert len(res3) == 2
 
 
-@pytest.mark.skip_gpu
 @pytest.mark.model("cifar")
+@pytest.mark.skip_gpu
 def test_load_one_model_two_times():
     model_name = 'cifar'
     model_data = {
@@ -196,8 +196,8 @@ def test_load_one_model_two_times():
     assert'Model {} is already loaded'.format(model_name) in res2
 
 
-@pytest.mark.skip_gpu
 @pytest.mark.model("non_existing_model")
+@pytest.mark.skip_gpu
 def test_load_non_existing_model():
     model_name = 'non-existing'
     base_path = '/opt/ml/models/non-existing'
@@ -220,8 +220,8 @@ def test_bad_model_request():
     assert code == 500
 
 
-@pytest.mark.skip_gpu
 @pytest.mark.model("invalid_version_model")
+@pytest.mark.skip_gpu
 def test_invalid_model_version():
     model_name = 'invalid_version'
     base_path = '/opt/ml/models/invalid_version'

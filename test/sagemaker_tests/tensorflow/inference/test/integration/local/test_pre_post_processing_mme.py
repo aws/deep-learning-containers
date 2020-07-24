@@ -92,19 +92,19 @@ def model():
     return MODEL_NAME
 
 
-@pytest.mark.skip_gpu
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three")
 @pytest.mark.integration("mme")
+@pytest.mark.skip_gpu
 def test_ping_service():
     response = requests.get(PING_URL)
     assert 200 == response.status_code
 
 
-@pytest.mark.skip_gpu
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three")
 @pytest.mark.integration("mme")
+@pytest.mark.skip_gpu
 def test_predict_json(model):
     headers = make_headers()
     data = '{"instances": [1.0, 2.0, 5.0]}'
@@ -112,10 +112,10 @@ def test_predict_json(model):
     assert response == {'predictions': [3.5, 4.0, 5.5]}
 
 
-@pytest.mark.skip_gpu
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three")
 @pytest.mark.integration("mme")
+@pytest.mark.skip_gpu
 def test_zero_content():
     headers = make_headers()
     x = ''
@@ -124,10 +124,10 @@ def test_zero_content():
     assert 'document is empty' in response.text
 
 
-@pytest.mark.skip_gpu
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three")
 @pytest.mark.integration("mme")
+@pytest.mark.skip_gpu
 def test_large_input():
     data_file = 'test/resources/inputs/test-large.csv'
 
@@ -139,10 +139,10 @@ def test_large_input():
         assert len(predictions) == 753936
 
 
-@pytest.mark.skip_gpu
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three")
 @pytest.mark.integration("mme")
+@pytest.mark.skip_gpu
 def test_csv_input():
     headers = make_headers(content_type='text/csv')
     data = '1.0,2.0,5.0'
@@ -150,10 +150,10 @@ def test_csv_input():
     assert response == {'predictions': [3.5, 4.0, 5.5]}
 
 
-@pytest.mark.skip_gpu
 @pytest.mark.processor("cpu")
 @pytest.mark.model("half_plus_three")
 @pytest.mark.integration("mme")
+@pytest.mark.skip_gpu
 def test_unsupported_content_type():
     headers = make_headers('unsupported-type', 'predict')
     data = 'aW1hZ2UgYnl0ZXM='

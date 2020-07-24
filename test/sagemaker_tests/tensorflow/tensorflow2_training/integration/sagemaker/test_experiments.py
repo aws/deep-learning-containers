@@ -32,9 +32,9 @@ DATA_PATH = os.path.join(RESOURCE_PATH, "mnist")
 SCRIPT_PATH = os.path.join(DATA_PATH, "mnist_gluon_basic_hook_demo.py")
 
 
-@pytest.mark.skip_py2_containers
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smexperiments")
+@pytest.mark.skip_py2_containers
 def test_training(sagemaker_session, ecr_image, instance_type, framework_version):
 
     sm_client = sagemaker_session.sagemaker_client

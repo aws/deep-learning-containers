@@ -74,11 +74,11 @@ def skip_if_non_supported_ei_region(region):
         pytest.skip('EI is not supported in {}'.format(region))
 
 
-@pytest.mark.skip_if_non_supported_ei_region()
-@pytest.mark.skip_if_no_accelerator()
 @pytest.mark.processor("eia")
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.model("resnet")
+@pytest.mark.skip_if_non_supported_ei_region()
+@pytest.mark.skip_if_no_accelerator()
 def test_invoke_endpoint(boto_session, sagemaker_client, sagemaker_runtime_client,
                          model_name, model_data, image_uri, instance_type, accelerator_type,
                          input_data):

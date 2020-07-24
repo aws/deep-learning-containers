@@ -26,9 +26,9 @@ GLUONNLP_PATH = os.path.join(RESOURCE_PATH, 'gluonnlp')
 SCRIPT_PATH = os.path.join(GLUONNLP_PATH, 'bert.py')
 
 
-@pytest.mark.skip_py2_containers
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("bert_sst")
+@pytest.mark.skip_py2_containers
 def test_gluonnlp(sagemaker_session, ecr_image, instance_type, framework_version):
     import urllib.request
     tmpdir = tempfile.mkdtemp()

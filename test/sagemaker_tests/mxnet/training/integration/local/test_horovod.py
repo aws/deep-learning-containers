@@ -21,10 +21,10 @@ from sagemaker.mxnet import MXNet
 from ...integration import RESOURCE_PATH
 
 
-@pytest.mark.skip_cpu
-@pytest.mark.skip_generic
 @pytest.mark.integration("horovod")
 @pytest.mark.model("mnist")
+@pytest.mark.skip_cpu
+@pytest.mark.skip_generic
 def test_distributed_training_horovod_gpu(
     sagemaker_local_session, image_uri, tmpdir, framework_version
 ):
@@ -33,10 +33,10 @@ def test_distributed_training_horovod_gpu(
     )
 
 
-@pytest.mark.skip_gpu
-@pytest.mark.parametrize('instances, processes', [(1, 2), (2, 1), (2, 2), (5, 2)])
 @pytest.mark.integration("horovod")
 @pytest.mark.model("mnist")
+@pytest.mark.skip_gpu
+@pytest.mark.parametrize('instances, processes', [(1, 2), (2, 1), (2, 2), (5, 2)])
 def test_distributed_training_horovod_cpu(
     instances, processes, sagemaker_local_session, image_uri, tmpdir, framework_version
 ):
