@@ -14,21 +14,21 @@ TF_EC2_GPU_INSTANCE_TYPE = "p3.16xlarge"
 TF_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
 
 
-@pytest.mark.integration("single node cpu training performance benchmark")
+@pytest.mark.integration("synthetic dataset")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_CPU_INSTANCE_TYPE], indirect=True)
 def test_performance_tensorflow_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_performance_test(ec2_connection, tensorflow_training, TF_PERFORMANCE_TRAINING_CPU_SYNTHETIC_CMD)
 
 
-@pytest.mark.integration("single node gpu training performance benchmark w/ synthetic dataset")
+@pytest.mark.integration("synthetic dataset")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_performance_tensorflow_gpu_synthetic(tensorflow_training, ec2_connection, gpu_only):
     execute_ec2_training_performance_test(ec2_connection, tensorflow_training, TF_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD)
 
 
-@pytest.mark.integration("single node gpu training performance benchmark w/ imagenet dataset")
+@pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection, gpu_only):
