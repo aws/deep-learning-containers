@@ -354,15 +354,12 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
     if executable == "bash":
         executable = os.path.join(os.sep, 'bin', 'bash')
-    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
 
     if connection == None:
         print("Running test in local mode.")
-
-        container_test_local_dir = os.path.join(os. getcwd(), "container_tests", "bin")
-        test_cmd = test_cmd.replace(CONTAINER_TESTS_PREFIX, container_test_local_dir)
-        os.system(f"{executable} -c '{test_cmd}'")
+        return os.system(f"{executable} -c '{test_cmd}'")
     
+    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     # Make sure we are logged into ECR so we can pull the image
