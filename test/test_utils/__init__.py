@@ -521,3 +521,15 @@ def get_job_type_from_image(image_uri):
                            f"from allowed frameworks {allowed_job_types}")
 
     return tested_job_type
+
+
+def get_repository_and_tag_from_image_uri(image_uri):
+    """
+    Return the name of the repository holding the image
+
+    :param image_uri: URI of the image
+    :return: <str> repository name
+    """
+    repository_uri, tag = image_uri.split(":")
+    _, repository_name = repository_uri.split("/")
+    return repository_name, tag
