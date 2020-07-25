@@ -7,6 +7,7 @@ from test.test_utils import get_repository_and_tag_from_image_uri, LOGGER
 
 
 @pytest.mark.integration("dlc_major_version_label")
+@pytest.mark.model("N/A")
 def test_dlc_major_version_label(image, region):
     """
     Test to ensure that all DLC images have the LABEL "dlc_major_version"

@@ -14,6 +14,8 @@ from __future__ import absolute_import
 
 import os
 
+import pytest
+
 from sagemaker.mxnet.model import MXNetModel
 from sagemaker.predictor import StringDeserializer
 
@@ -27,6 +29,8 @@ SCRIPT_PATH = os.path.join(HOSTING_RESOURCE_PATH, 'code', 'dummy_hosting_module.
 
 # The image should use the model_fn and transform_fn defined
 # in the user-provided script when serving.
+@pytest.mark.integration("hosting")
+@pytest.mark.model("dummy_model")
 def test_hosting(docker_image, sagemaker_local_session, local_instance_type):
     model = MXNetModel('file://{}'.format(MODEL_PATH),
                        'SageMakerRole',

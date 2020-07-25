@@ -3,8 +3,9 @@
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
+MXNET_VERSION=$(python -c "import mxnet; print(mxnet.__version__)")
 
-git clone -b 1.4.0 https://github.com/apache/incubator-mxnet.git ${HOME_DIR}/artifacts/mxnet
+git clone -b ${MXNET_VERSION} https://github.com/apache/incubator-mxnet.git ${HOME_DIR}/artifacts/mxnet
 ${BIN_DIR}/testMXNetHelper python || exit 1
 
 exit 0
