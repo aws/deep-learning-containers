@@ -27,7 +27,7 @@ def coverage_doc_skip_condition():
     coverage_doc_skip_condition(), reason=f"Run only in PR context or {TEST_COVERAGE_REPORT_REGION} canary context"
 )
 @pytest.mark.integration("Generating this coverage doc")
-@pytest.mark.canary("runs only in us-west-2")
+@pytest.mark.canary(f"runs only in {TEST_COVERAGE_REPORT_REGION}")
 def test_generate_coverage_doc():
     """
     Test generating the test coverage doc
