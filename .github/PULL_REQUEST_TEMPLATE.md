@@ -9,11 +9,11 @@
 
 #### For EI only PR
 * When creating PR:
-- [ ] I've modified ```src/config/build_config.py``` in my PR branch by disabling all non-EI purpose frameworks and enabling related EI purpose frameworks
+- [ ] I've modified ```src/config/build_config.py``` in my PR branch by enabling EI-mode
 * When PR is reviewed and ready to be merged:
 - [ ] I've revert the code change on the config file mentioned above
 
-* Before merging, for PR merger, please cross-check:
+* For reviewer, before merging, please cross-check:
 - [ ] I've verified the code change on the config file mentioned above has already been reverted
 
 *Description:*

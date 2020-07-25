@@ -36,8 +36,8 @@ if __name__ == "__main__":
     build_context = os.getenv("BUILD_CONTEXT")
     ei_dedicated = os.getenv("EIA_DEDICATED") == "True"
     utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
-    if (not ei_dedicated and args.framework not in build_config.DISABLE_FRAMEWORK_TESTS) or \
-       (ei_dedicated and args.framework not in build_config.DISABLE_EI_FRAMEWORK_TESTS) or \
+    if (not ei_dedicated and not build_config.ENABLE_EI_MODE and args.framework not in build_config.DISABLE_FRAMEWORK_TESTS) or \
+       (ei_dedicated and build_config.ENABLE_EI_MODE and args.framework not in build_config.DISABLE_EI_FRAMEWORK_TESTS) or \
         build_context != "PR":
         utils.build_setup(
             args.framework,
