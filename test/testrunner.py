@@ -89,6 +89,21 @@ def setup_sm_benchmark_env(dlc_images, test_path):
         setup_sm_benchmark_tf_train_env(resources_location, tf1_images_in_list, tf2_images_in_list)
 
 
+def delete_key_pairs(keyfile):
+    """
+    Function to delete key pairs from a file in mainline context
+
+    :param keyfile: KEYS_TO_DESTROY_FILE
+    """
+    with open(KEYS_TO_DESTROY_FILE) as key_destroy_file:
+        for key_file in key_destroy_file:
+            LOGGER.info(key_file)
+            ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
+            if ".pem" in key_file:
+                _resp, keyname = destroy_ssh_keypair(ec2_client, key_file)
+                LOGGER.info(f"Deleted {keyname}")
+
+
 def main():
     # Define constants
     test_type = os.getenv("TEST_TYPE")
@@ -138,7 +153,10 @@ def main():
             ]
         else:
             # Execute dlc_tests pytest command
-            pytest_cmds = [["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]]
+            pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
+            if test_type == "ec2":
+                pytest_cmd.append("--reruns=1")
+            pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
         if specific_test_type == "canary":
             pytest_cmds = [["-s", "-rA", f"--junitxml={report}", "-n=auto", "--canary", "--ignore=container_tests/"]]
@@ -153,13 +171,8 @@ def main():
 
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
-                with open(KEYS_TO_DESTROY_FILE) as key_destroy_file:
-                    for key_file in key_destroy_file:
-                        LOGGER.info(key_file)
-                        ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
-                        if ".pem" in key_file:
-                            _resp, keyname = destroy_ssh_keypair(ec2_client, key_file)
-                            LOGGER.info(f"Deleted {keyname}")
+                delete_key_pairs(KEYS_TO_DESTROY_FILE)
+
     elif specific_test_type == "sagemaker":
         if benchmark_mode:
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
