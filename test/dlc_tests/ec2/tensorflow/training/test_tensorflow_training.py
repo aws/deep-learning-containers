@@ -22,14 +22,16 @@ TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p2.8xlarge", processor
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 
 
-@pytest.mark.integration('tensorflow sanity test')
+@pytest.mark.integration('tensorflow_sanity_test')
+@pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_standalone_gpu(tensorflow_training, ec2_connection, gpu_only):
     test_script = TF1_STANDALONE_CMD if is_tf1(tensorflow_training) else TF2_STANDALONE_CMD
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
 
-@pytest.mark.integration('tensorflow sanity test')
+@pytest.mark.integration('tensorflow_sanity_test')
+@pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_standalone_cpu(tensorflow_training, ec2_connection, cpu_only):
     test_script = TF1_STANDALONE_CMD if is_tf1(tensorflow_training) else TF2_STANDALONE_CMD
@@ -75,7 +77,8 @@ def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_on
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
 
-@pytest.mark.integration("OpenCV")
+@pytest.mark.integration("opencv")
+@pytest.mark.model("unknown_model")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_opencv_gpu(tensorflow_training, ec2_connection, gpu_only):
     if is_tf1(tensorflow_training):
@@ -83,7 +86,8 @@ def test_tensorflow_opencv_gpu(tensorflow_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_OPENCV_CMD)
 
 
-@pytest.mark.integration("OpenCV")
+@pytest.mark.integration("opencv")
+@pytest.mark.model("unknown_model")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_opencv_cpu(tensorflow_training, ec2_connection, cpu_only):
     if is_tf1(tensorflow_training):
@@ -93,6 +97,7 @@ def test_tensorflow_opencv_cpu(tensorflow_training, ec2_connection, cpu_only):
 
 # Testing Telemetry Script on only one GPU instance
 @pytest.mark.integration("telemetry")
+@pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
 def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
@@ -100,6 +105,7 @@ def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only)
 
 # Testing Telemetry Script on only one CPU instance
 @pytest.mark.integration("telemetry")
+@pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
@@ -125,6 +131,7 @@ def test_tensorflow_keras_horovod_fp32(tensorflow_training, ec2_connection, gpu_
 
 # Testing Tensorboard with profiling
 @pytest.mark.integration("tensorboard, keras")
+@pytest.mark.model("sequential")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_tensorboard_gpu(tensorflow_training, ec2_connection, gpu_only):
     if is_tf1(tensorflow_training):
@@ -134,6 +141,7 @@ def test_tensorflow_tensorboard_gpu(tensorflow_training, ec2_connection, gpu_onl
 
 # Testing Tensorboard with profiling
 @pytest.mark.integration("tensorboard, keras")
+@pytest.mark.model("sequential")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_tensorboard_cpu(tensorflow_training, ec2_connection, cpu_only):
     if is_tf1(tensorflow_training):
@@ -142,6 +150,8 @@ def test_tensorflow_tensorboard_cpu(tensorflow_training, ec2_connection, cpu_onl
 
 # TensorFlow Addons is actively working towards forward compatibility with TensorFlow 2.x
 # https://github.com/tensorflow/addons#python-op-compatility
+@pytest.mark.model("sequential")
+@pytest.mark.integration("tensorflow_addons, keras")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_addons_gpu(tensorflow_training, ec2_connection, gpu_only):
     if is_tf1(tensorflow_training):
@@ -149,6 +159,8 @@ def test_tensorflow_addons_gpu(tensorflow_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
 
 
+@pytest.mark.model("sequential")
+@pytest.mark.integration("tensorflow_addons, keras")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, cpu_only):
     if is_tf1(tensorflow_training):

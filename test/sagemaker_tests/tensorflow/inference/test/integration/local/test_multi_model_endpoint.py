@@ -74,6 +74,7 @@ def container(request, docker_base_name, tag, runtime_config):
 
 
 @pytest.mark.processor("cpu")
+@pytest.mark.model("cifar, half_plus_three, half_plus_two")
 @pytest.mark.skip_gpu
 def test_ping():
     res = requests.get(PING_URL)
@@ -94,6 +95,7 @@ def test_container_start_invocation_fail():
 
 
 @pytest.mark.processor("cpu")
+@pytest.mark.model("cifar, half_plus_three, half_plus_two")
 @pytest.mark.skip_gpu
 def test_list_models_empty():
     code, res = make_list_model_request()

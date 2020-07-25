@@ -75,6 +75,7 @@ def python_model_with_lib(region, boto_session):
                                        'data/python-with-lib.tar.gz')
 
 
+@pytest.mark.model("unknown_model")
 def test_tfs_model(boto_session, sagemaker_client,
                    sagemaker_runtime_client, model_name, tfs_model,
                    image_uri, instance_type, accelerator_type):
@@ -84,7 +85,8 @@ def test_tfs_model(boto_session, sagemaker_client,
                                     image_uri, instance_type, accelerator_type, input_data)
 
 
-@pytest.mark.integration("batch transform")
+@pytest.mark.integration("batch_transform")
+@pytest.mark.model("unknown_model")
 def test_batch_transform(region, boto_session, sagemaker_client,
                          model_name, tfs_model, image_uri,
                          instance_type):
@@ -100,6 +102,7 @@ def test_batch_transform(region, boto_session, sagemaker_client,
         assert r == [3.5, 4.0, 5.5]
 
 
+@pytest.mark.model("unknown_model")
 def test_python_model_with_requirements(boto_session, sagemaker_client,
                                         sagemaker_runtime_client, model_name,
                                         python_model_with_requirements, image_uri, instance_type,
@@ -120,6 +123,7 @@ def test_python_model_with_requirements(boto_session, sagemaker_client,
     assert output_data['pillow'] == '6.0.0'
 
 
+@pytest.mark.model("unknown_model")
 def test_python_model_with_lib(boto_session, sagemaker_client,
                                sagemaker_runtime_client, model_name, python_model_with_lib,
                                image_uri, instance_type, accelerator_type):

@@ -28,6 +28,7 @@ MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
 
 @pytest.mark.processor("cpu")
 @pytest.mark.multinode("multinode")
+@pytest.mark.model("unknown_model")
 @pytest.mark.skip_gpu
 @pytest.mark.deploy_test
 @pytest.mark.skip_test_in_region
@@ -38,6 +39,7 @@ def test_dist_operations_cpu(sagemaker_session, ecr_image, instance_type, dist_c
 
 @pytest.mark.processor("gpu")
 @pytest.mark.multinode("multinode")
+@pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
 @pytest.mark.deploy_test
 def test_dist_operations_gpu(sagemaker_session, instance_type, ecr_image, dist_gpu_backend):
@@ -47,6 +49,7 @@ def test_dist_operations_gpu(sagemaker_session, instance_type, ecr_image, dist_g
 
 @pytest.mark.processor("gpu")
 @pytest.mark.multinode("multinode")
+@pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
 def test_dist_operations_multi_gpu(sagemaker_session, ecr_image, dist_gpu_backend):
     _test_dist_operations(sagemaker_session, ecr_image, MULTI_GPU_INSTANCE, dist_gpu_backend, 1)
@@ -55,6 +58,7 @@ def test_dist_operations_multi_gpu(sagemaker_session, ecr_image, dist_gpu_backen
 @pytest.mark.processor("gpu")
 @pytest.mark.multinode("multinode")
 @pytest.mark.integration("fastai")
+@pytest.mark.model("cifar")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_dist_operations_fastai_gpu(sagemaker_session, ecr_image):

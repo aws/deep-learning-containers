@@ -75,12 +75,14 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
 
 
 @pytest.mark.integration("telemetry")
+@pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_inference_telemetry_gpu(mxnet_inference, ec2_connection, gpu_only):
     execute_ec2_inference_test(ec2_connection, mxnet_inference, MX_TELEMETRY_CMD)
 
 
 @pytest.mark.integration("telemetry")
+@pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_inference_telemetry_cpu(mxnet_inference, ec2_connection, cpu_only):
     execute_ec2_inference_test(ec2_connection, mxnet_inference, MX_TELEMETRY_CMD)

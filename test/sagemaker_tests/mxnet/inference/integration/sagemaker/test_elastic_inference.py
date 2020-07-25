@@ -40,6 +40,7 @@ def skip_if_non_supported_ei_region(region):
 
 @pytest.mark.processor("eia")
 @pytest.mark.integration("elastic_inference")
+@pytest.mark.model("linear_regression")
 @pytest.mark.skip_if_non_supported_ei_region()
 @pytest.mark.skip_if_no_accelerator()
 def test_elastic_inference(ecr_image, sagemaker_session, instance_type, accelerator_type, framework_version):

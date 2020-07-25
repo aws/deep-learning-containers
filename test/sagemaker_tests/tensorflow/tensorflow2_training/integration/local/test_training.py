@@ -35,6 +35,7 @@ def py_full_version(py_version):  # noqa: F811
 
 
 @pytest.mark.processor("cpu")
+@pytest.mark.model("N/A")
 @pytest.mark.skip_gpu
 def test_py_versions(sagemaker_local_session, docker_image, py_full_version, framework_version, tmpdir):
     output_path = 'file://{}'.format(tmpdir)

@@ -23,6 +23,7 @@ from ...integration.utils import processor, py_version, unique_name_from_base  #
 
 
 @pytest.mark.integration("hpo")
+@pytest.mark.model("N/A")
 def test_model_dir_with_training_job_name(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '../..', 'resources')
     script = os.path.join(resource_path, 'tuning_model_dir', 'entry.py')

@@ -9,6 +9,7 @@ from test.test_utils.test_reporting import get_test_coverage_file_path
 
 @pytest.mark.skipif(not is_pr_context(), reason=PR_ONLY_REASON)
 @pytest.mark.integration("Generating this coverage doc")
+@pytest.mark.model("N/A")
 def test_generate_coverage_doc():
     """
     Test generating the test coverage doc
