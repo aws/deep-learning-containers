@@ -10,7 +10,6 @@ def test_performance_ec2_tensorflow_inference_gpu(tensorflow_inference, ec2_conn
     ec2_performance_tensorflow_inference(tensorflow_inference, "gpu", ec2_connection, region)
 
 
-@pytest.mark.integration("single node cpu inference performance benchmark")
 @pytest.mark.model("inception, RCNN-Resnet101-kitti, resnet50_v2, mnist, SSDResnet50Coco")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.18xlarge"], indirect=True)
 def test_performance_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, region, cpu_only):
