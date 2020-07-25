@@ -12,6 +12,8 @@ TENSORFLOW1_VERSION = "1."
 TENSORFLOW2_VERSION = "2."
 
 
+
+
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 

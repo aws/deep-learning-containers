@@ -23,6 +23,8 @@ def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cp
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
 
 
+
+
 def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
