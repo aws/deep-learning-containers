@@ -9,7 +9,7 @@
 
 #### For EI only PR
 * When creating PR:
-- [ ] I've modified ```src/config/build_config.py``` in my PR branch by enabling EI-mode
+- [ ] I've modified ```src/config/build_config.py``` in my PR branch by setting ```ENABLE_EI_MODE = True```
 * When PR is reviewed and ready to be merged:
 - [ ] I've revert the code change on the config file mentioned above
 
