@@ -280,9 +280,6 @@ class TestReportGenerator:
                 ("_dgl_", "smdebug", "gluonnlp", "smexperiments", "_mme_", "pipemode", "tensorboard", "_s3_", "nccl"),
                 str_keywords,
             )
-            # model_scope = _infer_field_value(
-            #     "N/A", ("mnist", "densenet", "squeezenet", "half_plus_two", "half_plus_three"), str_keywords
-            # )
             num_instances = _infer_field_value(
                 1, ("_multinode_", "_multi-node_", "_multi_node_", "_dist_"), str_fspath, str_keywords
             )
