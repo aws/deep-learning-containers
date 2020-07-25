@@ -27,6 +27,7 @@ def coverage_doc_skip_condition():
     coverage_doc_skip_condition(), reason=f"Run only in PR context or {TEST_COVERAGE_REPORT_REGION} canary context"
 )
 @pytest.mark.integration("Generating this coverage doc")
+@pytest.mark.model("N/A")
 @pytest.mark.canary(f"runs only in {TEST_COVERAGE_REPORT_REGION}")
 def test_generate_coverage_doc():
     """
@@ -34,10 +35,10 @@ def test_generate_coverage_doc():
     """
     test_coverage_file = get_test_coverage_file_path()
     ctx = Context()
-    # Set DLC_TESTS to 'test' to avoid image names affecting function metadata (due to parametrization)
+    # Set DLC_IMAGES to 'test' to avoid image names affecting function metadata (due to parametrization)
     # Set CODEBUILD_RESOLVED_SOURCE_VERSION to test for ease of running this test locally
     ctx.run(
-        "export DLC_TESTS='test' && export CODEBUILD_RESOLVED_SOURCE_VERSION='test' && export BUILD_CONTEXT=''"
+        "export DLC_IMAGES='test' && export CODEBUILD_RESOLVED_SOURCE_VERSION='test' && export BUILD_CONTEXT=''"
         "&& pytest -s --collect-only  --generate-coverage-doc --ignore=container_tests/",
         hide=True,
     )

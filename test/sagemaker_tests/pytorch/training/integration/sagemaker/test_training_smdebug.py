@@ -19,6 +19,8 @@ from ...integration import training_dir, smdebug_mnist_script, DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
 
 
+@pytest.mark.integration("smdebug")
+@pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
 def test_training_smdebug(sagemaker_session, ecr_image, instance_type):
     hyperparameters = {'random_seed': True, 'num_steps': 50, 'smdebug_path': '/tmp/ml/output/tensors', 'epochs': 1,
