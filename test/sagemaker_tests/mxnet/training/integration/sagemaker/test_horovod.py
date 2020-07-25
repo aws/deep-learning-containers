@@ -14,12 +14,18 @@ from __future__ import absolute_import
 
 import os
 
+import pytest
+
 import sagemaker
 from sagemaker.mxnet import MXNet
 
 from ...integration import RESOURCE_PATH
 from ...integration.utils import unique_name_from_base
 
+
+@pytest.mark.multinode("multinode")
+@pytest.mark.integration("horovod")
+@pytest.mark.model("mnist")
 def test_distributed_training_horovod(sagemaker_session,
                                       instance_type,
                                       ecr_image,
