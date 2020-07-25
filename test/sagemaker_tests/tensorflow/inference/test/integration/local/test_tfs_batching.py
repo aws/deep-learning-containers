@@ -32,7 +32,7 @@ def volume():
 
 
 @pytest.mark.model("half_plus_three")
-@pytest.mark.integration("tfs batching")
+@pytest.mark.integration("tfs_batching")
 def test_run_tfs_with_batching_parameters(docker_base_name, tag, runtime_config):
     try:
         command = (
