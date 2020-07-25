@@ -31,6 +31,8 @@ def fixture_dist_gpu_backend(request):
     return request.param
 
 
+@pytest.mark.processor("cpu")
+@pytest.mark.model("unknown_model")
 @pytest.mark.skip_gpu
 def test_dist_operations_path_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpdir):
     estimator = PyTorch(entry_point=dist_operations_path,
@@ -45,6 +47,9 @@ def test_dist_operations_path_cpu(docker_image, dist_cpu_backend, sagemaker_loca
     _train_and_assert_success(estimator, str(tmpdir))
 
 
+@pytest.mark.processor("gpu")
+@pytest.mark.integration("nccl")
+@pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
 def test_dist_operations_path_gpu_nccl(docker_image, sagemaker_local_session, tmpdir):
     estimator = PyTorch(entry_point=dist_operations_path,
@@ -59,6 +64,9 @@ def test_dist_operations_path_gpu_nccl(docker_image, sagemaker_local_session, tm
     _train_and_assert_success(estimator, str(tmpdir))
 
 
+@pytest.mark.processor("cpu")
+@pytest.mark.integration("nccl")
+@pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
 def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
     estimator = PyTorch(entry_point=mnist_script,
@@ -77,6 +85,8 @@ def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
     assert_files_exist(str(tmpdir), failure_file)
 
 
+@pytest.mark.processor("cpu")
+@pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
 def test_mnist_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpdir):
     estimator = PyTorch(entry_point=mnist_script,
