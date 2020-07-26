@@ -106,7 +106,7 @@ def test_framework_version_cpu(cpu):
     :param cpu: ECR image URI with "cpu" in the name
     """
     image = cpu
-    if "tensorflow-inference" in image:
+    if "tensorflow" in image and "inference" in image :
         pytest.skip(msg="TF inference does not have core tensorflow installed")
 
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
