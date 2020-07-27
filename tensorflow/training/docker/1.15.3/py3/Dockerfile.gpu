@@ -3,6 +3,7 @@
 FROM nvidia/cuda:10.0-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="7"
 
 # Prevent docker build get stopped by requesting user interaction
 ENV DEBIAN_FRONTEND=noninteractive
