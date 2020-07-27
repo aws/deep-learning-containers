@@ -1,10 +1,11 @@
+import os
 import re
 
 import pytest
 
 from invoke.context import Context
 
-from test.test_utils import LOGGER, ec2, get_framework_and_version_from_tag, is_canary_context
+from test.test_utils import LOGGER, ec2, get_framework_and_version_from_tag, is_canary_context, is_tf1
 
 
 @pytest.mark.model("N/A")
@@ -133,9 +134,9 @@ def test_framework_version_cpu(cpu):
 # TODO: Enable as canary once resource cleaning lambda is added
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ['p2.xlarge'], indirect=True)
-def test_framework_version_gpu(gpu, ec2_connection):
+def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     """
-    Check that the framework version in the image tag is the same as the one on a running container.
+    Check that the framework  and cuda version in the image tag is the same as the one on a running container.
 
     :param gpu: ECR image URI with "gpu" in the name
     :param ec2_connection: fixture to establish connection with an ec2 instance
@@ -156,6 +157,16 @@ def test_framework_version_gpu(gpu, ec2_connection):
         assert tag_framework_version in output.stdout.strip()
     else:
         assert tag_framework_version == output.stdout.strip()
+
+    # Check cuda version
+    cuda_version_match = re.search(r'-cu\d+-', image)
+    cuda_version = cuda_version_match.group().split('cu')[-1].strip('-')
+    full_cuda_version = f"{cuda_version[:2]}.{cuda_version[2:]}"
+    cuda_cmd = "nvcc --version"
+    cuda_output = ec2.execute_ec2_training_test(ec2_connection, image, cuda_cmd, container_name='cuda_container')
+
+    # Ensure that cuda version in tag is in the container
+    assert full_cuda_version in cuda_output
 
 
 @pytest.mark.model("N/A")
@@ -195,6 +206,53 @@ def test_emacs(image):
     # Make sure the following emacs sanity tests exit with code 0
     _run_cmd_on_container(container_name, ctx, "which emacs")
     _run_cmd_on_container(container_name, ctx, "emacs -version")
+
+
+@pytest.mark.model("N/A")
+def test_cuda_paths(gpu):
+    image = gpu
+    if "example" in image:
+        pytest.skip("Skipping example containers which are not explicitly tied to a cuda version")
+    dlc_path = os.getcwd().split('/test/')[0]
+    job_type = "training" if "training" in image else "inference"
+    frameworks = ("tensorflow", "pytorch", "mxnet")
+    framework = ''
+    for fw in frameworks:
+        if fw in image:
+            framework = fw
+            break
+    assert framework, f"Cannot find any frameworks {frameworks} in image uri {image}"
+
+    cuda_version_match = re.search(r'-cu\d+-', image)
+    cuda_version = cuda_version_match.group().strip('-')
+
+    framework_version_match = re.search(r':\d+.\d+.\d+', image)
+    framework_version = framework_version_match.group().strip(':')
+
+    python_version = "py3" if "py3" in image else "py2"
+
+    # Check buildspec for cuda version
+    buildspec = 'buildspec.yml'
+    if is_tf1(image):
+        buildspec = 'buildspec-tf1.yml'
+
+    cuda_in_buildspec = False
+    cuda_in_buildspec_ref = f"cuda_version: &CUDA_VERSION {cuda_version}"
+    buildspec_path = os.path.join(dlc_path, framework, buildspec)
+    with open(buildspec_path, 'r') as bf:
+        for line in bf:
+            if cuda_in_buildspec_ref in line:
+                cuda_in_buildspec = True
+                break
+
+    assert cuda_in_buildspec, f"Can't find {cuda_in_buildspec_ref} in {buildspec_path}"
+
+    # Check that a Dockerfile exists in the right directory
+    dockerfile_path = os.path.join(
+        dlc_path, framework, job_type, 'docker', framework_version, python_version, cuda_version, 'Dockerfile.gpu'
+    )
+
+    assert os.path.exists(dockerfile_path), f"Cannot find dockerfile for image {image} in {dockerfile_path}"
 
 
 def _start_container(container_name, image_uri, context):
