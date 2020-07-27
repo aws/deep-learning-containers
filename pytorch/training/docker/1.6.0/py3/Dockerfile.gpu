@@ -1,5 +1,5 @@
 # The tag for the base image is: 10.1-cudnn7-devel-ubuntu16.04
-FROM nvidia/cuda@sha256:4979db047661dc0003594fb20d37cce6d6c7e989252f4e3fb0beb39874a078e2
+FROM nvidia/cuda@sha256:229f04d85d723f45461d1155c8f106ac27afd48b9c9c58d8f94fc38e367d5596
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
