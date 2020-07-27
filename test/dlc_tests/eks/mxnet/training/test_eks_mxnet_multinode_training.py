@@ -72,7 +72,7 @@ def _run_eks_mxnet_multinode_training_horovod_mpijob(example_image_uri, cluster_
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.integration("parameter server")
 @pytest.mark.model("mnist")
-@pytest.mark.multinode("multinode")
+@pytest.mark.multinode("multinode(3)")
 def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     """
     Run MXNet distributed training on EKS using docker images with MNIST dataset (parameter server)
@@ -112,7 +112,6 @@ def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     }
 
     eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file_path, replace_dict)
-    
 
     training_result = _run_eks_mxnet_multi_node_training(namespace, job_name, remote_yaml_file_path)
     assert training_result, "EKS multinode training failed"
