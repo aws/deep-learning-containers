@@ -55,12 +55,23 @@ if __name__ == "__main__":
 
     args = parse_args()
     dlc_artifact_bucket = args.artifact_bucket
+    github_publishing_metadata_path = os.path.join(os.sep, "tmp", "github_publishing_metadata.dict")
 
-    dlc_account_id = os.getenv("TARGET_ACCOUNT_ID_CLASSIC")
-    dlc_tag = os.getenv("TAG_WITH_DLC_VERSION")
-    dlc_repository = os.getenv("TARGET_ECR_REPOSITORY")
+    if not os.path.exists(github_publishing_metadata_path):
+        LOGGER.error(
+            f"file {github_publishing_metadata_path} does not exist. Cannot publish github release information to bucket {dlc_artifact_bucket}."
+            f"Note: exiting successfully nonetheless to avoid codebuild failure."
+        )
+        sys.exit(0)
+
+    with open(github_publishing_metadata_path, "r") as f:
+        github_publishing_metadata = json.loads(f.read())
+
+    dlc_account_id = github_publishing_metadata.get("target_account_id_classic")
+    dlc_tag = github_publishing_metadata.get("tag_with_dlc_version")
+    dlc_repository = github_publishing_metadata.get("target_ecr_repository")
+    dlc_release_successful = github_publishing_metadata.get("release_successful")
     dlc_region = os.getenv("REGION")
-    dlc_release_successful = os.getenv("RELEASE_SUCCESSFUL")
 
     if dlc_release_successful != "1":
         LOGGER.error("Skipping generation of release information as the DLC release failed/skipped.")
