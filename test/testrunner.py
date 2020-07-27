@@ -93,9 +93,9 @@ def delete_key_pairs(keyfile):
     """
     Function to delete key pairs from a file in mainline context
 
-    :param keyfile: KEYS_TO_DESTROY_FILE
+    :param keyfile: file with all of the keys to delete
     """
-    with open(KEYS_TO_DESTROY_FILE) as key_destroy_file:
+    with open(keyfile) as key_destroy_file:
         for key_file in key_destroy_file:
             LOGGER.info(key_file)
             ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
