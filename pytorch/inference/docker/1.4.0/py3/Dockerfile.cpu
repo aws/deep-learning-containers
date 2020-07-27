@@ -30,6 +30,7 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     curl \
+    emacs \
     git \
     jq \
     libgl1-mesa-glx \
@@ -60,7 +61,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
 
 RUN conda install -c \
     conda-forge \
-    awscli==1.18.23 \
+    "awscli<2" \
     opencv==4.0.1 \
  && conda install -y \
     scikit-learn==0.21.2 \
@@ -75,8 +76,6 @@ RUN conda install -c \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install torchserve==$TS_VERSION \
  && pip install torch-model-archiver==$TS_VERSION
-
-
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \

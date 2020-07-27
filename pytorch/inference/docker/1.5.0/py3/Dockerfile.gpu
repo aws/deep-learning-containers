@@ -27,6 +27,7 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     curl \
+    emacs \
     git \
     jq \
     libgl1-mesa-glx \
@@ -83,8 +84,6 @@ RUN conda install -c \
  && pip install torchserve==$TS_VERSION \
  && pip install torch-model-archiver==$TS_VERSION
 
-
-
 # Uninstall and re-install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
  && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/inference/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
@@ -110,7 +109,7 @@ RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.0/license.txt -o /license.txt
 
 RUN conda install -y -c conda-forge pyyaml==5.3.1
-RUN pip install pillow==7.1.0 awscli
+RUN pip install pillow==7.1.0 "awscli<2"
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]

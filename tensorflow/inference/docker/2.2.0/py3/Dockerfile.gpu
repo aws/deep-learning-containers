@@ -49,6 +49,7 @@ RUN apt-get update \
     libgomp1 \
     libffi-dev \
     curl \
+    emacs \
     git \
     wget \
     vim \
@@ -120,7 +121,7 @@ RUN apt-get update \
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install -U --no-cache-dir \
-    awscli \
+    "awscli<2" \
     cython==0.29.14 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
@@ -136,13 +137,6 @@ COPY ./sagemaker /sagemaker
 
 RUN curl $TFS_URL -o /usr/bin/tensorflow_model_server \
  && chmod 555 /usr/bin/tensorflow_model_server
-
-# put tensorflow library (with only error_codes) to python dist-packages
-WORKDIR /
-RUN cd /usr/local/lib/python3.*/site-packages/ \
- && mv /sagemaker/tensorflow-2.2 ./tensorflow \
-# Delete the remaining tensorflow folder to avoid confusing python import
- && rm -rf /sagemaker/tensorflow
 
 # Expose gRPC and REST port
 EXPOSE 8500 8501

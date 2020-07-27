@@ -30,6 +30,7 @@ RUN apt-get update \
     cuda-cusolver-10-1 \
     cuda-cusparse-10-1 \
     curl \
+    emacs \
     git \
     libnccl2=${NCCL_VERSION} \
     libgomp1 \

@@ -5,6 +5,7 @@ LABEL dlc_major_version="1"
 # Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
@@ -33,6 +34,7 @@ RUN apt-get update \
     curl \
     gnupg2 \
     ca-certificates \
+    emacs \
     git \
     wget \
     vim \
@@ -78,7 +80,7 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir \
-    awscli \
+    "awscli<2" \
     cython==0.29.14 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
@@ -91,13 +93,6 @@ RUN ${PIP} install --no-cache-dir \
     tensorflow-serving-api==2.2.0
 
 COPY ./sagemaker /sagemaker
-
-# put tensorflow library (with only error_codes) to python dist-packages
-WORKDIR /
-RUN cd /usr/local/lib/python3.*/site-packages/ \
- && mv /sagemaker/tensorflow-2.2 ./tensorflow \
-# Delete the remaining tensorflow folder to avoid confusing python import
- && rm -rf /sagemaker/tensorflow
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \

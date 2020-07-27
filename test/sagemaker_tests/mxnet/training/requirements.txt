@@ -1,9 +1,9 @@
 tox
-pluggy==0.11
+pluggy
 flake8
-pytest==4.5.0
-pytest-cov==2.9.0
-pytest-rerunfailures==8.0
+pytest==5.3.5
+pytest-cov
+pytest-rerunfailures==9.0
 pytest-xdist
 mock
 sagemaker
@@ -14,3 +14,5 @@ python-dateutil>=2.1,<2.8.1
 botocore
 awscli
 requests_mock==1.7.0
+fabric
+retrying

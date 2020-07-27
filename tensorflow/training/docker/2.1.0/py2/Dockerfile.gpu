@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     cuda-cusolver-dev-10-1 \
     cuda-cusparse-dev-10-1 \
     curl \
+    emacs \
     libcudnn7=7.6.2.24-1+cuda10.1 \
     # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
     libnccl2=2.4.7-1+cuda10.1 \
@@ -137,7 +138,7 @@ RUN ${PIP} install --no-cache-dir -U \
     python-dateutil==2.8.1 \
     pyYAML==5.3.1 \
     requests==2.22.0 \
-    awscli \
+    "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
     "cryptography>=2.3" \

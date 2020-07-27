@@ -3,6 +3,7 @@
 FROM nvidia/cuda:10.0-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="4"
 
 # Prevent docker build get stopped by requesting user interaction
 ENV DEBIAN_FRONTEND=noninteractive
@@ -38,6 +39,7 @@ RUN apt-get update \
     cuda-cusolver-dev-10-0 \
     cuda-cusparse-dev-10-0 \
     curl \
+    emacs \
     libcudnn7=7.5.1.10-1+cuda10.0 \
     # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
     libnccl2=2.4.7-1+cuda10.0 \
@@ -156,7 +158,7 @@ RUN pip install --no-cache-dir -U \
     scipy==1.2.2 \
     scikit-learn==0.20.3 \
     pandas==0.24.2 \
-    Pillow==7.0.0 \
+    Pillow \
     h5py==2.9.0 \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
@@ -174,7 +176,7 @@ RUN pip install --no-cache-dir -U \
  && pip install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
  && pip install --no-cache-dir -U \
-    awscli \
+    "awscli<2" \
     smdebug==${SMDEBUG_VERSION}
 
 

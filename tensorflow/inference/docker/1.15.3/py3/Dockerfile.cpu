@@ -4,6 +4,7 @@ LABEL maintainer="Amazon AI"
 # Specify LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 # Add arguments to achieve the version, python and url
 ARG PYTHON=python3.7
@@ -34,9 +35,12 @@ RUN apt-get update \
     curl \
     gnupg2 \
     ca-certificates \
+    emacs \
     git \
     wget \
-   build-essential \
+    libffi-dev \
+    build-essential \
+    zlib1g-dev \
     vim \
  && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
  && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
@@ -79,7 +83,7 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir \
-    awscli==1.18.34 \
+    "awscli<2" \
     pyYAML==5.3.1 \
     cython==0.29.12 \
     falcon==2.0.0 \
@@ -93,11 +97,6 @@ RUN ${PIP} install --no-cache-dir \
     tensorflow-serving-api==1.15.0
 
 COPY sagemaker /sagemaker
-
-WORKDIR /
-
-# put tensorflow library (with only error_codes) to python dist-packages
-RUN mv /sagemaker/tensorflow/ /usr/local/lib/python3.*/dist-packages/
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \

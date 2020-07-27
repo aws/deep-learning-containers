@@ -28,6 +28,7 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     curl \
+    emacs \
     git \
     jq \
     libgl1-mesa-glx \
@@ -71,7 +72,7 @@ RUN conda install -c \
     pytorch magma-cuda101==2.5.1 \
  && conda install -c \
     conda-forge \
-    awscli==1.18.23 \
+    "awscli<2" \
     opencv==4.0.1 \
  && conda install -y scikit-learn==0.20.3 \
     h5py==2.9.0 \
@@ -87,7 +88,6 @@ RUN conda install -c \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install torchserve==$TS_VERSION \
  && pip install torch-model-archiver==$TS_VERSION
-
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
