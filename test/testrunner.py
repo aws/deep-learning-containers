@@ -160,7 +160,9 @@ def main():
             # Execute dlc_tests pytest command
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
             if test_type == "ec2":
-                pytest_cmd.append("--reruns=1")
+                pytest_cmd += ["--reruns-1", "--reruns-delay=10"]
+                pytest_cmd[1] = "-rAR"
+
             pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
         if specific_test_type == "canary":
