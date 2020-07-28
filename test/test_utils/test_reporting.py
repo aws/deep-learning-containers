@@ -43,7 +43,7 @@ class TestReportGenerator:
     Class to generate test report files
     """
 
-    ALLOWED_SINGLE_GPU_TESTS = ("telemetry", "test_framework_version_gpu")
+    ALLOWED_SINGLE_GPU_TESTS = ("telemetry", "test_framework_and_cuda_version_gpu")
     SM_REPOS = (
         os.path.join("pytorch", "training"),
         os.path.join("pytorch", "inference"),

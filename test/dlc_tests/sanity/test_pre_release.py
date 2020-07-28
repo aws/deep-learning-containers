@@ -166,7 +166,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     cuda_output = ec2.execute_ec2_training_test(ec2_connection, image, cuda_cmd, container_name='cuda_container')
 
     # Ensure that cuda version in tag is in the container
-    assert full_cuda_version in cuda_output
+    assert full_cuda_version in cuda_output.stdout
 
 
 @pytest.mark.model("N/A")
