@@ -18,7 +18,7 @@ mkdir -p ${LOG_DIR}
 
 set -e
 cd ~
-python examples/imagenet/main.py \
+timeout 5m python examples/imagenet/main.py \
        -a resnet50 \
        --dist-url 'tcp://127.0.0.1:8080' \
        --dist-backend 'nccl' \
@@ -27,6 +27,17 @@ python examples/imagenet/main.py \
        --rank 0 \
        --workers 30 \
        --epochs 0 \
+       ~/imagenet >&2
+
+python examples/imagenet/main.py \
+       -a resnet50 \
+       --dist-url 'tcp://127.0.0.1:8080' \
+       --dist-backend 'nccl' \
+       --multiprocessing-distributed \
+       --world-size 1 \
+       --rank 0 \
+       --workers 30 \
+       --epochs 1 \
        ~/imagenet >&2
 #       ~/imagenet 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
 echo Benchmark Results: >&2
