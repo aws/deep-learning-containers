@@ -12,7 +12,6 @@ PT_REGRESSION_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testP
 PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 PT_APEX_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNVApex")
 PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test")
-PT_CURAND_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testCurand")
 
 
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
@@ -98,7 +97,3 @@ def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only):
 def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)
 
-
-@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
-def test_pytorch_curand_gpu(pytorch_training, ec2_connection, gpu_only):
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_CURAND_CMD)
