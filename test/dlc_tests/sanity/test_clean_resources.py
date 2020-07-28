@@ -40,7 +40,6 @@ def delete_idle_eks_clusters(max_time=240):
                         cfn_client.delete_stack(StackName=stack_name)
                     cfn_waiter.wait(StackName=stack_name)
                     break
-            client.delete_cluster(name=cluster_name)
             for cluster_stack in cfn_resp.get('StackSummaries'):
                 cluster_stack_name = cluster_stack.get("StackName")
                 if cluster_name in cluster_stack_name and "nodegroup" not in cluster_stack_name and "eksctl" in stack_name:
@@ -50,6 +49,7 @@ def delete_idle_eks_clusters(max_time=240):
                         cfn_client.delete_stack(StackName=cluster_stack_name)
                     cfn_waiter.wait(StackName=cluster_stack_name)
                     break
+            client.delete_cluster(name=cluster_name)
             deleted_clusters.append(cluster_name)
         else:
             LOGGER.info(f"cluster {cluster_name} is less than {max_time / 60} hours old")
