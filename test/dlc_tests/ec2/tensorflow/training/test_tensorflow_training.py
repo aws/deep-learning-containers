@@ -117,11 +117,11 @@ TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor
 # Testing Tensorboard with profiling
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, gpu_only):
-    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_CMD)
+    execute_ec2_data_test(ec2_connection, tensorflow_training, TF_DATASERVICE_CMD)
 
 
 # Testing Tensorboard with profiling
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_only):
-    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_CMD)
+    execute_ec2_data_test(ec2_connection, tensorflow_training, TF_DATASERVICE_CMD)
 
