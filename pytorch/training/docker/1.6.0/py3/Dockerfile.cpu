@@ -73,21 +73,21 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && rm ~/miniconda.sh \
  && /opt/conda/bin/conda install -y -c anaconda \
     python=$PYTHON_VERSION \
-    numpy==1.16.4 \
-    ipython==7.10.1 \
-    mkl==2019.4 \
-    mkl-include==2019.4 \
-    cython==0.29.12 \
-    typing==3.6.4 \
+    numpy \
+    ipython \
+    mkl \
+    mkl-include \
+    cython \
+    typing \
     "pyopenssl>=17.5.0" \
  && conda install -c conda-forge \
-    opencv==4.0.1 \
+    opencv \
  && conda install -y \
-    scikit-learn==0.21.2 \
-    pandas==0.25.0 \
-    h5py==2.9.0 \
-    requests==2.22.0 \
- && conda install -c dglteam -y dgl==0.4.3 \
+    scikit-learn \
+    pandas \
+    h5py \
+    requests \
+ && conda install -c dglteam -y dgl \
  && /opt/conda/bin/conda clean -ya \
  && conda clean -ya
 
@@ -101,7 +101,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     scipy==1.2.2 \
     smdebug==${SMDEBUG_VERSION} \
     "sagemaker<2" \
-    sagemaker-experiments==0.1.7 \
+    sagemaker-experiments==0.x \
     "sagemaker-pytorch-training<3" \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \

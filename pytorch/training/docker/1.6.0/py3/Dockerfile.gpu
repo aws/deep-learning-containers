@@ -1,5 +1,5 @@
 # The tag for the base image is: 10.1-cudnn7-devel-ubuntu16.04
-FROM nvidia/cuda@sha256:229f04d85d723f45461d1155c8f106ac27afd48b9c9c58d8f94fc38e367d5596
+FROM nvidia/cuda:10.1-cudnn7-devel-ubuntu16.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -90,29 +90,29 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && rm ~/miniconda.sh \
  && /opt/conda/bin/conda install -y -c anaconda \
     python=$PYTHON_VERSION \
-    numpy==1.16.4 \
-    ipython==7.10.1 \
-    mkl==2019.4 \
-    mkl-include==2019.4 \
-    cython==0.29.12 \
-    typing==3.6.4 \
-    future==0.17.1 \
+    numpy \
+    ipython \
+    mkl \
+    mkl-include \
+    cython \
+    typing \
+    future \
     "pyopenssl>=17.5.0" \
  && conda install -c dglteam -y dgl-cuda10.1==0.4.3 \
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c pytorch magma-cuda101==2.5.2 \
  && conda install -c conda-forge \
-    opencv==4.0.1 \
- && conda install -y scikit-learn==0.21.2 \
-    pandas==0.25.0 \
-    h5py==2.9.0 \
-    requests==2.22.0 \
+    opencv \
+ && conda install -y scikit-learn \
+    pandas \
+    h5py \
+    requests \
     libgcc \
  && conda clean -ya
 
-RUN pip install psutil==5.6.7 \
-                Pillow==7.1.0
+RUN pip install psutil \
+                Pillow
 
 WORKDIR /opt/pytorch
 
@@ -130,10 +130,10 @@ RUN /opt/conda/bin/conda config --set ssl_verify False \
 RUN pip install \
     --no-cache-dir smdebug==${SMDEBUG_VERSION} \
     "sagemaker<2" \
-    sagemaker-experiments==0.1.7 \
+    sagemaker-experiments==0.x \
     --no-cache-dir fastai==1.0.59 \
     "awscli<2" \
-    scipy==1.2.2 \
+    scipy \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U \
