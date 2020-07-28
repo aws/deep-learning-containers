@@ -27,6 +27,9 @@ def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_
 
 def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
     repo_name, image_tag = ecr_uri.split("/")[-1].split(":")
+    connection.run(f"pwd >&2")
+    connection.run(f"ls >&2")
+    connection.run(f"ls ~ >&2")
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
 
     # Make sure we are logged into ECR so we can pull the image
