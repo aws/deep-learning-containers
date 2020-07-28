@@ -195,9 +195,6 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
 
     request.addfinalizer(delete_s3_artifact_copy)
 
-    conn.run(f"ls >&2")
-    conn.run(f"aws --version >&2")
-    conn.run(f"aws sts get-caller-identity >&2")
     conn.run(f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests")
     conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
 
