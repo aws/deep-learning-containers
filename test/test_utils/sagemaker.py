@@ -113,10 +113,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             aws_id_arg = "--registry"
             docker_base_arg = "--repo"
             instance_type_arg = "--instance-types"
-            if processor != "eia" :
-                integration_path = os.path.join(integration_path, "test_tfs.py")
-            else:
-                integration_path = os.path.join(integration_path, "test_ei.py")
+            integration_path = os.path.join(integration_path, "test_tfs.py") if processor != "eia" else os.path.join(integration_path, "test_ei.py")
 
     if framework == "tensorflow" and job_type == 'training':
         aws_id_arg = "--account-id"

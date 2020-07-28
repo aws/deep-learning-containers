@@ -108,7 +108,7 @@ def ei_accelerator_type(request):
 @pytest.fixture(scope="function")
 def ec2_instance(
         request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami,
-        region,ei_accelerator_type
+        region, ei_accelerator_type
 ):
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
@@ -303,9 +303,6 @@ def pytest_generate_tests(metafunc):
             lookup = fixture.replace("_", "-")
             images_to_parametrize = []
             for image in images:
-                #For PR and Beta Context, as the name is framework_eia and in Prod Repo, It is framework_inference_eia
-                if "eia" in lookup and ("pr" in image or "beta" in image):
-                    lookup = lookup.replace("inference-","")
                 if lookup in image:
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
