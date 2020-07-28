@@ -16,6 +16,8 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
     rand_int = random.randint(4001, 6000)
 
     processor = "gpu" if "gpu" in tensorflow_inference else "cpu"
+    if "eia" in tensorflow_inference:
+        pytest.skip("Skipping EKS Test for EIA")
 
     model_name = f"saved_model_half_plus_two_{processor}"
     yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_{processor}_inference_{rand_int}.yaml")

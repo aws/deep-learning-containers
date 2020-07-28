@@ -16,6 +16,8 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
     rand_int = random.randint(4001, 6000)
 
     processor = "gpu" if "gpu" in mxnet_inference else "cpu"
+    if "eia" in mxnet_inference:
+        pytest.skip("Skipping EKS Test for EIA")
 
     model = "squeezenet=https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model"
     yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_{processor}_inference_{rand_int}.yaml")

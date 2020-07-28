@@ -16,6 +16,8 @@ def test_eks_pytorch_densenet_inference(pytorch_inference):
     rand_int = random.randint(4001, 6000)
 
     processor = "gpu" if "gpu" in pytorch_inference else "cpu"
+    if "eia" in pytorch_inference:
+        pytest.skip("Skipping EKS Test for EIA")
 
     model = "pytorch-densenet=https://dlc-samples.s3.amazonaws.com/pytorch/multi-model-server/densenet/densenet.mar"
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_{processor}_inference_{rand_int}.yaml")
