@@ -15,51 +15,72 @@ def delete_idle_eks_clusters(max_time=240):
     client = boto3.client("eks")
     cfn_client = boto3.client("cloudformation")
     cfn_waiter = cfn_client.get_waiter('stack_delete_complete')
-    deleted_clusters = []
-    next_token = "first"
-    clusters = []
+
+    clusters_to_delete = {}
+
+    all_clusters  = []
     while next_token:
         if next_token == "first":
             response = client.list_clusters(maxResults=100)
         else:
             response = client.list_clusters(maxResults=100, nextToken=next_token)
-        clusters += response.get('clusters')
+        all_clusters += response.get('clusters')
         next_token = response.get('nextToken')
-    for cluster_name in clusters:
+
+    for cluster_name in all_clusters:
         cluster = client.describe_cluster(name=cluster_name)
         create_time = cluster.get('cluster').get('createdAt')
         now_time = datetime.datetime.now(tzlocal())
         time_delta = now_time - create_time
         if time_delta.seconds / 60 > max_time:
-            LOGGER.info(f"deleting cluster {cluster_name} which is older than {max_time / 60} hours old")
+            # instantiate a cluster to delete
+            clusters_to_delete[cluster_name] = {}
+            # Check cfn stacks
             cfn_resp = cfn_client.list_stacks()
-            for stack in cfn_resp.get('StackSummaries'):
+            summaries = cfn_resp.get("StackSummaries")
+
+            for stack in summaries:
                 stack_name = stack.get("StackName")
-                if cluster_name in stack_name and "nodegroup" in stack_name and "eksctl" in stack_name:
-                    if stack.get('StackStatus') == "DELETE_COMPLETE":
-                        break
-                    elif stack.get("StackStatus") != 'DELETE_IN_PROGRESS':
-                        cfn_client.delete_stack(StackName=stack_name)
-                    cfn_waiter.wait(StackName=stack_name)
-                    break
-            for cluster_stack in cfn_resp.get('StackSummaries'):
-                cluster_stack_name = cluster_stack.get("StackName")
-                if cluster_name in cluster_stack_name and "nodegroup" not in cluster_stack_name and "eksctl" in stack_name:
-                    if cluster_stack.get("StackStatus") == "DELETE_COMPLETE":
-                        break
-                    elif stack.get("StackStatus") != 'DELETE_IN_PROGRESS':
-                        cfn_client.delete_stack(StackName=cluster_stack_name)
-                    cfn_waiter.wait(StackName=cluster_stack_name)
-                    break
-            try:
-                client.delete_cluster(name=cluster_name)
-            except ClientError:
-                print("Cluster already deleted")
-            deleted_clusters.append(cluster_name)
-        else:
-            LOGGER.info(f"cluster {cluster_name} is less than {max_time / 60} hours old")
-    LOGGER.info(f"deleted clusters: {deleted_clusters}")
-    return deleted_clusters
+                if "eksctl" in stack_name and cluster_name in stack_name:
+                    if "nodegroup" in stack_name:
+                        clusters_to_delete[cluster_name]['nodegroup'] = stack
+                    else:
+                        clusters_to_delete[cluster_name]['cluster'] = stack
+
+    # Delete nodegroups
+    deleted_nodegroups = delete_cfn_stacks(clusters_to_delete, cfn_client, 'nodegroup')
+
+    # Wait for nodegroups to be deleted
+    for nodegroup in deleted_nodegroups:
+        cfn_waiter.wait(StackName=nodegroup)
+
+    # Delete clusters
+    deleted_clusters = delete_cfn_stacks(clusters_to_delete, cfn_client, 'cluster')
+
+    # Wait for clusters to be deleted
+    for eks_cluster in deleted_clusters:
+        cfn_waiter.wait(StackName=eks_cluster)
+
+    for eks_cluster_name, _ in clusters_to_delete.items():
+        try:
+            client.delete_cluster(name=eks_cluster_name)
+        except ClientError:
+            LOGGER.info(f"Cluster {cluster_name} already deleted.")
+
+    return clusters_to_delete
+
+
+def delete_cfn_stacks(clusters_to_delete, client, stack_type):
+    deleted_stack_names = []
+    for c_name, stacks in clusters_to_delete.items():
+        stack = stacks.get(stack_type)
+        if stack:
+            stack_name = stack.get('StackName')
+            if stack.get("StackStatus") != "DELETE_IN_PROGRESS":
+                client.delete_stack(StackName=stack_name)
+                LOGGER.info(f"Deleting stack {stack_name}")
+            deleted_stack_names.append(stack_name)
+    return deleted_stack_names
 
 
 @pytest.mark.model("N/A")
