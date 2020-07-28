@@ -349,6 +349,35 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     )
     return conn
 
+def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash"):
+    if executable not in ("bash", "python"):
+        raise RuntimeError(f"This function only supports executing bash or python commands on containers")
+    if executable == "bash":
+        executable = os.path.join(os.sep, 'bin', 'bash')
+    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+
+    connection.run('pip install tensorflow')
+    connection.run('pip install tf-nightly')
+    connection.run('pip install tensorflow_datasets')
+    connection.run('ls')
+    connection.run(f'cd {container_test_local_dir} && python bin/start_dataservice.py')
+
+
+    # Make sure we are logged into ECR so we can pull the image
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+
+    # Run training command
+    connection.run(
+        f"{docker_cmd} run --name ec2_training_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
+        f" -itd {ecr_uri}",
+        hide=True,
+    )
+    return connection.run(
+        f"{docker_cmd} exec --user root ec2_training_container {executable} -c '{test_cmd}'",
+        hide=True,
+        timeout=3000,
+    )
 
 def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash"):
     if executable not in ("bash", "python"):

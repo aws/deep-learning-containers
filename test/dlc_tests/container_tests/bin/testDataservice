@@ -1,0 +1,10 @@
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+
+pip install tf-nightly
+pip install tensorflow_datasets
+
+python ${BIN_DIR}/test_dataset_service.py --local=False || exit 1
+
+exit 0
