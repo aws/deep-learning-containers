@@ -6,6 +6,8 @@ from dateutil.tz import tzlocal
 import pytest
 import boto3
 
+from botocore.exceptions import ClientError
+
 from test.test_utils import LOGGER
 
 
@@ -49,7 +51,10 @@ def delete_idle_eks_clusters(max_time=240):
                         cfn_client.delete_stack(StackName=cluster_stack_name)
                     cfn_waiter.wait(StackName=cluster_stack_name)
                     break
-            client.delete_cluster(name=cluster_name)
+            try:
+                client.delete_cluster(name=cluster_name)
+            except ClientError:
+                print("Cluster already deleted")
             deleted_clusters.append(cluster_name)
         else:
             LOGGER.info(f"cluster {cluster_name} is less than {max_time / 60} hours old")
