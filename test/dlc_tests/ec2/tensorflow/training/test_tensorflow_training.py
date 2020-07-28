@@ -2,7 +2,7 @@ import os
 import pytest
 
 from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf20
-from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
+from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type, execute_ec2_data_test
 
 
 TF1_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflow1Standalone")
