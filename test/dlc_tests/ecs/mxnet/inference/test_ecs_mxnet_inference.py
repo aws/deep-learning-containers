@@ -2,7 +2,7 @@ import pytest
 
 import test.test_utils.ecs as ecs_utils
 import test.test_utils.ec2 as ec2_utils
-from test.test_utils import request_mxnet_inference_squeezenet, request_mxnet_inference_gluonnlp, request_mxnet_inference_resnet
+from test.test_utils import request_mxnet_inference, request_mxnet_inference_gluonnlp
 from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2
 
 
@@ -18,7 +18,7 @@ def test_ecs_mxnet_inference_cpu(mxnet_inference, ecs_container_instance, region
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
             mxnet_inference, "mxnet", ecs_cluster_arn, model_name, worker_instance_id, region=region
         )
-        inference_result = request_mxnet_inference_squeezenet(public_ip_address)
+        inference_result = request_mxnet_inference(public_ip_address)
         assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
 
     finally:
@@ -36,9 +36,9 @@ def test_ecs_mxnet_inference_eia(mxnet_inference_eia, ecs_container_instance, re
     service_name = task_family = revision = None
     try:
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
-            mxnet_inference_eia, "mxnet", ecs_cluster_arn, model_name, worker_instance_id, region=region, ACCELERATOR_TYPE="eia1.large",
+            mxnet_inference_eia, "mxnet", ecs_cluster_arn, model_name, worker_instance_id, region=region, accelerator_type="eia1.large",
         )
-        inference_result = request_mxnet_inference_resnet(public_ip_address)
+        inference_result = request_mxnet_inference(public_ip_address, model ="resnet-152-eia")
         assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
 
     finally:
@@ -58,7 +58,7 @@ def test_ecs_mxnet_inference_gpu(mxnet_inference, ecs_container_instance, region
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
             mxnet_inference, "mxnet", ecs_cluster_arn, model_name, worker_instance_id, num_gpus=num_gpus, region=region
         )
-        inference_result = request_mxnet_inference_squeezenet(public_ip_address)
+        inference_result = request_mxnet_inference(public_ip_address)
         assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
 
     finally:

@@ -145,7 +145,7 @@ def ec2_instance(
                 if instances:
                     break
             except ClientError as e:
-                print(f"Failed to launch in {a_zone} with Error: {e}")
+                LOGGER.error(f"Failed to launch in {a_zone} with Error: {e}")
                 continue
     else:
         instances = ec2_resource.create_instances(**params)

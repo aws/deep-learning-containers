@@ -67,16 +67,16 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
         LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
         if model_name == SQUEEZENET_MODEL:
-            inference_result = test_utils.request_mxnet_inference_squeezenet(
-                port=target_port, connection=ec2_connection
+            inference_result = test_utils.request_mxnet_inference(
+                port=target_port, connection=ec2_connection, model="squeezenet"
             )
         elif model_name == BERT_MODEL:
             inference_result = test_utils.request_mxnet_inference_gluonnlp(
                 port=target_port, connection=ec2_connection
             )
         elif model_name == RESNET_EIA_MODEL:
-            inference_result = test_utils.request_mxnet_inference_resnet(
-                port=target_port, connection=ec2_connection
+            inference_result = test_utils.request_mxnet_inference(
+                port=target_port, connection=ec2_connection, model="resnet-152-eia"
             )
         assert (
             inference_result

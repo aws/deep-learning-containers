@@ -44,8 +44,8 @@ def get_ec2_instance_type(default, processor, enable_p3dn=False):
 
 
 def launch_instance(
-        ami_id, instance_type, ei_accelerator_type, ec2_key_name=None, region=DEFAULT_REGION, user_data=None,
-        iam_instance_profile_name=None, instance_name=""
+    ami_id, instance_type, ei_accelerator_type, ec2_key_name=None, region=DEFAULT_REGION, user_data=None,
+    iam_instance_profile_name=None, instance_name=""
 ):
     """
     Launch an instance
