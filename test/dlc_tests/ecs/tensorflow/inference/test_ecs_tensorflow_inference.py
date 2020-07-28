@@ -39,7 +39,7 @@ def test_ecs_tensorflow_inference_eia(tensorflow_inference_eia, ecs_container_in
     service_name = task_family = revision = None
     try:
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
-            tensorflow_inference_eia, "tensorflow", ecs_cluster_arn, model_name, worker_instance_id, region=region, accelerator_type="eia1.large",
+            tensorflow_inference_eia, "tensorflow", ecs_cluster_arn, model_name, worker_instance_id, region=region,
         )
         model_name = get_tensorflow_model_name("eia", model_name)
         inference_result = request_tensorflow_inference(model_name, ip_address=public_ip_address)

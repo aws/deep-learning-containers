@@ -38,7 +38,7 @@ def test_ecs_pytorch_inference_eia(pytorch_inference_eia, ecs_container_instance
     service_name = task_family = revision = None
     try:
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
-            pytorch_inference_eia, "pytorch", ecs_cluster_arn, model_name, worker_instance_id, region=region, accelerator_type="eia1.large"
+            pytorch_inference_eia, "pytorch", ecs_cluster_arn, model_name, worker_instance_id, region=region
         )
         inference_result = request_pytorch_inference_densenet(public_ip_address)
         assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"

@@ -765,7 +765,7 @@ def ecs_training_test_executor(cluster_name, cluster_arn, training_command, imag
 
 
 def setup_ecs_inference_service(
-        docker_image_uri, framework, cluster_arn, model_name, worker_instance_id, num_gpus=None, region=DEFAULT_REGION, accelerator_type=None
+        docker_image_uri, framework, cluster_arn, model_name, worker_instance_id, ei_accelerator_type, num_gpus=None, region=DEFAULT_REGION,
 ):
     """
     Function to setup Inference service on ECS
@@ -820,7 +820,7 @@ def setup_ecs_inference_service(
         }
         arguments_dict["inference_accelerators"] = {
             "deviceName": "device_1",
-            "deviceType": accelerator_type
+            "deviceType": ei_accelerator_type
         }
     try:
         task_family, revision = register_ecs_task_definition(**arguments_dict)
