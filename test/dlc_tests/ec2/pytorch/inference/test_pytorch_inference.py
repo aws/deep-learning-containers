@@ -22,6 +22,8 @@ def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gp
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cpu_only):
+    if "eia" in pytorch_inference:
+        pytest.skip("The test is not for EIA  Images")
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
 
 
