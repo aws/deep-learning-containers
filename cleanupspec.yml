@@ -1,0 +1,13 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+  pre_build:
+    commands:
+      - pip install -r src/requirements.txt
+  build:
+    commands:
+      - echo Cleaning up EKS clusters...
+      - python src/cleanup_resources.py

@@ -19,7 +19,7 @@ phases:
         fi
       - pip install -r test/requirements.txt
       - echo Running pytest $TEST_TYPE tests on $DLC_IMAGES...
-      - cd test/dlc_tests && export DLC_IMAGES='test' && pytest -s sanity/test_clean_resources.py
+      - python test/testrunner.py
   post_build:
     commands:
       - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
