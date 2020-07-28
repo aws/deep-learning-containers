@@ -106,7 +106,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U \
-    https://torchvision-build.s3.amazonaws.com/1.5.1/cpu/torchvision-0.6.0-cp36-cp36m-linux_x86_64.whl
+    https://torchvision-build.s3.amazonaws.com/1.6.0/cpu/torchvision-0.7.0-cp36-cp36m-linux_x86_64.whl
 
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
