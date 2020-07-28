@@ -29,17 +29,23 @@ def delete_idle_eks_clusters(max_time=240):
         time_delta = now_time - create_time
         if time_delta.seconds / 60 > max_time:
             LOGGER.info(f"deleting cluster {cluster_name} which is older than {max_time / 60} hours old")
-            cfn_resp = cfn_client.list_stacks(StackStatusFilter=['CREATE_COMPLETE'])
+            cfn_resp = cfn_client.list_stacks()
             for stack in cfn_resp.get('StackSummaries'):
                 stack_name = stack.get("StackName")
                 if cluster_name in stack_name and "nodegroup" in stack_name and "eksctl" in stack_name:
-                    cfn_client.delete_stack(StackName=stack_name)
+                    if stack.get('StackStatus') == "DELETE_COMPLETE":
+                        break
+                    elif stack.get("StackStatus") != 'DELETE_IN_PROGRESS':
+                        cfn_client.delete_stack(StackName=stack_name)
                     cfn_waiter.wait(StackName=stack_name)
                     break
             for cluster_stack in cfn_resp.get('StackSummaries'):
                 cluster_stack_name = cluster_stack.get("StackName")
                 if cluster_name in cluster_stack_name and "nodegroup" not in cluster_stack_name and "eksctl" in stack_name:
-                    cfn_client.delete_stack(StackName=cluster_stack_name)
+                    if cluster_stack.get("StackStatus") == "DELETE_COMPLETE":
+                        break
+                    elif stack.get("StackStatus") != 'DELETE_IN_PROGRESS':
+                        cfn_client.delete_stack(StackName=cluster_stack_name)
                     cfn_waiter.wait(StackName=cluster_stack_name)
                     break
             client.delete_cluster(name=cluster_name)
