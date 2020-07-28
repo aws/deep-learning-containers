@@ -1,12 +1,15 @@
 import os
 import random
 
+import pytest
+
 from invoke import run
 
 import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
 
+@pytest.mark.model("squeezenet")
 def test_eks_mxnet_squeezenet_inference(mxnet_inference):
     num_replicas = "1"
 
@@ -49,6 +52,8 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
         run(f"kubectl delete service {selector_name}")
 
 
+@pytest.mark.integration("gluonnlp")
+@pytest.mark.model("bert_sst")
 def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
     num_replicas = "1"
 

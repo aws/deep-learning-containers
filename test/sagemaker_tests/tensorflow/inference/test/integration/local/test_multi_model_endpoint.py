@@ -73,12 +73,16 @@ def container(request, docker_base_name, tag, runtime_config):
         subprocess.check_call('docker rm -f sagemaker-tensorflow-serving-test'.split())
 
 
+@pytest.mark.processor("cpu")
+@pytest.mark.model("cifar, half_plus_three, half_plus_two")
 @pytest.mark.skip_gpu
 def test_ping():
     res = requests.get(PING_URL)
     assert res.status_code == 200
 
 
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three")
 @pytest.mark.skip_gpu
 def test_container_start_invocation_fail():
     x = {
@@ -90,6 +94,8 @@ def test_container_start_invocation_fail():
     assert "Model half_plus_three is not loaded yet." in str(y)
 
 
+@pytest.mark.processor("cpu")
+@pytest.mark.model("cifar, half_plus_three, half_plus_two")
 @pytest.mark.skip_gpu
 def test_list_models_empty():
     code, res = make_list_model_request()
@@ -98,6 +104,8 @@ def test_list_models_empty():
     assert len(res) == 0
 
 
+@pytest.mark.processor("cpu")
+@pytest.mark.model("non_existing_model")
 @pytest.mark.skip_gpu
 def test_delete_unloaded_model():
     # unloads the given model/version, no-op if not loaded
@@ -107,6 +115,9 @@ def test_delete_unloaded_model():
     assert 'Model {} is not loaded yet'.format(model_name) in res
 
 
+@pytest.mark.integration("delete_model")
+@pytest.mark.model("half_plus_three")
+@pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu
 def test_delete_model():
     model_name = 'half_plus_three'
@@ -134,6 +145,8 @@ def test_delete_model():
     assert 'Model {} is not loaded yet.'.format(model_name) in str(y2)
 
 
+@pytest.mark.model("half_plus_three, half_plus_two")
+@pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu
 def test_load_two_models():
     model_name_1 = 'half_plus_two'
@@ -175,6 +188,8 @@ def test_load_two_models():
     assert len(res3) == 2
 
 
+@pytest.mark.model("cifar")
+@pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu
 def test_load_one_model_two_times():
     model_name = 'cifar'
@@ -191,6 +206,8 @@ def test_load_one_model_two_times():
     assert'Model {} is already loaded'.format(model_name) in res2
 
 
+@pytest.mark.model("non_existing_model")
+@pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu
 def test_load_non_existing_model():
     model_name = 'non-existing'
@@ -204,8 +221,10 @@ def test_load_non_existing_model():
     assert 'Could not find valid base path {} for servable {}'.format(base_path, model_name) in str(res)
 
 
+@pytest.mark.model("non_existing_model")
+@pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu
-def test_bad_model_reqeust():
+def test_bad_model_request():
     bad_model_data = {
         'model_name': 'model_name',
         'uri': '/opt/ml/models/non-existing'
@@ -214,6 +233,8 @@ def test_bad_model_reqeust():
     assert code == 500
 
 
+@pytest.mark.model("invalid_version_model")
+@pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu
 def test_invalid_model_version():
     model_name = 'invalid_version'
