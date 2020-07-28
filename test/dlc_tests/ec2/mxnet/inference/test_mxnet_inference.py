@@ -36,20 +36,21 @@ def test_ec2_mxnet_squeezenet_inference_cpu(mxnet_inference, ec2_connection, reg
     run_ec2_mxnet_inference(mxnet_inference, SQUEEZENET_MODEL, "squeezenet", ec2_connection, "cpu", region, 80, 8081)
 
 
-@pytest.mark.integration("gluonnlp")
-@pytest.mark.model(BERT_MODEL)
+@pytest.mark.model(SQUEEZENET_MODEL)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", ["eia1.large"], indirect=True)
 def test_ec2_mxnet_resnet_inference_eia_cpu(mxnet_inference_eia, ec2_connection, region, eia_only):
     run_ec2_mxnet_inference(mxnet_inference_eia, RESNET_EIA_MODEL, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
 
 
+@pytest.mark.model(SQUEEZENET_MODEL)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", ["eia1.large"], indirect=True)
 def test_ec2_mxnet_resnet_inference_eia_gpu(mxnet_inference_eia, ec2_connection, region, eia_only):
     run_ec2_mxnet_inference(mxnet_inference_eia, RESNET_EIA_MODEL, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
 
-
+@pytest.mark.integration("gluonnlp")
+@pytest.mark.model(BERT_MODEL)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_mxnet_gluonnlp_inference_cpu(mxnet_inference, ec2_connection, region, cpu_only, py3_only):
     run_ec2_mxnet_inference(mxnet_inference, BERT_MODEL, "gluonnlp", ec2_connection, "cpu", region, 90, 9091)

@@ -25,12 +25,14 @@ def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cp
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
 
 
+@pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", ["eia1.large"], indirect=True)
 def test_ec2_pytorch_inference_eia_cpu(pytorch_inference_eia, ec2_connection, region, eia_only):
     ec2_pytorch_inference(pytorch_inference_eia, "eia", ec2_connection, region)
 
 
+@pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", ["eia1.large"], indirect=True)
 def test_ec2_pytorch_inference_eia_gpu(pytorch_inference_eia, ec2_connection, region, eia_only):
