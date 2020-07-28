@@ -81,6 +81,7 @@ def _get_safety_ignore_list(image_uri):
     return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version)
 
 
+@pytest.mark.model("N/A")
 @pytest.mark.canary("Run safety tests regularly on production images")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
 def test_safety(image):
