@@ -18,11 +18,6 @@ def ecs_cluster_name(request):
     return request.param
 
 
-@pytest.fixture(scope="function")
-def ei_accelerator_type(request):
-    return request.param if hasattr(request, "param") else None
-
-
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
 def ecs_cluster(request, ecs_client, ecs_cluster_name, region):
