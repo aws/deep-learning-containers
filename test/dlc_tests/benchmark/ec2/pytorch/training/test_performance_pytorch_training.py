@@ -27,6 +27,7 @@ def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_
 
 def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
     repo_name, image_tag = ecr_uri.split("/")[-1].split(":")
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
     connection.run(f"pwd >&2")
     connection.run(f"ls >&2")
     connection.run(f"ls ~ >&2")
@@ -38,7 +39,10 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(connection, e
     connection.run(f"nvidia-docker pull -q {ecr_uri}")
 
     # Run training command, display benchmark results to console
-    connection.run(f"nvidia-docker run --user root -e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} --shm-size 8G --env OMP_NUM_THREADS=1 --name {container_name} -itd -v /home/ubuntu/:/root/:delegated {ecr_uri} /bin/bash")
+    connection.run(f"nvidia-docker run --user root -e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} --shm-size 8G --env OMP_NUM_THREADS=1 --name {container_name} -itd "
+                   f"{container_test_local_dir}:{os.path.join(os.sep, 'test')} "
+                   f"-v /home/ubuntu/:/root/:delegated "
+                   f"{ecr_uri} /bin/bash")
     connection.run(
         f"nvidia-docker exec --user root {container_name} "
         f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
