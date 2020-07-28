@@ -109,6 +109,7 @@ def main():
         # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.
         report_train = os.path.join(os.getcwd(), "test", f"{test_type}_train.xml")
         report_infer = os.path.join(os.getcwd(), "test", f"{test_type}_infer.xml")
+        report_multinode_train = os.path.join(os.getcwd(), "test", f"eks_multinode_train.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
         os.chdir(os.path.join("test", "dlc_tests"))
@@ -127,16 +128,20 @@ def main():
             framework = frameworks_in_images[0]
             eks_cluster_name = setup_eks_cluster(framework)
 
-            #setup kubeflow
+            # setup kubeflow
             eks_utils.setup_kubeflow(eks_cluster_name)
-            
-            # Split training and inference, and run one after the other, to prevent scheduling issues
+
+            # Change 1: Split training and inference, and run one after the other, to prevent scheduling issues
             # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in
             # pods timing-out while they were in the Pending state. Scheduling 4 tests (and hence, 4 pods) at once
             # seems to be an optimal configuration.
+            # Change 2: Separate multi-node EKS tests from single-node tests in execution to prevent resource contention
             pytest_cmds = [
-                ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=4"],
-                ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4"],
+                ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=4",
+                 "-m", "not multinode"],
+                ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4",
+                 "-m", "not multinode"],
+                ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
             ]
         else:
             # Execute dlc_tests pytest command

@@ -15,7 +15,7 @@ release_images:
                             # has already been published. Re-released image will have minor version incremented by 1.
     inference:
       device_types: ["cpu", "gpu"]
-      python_versions: ["py37"]
+      python_versions: ["py36"]
       os_version: "ubuntu18.04"
       cuda_version: "cu100"
       example: False

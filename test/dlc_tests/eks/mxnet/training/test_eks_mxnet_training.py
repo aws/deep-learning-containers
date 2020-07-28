@@ -2,11 +2,14 @@ import os
 import random
 import re
 
+import pytest
+
 from invoke import run
 
 import test.test_utils.eks as eks_utils
 
 
+@pytest.mark.model("mnist")
 def test_eks_mxnet_single_node_training(mxnet_training):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
@@ -66,6 +69,8 @@ def test_eks_mxnet_single_node_training(mxnet_training):
         run("kubectl delete pods {}".format(pod_name))
 
 
+@pytest.mark.integration("dgl")
+@pytest.mark.model("gcn")
 def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
 
     """
@@ -123,6 +128,8 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
         run("kubectl delete pods {}".format(pod_name))
 
 
+@pytest.mark.integration("gluonnlp")
+@pytest.mark.model("TextCNN")
 def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
 
     """
