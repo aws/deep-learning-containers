@@ -264,8 +264,9 @@ def get_mms_run_command(model_names, processor="cpu"):
     parameters = [
         "{}={}".format(name, multi_model_location[name]) for name in model_names
     ]
+    multi_or_mxnet = "multi" if processor != "eia" else "mxnet"
     mms_command = (
-        "multi-model-server --start --mms-config /home/model-server/config.properties --models "
+        f"{multi_or_mxnet}-model-server --start --mms-config /home/model-server/config.properties --models "
         + " ".join(parameters)
     )
     return mms_command
