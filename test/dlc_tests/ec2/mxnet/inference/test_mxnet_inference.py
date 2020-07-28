@@ -103,4 +103,6 @@ def test_mxnet_inference_telemetry_gpu(mxnet_inference, ec2_connection, gpu_only
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_inference_telemetry_cpu(mxnet_inference, ec2_connection, cpu_only):
+    if "eia" in mxnet_inference:
+        pytest.skip("The test is not for EIA  Images")
     execute_ec2_inference_test(ec2_connection, mxnet_inference, MX_TELEMETRY_CMD)
