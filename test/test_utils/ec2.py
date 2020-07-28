@@ -369,7 +369,7 @@ def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, 
 
     # Run training command
     connection.run(
-        f"{docker_cmd} run --name ec2_training_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
+        f"{docker_cmd} run --name ec2_training_container --network='host' -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
         f" -itd {ecr_uri}",
         hide=True,
     )
