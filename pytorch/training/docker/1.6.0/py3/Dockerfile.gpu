@@ -112,9 +112,6 @@ RUN conda install -c pytorch magma-cuda101==2.5.2 \
     libgcc \
  && conda clean -ya
 
-RUN pip install psutil \
-                Pillow
-
 WORKDIR /opt/pytorch
 
 # Copy workaround script for incorrect hostname
@@ -132,8 +129,11 @@ RUN pip install \
     --no-cache-dir smdebug==${SMDEBUG_VERSION} \
     "sagemaker<2" \
     sagemaker-experiments==0.* \
+    --no-cache-dir "sagemaker-pytorch-training<3" \
     --no-cache-dir fastai==1.0.59 \
     "awscli<2" \
+    psutil \
+    Pillow \
     scipy \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
@@ -173,8 +173,6 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
-
-RUN pip install --no-cache-dir "sagemaker-pytorch-training<3"
 
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
