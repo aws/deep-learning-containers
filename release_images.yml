@@ -15,6 +15,17 @@ release_images:
                             # has already been published. Re-released image will have minor version incremented by 1.
   2:
     framework: "tensorflow"
+    version: "1.15.3"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py37", "py36"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu100"
+      example: True
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  3:
+    framework: "tensorflow"
       version: "2.2.0"
       training:
         device_types: ["cpu", "gpu"]
@@ -31,7 +42,7 @@ release_images:
         python_versions: ["py37"]
         os_version: "ubuntu18.04"
         cuda_version: "cu102"
-  3:
+  4:
     framework: "tensorflow"
       version: "2.2.0"
       training:
