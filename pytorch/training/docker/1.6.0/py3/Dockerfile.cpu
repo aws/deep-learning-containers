@@ -108,13 +108,11 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip install --no-deps --no-cache-dir -U \
     https://torchvision-build.s3.amazonaws.com/1.5.1/cpu/torchvision-0.6.0-cp36-cp36m-linux_x86_64.whl
 
-RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
-
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
-RUN chmod +x /usr/local/bin/deep_learning_container.py
-
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.6.0/license.txt
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
+ && chmod +x /usr/local/bin/deep_learning_container.py \
+ && curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.6.0/license.txt
 
 # fix safety issues
 RUN pip install psutil==5.6.7 \
