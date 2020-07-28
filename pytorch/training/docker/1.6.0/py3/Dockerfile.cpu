@@ -101,7 +101,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     scipy==1.2.2 \
     smdebug==${SMDEBUG_VERSION} \
     "sagemaker<2" \
-    sagemaker-experiments==0.x \
+    sagemaker-experiments==0.* \
     "sagemaker-pytorch-training<3" \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
