@@ -67,9 +67,10 @@ def setup_eks_cluster(framework_name):
     frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
     long_name = framework_name
     short_name = frameworks[long_name]
+    codebuild_version = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')[0:7]
     num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
     cluster_name = f"dlc-{short_name}-cluster-" \
-                   f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
+                   f"{codebuild_version}-{random.randint(1, 10000)}"
     try:
         eks_utils.eks_setup()
         eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
@@ -125,6 +126,10 @@ def main():
                 )
             framework = frameworks_in_images[0]
             eks_cluster_name = setup_eks_cluster(framework)
+
+            #setup kubeflow
+            eks_utils.setup_kubeflow(eks_cluster_name)
+            
             # Split training and inference, and run one after the other, to prevent scheduling issues
             # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in
             # pods timing-out while they were in the Pending state. Scheduling 4 tests (and hence, 4 pods) at once
