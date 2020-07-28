@@ -765,7 +765,7 @@ def ecs_training_test_executor(cluster_name, cluster_arn, training_command, imag
 
 
 def setup_ecs_inference_service(
-        docker_image_uri, framework, cluster_arn, model_name, worker_instance_id, ei_accelerator_type, num_gpus=None, region=DEFAULT_REGION,
+        docker_image_uri, framework, cluster_arn, model_name, worker_instance_id, ei_accelerator_type=None, num_gpus=None, region=DEFAULT_REGION,
 ):
     """
     Function to setup Inference service on ECS
