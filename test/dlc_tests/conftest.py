@@ -5,14 +5,19 @@ import random
 import sys
 
 import boto3
-from botocore.config import Config
 import docker
-from fabric import Connection
 import pytest
 
-from test import test_utils
-from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, KEYS_TO_DESTROY_FILE
+from botocore.config import Config
+from fabric import Connection
+
 import test.test_utils.ec2 as ec2_utils
+
+from test import test_utils
+from test.test_utils import (
+    DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2, KEYS_TO_DESTROY_FILE
+)
+from test.test_utils.test_reporting import TestReportGenerator
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -29,11 +34,11 @@ FRAMEWORK_FIXTURES = (
     "training",
     "inference",
     "gpu",
-    "cpu"
+    "cpu",
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
-collect_ignore = [os.path.join("container_tests", "*")]
+collect_ignore = [os.path.join("container_tests")]
 
 
 def pytest_addoption(parser):
@@ -43,6 +48,12 @@ def pytest_addoption(parser):
     )
     parser.addoption(
         "--canary", action="store_true", default=False, help="Run canary tests",
+    )
+    parser.addoption(
+        "--generate-coverage-doc", action="store_true", default=False, help="Generate a test coverage doc",
+    )
+    parser.addoption(
+        "--multinode", action="store_true", default=False, help="Run only multi-node tests",
     )
 
 
@@ -91,15 +102,19 @@ def ec2_instance_role_name(request):
 
 @pytest.fixture(scope="function")
 def ec2_instance_ami(request):
-    return request.param if hasattr(request, "param") else UBUNTU_16_BASE_DLAMI
+    return request.param if hasattr(request, "param") else UBUNTU_16_BASE_DLAMI_US_WEST_2
 
 
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
 def ec2_instance(
-        request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami,
-        region
+    request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami, region
 ):
+    if ec2_instance_type == "p3dn.24xlarge":
+        region = P3DN_REGION
+        ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
+        ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
+        ec2_instance_ami = UBUNTU_16_BASE_DLAMI_US_EAST_1
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
     params = {
@@ -113,9 +128,18 @@ def ec2_instance(
         "MaxCount": 1,
         "MinCount": 1,
     }
-    extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300, }}]
-    if ("benchmark" in os.getenv("TEST_TYPE") and (("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames) or "mxnet_inference" in request.fixturenames)) \
-            or ("tensorflow_training" in request.fixturenames and "gpu_only" in request.fixturenames and "horovod" in ec2_key_name):
+    extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300,}}]
+    if (
+        "benchmark" in os.getenv("TEST_TYPE")
+        and (
+            ("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames)
+            or "mxnet_inference" in request.fixturenames
+        )
+    ) or (
+        "tensorflow_training" in request.fixturenames
+        and "gpu_only" in request.fixturenames
+        and "horovod" in ec2_key_name
+    ):
         params["BlockDeviceMappings"] = extra_volume_size_mapping
     instances = ec2_resource.create_instances(**params)
     instance_id = instances[0].id
@@ -137,21 +161,25 @@ def ec2_instance(
 
 
 @pytest.fixture(scope="function")
-def ec2_connection(request, ec2_instance, ec2_key_name, region):
+def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, region):
     """
     Fixture to establish connection with EC2 instance if necessary
     :param request: pytest test request
     :param ec2_instance: ec2_instance pytest fixture
     :param ec2_key_name: unique key name
+    :param ec2_instance_type: ec2_instance_type pytest fixture
     :param region: Region where ec2 instance is launched
     :return: Fabric connection object
     """
     instance_id, instance_pem_file = ec2_instance
-    LOGGER.info(f"Instance ip_address: {ec2_utils.get_public_ip(instance_id, region)}")
+    region = P3DN_REGION if ec2_instance_type == "p3dn.24xlarge" else region
+    ip_address = ec2_utils.get_public_ip(instance_id, region=region)
+    LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
+    LOGGER.info(f"Connecting to {user}@{ip_address}")
     conn = Connection(
         user=user,
-        host=ec2_utils.get_public_ip(instance_id, region),
+        host=ip_address,
         connect_kwargs={"key_filename": [instance_pem_file]},
     )
 
@@ -210,9 +238,11 @@ def example_only():
 
 def pytest_configure(config):
     # register canary marker
-    config.addinivalue_line(
-        "markers", "canary(message): mark test to run as a part of canary tests."
-    )
+    config.addinivalue_line("markers", "canary(message): mark test to run as a part of canary tests.")
+    config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
+    config.addinivalue_line("markers", "model(model_name): name of the model being tested")
+    config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
+    config.addinivalue_line("markers", "processor(cpu/gpu/eia): explicitly mark which processor is used")
 
 
 def pytest_runtest_setup(item):
@@ -220,12 +250,24 @@ def pytest_runtest_setup(item):
         canary_opts = [mark for mark in item.iter_markers(name="canary")]
         if not canary_opts:
             pytest.skip("Skipping non-canary tests")
+    if item.config.getoption("--multinode"):
+        multinode_opts = [mark for mark in item.iter_markers(name="multinode")]
+        if not multinode_opts:
+            pytest.skip("Skipping non-multinode tests")
+
+
+def pytest_collection_modifyitems(session, config, items):
+    if config.getoption("--generate-coverage-doc"):
+        report_generator = TestReportGenerator(items)
+        report_generator.generate_coverage_doc()
+        report_generator.generate_sagemaker_reports()
 
 
 def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, values_to_generate_for_fixture):
     """
     Take a dictionary (values_to_generate_for_fixture), that maps a fixture name used in a test function to another
     fixture that needs to be parametrized, and parametrize to create unique resources for a test.
+
     :param metafunc_obj: pytest metafunc object
     :param images_to_parametrize: <list> list of image URIs which are used in a test
     :param values_to_generate_for_fixture: <dict> Mapping of "Fixture used" -> "Fixture to be parametrized"

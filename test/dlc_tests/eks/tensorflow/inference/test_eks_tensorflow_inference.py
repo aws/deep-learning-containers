@@ -1,12 +1,15 @@
 import os
 import random
 
-import test.test_utils.eks as eks_utils
-import test.test_utils as test_utils
+import pytest
 
 from invoke import run
 
+import test.test_utils.eks as eks_utils
+import test.test_utils as test_utils
 
+
+@pytest.mark.model("half_plus_two")
 def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
     num_replicas = "1"
 
@@ -27,7 +30,7 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
         "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference
     }
 
-    if processor is "gpu":
+    if processor == "gpu":
         search_replace_dict["<NUM_GPUS>"] = "1"
 
     eks_utils.write_eks_yaml_file_from_template(

@@ -19,6 +19,7 @@ import pytest
 
 from botocore.config import Config
 
+
 # these regions have some p2 and p3 instances, but not enough for automated testing
 NO_P2_REGIONS = [
     'ca-central-1',
@@ -55,6 +56,15 @@ def pytest_addoption(parser):
     parser.addoption('--instance-types')
     parser.addoption('--accelerator-type')
     parser.addoption('--tag')
+    parser.addoption('--generate-coverage-doc', default=False, action='store_true',
+                     help='use this option to generate test coverage doc')
+
+
+def pytest_collection_modifyitems(session, config, items):
+    if config.getoption("--generate-coverage-doc"):
+        from test.test_utils.test_reporting import TestReportGenerator
+        report_generator = TestReportGenerator(items, is_sagemaker=True)
+        report_generator.generate_coverage_doc(framework="tensorflow", job_type="inference")
 
 
 def pytest_configure(config):
@@ -123,3 +133,11 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
     if (region in NO_P2_REGIONS and instance_type.startswith('ml.p2')) or \
             (region in NO_P3_REGIONS and instance_type.startswith('ml.p3')):
         pytest.skip('Skipping GPU test in region {}'.format(region))
+
+
+@pytest.fixture(autouse=True)
+def skip_by_device_type(request, instance_type):
+    is_gpu = instance_type[3] in ['g', 'p']
+    if (request.node.get_closest_marker('skip_gpu') and is_gpu) or \
+            (request.node.get_closest_marker('skip_cpu') and not is_gpu):
+        pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
