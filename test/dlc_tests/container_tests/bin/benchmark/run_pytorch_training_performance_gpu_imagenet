@@ -15,7 +15,6 @@ mkdir -p ${HOME_DIR}
 mkdir -p ${BIN_DIR}
 mkdir -p ${LOG_DIR}
 
-set -e
 cd ~
 echo Benchmark Preparation started: >&2
 START=$(date +%s)
@@ -33,6 +32,7 @@ END=$(date +%s)
 DIFF=$(( END - START ))
 echo Preparation Stage took $(( DIFF/60 )) mins to finish>&2
 
+set -e
 echo Benchmark Started: >&2
 START=$(date +%s)
 python examples/imagenet/main.py \
