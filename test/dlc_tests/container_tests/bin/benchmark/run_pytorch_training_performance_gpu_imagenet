@@ -43,7 +43,7 @@ python examples/imagenet/main.py \
        --world-size 1 \
        --rank 0 \
        --workers 30 \
-       --epochs 0 \
+       --epochs 1 \
        ~/imagenet 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
 END=$(date +%s)
 DIFF=$(( END - START ))
