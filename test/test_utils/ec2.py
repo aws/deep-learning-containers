@@ -357,12 +357,12 @@ def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, 
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
+    connection.run('pip install --upgrade pip')
     connection.run('pip install tensorflow')
     connection.run('pip install tf-nightly')
     connection.run('pip install tensorflow_datasets')
     connection.run('ls')
     connection.run(f'cd {container_test_local_dir} && python bin/start_dataservice.py')
-
 
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
