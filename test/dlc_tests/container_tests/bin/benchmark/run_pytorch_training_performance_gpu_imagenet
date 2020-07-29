@@ -32,7 +32,7 @@ END=$(date +%s)
 DIFF=$(( END - START ))
 echo Preparation Stage took $(( DIFF/60 )) mins to finish>&2
 
-echo Benchmark Started: >&2
+echo Benchmark started: >&2
 START=$(date +%s)
 timeout 60m python examples/imagenet/main.py \
        -a resnet50 \
@@ -50,7 +50,7 @@ DIFF=$(( END - START ))
 echo Script took $(( DIFF/60 )) mins to finish >> ${LOG_DIR}/"${LOG_FILE}"
 echo Benchmark Results: >&2
 echo PyTorch Training py"${PYTHON_VERSION}" gpu imagenet>&2
-tail -10 ${LOG_DIR}/${LOG_FILE} >&2 # Display only the results to console
+tail -3 ${LOG_DIR}/${LOG_FILE} >&2 # Display only the results to console
 aws s3 cp ${LOG_DIR}/"${LOG_FILE}" s3://dlinfra-dlc-cicd-performance/pytorch/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}"
 echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/pytorch/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}" >&2
 
