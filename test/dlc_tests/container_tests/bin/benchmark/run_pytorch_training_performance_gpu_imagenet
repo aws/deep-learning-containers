@@ -24,6 +24,7 @@ function trigger_test() {
     output_stream="2>&1 | tee ${LOG_DIR}/${LOG_FILE}"
     epochs=0
   fi
+  echo $output_stream >&2
   timeout "$time_out" python examples/imagenet/main.py \
        -a resnet50 \
        --dist-url 'tcp://127.0.0.1:8080' \
@@ -33,7 +34,7 @@ function trigger_test() {
        --rank 0 \
        --workers 30 \
        --epochs $epochs \
-       ~/imagenet "$output_stream"
+       ~/imagenet $output_stream
 }
 
 cd ~
