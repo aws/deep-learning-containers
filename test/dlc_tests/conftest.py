@@ -351,7 +351,7 @@ def pytest_generate_tests(metafunc):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
                     if is_example_lookup or is_standard_lookup:
-                        if "cpu_only" in metafunc.fixturenames and "cpu" in image:
+                        if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
