@@ -1,6 +1,5 @@
 #!/bin/bash
 
-echo Benchmark Starts: >&2
 PYTHON_VERSION=$(python -c 'import sys; print(sys.version_info[0])' | tr -d "'")
 if [ "$PYTHON_VERSION" -eq 2 ]
 then
@@ -18,6 +17,8 @@ mkdir -p ${LOG_DIR}
 
 set -e
 cd ~
+echo Benchmark Preparation started: >&2
+START=$(date +%s)
 timeout 5m python examples/imagenet/main.py \
        -a resnet50 \
        --dist-url 'tcp://127.0.0.1:8080' \
@@ -28,7 +29,12 @@ timeout 5m python examples/imagenet/main.py \
        --workers 30 \
        --epochs 0 \
        ~/imagenet >&2
+END=$(date +%s)
+DIFF=$(( END - START ))
+echo Preparation Stage took $(( DIFF/60 )) mins to finish>&2
 
+echo Benchmark Started: >&2
+START=$(date +%s)
 python examples/imagenet/main.py \
        -a resnet50 \
        --dist-url 'tcp://127.0.0.1:8080' \
@@ -37,9 +43,11 @@ python examples/imagenet/main.py \
        --world-size 1 \
        --rank 0 \
        --workers 30 \
-       --epochs 1 \
-       ~/imagenet >&2
-#       ~/imagenet 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
+       --epochs 0 \
+       ~/imagenet 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
+END=$(date +%s)
+DIFF=$(( END - START ))
+echo Script took $(( DIFF/60 )) mins to finish >> ${LOG_DIR}/"${LOG_FILE}"
 echo Benchmark Results: >&2
 echo PyTorch Training py"${PYTHON_VERSION}" gpu imagenet>&2
 tail -3 ${LOG_DIR}/${LOG_FILE} >&2 # Display only the results to console
