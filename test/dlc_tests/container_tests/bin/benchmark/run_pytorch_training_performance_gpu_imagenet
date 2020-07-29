@@ -15,10 +15,16 @@ mkdir -p ${HOME_DIR}
 mkdir -p ${BIN_DIR}
 mkdir -p ${LOG_DIR}
 
-cd ~
-echo Benchmark Preparation started: >&2
-START=$(date +%s)
-timeout 5m python examples/imagenet/main.py \
+function trigger_test() {
+  time_out=$1
+  output_stream=""
+  epochs=0
+  if [ "$2" == "run" ]
+  then
+    output_stream="2>&1 | tee ${LOG_DIR}/${LOG_FILE}"
+    epochs=0
+  fi
+  timeout "$time_out" python examples/imagenet/main.py \
        -a resnet50 \
        --dist-url 'tcp://127.0.0.1:8080' \
        --dist-backend 'nccl' \
@@ -26,24 +32,21 @@ timeout 5m python examples/imagenet/main.py \
        --world-size 1 \
        --rank 0 \
        --workers 30 \
-       --epochs 0 \
-       ~/imagenet
+       --epochs $epochs \
+       ~/imagenet "$output_stream"
+}
+
+cd ~
+echo Benchmark Preparation started: >&2
+START=$(date +%s)
+trigger_test "5m" "prep"
 END=$(date +%s)
 DIFF=$(( END - START ))
 echo Preparation Stage took $(( DIFF/60 )) mins to finish>&2
 
 echo Benchmark started: >&2
 START=$(date +%s)
-timeout 60m python examples/imagenet/main.py \
-       -a resnet50 \
-       --dist-url 'tcp://127.0.0.1:8080' \
-       --dist-backend 'nccl' \
-       --multiprocessing-distributed \
-       --world-size 1 \
-       --rank 0 \
-       --workers 30 \
-       --epochs 16 \
-       ~/imagenet 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
+trigger_test "60m" "run"
 python /test/bin/benchmark/get_pytorch_performance_num.py ${LOG_DIR}/"${LOG_FILE}" >> ${LOG_DIR}/"${LOG_FILE}"
 END=$(date +%s)
 DIFF=$(( END - START ))
