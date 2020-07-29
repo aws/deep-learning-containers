@@ -42,6 +42,28 @@ def get_ec2_instance_type(default, processor, disable_p3dn=False):
     return [instance_type]
 
 
+def get_ec2_accelerator_type(default, processor):
+    """
+    Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
+    for contexts where the variable is not present (i.e. PR, Nightly, local testing)
+
+    :param default: Default instance type to use - Should never be p3dn
+    :param processor: "eia"
+
+
+    :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
+    a list.
+    """
+    allowed_processors = ("eia")
+    if processor not in allowed_processors:
+        raise RuntimeError(
+            f"Aborting EC2 test run. Unrecognized processor type {processor}. "
+            f"Please choose from {allowed_processors}"
+        )
+    accelerator_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
+    return [accelerator_type]
+
+
 def launch_instance(
     ami_id, instance_type, ei_accelerator_type, ec2_key_name=None, region=DEFAULT_REGION, user_data=None,
     iam_instance_profile_name=None, instance_name=""
