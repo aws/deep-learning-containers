@@ -6,20 +6,20 @@ from retrying import retry
 from fabric import Connection
 from botocore.config import Config
 
-from . import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
+from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 
-def get_ec2_instance_type(default, processor, enable_p3dn=False):
+def get_ec2_instance_type(default, processor, disable_p3dn=False):
     """
     Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
     for contexts where the variable is not present (i.e. PR, Nightly, local testing)
 
-    :param default: Default instance type to use
+    :param default: Default instance type to use - Should never be p3dn
     :param processor: "cpu" or "gpu"
-    :param enable_p3dn: Boolean to determine whether or not to run tests on p3dn. If set to false, default
-    gpu instance type will be used. If default gpu instance type is p3dn, then use small gpu instance type (p2.xlarge)
+    :param disable_p3dn: Boolean to determine whether or not to run tests on p3dn. If set to true, default
+    gpu instance type will be used.
 
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
     a list.
@@ -31,14 +31,13 @@ def get_ec2_instance_type(default, processor, enable_p3dn=False):
             f"Aborting EC2 test run. Unrecognized processor type {processor}. "
             f"Please choose from {allowed_processors}"
         )
-    if default == p3dn and not enable_p3dn:
+    if default == p3dn:
         raise RuntimeError(
-            "Default instance type is p3dn but p3dn testing is disabled. Please either enable p3dn "
-            "by setting enable_p3dn=True, or change the default instance type"
+            "Default instance type should never be p3dn.24xlarge"
         )
     instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
-    if instance_type == p3dn and not enable_p3dn:
-        return [default]
+    if instance_type == p3dn and disable_p3dn:
+        instance_type = default
     return [instance_type]
 
 
@@ -147,7 +146,7 @@ def get_instance_user(instance_id, region=DEFAULT_REGION):
     :return: <str> user name
     """
     instance = get_instance_from_id(instance_id, region)
-    user = "ubuntu" if instance["ImageId"] in [UBUNTU_16_BASE_DLAMI] else "ec2-user"
+    user = "ubuntu" if instance["ImageId"] in UL_AMI_LIST else "ec2-user"
     return user
 
 
@@ -357,11 +356,12 @@ def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, 
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
-    connection.run('pip install --upgrade pip')
-    connection.run('pip install tensorflow')
-    connection.run('pip install tf-nightly')
-    connection.run('pip install tensorflow_datasets')
-    connection.run(f'cd {container_test_local_dir} && python bin/start_dataservice.py')
+    connection.run('pip3 install --upgrade pip')
+    connection.run('pip3 install tensorflow')
+    connection.run('pip3 install tf-nightly')
+    connection.run('pip3 install tensorflow_datasets')
+    connection.run('ls')
+    connection.run(f'cd {container_test_local_dir} && python3 bin/start_dataservice.py')
 
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
@@ -378,7 +378,7 @@ def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, 
         timeout=3000,
     )
 
-def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash"):
+def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash", large_shm=False):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
     if executable == "bash":
@@ -390,9 +390,10 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     # Run training command
+    shm_setting = '--shm-size="1g"' if large_shm else ""
     connection.run(
         f"{docker_cmd} run --name ec2_training_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
-        f" -itd {ecr_uri}",
+        f" {shm_setting} -itd {ecr_uri}",
         hide=True,
     )
     return connection.run(
