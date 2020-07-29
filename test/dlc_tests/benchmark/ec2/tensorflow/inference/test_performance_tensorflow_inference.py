@@ -1,7 +1,7 @@
 import os
 import time
 import pytest
-from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, is_tf1
+from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, is_tf1, is_tf20, framework_short_version
 
 
 @pytest.mark.model("inception, RCNN-Resnet101-kitti, resnet50_v2, mnist, SSDResnet50Coco")
@@ -21,8 +21,11 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     python_version = "py2" if "py2" in image_uri else "py3"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     tf_version = "1" if is_tf1(image_uri) else "2"
-    tf_api_version = '1.15' if tf_version == '1' else '2.1.0rc1'
+    tf_api_version = '1.15' if tf_version == '1' else framework_short_version(image_uri)
     tf_version_folder = '1.15' if tf_version == '1' else '2.1'
+    if is_tf20(image_uri):
+        tf_version = "20"
+
     processor_folder = "CPU-WITH-MKL" if processor == "cpu" else "GPU"
 
     # Make sure we are logged into ECR so we can pull the image
@@ -31,10 +34,17 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
 
     # Run performance inference command, display benchmark results to console
-    ec2_connection.run(
-        f"pip install boto3 grpcio tensorflow-serving-api=={tf_api_version} --user --no-warn-script-location"
-    )
-    ec2_connection.sudo(f"aws s3 cp s3://tensorflow-aws/{tf_version_folder}/Serving/{processor_folder}/tensorflow_model_server /usr/bin/")
+    try:
+        ec2_connection.run(
+            f"pip install boto3 grpcio tensorflow-serving-api=={tf_api_version} --user --no-warn-script-location"
+        )
+    except Exception:
+        latest_available_version = "1.15" if tf_version
+        ec2_connection.run(
+            f"pip install boto3 grpcio tensorflow-serving-api==2.2.0 --user --no-warn-script-location"
+        )
+    ec2_connection.sudo(
+        f"aws s3 cp s3://tensorflow-aws/{tf_version_folder}/Serving/{processor_folder}/tensorflow_model_server /usr/bin/")
     ec2_connection.sudo(f"chmod +x /usr/bin/tensorflow_model_server")
     time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
@@ -49,5 +59,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
         f"echo Tensorflow{tf_version} Inference {processor} {python_version} >&2"
     )
     ec2_connection.run(f"tail {log_file} >&2")
-    ec2_connection.run(f"aws s3 cp {log_file} {BENCHMARK_RESULTS_S3_BUCKET}/tensorflow{tf_version}/ec2/inference/{processor}/{python_version}/{log_file}")
-    ec2_connection.run(f"echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/tensorflow{tf_version}/ec2/inference/{processor}/{python_version}/{log_file} >&2")
+    ec2_connection.run(
+        f"aws s3 cp {log_file} {BENCHMARK_RESULTS_S3_BUCKET}/tensorflow{tf_version}/ec2/inference/{processor}/{python_version}/{log_file}")
+    ec2_connection.run(
+        f"echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/tensorflow{tf_version}/ec2/inference/{processor}/{python_version}/{log_file} >&2")

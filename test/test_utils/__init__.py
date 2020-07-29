@@ -74,6 +74,15 @@ def is_tf20(image_uri):
     return bool(re.search(r'2\.0\.\d+', image_uri))
 
 
+def framework_version(image_uri):
+    m = re.search(r'([0-9]*\.[0-9]*\.[0-9]*)', image_uri)
+    return m.group()
+
+
+def framework_short_version(image_uri):
+    m = re.search(r'((?P<short_version>[0-9]*\.[0-9]*)\.[0-9]*)', image_uri)
+    return m.group("short_version")
+
 def is_pr_context():
     return os.getenv("BUILD_CONTEXT") == "PR"
 
