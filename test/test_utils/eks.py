@@ -624,7 +624,8 @@ def get_dgl_branch(ctx):
     :return: latest dgl branch, i.e. 0.4.x
     """
     dgl_local_repo = '.get_dgl_branch'
-    ctx.run(f"git clone https://github.com/dmlc/dgl.git {dgl_local_repo}")
+    if not os.path.exists(dgl_local_repo):
+        ctx.run(f"git clone https://github.com/dmlc/dgl.git {dgl_local_repo}")
     with ctx.cd(dgl_local_repo):
         branch = ctx.run("git branch -r")
         branches = branch.stdout.split()
