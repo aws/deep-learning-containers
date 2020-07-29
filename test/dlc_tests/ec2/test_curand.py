@@ -8,7 +8,7 @@ from test.test_utils.ec2 import execute_ec2_training_test
 CURAND_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testCurand")
 
 
-@pytest.mark.integration("test_curand_in_gpu")
+@pytest.mark.integration("curand")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
 def test_curand_gpu(training, ec2_connection, gpu_only):
