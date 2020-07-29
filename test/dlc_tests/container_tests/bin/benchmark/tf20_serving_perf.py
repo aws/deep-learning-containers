@@ -517,8 +517,8 @@ def main():
     keys = [
         # "saved_model_half_plus_two_cpu",
         "INCEPTION",
-        #"MNIST",
-        #"Resnet50v2",
+        "MNIST",
+        "Resnet50v2",
         #"RCNN-Resnet101-kitti",
         #"SSDResnet50Coco",
     ]
