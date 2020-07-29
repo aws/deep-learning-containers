@@ -131,4 +131,3 @@ def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only):
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)
-
