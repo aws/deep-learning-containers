@@ -20,11 +20,10 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
     python_version = "py2" if "py2" in image_uri else "py3"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    tf_version = "1" if is_tf1(image_uri) else "2"
-    tf_api_version = '1.15' if tf_version == '1' else framework_short_version(image_uri)
-    tf_version_folder = '1.15' if tf_version == '1' else '2.1'
-    if is_tf20(image_uri):
-        tf_version = "20"
+    tf_major_version = "1" if is_tf1(image_uri) else "2"
+    tf_api_version = framework_short_version(image_uri)
+    tf_version_folder = '1.15' if tf_major_version == '1' else '2.1'
+    tf_script_version = tf_major_version if not is_tf20(image_uri) else "20"
 
     processor_folder = "CPU-WITH-MKL" if processor == "cpu" else "GPU"
 
@@ -33,15 +32,15 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
 
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
 
-    # Run performance inference command, display benchmark results to console
+
     try:
         ec2_connection.run(
             f"pip install boto3 grpcio tensorflow-serving-api=={tf_api_version} --user --no-warn-script-location"
         )
-    except Exception:
-        latest_available_version = "1.15" if tf_version
+    except Exception:   # in case tfs version is behind tf version
+        latest_tfs_api = '"tensorflow-serving-api<2"' if tf_major_version == "1" else '"tensorflow-serving-api>=2"'
         ec2_connection.run(
-            f"pip install boto3 grpcio tensorflow-serving-api==2.2.0 --user --no-warn-script-location"
+            f'pip install boto3 grpcio {latest_tfs_api} --user --no-warn-script-location'
         )
     ec2_connection.sudo(
         f"aws s3 cp s3://tensorflow-aws/{tf_version_folder}/Serving/{processor_folder}/tensorflow_model_server /usr/bin/")
@@ -50,16 +49,16 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
     log_file = f"inference_benchmark_results_{commit_info}_{time_str}.log"
     ec2_connection.run(
-        f"python {container_test_local_dir}/bin/benchmark/tf{tf_version}_serving_perf.py "
+        f"python {container_test_local_dir}/bin/benchmark/tf{tf_script_version}_serving_perf.py "
         f"--processor {processor} --docker_image_name {image_uri} --run_all_s3 --binary /usr/bin/tensorflow_model_server --get_perf --iterations 1000 "
         f"2>&1 | tee {log_file}"
     )
     ec2_connection.run(
         f"echo Benchmark Results: >&2;"
-        f"echo Tensorflow{tf_version} Inference {processor} {python_version} >&2"
+        f"echo Tensorflow{tf_major_version} Inference {processor} {python_version} >&2"
     )
     ec2_connection.run(f"tail {log_file} >&2")
     ec2_connection.run(
-        f"aws s3 cp {log_file} {BENCHMARK_RESULTS_S3_BUCKET}/tensorflow{tf_version}/ec2/inference/{processor}/{python_version}/{log_file}")
+        f"aws s3 cp {log_file} {BENCHMARK_RESULTS_S3_BUCKET}/tensorflow{tf_major_version}/ec2/inference/{processor}/{python_version}/{log_file}")
     ec2_connection.run(
-        f"echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/tensorflow{tf_version}/ec2/inference/{processor}/{python_version}/{log_file} >&2")
+        f"echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/tensorflow{tf_major_version}/ec2/inference/{processor}/{python_version}/{log_file} >&2")
