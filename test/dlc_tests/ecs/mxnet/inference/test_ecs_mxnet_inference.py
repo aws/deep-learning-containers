@@ -27,7 +27,7 @@ def test_ecs_mxnet_inference_cpu(mxnet_inference, ecs_container_instance, region
 
 
 @pytest.mark.model("squeezenet")
-@pytest.mark.parametrize("ecs_instance_type", ["c5.18xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", ["eia1.large"], indirect=True)
 def test_ecs_mxnet_inference_eia(mxnet_inference_eia, ecs_container_instance, ei_accelerator_type, region, eia_only):
