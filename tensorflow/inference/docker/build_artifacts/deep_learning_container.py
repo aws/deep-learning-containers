@@ -20,7 +20,7 @@ def _validate_instance_id(instance_id):
     """
     Validate instance ID
     """
-    instance_id_regex = r'^(i-\S{17})'
+    instance_id_regex = r"^(i-\S{17})"
     compiled_regex = re.compile(instance_id_regex)
     match = compiled_regex.match(instance_id)
 

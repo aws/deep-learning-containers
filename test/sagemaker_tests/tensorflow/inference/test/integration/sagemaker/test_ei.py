@@ -17,23 +17,23 @@ import pytest
 
 from ..sagemaker import util
 
-EI_SUPPORTED_REGIONS = ['us-east-1', 'us-east-2', 'us-west-2',
-                        'eu-west-1', 'ap-northeast-1', 'ap-northeast-2']
+EI_SUPPORTED_REGIONS = ["us-east-1", "us-east-2", "us-west-2",
+                        "eu-west-1", "ap-northeast-1", "ap-northeast-2"]
 
 
-@pytest.fixture(params=os.environ['TEST_EI_VERSIONS'].split(','))
+@pytest.fixture(params=os.environ["TEST_EI_VERSIONS"].split(","))
 def version(request):
     return request.param
 
 
 @pytest.fixture
 def repo(request):
-    return request.config.getoption('--repo') or 'sagemaker-tensorflow-serving-eia'
+    return request.config.getoption("--repo") or "sagemaker-tensorflow-serving-eia"
 
 
 @pytest.fixture
 def tag(request, version):
-    return request.config.getoption('--tag') or f'{version}-cpu'
+    return request.config.getoption("--tag") or f"{version}-cpu"
 
 
 @pytest.fixture
@@ -41,37 +41,37 @@ def image_uri(registry, region, repo, tag):
     return util.image_uri(registry, region, repo, tag)
 
 
-@pytest.fixture(params=os.environ['TEST_EI_INSTANCE_TYPES'].split(','))
+@pytest.fixture(params=os.environ["TEST_EI_INSTANCE_TYPES"].split(","))
 def instance_type(request, region):
     return request.param
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def accelerator_type(request):
-    return request.config.getoption('--accelerator-type') or 'ml.eia1.medium'
+    return request.config.getoption("--accelerator-type") or "ml.eia1.medium"
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def model_data(region):
-    return ('s3://sagemaker-sample-data-{}/tensorflow/model'
-            '/resnet/resnet_50_v2_fp32_NCHW.tar.gz').format(region)
+    return ("s3://sagemaker-sample-data-{}/tensorflow/model"
+            "/resnet/resnet_50_v2_fp32_NCHW.tar.gz").format(region)
 
 
 @pytest.fixture
 def input_data():
-    return {'instances': [[[[random.random() for _ in range(3)] for _ in range(3)]]]}
+    return {"instances": [[[[random.random() for _ in range(3)] for _ in range(3)]]]}
 
 
 @pytest.fixture
 def skip_if_no_accelerator(accelerator_type):
     if accelerator_type is None:
-        pytest.skip('Skipping because accelerator type was not provided')
+        pytest.skip("Skipping because accelerator type was not provided")
 
 
 @pytest.fixture
 def skip_if_non_supported_ei_region(region):
     if region not in EI_SUPPORTED_REGIONS:
-        pytest.skip('EI is not supported in {}'.format(region))
+        pytest.skip("EI is not supported in {}".format(region))
 
 
 @pytest.mark.processor("eia")

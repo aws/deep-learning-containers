@@ -27,20 +27,20 @@ from urllib3.util.retry import Retry
 from multi_model_utils import lock, timeout, MultiModelException
 import tfs_utils
 
-SAGEMAKER_MULTI_MODEL_ENABLED = os.environ.get('SAGEMAKER_MULTI_MODEL', 'false').lower() == 'true'
-INFERENCE_SCRIPT_PATH = '/opt/ml/model/code/inference.py'
+SAGEMAKER_MULTI_MODEL_ENABLED = os.environ.get("SAGEMAKER_MULTI_MODEL", "false").lower() == "true"
+INFERENCE_SCRIPT_PATH = "/opt/ml/model/code/inference.py"
 
-SAGEMAKER_BATCHING_ENABLED = os.environ.get('SAGEMAKER_TFS_ENABLE_BATCHING', 'false').lower()
-MODEL_CONFIG_FILE_PATH = '/sagemaker/model-config.cfg'
-TFS_GRPC_PORT = os.environ.get('TFS_GRPC_PORT')
-TFS_REST_PORT = os.environ.get('TFS_REST_PORT')
-SAGEMAKER_TFS_PORT_RANGE = os.environ.get('SAGEMAKER_SAFE_PORT_RANGE')
+SAGEMAKER_BATCHING_ENABLED = os.environ.get("SAGEMAKER_TFS_ENABLE_BATCHING", "false").lower()
+MODEL_CONFIG_FILE_PATH = "/sagemaker/model-config.cfg"
+TFS_GRPC_PORT = os.environ.get("TFS_GRPC_PORT")
+TFS_REST_PORT = os.environ.get("TFS_REST_PORT")
+SAGEMAKER_TFS_PORT_RANGE = os.environ.get("SAGEMAKER_SAFE_PORT_RANGE")
 
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-CUSTOM_ATTRIBUTES_HEADER = 'X-Amzn-SageMaker-Custom-Attributes'
+CUSTOM_ATTRIBUTES_HEADER = "X-Amzn-SageMaker-Custom-Attributes"
 
 
 def default_handler(data, context):
@@ -78,15 +78,15 @@ class PythonServiceResource:
             else:
                 self._handlers = default_handler
 
-        self._tfs_enable_batching = SAGEMAKER_BATCHING_ENABLED == 'true'
-        self._tfs_default_model_name = os.environ.get('TFS_DEFAULT_MODEL_NAME', "None")
+        self._tfs_enable_batching = SAGEMAKER_BATCHING_ENABLED == "true"
+        self._tfs_default_model_name = os.environ.get("TFS_DEFAULT_MODEL_NAME", "None")
 
     def on_post(self, req, res, model_name=None):
         log.info(req.uri)
         if model_name or "invocations" in req.uri:
             self._handle_invocation_post(req, res, model_name)
         else:
-            data = json.loads(req.stream.read().decode('utf-8'))
+            data = json.loads(req.stream.read().decode("utf-8"))
             self._handle_load_model_post(res, data)
 
     def _parse_sagemaker_port_range(self, port_range):
@@ -96,37 +96,37 @@ class PythonServiceResource:
         rest_port = lower
         grpc_port = (lower + upper) // 2
         tfs_ports = {
-            'rest_port': [port for port in range(rest_port, grpc_port)],
-            'grpc_port': [port for port in range(grpc_port, upper)],
+            "rest_port": [port for port in range(rest_port, grpc_port)],
+            "grpc_port": [port for port in range(grpc_port, upper)],
         }
         return tfs_ports
 
     def _ports_available(self):
         with lock():
-            rest_ports = self._tfs_ports['rest_port']
-            grpc_ports = self._tfs_ports['grpc_port']
+            rest_ports = self._tfs_ports["rest_port"]
+            grpc_ports = self._tfs_ports["grpc_port"]
         return len(rest_ports) > 0 and len(grpc_ports) > 0
 
     def _handle_load_model_post(self, res, data):  # noqa: C901
-        model_name = data['model_name']
-        base_path = data['url']
+        model_name = data["model_name"]
+        base_path = data["url"]
 
         # model is already loaded
         if model_name in self._model_tfs_pid:
             res.status = falcon.HTTP_409
             res.body = json.dumps({
-                'error': 'Model {} is already loaded.'.format(model_name)
+                "error": "Model {} is already loaded.".format(model_name)
             })
 
         # check if there are available ports
         if not self._ports_available():
             res.status = falcon.HTTP_507
             res.body = json.dumps({
-                'error': 'Memory exhausted: no available ports to load the model.'
+                "error": "Memory exhausted: no available ports to load the model."
             })
         with lock():
-            self._model_tfs_rest_port[model_name] = self._tfs_ports['rest_port'].pop()
-            self._model_tfs_grpc_port[model_name] = self._tfs_ports['grpc_port'].pop()
+            self._model_tfs_rest_port[model_name] = self._tfs_ports["rest_port"].pop()
+            self._model_tfs_grpc_port[model_name] = self._tfs_ports["grpc_port"].pop()
 
         # validate model files are in the specified base_path
         if self.validate_model_dir(base_path):
@@ -135,13 +135,13 @@ class PythonServiceResource:
                 self._import_custom_modules(model_name)
 
                 tfs_config = tfs_utils.create_tfs_config_individual_model(model_name, base_path)
-                tfs_config_file = '/sagemaker/tfs-config/{}/model-config.cfg'.format(model_name)
-                log.info('tensorflow serving model config: \n%s\n', tfs_config)
+                tfs_config_file = "/sagemaker/tfs-config/{}/model-config.cfg".format(model_name)
+                log.info("tensorflow serving model config: \n%s\n", tfs_config)
                 os.makedirs(os.path.dirname(tfs_config_file))
-                with open(tfs_config_file, 'w') as f:
+                with open(tfs_config_file, "w") as f:
                     f.write(tfs_config)
 
-                batching_config_file = '/sagemaker/batching/{}/batching-config.cfg'.format(
+                batching_config_file = "/sagemaker/batching/{}/batching-config.cfg".format(
                     model_name)
                 if self._tfs_enable_batching:
                     tfs_utils.create_batching_config(batching_config_file)
@@ -156,16 +156,16 @@ class PythonServiceResource:
                 p = subprocess.Popen(cmd.split())
                 self._wait_for_model(model_name)
 
-                log.info('started tensorflow serving (pid: %d)', p.pid)
+                log.info("started tensorflow serving (pid: %d)", p.pid)
                 # update model name <-> tfs pid map
                 self._model_tfs_pid[model_name] = p
 
                 res.status = falcon.HTTP_200
                 res.body = json.dumps({
-                    'success':
-                        'Successfully loaded model {}, '
-                        'listening on rest port {} '
-                        'and grpc port {}.'.format(model_name,
+                    "success":
+                        "Successfully loaded model {}, "
+                        "listening on rest port {} "
+                        "and grpc port {}.".format(model_name,
                                                    self._model_tfs_rest_port,
                                                    self._model_tfs_grpc_port,)
                 })
@@ -183,22 +183,22 @@ class PythonServiceResource:
             except FileExistsError as e:
                 res.status = falcon.HTTP_409
                 res.body = json.dumps({
-                    'error': 'Model {} is already loaded. {}'.format(model_name, str(e))
+                    "error": "Model {} is already loaded. {}".format(model_name, str(e))
                 })
             except OSError as os_error:
                 self._cleanup_config_file(tfs_config_file)
                 self._cleanup_config_file(batching_config_file)
                 if os_error.errno == 12:
                     raise MultiModelException(falcon.HTTP_507,
-                                              'Memory exhausted: '
-                                              'not enough memory to start TFS instance')
+                                              "Memory exhausted: "
+                                              "not enough memory to start TFS instance")
                 else:
                     raise MultiModelException(falcon.HTTP_500, os_error.strerror)
         else:
             res.status = falcon.HTTP_404
             res.body = json.dumps({
-                'error':
-                    'Could not find valid base path {} for servable {}'.format(base_path,
+                "error":
+                    "Could not find valid base path {} for servable {}".format(base_path,
                                                                                model_name)
             })
 
@@ -246,7 +246,7 @@ class PythonServiceResource:
                     session.mount('http://', requests.adapters.HTTPAdapter(max_retries=retries))
                     response = session.get(url)
                     if response.status_code == 200:
-                        versions = json.loads(response.content)['model_version_status']
+                        versions = json.loads(response.content)["model_version_status"]
                         if all(version["state"] == "AVAILABLE" for version in versions):
                             break
                 except ConnectionError:
@@ -258,7 +258,7 @@ class PythonServiceResource:
                 if model_name not in self._model_tfs_rest_port:
                     res.status = falcon.HTTP_404
                     res.body = json.dumps({
-                        'error': "Model {} is not loaded yet.".format(model_name)
+                        "error": "Model {} is not loaded yet.".format(model_name)
                     })
                     return
                 else:
@@ -273,7 +273,7 @@ class PythonServiceResource:
             else:
                 res.status = falcon.HTTP_400
                 res.body = json.dumps({
-                    'error': 'Invocation request does not contain model name.'
+                    "error": "Invocation request does not contain model name."
                 })
         else:
             data, context = tfs_utils.parse_request(req, self._tfs_rest_port, self._tfs_grpc_port,
@@ -288,28 +288,28 @@ class PythonServiceResource:
             else:
                 res.body, res.content_type = self._handlers(data, context)
         except Exception as e:  # pylint: disable=broad-except
-            log.exception('exception handling request: {}'.format(e))
+            log.exception("exception handling request: {}".format(e))
             res.status = falcon.HTTP_500
             res.body = json.dumps({
-                'error': str(e)
-            }).encode('utf-8')  # pylint: disable=E1101
+                "error": str(e)
+            }).encode("utf-8")  # pylint: disable=E1101
 
     def _import_handlers(self, model_name=None):
         inference_script = INFERENCE_SCRIPT_PATH
         if model_name:
             inference_script = "/opt/ml/models/{}/model/code/inference.py".format(model_name)
-        spec = importlib.util.spec_from_file_location('inference', inference_script)
+        spec = importlib.util.spec_from_file_location("inference", inference_script)
         inference = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(inference)
 
         _custom_handler, _custom_input_handler, _custom_output_handler = None, None, None
-        if hasattr(inference, 'handler'):
+        if hasattr(inference, "handler"):
             _custom_handler = inference.handler
-        elif hasattr(inference, 'input_handler') and hasattr(inference, 'output_handler'):
+        elif hasattr(inference, "input_handler") and hasattr(inference, "output_handler"):
             _custom_input_handler = inference.input_handler
             _custom_output_handler = inference.output_handler
         else:
-            raise NotImplementedError('Handlers are not implemented correctly in user script.')
+            raise NotImplementedError("Handlers are not implemented correctly in user script.")
 
         return _custom_handler, _custom_input_handler, _custom_output_handler
 
@@ -327,69 +327,69 @@ class PythonServiceResource:
     def on_get(self, req, res, model_name=None):  # pylint: disable=W0613
         if model_name is None:
             models_info = {}
-            uri = 'http://localhost:{}/v1/models/{}'
+            uri = "http://localhost:{}/v1/models/{}"
             for model, port in self._model_tfs_rest_port.items():
                 try:
                     info = json.loads(requests.get(uri.format(port, model)).content)
                     models_info[model] = info
                 except ValueError as e:
-                    log.exception('exception handling request: {}'.format(e))
+                    log.exception("exception handling request: {}".format(e))
                     res.status = falcon.HTTP_500
                     res.body = json.dumps({
-                        'error': str(e)
-                    }).encode('utf-8')
+                        "error": str(e)
+                    }).encode("utf-8")
             res.status = falcon.HTTP_200
             res.body = json.dumps(models_info)
         else:
             if model_name not in self._model_tfs_rest_port:
                 res.status = falcon.HTTP_404
                 res.body = json.dumps({
-                    'error': 'Model {} is loaded yet.'.format(model_name)
-                }).encode('utf-8')
+                    "error": "Model {} is loaded yet.".format(model_name)
+                }).encode("utf-8")
             else:
                 port = self._model_tfs_rest_port[model_name]
-                uri = 'http://localhost:{}/v1/models/{}'.format(port, model_name)
+                uri = "http://localhost:{}/v1/models/{}".format(port, model_name)
                 try:
                     info = requests.get(uri)
                     res.status = falcon.HTTP_200
                     res.body = json.dumps({
-                        'model': info
-                    }).encode('utf-8')
+                        "model": info
+                    }).encode("utf-8")
                 except ValueError as e:
-                    log.exception('exception handling GET models request.')
+                    log.exception("exception handling GET models request.")
                     res.status = falcon.HTTP_500
                     res.body = json.dumps({
-                        'error': str(e)
-                    }).encode('utf-8')
+                        "error": str(e)
+                    }).encode("utf-8")
 
     def on_delete(self, req, res, model_name):  # pylint: disable=W0613
         if model_name not in self._model_tfs_pid:
             res.status = falcon.HTTP_404
             res.body = json.dumps({
-                'error': 'Model {} is not loaded yet'.format(model_name)
+                "error": "Model {} is not loaded yet".format(model_name)
             })
         else:
             try:
                 self._model_tfs_pid[model_name].kill()
-                os.remove('/sagemaker/tfs-config/{}/model-config.cfg'.format(model_name))
-                os.rmdir('/sagemaker/tfs-config/{}'.format(model_name))
+                os.remove("/sagemaker/tfs-config/{}/model-config.cfg".format(model_name))
+                os.rmdir("/sagemaker/tfs-config/{}".format(model_name))
                 release_rest_port = self._model_tfs_rest_port[model_name]
                 release_grpc_port = self._model_tfs_grpc_port[model_name]
                 with lock():
-                    bisect.insort(self._tfs_ports['rest_port'], release_rest_port)
-                    bisect.insort(self._tfs_ports['grpc_port'], release_grpc_port)
+                    bisect.insort(self._tfs_ports["rest_port"], release_rest_port)
+                    bisect.insort(self._tfs_ports["grpc_port"], release_grpc_port)
                 del self._model_tfs_rest_port[model_name]
                 del self._model_tfs_grpc_port[model_name]
                 del self._model_tfs_pid[model_name]
                 res.status = falcon.HTTP_200
                 res.body = json.dumps({
-                    'success': 'Successfully unloaded model {}.'.format(model_name)
+                    "success": "Successfully unloaded model {}.".format(model_name)
                 })
             except OSError as error:
                 res.status = falcon.HTTP_500
                 res.body = json.dumps({
-                    'error': str(error)
-                }).encode('utf-8')
+                    "error": str(error)
+                }).encode("utf-8")
 
     def validate_model_dir(self, model_path):
         # model base path doesn't exits
@@ -427,13 +427,13 @@ class ServiceResources:
         self._ping_resource = PingResource()
 
     def add_routes(self, application):
-        application.add_route('/ping', self._ping_resource)
-        application.add_route('/invocations', self._python_service_resource)
+        application.add_route("/ping", self._ping_resource)
+        application.add_route("/invocations", self._python_service_resource)
 
         if self._enable_model_manager:
-            application.add_route('/models', self._python_service_resource)
-            application.add_route('/models/{model_name}', self._python_service_resource)
-            application.add_route('/models/{model_name}/invoke', self._python_service_resource)
+            application.add_route("/models", self._python_service_resource)
+            application.add_route("/models/{model_name}", self._python_service_resource)
+            application.add_route("/models/{model_name}/invoke", self._python_service_resource)
 
 
 app = falcon.API()
