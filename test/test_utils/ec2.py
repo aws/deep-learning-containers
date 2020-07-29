@@ -357,10 +357,7 @@ def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, 
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
-    connection.run('sudo rm /var/lib/dpkg/lock')
-    connection.run('sudo rm /var/lib/apt/lists/lock')
-    connection.run('sudo rm /var/cache/apt/archives/lock')
-    connection.run('sudo apt update && sudo apt install -y python3.7 python3.7-dev')
+    connection.sudo('apt update && apt install -y python3.7 python3.7-dev')
     connection.run('python3.7 -m pip install --upgrade pip')
     connection.run('pip3.7 install tensorflow')
     connection.run('pip3.7 install tf-nightly')
