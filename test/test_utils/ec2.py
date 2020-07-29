@@ -349,6 +349,7 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     )
     return conn
 
+# Add for testing data service
 def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash"):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
