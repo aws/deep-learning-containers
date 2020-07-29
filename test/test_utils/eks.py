@@ -612,3 +612,19 @@ def is_eks_multinode_training_complete(remote_yaml_file_path, namespace, pod_nam
                 raise ValueError("IN-PROGRESS: Retry.")
 
     return False
+
+
+def get_dgl_branch(ctx):
+    """
+    Pip install dgl and determine what git branch to use based on the latest version
+
+    :param ctx: Invoke context
+    :return: latest dgl branch, i.e. 0.4.x
+    """
+    ctx.run("pip install dgl")
+    output = ctx.run(
+        """
+        python -c "import dgl; dgl_vs = dgl.__version__.split('.'); print(f'{dgl_vs[0]}.{dgl_vs[1]}.x')"
+        """
+    )
+    return output.stdout.strip()

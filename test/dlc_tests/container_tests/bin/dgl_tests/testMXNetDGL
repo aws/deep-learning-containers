@@ -4,7 +4,7 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-DGL_RELEASE_TAG=$(python -c "import dgl; print(dgl.__version__)")
+DGL_RELEASE_TAG=$(python -c "import dgl; dgl_versions = dgl.__version__.split('.'); print(f'{dgl_versions[0]}.{dgl_versions[1]}.x')")
 
 git clone -b ${DGL_RELEASE_TAG} https://github.com/dmlc/dgl.git ${HOME_DIR}/artifacts/dgl
 ${BIN_DIR}/dgl_tests/testDGLHelper python mxnet || exit 1

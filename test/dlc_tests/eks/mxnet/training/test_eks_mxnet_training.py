@@ -5,6 +5,7 @@ import re
 import pytest
 
 from invoke import run
+from invoke.context import Context
 
 import test.test_utils.eks as eks_utils
 
@@ -81,15 +82,17 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
     """
 
     training_result = False
-
+    ctx = Context()
     rand_int = random.randint(4001, 6000)
 
     yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"mxnet-single-node-training-dgl-{rand_int}"
 
+    dgl_branch = eks_utils.get_dgl_branch(ctx)
+
     args = (
-        "git clone -b 0.4.x https://github.com/dmlc/dgl.git && "
-        "cd /dgl/examples/mxnet/gcn/ && DGLBACKEND=mxnet python train.py --dataset cora"
+        f"git clone -b {dgl_branch} https://github.com/dmlc/dgl.git && "
+        f"cd /dgl/examples/mxnet/gcn/ && DGLBACKEND=mxnet python train.py --dataset cora"
     )
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
