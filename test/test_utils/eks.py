@@ -623,16 +623,16 @@ def get_dgl_branch(ctx):
     :param ctx: Invoke context
     :return: latest dgl branch, i.e. 0.4.x
     """
-    ctx.run("git clone https://github.com/dmlc/dgl.git")
-    with ctx.cd("dgl"):
+    dgl_local_repo = '.get_dgl_branch'
+    ctx.run(f"git clone https://github.com/dmlc/dgl.git {dgl_local_repo}")
+    with ctx.cd(dgl_local_repo):
         branch = ctx.run("git branch -r")
         branches = branch.stdout.split()
-        release_branch_regex = re.compile(r'0.\d+.x')
+        release_branch_regex = re.compile(r'\d+.\d+.x')
         release_branches = []
         for branch in branches:
             match = release_branch_regex.search(branch)
             if match:
                 release_branches.append(match.group())
-
     release_branches = sorted(release_branches, reverse=True)
     return release_branches[0]
