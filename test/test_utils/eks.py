@@ -153,20 +153,6 @@ def init_cfn_client():
     """
     return boto3.client('cloudformation')
 
-def init_eks_client():
-    """Function to initiate the eks session
-    Args:
-        material_set: str
-    """
-    return boto3.client('eks')
-
-def init_iam_client():
-    """Function to initiate the iam session
-    Args:
-        material_set: str
-    """
-    return boto3.client('iam')  
-
 def list_cfn_stack_names():
     """Function to list the cfn stacks in the account.
     Note: lists all the cfn stacks that aren't
@@ -233,20 +219,42 @@ def delete_oidc_provider(eks_cluster_name):
     Args:
         eks_cluster_name: str
     """
-    eks_client = init_eks_client()
-    iam_client = init_iam_client()
-    account_id = os.getenv("ACCOUNT_ID")    
+    iam_client = boto3.client('iam')
+    eks_client = boto3.client('eks', region_name=DEFAULT_REGION)
+    sts_client = boto3.client('sts')
 
     try:
-        response = eks_client.describe_cluster(name=eks_cluster_name)
+        account_id = sts_client.get_caller_identity().get('Account')
+        response = eks_client.describe_cluster(name=eks_cluster_name)        
         oidc_issuer = response['cluster']['identity']['oidc']['issuer']
         oidc_url = oidc_issuer.rsplit('//', 1)[-1]
         oidc_provider_arn = f"arn:aws:iam::{account_id}:oidc-provider/{oidc_url}"
 
         LOGGER.info(f"Deleting oidc provider: {oidc_provider_arn}")
         iam_client.delete_open_id_connect_provider(OpenIDConnectProviderArn=oidc_provider_arn)
+        LOGGER.info(f"Deleting IAM roles created by kubeflow")
+        delete_iam_roles(eks_cluster_name)
+
     except ClientError as e:
-        LOGGER.error(f"Error: Cannot delete the EKS cluster: {eks_cluster_name}. Full Exception:\n{e}")
+        LOGGER.error(f"Error: Cannot describe the EKS cluster: {eks_cluster_name}. Full Exception:\n{e}")
+
+def delete_iam_roles(eks_cluster_name):
+    """Function to delete IAM role and policy created by kubeflow
+    """
+    iam_resource = boto3.resource('iam')
+    role_list = [f'kf-admin-{eks_cluster_name}', f'kf-user-{eks_cluster_name}']
+    try:
+        for role in role_list:
+            iam_role = iam_resource.Role(name=role)
+            
+            for role_policy in iam_role.policies.all():
+                LOGGER.info(f"Deleting Policy {role_policy.name}")
+                role_policy.delete()
+
+            iam_role.delete()
+            LOGGER.info(f"IAM role {iam_role.name} deleted\n")
+    except ClientError as e:
+        LOGGER.error(f"Error: Cannot delete IAM role. Full Exception:\n{e}")
 
 def delete_eks_cluster(eks_cluster_name):
     """Function to delete the EKS cluster, if it exists. Additionally, the function cleans up the oidc provider
@@ -254,6 +262,8 @@ def delete_eks_cluster(eks_cluster_name):
     Args:
         eks_cluster_name: str
     """
+    
+    delete_oidc_provider(eks_cluster_name)
 
     run("eksctl delete cluster {} --wait".format(eks_cluster_name), warn=True)
 
@@ -262,8 +272,6 @@ def delete_eks_cluster(eks_cluster_name):
         if eks_cluster_name in stack_name:
             LOGGER.info(f"Deleting dangling cloudformation stack: {stack_name}")
             delete_cfn_stack_and_wait(stack_name)
-
-    delete_oidc_provider(eks_cluster_name)
 
 def setup_eksctl():
     run_out = run("eksctl version", echo=True, warn=True)
