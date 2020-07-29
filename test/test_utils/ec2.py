@@ -349,7 +349,6 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     )
     return conn
 
-# Add for testing data service
 def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash"):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
@@ -358,8 +357,7 @@ def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, 
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
-    connection.run('sudo apt-get update')
-    connection.run('sudo apt-get install python3.7')
+    connection.run('sudo apt update && sudo apt install -y python3.7 python3.7-dev')
     connection.run('pip3 install --upgrade pip')
     connection.run('pip3 install tensorflow')
     connection.run('pip3 install tf-nightly')
