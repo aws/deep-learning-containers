@@ -625,9 +625,10 @@ def get_dgl_branch(ctx):
     """
     dgl_local_repo = '.get_dgl_branch'
     if not os.path.exists(dgl_local_repo):
-        ctx.run(f"git clone https://github.com/dmlc/dgl.git {dgl_local_repo}")
+        # Warn here to avoid race condition when dgl repo might be cloned by a different image
+        ctx.run(f"git clone https://github.com/dmlc/dgl.git {dgl_local_repo}", hide=True, warn=True)
     with ctx.cd(dgl_local_repo):
-        branch = ctx.run("git branch -r")
+        branch = ctx.run("git branch -r", hide=True)
         branches = branch.stdout.split()
         release_branch_regex = re.compile(r'\d+.\d+.x')
         release_branches = []
