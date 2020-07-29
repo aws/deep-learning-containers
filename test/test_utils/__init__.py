@@ -22,7 +22,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 DEFAULT_REGION = "us-west-2"
 
 # Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
-UBUNTU_16_BASE_DLAMI = "ami-0e5a388144f62e4f5"
+UBUNTU_16_BASE_DLAMI = "ami-038a5b5566d99e833"
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 
