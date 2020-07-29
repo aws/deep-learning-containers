@@ -34,7 +34,7 @@ echo Preparation Stage took $(( DIFF/60 )) mins to finish>&2
 
 echo Benchmark Started: >&2
 START=$(date +%s)
-python examples/imagenet/main.py \
+timeout 60m python examples/imagenet/main.py \
        -a resnet50 \
        --dist-url 'tcp://127.0.0.1:8080' \
        --dist-backend 'nccl' \
@@ -42,7 +42,7 @@ python examples/imagenet/main.py \
        --world-size 1 \
        --rank 0 \
        --workers 30 \
-       --epochs 1 \
+       --epochs 16 \
        ~/imagenet 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
 python /test/bin/benchmark/get_pytorch_performance_num.py ${LOG_DIR}/"${LOG_FILE}" >> ${LOG_DIR}/"${LOG_FILE}"
 END=$(date +%s)
