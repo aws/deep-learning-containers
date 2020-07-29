@@ -27,12 +27,11 @@ timeout 5m python examples/imagenet/main.py \
        --rank 0 \
        --workers 30 \
        --epochs 0 \
-       ~/imagenet >&2
+       ~/imagenet
 END=$(date +%s)
 DIFF=$(( END - START ))
 echo Preparation Stage took $(( DIFF/60 )) mins to finish>&2
 
-set -e
 echo Benchmark Started: >&2
 START=$(date +%s)
 python examples/imagenet/main.py \
@@ -45,14 +44,14 @@ python examples/imagenet/main.py \
        --workers 30 \
        --epochs 1 \
        ~/imagenet 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
+python /test/bin/benchmark/get_pytorch_performance_num.py ${LOG_DIR}/"${LOG_FILE}" >> ${LOG_DIR}/"${LOG_FILE}"
 END=$(date +%s)
 DIFF=$(( END - START ))
 echo Script took $(( DIFF/60 )) mins to finish >> ${LOG_DIR}/"${LOG_FILE}"
 echo Benchmark Results: >&2
 echo PyTorch Training py"${PYTHON_VERSION}" gpu imagenet>&2
-tail -3 ${LOG_DIR}/${LOG_FILE} >&2 # Display only the results to console
+tail -10 ${LOG_DIR}/${LOG_FILE} >&2 # Display only the results to console
 aws s3 cp ${LOG_DIR}/"${LOG_FILE}" s3://dlinfra-dlc-cicd-performance/pytorch/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}"
 echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/pytorch/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}" >&2
-set +e
 
 exit 0
