@@ -83,6 +83,10 @@ def is_canary_context():
     return os.getenv("BUILD_CONTEXT") == "CANARY"
 
 
+def is_mainline_context():
+    return os.getenv("BUILD_CONTEXT") == "MAINLINE"
+
+
 def is_empty_build_context():
     return not os.getenv("BUILD_CONTEXT")
 
