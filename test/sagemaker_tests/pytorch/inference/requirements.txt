@@ -21,3 +21,4 @@ retrying==1.3.3
 requests_mock==1.6.0
 sagemaker-inference==1.1.2
 retrying==1.3.3
+fabric

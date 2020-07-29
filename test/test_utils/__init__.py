@@ -1,4 +1,3 @@
-import datetime
 import json
 import os
 import re
@@ -20,9 +19,17 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
+# Constant to represent region where p3dn tests can be run
+P3DN_REGION = "us-east-1"
 
 # Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
+<<<<<<< HEAD
 UBUNTU_16_BASE_DLAMI = "ami-038a5b5566d99e833"
+=======
+UBUNTU_16_BASE_DLAMI_US_WEST_2 = "ami-0e5a388144f62e4f5"
+UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0da7f2daf5e92c6f2"
+UL_AMI_LIST = [UBUNTU_16_BASE_DLAMI_US_WEST_2, UBUNTU_16_BASE_DLAMI_US_EAST_1]
+>>>>>>> master
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 
@@ -52,9 +59,6 @@ SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
 
-# Test coverage file name
-TEST_COVERAGE_FILE = f"test_coverage_report-{datetime.datetime.now().strftime('%Y-%m-%d')}.csv"
-
 
 def is_tf1(image_uri):
     if "tensorflow" not in image_uri:
@@ -80,6 +84,10 @@ def is_pr_context():
 
 def is_canary_context():
     return os.getenv("BUILD_CONTEXT") == "CANARY"
+
+
+def is_mainline_context():
+    return os.getenv("BUILD_CONTEXT") == "MAINLINE"
 
 
 def is_empty_build_context():
@@ -306,7 +314,7 @@ def generate_ssh_keypair(ec2_client, key_name):
             if os.path.exists(key_filename):
                 run(f"chmod 400 {key_filename}")
                 return key_filename
-        raise ClientError(e)
+        raise e
 
     run(f"echo '{key_pair['KeyMaterial']}' > {key_filename}")
     run(f"chmod 400 {key_filename}")
@@ -494,3 +502,15 @@ def get_job_type_from_image(image_uri):
                            f"from allowed frameworks {allowed_job_types}")
 
     return tested_job_type
+
+
+def get_repository_and_tag_from_image_uri(image_uri):
+    """
+    Return the name of the repository holding the image
+
+    :param image_uri: URI of the image
+    :return: <str> repository name
+    """
+    repository_uri, tag = image_uri.split(":")
+    _, repository_name = repository_uri.split("/")
+    return repository_name, tag

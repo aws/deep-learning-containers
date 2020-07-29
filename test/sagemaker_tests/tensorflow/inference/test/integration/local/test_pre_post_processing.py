@@ -52,7 +52,6 @@ def container(volume, docker_base_name, tag, runtime_config):
         command = (
             'docker run {}--name sagemaker-tensorflow-serving-test -p 8080:8080'
             ' --mount type=volume,source={},target=/opt/ml/model,readonly'
-            ' -e SAGEMAKER_TFS_DEFAULT_MODEL_NAME=half_plus_three'
             ' -e SAGEMAKER_TFS_NGINX_LOGLEVEL=info'
             ' -e SAGEMAKER_BIND_TO_PORT=8080'
             ' -e SAGEMAKER_SAFE_PORT_RANGE=9000-9999'
@@ -85,6 +84,7 @@ def make_headers(content_type, method):
     return headers
 
 
+@pytest.mark.model("half_plus_three")
 def test_predict_json():
     headers = make_headers('application/json', 'predict')
     data = '{"instances": [1.0, 2.0, 5.0]}'
@@ -92,6 +92,7 @@ def test_predict_json():
     assert response == {'predictions': [3.5, 4.0, 5.5]}
 
 
+@pytest.mark.model("half_plus_three")
 def test_zero_content():
     headers = make_headers('application/json', 'predict')
     data = ''
@@ -100,6 +101,7 @@ def test_zero_content():
     assert 'document is empty' in response.text
 
 
+@pytest.mark.model("half_plus_three")
 def test_large_input():
     headers = make_headers('text/csv', 'predict')
     data_file = 'test/resources/inputs/test-large.csv'
@@ -111,6 +113,7 @@ def test_large_input():
         assert len(predictions) == 753936
 
 
+@pytest.mark.model("half_plus_three")
 def test_csv_input():
     headers = make_headers('text/csv', 'predict')
     data = '1.0,2.0,5.0'
@@ -118,6 +121,7 @@ def test_csv_input():
     assert response == {'predictions': [3.5, 4.0, 5.5]}
 
 
+@pytest.mark.model("half_plus_three")
 def test_unsupported_content_type():
     headers = make_headers('unsupported-type', 'predict')
     data = 'aW1hZ2UgYnl0ZXM='
@@ -126,6 +130,7 @@ def test_unsupported_content_type():
     assert 'unsupported content type' in response.text
 
 
+@pytest.mark.model("half_plus_three")
 def test_ping_service():
     response = requests.get(PING_URL)
     assert 200 == response.status_code

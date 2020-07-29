@@ -1,17 +1,21 @@
 import os
 import random
 
-import test.test_utils.eks as eks_utils
+import pytest
 
 from invoke import run
 
+import test.test_utils.eks as eks_utils
 
+
+@pytest.mark.integration("keras")
+@pytest.mark.model("mnist")
 def test_eks_tensorflow_single_node_training(tensorflow_training):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
-    Args:
-        :param setup_utils: environment in which EKS tools are setup
-        :param tensorflow_training: the ECR URI
+
+    :param setup_utils: environment in which EKS tools are setup
+    :param tensorflow_training: the ECR URI
     """
 
     training_result = False

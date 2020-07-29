@@ -41,6 +41,15 @@ def pytest_addoption(parser):
     parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37'])
     parser.addoption('--account-id', default='142577830533')
     parser.addoption('--instance-type', default=None)
+    parser.addoption('--generate-coverage-doc', default=False, action='store_true',
+                     help='use this option to generate test coverage doc')
+
+
+def pytest_collection_modifyitems(session, config, items):
+    if config.getoption("--generate-coverage-doc"):
+        from test.test_utils.test_reporting import TestReportGenerator
+        report_generator = TestReportGenerator(items, is_sagemaker=True)
+        report_generator.generate_coverage_doc(framework="tensorflow_1", job_type="training")
 
 
 def pytest_configure(config):

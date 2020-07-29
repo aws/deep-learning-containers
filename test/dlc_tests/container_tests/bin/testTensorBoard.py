@@ -19,7 +19,7 @@ def train():
     X_train = np.random.rand(1,28,28)
     Y_train = np.random.rand(1,)
 
-    model.fit(X_train, Y_train,  epochs=0, callbacks=callbacks)
+    model.fit(X_train, Y_train,  epochs=10, callbacks=callbacks)
 
 
 

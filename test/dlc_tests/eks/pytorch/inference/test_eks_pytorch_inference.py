@@ -1,12 +1,15 @@
 import os
 import random
 
-import test.test_utils.eks as eks_utils
-import test.test_utils as test_utils
+import pytest
 
 from invoke import run
 
+import test.test_utils.eks as eks_utils
+import test.test_utils as test_utils
 
+
+@pytest.mark.model("densenet")
 def test_eks_pytorch_densenet_inference(pytorch_inference):
     num_replicas = "1"
 
@@ -26,7 +29,7 @@ def test_eks_pytorch_densenet_inference(pytorch_inference):
         "<DOCKER_IMAGE_BUILD_ID>": pytorch_inference
     }
 
-    if processor is "gpu":
+    if processor == "gpu":
         search_replace_dict["<NUM_GPUS>"] = "1"
 
     eks_utils.write_eks_yaml_file_from_template(
