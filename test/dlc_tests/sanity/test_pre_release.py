@@ -5,7 +5,7 @@ import pytest
 
 from invoke.context import Context
 
-from test.test_utils import LOGGER, ec2, get_framework_and_version_from_tag, is_canary_context, is_tf1
+from test.test_utils import LOGGER, ec2, get_framework_and_version_from_tag, is_canary_context, is_tf1, is_dlc_cicd_context
 
 
 @pytest.mark.model("N/A")
@@ -210,11 +210,19 @@ def test_emacs(image):
 
 @pytest.mark.model("N/A")
 def test_cuda_paths(gpu):
+    """
+    Test to ensure directory structure for GPU files has cuda version in it
+
+    :param gpu: gpu image uris
+    """
     image = gpu
     if "example" in image:
         pytest.skip("Skipping example containers which are not explicitly tied to a cuda version")
+
     dlc_path = os.getcwd().split('/test/')[0]
     job_type = "training" if "training" in image else "inference"
+
+    # Ensure that image has a supported framework
     frameworks = ("tensorflow", "pytorch", "mxnet")
     framework = ''
     for fw in frameworks:
@@ -223,13 +231,19 @@ def test_cuda_paths(gpu):
             break
     assert framework, f"Cannot find any frameworks {frameworks} in image uri {image}"
 
+    # Get cuda and framework version through regex
     cuda_version_match = re.search(r'-cu\d+-', image)
     cuda_version = cuda_version_match.group().strip('-')
 
     framework_version_match = re.search(r':\d+.\d+.\d+', image)
     framework_version = framework_version_match.group().strip(':')
 
-    python_version = "py3" if "py3" in image else "py2"
+    python_version_match = re.search(r'py\d+', image)
+    python_version = python_version_match.group()
+    framework_version_path = os.path.join(dlc_path, framework, job_type, 'docker', framework_version)
+    if not os.path.exists(os.path.join(framework_version_path, python_version)):
+        # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
+        python_version = python_version[:3]
 
     # Check buildspec for cuda version
     buildspec = 'buildspec.yml'
@@ -245,12 +259,14 @@ def test_cuda_paths(gpu):
                 cuda_in_buildspec = True
                 break
 
-    assert cuda_in_buildspec, f"Can't find {cuda_in_buildspec_ref} in {buildspec_path}"
+    try:
+        assert cuda_in_buildspec, f"Can't find {cuda_in_buildspec_ref} in {buildspec_path}"
+    except AssertionError as e:
+        if not is_dlc_cicd_context():
+            LOGGER.warn(f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context.")
 
     # Check that a Dockerfile exists in the right directory
-    dockerfile_path = os.path.join(
-        dlc_path, framework, job_type, 'docker', framework_version, python_version, cuda_version, 'Dockerfile.gpu'
-    )
+    dockerfile_path = os.path.join(framework_version_path, python_version, cuda_version, 'Dockerfile.gpu')
 
     assert os.path.exists(dockerfile_path), f"Cannot find dockerfile for image {image} in {dockerfile_path}"
 
