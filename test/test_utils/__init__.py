@@ -414,6 +414,7 @@ def parse_canary_images(framework, region):
     framework_versions = versions if len(versions) < 4 else versions[:3]
     dlc_images = ""
     for fw_version in framework_versions:
+        py_minor_version = '7' if framework == "tensorflow2" and fw_version == '2.2' else ''
         images = {
             "tensorflow1":
                 f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-py3 "
@@ -423,8 +424,8 @@ def parse_canary_images(framework, region):
                 f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu "
                 f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
             "tensorflow2":
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-py37 "
-                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-py37 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-py3{py_minor_version} "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-py3{py_minor_version} "
                 f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu "
                 f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
 
