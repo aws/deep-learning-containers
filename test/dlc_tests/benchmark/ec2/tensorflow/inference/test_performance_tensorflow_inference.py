@@ -21,7 +21,9 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     python_version = "py2" if "py2" in image_uri else "py3"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     tf_major_version = "1" if is_tf1(image_uri) else "2"
-    tf_api_version = framework_short_version(image_uri)
+    tf_api_version = '1.15' if tf_major_version == '1' else '2.1.0rc1'
+    if is_tf20(image_uri):
+        tf_api_version = "2.0"
     tf_version_folder = '1.15' if tf_major_version == '1' else '2.1'
     tf_script_version = tf_major_version if not is_tf20(image_uri) else "20"
 
@@ -33,15 +35,9 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
     ec2_connection.run(f"pip3 install -U pip")
 
-    return_val = ec2_connection.run(
-            f"pip3 install boto3 grpcio tensorflow-serving-api=={tf_api_version} --user --no-warn-script-location", warn=True
-        )
-    if return_val != 0:  # in case tfs version is behind tf version
-        ec2_connection.run(f"echo tfs version is behind tf version  >&2")
-        latest_tfs_api = '"tensorflow-serving-api<2"' if tf_major_version == "1" else '"tensorflow-serving-api>=2"'
-        ec2_connection.run(
-            f'pip3 install boto3 grpcio {latest_tfs_api} --user --no-warn-script-location'
-        )
+    ec2_connection.run(
+        f"pip3 install boto3 grpcio tensorflow-serving-api=={tf_api_version} --user --no-warn-script-location"
+    )
     ec2_connection.sudo(
         f"aws s3 cp s3://tensorflow-aws/{tf_version_folder}/Serving/{processor_folder}/tensorflow_model_server /usr/bin/")
     ec2_connection.sudo(f"chmod +x /usr/bin/tensorflow_model_server")
