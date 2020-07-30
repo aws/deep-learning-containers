@@ -1,8 +1,8 @@
   account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK tensorflow
-  version: &VERSION 2.0.2
-  cuda_version: &CUDA_VERSION cu100
+  version: &VERSION 2.2.0
+  cuda_version: &CUDA_VERSION cu102
   os_version: &OS_VERSION ubuntu18.04
 
   repository_info:
@@ -39,7 +39,7 @@
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE cpu
       python_version: &DOCKER_PYTHON_VERSION py3
-      tag_python_version: &TAG_PYTHON_VERSION py36
+      tag_python_version: &TAG_PYTHON_VERSION py37
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
@@ -50,29 +50,7 @@
       image_size_baseline: 4899
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
-      tag_python_version: &TAG_PYTHON_VERSION py36
-      tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
-      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
-      context:
-        <<: *INFERENCE_CONTEXT
-    BuildTensorflowCPUInferencePy2DockerImage:
-      <<: *INFERENCE_REPOSITORY
-      build: &TENSORFLOW_CPU_INFERENCE_PY2 false
-      image_size_baseline: 661
-      device_type: &DEVICE_TYPE cpu
-      python_version: &DOCKER_PYTHON_VERSION py2
-      tag_python_version: &TAG_PYTHON_VERSION py27
-      tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
-      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
-      context:
-        <<: *INFERENCE_CONTEXT
-    BuildTensorflowGPUInferencePy2DockerImage:
-      <<: *INFERENCE_REPOSITORY
-      build: &TENSORFLOW_GPU_INFERENCE_PY2 false
-      image_size_baseline: 2870
-      device_type: &DEVICE_TYPE gpu
-      python_version: &DOCKER_PYTHON_VERSION py2
-      tag_python_version: &TAG_PYTHON_VERSION py27
+      tag_python_version: &TAG_PYTHON_VERSION py37
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
