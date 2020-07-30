@@ -4,6 +4,7 @@ import sys
 import logging
 import re
 import traceback
+import junit_xml
 
 from multiprocessing import Pool
 import boto3
