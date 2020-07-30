@@ -27,6 +27,7 @@ def test_ecs_tensorflow_inference_cpu(tensorflow_inference, ecs_container_instan
         ecs_utils.tear_down_ecs_inference_service(ecs_cluster_arn, service_name, task_family, revision)
 
 
+@pytest.mark.integration("elastic_inference")
 @pytest.mark.model("half_plus_two")
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)

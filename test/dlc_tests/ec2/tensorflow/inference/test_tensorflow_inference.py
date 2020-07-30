@@ -29,6 +29,7 @@ def test_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, regi
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
 
+@pytest.mark.integration("elastic_inference")
 @pytest.mark.model("half_plus_two")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", TF_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
@@ -36,11 +37,13 @@ def test_ec2_tensorflow_inference_eia_cpu(tensorflow_inference_eia, ec2_connecti
     run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, "8500", region)
 
 
+@pytest.mark.integration("elastic_inference")
 @pytest.mark.model("half_plus_two")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", TF_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connection, region, eia_only):
     run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, "8500", region)
+
 
 def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")

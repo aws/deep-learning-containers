@@ -50,7 +50,6 @@ def get_ec2_accelerator_type(default, processor):
     :param default: Default instance type to use - Should never be p3dn
     :param processor: "eia"
 
-
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
     a list.
     """

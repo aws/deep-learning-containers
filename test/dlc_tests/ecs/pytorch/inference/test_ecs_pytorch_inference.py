@@ -26,6 +26,7 @@ def test_ecs_pytorch_inference_cpu(pytorch_inference, ecs_container_instance, re
         ecs_utils.tear_down_ecs_inference_service(ecs_cluster_arn, service_name, task_family, revision)
 
 
+@pytest.mark.integration("elastic_inference")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
