@@ -178,6 +178,6 @@ def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, gpu_onl
 	print('start data service test')
 	start_service.start()
 	print('test data service test')
+	print(TF_DATASERVICE_TEST_CMD)
 	execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
 	start_service.terminate()
-	
