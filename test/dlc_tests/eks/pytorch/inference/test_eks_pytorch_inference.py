@@ -11,6 +11,8 @@ import test.test_utils as test_utils
 
 @pytest.mark.model("densenet")
 def test_eks_pytorch_densenet_inference(pytorch_inference):
+    if "eia" in pytorch_inference:
+        pytest.skip("Skipping EKS Test for EIA")
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
