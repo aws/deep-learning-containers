@@ -1,5 +1,7 @@
 import os
 import pytest
+from multiprocessing import Process
+import time
 
 from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf20
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type, execute_ec2_data_test
@@ -16,7 +18,8 @@ TF_KERAS_HVD_CMD_AMP = os.path.join(CONTAINER_TESTS_PREFIX, "testTFKerasHVDAMP")
 TF_KERAS_HVD_CMD_FP32 = os.path.join(CONTAINER_TESTS_PREFIX, "testTFKerasHVDFP32")
 TF_TENSORBOARD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorBoard")
 TF_ADDONS_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTFAddons")
-TF_DATASERVICE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testDataservice")
+TF_DATASERVICE_START_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "startDataservice")
+TF_DATASERVICE_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testDataservice")
 
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p2.8xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
@@ -163,8 +166,14 @@ TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor
 
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_only):
-    execute_ec2_data_test(ec2_connection, tensorflow_training, TF_DATASERVICE_CMD)
+	start_service = Process(target=execute_ec2_training_test, args=(ec2_connection, tensorflow_training, TF_DATASERVICE_START_CMD,))
+	start_service.start()
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD)
+    start_service.terminate()
 
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, gpu_only):
-    execute_ec2_data_test(ec2_connection, tensorflow_training, TF_DATASERVICE_CMD)
+	start_service = Process(target=execute_ec2_training_test, args=(ec2_connection, tensorflow_training, TF_DATASERVICE_START_CMD,))
+	start_service.start()
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD)
+    start_service.terminate()

@@ -351,7 +351,7 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     )
     return conn
 
-def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash"):
+def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash", host_network=False):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
     if executable == "bash":
@@ -359,39 +359,21 @@ def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, 
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
-    connection.run('pip install --upgrade pip')
-    connection.run('pip install tensorflow')
-    connection.run('pip install tf-nightly')
-    connection.run('pip install tensorflow_datasets')
-
-    # connection.run(f'cd {container_test_local_dir} && python bin/start_dataservice.py')
-
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     # Run training command
+    shm_setting = '--shm-size="1g"' if large_shm else ""
     connection.run(
-        f"{docker_cmd} run --name ec2_training_container --network='host' -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} >&2"
-        f" -itd {ecr_uri}",
+        f"{docker_cmd} run --name ec2_training_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
+        f" {shm_setting} -itd {ecr_uri}",
         hide=True,
     )
-
-    command = f"{docker_cmd} exec --user root ec2_training_container {executable} -c '{test_cmd}'"
-
-    start_service = Process(target=execute_ec2_data_start, args=(connection,))
-    test_service = Process(target=execute_ec2_data_service_test, args=(connection, command,))
-    start_service.start()
-    time.sleep(60)
-    test_service.start()
-    # start_service.join()
-    test_service.join()
-    start_service.terminate()
-
-    # return connection.run(
-    #     f"{docker_cmd} exec --user root ec2_training_container {executable} -c '{test_cmd}'",
-    #     hide=True,
-    #     timeout=3000,
-    # )
+    return connection.run(
+        f"{docker_cmd} exec --user root ec2_training_container {executable} -c '{test_cmd}'",
+        hide=True,
+        timeout=3000,
+    )
 
 
 def execute_ec2_data_start(connection):
