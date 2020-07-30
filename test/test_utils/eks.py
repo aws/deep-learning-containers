@@ -616,17 +616,17 @@ def is_eks_multinode_training_complete(remote_yaml_file_path, namespace, pod_nam
     return False
 
 
-def get_dgl_branch(ctx):
+def get_dgl_branch(ctx, image_uri):
     """
     Determine which dgl git branch to use based on the latest version
 
     :param ctx: Invoke context
+    :param image_uri: docker image URI, used to uniqify repo name to avoid asynchronous git pulls
     :return: latest dgl branch, i.e. 0.4.x
     """
-    dgl_local_repo = '.get_dgl_branch'
-    if not os.path.exists(dgl_local_repo):
-        # Warn here to avoid race condition when dgl repo might be cloned by a different image
-        ctx.run(f"git clone https://github.com/dmlc/dgl.git {dgl_local_repo}", hide=True, warn=True)
+    image_addition = image_uri.split('/')[-1].replace(':', '-')
+    dgl_local_repo = f'.dgl_branch-{image_addition}'
+    ctx.run(f"git clone https://github.com/dmlc/dgl.git {dgl_local_repo}", hide=True, warn=True)
     with ctx.cd(dgl_local_repo):
         branch = ctx.run("git branch -r", hide=True)
         branches = branch.stdout.split()

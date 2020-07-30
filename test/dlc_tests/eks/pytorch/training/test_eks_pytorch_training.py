@@ -84,7 +84,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
 
-    dgl_branch = eks_utils.get_dgl_branch(ctx)
+    dgl_branch = eks_utils.get_dgl_branch(ctx, pytorch_training)
 
     args = (
         f"git clone -b {dgl_branch} https://github.com/dmlc/dgl.git && "
