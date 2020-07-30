@@ -1,6 +1,7 @@
 FROM ubuntu:16.04
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL dlc_major_version="1"
 
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.6.6
