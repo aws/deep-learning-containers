@@ -9,6 +9,7 @@ from botocore.config import Config
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER
 
 from multiprocessing import Process
+import time
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
@@ -380,9 +381,10 @@ def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, 
     start_service = Process(target=execute_ec2_data_start, args=(connection,))
     test_service = Process(target=execute_ec2_data_service_test, args=(connection, command,))
     start_service.start()
+    time.sleep(60)
     test_service.start()
     # start_service.join()
-    # test_service.join()
+    test_service.join()
 
     # return connection.run(
     #     f"{docker_cmd} exec --user root ec2_training_container {executable} -c '{test_cmd}'",
