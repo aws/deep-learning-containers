@@ -381,8 +381,8 @@ def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, 
     test_service = Process(target=execute_ec2_data_start, args=(connection, command,))
     start_service.start()
     test_service.start()
-    start_service.join()
-    test_service.join()
+    # start_service.join()
+    # test_service.join()
 
     # return connection.run(
     #     f"{docker_cmd} exec --user root ec2_training_container {executable} -c '{test_cmd}'",
