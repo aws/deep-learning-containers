@@ -36,6 +36,7 @@ git clone -b ${SMDEBUG_RELEASE_TAG} https://github.com/awslabs/sagemaker-debugge
 
 echo "Changing to sagemaker-debugger."
 cd sagemaker-debugger
+git checkout save_inputs_asserts # temporary branch change
 
 echo "Creating mock test folder."
 mkdir -p mock
