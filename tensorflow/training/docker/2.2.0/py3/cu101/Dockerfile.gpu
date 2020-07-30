@@ -33,7 +33,7 @@ ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/est
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.8.1
+ARG SMDEBUG_VERSION=https://smdebug-binaries-alpha.s3.amazonaws.com/smdebug-0.9.0-py2.py3-none-any.whl
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
@@ -207,7 +207,7 @@ RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     ${ESTIMATOR_URL} \
     werkzeug==1.0.1 \
-    smdebug==${SMDEBUG_VERSION}
+    ${SMDEBUG_VERSION}
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
