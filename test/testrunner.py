@@ -4,7 +4,7 @@ import sys
 import logging
 import re
 import traceback
-import junit_xml
+import junit_xml==1.9
 
 from multiprocessing import Pool
 import boto3
@@ -12,7 +12,7 @@ import pytest
 
 from botocore.config import Config
 from invoke import run
-from junit_xml import TestSuite, TestCase
+from junit_xml==1.9 import TestSuite, TestCase
 
 from test_utils import eks as eks_utils
 from test_utils import sagemaker as sm_utils
