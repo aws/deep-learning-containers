@@ -3,7 +3,7 @@ import pytest
 from multiprocessing import Process
 
 from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf20
-from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type, execute_ec2_data_test
+from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
 TF1_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflow1Standalone")
@@ -167,12 +167,14 @@ TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor
 def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_only):
 	start_service = Process(target=execute_ec2_training_test, args=(ec2_connection, tensorflow_training, TF_DATASERVICE_START_CMD, host_network=True,))
 	start_service.start()
-    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
-    start_service.terminate()
+	execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
+	start_service.terminate()
 
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, gpu_only):
 	start_service = Process(target=execute_ec2_training_test, args=(ec2_connection, tensorflow_training, TF_DATASERVICE_START_CMD, host_network=True,))
+	print('start data service test')
 	start_service.start()
-    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
-    start_service.terminate()
+	print('test data service test')
+	execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
+	start_service.terminate()
