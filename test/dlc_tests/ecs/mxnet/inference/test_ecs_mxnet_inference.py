@@ -40,7 +40,7 @@ def test_ecs_mxnet_inference_eia(mxnet_inference_eia, ecs_container_instance, ei
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
             mxnet_inference_eia, "mxnet", ecs_cluster_arn, model_name, worker_instance_id, ei_accelerator_type, region=region,
         )
-        inference_result = request_mxnet_inference(public_ip_address, model ="resnet-152-eia")
+        inference_result = request_mxnet_inference(public_ip_address, model="resnet-152-eia")
         assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
 
     finally:

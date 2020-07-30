@@ -11,13 +11,13 @@ import test.test_utils as test_utils
 
 @pytest.mark.model("squeezenet")
 def test_eks_mxnet_squeezenet_inference(mxnet_inference):
+    if "eia" in mxnet_inference:
+        pytest.skip("Skipping EKS Test for EIA")
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
 
     processor = "gpu" if "gpu" in mxnet_inference else "cpu"
-    if "eia" in mxnet_inference:
-        pytest.skip("Skipping EKS Test for EIA")
 
     model = "squeezenet=https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model"
     yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_{processor}_inference_{rand_int}.yaml")
@@ -57,13 +57,13 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("bert_sst")
 def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
+    if "eia" in mxnet_inference:
+        pytest.skip("Skipping EKS Test for EIA")
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
 
     processor = "gpu" if "gpu" in mxnet_inference else "cpu"
-    if "eia" in mxnet_inference:
-        pytest.skip("Skipping EKS Test for EIA")
 
     model = "https://aws-dlc-sample-models.s3.amazonaws.com/bert_sst/bert_sst.mar"
     yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_gluonnlp_{processor}_inference_{rand_int}.yaml")
