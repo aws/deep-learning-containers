@@ -17,14 +17,11 @@ mkdir -p ${LOG_DIR}
 
 function trigger_test() {
   time_out=$1
-  output_stream=""
   epochs=0
   if [ "$2" == "run" ]
   then
-    output_stream="2>&1 | tee ${LOG_DIR}/${LOG_FILE}"
-    epochs=0
+    epochs=16
   fi
-  echo $output_stream >&2
   timeout "$time_out" python examples/imagenet/main.py \
        -a resnet50 \
        --dist-url 'tcp://127.0.0.1:8080' \
@@ -34,7 +31,7 @@ function trigger_test() {
        --rank 0 \
        --workers 30 \
        --epochs $epochs \
-       ~/imagenet $output_stream
+       ~/imagenet
 }
 
 cd ~
@@ -47,7 +44,7 @@ echo Preparation Stage took $(( DIFF/60 )) mins to finish>&2
 
 echo Benchmark started: >&2
 START=$(date +%s)
-trigger_test "60m" "run"
+trigger_test "60m" "run" 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
 python /test/bin/benchmark/get_pytorch_performance_num.py ${LOG_DIR}/"${LOG_FILE}" >> ${LOG_DIR}/"${LOG_FILE}"
 END=$(date +%s)
 DIFF=$(( END - START ))
