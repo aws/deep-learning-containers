@@ -362,11 +362,6 @@ def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, 
     connection.run('pip install tensorflow')
     connection.run('pip install tf-nightly')
     connection.run('pip install tensorflow_datasets')
-    connection.run('ls')
-    
-    start_service = Process(target=execute_ec2_data_start, args=(connection,))
-    start_service.start()
-    start_service.join()
 
     # connection.run(f'cd {container_test_local_dir} && python bin/start_dataservice.py')
 
@@ -379,16 +374,33 @@ def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, 
         f" -itd {ecr_uri}",
         hide=True,
     )
-    return connection.run(
-        f"{docker_cmd} exec --user root ec2_training_container {executable} -c '{test_cmd}'",
-        hide=True,
-        timeout=3000,
-    )
+
+    command = f"{docker_cmd} exec --user root ec2_training_container {executable} -c '{test_cmd}'"
+
+    start_service = Process(target=execute_ec2_data_start, args=(connection,))
+    test_service = Process(target=execute_ec2_data_start, args=(connection, command,))
+    start_service.start()
+    test_service.start()
+    start_service.join()
+    test_service.join()
+
+    # return connection.run(
+    #     f"{docker_cmd} exec --user root ec2_training_container {executable} -c '{test_cmd}'",
+    #     hide=True,
+    #     timeout=3000,
+    # )
 
 
 def execute_ec2_data_start(connection):
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    connection.run(f'cd {container_test_local_dir} && python bin/start_dataservice.py')
+    connection.run(f'cd {container_test_local_dir} && python bin/start_dataservice.py >&2')
+
+def execute_ec2_data_service_test(connection, command):
+    connection.run(
+        command,
+        hide=True,
+        timeout=3000,
+    )
 
 
 def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash", large_shm=False):
