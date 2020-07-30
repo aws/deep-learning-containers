@@ -35,7 +35,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
 
     try:
         ec2_connection.run(
-            f"pip install boto3 grpcio tensorflow-serving-api=={tf_api_version} --user --no-warn-script-location"
+            f"pip install boto3 grpcio tensorflow-serving-api==3.0 --user --no-warn-script-location"
         )
     except Exception as ex:   # in case tfs version is behind tf version
         template = "An exception of type {0} occurred. Arguments:\n{1!r}"
