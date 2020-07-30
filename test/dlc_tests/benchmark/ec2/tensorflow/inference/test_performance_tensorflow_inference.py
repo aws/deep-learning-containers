@@ -31,16 +31,16 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
-    ec2_connection.run(f"pip install -U pip")
+    ec2_connection.run(f"pip3 install -U pip")
 
     return_val = ec2_connection.run(
-            f"pip install boto3 grpcio tensorflow-serving-api==3.0 --user --no-warn-script-location", warn=True
+            f"pip3 install boto3 grpcio tensorflow-serving-api==3.0 --user --no-warn-script-location", warn=True
         )
     if return_val != 0:  # in case tfs version is behind tf version
         ec2_connection.run(f"echo tfs version is behind tf version  >&2")
         latest_tfs_api = '"tensorflow-serving-api<2"' if tf_major_version == "1" else '"tensorflow-serving-api>=2"'
         ec2_connection.run(
-            f'pip install boto3 grpcio {latest_tfs_api} --user --no-warn-script-location'
+            f'pip3 install boto3 grpcio {latest_tfs_api} --user --no-warn-script-location'
         )
     ec2_connection.sudo(
         f"aws s3 cp s3://tensorflow-aws/{tf_version_folder}/Serving/{processor_folder}/tensorflow_model_server /usr/bin/")
@@ -49,7 +49,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
     log_file = f"inference_benchmark_results_{commit_info}_{time_str}.log"
     ec2_connection.run(
-        f"python {container_test_local_dir}/bin/benchmark/tf{tf_script_version}_serving_perf.py "
+        f"python3 {container_test_local_dir}/bin/benchmark/tf{tf_script_version}_serving_perf.py "
         f"--processor {processor} --docker_image_name {image_uri} --run_all_s3 --binary /usr/bin/tensorflow_model_server --get_perf --iterations 1000 "
         f"2>&1 | tee {log_file}"
     )
