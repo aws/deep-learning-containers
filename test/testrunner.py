@@ -158,6 +158,9 @@ def main():
                  "-m", "not multinode"],
                 ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
             ]
+            if is_pr_context():
+                for cmd in pytest_cmds:
+                    cmd.append("--timeout=2340")
         else:
             # Execute dlc_tests pytest command
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
