@@ -3,6 +3,7 @@ FROM ubuntu:16.04
 LABEL maintainer="Amazon AI"
 
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL dlc_major_version="1"
 
 ARG MMS_VERSION=1.1.2
 ARG PYTHON=python
