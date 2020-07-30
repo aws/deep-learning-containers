@@ -33,7 +33,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
 
     return_val = ec2_connection.run(
-            f"pip install boto3 grpcio tensorflow-serving-api==3.0 --user --no-warn-script-location"
+            f"pip install boto3 grpcio tensorflow-serving-api==3.0 --user --no-warn-script-location", warn=True
         )
     if return_val != 0:  # in case tfs version is behind tf version
         ec2_connection.run(f"echo tfs version is behind tf version  >&2")
