@@ -8,6 +8,10 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.6.10
 ARG TS_VERSION=0.1.1
+ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_inference/20200727-223446/b0251e7e070e57f34ee08ac59ab4710081b41918/gpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
+ARG PT_VISION_URL=https://torchvision-build.s3.amazonaws.com/1.6.0/gpu/torchvision-0.7.0-cp36-cp36m-linux_x86_64.whl
+
+
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
@@ -84,10 +88,10 @@ RUN conda install -c \
 
 # Uninstall and re-install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U https://download.pytorch.org/whl/cu101/torch-1.6.0%2Bcu101-cp36-cp36m-linux_x86_64.whl \
+ && pip install --no-cache-dir -U $PT_INFERENCE_URL \
  && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U \
-    https://download.pytorch.org/whl/cu101/torchvision-0.7.0%2Bcu101-cp36-cp36m-linux_x86_64.whl
+ && pip install --no-deps --no-cache-dir -U $PT_VISION_URL
+
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
