@@ -5,46 +5,67 @@ import boto3
 from retrying import retry
 from fabric import Connection
 from botocore.config import Config
+from botocore.exceptions import ClientError
 
-from . import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, LOGGER
+from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 
-def get_ec2_instance_type(default, processor, enable_p3dn=False):
+def get_ec2_instance_type(default, processor, disable_p3dn=False):
     """
     Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
     for contexts where the variable is not present (i.e. PR, Nightly, local testing)
 
-    :param default: Default instance type to use
+    :param default: Default instance type to use - Should never be p3dn
     :param processor: "cpu" or "gpu"
-    :param enable_p3dn: Boolean to determine whether or not to run tests on p3dn. If set to false, default
-    gpu instance type will be used. If default gpu instance type is p3dn, then use small gpu instance type (p2.xlarge)
+    :param disable_p3dn: Boolean to determine whether or not to run tests on p3dn. If set to true, default
+    gpu instance type will be used.
 
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
     a list.
     """
-    allowed_processors = ("cpu", "gpu")
+    allowed_processors = ("cpu", "gpu", "eia")
     p3dn = "p3dn.24xlarge"
     if processor not in allowed_processors:
         raise RuntimeError(
             f"Aborting EC2 test run. Unrecognized processor type {processor}. "
             f"Please choose from {allowed_processors}"
         )
-    if default == p3dn and not enable_p3dn:
+    if default == p3dn:
         raise RuntimeError(
-            "Default instance type is p3dn but p3dn testing is disabled. Please either enable p3dn "
-            "by setting enable_p3dn=True, or change the default instance type"
+            "Default instance type should never be p3dn.24xlarge"
         )
     instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
-    if instance_type == p3dn and not enable_p3dn:
-        return [default]
+    if instance_type == p3dn and disable_p3dn:
+        instance_type = default
     return [instance_type]
 
 
+def get_ec2_accelerator_type(default, processor):
+    """
+    Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
+    for contexts where the variable is not present (i.e. PR, Nightly, local testing)
+
+    :param default: Default instance type to use - Should never be p3dn
+    :param processor: "eia"
+
+    :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
+    a list.
+    """
+    allowed_processors = ("eia")
+    if processor not in allowed_processors:
+        raise RuntimeError(
+            f"Aborting EC2 test run. Unrecognized processor type {processor}. "
+            f"Please choose from {allowed_processors}"
+        )
+    accelerator_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
+    return [accelerator_type]
+
+
 def launch_instance(
-    ami_id, instance_type, ec2_key_name=None, region=DEFAULT_REGION, user_data=None,
-        iam_instance_profile_name=None, instance_name="",
+    ami_id, instance_type, ei_accelerator_type, ec2_key_name=None, region=DEFAULT_REGION, user_data=None,
+    iam_instance_profile_name=None, instance_name=""
 ):
     """
     Launch an instance
@@ -77,7 +98,23 @@ def launch_instance(
         arguments_dict["UserData"] = user_data
     if iam_instance_profile_name:
         arguments_dict["IamInstanceProfile"] = {"Name": iam_instance_profile_name}
-    response = client.run_instances(**arguments_dict)
+    if ei_accelerator_type:
+        arguments_dict["ElasticInferenceAccelerators"] = ei_accelerator_type
+        availability_zones = {"us-west": ["us-west-2a", "us-west-2b", "us-west-2c"],
+                              "us-east": ["us-east-1a", "us-east-1b", "us-east-1c"]}
+        for a_zone in availability_zones[region]:
+            arguments_dict["Placement"] = {
+                'AvailabilityZone': a_zone
+            }
+            try:
+                response = client.run_instances(**arguments_dict)
+                if response and len(response['Instances']) >= 1:
+                    break
+            except ClientError as e:
+                print(f"Failed to launch in {a_zone} with Error: {e}")
+                continue
+    else:
+        response = client.run_instances(**arguments_dict)
 
     if not response or len(response["Instances"]) < 1:
         raise Exception(
@@ -147,7 +184,7 @@ def get_instance_user(instance_id, region=DEFAULT_REGION):
     :return: <str> user name
     """
     instance = get_instance_from_id(instance_id, region)
-    user = "ubuntu" if instance["ImageId"] in [UBUNTU_16_BASE_DLAMI] else "ec2-user"
+    user = "ubuntu" if instance["ImageId"] in UL_AMI_LIST else "ec2-user"
     return user
 
 
@@ -350,7 +387,7 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     return conn
 
 
-def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash"):
+def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash", large_shm=False):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
     if executable == "bash":
@@ -362,9 +399,10 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     # Run training command
+    shm_setting = '--shm-size="1g"' if large_shm else ""
     connection.run(
         f"{docker_cmd} run --name ec2_training_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
-        f" -itd {ecr_uri}",
+        f" {shm_setting} -itd {ecr_uri}",
         hide=True,
     )
     return connection.run(

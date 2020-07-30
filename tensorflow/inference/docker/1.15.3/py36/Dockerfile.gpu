@@ -1,6 +1,7 @@
 FROM nvidia/cuda:10.0-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="4"
 # Specify LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
@@ -40,6 +41,7 @@ RUN apt-get update \
     libnccl2=${NCCL_VERSION} \
     libgomp1 \
     curl \
+    emacs \
     git \
     wget \
     build-essential \
@@ -71,6 +73,8 @@ RUN apt-get update \
     python3 \
     python3-pip \
     python3-setuptools \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-4.0.1-ga-cuda10.0
 # adds a new list which contains libnvinfer library, so it needs another
@@ -115,7 +119,7 @@ RUN apt-get update \
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install -U --no-cache-dir \
-    awscli==1.18.34 \
+    "awscli<2" \
     pyYAML==5.3.1 \
     cython==0.29.12 \
     falcon==2.0.0 \
@@ -132,10 +136,6 @@ COPY sagemaker /sagemaker
 
 RUN curl ${TF_MODEL_SERVER_SOURCE} -o /usr/bin/tensorflow_model_server \
  && chmod 555 /usr/bin/tensorflow_model_server
-
-WORKDIR /
-# put tensorflow library (with only error_codes) to python dist-packages
-RUN mv /sagemaker/tensorflow/ /usr/local/lib/python3.*/dist-packages/
 
 # Expose gRPC and REST port
 EXPOSE 8500 8501

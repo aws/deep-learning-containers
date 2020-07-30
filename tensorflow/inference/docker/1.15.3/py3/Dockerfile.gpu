@@ -41,11 +41,14 @@ RUN apt-get update \
     libcudnn7=${CUDNN_VERSION} \
     libnccl2=${NCCL_VERSION} \
     libgomp1 \
+    libffi-dev \
     curl \
+    emacs \
     git \
     wget \
     build-essential \
     vim \
+    zlib1g-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -119,7 +122,7 @@ RUN apt-get update \
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install -U --no-cache-dir \
-    awscli==1.18.34 \
+    "awscli<2" \
     pyYAML==5.3.1 \
     cython==0.29.12 \
     falcon==2.0.0 \
@@ -136,10 +139,6 @@ COPY sagemaker /sagemaker
 
 RUN curl ${TF_MODEL_SERVER_SOURCE} -o /usr/bin/tensorflow_model_server \
  && chmod 555 /usr/bin/tensorflow_model_server
-
-WORKDIR /
-# put tensorflow library (with only error_codes) to python dist-packages
-RUN mv /sagemaker/tensorflow/ /usr/local/lib/python3.*/dist-packages/
 
 # Expose gRPC and REST port
 EXPOSE 8500 8501

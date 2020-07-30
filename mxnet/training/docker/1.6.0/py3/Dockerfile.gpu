@@ -37,6 +37,7 @@ RUN apt-get update \
     cuda-cusolver-10-1 \
     cuda-cusparse-10-1 \
     curl \
+    emacs \
     git \
     libatlas-base-dev \
     libcurl4-openssl-dev \
@@ -170,7 +171,7 @@ RUN ${PIP} install --no-cache --upgrade \
     requests==2.22.0 \
     scikit-learn==0.20.4 \
     scipy==1.2.2 \
-    dgl-cu101==0.4.1 \
+    dgl-cu101 \
     gluonnlp==0.9.1 \
     gluoncv==0.6.0 \
     urllib3==1.25.8 \

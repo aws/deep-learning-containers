@@ -188,10 +188,10 @@ def setup_eks_cluster(framework_name):
     frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
     long_name = framework_name
     short_name = frameworks[long_name]
+    codebuild_version = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')[0:7]
     num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
-    cluster_name = (
-        f"dlc-{short_name}-cluster-" f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{random.randint(1, 10000)}"
-    )
+    cluster_name = f"dlc-{short_name}-cluster-" \
+                   f"{codebuild_version}-{random.randint(1, 10000)}"
     try:
         eks_utils.eks_setup()
         eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
@@ -210,6 +210,21 @@ def setup_sm_benchmark_env(dlc_images, test_path):
         setup_sm_benchmark_tf_train_env(resources_location, tf1_images_in_list, tf2_images_in_list)
 
 
+def delete_key_pairs(keyfile):
+    """
+    Function to delete key pairs from a file in mainline context
+
+    :param keyfile: file with all of the keys to delete
+    """
+    with open(keyfile) as key_destroy_file:
+        for key_file in key_destroy_file:
+            LOGGER.info(key_file)
+            ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
+            if ".pem" in key_file:
+                _resp, keyname = destroy_ssh_keypair(ec2_client, key_file)
+                LOGGER.info(f"Deleted {keyname}")
+
+
 def main():
     # Define constants
     start_time = datetime.now()
@@ -222,6 +237,8 @@ def main():
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
+    # Do not create EKS cluster for when EIA Only Images are present
+    is_all_images_list_eia = all("eia" in image_uri for image_uri in all_image_list)
     eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type
     specific_test_type = re.sub("benchmark-", "", test_type) if benchmark_mode else test_type
@@ -233,6 +250,7 @@ def main():
         # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.
         report_train = os.path.join(os.getcwd(), "test", f"{test_type}_train.xml")
         report_infer = os.path.join(os.getcwd(), "test", f"{test_type}_infer.xml")
+        report_multinode_train = os.path.join(os.getcwd(), "test", f"eks_multinode_train.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
         os.chdir(os.path.join("test", "dlc_tests"))
@@ -240,10 +258,9 @@ def main():
         # Pull images for necessary tests
         if specific_test_type == "sanity":
             pull_dlc_images(all_image_list)
-        if specific_test_type == "eks":
-            frameworks_in_images = [
-                framework for framework in ("mxnet", "pytorch", "tensorflow") if framework in dlc_images
-            ]
+        if specific_test_type == "eks" and not is_all_images_list_eia :
+            frameworks_in_images = [framework for framework in ("mxnet", "pytorch", "tensorflow")
+                                    if framework in dlc_images]
             if len(frameworks_in_images) != 1:
                 raise ValueError(
                     f"All images in dlc_images must be of a single framework for EKS tests.\n"
@@ -251,17 +268,30 @@ def main():
                 )
             framework = frameworks_in_images[0]
             eks_cluster_name = setup_eks_cluster(framework)
-            # Split training and inference, and run one after the other, to prevent scheduling issues
+
+            # setup kubeflow
+            eks_utils.setup_kubeflow(eks_cluster_name)
+
+            # Change 1: Split training and inference, and run one after the other, to prevent scheduling issues
             # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in
             # pods timing-out while they were in the Pending state. Scheduling 4 tests (and hence, 4 pods) at once
             # seems to be an optimal configuration.
+            # Change 2: Separate multi-node EKS tests from single-node tests in execution to prevent resource contention
             pytest_cmds = [
-                ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=4"],
-                ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4"],
+                ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=4",
+                 "-m", "not multinode"],
+                ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4",
+                 "-m", "not multinode"],
+                ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
             ]
         else:
             # Execute dlc_tests pytest command
-            pytest_cmds = [["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]]
+            pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
+            if test_type == "ec2":
+                pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
+                pytest_cmd[1] = "-rAR"
+
+            pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
         if specific_test_type == "canary":
             pytest_cmds = [["-s", "-rA", f"--junitxml={report}", "-n=auto", "--canary", "--ignore=container_tests/"]]
@@ -276,13 +306,8 @@ def main():
 
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
-                with open(KEYS_TO_DESTROY_FILE) as key_destroy_file:
-                    for key_file in key_destroy_file:
-                        LOGGER.info(key_file)
-                        ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}))
-                        if ".pem" in key_file:
-                            _resp, keyname = destroy_ssh_keypair(ec2_client, key_file)
-                            LOGGER.info(f"Deleted {keyname}")
+                delete_key_pairs(KEYS_TO_DESTROY_FILE)
+
     elif specific_test_type == "sagemaker":
         if benchmark_mode:
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
@@ -300,7 +325,7 @@ def main():
 
     elif specific_test_type == "sagemaker-local":
         run_sagemaker_local_tests(
-            [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
+            [image for image in standard_images_list if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))]
         )
     else:
         raise NotImplementedError(

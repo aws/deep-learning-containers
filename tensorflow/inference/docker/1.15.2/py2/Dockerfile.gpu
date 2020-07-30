@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libnccl2=${NCCL_VERSION} \
     libgomp1 \
     curl \
+    emacs \
     git \
     wget \
     vim \
@@ -76,7 +77,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /li
 
 RUN pip install -U --no-cache-dir \
     docutils==0.14 \
-    awscli \
+    "awscli<2" \
     requests==2.22.0
 
 #CMD ["bin/bash"]

@@ -6,13 +6,20 @@ import sys
 
 import boto3
 from botocore.config import Config
+from botocore.exceptions import ClientError
 import docker
-from fabric import Connection
 import pytest
 
-from test import test_utils
-from test.test_utils import DEFAULT_REGION, UBUNTU_16_BASE_DLAMI, KEYS_TO_DESTROY_FILE
+from botocore.config import Config
+from fabric import Connection
+
 import test.test_utils.ec2 as ec2_utils
+
+from test import test_utils
+from test.test_utils import (
+    DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2, KEYS_TO_DESTROY_FILE
+)
+from test.test_utils.test_reporting import TestReportGenerator
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -29,11 +36,15 @@ FRAMEWORK_FIXTURES = (
     "training",
     "inference",
     "gpu",
-    "cpu"
+    "cpu",
+    "eia",
+    "pytorch_inference_eia",
+    "mxnet_inference_eia",
+    "tensorflow_inference_eia"
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
-collect_ignore = [os.path.join("container_tests", "*")]
+collect_ignore = [os.path.join("container_tests")]
 
 
 def pytest_addoption(parser):
@@ -43,6 +54,12 @@ def pytest_addoption(parser):
     )
     parser.addoption(
         "--canary", action="store_true", default=False, help="Run canary tests",
+    )
+    parser.addoption(
+        "--generate-coverage-doc", action="store_true", default=False, help="Generate a test coverage doc",
+    )
+    parser.addoption(
+        "--multinode", action="store_true", default=False, help="Run only multi-node tests",
     )
 
 
@@ -91,15 +108,25 @@ def ec2_instance_role_name(request):
 
 @pytest.fixture(scope="function")
 def ec2_instance_ami(request):
-    return request.param if hasattr(request, "param") else UBUNTU_16_BASE_DLAMI
+    return request.param if hasattr(request, "param") else UBUNTU_16_BASE_DLAMI_US_WEST_2
+
+
+@pytest.fixture(scope="function")
+def ei_accelerator_type(request):
+    return request.param if hasattr(request, "param") else None
 
 
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
 def ec2_instance(
         request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami,
-        region
+        region, ei_accelerator_type
 ):
+    if ec2_instance_type == "p3dn.24xlarge":
+        region = P3DN_REGION
+        ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
+        ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
+        ec2_instance_ami = UBUNTU_16_BASE_DLAMI_US_EAST_1
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
     params = {
@@ -113,11 +140,41 @@ def ec2_instance(
         "MaxCount": 1,
         "MinCount": 1,
     }
-    extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300, }}]
-    if ("benchmark" in os.getenv("TEST_TYPE") and (("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames) or "mxnet_inference" in request.fixturenames)) \
-            or ("tensorflow_training" in request.fixturenames and "gpu_only" in request.fixturenames and "horovod" in ec2_key_name):
+    extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300,}}]
+    if (
+        "benchmark" in os.getenv("TEST_TYPE")
+        and (
+            ("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames)
+            or "mxnet_inference" in request.fixturenames
+        )
+    ) or (
+        "tensorflow_training" in request.fixturenames
+        and "gpu_only" in request.fixturenames
+        and "horovod" in ec2_key_name
+    ):
         params["BlockDeviceMappings"] = extra_volume_size_mapping
-    instances = ec2_resource.create_instances(**params)
+    if ei_accelerator_type:
+        params["ElasticInferenceAccelerators"] = [
+            {
+                'Type': ei_accelerator_type,
+                'Count': 1
+            }
+        ]
+        availability_zones = {"us-west-2": ["us-west-2a", "us-west-2b", "us-west-2c"],
+                              "us-east-1": ["us-east-1a", "us-east-1b", "us-east-1c"]}
+        for a_zone in availability_zones[region]:
+            params["Placement"] = {
+                'AvailabilityZone': a_zone
+            }
+            try:
+                instances = ec2_resource.create_instances(**params)
+                if instances:
+                    break
+            except ClientError as e:
+                LOGGER.error(f"Failed to launch in {a_zone} with Error: {e}")
+                continue
+    else:
+        instances = ec2_resource.create_instances(**params)
     instance_id = instances[0].id
 
     # Define finalizer to terminate instance after this fixture completes
@@ -137,21 +194,25 @@ def ec2_instance(
 
 
 @pytest.fixture(scope="function")
-def ec2_connection(request, ec2_instance, ec2_key_name, region):
+def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, region):
     """
     Fixture to establish connection with EC2 instance if necessary
     :param request: pytest test request
     :param ec2_instance: ec2_instance pytest fixture
     :param ec2_key_name: unique key name
+    :param ec2_instance_type: ec2_instance_type pytest fixture
     :param region: Region where ec2 instance is launched
     :return: Fabric connection object
     """
     instance_id, instance_pem_file = ec2_instance
-    LOGGER.info(f"Instance ip_address: {ec2_utils.get_public_ip(instance_id, region)}")
+    region = P3DN_REGION if ec2_instance_type == "p3dn.24xlarge" else region
+    ip_address = ec2_utils.get_public_ip(instance_id, region=region)
+    LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
+    LOGGER.info(f"Connecting to {user}@{ip_address}")
     conn = Connection(
         user=user,
-        host=ec2_utils.get_public_ip(instance_id, region),
+        host=ip_address,
         connect_kwargs={"key_filename": [instance_pem_file]},
     )
 
@@ -199,6 +260,10 @@ def gpu_only():
 
 
 @pytest.fixture(scope="session")
+def eia_only():
+    pass
+
+@pytest.fixture(scope="session")
 def py3_only():
     pass
 
@@ -210,9 +275,11 @@ def example_only():
 
 def pytest_configure(config):
     # register canary marker
-    config.addinivalue_line(
-        "markers", "canary(message): mark test to run as a part of canary tests."
-    )
+    config.addinivalue_line("markers", "canary(message): mark test to run as a part of canary tests.")
+    config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
+    config.addinivalue_line("markers", "model(model_name): name of the model being tested")
+    config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
+    config.addinivalue_line("markers", "processor(cpu/gpu/eia): explicitly mark which processor is used")
 
 
 def pytest_runtest_setup(item):
@@ -220,12 +287,24 @@ def pytest_runtest_setup(item):
         canary_opts = [mark for mark in item.iter_markers(name="canary")]
         if not canary_opts:
             pytest.skip("Skipping non-canary tests")
+    if item.config.getoption("--multinode"):
+        multinode_opts = [mark for mark in item.iter_markers(name="multinode")]
+        if not multinode_opts:
+            pytest.skip("Skipping non-multinode tests")
+
+
+def pytest_collection_modifyitems(session, config, items):
+    if config.getoption("--generate-coverage-doc"):
+        report_generator = TestReportGenerator(items)
+        report_generator.generate_coverage_doc()
+        report_generator.generate_sagemaker_reports()
 
 
 def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, values_to_generate_for_fixture):
     """
     Take a dictionary (values_to_generate_for_fixture), that maps a fixture name used in a test function to another
     fixture that needs to be parametrized, and parametrize to create unique resources for a test.
+
     :param metafunc_obj: pytest metafunc object
     :param images_to_parametrize: <list> list of image URIs which are used in a test
     :param values_to_generate_for_fixture: <dict> Mapping of "Fixture used" -> "Fixture to be parametrized"
@@ -272,13 +351,14 @@ def pytest_generate_tests(metafunc):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
                     if is_example_lookup or is_standard_lookup:
-                        if "cpu_only" in metafunc.fixturenames and "cpu" in image:
+                        if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
-                        elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames:
+                        elif "eia_only" in metafunc.fixturenames and "eia" in image:
                             images_to_parametrize.append(image)
-
+                        elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames and "eia_only" not in metafunc.fixturenames:
+                            images_to_parametrize.append(image)
             # Remove all images tagged as "py2" if py3_only is a fixture
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
                 images_to_parametrize = [py3_image for py3_image in images_to_parametrize if "py2" not in py3_image]

@@ -1,5 +1,7 @@
 FROM ubuntu:18.04
 
+LABEL dlc_major_version="3"
+
 # Add arguments to achieve the version, python and url
 ARG PYTHON=python
 ARG PIP=pip
@@ -26,6 +28,7 @@ RUN apt-get update \
     curl \
     gnupg2 \
     ca-certificates \
+    emacs \
     git \
     wget \
     vim \
@@ -47,7 +50,7 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir \
-    awscli \
+    "awscli<2" \
     cython \
     falcon \
     gunicorn \

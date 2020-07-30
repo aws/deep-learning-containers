@@ -7,6 +7,7 @@ from invoke.context import Context
 from test.test_utils import LOGGER, ec2, get_framework_and_version_from_tag, is_canary_context
 
 
+@pytest.mark.model("N/A")
 @pytest.mark.canary("Run stray file test regularly on production images")
 def test_stray_files(image):
     """
@@ -47,6 +48,7 @@ def test_stray_files(image):
     _assert_artifact_free(root, stray_artifacts)
 
 
+@pytest.mark.model("N/A")
 @pytest.mark.canary("Run python version test regularly on production images")
 def test_python_version(image):
     """
@@ -76,6 +78,7 @@ def test_python_version(image):
     assert py_version in container_py_version, f"Cannot find {py_version} in {container_py_version}"
 
 
+@pytest.mark.model("N/A")
 def test_ubuntu_version(image):
     """
     Check that the ubuntu version in the image tag is the same as the one on a running container.
@@ -98,6 +101,7 @@ def test_ubuntu_version(image):
     assert ubuntu_version in container_ubuntu_version
 
 
+@pytest.mark.model("N/A")
 @pytest.mark.canary("Run cpu framework version test regularly on production images")
 def test_framework_version_cpu(cpu):
     """
@@ -126,7 +130,8 @@ def test_framework_version_cpu(cpu):
         assert tag_framework_version == output.stdout.strip()
 
 
-@pytest.mark.canary("Run gpu framework version test regularly on production images")
+# TODO: Enable as canary once resource cleaning lambda is added
+@pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ['p2.xlarge'], indirect=True)
 def test_framework_version_gpu(gpu, ec2_connection):
     """
@@ -153,6 +158,7 @@ def test_framework_version_gpu(gpu, ec2_connection):
         assert tag_framework_version == output.stdout.strip()
 
 
+@pytest.mark.model("N/A")
 @pytest.mark.canary("Run pip check test regularly on production images")
 def test_pip_check(image):
     """
@@ -173,6 +179,22 @@ def test_pip_check(image):
         if not allowed_exception.match(output.stdout):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
+
+
+@pytest.mark.model("N/A")
+def test_emacs(image):
+    """
+    Ensure that emacs is installed on every image
+
+    :param image: ECR image URI
+    """
+    ctx = Context()
+    container_name = f"emacs-{image.split('/')[-1].replace('.', '-').replace(':', '-')}"
+    _start_container(container_name, image, ctx)
+
+    # Make sure the following emacs sanity tests exit with code 0
+    _run_cmd_on_container(container_name, ctx, "which emacs")
+    _run_cmd_on_container(container_name, ctx, "emacs -version")
 
 
 def _start_container(container_name, image_uri, context):

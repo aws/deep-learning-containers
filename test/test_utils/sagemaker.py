@@ -1,12 +1,13 @@
 import datetime
 import os
-import traceback
+import subprocess
 import random
 import re
 
 from time import sleep
 
 from invoke.context import Context
+from invoke import exceptions
 
 from test_utils import ec2 as ec2_utils
 from test_utils import metrics as metrics_utils
@@ -14,15 +15,16 @@ from test_utils import (
     destroy_ssh_keypair,
     generate_ssh_keypair,
     get_framework_and_version_from_tag,
-    get_job_type_from_image,
+    get_job_type_from_image
 )
 
 from test_utils import (
-    UBUNTU_16_BASE_DLAMI,
+    UBUNTU_16_BASE_DLAMI_US_EAST_1,
+    UBUNTU_16_BASE_DLAMI_US_WEST_2,
     SAGEMAKER_LOCAL_TEST_TYPE,
     SAGEMAKER_REMOTE_TEST_TYPE,
     UBUNTU_HOME_DIR,
-    DEFAULT_REGION,
+    DEFAULT_REGION
 )
 
 
@@ -56,6 +58,8 @@ def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
         region=region,
         ec2_key_name=ec2_key_name,
         instance_type=instance_type,
+        # EIA does not have SM Local test
+        ei_accelerator_type=None,
         user_data=None,
         iam_instance_profile_name=ec2_utils.EC2_INSTANCE_ROLE_NAME,
         instance_name=f"sm-local-{instance_name}",
@@ -94,9 +98,11 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     aws_id_arg = "--aws-id"
     docker_base_arg = "--docker-base-name"
     instance_type_arg = "--instance-type"
+    accelerator_type_arg = "--accelerator-type"
+    eia_arg = "ml.eia1.large"
     framework_version = re.search(r"\d+(\.\d+){2}", tag).group()
     framework_major_version = framework_version.split(".")[0]
-    processor = "gpu" if "gpu" in image else "cpu"
+    processor = "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
     py_version = re.search(r"py\d+", tag).group()
     sm_local_py_version = "37" if py_version == "py37" else "2" if py_version == "py27" else "3"
     if framework == "tensorflow" and job_type == "inference":
@@ -110,8 +116,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         if job_type == "inference":
             aws_id_arg = "--registry"
             docker_base_arg = "--repo"
-            integration_path = os.path.join(integration_path, "test_tfs.py")
             instance_type_arg = "--instance-types"
+            integration_path = os.path.join(integration_path, "test_tfs.py") if processor != "eia" else os.path.join(integration_path, "test_ei.py")
 
     if framework == "tensorflow" and job_type == "training":
         aws_id_arg = "--account-id"
@@ -126,11 +132,12 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         f"{instance_type_arg} {instance_type} --junitxml {test_report}"
     )
 
-    local_pytest_cmd = (
-        f"{is_py3} pytest -v {integration_path} {docker_base_arg} "
-        f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
-        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}"
-    )
+    if processor == "eia" :
+        remote_pytest_cmd += (f" {accelerator_type_arg} {eia_arg}")
+
+    local_pytest_cmd = (f"{is_py3} pytest -v {integration_path} {docker_base_arg} "
+                        f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
+                        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}")
 
     if framework == "tensorflow" and job_type != "inference":
         local_pytest_cmd = f"{local_pytest_cmd} --py-version {sm_local_py_version} --region {region}"
@@ -206,7 +213,12 @@ def execute_local_tests(image, ec2_client):
     try:
         key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
         print(f"Launching new Instance for image: {image}")
-        instance_id, ip_address = launch_sagemaker_local_ec2_instance(image, UBUNTU_16_BASE_DLAMI, ec2_key_name, region)
+        instance_id, ip_address = launch_sagemaker_local_ec2_instance(
+            image,
+            UBUNTU_16_BASE_DLAMI_US_EAST_1 if region == "us-east-1" else UBUNTU_16_BASE_DLAMI_US_WEST_2,
+            ec2_key_name,
+            region
+        )
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
@@ -214,9 +226,27 @@ def execute_local_tests(image, ec2_client):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         with ec2_conn.cd(path):
             install_sm_local_dependencies(framework, job_type, image, ec2_conn)
-            ec2_conn.run(pytest_command)
-            print(f"Downloading Test reports for image: {image}")
-            ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
+            # Workaround for mxnet cpu training images as test distributed
+            # causes an issue with fabric ec2_connection
+            if framework == "mxnet" and job_type == "training" and "cpu" in image:
+                try:
+                    ec2_conn.run(pytest_command, timeout=1000, warn=True)
+                except exceptions.CommandTimedOut as exc:
+                    print(f"Ec2 connection timed out for {image}, {exc}")
+                finally:
+                    print(f"Downloading Test reports for image: {image}")
+                    ec2_conn.close()
+                    ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
+                    ec2_conn_new.get(ec2_test_report_path,
+                                     os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
+                    output = subprocess.check_output(f"cat test/{job_type}_{tag}_sm_local.xml", shell=True,
+                                                     executable="/bin/bash")
+                    if 'failures="0"' not in str(output):
+                        raise ValueError(f"Sagemaker Local tests failed for {image}")
+            else:
+                ec2_conn.run(pytest_command)
+                print(f"Downloading Test reports for image: {image}")
+                ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
     finally:
         print(f"Terminating Instances for image: {image}")
         ec2_utils.terminate_instance(instance_id, region)

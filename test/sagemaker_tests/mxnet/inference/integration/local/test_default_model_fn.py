@@ -18,8 +18,8 @@ import pytest
 import requests
 from sagemaker.mxnet.model import MXNetModel
 
-import local_mode_utils
-from test.integration import RESOURCE_PATH
+from ...integration.local import local_mode_utils
+from ...integration import RESOURCE_PATH
 
 DEFAULT_HANDLER_PATH = os.path.join(RESOURCE_PATH, 'default_handlers')
 MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model')
@@ -42,12 +42,14 @@ def predictor(docker_image, sagemaker_local_session, local_instance_type):
             predictor.delete_endpoint()
 
 
+@pytest.mark.model("linear_regression")
 def test_default_model_fn(predictor):
     input = [[1, 2]]
     output = predictor.predict(input)
     assert [[4.9999918937683105]] == output
 
 
+@pytest.mark.model("linear_regression")
 def test_default_model_fn_content_type(predictor):
     r = requests.post('http://localhost:8080/invocations', json=[[1, 2]])
     assert 'application/json' == r.headers['Content-Type']

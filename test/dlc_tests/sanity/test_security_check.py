@@ -3,6 +3,7 @@ import pytest
 from invoke import run
 
 
+@pytest.mark.model("N/A")
 @pytest.mark.canary("Run security test regularly on production images")
 def test_security(image):
     repo_name, image_tag = image.split("/")[-1].split(":")

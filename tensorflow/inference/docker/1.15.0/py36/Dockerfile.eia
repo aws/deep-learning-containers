@@ -4,6 +4,7 @@ LABEL maintainer="Amazon AI"
 # Specify LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL dlc_major_version="2"
 
 # Add arguments to achieve the version, python and url
 ARG PYTHON=python3
@@ -35,6 +36,7 @@ RUN apt-get update \
     curl \
     gnupg2 \
     ca-certificates \
+    emacs \
     git \
     wget \
     vim \
@@ -56,7 +58,7 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir \
-    awscli==1.18.32 \
+    "awscli<2" \
     cython==0.29.16 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
