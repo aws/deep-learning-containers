@@ -8,6 +8,8 @@ from botocore.config import Config
 
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER
 
+from multiprocessing import Process
+
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 
@@ -361,7 +363,12 @@ def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, 
     connection.run('pip install tf-nightly')
     connection.run('pip install tensorflow_datasets')
     connection.run('ls')
-    connection.run(f'cd {container_test_local_dir} && python bin/start_dataservice.py')
+    
+    start_service = Process(target=execute_ec2_data_start, args=(connection,))
+    start_service.start()
+    start_service.join()
+
+    # connection.run(f'cd {container_test_local_dir} && python bin/start_dataservice.py')
 
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
@@ -377,6 +384,12 @@ def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, 
         hide=True,
         timeout=3000,
     )
+
+
+def execute_ec2_data_start(connection):
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+    connection.run(f'cd {container_test_local_dir} && python bin/start_dataservice.py')
+
 
 def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash", large_shm=False):
     if executable not in ("bash", "python"):
