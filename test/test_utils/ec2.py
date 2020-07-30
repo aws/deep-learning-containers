@@ -399,10 +399,11 @@ def execute_ec2_data_start(connection):
     connection.run(f'cd {container_test_local_dir} && python bin/start_dataservice.py >&2')
 
 def execute_ec2_data_service_test(connection, command):
+    connection.run('echo "--------start test data service--------" >&2')
     connection.run(
         command,
         hide=True,
-        timeout=3000,
+        timeout=600,
     )
 
 
