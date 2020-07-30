@@ -8,8 +8,6 @@ from botocore.config import Config
 
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER
 
-from multiprocessing import Process
-import time
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
@@ -351,7 +349,8 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     )
     return conn
 
-def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash", host_network=False):
+
+def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash", large_shm=False, host_network=False):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
     if executable == "bash":
@@ -364,46 +363,9 @@ def execute_ec2_data_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, 
 
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
+    network = '--network="host"' if host_network else ""
     connection.run(
-        f"{docker_cmd} run --name ec2_training_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
-        f" {shm_setting} -itd {ecr_uri}",
-        hide=True,
-    )
-    return connection.run(
-        f"{docker_cmd} exec --user root ec2_training_container {executable} -c '{test_cmd}'",
-        hide=True,
-        timeout=3000,
-    )
-
-
-def execute_ec2_data_start(connection):
-    container_test_local_dir = os.path.join("$HOME", "container_tests")
-    connection.run(f'cd {container_test_local_dir} && python bin/start_dataservice.py >&2')
-
-def execute_ec2_data_service_test(connection, command):
-    connection.run('echo "--------start test data service--------" >&2')
-    connection.run(
-        command,
-        hide=True,
-        timeout=600,
-    )
-
-
-def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash", large_shm=False):
-    if executable not in ("bash", "python"):
-        raise RuntimeError(f"This function only supports executing bash or python commands on containers")
-    if executable == "bash":
-        executable = os.path.join(os.sep, 'bin', 'bash')
-    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
-    container_test_local_dir = os.path.join("$HOME", "container_tests")
-
-    # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-
-    # Run training command
-    shm_setting = '--shm-size="1g"' if large_shm else ""
-    connection.run(
-        f"{docker_cmd} run --name ec2_training_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
+        f"{docker_cmd} run --name ec2_training_container {network} -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
         f" {shm_setting} -itd {ecr_uri}",
         hide=True,
     )
