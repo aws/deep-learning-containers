@@ -1,10 +1,8 @@
 import concurrent.futures
-import json
 import logging
 import os
 import sys
 
-import xml.etree.ElementTree as ET
 
 import boto3
 
@@ -17,7 +15,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
-TEST_IMAGE = "754106851545.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:2.2.0-gpu-py37-cu101-ubuntu18.04-example-pr-269-2020-06-11-22-13-27"
+TEST_IMAGE = "763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.2.0-gpu-py37-cu101-ubuntu18.04"
 SAMPLE_XML_MESSAGE = "<note><to>Sample</to><from>XML</from><heading>Report</heading><body>Hello World!</body></note>"
 SAMPLE_CB_ARN = "arn:aws:codebuild:us-west-2:754106851545:build/DLCTestJobExecutor:894c9690-f6dc-4a15-b4b8-b9f2ddc51ea9"
 

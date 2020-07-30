@@ -24,7 +24,7 @@ LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 # test parameters
-TEST_ECR_URI = "754106851545.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-training:2.2.0-gpu-py37-cu101-ubuntu18.04-example-pr-269-2020-06-11-22-13-27"
+TEST_ECR_URI = "763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.2.0-gpu-py37-cu101-ubuntu18.04"
 INSTANCE_TYPE = "ml.p3.8xlarge"
 JOB_TYPE = "training"
 SQS_RETURN_QUEUE_URL = "dummy_sqs_url"

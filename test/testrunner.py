@@ -136,10 +136,10 @@ def run_sagemaker_remote_tests(images):
     Function to set up multiprocessing for SageMaker tests
     :param images: <list> List of all images to be used in SageMaker tests
     """
-    use_scheduler = os.getenv("USE_SCHEDULER", "False")
-    executor_mode = os.getenv("EXECUTOR_MODE", "False")
+    use_scheduler = os.getenv("USE_SCHEDULER", "False").lower() == "true"
+    executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
 
-    if executor_mode.lower() == "true":
+    if executor_mode:
         LOGGER.info("entered executor mode.")
         import log_return
 
@@ -159,7 +159,7 @@ def run_sagemaker_remote_tests(images):
             log_return.update_pool("runtimeError", instance_type, num_of_instances, job_type, test_report)
         return
 
-    if use_scheduler.lower() == "true":
+    elif use_scheduler:
         LOGGER.info("entered scheduler mode.")
         import concurrent.futures
         from job_requester import JobRequester
@@ -229,11 +229,8 @@ def main():
     # Define constants
     start_time = datetime.now()
     test_type = os.getenv("TEST_TYPE")
-    executor_mode = os.getenv("EXECUTOR_MODE", "False")
-    if executor_mode.lower() == "true":
-        dlc_images = os.getenv("DLC_IMAGE")
-    else:
-        dlc_images = get_dlc_images()
+    executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
+    dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
@@ -329,7 +326,7 @@ def main():
         )
     else:
         raise NotImplementedError(
-            f"{test_type} test is not supported. " f"Only support ec2, ecs, eks, sagemaker and sanity currently"
+            f"{test_type} test is not supported. Only support ec2, ecs, eks, sagemaker and sanity currently"
         )
 
 
