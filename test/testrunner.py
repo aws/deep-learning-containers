@@ -4,7 +4,7 @@ import sys
 import logging
 import re
 import traceback
-import junit_xml==1.9
+#import junit_xml==1.9
 
 from multiprocessing import Pool
 import boto3
@@ -12,7 +12,7 @@ import pytest
 
 from botocore.config import Config
 from invoke import run
-from junit_xml==1.9 import TestSuite, TestCase
+#from junit_xml==1.9 import TestSuite, TestCase
 
 from test_utils import eks as eks_utils
 from test_utils import sagemaker as sm_utils
@@ -202,10 +202,11 @@ def main():
         )
         for image in standard_images_list:
             if "eia" in image:
-                test_cases = [TestCase('sagemaker-local', 'eia', 1, 'Skipped SM Local on EIA', '')]
-                ts = TestSuite("sm - local - eia", test_cases)
+                #test_cases = [TestCase('sagemaker-local', 'eia', 1, 'Skipped SM Local on EIA', '')]
+                #ts = TestSuite("sm - local - eia", test_cases)
                 with open('sm-local-eia.xml’, ‘w') as skip_file:
-                    TestSuite.to_file(skip_file, [ts], prettyprint=False)
+                    #TestSuite.to_file(skip_file, [ts], prettyprint=False)
+                    skip_file.write('')
     else:
         raise NotImplementedError(f"{test_type} test is not supported. "
                                   f"Only support ec2, ecs, eks, sagemaker and sanity currently")
