@@ -34,8 +34,20 @@ if __name__ == "__main__":
     )
     # create the empty json file for images
     build_context = os.getenv("BUILD_CONTEXT")
+    ei_dedicated = os.getenv("EIA_DEDICATED") == "True"
+
+    # A general/non-EI builder will work if in non-EI mode and its framework not been disabled
+    non_ei_builder_enabled = not ei_dedicated and \
+                             not build_config.ENABLE_EI_MODE and \
+                             args.framework not in build_config.DISABLE_FRAMEWORK_TESTS
+    # An EI dedicated builder will work if in EI mode and its framework not been disabled
+    ei_builder_enabled = ei_dedicated and \
+                         build_config.ENABLE_EI_MODE and \
+                         args.framework not in build_config.DISABLE_FRAMEWORK_TESTS
+
     utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
-    if args.framework not in build_config.DISABLE_FRAMEWORK_TESTS or build_context != "PR":
+    # A builder will always work if it is in non-PR context
+    if non_ei_builder_enabled or ei_builder_enabled or build_context != "PR":
         utils.build_setup(
             args.framework,
             device_types=device_types,

@@ -1,6 +1,7 @@
 FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="4"
 # Specify LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
@@ -71,6 +72,8 @@ RUN apt-get update \
     python3 \
     python3-pip \
     python3-setuptools \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
@@ -92,11 +95,6 @@ RUN ${PIP} install --no-cache-dir \
     tensorflow-serving-api==1.15.0
 
 COPY sagemaker /sagemaker
-
-WORKDIR /
-
-# put tensorflow library (with only error_codes) to python dist-packages
-RUN mv /sagemaker/tensorflow/ /usr/local/lib/python3.*/dist-packages/
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
