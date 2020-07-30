@@ -7,6 +7,8 @@ import sys
 import json
 import logging
 import random
+import re
+
 import boto3
 
 from botocore.exceptions import ClientError
@@ -612,3 +614,27 @@ def is_eks_multinode_training_complete(remote_yaml_file_path, namespace, pod_nam
                 raise ValueError("IN-PROGRESS: Retry.")
 
     return False
+
+
+def get_dgl_branch(ctx, image_uri):
+    """
+    Determine which dgl git branch to use based on the latest version
+
+    :param ctx: Invoke context
+    :param image_uri: docker image URI, used to uniqify repo name to avoid asynchronous git pulls
+    :return: latest dgl branch, i.e. 0.4.x
+    """
+    image_addition = image_uri.split('/')[-1].replace(':', '-')
+    dgl_local_repo = f'.dgl_branch-{image_addition}'
+    ctx.run(f"git clone https://github.com/dmlc/dgl.git {dgl_local_repo}", hide=True, warn=True)
+    with ctx.cd(dgl_local_repo):
+        branch = ctx.run("git branch -r", hide=True)
+        branches = branch.stdout.split()
+        release_branch_regex = re.compile(r'\d+.\d+.x')
+        release_branches = []
+        for branch in branches:
+            match = release_branch_regex.search(branch)
+            if match:
+                release_branches.append(match.group())
+    release_branches = sorted(release_branches, reverse=True)
+    return release_branches[0]
