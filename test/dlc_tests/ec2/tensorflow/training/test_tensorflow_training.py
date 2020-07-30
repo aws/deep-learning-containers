@@ -166,7 +166,7 @@ TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_only):
 	keywords = {'host_network': True}
-	start_service = Process(target=execute_ec2_training_test, args=(ec2_connection, tensorflow_training, TF_DATASERVICE_START_CMD,), kwargs=keywords)
+	start_service = Process(target=execute_ec2_training_test, args=(ec2_connection, tensorflow_training, TF_DATASERVICE_START_CMD, start_service, 0,), kwargs=keywords)
 	start_service.start()
 	execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
 	start_service.terminate()
@@ -174,10 +174,7 @@ def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, gpu_only):
 	keywords = {'host_network': True}
-	start_service = Process(target=execute_ec2_training_test, args=(ec2_connection, tensorflow_training, TF_DATASERVICE_START_CMD,), kwargs=keywords)
-	print('start data service test')
+	start_service = Process(target=execute_ec2_training_test, args=(ec2_connection, tensorflow_training, TF_DATASERVICE_START_CMD, start_service, 0,), kwargs=keywords)
 	start_service.start()
-	print('test data service test')
-	print(TF_DATASERVICE_TEST_CMD)
-	execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
+	execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, test_service, 3000, host_network=True)
 	start_service.terminate()
