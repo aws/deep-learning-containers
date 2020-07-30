@@ -251,7 +251,7 @@ def test_cuda_paths(gpu):
         buildspec = 'buildspec-tf1.yml'
 
     cuda_in_buildspec = False
-    cuda_in_buildspec_ref = f"cuda_version: &CUDA_VERSION {cuda_version}"
+    cuda_in_buildspec_ref = f"CUDA_VERSION {cuda_version}"
     buildspec_path = os.path.join(dlc_path, framework, buildspec)
     with open(buildspec_path, 'r') as bf:
         for line in bf:
@@ -264,6 +264,8 @@ def test_cuda_paths(gpu):
     except AssertionError as e:
         if not is_dlc_cicd_context():
             LOGGER.warn(f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context.")
+        else:
+            raise
 
     # Check that a Dockerfile exists in the right directory
     dockerfile_path = os.path.join(framework_version_path, python_version, cuda_version, 'Dockerfile.gpu')
