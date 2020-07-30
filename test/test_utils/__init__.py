@@ -400,7 +400,7 @@ def parse_canary_images(framework, region):
     for tag in repo.tags:
         strtag = str(tag)
         match = re.search(version_regex[framework], strtag)
-        if match and "tr" not in tag and "inf" not in tag:
+        if match and "tr" not in tag and "inf" not in strtag:
             version = match.group().split('-')[-1]
             if version not in versions:
                 versions.append(version)
