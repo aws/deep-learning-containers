@@ -31,6 +31,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
+    ec2_connection.run(f"pip install -U pip")
 
     return_val = ec2_connection.run(
             f"pip install boto3 grpcio tensorflow-serving-api==3.0 --user --no-warn-script-location", warn=True
