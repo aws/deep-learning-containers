@@ -177,7 +177,7 @@ ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/mas
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
  && chmod +x /usr/local/bin/deep_learning_container.py \
- && curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.6.0/license.txt
+ && wget -O /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.6.0/license.txt
 
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
