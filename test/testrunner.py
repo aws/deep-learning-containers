@@ -11,6 +11,7 @@ import pytest
 
 from botocore.config import Config
 from invoke import run
+from junit_xml import TestSuite, TestCase
 
 from test_utils import eks as eks_utils
 from test_utils import sagemaker as sm_utils
@@ -198,6 +199,12 @@ def main():
         run_sagemaker_local_tests(
             [image for image in standard_images_list if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))]
         )
+        for image in standard_images_list:
+            if "eia" in image:
+                test_cases = [TestCase('sagemaker-local', 'eia', 1, 'Skipped SM Local on EIA', '')]
+                ts = TestSuite("sm - local - eia", test_cases)
+                with open('sm-local-eia.xml’, ‘w') as skip_file:
+                    TestSuite.to_file(skip_file, [ts], prettyprint=False)
     else:
         raise NotImplementedError(f"{test_type} test is not supported. "
                                   f"Only support ec2, ecs, eks, sagemaker and sanity currently")
