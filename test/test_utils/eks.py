@@ -7,11 +7,13 @@ import sys
 import json
 import logging
 import random
+import re
+
 import boto3
 
 from botocore.exceptions import ClientError
 from retrying import retry
-from invoke import run
+from invoke import run, Context
 
 DEFAULT_REGION = "us-west-2"
 
@@ -297,7 +299,7 @@ def eks_setup():
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
     run_out = run(
-        "eksctl version && kubectl version --short --client && aws-iam-authenticator version && ks version",
+        "eksctl version && kubectl version --short --client && aws-iam-authenticator version && kfctl version",
         warn=True,
     )
 
@@ -320,8 +322,8 @@ def eks_setup():
     )
 
     kfctl_download_command = (
-        f"curl --silent --location https://github.com/kubeflow/kfctl/releases/download/{KFCTL_VERSION}/kfctl_{KFCTL_VERSION}-0-ga476281_linux.tar.gz "
-        f"-o /tmp/kfctl_{KFCTL_VERSION}_linux.tar.gz"
+        f"curl --silent --location https://github.com/kubeflow/kfctl/releases/download/{KFCTL_VERSION}/kfctl_{KFCTL_VERSION}-0-ga476281_{platform.lower()}.tar.gz "
+        f"-o /tmp/kfctl_{KFCTL_VERSION}_{platform.lower()}.tar.gz"
     )
 
     kubetail_download_command = (
@@ -337,9 +339,9 @@ def eks_setup():
 
     run(aws_iam_authenticator_download_command, echo=True)
     run("chmod +x /usr/local/bin/aws-iam-authenticator")
-    
+
     run(kfctl_download_command, echo=True)
-    run(f"tar -xvf /tmp/kfctl_{KFCTL_VERSION}_linux.tar.gz -C /tmp --strip-components=1")
+    run(f"tar -xvf /tmp/kfctl_{KFCTL_VERSION}_{platform.lower()}.tar.gz -C /tmp --strip-components=1")
     run("mv /tmp/kfctl /usr/local/bin")
 
     run(kubetail_download_command, echo=True)
@@ -350,6 +352,7 @@ def eks_setup():
     run("kubectl version --short --client", echo=True)
     run("aws-iam-authenticator version", echo=True)
     run("kfctl version", echo=True)
+
 
 def setup_kubeflow(eks_cluster_name,region=os.getenv("AWS_REGION", DEFAULT_REGION)):
     """Function to setup kubeflow v1.0.2
@@ -379,26 +382,34 @@ def setup_kubeflow(eks_cluster_name,region=os.getenv("AWS_REGION", DEFAULT_REGIO
     deploy_mxnet_operator()
     deploy_mpi_operator()
 
+
 def deploy_mxnet_operator():
     """Function to deploy mxnet operator in the EKS cluster. This will support v1beta1 crd for mxjobs.
     """
+    ctx = Context()
+    home_dir = ctx.run("echo $HOME").stdout.strip("\n")
+    mxnet_operator_dir = os.path.join(home_dir, "mxnet-operator")
+    if os.path.isdir(mxnet_operator_dir):
+        ctx.run(f"rm -rf {mxnet_operator_dir}")
 
-    clone_mxnet_command = (
-        "cd $HOME && git clone https://github.com/kubeflow/mxnet-operator.git"
-    )
+    clone_mxnet_command = f"git clone https://github.com/kubeflow/mxnet-operator.git {mxnet_operator_dir}"
+    ctx.run(clone_mxnet_command, echo=True)
+    run(f"kubectl create -k {mxnet_operator_dir}/manifests/overlays/v1beta1/", echo=True)
 
-    run(clone_mxnet_command, echo=True)
-    run("kubectl create -k $HOME/mxnet-operator/manifests/overlays/v1beta1/", echo=True)
 
 def deploy_mpi_operator():
     """Function to deploy mpi operator in the EKS cluster. This will support v1alpha2 crd for mpijobs.
     """
-    clone_mxnet_command = (
-        "cd $HOME && git clone https://github.com/kubeflow/mpi-operator"
-    )
+    ctx = Context()
+    home_dir = ctx.run("echo $HOME").stdout.strip("\n")
+    mpi_operator_dir = os.path.join(home_dir, "mpi-operator")
+    if os.path.isdir(mpi_operator_dir):
+        ctx.run(f"rm -rf {mpi_operator_dir}")
 
+    clone_mxnet_command = f"git clone https://github.com/kubeflow/mpi-operator {mpi_operator_dir}"
     run(clone_mxnet_command, echo=True)
-    run("kubectl create -f $HOME/mpi-operator/deploy/v1alpha2/mpi-operator.yaml", echo=True)
+    run(f"kubectl create -f {mpi_operator_dir}/deploy/v1alpha2/mpi-operator.yaml", echo=True)
+
 
 def write_eks_yaml_file_from_template(
     local_template_file_path, remote_yaml_file_path, search_replace_dict
@@ -603,3 +614,27 @@ def is_eks_multinode_training_complete(remote_yaml_file_path, namespace, pod_nam
                 raise ValueError("IN-PROGRESS: Retry.")
 
     return False
+
+
+def get_dgl_branch(ctx, image_uri):
+    """
+    Determine which dgl git branch to use based on the latest version
+
+    :param ctx: Invoke context
+    :param image_uri: docker image URI, used to uniqify repo name to avoid asynchronous git pulls
+    :return: latest dgl branch, i.e. 0.4.x
+    """
+    image_addition = image_uri.split('/')[-1].replace(':', '-')
+    dgl_local_repo = f'.dgl_branch-{image_addition}'
+    ctx.run(f"git clone https://github.com/dmlc/dgl.git {dgl_local_repo}", hide=True, warn=True)
+    with ctx.cd(dgl_local_repo):
+        branch = ctx.run("git branch -r", hide=True)
+        branches = branch.stdout.split()
+        release_branch_regex = re.compile(r'\d+.\d+.x')
+        release_branches = []
+        for branch in branches:
+            match = release_branch_regex.search(branch)
+            if match:
+                release_branches.append(match.group())
+    release_branches = sorted(release_branches, reverse=True)
+    return release_branches[0]

@@ -24,6 +24,7 @@ def _recursive_find_repo_path():
 
 
 @pytest.mark.skipif(not is_pr_context(), reason=PR_ONLY_REASON)
+@pytest.mark.model("N/A")
 def test_git_secrets():
     ctx = Context()
     repository_path = os.getenv("CODEBUILD_SRC_DIR")
