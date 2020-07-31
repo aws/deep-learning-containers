@@ -1,8 +1,6 @@
 import tensorflow as tf
-import tensorflow_datasets as tfds
 import numpy as np
 
-tfds.disable_progress_bar()
 
 flags = tf.compat.v1.app.flags
 
@@ -22,19 +20,16 @@ def apply_transformations(ds_train):
     ds_train = ds_train.map(
         normalize_img, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     ds_train = ds_train.cache()
-    ds_train = ds_train.shuffle(ds_info.splits['train'].num_examples)
+    ds_train = ds_train.shuffle(60000)
     ds_train = ds_train.batch(128)
     ds_train = ds_train.prefetch(tf.data.experimental.AUTOTUNE)
     return ds_train
 
-(ds_train, _), ds_info = tfds.load(
-    'mnist',
-    split=['train', 'test'],
-    data_dir="/tmp/tfds",
-    shuffle_files=True,
-    as_supervised=True,
-    with_info=True,
-)
+(x_train, y_train), _ = tf.keras.datasets.mnist.load_data()
+x_train = x_train / np.float32(255)
+y_train = y_train.astype(np.int64)
+ds_train = tf.data.Dataset.from_tensor_slices(
+      (x_train, y_train))
 
 def normalize_img(image, label):
   """Normalizes images: `uint8` -> `float32`."""
