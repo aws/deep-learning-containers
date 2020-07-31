@@ -202,10 +202,7 @@ def main():
         )
         for image in standard_images_list:
             if "eia" in image:
-                #test_cases = [TestCase('sagemaker-local', 'eia', 1, 'Skipped SM Local on EIA', '')]
-                #ts = TestSuite("sm - local - eia", test_cases)
-                with open(sm-local-eia.xml, 'w') as skip_file:
-                    #TestSuite.to_file(skip_file, [ts], prettyprint=False)
+                with open("sm-local-eia.xml", "w") as skip_file:
                     skip_file.write('')
     else:
         raise NotImplementedError(f"{test_type} test is not supported. "
