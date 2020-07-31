@@ -49,7 +49,7 @@ pip install tensorflow-datasets
 echo "Running framework tests."
 
 
-if [ $FRAMEWORK = "tensorflow" ]; then
+if [[ $FRAMEWORK == "tensorflow" ]]; then
     timeout 1800s pytest mock/tests/${FRAMEWORK} \
                             -k "not test_keras and not test_mnist_s3 and not test_mnist_s3_multi_save_configs" \
                             --ignore=mock/tests/mxnet/test_training_end.py 2>&1
