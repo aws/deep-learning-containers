@@ -204,7 +204,7 @@ def main():
             if "eia" in image:
                 #test_cases = [TestCase('sagemaker-local', 'eia', 1, 'Skipped SM Local on EIA', '')]
                 #ts = TestSuite("sm - local - eia", test_cases)
-                with open('sm-local-eia.xml’, ‘w') as skip_file:
+                with open(sm-local-eia.xml, 'w') as skip_file:
                     #TestSuite.to_file(skip_file, [ts], prettyprint=False)
                     skip_file.write('')
     else:
