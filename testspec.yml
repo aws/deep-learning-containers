@@ -28,4 +28,3 @@ reports:
     files:
       - test/*.xml
     file-format: JunitXml
-    allowEmptyResults: true

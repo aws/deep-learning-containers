@@ -201,8 +201,9 @@ def main():
         )
         for image in standard_images_list:
             if "eia" in image:
+                pytest.skip("Not running for sm local test")
                 test_cases = [TestCase('sagemaker-local', 'eia', 1, 'Skipped SM Local on EIA', '')]
-                ts = TestSuite("sm-local-eia", test_cases)
+                ts = TestSuite("test/sm-local-eia", test_cases)
                 with open("sm-local-eia.xml", "w") as skip_file:
                     TestSuite.to_file(skip_file, [ts], prettyprint=False)
                     skip_file.write('')
