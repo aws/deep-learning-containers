@@ -166,9 +166,10 @@ TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor
 
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_only):
+	ec2_connection.run('python3 -m pip install --upgrade pip')
 	ec2_connection.run('pip3 install tensorflow')
 	ec2_connection.run('pip3 install tf-nightly')
-	start_service = Process(target=execute_ec2_data_start, args=(ec2_connection,))
+	start_service = Process(target=execute_data_service_start, args=(ec2_connection,))
 	start_service.start()
 
 	execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
@@ -176,14 +177,15 @@ def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_onl
 
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, gpu_only):
+	ec2_connection.run('python3 -m pip install --upgrade pip')
 	ec2_connection.run('pip3 install tensorflow')
 	ec2_connection.run('pip3 install tf-nightly')
-	start_service = Process(target=execute_ec2_data_start, args=(ec2_connection,))
+	start_service = Process(target=execute_data_service_start, args=(ec2_connection,))
 	start_service.start()
-	
+
 	execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
 	start_service.terminate()
 
-def execute_ec2_data_start(connection):
+def execute_data_service_start(connection):
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     connection.run(f'cd {container_test_local_dir} && python3 bin/start_dataservice.py', timeout=50)
