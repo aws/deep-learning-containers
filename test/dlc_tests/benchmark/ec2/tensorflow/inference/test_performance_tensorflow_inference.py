@@ -29,14 +29,15 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
 
     # Run performance inference command, display benchmark results to console
+    ec2_connection.run(f"pip3 install -U pip")
     ec2_connection.run(
-        f"pip install boto3 grpcio tensorflow-serving-api=={tf_api_version} --user --no-warn-script-location"
+        f"pip3 install boto3 grpcio tensorflow-serving-api=={tf_api_version} --user --no-warn-script-location"
     )
     time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
     log_file = f"inference_benchmark_results_{commit_info}_{time_str}.log"
     ec2_connection.run(
-        f"python {container_test_local_dir}/bin/benchmark/tf{tf_version}_serving_perf.py "
+        f"python3 {container_test_local_dir}/bin/benchmark/tf{tf_version}_serving_perf.py "
         f"--processor {processor} --docker_image_name {image_uri} --run_all_s3 --binary /usr/bin/tensorflow_model_server --get_perf --iterations 1000 "
         f"2>&1 | tee {log_file}"
     )
