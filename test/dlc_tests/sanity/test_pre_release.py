@@ -211,7 +211,7 @@ def test_emacs(image):
 @pytest.mark.model("N/A")
 def test_cuda_paths(gpu):
     """
-    Test to ensure directory structure for GPU files has cuda version in it
+    Test to ensure directory structure for GPU Dockerfiles has cuda version in it
 
     :param gpu: gpu image uris
     """
