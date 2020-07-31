@@ -11,7 +11,6 @@ import pytest
 
 from botocore.config import Config
 from invoke import run
-from junit_xml import TestSuite, TestCase
 
 from test_utils import eks as eks_utils
 from test_utils import sagemaker as sm_utils
@@ -202,10 +201,7 @@ def main():
         for image in standard_images_list:
             if "eia" in image:
                 report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-                test_cases = [TestCase('sagemaker-local', 'eia', 1, 'Skipped SM Local on EIA', '')]
-                ts = TestSuite(report, test_cases)
-                with open(report, "w") as skip_file:
-                    TestSuite.to_file(skip_file, [ts], prettyprint=False)
+                sm_utils.generate_empty_report(report)
     else:
         raise NotImplementedError(f"{test_type} test is not supported. "
                                   f"Only support ec2, ecs, eks, sagemaker and sanity currently")
