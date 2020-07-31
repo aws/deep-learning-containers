@@ -195,13 +195,12 @@ def main():
                 [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
             )
     elif specific_test_type == "sagemaker-local":
-        run_sagemaker_local_tests(
-            [image for image in standard_images_list if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))]
-        )
-        for image in standard_images_list:
-            if "eia" in image:
-                report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-                sm_utils.generate_empty_report(report)
+        testing_image_list = [image for image in standard_images_list if
+                              not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))]
+        run_sagemaker_local_tests(testing_image_list)
+        if len(testing_image_list) == 0:
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report)
     else:
         raise NotImplementedError(f"{test_type} test is not supported. "
                                   f"Only support ec2, ecs, eks, sagemaker and sanity currently")
