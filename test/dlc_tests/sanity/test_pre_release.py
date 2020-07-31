@@ -159,14 +159,12 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         assert tag_framework_version == output.stdout.strip()
 
     # Check cuda version
-    cuda_version_match = re.search(r'-cu\d+-', image)
-    cuda_version = cuda_version_match.group().split('cu')[-1].strip('-')
-    full_cuda_version = f"{cuda_version[:2]}.{cuda_version[2:]}"
+    cuda_version = re.search(r"-cu(\d+)-", image).group(1)
     cuda_cmd = "nvcc --version"
     cuda_output = ec2.execute_ec2_training_test(ec2_connection, image, cuda_cmd, container_name='cuda_container')
 
     # Ensure that cuda version in tag is in the container
-    assert full_cuda_version in cuda_output.stdout
+    assert cuda_version in cuda_output.stdout.replace('.', '')
 
 
 @pytest.mark.model("N/A")
@@ -217,7 +215,7 @@ def test_cuda_paths(gpu):
     """
     image = gpu
     if "example" in image:
-        pytest.skip("Skipping example containers which are not explicitly tied to a cuda version")
+        pytest.skip("Skipping Example Dockerfiles which are not explicitly tied to a cuda version")
 
     dlc_path = os.getcwd().split('/test/')[0]
     job_type = "training" if "training" in image else "inference"
@@ -231,15 +229,11 @@ def test_cuda_paths(gpu):
             break
     assert framework, f"Cannot find any frameworks {frameworks} in image uri {image}"
 
-    # Get cuda and framework version through regex
-    cuda_version_match = re.search(r'-cu\d+-', image)
-    cuda_version = cuda_version_match.group().strip('-')
+    # Get cuda, framework version, python version through regex
+    cuda_version = re.search(r'-(cu\d+)-', image).group(1)
+    framework_version = re.search(r":(\d+(.\d+){2})", image).group(1)
+    python_version = re.search(r'(py\d+)', image).group(1)
 
-    framework_version_match = re.search(r':\d+.\d+.\d+', image)
-    framework_version = framework_version_match.group().strip(':')
-
-    python_version_match = re.search(r'py\d+', image)
-    python_version = python_version_match.group()
     framework_version_path = os.path.join(dlc_path, framework, job_type, 'docker', framework_version)
     if not os.path.exists(os.path.join(framework_version_path, python_version)):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist

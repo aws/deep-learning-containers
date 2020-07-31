@@ -255,8 +255,8 @@ class TestReportGenerator:
             if self.is_sagemaker:
                 category = "sagemaker_local" if "local" in str_fspath else "sagemaker"
             github_link = (
-                f"https://github.com/aws/deep-learning-containers/blob/master/"
-                f"{str_fspath.split('/deep-learning-containers/')[-1]}"
+                f"https://github.com/aws/deep-learning-containers/blob/master/test/"
+                f"{str_fspath.split('/test/')[-1]}"
             )
 
             # Only create a new test coverage item if we have not seen the function before. This is a necessary step,
