@@ -181,6 +181,7 @@ def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, gpu_onl
 	ec2_connection.run('python3 -m pip install --upgrade pip')
 	ec2_connection.run('pip3 install tensorflow')
 	ec2_connection.run('pip3 install tf-nightly')
+	ec2_connection.run('sudo apt install screen')
 	container_test_local_dir = os.path.join("$HOME", "container_tests")
     connection.run(f'cd {container_test_local_dir}/bin && screen -d -m python3 start_dataservice.py')
 	# start_service = Process(target=execute_data_service_start, args=(ec2_connection,))
