@@ -83,7 +83,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
  && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
     nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0 \
  && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
-    libnvinfer7=7.1.3-1+cuda10.2 \
+    libnvinfer6=6.0.1-1+cuda10.2 \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/run/sshd
 
