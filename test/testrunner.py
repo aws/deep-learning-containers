@@ -202,13 +202,13 @@ def main():
         for image in standard_images_list:
             if "eia" in image:
                 report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-                pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
-                pytest.skip("Not running for sm local test")
+                pytest_cmd = [f"--junitxml={report}"]
                 sys.exit(pytest.main(pytest_cmd))
+                '''
                 test_cases = [TestCase('sagemaker-local', 'eia', 1, 'Skipped SM Local on EIA', '')]
                 ts = TestSuite("test/sm-local-eia", test_cases)
                 with open("sm-local-eia.xml", "w") as skip_file:
-                    TestSuite.to_file(skip_file, [ts], prettyprint=False)
+                    TestSuite.to_file(skip_file, [ts], prettyprint=False)'''
     else:
         raise NotImplementedError(f"{test_type} test is not supported. "
                                   f"Only support ec2, ecs, eks, sagemaker and sanity currently")
