@@ -184,10 +184,9 @@ def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, gpu_onl
 	start_service = Process(target=execute_data_service_start, args=(ec2_connection,))
 	start_service.start()
 	time.sleep(60)
-	start_service.terminate()
 	execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
 	start_service.terminate()
 
 def execute_data_service_start(connection):
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    connection.run(f'cd {container_test_local_dir} && python3 bin/start_dataservice.py', timeout=0)
+    connection.run(f'cd {container_test_local_dir} && python3 bin/start_dataservice.py&', timeout=1)
