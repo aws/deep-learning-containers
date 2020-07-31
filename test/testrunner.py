@@ -111,6 +111,8 @@ def main():
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
+    # Do not create EKS cluster for when EIA Only Images are present
+    is_all_images_list_eia = all("eia" in image_uri for image_uri in all_image_list)
     eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type
     specific_test_type = re.sub("benchmark-", "", test_type) if benchmark_mode else test_type
@@ -130,7 +132,7 @@ def main():
         # Pull images for necessary tests
         if specific_test_type == "sanity":
             pull_dlc_images(all_image_list)
-        if specific_test_type == "eks":
+        if specific_test_type == "eks" and not is_all_images_list_eia :
             frameworks_in_images = [framework for framework in ("mxnet", "pytorch", "tensorflow")
                                     if framework in dlc_images]
             if len(frameworks_in_images) != 1:
@@ -156,12 +158,16 @@ def main():
                  "-m", "not multinode"],
                 ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
             ]
+            if is_pr_context():
+                for cmd in pytest_cmds:
+                    cmd.append("--timeout=2340")
         else:
             # Execute dlc_tests pytest command
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
             if test_type == "ec2":
                 pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
-                pytest_cmd[1] = "-rAR"
+            if is_pr_context():
+                pytest_cmd.append("--timeout=4860")
 
             pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
@@ -194,7 +200,7 @@ def main():
             )
     elif specific_test_type == "sagemaker-local":
         run_sagemaker_local_tests(
-            [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
+            [image for image in standard_images_list if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))]
         )
     else:
         raise NotImplementedError(f"{test_type} test is not supported. "
