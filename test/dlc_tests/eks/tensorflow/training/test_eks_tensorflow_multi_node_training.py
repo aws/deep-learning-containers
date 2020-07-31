@@ -10,13 +10,16 @@ from invoke.context import Context
 from invoke import run
 import test.test_utils.ec2 as ec2_utils
 import test.test_utils.eks as eks_utils
-from test.test_utils import is_pr_context, SKIP_PR_REASON
+from test.test_utils import is_pr_context, SKIP_PR_REASON, is_tf1
 
 
 # Test only runs in region us-west-2, on instance type p3.16xlarge, on PR_EKS_CLUSTER_NAME_TEMPLATE cluster
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+@pytest.mark.integration("horovod")
+@pytest.mark.model("resnet")
+@pytest.mark.multinode("multinode(3)")
 def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example_only):
-    eks_cluster_size = "3"                                                        
+    eks_cluster_size = "3"
     ec2_instance_type = "p3.16xlarge"
 
     eks_gpus_per_worker = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)

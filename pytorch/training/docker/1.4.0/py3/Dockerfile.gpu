@@ -56,7 +56,6 @@ RUN apt-get update \
     wget \
     zlib1g-dev \
  && apt-get remove -y cuda-cufft-dev-10-1 \
-    cuda-curand-dev-10-1 \
     cuda-cusolver-dev-10-1 \
     cuda-npp-dev-10-1 \
     cuda-nvgraph-dev-10-1 \
