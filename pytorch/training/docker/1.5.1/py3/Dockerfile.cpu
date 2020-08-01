@@ -9,7 +9,7 @@ ARG OPEN_MPI_VERSION=4.0.1
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=https://smdebug-binaries-alpha.s3.amazonaws.com/smdebug-0.9.0-py2.py3-none-any.whl
+ARG SMDEBUG_VERSION=0.9.0
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -98,7 +98,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "awscli<2" \
     fastai==1.0.59 \
     scipy==1.2.2 \
-    ${SMDEBUG_VERSION} \
+    smdebug==${SMDEBUG_VERSION} \
     "sagemaker<2" \
     sagemaker-experiments==0.1.7 \
     "sagemaker-pytorch-training<3" \
