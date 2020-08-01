@@ -24,7 +24,7 @@ ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.3/AmazonLinux/
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=https://smdebug-binaries-alpha.s3.amazonaws.com/smdebug-0.9.0-py2.py3-none-any.whl
+ARG SMDEBUG_VERSION=0.9.0
 
 ARG OPENSSL_VERSION=1.1.1g
 
@@ -177,7 +177,7 @@ RUN pip install --no-cache-dir -U \
     ${TF_URL} \
  && pip install --no-cache-dir -U \
     "awscli<2" \
-    ${SMDEBUG_VERSION}
+    smdebug==${SMDEBUG_VERSION}
 
 
 # Install Horovod, temporarily using CUDA stubs
