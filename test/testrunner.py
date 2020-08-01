@@ -200,7 +200,7 @@ def main():
         run_sagemaker_local_tests(testing_image_list)
         if len(testing_image_list) == 0:
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-            sm_utils.generate_empty_report(report)
+            sm_utils.generate_empty_report(report,test_type,"eia")
     else:
         raise NotImplementedError(f"{test_type} test is not supported. "
                                   f"Only support ec2, ecs, eks, sagemaker and sanity currently")

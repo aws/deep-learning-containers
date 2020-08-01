@@ -269,13 +269,13 @@ def execute_sagemaker_remote_tests(image):
             context.run(pytest_command)
 
 
-def generate_empty_report(report):
+def generate_empty_report(report, test_type, case):
     """
-    Creating an empty reports for EIA and TF PY2 Inference Images
+    Generate empty junitxml report if no tests are run
     :param report: CodeBuild Report
     Returns: None
     """
-    test_cases = [TestCase('sagemaker-local', 'eia', 1, 'Skipped SM Local on EIA', '')]
+    test_cases = [TestCase(test_type, case, 1, f"Skipped {test_type} on {case}", '')]
     ts = TestSuite(report, test_cases)
     with open(report, "w") as skip_file:
         TestSuite.to_file(skip_file, [ts], prettyprint=False)
