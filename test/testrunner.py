@@ -198,6 +198,7 @@ def main():
         testing_image_list = [image for image in standard_images_list if
                               not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))]
         run_sagemaker_local_tests(testing_image_list)
+        # for EIA Images
         if len(testing_image_list) == 0:
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
             sm_utils.generate_empty_report(report,test_type,"eia")
