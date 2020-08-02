@@ -34,7 +34,7 @@ ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/est
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.9.0
+ARG SMDEBUG_VERSION=https://smdebug-binaries-alpha.s3.amazonaws.com/smdebug-0.9.0-py2.py3-none-any.whl
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -162,7 +162,7 @@ RUN ${PIP} install --no-cache-dir -U \
     horovod==0.19.5 \
     werkzeug==1.0.1 \
     psutil==5.7.0 \
-    smdebug==${SMDEBUG_VERSION}
+    ${SMDEBUG_VERSION}
 
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
