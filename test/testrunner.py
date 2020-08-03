@@ -158,12 +158,16 @@ def main():
                  "-m", "not multinode"],
                 ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
             ]
+            if is_pr_context():
+                for cmd in pytest_cmds:
+                    cmd.append("--timeout=2340")
         else:
             # Execute dlc_tests pytest command
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
             if test_type == "ec2":
                 pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
-                pytest_cmd[1] = "-rAR"
+            if is_pr_context():
+                pytest_cmd.append("--timeout=4860")
 
             pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
@@ -195,9 +199,13 @@ def main():
                 [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
             )
     elif specific_test_type == "sagemaker-local":
-        run_sagemaker_local_tests(
-            [image for image in standard_images_list if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))]
-        )
+        testing_image_list = [image for image in standard_images_list if
+                              not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))]
+        run_sagemaker_local_tests(testing_image_list)
+        # for EIA Images
+        if len(testing_image_list) == 0:
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report,test_type,"eia")
     else:
         raise NotImplementedError(f"{test_type} test is not supported. "
                                   f"Only support ec2, ecs, eks, sagemaker and sanity currently")
