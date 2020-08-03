@@ -8,6 +8,7 @@ from time import sleep
 
 from invoke.context import Context
 from invoke import exceptions
+from junit_xml import TestSuite, TestCase
 
 from test_utils import ec2 as ec2_utils
 from test_utils import metrics as metrics_utils
@@ -257,9 +258,7 @@ def execute_local_tests(image, ec2_client):
 def execute_sagemaker_remote_tests(image):
     """
     Run pytest in a virtual env for a particular image
-
     Expected to run via multiprocessing
-
     :param image: ECR url
     """
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
@@ -270,3 +269,15 @@ def execute_sagemaker_remote_tests(image):
             context.run("pip install -r requirements.txt", warn=True)
             res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
+
+
+def generate_empty_report(report, test_type, case):
+    """
+    Generate empty junitxml report if no tests are run
+    :param report: CodeBuild Report
+    Returns: None
+    """
+    test_cases = [TestCase(test_type, case, 1, f"Skipped {test_type} on {case}", '')]
+    ts = TestSuite(report, test_cases)
+    with open(report, "w") as skip_file:
+        TestSuite.to_file(skip_file, [ts], prettyprint=False)
