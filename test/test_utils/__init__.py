@@ -458,6 +458,22 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
     return venv_dir
 
 
+def setup_sm_benchmark_mx_train_env(resources_location):
+    """
+    Create a virtual environment for benchmark tests if it doesn't already exist, and download all necessary scripts
+    :param resources_location: <str> directory in which test resources should be placed
+    :return: absolute path to the location of the virtual environment
+    """
+    ctx = Context()
+
+    venv_dir = os.path.join(resources_location, "sm_benchmark_venv")
+    if not os.path.isdir(venv_dir):
+        ctx.run(f"virtualenv {venv_dir}")
+        with ctx.prefix(f"source {venv_dir}/bin/activate"):
+            ctx.run("pip install -U sagemaker awscli boto3 botocore")
+    return venv_dir
+
+
 def get_framework_and_version_from_tag(image_uri):
     """
     Return the framework and version from the image tag.
