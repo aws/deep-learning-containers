@@ -1,8 +1,6 @@
 import os
 import pytest
-from multiprocessing import Process
 from fabric import Connection
-import time
 
 from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf20
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
