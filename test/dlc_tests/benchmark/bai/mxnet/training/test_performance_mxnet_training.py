@@ -1,9 +1,11 @@
 import re
+import pytest
 
 from invoke.context import Context
 from test.test_utils.benchmark import execute_single_node_benchmark
 
-
+@pytest.mark.model('resnet18_v2')
+@pytest.mark.integration('cifar10 dataset')
 def test_performance_mxnet_cpu(mxnet_training, cpu_only):
     ctx = Context()
     python_version = re.search(r"py\s*([\d])", mxnet_training).group()

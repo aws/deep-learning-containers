@@ -35,9 +35,7 @@ def execute_single_node_benchmark(context, image_uri, framework, task, py_versio
     execute_cmd_on_container(context, container_name, f"./{benchmark_exec} --env-setup")
     execute_cmd_on_container(context, container_name, f"./{benchmark_exec} --register {benchmark_endpoint}")
     execute_cmd_on_container(context, container_name, f"./{benchmark_exec} --set-client-id {benchmark_client_id}")
-    output = context.run(
-        f"docker exec --user root {container_name} bash -c './{benchmark_exec} --get-client-id'", hide=True,
-    )
+    output = execute_cmd_on_container(context, container_name, f"./{benchmark_exec} --get-client-id")
     assert benchmark_client_id in output.stdout, output.stdout
     execute_cmd_on_container(
         context, container_name, f"./{benchmark_exec} --submit {toml} --script {script_directory}", True
@@ -47,12 +45,14 @@ def execute_single_node_benchmark(context, image_uri, framework, task, py_versio
 
 def execute_cmd_on_container(context, container_name, bash_command, warn=False):
     """
-    Executes bash commands
-    :param context:
-    :param container_name:s
-    :param bash_command:
+    Executes bash commands on docker container
+    :param context: Context passed from each testing method
+    :param container_name: Name of container cmd will be executed on
+    :param bash_command: Bash command that will be executed on container
+    :param warn: Default is False, if set to True will not cause codebuild to Fail when returned with a non-zero exit code
+    :return: Returns result object of bash command, contains stdout, stderr....
     """
-    context.run(f"docker exec --user root {container_name} bash -c '{bash_command}'", hide=True, warn=warn)
+    return context.run(f"docker exec --user root {container_name} bash -c '{bash_command}'", hide=True, warn=warn)
 
 
 def write_image_to_toml(image_uri, path_to_toml, task, custom_toml_name):
