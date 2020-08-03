@@ -13,6 +13,7 @@ from botocore.exceptions import ClientError
 from invoke import run
 from invoke.context import Context
 from retrying import retry
+from transformers import AlbertTokenizer
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -233,7 +234,9 @@ def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8
     :connection: ec2_connection object to run the commands remotely over ssh
     :return:
     """
-    inference_string = "'{\"instances\": \"Hello, my dog is cute\"}'"
+    tokenizer = AlbertTokenizer.from_pretrained('albert-base-v2') 
+    inputs = tokenizer("Hello, my dog is cute", return_tensors="tf")
+    inference_string = str(inputs)
     run_out = run(
         f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
     )
