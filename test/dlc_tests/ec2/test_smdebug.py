@@ -35,12 +35,12 @@ def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
 
     test_output = ec2_connection.run(
         f"nvidia-docker exec --user root smdebug-gpu /bin/bash -c '{test_script} {framework}'",
-        hide=True, warn=True
+        hide=True, warn=True, timeout=5000
     )
 
-    LOGGER.info(test_output.stdout)
+    # LOGGER.info(test_output.stdout)
 
-    assert test_output.ok, "smdebug tests failed"
+    assert test_output.ok, f"SMDebug tests failed. Output:\n{test_output.stdout}"
 
 
 @pytest.mark.integration("smdebug")
@@ -64,12 +64,12 @@ def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
 
     test_output = ec2_connection.run(
         f"docker exec --user root smdebug-cpu /bin/bash -c '{test_script} {framework}'",
-        hide=True, warn=True
+        hide=True, warn=True, timeout=5000
     )
 
-    LOGGER.info(test_output.stdout)
+    # LOGGER.info(test_output.stdout)
 
-    assert test_output.ok, "smdebug tests failed"
+    assert test_output.ok, f"SMDebug tests failed. Output:\n{test_output.stdout}"
 
 
 def get_framework_from_image_uri(image_uri):
