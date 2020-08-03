@@ -32,10 +32,6 @@ function trigger_test() {
        --workers 30 \
        --epochs $epochs \
        ~/imagenet
-  if [ "$2" == "run" ]
-  then
-    sleep 10
-  fi
 }
 
 cd ~
