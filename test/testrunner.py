@@ -167,7 +167,7 @@ def main():
             if test_type == "ec2":
                 pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
             if is_pr_context():
-                pytest_cmd.append("--timeout=4860")
+                pytest_cmd.append("--timeout=5400")
 
             pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
