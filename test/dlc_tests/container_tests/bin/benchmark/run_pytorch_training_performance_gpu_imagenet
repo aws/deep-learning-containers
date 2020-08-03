@@ -18,13 +18,18 @@ mkdir -p ${LOG_DIR}
 function trigger_test() {
   time_out=$1
   epochs=0
+  port='tcp://127.0.0.1:8080'
   if [ "$2" == "run" ]
   then
     epochs=16
   fi
+  if [ "$2" == "prep" ]
+  then
+    port='tcp://127.0.0.1:8081'
+  fi
   timeout "$time_out" python examples/imagenet/main.py \
        -a resnet50 \
-       --dist-url 'tcp://127.0.0.1:8080' \
+       --dist-url $port \
        --dist-backend 'nccl' \
        --multiprocessing-distributed \
        --world-size 1 \
