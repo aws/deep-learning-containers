@@ -168,7 +168,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
 
     # Check cuda version
     cuda_version = re.search(r"-cu(\d+)-", image).group(1)
-    cuda_output = ec2_connection.run(f"nvidia-docker run {image} bash -c 'nvcc --version'", hide=True)
+    cuda_output = ec2_connection.run(f"nvidia-docker run --entrypoint='' {image} nvcc --version", hide=True)
 
     # Ensure that cuda version in tag is in the container
     assert cuda_version in cuda_output.stdout.replace(".", "")
