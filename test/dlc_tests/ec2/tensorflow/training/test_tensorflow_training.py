@@ -177,6 +177,7 @@ def run_data_service_test(ec2_connection, tensorflow_training):
 
 # Testing Data Service on only one CPU instance
 @pytest.mark.integration('tensorflow-dataservice-test')
+@pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_only):
 	if is_tf1(tensorflow_training):
@@ -186,9 +187,9 @@ def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_onl
 
 # Testing Data Service on only one GPU instance
 @pytest.mark.integration('tensorflow-dataservice-test')
+@pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, gpu_only):
 	if is_tf1(tensorflow_training):
 		pytest.skip("This test is for TF2 only")
 	run_data_service_test(ec2_connection, tensorflow_training)
-	
