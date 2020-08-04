@@ -17,7 +17,8 @@ import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
 from test.test_utils import (
-    DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2, KEYS_TO_DESTROY_FILE
+    DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2,
+    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, KEYS_TO_DESTROY_FILE
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -126,7 +127,8 @@ def ec2_instance(
         region = P3DN_REGION
         ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
-        ec2_instance_ami = UBUNTU_16_BASE_DLAMI_US_EAST_1
+        if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
+            ec2_instance_ami = UBUNTU_16_BASE_DLAMI_US_EAST_1
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
     params = {
