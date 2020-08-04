@@ -40,7 +40,16 @@ def run_test_job(commit, codebuild_project, images_str=""):
     with open(test_env_file) as test_env_file:
         env_overrides = json.load(test_env_file)
 
-    env_overrides.append({"name": "DLC_IMAGES", "value": images_str, "type": "PLAINTEXT"})
+    pr_num = os.getenv("CODEBUILD_SOURCE_VERSION")
+    env_overrides.extend(
+        [
+            {"name": "DLC_IMAGES", "value": images_str, "type": "PLAINTEXT"},
+            {"name": "PR_NUMBER", "value": pr_num, "type": "PLAINTEXT"},
+            # USE_SCHEDULER is passed as an env variable here because it is more convenient to set this in
+            # config/test_config, compared to having another config file under dlc/tests/.
+            {"name": "USE_SCHEDULER", "value": str(test_config.USE_SCHEDULER), "type": "PLAINTEXT"}
+        ]
+    )
     LOGGER.debug(f"env_overrides dict: {env_overrides}")
 
     client = boto3.client("codebuild")
@@ -50,11 +59,13 @@ def run_test_job(commit, codebuild_project, images_str=""):
 
 
 def is_test_job_enabled(test_type):
-    return ((test_type == constants.SAGEMAKER_TESTS and not test_config.DISABLE_SAGEMAKER_TESTS) or
-            (test_type == constants.ECS_TESTS and not test_config.DISABLE_ECS_TESTS) or
-            (test_type == constants.EC2_TESTS and not test_config.DISABLE_EC2_TESTS) or
-            (test_type == constants.EKS_TESTS and not test_config.DISABLE_EKS_TESTS) or
-            (test_type == constants.SANITY_TESTS and not test_config.DISABLE_SANITY_TESTS))
+    return (
+        (test_type == constants.SAGEMAKER_TESTS and not test_config.DISABLE_SAGEMAKER_TESTS)
+        or (test_type == constants.ECS_TESTS and not test_config.DISABLE_ECS_TESTS)
+        or (test_type == constants.EC2_TESTS and not test_config.DISABLE_EC2_TESTS)
+        or (test_type == constants.EKS_TESTS and not test_config.DISABLE_EKS_TESTS)
+        or (test_type == constants.SANITY_TESTS and not test_config.DISABLE_SANITY_TESTS)
+    )
 
 
 def main():
@@ -79,10 +90,13 @@ def main():
             images_str = " ".join(images)
             if is_test_job_enabled(test_type):
                 run_test_job(commit, pr_test_job, images_str)
+
                 # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
-                if test_type == "sagemaker":
-                    test_job = f"dlc-pr-{test_type}-local-test"
-                    run_test_job(commit, test_job, images_str)
+                # Note: Commenting out the following lines because there is currently no flag to turn off local
+                # sagemaker tests
+                # if test_type == "sagemaker":
+                #     test_job = f"dlc-pr-{test_type}-local-test"
+                #     run_test_job(commit, test_job, images_str)
 
 
 if __name__ == "__main__":
