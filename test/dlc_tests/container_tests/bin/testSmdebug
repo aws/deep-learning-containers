@@ -36,7 +36,14 @@ git clone -b ${SMDEBUG_RELEASE_TAG} https://github.com/awslabs/sagemaker-debugge
 
 echo "Changing to sagemaker-debugger."
 cd sagemaker-debugger
-git checkout save_inputs_asserts # temporary branch change
+
+# Temporary Change:
+# Run Tests on a custom branch for forwards compatibility
+# For TF 2.2.0. Revert after DLC release
+TF_VERSION=$(python -c "import tensorflow as tf; print(tf.__version__)")
+if [[ $TF_VERSION == "2.2.0" ]]; then
+    git checkout save_inputs_asserts # temporary branch change
+fi
 git pull
 
 echo "Creating mock test folder."
