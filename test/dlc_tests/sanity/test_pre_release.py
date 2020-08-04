@@ -150,26 +150,27 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     :param ec2_connection: fixture to establish connection with an ec2 instance
     """
     image = gpu
-    if "tensorflow-inference" in image:
-        pytest.skip(msg="TF inference does not have core tensorflow installed")
-
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
 
-    # Module name is "torch"
-    if tested_framework == "pytorch":
-        tested_framework = "torch"
-    cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
-    output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
+    # Framework Version Check #
+    # Skip framework version test for tensorflow-inference, since it doesn't have core TF installed
+    if "tensorflow-inference" not in image:
+        # Module name is "torch"
+        if tested_framework == "pytorch":
+            tested_framework = "torch"
+        cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
+        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
 
-    if is_canary_context():
-        assert tag_framework_version in output.stdout.strip()
-    else:
-        assert tag_framework_version == output.stdout.strip()
+        if is_canary_context():
+            assert tag_framework_version in output.stdout.strip()
+        else:
+            assert tag_framework_version == output.stdout.strip()
 
-    # Check cuda version
+    # CUDA Version Check #
     cuda_version = re.search(r"-cu(\d+)-", image).group(1)
-    if tested_framework == "mxnet":
-        # MXNet containers do not currently have nvcc installed
+
+    # MXNet inference containers do not currently have nvcc in $PATH, so check cuda directories
+    if "mxnet-inference" in image:
         cuda_cmd = "bash -c 'ls /usr/local/cuda*'"
     else:
         cuda_cmd = "bash -c 'nvcc --version'"
