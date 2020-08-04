@@ -35,7 +35,7 @@ def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
 
     test_output = ec2_connection.run(
         f"nvidia-docker exec --user root smdebug-gpu /bin/bash -c '{test_script} {framework}'",
-        hide=True, warn=True, timeout=5000
+        hide=True, warn=True
     )
 
     # LOGGER.info(test_output.stdout) # Uncomment this line for a complete log dump
@@ -64,7 +64,7 @@ def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
 
     test_output = ec2_connection.run(
         f"docker exec --user root smdebug-cpu /bin/bash -c '{test_script} {framework}'",
-        hide=True, warn=True, timeout=5000
+        hide=True, warn=True
     )
 
     # LOGGER.info(test_output.stdout) # Uncomment this line for a complete log dump
