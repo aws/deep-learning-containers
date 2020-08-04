@@ -37,8 +37,7 @@ def get_ec2_instance_type(default, processor, disable_p3dn=False):
             "Default instance type should never be p3dn.24xlarge"
         )
     instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
-    #Not running eia test on p3dn instances
-    if instance_type == p3dn and (disable_p3dn or processor == "eia"):
+    if instance_type == p3dn and disable_p3dn:
         instance_type = default
     return [instance_type]
 
