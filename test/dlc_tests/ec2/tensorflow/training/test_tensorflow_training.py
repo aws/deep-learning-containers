@@ -1,8 +1,5 @@
 import os
 import pytest
-from multiprocessing import Process
-from fabric import Connection
-import time
 
 from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf20
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
@@ -158,7 +155,6 @@ def test_tensorflow_addons_gpu(tensorflow_training, ec2_connection, gpu_only):
         pytest.skip("This test is for TF2 only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
 
-
 @pytest.mark.model("sequential")
 @pytest.mark.integration("tensorflow_addons, keras")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
@@ -167,30 +163,24 @@ def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, cpu_only):
         pytest.skip("This test is for TF2 only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
 
-@pytest.mark.model("dataservice")
+def run_data_service_test(ec2_connection, tensorflow_training):
+    ec2_connection.run('python3 -m pip install --upgrade pip')
+    ec2_connection.run('pip3 install tensorflow')
+    ec2_connection.run('pip3 install tf-nightly')
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+    ec2_connection.run(f'cd {container_test_local_dir}/bin && screen -d -m python3 start_dataservice.py')
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
+
+@pytest.mark.integration('tensorflow-dataservice-test')
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_only):
 	if is_tf1(tensorflow_training):
 		pytest.skip("This test is for TF2 only")
-	ec2_connection.run('python3 -m pip install --upgrade pip')
-	ec2_connection.run('pip3 install tensorflow')
-	ec2_connection.run('pip3 install tf-nightly')
+	run_data_service_test(ec2_connection, tensorflow_training)
 
-	container_test_local_dir = os.path.join("$HOME", "container_tests")
-	ec2_connection.run(f'cd {container_test_local_dir}/bin && screen -d -m python3 start_dataservice.py')
-
-	execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
-
-@pytest.mark.model("dataservice")
+@pytest.mark.integration('tensorflow-dataservice-test')
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, gpu_only):
 	if is_tf1(tensorflow_training):
 		pytest.skip("This test is for TF2 only")
-	ec2_connection.run('python3 -m pip install --upgrade pip')
-	ec2_connection.run('pip3 install tensorflow')
-	ec2_connection.run('pip3 install tf-nightly')
-
-	container_test_local_dir = os.path.join("$HOME", "container_tests")
-	ec2_connection.run(f'cd {container_test_local_dir}/bin && screen -d -m python3 start_dataservice.py')
-
-	execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
+	run_data_service_test(ec2_connection, tensorflow_training)

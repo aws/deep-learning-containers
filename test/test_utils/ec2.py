@@ -401,9 +401,9 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
 
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
-    network = '--network="host"' if host_network else ""
+    network = '--network="host" ' if host_network else ""
     connection.run(
-        f"{docker_cmd} run --name ec2_training_container {network} -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
+        f"{docker_cmd} run --name ec2_training_container {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
         f" {shm_setting} -itd {ecr_uri}",
         hide=True,
     )

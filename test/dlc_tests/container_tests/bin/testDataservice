@@ -7,3 +7,4 @@ pip install tf-nightly
 python ${BIN_DIR}/test_dataset_service.py --local=False || exit 1
 
 exit 0
+
