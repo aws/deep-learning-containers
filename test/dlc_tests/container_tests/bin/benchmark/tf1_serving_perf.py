@@ -48,7 +48,7 @@ from tensorflow_serving.apis import classification_pb2
 # from tensorflow_serving.apis import get_model_status_pb2
 # from tensorflow_serving.apis import model_service_pb2_grpc
 from tensorflow_serving.apis import predict_pb2
-from tensorflow_serving.apis import prediction_service_pb2
+from tensorflow_serving.apis import prediction_service_pb2_grpc
 from tensorflow_serving.apis import regression_pb2
 from tensorflow_serving.apis import inference_pb2
 from tensorflow.python.saved_model import signature_constants
@@ -98,9 +98,8 @@ def WaitForServerReady(port):
 
         try:
             # Send empty request to missing model
-            channel = implementations.insecure_channel('localhost', port)
-            stub = prediction_service_pb2.beta_create_PredictionService_stub(
-                channel)
+            channel = grpc.insecure_channel('localhost:{}'.format(port))
+            stub = prediction_service_pb2_grpc.PredictionServiceStub(channel)
             stub.Predict(request, RPC_TIMEOUT)
         except grpc.RpcError as error:
             # Missing model error will have details containing 'Servable'
@@ -125,13 +124,6 @@ class TensorflowModelServerTester(object):
         self.sig_name = ServingInput[2]
         self.server_proc = None
         self.concurrent = concurrent
-        if (model_server != None):
-            self.binary = model_server
-            if (not os.path.isfile(self.binary)):
-                print("Can't find Tensorflow Serving Binary at %s please point to TFS binary" % (self.binary))
-                exit(1)
-        else:
-            self.binary = None
         self.open_procs = []
 
     def TerminateProcs(self):
@@ -189,16 +181,15 @@ class TensorflowModelServerTester(object):
             print(input_shapes)
             if (input_types[ii] != None):
                 request.inputs[input_names[ii]].CopyFrom(
-                    tf.contrib.util.make_tensor_proto(input_data[ii], shape=input_shapes[ii], dtype=input_types[ii]))
+                    tf.compat.v1.make_tensor_proto(input_data[ii], shape=input_shapes[ii], dtype=input_types[ii]))
             else:
                 request.inputs[input_names[ii]].CopyFrom(
-                    tf.contrib.util.make_tensor_proto(input_data[ii], shape=input_shapes[ii]))
+                    tf.compat.v1.make_tensor_proto(input_data[ii], shape=input_shapes[ii]))
 
         # Create the stub and channel
-        channel = implementations.insecure_channel(host, int(port))
+        channel = grpc.insecure_channel('localhost:{}'.format(port))
         timing = []
-        stub = prediction_service_pb2.beta_create_PredictionService_stub(
-            channel)
+        stub = prediction_service_pb2_grpc.PredictionServiceStub(channel)
         p = Pool(self.concurrent)
 
         def do_pred(x):
@@ -215,7 +206,7 @@ class TensorflowModelServerTester(object):
         results = {}
 
         for output in result.outputs:
-            results[output] = (tf.contrib.util.make_ndarray(
+            results[output] = (tf.compat.v1.make_ndarray(
                 result.outputs[output]))
 
         return results, timing
@@ -483,6 +474,8 @@ def main():
         "--docker_image_name", help="The docker image name used to create a container")
     parser.add_argument(
         "--processor", help="Run on gpu or cpu", default='gpu')
+    parser.add_argument(
+        "--exclude", help="Exclude certain models when running all s3 models", nargs="+")
 
     # name of S3 bucket to be accessed
     bucket_name = "tf-test-models"
@@ -521,6 +514,8 @@ def main():
         "RCNN-Resnet101-kitti",
         "SSDResnet50Coco",
     ]
+    if args.exclude:
+        keys = [x for x in keys if x not in args.exclude]
 
     if (os.path.isdir("/tmp/downloads")):
         os.system("rm -rf /tmp/downloads/*")
