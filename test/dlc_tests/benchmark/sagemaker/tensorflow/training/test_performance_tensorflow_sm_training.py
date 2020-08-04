@@ -54,7 +54,7 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
                           f"--python {py_version} "
                           f"--region {region} "
                           f"--job-name {training_job_name}"
-                          f"2>&1 > {log_file}",
+                          f"2>&1 | tee {log_file}",
                           warn=True, echo=True)
 
         if not (run_out.ok or run_out.return_code == 124):
