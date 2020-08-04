@@ -30,7 +30,7 @@ def test_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, regi
 
 
 @pytest.mark.integration("elastic_inference")
-@pytest.mark.model("half_plus_two")
+@pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", TF_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_eia_cpu(tensorflow_inference_eia, ec2_connection, region, eia_only):
@@ -38,7 +38,7 @@ def test_ec2_tensorflow_inference_eia_cpu(tensorflow_inference_eia, ec2_connecti
 
 
 @pytest.mark.integration("elastic_inference")
-@pytest.mark.model("half_plus_two")
+@pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", TF_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connection, region, eia_only):
