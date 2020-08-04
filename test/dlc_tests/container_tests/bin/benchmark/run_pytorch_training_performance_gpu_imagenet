@@ -25,7 +25,7 @@ function trigger_test() {
   fi
   if [ "$2" == "prep" ]
   then
-    port='tcp://127.0.0.1:8081'
+    port='tcp://127.0.0.1:8081' # Use a differnet port to avoid flaky error "RuntimeError: Address already in use"
   fi
   timeout "$time_out" python examples/imagenet/main.py \
        -a resnet50 \
@@ -42,7 +42,7 @@ function trigger_test() {
 cd ~
 echo Benchmark Preparation started: >&2
 START=$(date +%s)
-trigger_test "5m" "prep"
+trigger_test "5m" "prep"  # Introduce a prep stage to avoid training gettting stuck
 END=$(date +%s)
 DIFF=$(( END - START ))
 echo Preparation Stage took $(( DIFF/60 )) mins to finish>&2
