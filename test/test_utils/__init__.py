@@ -235,7 +235,7 @@ def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8
     """
     inference_string = '{\'input_ids\': <tf.Tensor: shape=(1, 8), dtype=int32, numpy=array([[ 2, 10975, 15, 51, 1952, 25, 10901, 3]], dtype=int32)>, \'token_type_ids\': <tf.Tensor: shape=(1, 8), dtype=int32, numpy=array([[0, 0, 0, 0, 0, 0, 0, 0]], dtype=int32)>, \'attention_mask\': <tf.Tensor: shape=(1, 8), dtype=int32, numpy=array([[1, 1, 1, 1, 1, 1, 1, 1]], dtype=int32)>}'
     run_out = run(
-        f"curl -d {inference_string} -X POST http://{ip_address}:{port}/models/{model_name}:predict", warn=True
+        f"curl -d {inference_string} -X POST http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
     )
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
