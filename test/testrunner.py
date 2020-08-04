@@ -165,8 +165,7 @@ def main():
             # Execute dlc_tests pytest command
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
             if test_type == "ec2":
-                # pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
-                pass
+                pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
             if is_pr_context():
                 pytest_cmd.append("--timeout=4860")
 

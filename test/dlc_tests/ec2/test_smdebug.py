@@ -38,7 +38,7 @@ def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
         hide=True, warn=True, timeout=5000
     )
 
-    # LOGGER.info(test_output.stdout)
+    # LOGGER.info(test_output.stdout) # Uncomment this line for a complete log dump
 
     assert test_output.ok, f"SMDebug tests failed. Output:\n{test_output.stdout}"
 
@@ -67,7 +67,7 @@ def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
         hide=True, warn=True, timeout=5000
     )
 
-    # LOGGER.info(test_output.stdout)
+    # LOGGER.info(test_output.stdout) # Uncomment this line for a complete log dump
 
     assert test_output.ok, f"SMDebug tests failed. Output:\n{test_output.stdout}"
 
