@@ -241,10 +241,8 @@ def main():
     # Do not create EKS cluster for when EIA Only Images are present
     is_all_images_list_eia = all("eia" in image_uri for image_uri in all_image_list)
     eks_cluster_name = None
-    # benchmark_mode = "benchmark" in test_type
-    # specific_test_type = re.sub("benchmark-", "", test_type) if benchmark_mode else test_type
-    benchmark_mode = True
-    specific_test_type = test_type
+    benchmark_mode = "benchmark" in test_type
+    specific_test_type = re.sub("benchmark-", "", test_type) if benchmark_mode else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
     if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary"):
