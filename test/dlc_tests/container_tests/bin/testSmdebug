@@ -93,9 +93,8 @@ if [[ ${FRAMEWORK} == "tensorflow2" && $TF_VERSION != "2.3.0" ]]; then
 fi
 
 echo "Running ZCC tests."
-if [[ $TF_VERSION != "2.3.0" ]]; then
-    timeout 2100s pytest mock/tests/zero_code_change/${ZCC_TEST_NAME[$FRAMEWORK]}
-fi
+
+timeout 2100s pytest mock/tests/zero_code_change/${ZCC_TEST_NAME[$FRAMEWORK]}
 
 if [ "$?" -eq "0" ]
 then
