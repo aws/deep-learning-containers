@@ -183,6 +183,7 @@ def test_pip_check(image):
 
 
 @pytest.mark.model('N/A')
+@pytest.mark.integration('pandas')
 def test_pandas(image):
     """
     It's possible that in newer python versions, we may have issues with installing pandas due to lack of presence
@@ -203,6 +204,7 @@ def test_pandas(image):
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.integration('emacs')
 def test_emacs(image):
     """
     Ensure that emacs is installed on every image
