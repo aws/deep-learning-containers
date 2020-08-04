@@ -233,7 +233,7 @@ def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8
     :connection: ec2_connection object to run the commands remotely over ssh
     :return:
     """
-    inference_string = '{\'input_ids\': <tf.Tensor: shape=(1, 8), dtype=int32, numpy=array([[ 2, 10975, 15, 51, 1952, 25, 10901, 3]], dtype=int32)>, \'token_type_ids\': <tf.Tensor: shape=(1, 8), dtype=int32, numpy=array([[0, 0, 0, 0, 0, 0, 0, 0]], dtype=int32)>, \'attention_mask\': <tf.Tensor: shape=(1, 8), dtype=int32, numpy=array([[1, 1, 1, 1, 1, 1, 1, 1]], dtype=int32)>}'
+    inference_string = '{"instances": [{"input_ids": [[ 2, 10975, 15, 51, 1952, 25, 10901, 3]], "token_type_ids": [[0, 0, 0, 0, 0, 0, 0, 0]], "attention_mask": [[1, 1, 1, 1, 1, 1, 1, 1]]}]}'
     run_out = run(
         f"curl -d {inference_string} -X POST http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
     )
