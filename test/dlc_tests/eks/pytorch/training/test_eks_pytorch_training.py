@@ -4,6 +4,7 @@ import random
 import datetime
 
 import pytest
+
 from invoke import run
 from invoke.context import Context
 from retrying import retry
@@ -16,6 +17,7 @@ LOGGER = eks_utils.LOGGER
 
 
 @pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline")
+@pytest.mark.model("mnist")
 def test_eks_pytorch_single_node_training(pytorch_training):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
@@ -64,6 +66,8 @@ def test_eks_pytorch_single_node_training(pytorch_training):
 
 
 @pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context")
+@pytest.mark.integration("dgl")
+@pytest.mark.model("gcn")
 def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
 
     """
@@ -74,15 +78,17 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     """
 
     training_result = False
-
+    ctx = Context()
     rand_int = random.randint(4001, 6000)
 
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
 
+    dgl_branch = eks_utils.get_dgl_branch(ctx, pytorch_training)
+
     args = (
-        "git clone https://github.com/dmlc/dgl.git && "
-        "cd /dgl/examples/pytorch/gcn/ && DGLBACKEND=pytorch python train.py --dataset cora"
+        f"git clone -b {dgl_branch} https://github.com/dmlc/dgl.git && "
+        f"cd /dgl/examples/pytorch/gcn/ && DGLBACKEND=pytorch python train.py --dataset cora"
     )
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
@@ -122,6 +128,8 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
 
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+@pytest.mark.model("mnist")
+@pytest.mark.multinode("multinode(4)")
 def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     """
        Function to create mutliple pods using kubectl and given container image, and run Pytorch training
@@ -189,6 +197,7 @@ def run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_file_pa
         assert training_result, f"Training for eks pytorch multinode failed"
     finally:
         eks_utils.eks_multinode_cleanup(remote_yaml_file_path, namespace)
+
 
 def retry_if_value_error(exception):
     """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
