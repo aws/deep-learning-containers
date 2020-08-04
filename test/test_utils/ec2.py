@@ -5,6 +5,7 @@ import boto3
 from retrying import retry
 from fabric import Connection
 from botocore.config import Config
+from botocore.exceptions import ClientError
 
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER
 
@@ -24,7 +25,7 @@ def get_ec2_instance_type(default, processor, disable_p3dn=False):
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
     a list.
     """
-    allowed_processors = ("cpu", "gpu")
+    allowed_processors = ("cpu", "gpu", "eia")
     p3dn = "p3dn.24xlarge"
     if processor not in allowed_processors:
         raise RuntimeError(
@@ -36,14 +37,36 @@ def get_ec2_instance_type(default, processor, disable_p3dn=False):
             "Default instance type should never be p3dn.24xlarge"
         )
     instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
-    if instance_type == p3dn and disable_p3dn:
+    #Not running eia test on p3dn instances
+    if instance_type == p3dn and (disable_p3dn or processor == "eia"):
         instance_type = default
     return [instance_type]
 
 
+def get_ec2_accelerator_type(default, processor):
+    """
+    Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
+    for contexts where the variable is not present (i.e. PR, Nightly, local testing)
+
+    :param default: Default instance type to use - Should never be p3dn
+    :param processor: "eia"
+
+    :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
+    a list.
+    """
+    allowed_processors = ("eia")
+    if processor not in allowed_processors:
+        raise RuntimeError(
+            f"Aborting EC2 test run. Unrecognized processor type {processor}. "
+            f"Please choose from {allowed_processors}"
+        )
+    accelerator_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
+    return [accelerator_type]
+
+
 def launch_instance(
-    ami_id, instance_type, ec2_key_name=None, region=DEFAULT_REGION, user_data=None,
-        iam_instance_profile_name=None, instance_name="",
+    ami_id, instance_type, ei_accelerator_type, ec2_key_name=None, region=DEFAULT_REGION, user_data=None,
+    iam_instance_profile_name=None, instance_name=""
 ):
     """
     Launch an instance
@@ -76,7 +99,23 @@ def launch_instance(
         arguments_dict["UserData"] = user_data
     if iam_instance_profile_name:
         arguments_dict["IamInstanceProfile"] = {"Name": iam_instance_profile_name}
-    response = client.run_instances(**arguments_dict)
+    if ei_accelerator_type:
+        arguments_dict["ElasticInferenceAccelerators"] = ei_accelerator_type
+        availability_zones = {"us-west": ["us-west-2a", "us-west-2b", "us-west-2c"],
+                              "us-east": ["us-east-1a", "us-east-1b", "us-east-1c"]}
+        for a_zone in availability_zones[region]:
+            arguments_dict["Placement"] = {
+                'AvailabilityZone': a_zone
+            }
+            try:
+                response = client.run_instances(**arguments_dict)
+                if response and len(response['Instances']) >= 1:
+                    break
+            except ClientError as e:
+                print(f"Failed to launch in {a_zone} with Error: {e}")
+                continue
+    else:
+        response = client.run_instances(**arguments_dict)
 
     if not response or len(response["Instances"]) < 1:
         raise Exception(

@@ -82,6 +82,10 @@ def is_canary_context():
     return os.getenv("BUILD_CONTEXT") == "CANARY"
 
 
+def is_mainline_context():
+    return os.getenv("BUILD_CONTEXT") == "MAINLINE"
+
+
 def is_empty_build_context():
     return not os.getenv("BUILD_CONTEXT")
 
@@ -119,7 +123,7 @@ def retry_if_result_is_false(result):
     wait_fixed=10000,
     retry_on_result=retry_if_result_is_false,
 )
-def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80", connection=None):
+def request_mxnet_inference(ip_address="127.0.0.1", port="80", connection=None, model= "squeezenet"):
     """
     Send request to container to test inference on kitten.jpg
     :param ip_address:
@@ -134,7 +138,7 @@ def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80", connec
     if run_out.return_code != 0:
         conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg", hide=True)
 
-    run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg", warn=True)
+    run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/{model} -T kitten.jpg", warn=True)
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
@@ -248,7 +252,8 @@ def get_mms_run_command(model_names, processor="cpu"):
         }
     else:
         multi_model_location = {
-            "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar"
+            "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar",
+            "pytorch-densenet": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia.mar",
         }
 
     if not isinstance(model_names, list):
@@ -263,8 +268,9 @@ def get_mms_run_command(model_names, processor="cpu"):
     parameters = [
         "{}={}".format(name, multi_model_location[name]) for name in model_names
     ]
+    multi_or_mxnet = "multi" if processor != "eia" else "mxnet"
     mms_command = (
-        "multi-model-server --start --mms-config /home/model-server/config.properties --models "
+        f"{multi_or_mxnet}-model-server --start --mms-config /home/model-server/config.properties --models "
         + " ".join(parameters)
     )
     return mms_command
@@ -488,6 +494,9 @@ def get_job_type_from_image(image_uri):
         if job_type in image_uri:
             tested_job_type = job_type
             break
+
+    if not tested_job_type and "eia" in image_uri:
+        tested_job_type = "inference"
 
     if not tested_job_type:
         raise RuntimeError(f"Cannot find Job Type in image uri {image_uri} "
