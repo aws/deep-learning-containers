@@ -128,7 +128,7 @@ RUN ${PIP} install --no-cache --upgrade \
     Pillow \
     requests==2.22.0 \
     scikit-learn==0.20.4 \
-    dgl==0.4.1 \
+    dgl \
     scipy==1.2.2 \
     gluonnlp==0.9.1 \
     gluoncv==0.6.0 \

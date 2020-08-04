@@ -4,7 +4,6 @@ import random
 import datetime
 
 import pytest
-import yaml
 
 from invoke import run
 from invoke.context import Context
@@ -12,22 +11,27 @@ from retrying import retry
 
 import test.test_utils.eks as eks_utils
 import test.test_utils.ec2 as ec2_utils
+
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 LOGGER = eks_utils.LOGGER
 
 
-#Skip these test for temporary basis
-#TODO : unskip this test and find a fix for this
-@pytest.mark.skip(reason="Skipping the EKS Multinode Test for temporary basis. It passes manually, but fails in the pipeline currently")
+@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+@pytest.mark.integration("horovod")
+@pytest.mark.model("mnist")
+@pytest.mark.multinode("multinode(3)")
 def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_only):
-    """Run MXNet distributed training on EKS using docker images with MNIST dataset"""
-
+    """
+    Run MXNet distributed training on EKS using docker images with MNIST dataset (horovod)
+    """
     eks_cluster_size = "3"
     ec2_instance_type = "p3.16xlarge"
 
     eks_gpus_per_worker = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)
+    
     _run_eks_mxnet_multinode_training_horovod_mpijob(mxnet_training, eks_cluster_size, eks_gpus_per_worker)
+
 
 def _run_eks_mxnet_multinode_training_horovod_mpijob(example_image_uri, cluster_size, eks_gpus_per_worker):
     
@@ -64,11 +68,15 @@ def _run_eks_mxnet_multinode_training_horovod_mpijob(example_image_uri, cluster_
 
     _run_eks_multi_node_training_mpijob(namespace, job_name, remote_yaml_file_path)
 
-#Skip these test for temporary basis
-#TODO : unskip this test and find a fix for this
-@pytest.mark.skip(reason="Skipping the EKS Multinode Test for temporary basis. It passes manually, but fails in the pipeline currently")
+
+@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+@pytest.mark.integration("parameter server")
+@pytest.mark.model("mnist")
+@pytest.mark.multinode("multinode(3)")
 def test_eks_mxnet_multinode_training(mxnet_training, example_only):
-    """Run MXNet distributed training on EKS using docker images with MNIST dataset"""
+    """
+    Run MXNet distributed training on EKS using docker images with MNIST dataset (parameter server)
+    """
     random.seed(f"{mxnet_training}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 6000)
     namespace = f"mxnet-multi-node-training-{unique_id}"
@@ -104,10 +112,10 @@ def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     }
 
     eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file_path, replace_dict)
-    
 
     training_result = _run_eks_mxnet_multi_node_training(namespace, job_name, remote_yaml_file_path)
     assert training_result, "EKS multinode training failed"
+
 
 def _run_eks_mxnet_multi_node_training(namespace, job_name, remote_yaml_file_path):
     """Run MXNet distributed training on EKS using MXNet Operator

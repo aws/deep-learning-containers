@@ -17,7 +17,7 @@ import os
 
 # Environment settings
 FRAMEWORKS = {"mxnet", "tensorflow", "pytorch"}
-DEVICE_TYPES = {"cpu", "gpu"}
+DEVICE_TYPES = {"cpu", "gpu", "eia"}
 IMAGE_TYPES = {"training", "inference"}
 PYTHON_VERSIONS = {"py2", "py3", "py36"}
 ALL = "all"

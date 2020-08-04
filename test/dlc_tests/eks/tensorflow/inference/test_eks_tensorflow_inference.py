@@ -1,13 +1,18 @@
 import os
 import random
 
-import test.test_utils.eks as eks_utils
-import test.test_utils as test_utils
+import pytest
 
 from invoke import run
 
+import test.test_utils.eks as eks_utils
+import test.test_utils as test_utils
 
+
+@pytest.mark.model("albert")
 def test_eks_tensorflow_albert(tensorflow_inference):
+    if "eia" in tensorflow_inference:
+        pytest.skip("Skipping EKS Test for EIA")
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
