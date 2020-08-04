@@ -82,7 +82,7 @@ if [ ! ${ZCC_TEST_NAME[$FRAMEWORK]} ]; then
     echo "$FRAMEWORK is not a valid entry in list of frameworks"
     exit 1
 fi
-if [[ ${FRAMEWORK} == "tensorflow2" ]]; then
+if [[ ${FRAMEWORK} == "tensorflow2" && $TF_VERSION != "2.3.0" ]]; then
     if [ "$(printf '%s\n' "0.7.2" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.7.2" ]; then
         if [ "$(printf '%s\n' "0.8.0" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.8.0" ]; then
             timeout 720s pytest mock/tests/zero_code_change/test_${FRAMEWORK}_gradtape_integration.py 2>&1
@@ -92,6 +92,10 @@ if [[ ${FRAMEWORK} == "tensorflow2" ]]; then
     fi
 fi
 
+echo "Running ZCC tests."
+if [[ $TF_VERSION != "2.3.0" ]]; then
+    timeout 2100s pytest mock/tests/zero_code_change/${ZCC_TEST_NAME[$FRAMEWORK]}
+fi
 
 if [ "$?" -eq "0" ]
 then
