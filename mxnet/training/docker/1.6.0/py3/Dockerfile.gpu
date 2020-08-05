@@ -177,7 +177,7 @@ RUN ${PIP} install --no-cache --upgrade \
     urllib3==1.25.8 \
     python-dateutil==2.8.0 \
     tqdm==4.39.0 \
-    sagemaker-experiments==0.1.7 \
+    sagemaker-experiments==0.* \
     PyYAML==5.3.1 \
     mpi4py==3.0.2 \
     "sagemaker-mxnet-training<5" \
