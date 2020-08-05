@@ -12,7 +12,7 @@ SMDEBUG_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
 SMDEBUG_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.8xlarge", processor="gpu")
 SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 
-
+@pytest.mark.skip()
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -42,7 +42,7 @@ def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
 
     assert test_output.ok, f"SMDebug tests failed. Output:\n{test_output.stdout}"
 
-
+@pytest.mark.skip()
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_CPU_INSTANCE_TYPE, indirect=True)
