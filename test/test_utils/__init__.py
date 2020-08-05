@@ -476,7 +476,7 @@ def setup_sm_benchmark_mx_train_env(resources_location):
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install -U sagemaker awscli boto3 botocore")
+            ctx.run("pip install -U 'sagemaker<2' awscli boto3 botocore")
     return venv_dir
 
 
