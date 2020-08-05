@@ -25,7 +25,7 @@ def test_eks_tensorflow_albert(tensorflow_inference):
 
     search_replace_dict = {
         "<MODEL_NAME>": model_name,
-        "<MODEL_BASE_PATH>": f"s3://aws-tensorflow-dlc-models/{model_name}",
+        "<MODEL_BASE_PATH>": f"s3://tensoflow-trained-models/{model_name}",
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
