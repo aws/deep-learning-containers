@@ -340,10 +340,6 @@ def eks_setup():
     run(aws_iam_authenticator_download_command, echo=True)
     run("chmod +x /usr/local/bin/aws-iam-authenticator")
 
-    run(kfctl_download_command, echo=True)
-    run(f"tar -xvf /tmp/kfctl_{KFCTL_VERSION}_{platform.lower()}.tar.gz -C /tmp --strip-components=1")
-    run("mv /tmp/kfctl /usr/local/bin")
-
     run(kubetail_download_command, echo=True)
     run("chmod +x /usr/local/bin/kubetail")
 
@@ -351,65 +347,20 @@ def eks_setup():
     run("eksctl version", echo=True)
     run("kubectl version --short --client", echo=True)
     run("aws-iam-authenticator version", echo=True)
-    run("kfctl version", echo=True)
-
 
 def setup_kubeflow(eks_cluster_name,region=os.getenv("AWS_REGION", DEFAULT_REGION)):
-    """Function to setup kubeflow v1.0.2
-        The mxnet operator configuration is not included in the kubeflow v1.0.2 hence installing manually.
-        The mpi operator included in kubeflow v1.0.2 has version v0.1 which has known issues in EKS hence installing the latest
-        version available v0.2
+    """Function to setup kubeflow v1.0.2, MPI and MXNET operators
     """
 
-    unique_id = random.randint(1, 6000)
     local_template_file_path = os.path.join(
         "eks",
         "eks_manifest_templates",
         "kubeflow",
-        "kfctl_aws_v1.0.2.yaml"
+        "install.sh"
     )
-    run(f"mkdir -p /tmp/{eks_cluster_name}")
 
-    remote_yaml_path = os.path.join(os.sep, "tmp", eks_cluster_name, f"kfctl_aws_{unique_id}.yaml")
-    replace_dict = {
-        "<REGION>": region
-    }
-    
-    write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_path, replace_dict)
-
-    run(f"kfctl apply -V -f {remote_yaml_path}",echo=True)
-
-    deploy_mxnet_operator()
-    deploy_mpi_operator()
-
-
-def deploy_mxnet_operator():
-    """Function to deploy mxnet operator in the EKS cluster. This will support v1beta1 crd for mxjobs.
-    """
-    ctx = Context()
-    home_dir = ctx.run("echo $HOME").stdout.strip("\n")
-    mxnet_operator_dir = os.path.join(home_dir, "mxnet-operator")
-    if os.path.isdir(mxnet_operator_dir):
-        ctx.run(f"rm -rf {mxnet_operator_dir}")
-
-    clone_mxnet_command = f"git clone https://github.com/kubeflow/mxnet-operator.git {mxnet_operator_dir}"
-    ctx.run(clone_mxnet_command, echo=True)
-    run(f"kubectl create -k {mxnet_operator_dir}/manifests/overlays/v1beta1/", echo=True)
-
-
-def deploy_mpi_operator():
-    """Function to deploy mpi operator in the EKS cluster. This will support v1alpha2 crd for mpijobs.
-    """
-    ctx = Context()
-    home_dir = ctx.run("echo $HOME").stdout.strip("\n")
-    mpi_operator_dir = os.path.join(home_dir, "mpi-operator")
-    if os.path.isdir(mpi_operator_dir):
-        ctx.run(f"rm -rf {mpi_operator_dir}")
-
-    clone_mxnet_command = f"git clone https://github.com/kubeflow/mpi-operator {mpi_operator_dir}"
-    run(clone_mxnet_command, echo=True)
-    run(f"kubectl create -f {mpi_operator_dir}/deploy/v1alpha2/mpi-operator.yaml", echo=True)
-
+    run(f"chmod +x {local_template_file_path}")
+    run(f"./{local_template_file_path} {region}",echo=True)
 
 def write_eks_yaml_file_from_template(
     local_template_file_path, remote_yaml_file_path, search_replace_dict
