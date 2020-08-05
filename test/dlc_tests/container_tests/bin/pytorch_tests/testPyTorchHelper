@@ -10,6 +10,8 @@ cd ${EXAMPLESDIR}
 
 TRAINING_LOG=${LOG_DIR}/pytorch_train_mnist.log
 
+timeout 5m python mnist/main.py
+
 echo "Training mnist using PyTorch... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
 set +e
 python mnist/main.py 2>&1 | tee $TRAINING_LOG
