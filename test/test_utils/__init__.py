@@ -467,7 +467,7 @@ def setup_sm_benchmark_mx_train_env(resources_location):
     ctx = Context()
 
     with ctx.cd(os.path.join(resources_location, "scripts")):
-        if not os.path.isdir(os.path.join(resources_location, "scripts", "mxnet_imagenet_resnet50.py"):
+        if not os.path.isdir(os.path.join(resources_location, "scripts", "mxnet_imagenet_resnet50.py")):
             ctx.run("wget https://raw.githubusercontent.com/horovod/horovod/master/examples/mxnet_imagenet_resnet50.py")
 
     venv_dir = os.path.join(resources_location, "sm_benchmark_venv")

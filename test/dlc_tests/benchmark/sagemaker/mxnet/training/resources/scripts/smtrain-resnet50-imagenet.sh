@@ -17,10 +17,6 @@ set -ex
 # Training
 
 python mxnet_imagenet_resnet50.py \
---rec-train $SM_CHANNEL_TRAIN/train-480px-q95.rec \
---rec-train-idx $SM_CHANNEL_TRAINIDX/train-480px-q95.idx \
---rec-val $SM_CHANNEL_VALIDATE/val-480px-q95.rec  \
---rec-val-idx $SM_CHANNEL_VALIDX/val-480px-q95.idx \
 --dtype "float16" --data-nthreads "40"  \
---lr "0.3" --num-layers "50" --lr-step-epochs "20,30" \
---num-epochs "50" --batch-size 1280
+--lr "0.3" \
+--num-epochs "50" --batch-size 256 --mode "gluon"

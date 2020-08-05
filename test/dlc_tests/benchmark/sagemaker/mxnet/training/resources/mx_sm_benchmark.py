@@ -38,10 +38,8 @@ mx_estimator = MXNet(
 )
 
 data = {
-    "train": f"s3://dlc-data-sagemaker-{args.region}/imagenet/processed/train-480px-q95.rec",
-    "trainidx": f"s3://dlc-data-sagemaker-{args.region}/imagenet/processed/train-480px-q95.idx",
-    "validate": f"s3://dlc-data-sagemaker-{args.region}/imagenet/processed/val-480px-q95.rec",
-    "validx": f"s3://dlc-data-sagemaker-{args.region}/imagenet/processed/val-480px-q95.idx",
+    # placeholder for data
+    "s1": f"s3://dlc-data-sagemaker-{args.region}/small"
 }
 
 mx_estimator.fit(data, job_name=args.job_name, logs=True, wait=True)
