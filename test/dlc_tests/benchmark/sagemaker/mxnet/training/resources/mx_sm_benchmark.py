@@ -20,12 +20,16 @@ args = parser.parse_args()
 
 sagemaker_session = sagemaker.Session(boto3.Session(region_name=args.region))
 
-source_path = "scripts"
+source_dir = "scripts"
+processor = "gpu" if "gpu" in args.image_uri else "cpu"
+entrypoint_script = "smtrain-resnet50-imagenet.sh"
+processes_per_host = 8 if processor == "gpu" else 1
+kwargs = {"train_volume_size": 200} if processor == "gpu" else {}
 
 mx_estimator = MXNet(
     sagemaker_session=sagemaker_session,
-    entry_point="smtrain-resnet50-imagenet.sh",
-    source_dir=source_path,
+    entry_point=entrypoint_script,
+    source_dir=source_dir,
     role="SageMakerRole",
     train_instance_count=args.node_count,
     train_instance_type=args.instance_type,
@@ -34,7 +38,13 @@ mx_estimator = MXNet(
     output_path=f"s3://bapac-chexpert-mini/",
     train_volume_size=200,
     framework_version=args.framework_version,
-    distributions={"mpi": {"enabled": True}},
+    distributions={
+        "mpi": {
+          "enabled": True,
+          "processes_per_host": processes_per_host
+        }
+    },
+    **kwargs
 )
 
 data = {
