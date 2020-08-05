@@ -15,7 +15,7 @@ PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_p
 
 
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
-PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="m4.16xlarge", processor="cpu")
+PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 
 @pytest.mark.skip()
 @pytest.mark.integration("pytorch_sanity_test")
