@@ -16,7 +16,19 @@ from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("num_nodes", [1, 4], indirect=True)
 def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_nodes, region):
+    """
+    Run TF sagemaker training performance tests
 
+    Additonal context: Setup for this function is performed by 'setup_sm_benchmark_tf_train_env' -- this installs
+    some prerequisite packages, clones some repos, and creates a virtualenv called sm_benchmark_venv.
+
+    TODO: Refactor the above setup function to be more obviously connected to this function,
+    TODO: and install requirements via a requirements.txt file
+
+    :param tensorflow_training: ECR image URI
+    :param num_nodes: Number of nodes to run on
+    :param region: AWS region
+    """
     framework_version = re.search(r"[1,2](\.\d+){2}", tensorflow_training).group()
     if framework_version.startswith("1."):
         pytest.skip("Skipping benchmark test on TF 1.x images.")

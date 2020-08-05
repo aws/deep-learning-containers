@@ -16,7 +16,7 @@ def test_stray_files(image):
     :param image: ECR image URI
     """
     ctx = Context()
-    container_name = f"test_tmp_dirs-{image.split('/')[-1].replace('.', '-').replace(':', '-')}"
+    container_name = _get_container_name("test_tmp_dirs", image)
     _start_container(container_name, image, ctx)
 
     # Running list of artifacts/artifact regular expressions we do not want in any of the directories
@@ -57,7 +57,7 @@ def test_python_version(image):
     :param image: ECR image URI
     """
     ctx = Context()
-    container_name = f"py-version-{image.split('/')[-1].replace('.', '-').replace(':', '-')}"
+    container_name = _get_container_name("py-version", image)
 
     py_version = ""
     for tag_split in image.split('-'):
@@ -86,7 +86,7 @@ def test_ubuntu_version(image):
     :param image: ECR image URI
     """
     ctx = Context()
-    container_name = f"ubuntu-version-{image.split('/')[-1].replace('.', '-').replace(':', '-')}"
+    container_name = _get_container_name("ubuntu-version", image)
 
     ubuntu_version = ""
     for tag_split in image.split('-'):
@@ -119,7 +119,7 @@ def test_framework_version_cpu(cpu):
     if tested_framework == "pytorch":
         tested_framework = "torch"
     ctx = Context()
-    container_name = f"framework-version-{image.split('/')[-1].replace('.', '-').replace(':', '-')}"
+    container_name = _get_container_name("framework-version", image)
     _start_container(container_name, image, ctx)
     output = _run_cmd_on_container(
         container_name, ctx, f"import {tested_framework}; print({tested_framework}.__version__)", executable="python"
@@ -166,7 +166,6 @@ def test_pip_check(image):
 
     :param image: ECR image URI
     """
-    # Add null entrypoint to ensure command exits immediately
     ctx = Context()
     gpu_suffix = '-gpu' if 'gpu' in image else ''
 
@@ -174,6 +173,8 @@ def test_pip_check(image):
     # to occur in order to catch other pip check issues that may be associated with TF inference
     allowed_exception = re.compile(rf'^tensorflow-serving-api{gpu_suffix} \d\.\d+\.\d+ requires '
                                    rf'tensorflow{gpu_suffix}, which is not installed.$')
+
+    # Add null entrypoint to ensure command exits immediately
     output = ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
         if not allowed_exception.match(output.stdout):
@@ -181,7 +182,29 @@ def test_pip_check(image):
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
 
+@pytest.mark.model('N/A')
+@pytest.mark.integration('pandas')
+def test_pandas(image):
+    """
+    It's possible that in newer python versions, we may have issues with installing pandas due to lack of presence
+    of the bz2 module in py3 containers. This is a sanity test to ensure that pandas import works properly in all
+    containers.
+
+    :param image: ECR image URI
+    """
+    ctx = Context()
+    container_name = _get_container_name("pandas", image)
+    _start_container(container_name, image, ctx)
+
+    # Make sure we can install pandas, do not fail right away if there are pip check issues
+    _run_cmd_on_container(container_name, ctx, "pip install pandas", warn=True)
+
+    # Simple import test to ensure we do not get a bz2 module import failure
+    _run_cmd_on_container(container_name, ctx, "import pandas; print(pandas.__version__)", executable="python")
+
+
 @pytest.mark.model("N/A")
+@pytest.mark.integration('emacs')
 def test_emacs(image):
     """
     Ensure that emacs is installed on every image
@@ -189,12 +212,23 @@ def test_emacs(image):
     :param image: ECR image URI
     """
     ctx = Context()
-    container_name = f"emacs-{image.split('/')[-1].replace('.', '-').replace(':', '-')}"
+    container_name = _get_container_name("emacs", image)
     _start_container(container_name, image, ctx)
 
     # Make sure the following emacs sanity tests exit with code 0
     _run_cmd_on_container(container_name, ctx, "which emacs")
     _run_cmd_on_container(container_name, ctx, "emacs -version")
+
+
+def _get_container_name(prefix, image_uri):
+    """
+    Create a unique container name based off of a test related prefix and the image uri
+
+    :param prefix: test related prefix, like "emacs" or "pip-check"
+    :param image_uri: ECR image URI
+    :return: container name
+    """
+    return f"{prefix}-{image_uri.split('/')[-1].replace('.', '-').replace(':', '-')}"
 
 
 def _start_container(container_name, image_uri, context):
@@ -210,7 +244,7 @@ def _start_container(container_name, image_uri, context):
     )
 
 
-def _run_cmd_on_container(container_name, context, cmd, executable="bash"):
+def _run_cmd_on_container(container_name, context, cmd, executable="bash", warn=False):
     """
     Helper function to run commands on a locally running container
 
@@ -218,11 +252,14 @@ def _run_cmd_on_container(container_name, context, cmd, executable="bash"):
     :param context: ECR image URI
     :param cmd: Command to run on the container
     :param executable: Executable to run on the container (bash or python)
+    :param warn: Whether to only warn as opposed to exit if command fails
     :return: invoke output, can be used to parse stdout, etc
     """
     if executable not in ("bash", "python"):
         LOGGER.warn(f"Unrecognized executable {executable}. It will be run as {executable} -c '{cmd}'")
-    return context.run(f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, timeout=30)
+    return context.run(
+        f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=30
+    )
 
 
 def _assert_artifact_free(output, stray_artifacts):
