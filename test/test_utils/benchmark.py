@@ -76,3 +76,23 @@ def write_image_to_toml(image_uri, path_to_toml, task, custom_toml_name):
                     edited_toml.write(f'description = """ {task} -{image_uri}')
                 else:
                     edited_toml.write(line)
+
+
+def get_framework_version(image_uri):
+    """
+    Gets framework version from image_uri
+    :param image_uri: Where framework_version will be regexed from
+    :return: Returns str representing framework_version
+    """
+    framework_version = re.search(r":\s*([\d][.][\d]+)", image_uri).group(1)
+    return framework_version
+
+
+def get_py_version(image_uri):
+    """
+    Gets python version from image_uri
+    :param image_uri: Where python_version will be regexed from
+    :return: Returns str representing python_version
+    """
+    python_version = re.search(r"py\s*([\d])", image_uri).group()
+    return python_version
