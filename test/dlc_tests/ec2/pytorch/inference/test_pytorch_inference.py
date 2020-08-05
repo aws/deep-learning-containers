@@ -38,6 +38,7 @@ def test_ec2_pytorch_inference_eia_cpu(pytorch_inference_eia, ec2_connection, re
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", PT_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
+@pytest.mark.skipif(PT_EC2_GPU_INSTANCE_TYPE == ["p3dn.24xlarge"], reason="Skipping EIA test on p3dn instances")
 def test_ec2_pytorch_inference_eia_gpu(pytorch_inference_eia, ec2_connection, region, eia_only):
     ec2_pytorch_inference(pytorch_inference_eia, "eia", ec2_connection, region)
 
