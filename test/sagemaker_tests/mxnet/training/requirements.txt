@@ -6,7 +6,7 @@ pytest-cov
 pytest-rerunfailures==9.0
 pytest-xdist
 mock
-sagemaker
+sagemaker<2
 docker-compose
 boto3
 six==1.13.0

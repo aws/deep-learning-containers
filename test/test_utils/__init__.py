@@ -456,6 +456,7 @@ def parse_canary_images(framework, region):
 def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2_env):
     """
     Create a virtual environment for benchmark tests if it doesn't already exist, and download all necessary scripts
+
     :param resources_location: <str> directory in which test resources should be placed
     :param setup_tf1_env: <bool> True if tf1 resources need to be setup
     :param setup_tf2_env: <bool> True if tf2 resources need to be setup
@@ -482,9 +483,9 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install -U sagemaker awscli boto3 botocore six==1.11")
+            ctx.run("pip install -U 'sagemaker<2' awscli boto3 botocore six==1.11")
 
-            # SageMaker TF estimator is coded to only accept framework versions upto 2.1.0 as py2 compatible.
+            # SageMaker TF estimator is coded to only accept framework versions up to 2.1.0 as py2 compatible.
             # Fixing this through the following changes:
             estimator_location = ctx.run(
                 "echo $(pip3 show sagemaker |grep 'Location' |sed s/'Location: '//g)/sagemaker/tensorflow/estimator.py"
