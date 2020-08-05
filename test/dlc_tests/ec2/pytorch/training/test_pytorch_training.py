@@ -15,7 +15,7 @@ PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_p
 
 
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
-PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
+PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="m4.16xlarge", processor="cpu")
 
 @pytest.mark.skip()
 @pytest.mark.integration("pytorch_sanity_test")
@@ -39,7 +39,7 @@ def test_pytorch_train_mnist_gpu(pytorch_training, ec2_connection, gpu_only):
 
 
 @pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_type", "m4.16xlarge", indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_train_mnist_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_MNIST_CMD)
 
