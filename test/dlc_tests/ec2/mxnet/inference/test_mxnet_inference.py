@@ -49,6 +49,7 @@ def test_ec2_mxnet_resnet_inference_eia_cpu(mxnet_inference_eia, ec2_connection,
 @pytest.mark.model(RESNET_EIA_MODEL)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", MX_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
+@pytest.mark.skipif(MX_EC2_GPU_INSTANCE_TYPE == ["p3dn.24xlarge"], reason="Skipping EIA test on p3dn instances")
 def test_ec2_mxnet_resnet_inference_eia_gpu(mxnet_inference_eia, ec2_connection, region, eia_only):
     run_ec2_mxnet_inference(mxnet_inference_eia, RESNET_EIA_MODEL, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
 
