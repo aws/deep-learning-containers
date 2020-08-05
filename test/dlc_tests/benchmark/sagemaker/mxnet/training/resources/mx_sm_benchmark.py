@@ -36,7 +36,6 @@ mx_estimator = MXNet(
     image_name=args.image_uri,
     py_version=args.python,
     output_path=f"s3://bapac-chexpert-mini/",
-    train_volume_size=200,
     framework_version=args.framework_version,
     distributions={
         "mpi": {

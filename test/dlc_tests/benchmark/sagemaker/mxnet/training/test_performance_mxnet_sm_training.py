@@ -12,7 +12,7 @@ from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET
 
 # This test can also be performed for 1 node, but it takes a very long time, and CodeBuild job may expire before the
 # test ends.
-@pytest.mark.parametrize("num_nodes", [12], indirect=True)
+@pytest.mark.parametrize("num_nodes", [4], indirect=True)
 def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region, gpu_only):
 
     framework_version = re.search(r"1(\.\d+){2}", mxnet_training).group()
