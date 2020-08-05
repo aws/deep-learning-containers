@@ -25,7 +25,7 @@ def get_ec2_instance_type(default, processor, disable_p3dn=False):
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
     a list.
     """
-    allowed_processors = ("cpu", "gpu", "eia")
+    allowed_processors = ("cpu", "gpu")
     p3dn = "p3dn.24xlarge"
     if processor not in allowed_processors:
         raise RuntimeError(

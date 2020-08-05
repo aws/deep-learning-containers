@@ -89,6 +89,7 @@ def test_tensorflow_opencv_cpu(tensorflow_training, ec2_connection, cpu_only):
 
 
 # Testing Telemetry Script on only one GPU instance
+@pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
@@ -97,6 +98,7 @@ def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only)
 
 
 # Testing Telemetry Script on only one CPU instance
+@pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
@@ -140,6 +142,7 @@ def test_tensorflow_tensorboard_cpu(tensorflow_training, ec2_connection, cpu_onl
     if is_tf1(tensorflow_training):
         pytest.skip("This test is for TF2 only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
+
 
 # TensorFlow Addons is actively working towards forward compatibility with TensorFlow 2.x
 # https://github.com/tensorflow/addons#python-op-compatility
