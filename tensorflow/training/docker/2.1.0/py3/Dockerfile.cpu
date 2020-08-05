@@ -29,7 +29,7 @@ ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.1/AmazonLinux/cpu
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.8.1
+ARG SMDEBUG_VERSION=0.9.1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-dev \
@@ -114,7 +114,7 @@ RUN ${PIP} install --no-cache-dir -U \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
     "sagemaker<2" \
-    sagemaker-experiments==0.1.7 \
+    sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.1,<2.2" \
     "sagemaker-tensorflow-training>=20" \
     # Let's install TensorFlow separately in the end to avoid
