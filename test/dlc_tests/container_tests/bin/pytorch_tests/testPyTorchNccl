@@ -13,7 +13,7 @@ export OMP_NUM_THREADS=${NUM_GPU}
 
 TRAINING_LOG=${LOG_DIR}/pytorch_train_nccl.log
 
-echo "Training resnet18 using PyTorch Nccl.., This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
+echo "Training resnet18 using PyTorch Nccl... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
 set +e
 
 python -m torch.distributed.launch --nproc_per_node=${NUM_GPU} \
