@@ -141,7 +141,7 @@ RUN pip install --no-cache-dir -U \
     keras==2.3.1 \
     smdebug==0.8.1 \
     "sagemaker<2" \
-    sagemaker-experiments==0.1.7 \
+    sagemaker-experiments==0.*\
     mpi4py==3.0.2 \
     "cryptography>=2.3" \
     "sagemaker-tensorflow>=1.15,<1.16" \
