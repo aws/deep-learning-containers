@@ -39,7 +39,7 @@ def test_pytorch_train_mnist_gpu(pytorch_training, ec2_connection, gpu_only):
 
 
 @pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", "m4.16xlarge", indirect=True)
 def test_pytorch_train_mnist_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_MNIST_CMD)
 
