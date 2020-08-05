@@ -169,9 +169,9 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     # CUDA Version Check #
     cuda_version = re.search(r"-cu(\d+)-", image).group(1)
 
-    # MXNet inference containers do not currently have nvcc in $PATH, so check cuda directories
+    # MXNet inference containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
     if "mxnet-inference" in image:
-        cuda_cmd = "bash -c 'ls /usr/local/cuda*'"
+        cuda_cmd = "bash -c 'readlink /usr/local/cuda'"
     else:
         cuda_cmd = "bash -c 'nvcc --version'"
     cuda_output = ec2_connection.run(f"nvidia-docker run --entrypoint='' {image} {cuda_cmd}", hide=True)
