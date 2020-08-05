@@ -165,19 +165,16 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
             assert tag_framework_version in output.stdout.strip()
         else:
             assert tag_framework_version == output.stdout.strip()
-    else:
-        # Pull TF inference images so that pull logs don't crowd cuda verification logs
-        ec2_connection.run(f"docker pull {image}")
 
     # CUDA Version Check #
     cuda_version = re.search(r"-cu(\d+)-", image).group(1)
 
     # MXNet inference containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
     if "mxnet-inference" in image:
-        cuda_cmd = "bash -c 'readlink /usr/local/cuda'"
+        cuda_cmd = "readlink /usr/local/cuda"
     else:
-        cuda_cmd = "bash -c 'nvcc --version'"
-    cuda_output = ec2_connection.run(f"nvidia-docker run --entrypoint='' {image} {cuda_cmd}", hide=True)
+        cuda_cmd = "nvcc --version"
+    cuda_output = ec2.execute_ec2_training_test(ec2_connection, image, cuda_cmd, container_name="cuda_version_test")
 
     # Ensure that cuda version in tag is in the container
     assert cuda_version in cuda_output.stdout.replace(".", "")
