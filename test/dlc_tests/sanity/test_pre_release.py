@@ -165,6 +165,9 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
             assert tag_framework_version in output.stdout.strip()
         else:
             assert tag_framework_version == output.stdout.strip()
+    else:
+        # Pull TF inference images so that pull logs don't crowd cuda verification logs
+        ec2_connection.run(f"docker pull {image}")
 
     # CUDA Version Check #
     cuda_version = re.search(r"-cu(\d+)-", image).group(1)
