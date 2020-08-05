@@ -41,7 +41,7 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
                           f"--python {py_version} "
                           f"--region {region} "
                           f"--job-name {training_job_name} "
-                          f"2>&1 > {log_file}",
+                          f"2>&1 | tee {log_file}",
                           warn=True, echo=True)
 
         if not run_out.ok:
