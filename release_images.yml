@@ -66,6 +66,17 @@ release_images:
       device_types: ["gpu"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
+      cuda_version: "cu101"
+      example: True
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  6:
+    framework: "tensorflow"
+    version: "2.2.0"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
       cuda_version: "cu102"
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
