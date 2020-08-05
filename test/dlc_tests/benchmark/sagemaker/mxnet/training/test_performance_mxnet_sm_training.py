@@ -14,7 +14,19 @@ from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET
 # test ends.
 @pytest.mark.parametrize("num_nodes", [4], indirect=True)
 def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region, gpu_only):
+    """
+    Run MX sagemaker training performance test
 
+    Additonal context: Setup for this function is performed by 'setup_sm_benchmark_mx_train_env' -- this installs
+    some prerequisite packages, pulls required script, and creates a virtualenv called sm_benchmark_venv.
+
+    TODO: Refactor the above setup function to be more obviously connected to this function,
+    TODO: and install requirements via a requirements.txt file
+
+    :param mxnet_training: ECR image URI
+    :param num_nodes: Number of nodes to run on
+    :param region: AWS region
+    """
     framework_version = re.search(r"1(\.\d+){2}", mxnet_training).group()
     py_version = "py37" if "py37" in mxnet_training else "py2" if "py2" in mxnet_training else "py3"
     ec2_instance_type = "p3.16xlarge"
