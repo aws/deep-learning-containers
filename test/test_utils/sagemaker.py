@@ -68,7 +68,7 @@ def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
     instance_id = instance["InstanceId"]
     public_ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
-    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
+    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", system_status_check="passed", instance_status_check="passed", region=region)
     return instance_id, public_ip_address
 
 

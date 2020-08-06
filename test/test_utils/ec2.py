@@ -249,11 +249,13 @@ def get_system_state(instance_id, region=DEFAULT_REGION):
     return (
         instance_status["SystemStatus"]["Status"],
         instance_status["InstanceStatus"]["Status"],
+        instance_status["SystemStatus"]["Details"][0],
+        instance_status["InstanceStatus"]["Details"][0]
     )
 
 
 @retry(stop_max_attempt_number=96, wait_fixed=10000)
-def check_system_state(instance_id, system_status="ok", instance_status="ok", region=DEFAULT_REGION):
+def check_system_state(instance_id, system_status="ok", instance_status="ok", system_status_check="passed", instance_status_check="passed", region=DEFAULT_REGION):
     """
     Compares the system state (Health Checks).
     Retries 96 times with 10 seconds gap between retries
@@ -271,6 +273,23 @@ def check_system_state(instance_id, system_status="ok", instance_status="ok", re
                 instance_id
             )
         )
+    
+    if instance_state[2]["Name"] == "reachability" and instance_state[2]["Status"] != "passed":
+        raise Exception(
+            "System {} is not \
+                         reachable".format(
+                instance_id
+            )
+        )
+    
+    if instance_state[3]["Name"] == "reachability" and instance_state[3]["Status"] != "passed":
+        raise Exception(
+            "Instance {} is not \
+                         reachable".format(
+                instance_id
+            )
+        )
+
     return instance_state
 
 

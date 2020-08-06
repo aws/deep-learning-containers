@@ -191,7 +191,7 @@ def ec2_instance(
     request.addfinalizer(terminate_ec2_instance)
 
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
-    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
+    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", system_status_check="passed", instance_status_check="passed", region=region)
     return instance_id, key_filename
 
 
