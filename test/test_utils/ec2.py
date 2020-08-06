@@ -25,7 +25,7 @@ def get_ec2_instance_type(default, processor, disable_p3dn=False):
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
     a list.
     """
-    allowed_processors = ("cpu", "gpu", "eia")
+    allowed_processors = ("cpu", "gpu")
     p3dn = "p3dn.24xlarge"
     if processor not in allowed_processors:
         raise RuntimeError(
@@ -37,8 +37,7 @@ def get_ec2_instance_type(default, processor, disable_p3dn=False):
             "Default instance type should never be p3dn.24xlarge"
         )
     instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
-    #Not running eia test on p3dn instances
-    if instance_type == p3dn and (disable_p3dn or processor == "eia"):
+    if instance_type == p3dn and disable_p3dn:
         instance_type = default
     return [instance_type]
 
@@ -388,7 +387,8 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     return conn
 
 
-def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash", large_shm=False):
+def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash", large_shm=False,
+                              container_name='ec2_training_container'):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
     if executable == "bash":
@@ -402,12 +402,12 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
     connection.run(
-        f"{docker_cmd} run --name ec2_training_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
+        f"{docker_cmd} run --name {container_name} -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
         f" {shm_setting} -itd {ecr_uri}",
         hide=True,
     )
     return connection.run(
-        f"{docker_cmd} exec --user root ec2_training_container {executable} -c '{test_cmd}'",
+        f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
         hide=True,
         timeout=3000,
     )
