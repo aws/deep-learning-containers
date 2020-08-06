@@ -11,6 +11,11 @@
       root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
       repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
       repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+   inference_repository: &INFERENCE_REPOSITORY
+      image_type: &INFERENCE_IMAGE_TYPE inference
+      root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
+      repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
+      repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
   context:
     training_context: &TRAINING_CONTEXT
@@ -20,6 +25,18 @@
       deep_learning_container:
         source: docker/build_artifacts/deep_learning_container.py
         target: deep_learning_container.py
+      sagemaker_package_name:
+        source: docker/build_artifacts/sagemaker
+        target: sagemaker
+      deep_learning_container:
+        source: docker/build_artifacts/deep_learning_container.py
+        target: deep_learning_container.py
+      init:
+        source: docker/build_artifacts/__init__.py
+        target: __init__.py
+      dockerd-entrypoint:
+        source: docker/build_artifacts/dockerd-entrypoint.py
+        target: dockerd-entrypoint.py
 
   images:
     BuildTensorflowCPUTrainPy3DockerImage:
