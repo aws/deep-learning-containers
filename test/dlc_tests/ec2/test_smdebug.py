@@ -23,9 +23,7 @@ def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
     test_script = SMDEBUG_SCRIPT
     framework = get_framework_from_image_uri(training)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(
-        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
-    )
+    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     ec2_connection.run(
         f"nvidia-docker run --name smdebug-gpu -v "
@@ -53,9 +51,7 @@ def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
     test_script = SMDEBUG_SCRIPT
     framework = get_framework_from_image_uri(training)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(
-        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
-    )
+    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     ec2_connection.run(
         f"docker run --name smdebug-cpu -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {training}",
