@@ -27,7 +27,7 @@ ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.7
 ARG OPENSSL_VERSION=1.1.1g
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.3_aws/20200730-022222/gpu/py37/tensorflow_gpu-2.3.0-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.3_aws__zcc/20200805-195324/gpu/py37/tensorflow_gpu-2.3.0-cp37-cp37m-manylinux2010_x86_64.whl
 
 ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.3_aws/20200730-022222/tensorflow_estimator-2.3.0-py2.py3-none-any.whl
 
