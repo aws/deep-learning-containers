@@ -151,7 +151,7 @@ RUN ${PIP} install --no-cache-dir -U \
     opencv-python==4.3.0.36 \
     "sagemaker<2" \
     sagemaker-experiments==0.* \
-    "sagemaker-tensorflow>=2.2,<2.3" \
+    "sagemaker-tensorflow>=2.3,<2.4" \
     "sagemaker-tensorflow-training>=20" \
 
     # Let's install TensorFlow separately in the end to avoid
