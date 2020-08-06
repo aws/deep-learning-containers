@@ -185,8 +185,8 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     if framework == "tensorflow" and job_type == "inference":
         # TF inference test fail if run as soon as instance boots, even after health check pass. rootcause:
         # sockets?/nginx startup?/?
-        print("sleep 300s for tensorflow inference images to avoid socket issues")
-        sleep(500)
+        print("sleep 800s for tensorflow inference images to avoid socket issues")
+        sleep(800)
         install_custom_python("3.6", ec2_conn)
     ec2_conn.run(f"virtualenv env")
     ec2_conn.run(f"source ./env/bin/activate")
