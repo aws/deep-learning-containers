@@ -74,7 +74,7 @@ else
 fi
 
 echo "Setting up SMDebug environment."
-echo "{\"LocalPath\": \"newlogsRunTest1/test_hook_from_json_config\"}" > /tmp/test_hook_from_json_config.json
+echo "{\"LocalPath\": \"newlogsRunTest1/test_hook_from_json_config\"}" | tee /tmp/test_hook_from_json_config.json
 export SMDEBUG_CONFIG_FILE_PATH=/tmp/test_hook_from_json_config.json
 export PYTHONPATH=$(pwd)/mock
 
