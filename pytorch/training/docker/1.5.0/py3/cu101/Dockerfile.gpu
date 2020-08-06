@@ -1,5 +1,5 @@
 # The tag for the base image is: 10.1-cudnn7-devel-ubuntu16.04
-FROM nvidia/cuda:10.1-cudnn7-devel-ubuntu16.04
+FROM nvidia/cuda@sha256:4979db047661dc0003594fb20d37cce6d6c7e989252f4e3fb0beb39874a078e2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -24,12 +24,10 @@ ENV LC_ALL=C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
 ENV TORCH_CUDA_ARCH_LIST="3.5 5.2 6.0 6.1 7.0+PTX"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
-ENV HOROVOD_VERSION=0.19.1
+ENV HOROVOD_VERSION=0.19.5
 ENV DGLBACKEND=pytorch
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
-
-ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_aws/20200727-215603/a40b1c195ba679596118514fcbeae1f422591426/gpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
 
 RUN apt-get update \
  && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
@@ -63,8 +61,7 @@ RUN apt-get update \
     cuda-npp-dev-10-1 \
     cuda-nvgraph-dev-10-1 \
     cuda-nvjpeg-dev-10-1 \
-    cuda-nvrtc-dev-10-1 \
- && rm -rf /var/lib/apt/lists/*
+    cuda-nvrtc-dev-10-1
 
 RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/libcublas10_${CUBLAS_VERSION}.deb \
  && dpkg -i libcublas10_${CUBLAS_VERSION}.deb \
@@ -90,26 +87,29 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && rm ~/miniconda.sh \
  && /opt/conda/bin/conda install -y -c anaconda \
     python=$PYTHON_VERSION \
-    numpy \
-    ipython \
-    mkl \
-    mkl-include \
-    cython \
-    typing \
-    future \
+    numpy==1.16.4 \
+    ipython==7.10.1 \
+    mkl==2019.4 \
+    mkl-include==2019.4 \
+    cython==0.29.12 \
+    typing==3.6.4 \
+    future==0.17.1 \
     "pyopenssl>=17.5.0" \
  && conda install -c dglteam -y dgl-cuda10.1==0.4.3 \
  && /opt/conda/bin/conda clean -ya
 
-RUN conda install -c pytorch magma-cuda101==2.5.2 \
+RUN conda install -c pytorch magma-cuda101==2.5.1 \
  && conda install -c conda-forge \
-    opencv \
- && conda install -y scikit-learn \
-    pandas \
-    h5py \
-    requests \
+    opencv==4.0.1 \
+ && conda install -y scikit-learn==0.21.2 \
+    pandas==0.25.0 \
+    h5py==2.9.0 \
+    requests==2.22.0 \
     libgcc \
  && conda clean -ya
+
+RUN pip install psutil==5.6.7 \
+                Pillow==7.1.0
 
 WORKDIR /opt/pytorch
 
@@ -128,16 +128,13 @@ RUN pip install \
     --no-cache-dir smdebug==${SMDEBUG_VERSION} \
     "sagemaker<2" \
     sagemaker-experiments==0.* \
-    --no-cache-dir "sagemaker-pytorch-training<3" \
     --no-cache-dir fastai==1.0.59 \
     "awscli<2" \
-    psutil \
-    Pillow \
-    scipy \
- && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
+    scipy==1.2.2 \
+ && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U \
-     https://torchvision-build.s3.amazonaws.com/1.6.0/gpu/torchvision-0.7.0-cp36-cp36m-linux_x86_64.whl
+     https://torchvision-build.s3.amazonaws.com/1.5.0/gpu/torchvision-0.6.0-cp36-cp36m-linux_x86_64.whl
 
 # Install Horovod
 RUN pip uninstall -y horovod \
@@ -148,6 +145,7 @@ RUN pip uninstall -y horovod \
 # Install Nvidia Apex
 RUN git clone https://github.com/NVIDIA/apex.git \
  && cd apex \
+ && git checkout f3a960f \
  && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
 # Configure Open MPI and configure NCCL parameters
@@ -161,23 +159,24 @@ RUN mv /home/.openmpi/bin/mpirun /home/.openmpi/bin/mpirun.real \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
 
-# Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
-RUN apt-get update \
- && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
- && apt-get install -y --no-install-recommends openssh-client openssh-server \
+# Install OpenSSH for MPI to communicate between containers, Allow OpenSSH to talk to containers without asking for confirmation
+RUN apt-get install -y --no-install-recommends openssh-client openssh-server \
  && mkdir -p /var/run/sshd \
  && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
- && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
- && rm -rf /var/lib/apt/lists/*
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
 
 WORKDIR /
 
+RUN pip install --no-cache-dir "sagemaker-pytorch-training<3"
+
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
+
 ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
-RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
- && chmod +x /usr/local/bin/deep_learning_container.py \
- && wget -O /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.6.0/license.txt
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.0/license.txt
 
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
