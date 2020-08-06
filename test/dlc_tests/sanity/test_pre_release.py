@@ -243,6 +243,7 @@ def test_emacs(image):
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.integration("cuda")
 def test_cuda_paths(gpu):
     """
     Test to ensure directory structure for GPU Dockerfiles has cuda version in it
@@ -281,7 +282,7 @@ def test_cuda_paths(gpu):
         buildspec = "buildspec-tf1.yml"
 
     cuda_in_buildspec = False
-    cuda_in_buildspec_ref = f"CUDA_VERSION {cuda_version}"
+    cuda_in_buildspec_ref = f"{cuda_version}"
     buildspec_path = os.path.join(dlc_path, framework, buildspec)
     with open(buildspec_path, "r") as bf:
         for line in bf:
