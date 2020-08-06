@@ -44,9 +44,6 @@ TF_VERSION=$(python -c "import tensorflow as tf; print(tf.__version__)")
 if [[ $TF_VERSION == "2.2.0" ]]; then
     git checkout save_inputs_asserts # temporary branch change
 fi
-if [[ $TF_VERSION == "2.3.0" ]]; then
-    git checkout support_tf_2_3_tests # temporary branch change
-fi
 git pull
 
 echo "Creating mock test folder."
