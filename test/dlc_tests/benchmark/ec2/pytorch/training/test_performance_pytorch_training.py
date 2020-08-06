@@ -13,7 +13,7 @@ PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(CONTAINER_TESTS_PREFIX, 
 PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "p3.16xlarge"
 PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
 
-@pytest.mark.skip()
+
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE], indirect=True)
 def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu_only, py3_only):
