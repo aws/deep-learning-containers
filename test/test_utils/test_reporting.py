@@ -43,7 +43,7 @@ class TestReportGenerator:
     Class to generate test report files
     """
 
-    ALLOWED_SINGLE_GPU_TESTS = ("telemetry", "test_framework_version_gpu", "test_curand_gpu")
+    ALLOWED_SINGLE_GPU_TESTS = ("telemetry", "test_framework_and_cuda_version_gpu", "test_curand_gpu")
     SM_REPOS = (
         os.path.join("pytorch", "training"),
         os.path.join("pytorch", "inference"),
@@ -255,8 +255,8 @@ class TestReportGenerator:
             if self.is_sagemaker:
                 category = "sagemaker_local" if "local" in str_fspath else "sagemaker"
             github_link = (
-                f"https://github.com/aws/deep-learning-containers/blob/master/"
-                f"{str_fspath.split('/deep-learning-containers/')[-1]}"
+                f"https://github.com/aws/deep-learning-containers/blob/master/test/"
+                f"{str_fspath.split('/test/')[-1]}"
             )
 
             # Only create a new test coverage item if we have not seen the function before. This is a necessary step,
