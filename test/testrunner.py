@@ -117,17 +117,17 @@ def send_scheduler_requests(requester, image):
             break
 
         elif test_status == "runtimeError":
-            LOGGER.warning(f"Tests for image {image} ran into runtime error.")
             logs_response = requester.receive_logs(identifier)
             with open(report_path, "w") as xml_report:
                 xml_report.write(logs_response["XML_REPORT"])
             print_log_stream(logs_response)
             metrics_utils.send_test_result_metrics(1)
+            raise Exception(f"Test for image {image} ran into runtime error.")
             break
 
         elif test_status == "failed":
-            LOGGER.warning(f"Scheduling failed. Reason: {query_status_response['reason']}")
             metrics_utils.send_test_result_metrics(1)
+            raise Exception(f"Scheduling failed for image {image}. Reason: {query_status_response['reason']}")
             break
 
 
