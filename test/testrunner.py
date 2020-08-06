@@ -144,7 +144,7 @@ def run_sagemaker_remote_tests(images):
         import log_return
 
         num_of_instances = os.getenv("NUM_INSTANCES")
-        image = os.getenv("DLC_IMAGE")
+        image = images[0]
         job_type = "training" if "training" in image else "inference"
         instance_type = sm_utils.assign_sagemaker_remote_job_instance_type(image)
         test_succeeded = run_sagemaker_test_in_executor(image, num_of_instances, instance_type)
