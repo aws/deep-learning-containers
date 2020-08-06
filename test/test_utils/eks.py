@@ -401,7 +401,7 @@ def setup_kubeflow(eks_cluster_name,region=os.getenv("AWS_REGION", DEFAULT_REGIO
     )
 
     run(f"chmod +x {local_template_file_path}")
-    run(f"./{local_template_file_path} {region}",echo=True)
+    run(f"./{local_template_file_path} {eks_cluster_name} {region}",echo=True)
 
 def write_eks_yaml_file_from_template(
     local_template_file_path, remote_yaml_file_path, search_replace_dict
