@@ -42,6 +42,7 @@ RUN apt-get update \
     cuda-cusolver-10-2 \
     cuda-cusparse-10-2 \
     libbz2-dev \
+    liblzma-dev \
     #cuda-cublas-dev not available with 10-1, install libcublas instead
     libcublas10=10.2.2.89-1 \
     libcublas-dev=10.2.2.89-1 \
