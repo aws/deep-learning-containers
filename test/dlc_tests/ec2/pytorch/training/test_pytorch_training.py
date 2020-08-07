@@ -11,6 +11,7 @@ PT_MNIST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorc
 PT_REGRESSION_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchRegression")
 PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 PT_APEX_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNVApex")
+PT_AMP_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchAMP")
 PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test")
 
 
@@ -116,6 +117,13 @@ def test_pytorch_mpi(pytorch_training, ec2_connection, gpu_only, py3_only):
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_nvapex(pytorch_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_APEX_CMD)
+
+
+@pytest.mark.integration("amp")
+@pytest.mark.model("resnet50")
+@pytest.mark.parametrize("ec2_instance_type", ["p2.8xlarge"], indirect=True)
+def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only):
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD)
 
 
 @pytest.mark.integration("telemetry")
