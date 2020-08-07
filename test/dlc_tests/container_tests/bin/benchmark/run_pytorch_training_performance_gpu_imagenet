@@ -21,7 +21,7 @@ function trigger_test() {
   port='tcp://127.0.0.1:8080'
   if [ "$2" == "run" ]
   then
-    epochs=16
+    epochs=4
   fi
   if [ "$2" == "prep" ]
   then
