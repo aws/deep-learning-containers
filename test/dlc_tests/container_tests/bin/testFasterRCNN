@@ -32,3 +32,4 @@ mv ${BIN_DIR}/faster_rcnn_r50_fpn_1x_coco.py /deep-learning-models/models/vision
 cd deep-learning-models/models/vision/detection/
 scripts/train_ec2_single_node.sh 8 /deep-learning-models/models/vision/detection/configs/faster_rcnn/EC2/faster_rcnn_r50_fpn_1x_coco.py
 exit 0
+
