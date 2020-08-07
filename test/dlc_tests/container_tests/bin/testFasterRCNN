@@ -1,0 +1,35 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+
+mkdir /data
+mkdir /data/coco
+mkdir /data/weights
+
+wget http://images.cocodataset.org/zips/train2017.zip -P /data/coco/
+wget http://images.cocodataset.org/zips/val2017.zip -P /data/coco/
+wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip -P /data/coco/
+
+unzip -q /data/coco/train2017.zip -d /data/coco/
+unzip -q /data/coco/val2017.zip -d /data/coco/
+unzip -q /data/coco/annotations_trainval2017.zip -d /data/coco/
+rm /data/coco/*.zip
+
+pip install pycocotools
+pip install terminaltables
+pip install scikit-image
+pip install IPython
+pip install s3fs
+pip install addict
+pip install tensorflow_addons
+
+git clone https://github.com/aws-samples/deep-learning-models.git
+wget https://github.com/keras-team/keras-applications/releases/download/resnet/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5 -P /deep-learning-models/models/vision/detection/weights/
+mv ${BIN_DIR}/faster_rcnn_r50_fpn_1x_coco.py /deep-learning-models/models/vision/detection/configs/faster_rcnn/EC2/
+
+cd deep-learning-models/models/vision/detection/
+scripts/train_ec2_single_node.sh 8 /deep-learning-models/models/vision/detection/configs/faster_rcnn/EC2/faster_rcnn_r50_fpn_1x_coco.py
+exit 0
+
