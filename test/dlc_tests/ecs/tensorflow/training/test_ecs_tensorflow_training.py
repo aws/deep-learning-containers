@@ -34,12 +34,12 @@ def test_ecs_tensorflow_training_mnist_cpu(cpu_only, ecs_container_instance, ten
 @pytest.mark.parametrize("training_script", [TF_FasterRCNN_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
-def test_ecs_tensorflow_training_mnist_gpu(gpu_only, ecs_container_instance, tensorflow_training, training_cmd,
+def test_ecs_tensorflow_training_fasterrcnn_gpu(gpu_only, ecs_container_instance, tensorflow_training, training_cmd,
                                            ecs_cluster_name):
     """
-    GPU mnist test for TF Training
+    GPU Faster RCNN test for TF Training
 
-    Instance Type - p3.2xlarge
+    Instance Type - p2.8xlarge
 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
