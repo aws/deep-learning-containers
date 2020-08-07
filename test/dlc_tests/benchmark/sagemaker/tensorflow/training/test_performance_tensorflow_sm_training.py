@@ -15,7 +15,7 @@ from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
 @pytest.mark.multinode("multinode")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("num_nodes", [1, 4], indirect=True)
-def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_nodes, region):
+def test_tensorflow_sagemaker_training_performance(num_nodes, region):
     """
     Run TF sagemaker training performance tests
 
@@ -32,6 +32,8 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
     # TODO: Test TF2
     tensorflow_training = "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training:2.2.0-gpu-py37-cu102-ubuntu18.04"
     framework_version = re.search(r"[1,2](\.\d+){2}", tensorflow_training).group()
+    if 'tensorflow-1' in os.getenv("TEST_TRIGGER"):
+        pytest.skip('skip tf1')
     if framework_version.startswith("1."):
         pytest.skip("Skipping benchmark test on TF 1.x images.")
 
