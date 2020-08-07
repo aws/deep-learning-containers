@@ -66,7 +66,6 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
 
     # update resource pool accordingly, then add a try-catch statement here to update the pool in case of failure
     try:
-        raise Exception("intentional exception for testing")
         log_return.update_pool("running", instance_type, num_of_instances, job_type)
         context = Context()
         with context.cd(path):
