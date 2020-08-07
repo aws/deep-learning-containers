@@ -8,7 +8,6 @@ from test.test_utils import ec2 as ec2_utils
 
 
 TF_MNIST_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorFlow")
-TF_FasterRCNN_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testFasterRCNN")
 
 
 @pytest.mark.model("mnist")
@@ -30,16 +29,16 @@ def test_ecs_tensorflow_training_mnist_cpu(cpu_only, ecs_container_instance, ten
     ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, tensorflow_training, instance_id)
 
 
-@pytest.mark.model("FasterRCNN")
-@pytest.mark.parametrize("training_script", [TF_FasterRCNN_TRAINING_SCRIPT], indirect=True)
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("training_script", [TF_MNIST_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
-def test_ecs_tensorflow_training_fasterrcnn_gpu(gpu_only, ecs_container_instance, tensorflow_training, training_cmd,
+def test_ecs_tensorflow_training_mnist_gpu(gpu_only, ecs_container_instance, tensorflow_training, training_cmd,
                                            ecs_cluster_name):
     """
-    GPU Faster RCNN test for TF Training
+    GPU mnist test for TF Training
 
-    Instance Type - p2.8xlarge
+    Instance Type - p3.2xlarge
 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
