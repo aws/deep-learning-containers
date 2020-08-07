@@ -168,10 +168,7 @@ def run_sagemaker_remote_tests(images):
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(images)) as executor:
             futures = [executor.submit(send_scheduler_requests, job_requester, image) for image in images]
             for future in futures:
-                try:
-                    future.result()
-                except Exception as e:
-                    LOGGER.error(f"An error occurred in one of the threads: {e}")
+                future.result()
     else:
         if not images:
             return
