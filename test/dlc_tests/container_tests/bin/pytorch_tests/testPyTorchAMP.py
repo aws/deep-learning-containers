@@ -1,4 +1,3 @@
-""" DDP + AMP autocast + resnet50"""
 import os
 import torch
 import torch.distributed as dist
@@ -17,7 +16,7 @@ def setup(rank, world_size):
     # initialize the process group
     dist.init_process_group("gloo", rank=rank, world_size=world_size)
 
-def demo_basic(rank, world_size):
+def basic_resnet(rank, world_size):
     setup(rank, world_size)
     torch.cuda.set_device(rank)
     model = torchvision.models.resnet50().to(torch.cuda.current_device())
@@ -47,4 +46,4 @@ def run_test(demo_fn, world_size):
              join=True)
 
 if __name__ == '__main__':
-    run_test(demo_basic, world_size=2)
+    run_test(basic_resnet, world_size=2)
