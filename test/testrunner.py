@@ -9,7 +9,7 @@ from datetime import datetime
 
 import boto3
 import pytest
-
+import datetime
 from botocore.config import Config
 from invoke import run
 from invoke.context import Context
@@ -198,7 +198,10 @@ def setup_eks_cluster(framework_name):
                    f"{codebuild_version}-{random.randint(1, 10000)}"
     try:
         eks_utils.eks_setup()
+        start_time = datetime.datetime.now()
         eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
+        total_time= datetime.datetime.now() - start_time
+        LOGGER.info(f"EKS setup time: {total_time}")
     except Exception:
         eks_utils.delete_eks_cluster(cluster_name)
         raise
