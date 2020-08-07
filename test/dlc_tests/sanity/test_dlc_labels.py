@@ -47,10 +47,9 @@ def test_dlc_major_version_label(image, region):
     test_utils.LOGGER.info(f"{image} has 'dlc_major_version' = {major_version}")
 
 
-@pytest.mark.skipif(not test_utils.is_pr_context(), reason=test_utils.PR_ONLY_REASON)
 def test_dlc_version_dockerfiles(image):
     """
-    Test to make sure semantic versioning scheme in Dockerfiles
+    Test to make sure semantic versioning scheme in Dockerfiles is correct
 
     :param image: <str> ECR image URI
     """
@@ -60,6 +59,22 @@ def test_dlc_version_dockerfiles(image):
     processor = test_utils.get_processor_from_image_uri(image)
 
     root_dir = os.path.join(dlc_dir, framework, job_type, 'docker', fw_version)
+
+    # Skip older FW versions that did not use this versioning scheme
+    references = {
+        "tensorflow2": "2.2.0",
+        "tensorflow1": "1.16.0",
+        "mxnet": "1.7.0",
+        "pytorch": "1.5.0"
+    }
+    if test_utils.is_tf1(image):
+        reference_fw = "tensorflow1"
+    elif test_utils.is_tf2(image):
+        reference_fw = "tensorflow2"
+    else:
+        reference_fw = framework
+    if processor != "eia" and fw_version < references[reference_fw]:
+        pytest.skip("Not enforcing new versioning scheme on old images")
 
     dockerfiles = []
     for root, dirnames, filenames in os.walk(root_dir):
@@ -95,5 +110,3 @@ def test_dlc_version_dockerfiles(image):
         actual_versions.append(version)
 
     assert sorted(actual_versions) == expected_versions, f"A major version is missing: {versions}"
-
-
