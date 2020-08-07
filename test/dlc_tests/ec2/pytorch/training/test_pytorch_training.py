@@ -121,7 +121,7 @@ def test_nvapex(pytorch_training, ec2_connection, gpu_only):
 
 @pytest.mark.integration("amp")
 @pytest.mark.model("resnet50")
-@pytest.mark.parametrize("ec2_instance_type", ["p2.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD)
 
