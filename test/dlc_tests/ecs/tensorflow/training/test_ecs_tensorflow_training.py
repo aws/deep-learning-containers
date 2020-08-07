@@ -8,7 +8,6 @@ from test.test_utils import ec2 as ec2_utils
 
 
 TF_MNIST_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorFlow")
-TF_FasterRCNN_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testFasterRCNN")
 
 
 @pytest.mark.model("mnist")
