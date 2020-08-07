@@ -55,12 +55,12 @@ def test_dlc_version_dockerfiles(image):
 
     :param image: <str> ECR image URI
     """
-    dlc_dir = os.getcwd().split('/test/')[0]
+    dlc_dir = os.getcwd().split(f'{os.sep}test{os.sep}')[0]
     job_type = test_utils.get_job_type_from_image(image)
     framework, fw_version = test_utils.get_framework_and_version_from_tag(image)
     processor = test_utils.get_processor_from_image_uri(image)
 
-    root_dir = os.path.join(dlc_dir, framework, job_type, 'docker', fw_version)
+    root_dir = os.path.join(dlc_dir, framework, job_type, 'docker')
 
     # Skip older FW versions that did not use this versioning scheme
     references = {
@@ -79,11 +79,12 @@ def test_dlc_version_dockerfiles(image):
         pytest.skip("Not enforcing new versioning scheme on old images")
 
     dockerfiles = []
+    fw_version_major_minor = re.match(r"(\d+.\d+)", fw_version).group(1)
     for root, dirnames, filenames in os.walk(root_dir):
         for filename in filenames:
             if filename == f"Dockerfile.{processor}":
                 dockerfile_path = os.path.join(root_dir, root, filename)
-                if "example" not in dockerfile_path:
+                if "example" not in dockerfile_path and f"{os.sep}{fw_version_major_minor}" in dockerfile_path:
                     dockerfiles.append(dockerfile_path)
 
     versions = {}
@@ -100,13 +101,13 @@ def test_dlc_version_dockerfiles(image):
     possible_versions = list(range(1, len(dockerfiles) + 1))
 
     # Test case explicitly for TF2.3, since v2.0 is banned
-    if framework == "tensorflow" and fw_version == "2.3.0":
+    if framework == "tensorflow" and fw_version_major_minor == "2.3":
         for version in possible_versions:
             if version >= 2:
                 version += 1
             expected_versions.append(version)
     else:
-        expected_versions = actual_versions
+        expected_versions = possible_versions
 
     for _, version in versions.items():
         actual_versions.append(version)
