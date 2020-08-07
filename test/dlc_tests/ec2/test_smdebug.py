@@ -18,7 +18,7 @@ SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", proc
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
     # TODO: Remove this once test timeout has been debugged (failures especially on p2.8xlarge)
-    if is_tf2(training) and "2.3.0" in training and SMDEBUG_EC2_GPU_INSTANCE_TYPE == "p2.8xlarge":
+    if is_tf2(training) and "2.3.0" in training and "p2.8xlarge" in SMDEBUG_EC2_GPU_INSTANCE_TYPE:
         pytest.skip("Currently skipping for TF2.3.0 on p2.8xlarge until the issue is fixed")
     if is_tf1(training):
         pytest.skip("Currently skipping for TF1 until the issue is fixed")
