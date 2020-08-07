@@ -518,3 +518,20 @@ def get_repository_and_tag_from_image_uri(image_uri):
     repository_uri, tag = image_uri.split(":")
     _, repository_name = repository_uri.split("/")
     return repository_name, tag
+
+
+def get_processor_from_image_uri(image_uri):
+    """
+    Return processor from the image URI
+
+    Assumes image uri includes -<processor>- in it's tag, where <processor> is one of cpu, gpu or eia.
+
+    :param image_uri: ECR image URI
+    :return: cpu, gpu, or eia
+    """
+    allowed_processors = ("cpu", "gpu", "eia")
+
+    for processor in allowed_processors:
+        match = re.search(rf'-({processor})-', image_uri)
+        if match:
+            return match.group(1)
