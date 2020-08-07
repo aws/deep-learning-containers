@@ -29,6 +29,8 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
     :param num_nodes: Number of nodes to run on
     :param region: AWS region
     """
+    # TODO: Test TF2
+    tensorflow_training = "763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.2.0-gpu-py37-cu102-ubuntu18.04"
     framework_version = re.search(r"[1,2](\.\d+){2}", tensorflow_training).group()
     if framework_version.startswith("1."):
         pytest.skip("Skipping benchmark test on TF 1.x images.")
