@@ -397,7 +397,7 @@ def setup_kubeflow(eks_cluster_name,region=os.getenv("AWS_REGION", DEFAULT_REGIO
         "eks",
         "eks_manifest_templates",
         "kubeflow",
-        "install.sh"
+        "install_kubeflow.sh"
     )
 
     run(f"chmod +x {local_template_file_path}")
