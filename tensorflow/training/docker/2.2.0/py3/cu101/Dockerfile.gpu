@@ -27,9 +27,9 @@ ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.7
 ARG OPENSSL_VERSION=1.1.1g
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.2_aws/20200518-000848/gpu/py37/tensorflow_gpu-2.2.0-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.2_aws_cu101/20200807-233604/gpu/py37/tensorflow_gpu-2.2.0-cp37-cp37m-manylinux2010_x86_64.whl
 
-ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.2_aws/20200518-000848/tensorflow_estimator-2.2.0-py2.py3-none-any.whl
+ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.2_aws/20200807-233604/tensorflow_estimator-2.2.0-py2.py3-none-any.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
@@ -45,11 +45,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     cuda-cusparse-dev-10-1 \
     curl \
     emacs \
-    libcudnn7=7.6.2.24-1+cuda10.1 \
+    libcudnn7=7.6.5.32-1+cuda10.1 \
     # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
-    libnccl2=2.4.7-1+cuda10.1 \
+    libnccl2=2.6.4-1+cuda10.1 \
     libgomp1 \
-    libnccl-dev=2.4.7-1+cuda10.1 \
+    libnccl-dev=2.6.4-1+cuda10.1 \
     libfreetype6-dev \
     libhdf5-serial-dev \
     liblzma-dev \
