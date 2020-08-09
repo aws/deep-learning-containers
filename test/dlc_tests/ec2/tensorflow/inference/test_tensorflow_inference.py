@@ -5,7 +5,7 @@ from time import sleep
 import pytest
 
 from test import test_utils
-from test.test_utils.ec2 import get_ec2_instance_type
+from test.test_utils.ec2 import get_ec2_instance_type, get_ec2_accelerator_type
 from test.dlc_tests.conftest import LOGGER
 
 TENSORFLOW1_VERSION = "1."
@@ -14,6 +14,7 @@ TENSORFLOW2_VERSION = "2."
 
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
+TF_EC2_EIA_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="eia1.large", processor="eia")
 
 
 @pytest.mark.model("mnist")
@@ -26,6 +27,22 @@ def test_ec2_tensorflow_inference_gpu(tensorflow_inference, ec2_connection, regi
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, region, cpu_only):
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
+
+
+@pytest.mark.integration("elastic_inference")
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ei_accelerator_type", TF_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
+def test_ec2_tensorflow_inference_eia_cpu(tensorflow_inference_eia, ec2_connection, region, eia_only):
+    run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, "8500", region)
+
+
+@pytest.mark.integration("elastic_inference")
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ei_accelerator_type", TF_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
+def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connection, region, eia_only):
+    run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, "8500", region)
 
 
 def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region):
