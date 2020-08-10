@@ -48,7 +48,7 @@ from tensorflow_serving.apis import classification_pb2
 # from tensorflow_serving.apis import get_model_status_pb2
 # from tensorflow_serving.apis import model_service_pb2_grpc
 from tensorflow_serving.apis import predict_pb2
-from tensorflow_serving.apis import prediction_service_pb2
+from tensorflow_serving.apis import prediction_service_pb2_grpc
 from tensorflow_serving.apis import regression_pb2
 from tensorflow_serving.apis import inference_pb2
 from tensorflow.python.saved_model import signature_constants
@@ -98,9 +98,8 @@ def WaitForServerReady(port):
 
         try:
             # Send empty request to missing model
-            channel = implementations.insecure_channel('localhost', port)
-            stub = prediction_service_pb2.beta_create_PredictionService_stub(
-                channel)
+            channel = grpc.insecure_channel('localhost:{}'.format(port))
+            stub = prediction_service_pb2_grpc.PredictionServiceStub(channel)
             stub.Predict(request, RPC_TIMEOUT)
         except grpc.RpcError as error:
             # Missing model error will have details containing 'Servable'
@@ -125,13 +124,6 @@ class TensorflowModelServerTester(object):
         self.sig_name = ServingInput[2]
         self.server_proc = None
         self.concurrent = concurrent
-        if (model_server != None):
-            self.binary = model_server
-            if (not os.path.isfile(self.binary)):
-                print("Can't find Tensorflow Serving Binary at %s please point to TFS binary" % (self.binary))
-                exit(1)
-        else:
-            self.binary = None
         self.open_procs = []
 
     def TerminateProcs(self):
@@ -195,10 +187,9 @@ class TensorflowModelServerTester(object):
                     tf.compat.v1.make_tensor_proto(input_data[ii], shape=input_shapes[ii]))
 
         # Create the stub and channel
-        channel = implementations.insecure_channel(host, int(port))
+        channel = grpc.insecure_channel('localhost:{}'.format(port))
         timing = []
-        stub = prediction_service_pb2.beta_create_PredictionService_stub(
-            channel)
+        stub = prediction_service_pb2_grpc.PredictionServiceStub(channel)
         p = Pool(self.concurrent)
 
         def do_pred(x):

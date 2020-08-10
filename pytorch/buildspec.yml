@@ -1,7 +1,7 @@
   account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK pytorch
-  version: &VERSION 1.5.1
+  version: &VERSION 1.6.0
   cuda_version: &CUDA_VERSION cu101
   os_version: &OS_VERSION ubuntu16.04
 
@@ -10,11 +10,6 @@
         image_type: &TRAINING_IMAGE_TYPE training
         root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
         repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
-        repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
-    inference_repository: &INFERENCE_REPOSITORY
-        image_type: &INFERENCE_IMAGE_TYPE inference
-        root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
-        repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
         repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
   context:
@@ -28,16 +23,6 @@
       example_mnist_file:
         source: docker/build_artifacts/mnist.py
         target: mnist.py
-    inference_context: &INFERENCE_CONTEXT
-      mms-entrypoint:
-        source: docker/build_artifacts/mms-entrypoint.py
-        target: mms-entrypoint.py
-      config:
-        source: docker/build_artifacts/config.properties
-        target: config.properties
-      deep_learning_container:
-        source: docker/build_artifacts/deep_learning_container.py
-        target: deep_learning_container.py
 
   images:
     BuildCPUPTTrainPy3DockerImage:
@@ -59,31 +44,9 @@
       python_version: &DOCKER_PYTHON_VERSION py3
       tag_python_version: &TAG_PYTHON_VERSION py36
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
-      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
-    BuildCPUPTInferencePy3DockerImage:
-      <<: *INFERENCE_REPOSITORY
-      build: &PYTORCH_CPU_INFERENCE_PY3 false
-      image_size_baseline: 4899
-      device_type: &DEVICE_TYPE cpu
-      python_version: &DOCKER_PYTHON_VERSION py3
-      tag_python_version: &TAG_PYTHON_VERSION py36
-      tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
-      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
-      context:
-        <<: *INFERENCE_CONTEXT
-    BuildGPUPTInferencePy3DockerImage:
-      <<: *INFERENCE_REPOSITORY
-      build: &PYTORCH_GPU_INFERENCE_PY3 false
-      image_size_baseline: 9228
-      device_type: &DEVICE_TYPE gpu
-      python_version: &DOCKER_PYTHON_VERSION py3
-      tag_python_version: &TAG_PYTHON_VERSION py36
-      tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
-      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
-      context:
-        <<: *INFERENCE_CONTEXT
     BuildPyTorchExampleGPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &PYTORCH_GPU_TRAINING_PY3 false

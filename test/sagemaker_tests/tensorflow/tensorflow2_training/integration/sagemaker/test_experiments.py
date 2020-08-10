@@ -97,4 +97,6 @@ def test_training(sagemaker_session, ecr_image, instance_type, framework_version
     trial.remove_trial_component(trial_component_summary.trial_component_name)
     trial_component.delete()
     trial.delete()
+    # Prevent throttling to avoid deleting experiment before it's updated with trial deletion
+    time.sleep(1.2)
     experiment.delete()
