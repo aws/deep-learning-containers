@@ -24,7 +24,7 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
     yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_training_{rand_int}.yaml")
     pod_name = f"tensorflow-single-node-training-{rand_int}"
 
-    args = ("aws s3 cp s3://mzanur-data/tf_records /imagenet_data/ --recursive "
+    args = ("aws s3 cp s3://aws-tensorflow-dlc-models/imagenet_data /imagenet_data/ --recursive "
             "&& pip install tensorflow_addons && pip install tqdm "
             "&& git clone https://github.com/anuragrs/deep-learning-models.git "
             "&& cd deep-learning-models/models/vision/classification/"
