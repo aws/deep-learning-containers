@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, DEFAULT_REGION
+from test.test_utils import CONTAINER_TESTS_PREFIX, PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2, DEFAULT_REGION
 from test.test_utils.ec2 import execute_ec2_training_performance_test
 
 PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "benchmark",
@@ -11,7 +11,7 @@ PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(CONTAINER_TESTS_PREFIX, 
                                                         "run_pytorch_training_performance_gpu_imagenet")
 
 PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "p3.16xlarge"
-PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3dn.24xlarge"
+PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
 
 
 @pytest.mark.model("resnet50")
@@ -21,7 +21,7 @@ def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu
 
 
 @pytest.mark.model("resnet50")
-@pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_IMAGENET_INSTANCE_TYPE], indirect=True)
 def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_only, py3_only):
     execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(ec2_connection, pytorch_training,
