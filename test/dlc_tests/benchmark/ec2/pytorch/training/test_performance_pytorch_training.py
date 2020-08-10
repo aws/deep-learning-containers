@@ -17,7 +17,8 @@ PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE], indirect=True)
 def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu_only, py3_only):
-    execute_ec2_training_performance_test(ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD)
+    execute_ec2_training_performance_test(ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD,
+                                          post_process=post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test)
 
 
 @pytest.mark.model("resnet50")
@@ -49,3 +50,8 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(connection, e
             f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}")
     finally:
         connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
+
+
+def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test():
+    print("test")
+    pass
