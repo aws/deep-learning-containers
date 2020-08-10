@@ -55,20 +55,15 @@ def test_dlc_version_dockerfiles(image):
 
     :param image: <str> ECR image URI
     """
-    dlc_dir = os.getcwd().split(f'{os.sep}test{os.sep}')[0]
+    dlc_dir = os.getcwd().split(f"{os.sep}test{os.sep}")[0]
     job_type = test_utils.get_job_type_from_image(image)
     framework, fw_version = test_utils.get_framework_and_version_from_tag(image)
     processor = test_utils.get_processor_from_image_uri(image)
 
-    root_dir = os.path.join(dlc_dir, framework, job_type, 'docker')
+    root_dir = os.path.join(dlc_dir, framework, job_type, "docker")
 
     # Skip older FW versions that did not use this versioning scheme
-    references = {
-        "tensorflow2": "2.2.0",
-        "tensorflow1": "1.16.0",
-        "mxnet": "1.7.0",
-        "pytorch": "1.5.0"
-    }
+    references = {"tensorflow2": "2.2.0", "tensorflow1": "1.16.0", "mxnet": "1.7.0", "pytorch": "1.5.0"}
     if test_utils.is_tf1(image):
         reference_fw = "tensorflow1"
     elif test_utils.is_tf2(image):
@@ -90,26 +85,24 @@ def test_dlc_version_dockerfiles(image):
     versions = {}
     dlc_label_regex = re.compile(r'LABEL dlc_major_version="(\d+)"')
     for dockerfile in dockerfiles:
-        with open(dockerfile, 'r') as df:
+        with open(dockerfile, "r") as df:
             for line in df:
                 major_version_match = dlc_label_regex.match(line)
                 if major_version_match:
                     versions[dockerfile] = int(major_version_match.group(1))
 
-    expected_versions = []
+    expected_versions = list(range(1, len(dockerfiles) + 1))
     actual_versions = []
-    possible_versions = list(range(1, len(dockerfiles) + 1))
-
-    # Test case explicitly for TF2.3, since v2.0 is banned
-    if framework == "tensorflow" and fw_version_major_minor == "2.3":
-        for version in possible_versions:
-            if version >= 2:
-                version += 1
-            expected_versions.append(version)
-    else:
-        expected_versions = possible_versions
 
     for _, version in versions.items():
         actual_versions.append(version)
+
+    # Test case explicitly for TF2.3 gpu, since v1.0 is banned
+    if (framework, fw_version_major_minor, processor) == ("tensorflow", "2.3", "gpu"):
+        expected_versions = [v + 1 for v in expected_versions]
+        assert 1 not in actual_versions, (
+            f"DLC v1.0 is deprecated in TF2.3 gpu containers, but found major version 1 "
+            f"in one of the Dockerfiles. Please inspect {versions}"
+        )
 
     assert sorted(actual_versions) == expected_versions, f"A major version is missing: {versions}"
