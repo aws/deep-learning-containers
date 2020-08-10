@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 import torch
 import torch.distributed as dist
@@ -46,4 +47,7 @@ def run_test(demo_fn, world_size):
              join=True)
 
 if __name__ == '__main__':
-    run_test(basic_resnet, world_size=2)
+    try:
+        sys.exit(run_test(basic_resnet, world_size=2))
+    except KeyboardInterrupt:
+        pass
