@@ -71,7 +71,10 @@ def test_dlc_version_dockerfiles(image):
     else:
         reference_fw = framework
     if processor != "eia" and fw_version < references[reference_fw]:
-        pytest.skip("Not enforcing new versioning scheme on old images")
+        pytest.skip(
+            f"Not enforcing new versioning scheme on old image {image}. "
+            f"Started enforcing version scheme on the following: {references}"
+        )
 
     dockerfiles = []
     fw_version_major_minor = re.match(r"(\d+.\d+)", fw_version).group(1)
@@ -105,4 +108,7 @@ def test_dlc_version_dockerfiles(image):
             f"in one of the Dockerfiles. Please inspect {versions}"
         )
 
-    assert sorted(actual_versions) == expected_versions, f"A major version is missing: {versions}"
+    assert sorted(actual_versions) == expected_versions, (
+        f"Found DLC major versions {actual_versions} but expected {expected_versions} for "
+        f"{framework} {job_type} {processor}. Full version info: {versions}"
+    )
