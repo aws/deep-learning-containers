@@ -7,4 +7,4 @@ DISABLE_FRAMEWORK_TESTS = ["mxnet"]
 DISABLE_DATETIME_TAG = True
 # Note: Need to build the images at least once with DISABLE_DATETIME_TAG = True
 # before disabling new builds or tests will fail
-DISABLE_NEW_BUILDS = True
+DISABLE_NEW_BUILDS = False
