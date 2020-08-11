@@ -25,10 +25,7 @@
       deep_learning_container:
         source: docker/build_artifacts/deep_learning_container.py
         target: deep_learning_container.py
-      inference_context: &INFERENCE_CONTEXT
-        sagemaker_package_name:
-          source: docker/build_artifacts/sagemaker
-          target: sagemaker
+    inference_context: &INFERENCE_CONTEXT
       sagemaker_package_name:
         source: docker/build_artifacts/sagemaker
         target: sagemaker
