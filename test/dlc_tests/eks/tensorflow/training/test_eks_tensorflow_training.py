@@ -24,8 +24,8 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
     yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_training_{rand_int}.yaml")
     pod_name = f"tensorflow-single-node-training-{rand_int}"
 
-    args = ("aws s3 cp s3://dlc-data-sagemaker-us-west-2/imagenet/raw /imagenet_data/ --recursive "
-            "&& pip install tensorflow_addons && pip install tqdm "
+    args = (""
+            "pip install tensorflow_addons && pip install tqdm "
             "&& git clone https://github.com/anuragrs/deep-learning-models.git "
             "&& cd deep-learning-models/models/vision/classification/"
             "&& mpirun -np 8 -H localhost:8 -map-by slot -x NCCL_DEBUG=INFO -x TF_XLA_FLAGS=--tf_xla_cpu_global_jit -mca btl ^vader -mca btl_tcp_if_exclude tun0,docker0,lo --bind-to none --allow-run-as-root python train_backbone.py --train_data_dir /imagenet_data/train-480px/ --validation_data_dir /imagenet_data/validation-480px -b 128 --num_epochs 5 --model darknet53 --schedule cosine")
