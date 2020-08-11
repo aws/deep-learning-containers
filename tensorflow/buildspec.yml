@@ -11,7 +11,7 @@
       root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
       repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
       repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
-   inference_repository: &INFERENCE_REPOSITORY
+    inference_repository: &INFERENCE_REPOSITORY
       image_type: &INFERENCE_IMAGE_TYPE inference
       root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
       repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
@@ -25,6 +25,10 @@
       deep_learning_container:
         source: docker/build_artifacts/deep_learning_container.py
         target: deep_learning_container.py
+      inference_context: &INFERENCE_CONTEXT
+        sagemaker_package_name:
+          source: docker/build_artifacts/sagemaker
+          target: sagemaker
       sagemaker_package_name:
         source: docker/build_artifacts/sagemaker
         target: sagemaker
