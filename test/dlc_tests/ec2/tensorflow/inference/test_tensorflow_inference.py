@@ -90,8 +90,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, T
             script_file_path=mnist_client_path, port=grpc_port, connection=ec2_connection
         )
         if Telemetry_mode:
-            assert os.path.exists("/tmp/test_request.txt")
-            print("DLC Telemetry performance test Passed")
+            check_telemetry(ec2_connection, container_name)
     finally:
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
 
@@ -131,3 +130,12 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
         local_scripts_path = os.path.join("container_tests", "bin", "tensorflow_serving")
         ec2_connection.run(f"mkdir -p {serving_folder_path}")
         ec2_connection.run(f"cp -r {local_scripts_path} {serving_folder_path}")
+
+
+def check_telemetry(ec2_connection, container_name):
+    ec2_connection.run(
+        f"docker exec -it -user root {container_name}  /bin/bash ",
+        hide=True, warn=True
+    )
+    assert os.path.exists("/tmp/test_request.txt")
+    exit 0
