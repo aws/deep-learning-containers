@@ -118,17 +118,17 @@ def send_scheduler_requests(requester, image):
             break
 
         elif test_status == "runtimeError":
-            LOGGER.warning(f"Tests for image {image} ran into runtime error.")
             logs_response = requester.receive_logs(identifier)
             with open(report_path, "w") as xml_report:
                 xml_report.write(logs_response["XML_REPORT"])
             print_log_stream(logs_response)
             metrics_utils.send_test_result_metrics(1)
+            raise Exception(f"Test for image {image} ran into runtime error.")
             break
 
         elif test_status == "failed":
-            LOGGER.warning(f"Scheduling failed. Reason: {query_status_response['reason']}")
             metrics_utils.send_test_result_metrics(1)
+            raise Exception(f"Scheduling failed for image {image}. Reason: {query_status_response['reason']}")
             break
 
 
@@ -145,7 +145,7 @@ def run_sagemaker_remote_tests(images):
         import log_return
 
         num_of_instances = os.getenv("NUM_INSTANCES")
-        image = os.getenv("DLC_IMAGE")
+        image = images[0]
         job_type = "training" if "training" in image else "inference"
         instance_type = sm_utils.assign_sagemaker_remote_job_instance_type(image)
         test_succeeded = run_sagemaker_test_in_executor(image, num_of_instances, instance_type)
@@ -169,10 +169,7 @@ def run_sagemaker_remote_tests(images):
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(images)) as executor:
             futures = [executor.submit(send_scheduler_requests, job_requester, image) for image in images]
             for future in futures:
-                try:
-                    future.result()
-                except Exception as e:
-                    LOGGER.error(f"An error occurred in one of the threads: {e}")
+                future.result()
     else:
         if not images:
             return
