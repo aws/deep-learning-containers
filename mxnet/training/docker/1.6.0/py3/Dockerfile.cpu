@@ -123,7 +123,7 @@ RUN ${PIP} install --no-cache --upgrade \
     keras-mxnet==2.2.4.2 \
     h5py==2.10.0 \
     onnx==1.6.0 \
-    numpy==1.17.2 \
+    numpy==1.19.1 \
     pandas==0.25.1 \
     Pillow \
     requests==2.22.0 \
