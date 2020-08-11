@@ -8,7 +8,7 @@ set -e
 
 echo "Simply verify if Telemetry works well. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
 
-python ${BIN_DIR}/test_mx_dlc_telemetry_test.py > ${TRAINING_LOG} 2>&1
+python ${BIN_DIR}/test_mx_dlc_telemetry_test.py 2>&1 | tee $TRAINING_LOG
 
 if grep "DLC Telemetry performance test Passed" $TRAINING_LOG; then
   echo "Successfully verified Telemetry performance test."
