@@ -134,6 +134,7 @@ RUN pip install \
     psutil \
     Pillow \
     scipy \
+    click \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U \

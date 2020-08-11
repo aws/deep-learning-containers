@@ -99,6 +99,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "awscli<2" \
     fastai==1.0.59 \
     scipy==1.2.2 \
+    click \
     smdebug==${SMDEBUG_VERSION} \
     "sagemaker<2" \
     sagemaker-experiments==0.* \
