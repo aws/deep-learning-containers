@@ -11,6 +11,7 @@ from invoke import exceptions
 from junit_xml import TestSuite, TestCase
 
 from test_utils import ec2 as ec2_utils
+from test_utils import metrics as metrics_utils
 from test_utils import (
     destroy_ssh_keypair,
     generate_ssh_keypair,
@@ -67,9 +68,7 @@ def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
     instance_id = instance["InstanceId"]
     public_ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
-    ec2_utils.check_system_state(
-        instance_id, system_status="ok", instance_status="ok", region=region
-    )
+    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
     return instance_id, public_ip_address
 
 
@@ -121,16 +120,18 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             instance_type_arg = "--instance-types"
             integration_path = os.path.join(integration_path, "test_tfs.py") if processor != "eia" else os.path.join(integration_path, "test_ei.py")
 
-    if framework == "tensorflow" and job_type == 'training':
+    if framework == "tensorflow" and job_type == "training":
         aws_id_arg = "--account-id"
 
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     is_py3 = " python3 -m "
 
-    remote_pytest_cmd = (f"pytest {integration_path} --region {region} {docker_base_arg} "
-                         f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
-                         f"{instance_type_arg} {instance_type} --junitxml {test_report}")
+    remote_pytest_cmd = (
+        f"pytest {integration_path} --region {region} {docker_base_arg} "
+        f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
+        f"{instance_type_arg} {instance_type} --junitxml {test_report}"
+    )
 
     if processor == "eia" :
         remote_pytest_cmd += (f" {accelerator_type_arg} {eia_arg}")
@@ -148,7 +149,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         remote_pytest_cmd if sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE else local_pytest_cmd,
         path,
         tag,
-        job_type
+        job_type,
     )
 
 
@@ -266,7 +267,8 @@ def execute_sagemaker_remote_tests(image):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
-            context.run(pytest_command)
+            res = context.run(pytest_command, warn=True)
+            metrics_utils.send_test_result_metrics(res.return_code)
 
 
 def generate_empty_report(report, test_type, case):

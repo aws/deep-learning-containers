@@ -6,6 +6,7 @@ import time
 import logging
 import sys
 
+import git
 import pytest
 
 from botocore.exceptions import ClientError
@@ -25,7 +26,9 @@ P3DN_REGION = "us-east-1"
 # Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
 UBUNTU_16_BASE_DLAMI_US_WEST_2 = "ami-0e5a388144f62e4f5"
 UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0da7f2daf5e92c6f2"
-UL_AMI_LIST = [UBUNTU_16_BASE_DLAMI_US_WEST_2, UBUNTU_16_BASE_DLAMI_US_EAST_1]
+PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
+PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
+UL_AMI_LIST = [UBUNTU_16_BASE_DLAMI_US_WEST_2, UBUNTU_16_BASE_DLAMI_US_EAST_1, PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2]
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 
@@ -374,51 +377,87 @@ def get_dlc_images():
 
 
 def parse_canary_images(framework, region):
-    tf1 = "1.15"
-    tf2 = "2.2"
-    mx = "1.6"
-    pt = "1.5"
+    """
+    Return which canary images to run canary tests on for a given framework and AWS region
 
+    :param framework: ML framework (mxnet, tensorflow, pytorch)
+    :param region: AWS region
+    :return: dlc_images string (space separated string of image URIs)
+    """
     if framework == "tensorflow":
-        framework = "tensorflow2" if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") else "tensorflow1"
+        if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") or "tensorflow2" in os.getenv("CODEBUILD_INITIATOR"):
+            framework = "tensorflow2"
+        else:
+            framework = "tensorflow1"
+
+    version_regex = {
+        "tensorflow1": r"tf-1.\d+",
+        "tensorflow2": r"tf-2.\d+",
+        "mxnet": r"mx-\d+.\d+",
+        "pytorch": r"pt-\d+.\d+"
+    }
+
+    repo = git.Repo(os.getcwd(), search_parent_directories=True)
+
+    versions = []
+
+    for tag in repo.tags:
+        tag_str = str(tag)
+        match = re.search(version_regex[framework], tag_str)
+        if match and "tr" not in tag_str and "inf" not in tag_str:
+            version = match.group().split('-')[-1]
+            if version not in versions:
+                versions.append(version)
+
+    # Sort ascending to descending
+    versions = sorted(versions, reverse=True)
 
     registry = PUBLIC_DLC_REGISTRY
+    framework_versions = versions if len(versions) < 4 else versions[:3]
+    dlc_images = ""
+    for fw_version in framework_versions:
+        py_minor_version = '7' if framework == "tensorflow2" and fw_version == '2.2' else ''
+        images = {
+            "tensorflow1":
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
+            "tensorflow2":
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-py3{py_minor_version} "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-py3{py_minor_version} "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
 
-    images = {
-        "tensorflow1":
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py2 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py2 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-gpu "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-cpu",
-        "tensorflow2":
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-gpu-py37 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-cpu-py37 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-gpu "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-cpu",
+            "mxnet":
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-py2",
+            "pytorch":
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-py3"
+        }
+        if not dlc_images:
+            dlc_images = images[framework]
+        else:
+            dlc_images += f" {images[framework]}"
 
-        "mxnet":
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py2 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py2 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py2 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py2",
-        "pytorch":
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-gpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-cpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-gpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-cpu-py3"
-    }
-    return images[framework]
+    return dlc_images
 
 
 def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2_env):
     """
     Create a virtual environment for benchmark tests if it doesn't already exist, and download all necessary scripts
+
     :param resources_location: <str> directory in which test resources should be placed
     :param setup_tf1_env: <bool> True if tf1 resources need to be setup
     :param setup_tf2_env: <bool> True if tf2 resources need to be setup
@@ -445,9 +484,9 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install -U sagemaker awscli boto3 botocore six==1.11")
+            ctx.run("pip install -U 'sagemaker<2' awscli boto3 botocore six==1.11")
 
-            # SageMaker TF estimator is coded to only accept framework versions upto 2.1.0 as py2 compatible.
+            # SageMaker TF estimator is coded to only accept framework versions up to 2.1.0 as py2 compatible.
             # Fixing this through the following changes:
             estimator_location = ctx.run(
                 "echo $(pip3 show sagemaker |grep 'Location' |sed s/'Location: '//g)/sagemaker/tensorflow/estimator.py"

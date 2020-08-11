@@ -1,8 +1,11 @@
 docker==4.2.0
 fabric==2.5.0
+junit-xml==1.9
 pytest==5.3.5
 pytest-rerunfailures==9.0
 pytest-timeout
 pytest-xdist==1.31.0
+xmltodict
 boto3
 retrying
+gitpython

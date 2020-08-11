@@ -1,35 +1,39 @@
-# Nvidia does not publish a TensorRT Runtime library for Ubuntu 18.04 with Cuda 10.1 support, so we stick with cuda 10.0.
-# https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/
 FROM nvidia/cuda:10.0-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="4"
+LABEL dlc_major_version="5"
 
-# Prevent docker build get stopped by requesting user interaction
-ENV DEBIAN_FRONTEND=noninteractive
-ENV DEBCONF_NONINTERACTIVE_SEEN=true
-# Python won’t try to write .pyc or .pyo files on the import of source modules
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-# See http://bugs.python.org/issue19846
-ENV PYTHONIOENCODING=UTF-8
-ENV LANG=C.UTF-8
+# prevent stopping by user interaction
+ENV DEBIAN_FRONTEND noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN true
+ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
+
+ENV PYTHONDONTWRITEBYTECODE=1 
+ENV PYTHONUNBUFFERED=1 
+ENV PYTHONIOENCODING=UTF-8 
+ENV LANG=C.UTF-8 
 ENV LC_ALL=C.UTF-8
-# Specify the location of module that contains the training logic for SageMaker
-# https://docs.aws.amazon.com/sagemaker/latest/dg/docker-container-environmental-variables-entrypoint.html
-ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
-# Define framework-related package sources
-ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.3/AmazonLinux/gpu/final/tensorflow_gpu-1.15.3-cp36-cp36m-manylinux2010_x86_64.whl
+# Set environment variables for MKL
+# For more about MKL with TensorFlow see:
+# https://www.tensorflow.org/performance/performance_guide#tensorflow_with_intel%C2%AE_mkl_dnn
+ENV KMP_AFFINITY=granularity=fine,compact,1,0 
+ENV KMP_BLOCKTIME=1 
+ENV KMP_SETTINGS=0
 
+ARG PYTHON=python3
+ARG PYTHON_PIP=python3-pip
+ARG PIP=pip3
+
+ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.1/AmazonLinux/gpu/final/tensorflow_gpu-2.0.1-cp36-cp36m-manylinux2010_x86_64.whl
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.8.1
+ARG SMDEBUG_VERSION=0.9.1
 
-ARG OPENSSL_VERSION=1.1.1g
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends --allow-unauthenticated \
+RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
+    python3-dev \
+    python3-pip \
+    python3-setuptools \
     ca-certificates \
     cuda-command-line-tools-10-0 \
     cuda-cublas-dev-10-0 \
@@ -56,6 +60,8 @@ RUN apt-get update \
     openssh-client \
     openssh-server \
     zlib1g-dev \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
     # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0
     # adds a new list which contains libnvinfer library, so it needs another
     # 'apt-get update' to retrieve that list before it can actually install the
@@ -71,29 +77,6 @@ RUN apt-get update \
  && rm /usr/lib/x86_64-linux-gnu/libnvparsers* \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/run/sshd
-
-RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt-get update \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && apt-get install -y \
-    ca-certificates \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test \
- && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-*
-
- # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
-# causing sslcertverificationerror the below steps are to fix that
-RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends --allow-unauthenticated \
-    python3-dev \
-    python3-pip \
-    python3-setuptools
 
 ###########################################################################
 # Horovod & its dependencies
@@ -126,11 +109,7 @@ RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params
 RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
 
 ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
-# Resolve missing libcuda.so issue
-RUN cp /usr/local/cuda-10.0/extras/CUPTI/lib64/libcupti* /usr/local/cuda/lib64/
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64/:$LD_LIBRARY_PATH
-
-ENV PATH=/usr/local/openmpi/bin/:$PATH
+ENV PATH /usr/local/openmpi/bin/:$PATH
 ENV PATH=/usr/local/nvidia/bin:$PATH
 
 # SSH login fix. Otherwise user is kicked off after login
@@ -145,45 +124,43 @@ RUN mkdir -p /root/.ssh/ \
 
 WORKDIR /
 
-RUN pip3 --no-cache-dir install --upgrade \
+RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
 # Some TF tools expect a "python" binary
-RUN ln -s $(which python3) /usr/local/bin/python \
- && ln -s $(which pip3) /usr/bin/pip
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
+ && ln -s $(which ${PIP}) /usr/bin/pip
 
-RUN pip install --no-cache-dir -U \
+# install PyYAML==5.1.2 to avoid conflict with latest awscli
+# # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
+RUN ${PIP} install --no-cache-dir -U \
     numpy==1.17.4 \
     scipy==1.2.2 \
-    scikit-learn==0.20.3 \
-    pandas==0.24.2 \
+    scikit-learn==0.22 \
+    pandas==0.25.3 \
     Pillow \
-    h5py==2.9.0 \
+    h5py==2.10.0 \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
     requests==2.22.0 \
     keras==2.3.1 \
-    smdebug==0.8.1 \
-    "sagemaker<2" \
-    sagemaker-experiments==0.1.7 \
-    mpi4py==3.0.2 \
-    "cryptography>=2.3" \
-    "sagemaker-tensorflow>=1.15,<1.16" \
-    "sagemaker-tensorflow-training>=10,<20" \
+    smdebug==${SMDEBUG_VERSION} \
+    python-dateutil==2.8.0 \
+    PyYAML==5.1.2 \
+    "awscli<2" \
+    mpi4py==3.0.3 \
+    opencv-python==4.2.0.32 \
+    "sagemaker-tensorflow>=2.0,<2.1" \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
- && pip install --force-reinstall --no-cache-dir -U \
+ && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
- && pip install --no-cache-dir -U \
-    "awscli<2" \
-    smdebug==${SMDEBUG_VERSION}
-
+    "sagemaker-tensorflow-training>=3.0<4.0"
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 pip install --no-cache-dir \
-    horovod==0.19.5 \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.18.2 \
  && ldconfig
 
 # Allow OpenSSH to talk to containers without asking for confirmation
@@ -191,10 +168,6 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
 
-ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
-RUN chmod +x /usr/local/bin/deep_learning_container.py
-
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0.1/license.txt -o /license.txt
 
 CMD ["bin/bash"]
