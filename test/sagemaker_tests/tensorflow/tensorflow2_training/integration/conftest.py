@@ -20,7 +20,7 @@ import pytest
 from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
 
-from ..integration import NO_P2_REGIONS, NO_P3_REGIONS
+from ..integration import NO_P2_REGIONS, NO_P3_REGIONS, get_ecr_registry
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
@@ -137,8 +137,8 @@ def docker_image(docker_base_name, tag):
 
 @pytest.fixture
 def ecr_image(account_id, docker_base_name, tag, region):
-    return '{}.dkr.ecr.{}.amazonaws.com/{}:{}'.format(
-        account_id, region, docker_base_name, tag)
+    registry = get_ecr_registry(account_id, region)
+    return '{}/{}:{}'.format(registry, docker_base_name, tag)
 
 
 @pytest.fixture(autouse=True)

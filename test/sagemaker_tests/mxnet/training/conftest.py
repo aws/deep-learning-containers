@@ -21,6 +21,7 @@ from sagemaker import LocalSession, Session
 from sagemaker.mxnet import MXNet
 
 from .integration import NO_P2_REGIONS
+from .integration.utils import get_ecr_registry
 
 
 logger = logging.getLogger(__name__)
@@ -110,7 +111,8 @@ def docker_image(docker_base_name, tag):
 
 @pytest.fixture(scope='session')
 def ecr_image(aws_id, docker_base_name, tag, region):
-    return '{}.dkr.ecr.{}.amazonaws.com/{}:{}'.format(aws_id, region, docker_base_name, tag)
+    registry = get_ecr_registry(aws_id, region)
+    return '{}/{}:{}'.format(registry, docker_base_name, tag)
 
 
 @pytest.fixture(scope='session')

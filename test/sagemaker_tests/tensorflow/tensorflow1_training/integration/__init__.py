@@ -15,6 +15,9 @@ from __future__ import absolute_import
 import logging
 import os
 
+import boto3
+import botocore
+
 logging.getLogger('boto3').setLevel(logging.INFO)
 logging.getLogger('botocore').setLevel(logging.INFO)
 
@@ -30,7 +33,8 @@ NO_P2_REGIONS = [
     'eu-north-1',
     'sa-east-1',
     'ap-east-1',
-    'me-south-1'
+    'me-south-1',
+    'cn-northwest-1',
 ]
 NO_P3_REGIONS = [
     'ap-southeast-1',
@@ -44,5 +48,26 @@ NO_P3_REGIONS = [
     'eu-north-1',
     'sa-east-1',
     'ap-east-1',
-    'me-south-1'
+    'me-south-1',
+    'cn-northwest-1',
 ]
+
+
+def _botocore_resolver():
+    """
+    Get the DNS suffix for the given region.
+    :return: endpoint object
+    """
+    loader = botocore.loaders.create_loader()
+    return botocore.regions.EndpointResolver(loader.load_data("endpoints"))
+
+
+def get_ecr_registry(account, region):
+    """
+    Get prefix of ECR image URI
+    :param account: Account ID
+    :param region: region where ECR repo exists
+    :return: AWS ECR registry
+    """
+    endpoint_data = _botocore_resolver().construct_endpoint("ecr", region)
+    return "{}.dkr.{}".format(account, endpoint_data["hostname"])

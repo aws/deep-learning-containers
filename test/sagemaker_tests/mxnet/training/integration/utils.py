@@ -16,6 +16,8 @@ import os
 import random
 import time
 
+import boto3
+import botocore
 import pytest
 
 
@@ -25,3 +27,23 @@ def unique_name_from_base(base, max_length=63):
     available_length = max_length - 2 - len(ts) - len(unique)
     trimmed = base[:available_length]
     return '{}-{}-{}'.format(trimmed, ts, unique)
+
+
+def _botocore_resolver():
+    """
+    Get the DNS suffix for the given region.
+    :return: endpoint object
+    """
+    loader = botocore.loaders.create_loader()
+    return botocore.regions.EndpointResolver(loader.load_data('endpoints'))
+
+
+def get_ecr_registry(account, region):
+    """
+    Get prefix of ECR image URI
+    :param account: Account ID
+    :param region: region where ECR repo exists
+    :return: AWS ECR registry
+    """
+    endpoint_data = _botocore_resolver().construct_endpoint('ecr', region)
+    return '{}.dkr.{}'.format(account, endpoint_data['hostname'])
