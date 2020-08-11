@@ -1,4 +1,5 @@
 import os
+import time
 
 import boto3
 
@@ -436,10 +437,13 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
 
 
 def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION,
-                                          post_process=None, log_file=""):
+                                          post_process=None, log_name_prefix=""):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    log_local_dir = os.path.join(container_test_local_dir, "benchmark", "logs")
+
+    timestamp = time.strftime('%Y-%m-%d-%H-%M-%S')
+    log_name = f"{log_name_prefix}_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}"
+    log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
 
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
@@ -449,13 +453,13 @@ def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=
     # Run training command, display benchmark results to console
     connection.run(
         f"{docker_cmd} run --user root -e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} "
-        f"-e LOG_FILE={os.path.join(os.sep, 'test', log_file)} "
+        f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
         f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
     )
 
     if post_process:
-        post_process()
+        post_process(ecr_uri, log_location)
 
 
 def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):

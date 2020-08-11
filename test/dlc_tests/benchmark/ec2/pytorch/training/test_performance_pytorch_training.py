@@ -1,9 +1,13 @@
 import os
 
 import pytest
+import re
+from invoke.context import Context
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2, DEFAULT_REGION
+from test.test_utils import CONTAINER_TESTS_PREFIX, PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2, DEFAULT_REGION, \
+    BENCHMARK_RESULTS_S3_BUCKET, LOGGER
 from test.test_utils.ec2 import execute_ec2_training_performance_test
+from src.benchmark_metrics import PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD, PYTORCH_TRAINING_GPU_IMAGENET_THRESHOLD
 
 PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "benchmark",
                                                          "run_pytorch_training_performance_gpu_synthetic")
@@ -18,9 +22,10 @@ PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE], indirect=True)
 def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu_only, py3_only):
     execute_ec2_training_performance_test(ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD,
-                                          post_process=post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test)
+                                          post_process=post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test,
+                                          log_name_prefix="synthetic_results")
 
-
+@pytest.mark.skip()
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_IMAGENET_INSTANCE_TYPE], indirect=True)
@@ -52,6 +57,19 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(connection, e
         connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
 
 
-def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test():
-    print("test")
-    pass
+def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test(ecr_uri, log_file):
+    ctx = Context()
+    framework_version = re.search(r"[0-9]+(\.\d+){2}", ecr_uri).group()
+    py_version = "py2" if "py2" in ecr_uri else "py37" if "py37" in ecr_uri else "py3"
+
+    s3_location = os.path.join(
+        BENCHMARK_RESULTS_S3_BUCKET, "pytorch", framework_version, "ec2", "training", "gpu", py_version, log_file
+    )
+    LOGGER.info(f"echo Benchmark Results:"
+                f"echo PyTorch {framework_version} Training gpu {py_version}")
+    ctx.run(f"tail {log_file} >&2")
+    ctx.run(
+        f"aws s3 cp {log_file} {s3_location}")
+    ctx.run(
+        f"echo To retrieve complete benchmark log, check {s3_location} >&2")
+
