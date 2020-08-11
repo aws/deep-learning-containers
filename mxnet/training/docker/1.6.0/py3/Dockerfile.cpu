@@ -10,7 +10,7 @@ ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_mkl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.8.1
+ARG SMDEBUG_VERSION=0.9.1
 ARG OPENSSL_VERSION=1.1.1g
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -128,14 +128,14 @@ RUN ${PIP} install --no-cache --upgrade \
     Pillow \
     requests==2.22.0 \
     scikit-learn==0.20.4 \
-    dgl==0.4.1 \
+    dgl \
     scipy==1.2.2 \
     gluonnlp==0.9.1 \
     gluoncv==0.6.0 \
     urllib3==1.25.8 \
     python-dateutil==2.8.0 \
     tqdm==4.39.0 \
-    sagemaker-experiments==0.1.7 \
+    sagemaker-experiments==0.* \
     PyYAML==5.3.1 \
     mpi4py==3.0.2 \
     "sagemaker-mxnet-training<5" \

@@ -1,6 +1,7 @@
 FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="7"
 
 # Prevent docker build get stopped by requesting user interaction
 ENV DEBIAN_FRONTEND=noninteractive
@@ -135,7 +136,7 @@ RUN ${PIP} install --no-cache-dir -U \
     h5py==2.10.0 \
     requests==2.22.0 \
     smdebug==0.8.1 \
-    sagemaker-experiments==0.1.7 \
+    sagemaker-experiments==0.* \
     mpi4py==3.0.2 \
     "cryptography>=2.3" \
     "sagemaker-tensorflow>=1.15,<1.16" \

@@ -21,25 +21,6 @@ def get_test_coverage_file_path():
     )
 
 
-def get_marker_arg_value(item_obj, marker_name, default=None):
-    """
-    Function to return the argument value of a pytest marker -- if it does not exist, fall back to a default.
-    If the default does not exist and the option does not exist, raise an error.
-
-    :param item_obj: pytest item object
-    :param marker_name: name of the pytest marker
-    :param default: default return value -- if None, assume this is a required marker
-    :return: First arg value for the marker or the default value
-    """
-    markers = [mark for mark in item_obj.iter_markers(name=marker_name)]
-    if not markers:
-        if not default:
-            raise RequiredMarkerNotFound(f"PyTest Marker {marker_name} is required on function {item_obj.name}")
-        return default
-    else:
-        return markers[0].args[0]
-
-
 def _infer_field_value(default, options, *comparison_str):
     """
     For a given test coverage report field, determine the value based on whether the options are in keywords or
@@ -62,7 +43,7 @@ class TestReportGenerator:
     Class to generate test report files
     """
 
-    ALLOWED_SINGLE_GPU_TESTS = ("telemetry", "test_framework_version_gpu")
+    ALLOWED_SINGLE_GPU_TESTS = ("telemetry", "test_framework_and_cuda_version_gpu", "test_curand_gpu")
     SM_REPOS = (
         os.path.join("pytorch", "training"),
         os.path.join("pytorch", "inference"),
@@ -86,6 +67,18 @@ class TestReportGenerator:
         self.test_coverage_file = get_test_coverage_file_path() if not test_coverage_file else test_coverage_file
         self.is_sagemaker = is_sagemaker
         self.failure_conditions = {}
+
+    def update_failure_conditions(self, function_key, message):
+        """
+        Update failure conditions for a given function
+
+        :param function_key: identifier of the function
+        :param message: message to be appended to failure conditions
+        """
+        if not self.failure_conditions.get(function_key):
+            self.failure_conditions[function_key] = [message]
+        else:
+            self.failure_conditions[function_key].append(message)
 
     def handle_single_gpu_instances_test_report(self, function_key, function_keywords, processor="gpu"):
         """
@@ -123,10 +116,7 @@ class TestReportGenerator:
                         f"or add test to ALLOWED_SINGLE_GPU_TESTS. "
                         f"Current allowed tests: {self.ALLOWED_SINGLE_GPU_TESTS}"
                     )
-                    if not self.failure_conditions.get(function_key):
-                        self.failure_conditions[function_key] = [single_gpu_failure_message]
-                    else:
-                        self.failure_conditions[function_key].append(single_gpu_failure_message)
+                    self.update_failure_conditions(function_key, single_gpu_failure_message)
 
         return processor
 
@@ -134,7 +124,7 @@ class TestReportGenerator:
         """
         Assemble the failure message if there are any to raise
 
-        :return: the final failure message string
+        :return: the final failure message string, number of total issues, error file
         """
         final_message = ""
         total_issues = 0
@@ -143,9 +133,14 @@ class TestReportGenerator:
             for idx, message in enumerate(messages):
                 final_message += f"{idx+1}. {message}\n"
                 total_issues += 1
-        final_message += f"TOTAL ISSUES: {total_issues}"
+        final_message += f"TOTAL_ISSUES: {total_issues}"
 
-        return final_message, total_issues
+        # Also write out error file
+        error_file = os.path.join(os.path.dirname(self.test_coverage_file), '.test_coverage_report_errors')
+        with open(error_file, 'w') as ef:
+            ef.write(final_message)
+
+        return final_message, total_issues, error_file
 
     def write_test_coverage_file(self, test_coverage_info):
         """
@@ -173,6 +168,30 @@ class TestReportGenerator:
             for _func_key, info in test_coverage_info.items():
                 writer.writerow(info)
 
+    def get_marker_arg_value(self, item, function_key, marker_name, default=None):
+        """
+        Return the argument value of a pytest marker -- if it does not exist, fall back to a default.
+        If the default does not exist and the option does not exist, raise an error.
+
+        :param item: pytest item object
+        :param function_key: identifier of pytest function
+        :param marker_name: name of the pytest marker
+        :param default: default return value -- if None, assume this is a required marker
+        :return: First arg value for the marker or the default value
+        """
+        markers = [mark for mark in item.iter_markers(name=marker_name)]
+        if not markers:
+            if not default:
+                failure_message = (
+                    f"@pytest.mark.{marker_name}(<args>) is required marker on {function_key}  "
+                    f"If it truly does not apply to this test, please mark as "
+                    f"pytest.mark.{marker_name}('N/A')."
+                )
+                self.update_failure_conditions(function_key, failure_message)
+            return default
+        else:
+            return markers[0].args[0]
+
     def generate_sagemaker_reports(self):
         """
         Append SageMaker data to the report
@@ -194,11 +213,11 @@ class TestReportGenerator:
                     if framework == "tensorflow" and job_type == "inference":
                         with ctx.cd(os.path.join(pytest_framework_path, "test", "integration")):
                             # Handle local tests
-                            ctx.run(f"{self.COVERAGE_DOC_COMMAND} --framework-version 2 local/")
+                            ctx.run(f"{self.COVERAGE_DOC_COMMAND} --framework-version 2 local/", hide=True)
                             # Handle remote integration tests
-                            ctx.run(f"{self.COVERAGE_DOC_COMMAND} sagemaker/")
+                            ctx.run(f"{self.COVERAGE_DOC_COMMAND} sagemaker/", hide=True)
                     else:
-                        ctx.run(f"{self.COVERAGE_DOC_COMMAND} integration/")
+                        ctx.run(f"{self.COVERAGE_DOC_COMMAND} integration/", hide=True)
 
         # Handle TF inference remote tests
         tf_inf_path = os.path.join(
@@ -236,8 +255,8 @@ class TestReportGenerator:
             if self.is_sagemaker:
                 category = "sagemaker_local" if "local" in str_fspath else "sagemaker"
             github_link = (
-                f"https://github.com/aws/deep-learning-containers/blob/master/"
-                f"{str_fspath.split('/deep-learning-containers/')[-1]}"
+                f"https://github.com/aws/deep-learning-containers/blob/master/test/"
+                f"{str_fspath.split('/test/')[-1]}"
             )
 
             # Only create a new test coverage item if we have not seen the function before. This is a necessary step,
@@ -261,9 +280,6 @@ class TestReportGenerator:
                 ("_dgl_", "smdebug", "gluonnlp", "smexperiments", "_mme_", "pipemode", "tensorboard", "_s3_", "nccl"),
                 str_keywords,
             )
-            model_scope = _infer_field_value(
-                "N/A", ("mnist", "densenet", "squeezenet", "half_plus_two", "half_plus_three"), str_keywords
-            )
             num_instances = _infer_field_value(
                 1, ("_multinode_", "_multi-node_", "_multi_node_", "_dist_"), str_fspath, str_keywords
             )
@@ -280,25 +296,21 @@ class TestReportGenerator:
                 "Name": function_name,
                 "Scope": framework_scope,
                 "Job_Type": job_type_scope,
-                "Num_Instances": get_marker_arg_value(item, "multinode", num_instances),
-                "Processor": get_marker_arg_value(item, "processor", processor_scope),
-                "Integration": get_marker_arg_value(item, "integration", integration_scope),
-                "Model": get_marker_arg_value(item, "model", model_scope),
+                "Num_Instances": self.get_marker_arg_value(item, function_key, "multinode", num_instances),
+                "Processor": self.get_marker_arg_value(item, function_key, "processor", processor_scope),
+                "Integration": self.get_marker_arg_value(item, function_key, "integration", integration_scope),
+                "Model": self.get_marker_arg_value(item, function_key, "model"),
                 "GitHub_Link": github_link,
             }
         self.write_test_coverage_file(test_cov)
 
         if self.failure_conditions:
-            message, total_issues = self.assemble_report_failure_message()
+            message, total_issues, error_file = self.assemble_report_failure_message()
             if total_issues == 0:
                 LOGGER.warning(f"Found failure message, but no issues. Message:\n{message}")
             else:
-                raise TestReportGenerationFailure(message)
+                raise TestReportGenerationFailure(f"{message}\nFollow {error_file} if message is truncated")
 
 
 class TestReportGenerationFailure(Exception):
-    pass
-
-
-class RequiredMarkerNotFound(Exception):
     pass
