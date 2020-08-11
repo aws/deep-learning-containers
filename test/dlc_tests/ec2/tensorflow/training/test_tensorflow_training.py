@@ -16,6 +16,7 @@ TF_KERAS_HVD_CMD_AMP = os.path.join(CONTAINER_TESTS_PREFIX, "testTFKerasHVDAMP")
 TF_KERAS_HVD_CMD_FP32 = os.path.join(CONTAINER_TESTS_PREFIX, "testTFKerasHVDFP32")
 TF_TENSORBOARD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorBoard")
 TF_ADDONS_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTFAddons")
+TF_DATASERVICE_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testDataservice")
 
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p2.8xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
@@ -158,3 +159,33 @@ def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, cpu_only):
     if is_tf1(tensorflow_training):
         pytest.skip("This test is for TF2 only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
+
+
+# Helper function to test data service 
+def run_data_service_test(ec2_connection, tensorflow_training):
+    ec2_connection.run('python3 -m pip install --upgrade pip')
+    ec2_connection.run('pip3 install tensorflow')
+    ec2_connection.run('pip3 install tf-nightly')
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+    ec2_connection.run(f'cd {container_test_local_dir}/bin && screen -d -m python3 start_dataservice.py')
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
+
+
+# Testing Data Service on only one CPU instance
+@pytest.mark.integration('tensorflow-dataservice-test')
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_only):
+	if is_tf1(tensorflow_training):
+		pytest.skip("This test is for TF2 only")
+	run_data_service_test(ec2_connection, tensorflow_training)
+
+
+# Testing Data Service on only one GPU instance
+@pytest.mark.integration('tensorflow-dataservice-test')
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, gpu_only):
+	if is_tf1(tensorflow_training):
+		pytest.skip("This test is for TF2 only")
+	run_data_service_test(ec2_connection, tensorflow_training)
