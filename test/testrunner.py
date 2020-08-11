@@ -26,6 +26,7 @@ from test_utils import (
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
@@ -226,6 +227,17 @@ def delete_key_pairs(keyfile):
                 LOGGER.info(f"Deleted {keyname}")
 
 
+def build_bai_docker_container():
+    """
+    Builds docker container with necessary script requirements (bash 5.0+,conda)
+    """
+    # Assuming we are in dlc_tests directory
+    docker_dir = os.path.join("benchmark", "bai", "docker")
+    ctx = Context()
+    with ctx.cd(docker_dir):
+        ctx.run("docker build -t bai_env_container -f Dockerfile .")
+
+
 def main():
     # Define constants
     start_time = datetime.now()
@@ -242,7 +254,7 @@ def main():
     specific_test_type = re.sub("benchmark-", "", test_type) if benchmark_mode else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
-    if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary"):
+    if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary", "bai"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
         # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.
@@ -256,9 +268,12 @@ def main():
         # Pull images for necessary tests
         if specific_test_type == "sanity":
             pull_dlc_images(all_image_list)
-        if specific_test_type == "eks" and not is_all_images_list_eia :
-            frameworks_in_images = [framework for framework in ("mxnet", "pytorch", "tensorflow")
-                                    if framework in dlc_images]
+        if specific_test_type == "bai":
+            build_bai_docker_container()
+        if specific_test_type == "eks" and not is_all_images_list_eia:
+            frameworks_in_images = [
+                framework for framework in ("mxnet", "pytorch", "tensorflow") if framework in dlc_images
+            ]
             if len(frameworks_in_images) != 1:
                 raise ValueError(
                     f"All images in dlc_images must be of a single framework for EKS tests.\n"
@@ -301,7 +316,10 @@ def main():
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
-            sys.exit(0) if all([status == 0 for status in cmd_exit_statuses]) else sys.exit(1)
+            if all([status == 0 for status in cmd_exit_statuses]):
+                sys.exit(0)
+            else:
+                raise RuntimeError(pytest_cmds)
         finally:
             if specific_test_type == "eks" and eks_cluster_name:
                 eks_utils.delete_eks_cluster(eks_cluster_name)
