@@ -138,4 +138,3 @@ def check_telemetry(ec2_connection, container_name):
         hide=True, warn=True
     )
     assert os.path.exists("/tmp/test_request.txt")
-    exit 0
