@@ -387,7 +387,8 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     return conn
 
 
-def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash", large_shm=False,
+
+def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash", large_shm=False, host_network=False,
                               container_name='ec2_training_container'):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
@@ -401,8 +402,9 @@ def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGI
 
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
+    network = '--network="host" ' if host_network else ""
     connection.run(
-        f"{docker_cmd} run --name {container_name} -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
+        f"{docker_cmd} run --name {container_name} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
         f" {shm_setting} -itd {ecr_uri}",
         hide=True,
     )
