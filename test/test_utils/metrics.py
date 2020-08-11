@@ -36,8 +36,7 @@ def send_test_duration_metrics(start_time):
     cloudwatch_client = boto3.client("cloudwatch")
     use_scheduler = os.getenv("USE_SCHEDULER", "False").lower() == "true"
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
-
-    if executor_mode:
+    if not executor_mode:  # metrics should only be sent by the test CB
         if use_scheduler:
             metric_data = construct_duration_metrics_data(start_time, "With Scheduler")
 
@@ -55,7 +54,7 @@ def send_test_result_metrics(stdout):
     cloudwatch_client = boto3.client("cloudwatch")
     use_scheduler = os.getenv("USE_SCHEDULER", "False").lower() == "true"
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
-    if executor_mode:
+    if not executor_mode: # metrics should only be sent by the test CB
         if use_scheduler:
             metric_data = construct_test_result_metrics_data(stdout, "With Scheduler")
 
