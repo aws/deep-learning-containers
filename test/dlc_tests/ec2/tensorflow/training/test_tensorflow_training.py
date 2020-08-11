@@ -21,7 +21,7 @@ TF_DATASERVICE_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testDataservice"
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p2.8xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 
-
+@pytest.mark.skip()
 @pytest.mark.integration('tensorflow_sanity_test')
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -29,7 +29,7 @@ def test_tensorflow_standalone_gpu(tensorflow_training, ec2_connection, gpu_only
     test_script = TF1_STANDALONE_CMD if is_tf1(tensorflow_training) else TF2_STANDALONE_CMD
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
-
+@pytest.mark.skip()
 @pytest.mark.integration('tensorflow_sanity_test')
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
@@ -37,19 +37,19 @@ def test_tensorflow_standalone_cpu(tensorflow_training, ec2_connection, cpu_only
     test_script = TF1_STANDALONE_CMD if is_tf1(tensorflow_training) else TF2_STANDALONE_CMD
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
-
+@pytest.mark.skip()
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
-
+@pytest.mark.skip()
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
-
+@pytest.mark.skip()
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -58,7 +58,7 @@ def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_connection, gpu_on
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script,
                               large_shm=True if "p2.8xlarge" in TF_EC2_GPU_INSTANCE_TYPE else False)
 
-
+@pytest.mark.skip()
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
@@ -66,7 +66,7 @@ def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_on
     test_script = TF1_HVD_CMD if is_tf1(tensorflow_training) else TF2_HVD_CMD
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
-
+@pytest.mark.skip()
 @pytest.mark.integration("opencv")
 @pytest.mark.model("unknown_model")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -75,7 +75,7 @@ def test_tensorflow_opencv_gpu(tensorflow_training, ec2_connection, gpu_only):
         pytest.skip("This test is for TF2 only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_OPENCV_CMD)
 
-
+@pytest.mark.skip()
 @pytest.mark.integration("opencv")
 @pytest.mark.model("unknown_model")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
@@ -84,7 +84,7 @@ def test_tensorflow_opencv_cpu(tensorflow_training, ec2_connection, cpu_only):
         pytest.skip("This test is for TF2 only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_OPENCV_CMD)
 
-
+@pytest.mark.skip()
 # Testing Telemetry Script on only one GPU instance
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
@@ -93,7 +93,7 @@ def test_tensorflow_opencv_cpu(tensorflow_training, ec2_connection, cpu_only):
 def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
 
-
+@pytest.mark.skip()
 # Testing Telemetry Script on only one CPU instance
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
@@ -102,7 +102,7 @@ def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only)
 def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
 
-
+@pytest.mark.skip()
 @pytest.mark.integration("keras, horovod, automatic_mixed_precision (AMP)")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -111,7 +111,7 @@ def test_tensorflow_keras_horovod_amp(tensorflow_training, ec2_connection, gpu_o
         pytest.skip("This test is for TF2.1 and later only") # https://github.com/tensorflow/tensorflow/issues/33484#issuecomment-555299647
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_KERAS_HVD_CMD_AMP)
 
-
+@pytest.mark.skip()
 @pytest.mark.integration("keras, horovod, single_precision_floating_point (FP32)")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -120,7 +120,7 @@ def test_tensorflow_keras_horovod_fp32(tensorflow_training, ec2_connection, gpu_
         pytest.skip("This test is for TF2 and later only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_KERAS_HVD_CMD_FP32)
 
-
+@pytest.mark.skip()
 # Testing Tensorboard with profiling
 @pytest.mark.integration("tensorboard, keras")
 @pytest.mark.model("sequential")
@@ -130,7 +130,7 @@ def test_tensorflow_tensorboard_gpu(tensorflow_training, ec2_connection, gpu_onl
         pytest.skip("This test is for TF2 only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
 
-
+@pytest.mark.skip()
 # Testing Tensorboard with profiling
 @pytest.mark.integration("tensorboard, keras")
 @pytest.mark.model("sequential")
@@ -140,7 +140,7 @@ def test_tensorflow_tensorboard_cpu(tensorflow_training, ec2_connection, cpu_onl
         pytest.skip("This test is for TF2 only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
 
-
+@pytest.mark.skip()
 # TensorFlow Addons is actively working towards forward compatibility with TensorFlow 2.x
 # https://github.com/tensorflow/addons#python-op-compatility
 @pytest.mark.model("sequential")
@@ -151,7 +151,7 @@ def test_tensorflow_addons_gpu(tensorflow_training, ec2_connection, gpu_only):
         pytest.skip("This test is for TF2 only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
 
-
+@pytest.mark.skip()
 @pytest.mark.model("sequential")
 @pytest.mark.integration("tensorflow_addons, keras")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
@@ -160,7 +160,7 @@ def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, cpu_only):
         pytest.skip("This test is for TF2 only")
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
 
-
+@pytest.mark.skip()
 # Helper function to test data service 
 def run_data_service_test(ec2_connection, tensorflow_training):
     ec2_connection.run('python3 -m pip install --upgrade pip')
@@ -170,7 +170,7 @@ def run_data_service_test(ec2_connection, tensorflow_training):
     ec2_connection.run(f'cd {container_test_local_dir}/bin && screen -d -m python3 start_dataservice.py')
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
 
-
+@pytest.mark.skip()
 # Testing Data Service on only one CPU instance
 @pytest.mark.integration('tensorflow-dataservice-test')
 @pytest.mark.model("N/A")
@@ -180,7 +180,7 @@ def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_onl
 		pytest.skip("This test is for TF2 only")
 	run_data_service_test(ec2_connection, tensorflow_training)
 
-
+@pytest.mark.skip()
 # Testing Data Service on only one GPU instance
 @pytest.mark.integration('tensorflow-dataservice-test')
 @pytest.mark.model("N/A")
