@@ -135,7 +135,7 @@ RUN ${PIP} install --no-cache-dir -U \
     Pillow \
     h5py==2.10.0 \
     requests==2.22.0 \
-    smdebug==0.8.1 \
+    smdebug==0.9.2 \
     sagemaker-experiments==0.* \
     mpi4py==3.0.2 \
     "cryptography>=2.3" \
