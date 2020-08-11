@@ -436,7 +436,7 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
 
 
 def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION,
-                                          post_process=None, log_file=None):
+                                          post_process=None, log_file=""):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     log_local_dir = os.path.join(container_test_local_dir, "benchmark", "logs")
