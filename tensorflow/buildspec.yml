@@ -81,7 +81,7 @@
       python_version: &DOCKER_PYTHON_VERSION py3
       tag_python_version: &TAG_PYTHON_VERSION py37
       tag: !join [ "2.2.0", "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", "cu102", "-", *OS_VERSION ]
-      docker_file: !join [ docker/, "2.2.0", /, *DOCKER_PYTHON_VERSION, /,"cu102" , /Dockerfile., *DEVICE_TYPE ]
+      docker_file: !join [ docker/, "2.2.0", /, *DOCKER_PYTHON_VERSION, /, "cu102", /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *INFERENCE_CONTEXT
     BuildTensorflowExampleGPUTrainPy3DockerImage:
