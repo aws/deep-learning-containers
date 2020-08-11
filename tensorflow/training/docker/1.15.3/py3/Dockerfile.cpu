@@ -24,6 +24,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
 # Define framework-related package sources
 ARG TF_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws/20200609-012254/cpu/py37/tensorflow_cpu-1.15.3-cp37-cp37m-manylinux2010_x86_64.whl
+ARG SMDEBUG_VERSION=0.9.2
 ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
@@ -135,7 +136,7 @@ RUN ${PIP} install --no-cache-dir -U \
     Pillow \
     h5py==2.10.0 \
     requests==2.22.0 \
-    smdebug==0.9.2 \
+    smdebug==${SMDEBUG_VERSION} \
     sagemaker-experiments==0.* \
     mpi4py==3.0.2 \
     "cryptography>=2.3" \

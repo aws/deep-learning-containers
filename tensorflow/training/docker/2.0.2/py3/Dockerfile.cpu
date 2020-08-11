@@ -28,6 +28,7 @@ ARG PIP=pip3
 ARG OPENSSL_VERSION=1.1.1g
 
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.2/AmazonLinux/cpu/final/tensorflow-2.0.2-cp36-cp36m-manylinux2010_x86_64.whl
+ARG SMDEBUG_VERSION=0.9.2
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     software-properties-common \
@@ -133,7 +134,7 @@ RUN ${PIP} install --no-cache-dir -U \
     "sagemaker<2" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.0,<2.1" \
-    smdebug==0.9.2 \
+    smdebug==${SMDEBUG_VERSION} \
     "sagemaker-tensorflow-training>=20" \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten

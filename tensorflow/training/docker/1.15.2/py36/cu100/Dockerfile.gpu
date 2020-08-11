@@ -139,7 +139,7 @@ RUN pip install --no-cache-dir -U \
     keras_preprocessing==1.1.0 \
     requests==2.22.0 \
     keras==2.3.1 \
-    smdebug==0.8.1 \
+    smdebug==${SMDEBUG_VERSION} \
     "sagemaker<2" \
     sagemaker-experiments==0.*\
     mpi4py==3.0.2 \
