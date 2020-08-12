@@ -1,0 +1,55 @@
+# Header meta
+spec_version = "0.1.0"
+
+# These fields don't have any impact on the job to run, they contain
+# merely informative data so the benchmark can be categorized when displayed
+# in the dashboard.
+[info]
+description = """ TensorFlow training single-node {tf_version} CPU {py_version} resnet50 synthetic
+"""
+scheduling = 'single_run'
+
+[info.labels]
+# Labels and values must be 63 characters or less, beginning and ending with an alphanumeric character
+# ([a-z0-9A-Z]) with dashes (-), underscores (_), dots (.), and alphanumerics between
+task_name = " tf_train_single_node_{tf_version}_cpu_{py_version}_resnet50_synthetic"
+
+# 1. Hardware
+[hardware]
+instance_type = "c5.18xlarge"
+strategy = "single_node"
+aws_zone_id="use1-az2"
+
+# 2. Environment
+[env]
+docker_image = "tensorflow-{tf_version} {py_version} cpu docker image"
+
+[env.vars]
+OMP_NUM_THREADS = "36"
+TENSORFLOW_INTER_OP_PARALLELISM='2'
+TENSORFLOW_INTRA_OP_PARALLELISM='72'
+KMP_AFFINITY='granularity=fine,verbose,compact,1,0'
+TENSORFLOW_SESSION_PARALLELISM='9'
+KMP_BLOCKTIME='1'
+KMP_SETTINGS='0'
+
+# 3. Machine learning related settings:
+# dataset, benchmark code and parameters it takes
+[ml]
+
+benchmark_code = "python $(BAI_SCRIPTS_PATH)/benchmarks/scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py"
+
+args = "--batch_size=256 --model=resnet50_v1.5 --train_dir=$HOME/test00 --device=cpu --data_format=NHWC --num_inter_threads=0 --num_intra_threads=36 --mkl=True --kmp_blocktime=0"
+
+# 5. Output
+[output]
+# [Opt] Custom metrics descriptions
+# List all required metrics descriptions below.
+# Make an entry in same format as the one below.
+[[output.metrics]]
+# Name of the metric that will appear in the dashboards.
+name = "throughput"
+# Metric unit (required)
+units = "img/sec"
+# Pattern for log parsing for this metric.
+pattern = 'images\/sec: (\d*.\d+|\d+)'
