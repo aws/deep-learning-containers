@@ -6,3 +6,4 @@ pytest-xdist==1.31.0
 requests
 fabric
 retrying
+gitpython

@@ -19,7 +19,7 @@ phases:
           $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION --registry-ids 763104351884)
         fi
       - pip install -r test/requirements.txt
-      - pip install Scheduler/.
+      - pip install scheduler/.
       - echo Running pytest $TEST_TYPE tests on $DLC_IMAGES...
       - python test/testrunner.py
   post_build:
