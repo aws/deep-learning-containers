@@ -18,7 +18,6 @@ PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_p
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 
-
 @pytest.mark.integration("pytorch_sanity_test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -122,6 +121,7 @@ def test_nvapex(pytorch_training, ec2_connection, gpu_only):
 @pytest.mark.integration("amp")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.skipif(PT_EC2_GPU_INSTANCE_TYPE == ["g3.4xlarge"], reason="Skipping AMP DDP test on single gpu instance")
 def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD)
 
