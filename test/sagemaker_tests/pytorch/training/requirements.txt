@@ -17,3 +17,4 @@ tox==3.7.0
 requests_mock==1.6.0
 fabric
 retrying
+gitpython
