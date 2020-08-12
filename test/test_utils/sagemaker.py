@@ -260,7 +260,7 @@ def execute_local_tests(image, ec2_client):
                     is_py3 = " python3 -m "
                     ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
                     ec2_conn_new.run(f"pwd", warn=True)
-                    ec2_conn_new.run(f"cd /home/ubuntu/test/sagemaker_tests/tensorflow/inference", warn=True)
+                    ec2_conn_new.cd(path)
                     ec2_conn_new.run(f"pwd", warn=True)
                     ec2_conn_new.run(f"source ./env/bin/activate")
                     ec2_conn_new.run(f"pwd", warn=True)
