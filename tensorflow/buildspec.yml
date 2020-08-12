@@ -62,28 +62,6 @@
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
-    BuildTensorflowCPUInferencePy3DockerImage:
-      <<: *INFERENCE_REPOSITORY
-      build: &TENSORFLOW_CPU_INFERENCE_PY3 false
-      image_size_baseline: 4899
-      device_type: &DEVICE_TYPE cpu
-      python_version: &DOCKER_PYTHON_VERSION py3
-      tag_python_version: &TAG_PYTHON_VERSION py37
-      tag: !join [ "2.2.0", "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
-      docker_file: !join [ docker/, "2.2.0", /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
-      context:
-        <<: *INFERENCE_CONTEXT
-    BuildTensorflowGPUInferencePy3DockerImage:
-      <<: *INFERENCE_REPOSITORY
-      build: &TENSORFLOW_GPU_INFERENCE_PY3 false
-      image_size_baseline: 4899
-      device_type: &DEVICE_TYPE gpu
-      python_version: &DOCKER_PYTHON_VERSION py3
-      tag_python_version: &TAG_PYTHON_VERSION py37
-      tag: !join [ "2.2.0", "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", "cu102", "-", *OS_VERSION ]
-      docker_file: !join [ docker/, "2.2.0", /, *DOCKER_PYTHON_VERSION, /, "cu102", /Dockerfile., *DEVICE_TYPE ]
-      context:
-        <<: *INFERENCE_CONTEXT
     BuildTensorflowExampleGPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &TENSORFLOW_GPU_TRAINING_PY3 false
