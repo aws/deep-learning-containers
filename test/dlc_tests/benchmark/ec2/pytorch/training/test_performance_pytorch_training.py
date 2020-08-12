@@ -64,11 +64,9 @@ def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test(connect
         BENCHMARK_RESULTS_S3_BUCKET, "pytorch", framework_version, "ec2", "training", "gpu", py_version, log_name
     )
     LOGGER.info(f"Benchmark Results:")
-    connection.run(
-        f"tail {log_location} >&2")
-    open(log_location)
+    last_lines = connection.run(f"tail {log_location}").stdout.split("\n")
     throughput = 0
-    for line in reversed(list(open(log_location))):
+    for line in reversed(last_lines):
         if "__results.throughput__" in line:
             throughput = int(line.split("=")[1])
             LOGGER.info(f"PyTorch {framework_version} EC2 training gpu {py_version} Synthetic Throughput: {throughput}")
