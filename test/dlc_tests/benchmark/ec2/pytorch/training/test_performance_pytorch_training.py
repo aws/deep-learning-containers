@@ -2,7 +2,6 @@ import os
 
 import pytest
 import re
-from invoke.context import Context
 
 from test.test_utils import CONTAINER_TESTS_PREFIX, PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2, DEFAULT_REGION, \
     BENCHMARK_RESULTS_S3_BUCKET, LOGGER
@@ -58,7 +57,6 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(connection, e
 
 
 def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test(connection, ecr_uri, log_file):
-    ctx = Context()
     framework_version = re.search(r"[0-9]+(\.\d+){2}", ecr_uri).group()
     py_version = "py2" if "py2" in ecr_uri else "py37" if "py37" in ecr_uri else "py3"
 
@@ -67,18 +65,10 @@ def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test(connect
     )
     LOGGER.info(f"Benchmark Results:\n"
                 f"PyTorch {framework_version} Training gpu {py_version}")
-    ctx.run(f"pwd >&2")
-    connection.run(f"pwd >&2")
 
-    ctx.run(f"cd ~ && ls >&2")
-    connection.run(f"cd ~ && ls >&2")
-
-    ctx.run(f"ls ~/container_tests >&2")
-    connection.run(f"ls ~/container_tests >&2")
-
-    ctx.run(f"tail {log_file} >&2")
-    ctx.run(
+    connection.run(f"tail {log_file} >&2")
+    connection.run(
         f"aws s3 cp {log_file} {s3_location}")
-    ctx.run(
+    connection.run(
         f"echo To retrieve complete benchmark log, check {s3_location} >&2")
 
