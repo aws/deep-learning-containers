@@ -25,4 +25,3 @@ else:
 
 # prevent docker exit
 subprocess.call(['tail', '-f', '/dev/null'])
-
