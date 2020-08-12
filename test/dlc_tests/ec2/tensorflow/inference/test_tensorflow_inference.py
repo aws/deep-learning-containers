@@ -46,13 +46,13 @@ def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connecti
 
 
 @pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
 def test_ec2_tensorflow_inference_gpu_telemetry(tensorflow_inference, ec2_connection, region, gpu_only):
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region, True)
 
 
 @pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_ec2_tensorflow_inference_cpu_telemetry(tensorflow_inference, ec2_connection, region, cpu_only):
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region, True)
 
