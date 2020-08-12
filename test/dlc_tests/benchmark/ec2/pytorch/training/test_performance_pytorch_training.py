@@ -69,15 +69,12 @@ def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test(connect
     for line in reversed(last_lines):
         if "__results.throughput__" in line:
             throughput = int(line.split("=")[1])
-            LOGGER.info(f"PyTorch {framework_version} EC2 training gpu {py_version} Synthetic Throughput: {throughput}")
+            LOGGER.info(f"PyTorch {framework_version} EC2 training gpu {py_version} Synthetic Throughput: {throughput} samples/sec")
             break
     connection.run(
         f"aws s3 cp {log_location} {s3_location}")
     connection.run(
         f"echo To retrieve complete benchmark log, check {s3_location} >&2")
-    assert throughput < PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD,  \
+    assert throughput > PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD,  \
         f"PyTorch {framework_version} EC2 training gpu {py_version} Synthetic Throughput {throughput} " \
         f"does not reach the threshold {PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD}"
-
-
-
