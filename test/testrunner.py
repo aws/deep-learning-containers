@@ -329,8 +329,11 @@ def main():
         metrics_utils.send_test_duration_metrics(start_time)
 
     elif specific_test_type == "sagemaker-local":
+        '''
         testing_image_list = [image for image in standard_images_list if
                               not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))]
+        '''
+        testing_image_list = ["669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-inference:2.2.0-gpu-py37-cu102-ubuntu18.04-pr-462", "669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-inference:2.2.0-cpu-py37-ubuntu18.04-pr-462"]
         run_sagemaker_local_tests(testing_image_list)
         # for EIA Images
         if len(testing_image_list) == 0:
