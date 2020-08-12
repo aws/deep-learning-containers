@@ -21,8 +21,8 @@ PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE], indirect=True)
 def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu_only, py3_only):
     execute_ec2_training_performance_test(ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD,
-                                          post_process=post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test,
-                                          log_name_prefix="synthetic_results")
+                                          post_process=post_process_pytorch_gpu_py3_synthetic_ec2_training_performance,
+                                          data_source="synthetic", threshold=PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD)
 
 @pytest.mark.skip()
 @pytest.mark.model("resnet50")
@@ -56,27 +56,11 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(connection, e
         connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
 
 
-def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test(connection, ecr_uri, log_location, log_name):
-    framework_version = re.search(r"[0-9]+(\.\d+){2}", ecr_uri).group()
-    py_version = "py2" if "py2" in ecr_uri else "py37" if "py37" in ecr_uri else "py3"
-
-    s3_location = os.path.join(
-        BENCHMARK_RESULTS_S3_BUCKET, "pytorch", framework_version, "ec2", "training", "gpu", py_version, log_name
-    )
-    LOGGER.info(f"Benchmark Results:")
+def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance(connection, log_location):
     last_lines = connection.run(f"tail {log_location}").stdout.split("\n")
     throughput = 0
     for line in reversed(last_lines):
         if "__results.throughput__" in line:
             throughput = float(line.split("=")[1])
-            connection.run(f"echo PyTorch {framework_version} EC2 training gpu {py_version} Synthetic Throughput: "
-                           f"{throughput} samples/sec | sudo tee -a {log_location}")
-            LOGGER.info(f"PyTorch {framework_version} EC2 training gpu {py_version} Synthetic Throughput: {throughput} samples/sec")
             break
-    connection.run(
-        f"aws s3 cp {log_location} {s3_location}")
-    connection.run(
-        f"echo To retrieve complete benchmark log, check {s3_location} >&2")
-    assert throughput > PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD,  \
-        f"PyTorch {framework_version} EC2 training gpu {py_version} Synthetic Throughput {throughput} " \
-        f"does not reach the threshold {PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD}"
+    return throughput

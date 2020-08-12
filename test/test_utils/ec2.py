@@ -1,5 +1,6 @@
 import os
 import time
+import re
 
 import boto3
 
@@ -7,6 +8,8 @@ from retrying import retry
 from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
+
+from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
 
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER
 
@@ -437,12 +440,12 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
 
 
 def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION,
-                                          post_process=None, log_name_prefix=""):
+                                          post_process=None, data_source="", threshold=0):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     timestamp = time.strftime('%Y-%m-%d-%H-%M-%S')
-    log_name = f"{log_name_prefix}_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
+    log_name = f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
 
     # Make sure we are logged into ECR so we can pull the image
@@ -452,14 +455,32 @@ def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=
 
     # Run training command, display benchmark results to console
     connection.run(
-        f"{docker_cmd} run --user root -e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} "
+        f"{docker_cmd} run --user root "
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
         f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
     )
 
-    if post_process:
-        post_process(connection, ecr_uri, log_location, log_name)
+    framework = "tensorflow" if "tensorflow" in ecr_uri else "mxnet" if "mxnet" in ecr_uri else "pytorch"
+    framework_version = re.search(r"[0-9]+(\.\d+){2}", ecr_uri).group()
+    py_version = "py2" if "py2" in ecr_uri else "py37" if "py37" in ecr_uri else "py3"
+    processor = "gpu" if "gpu" in ecr_uri else "cpu"
+    s3_location = os.path.join(
+        BENCHMARK_RESULTS_S3_BUCKET, framework, framework_version, "ec2", "training", processor, py_version, log_name
+    )
+    LOGGER.info(f"Benchmark Results:")
+    throughput = post_process(log_location)
+    connection.run(f"echo {framework} {framework_version} EC2 training {processor} {py_version} {data_source} Throughput: "
+                   f"{throughput} images/sec | sudo tee -a {log_location}")
+    LOGGER.info(
+        f"{framework} {framework_version} EC2 training {processor} {py_version} {data_source} Throughput: {throughput} images/sec")
+    connection.run(
+        f"aws s3 cp {log_location} {s3_location}")
+    connection.run(
+        f"echo To retrieve complete benchmark log, check {s3_location} >&2")
+    assert throughput > threshold, \
+        f"{framework} {framework_version} EC2 training {processor} {py_version} {data_source} " \
+        f"Throughput {throughput} does not reach the threshold {threshold}"
 
 
 def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
