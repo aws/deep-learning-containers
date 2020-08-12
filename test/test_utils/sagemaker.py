@@ -68,7 +68,7 @@ def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
     instance_id = instance["InstanceId"]
     public_ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
-    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", system_status_check="passed", instance_status_check="passed", region=region)
+    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
     return instance_id, public_ip_address
 
 
@@ -185,16 +185,13 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     if framework == "tensorflow" and job_type == "inference":
         # TF inference test fail if run as soon as instance boots, even after health check pass. rootcause:
         # sockets?/nginx startup?/?
-        print("executing virtualenv")
         install_custom_python("3.6", ec2_conn)
     ec2_conn.run(f"virtualenv env")
     ec2_conn.run(f"source ./env/bin/activate")
-    ec2_conn.run(f"pwd")
     if framework == "pytorch":
         # The following distutils package conflict with test dependencies
         ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
     ec2_conn.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
-    ec2_conn.run(f"pwd", warn=True)
 
 
 def execute_local_tests(image, ec2_client):
@@ -230,7 +227,6 @@ def execute_local_tests(image, ec2_client):
             install_sm_local_dependencies(framework, job_type, image, ec2_conn)
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
-            print(f"variables {framework}--{job_type}--{image}")
             if framework == "mxnet" and job_type == "training" and "cpu" in image:
                 try:
                     ec2_conn.run(pytest_command, timeout=1000, warn=True)
@@ -247,11 +243,11 @@ def execute_local_tests(image, ec2_client):
                     if 'failures="0"' not in str(output):
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
             elif framework == "tensorflow" and job_type == "inference" and "gpu" in image: 
-
                 try:
-                    print("sleep 800s for tensorflow inference images to avoid 502 gateway issues")
-                    sleep(800)
-                    print("setting up new connection")
+                    print("sleep 900s for tensorflow inference images to avoid 502 gateway issues")
+                    sleep(300)
+                    sleep(300)
+                    sleep(300)
                     ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
 
                     with ec2_conn.cd(path):
@@ -262,7 +258,6 @@ def execute_local_tests(image, ec2_client):
                 except exceptions.CommandTimedOut as exc:
                     print(f"Ec2 connection timed out for {image}, {exc}")
             else:
-                print(f"general execution")
                 ec2_conn.run(pytest_command)
                 print(f"Downloading Test reports for image: {image}")
                 ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
