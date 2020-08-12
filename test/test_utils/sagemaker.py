@@ -246,29 +246,21 @@ def execute_local_tests(image, ec2_client):
                                                      executable="/bin/bash")
                     if 'failures="0"' not in str(output):
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
-            elif framework == "tensorflow" and job_type == "inference": 
-                try:
-                    print(f"executing {framework}-{job_type}-cpu")
-                    print("sleep 100s for tensorflow inference images to avoid socket issues")
-                    ec2_conn.run(f"pwd", warn=True)
-                    sleep(300)
-                    sleep(300)
-                    sleep(200)
-                    ec2_conn.run(pytest_command, warn=True)
-                except Exception as exc:
-                    print(f"Error {image}, {exc}")
-                    print("setting up new connection")
-                    is_py3 = " python3 -m "
-                    ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
-                    ec2_conn_new.run(f"pwd", warn=True)
+            elif framework == "tensorflow" and job_type == "inference" and "gpu" in image: 
 
-                    with ec2_conn_new.cd(path):
-                        ec2_conn_new.run(f"pwd", warn=True)
-                        ec2_conn_new.run(f"source ./env/bin/activate")
-                        ec2_conn_new.run(f"pwd", warn=True)
-                        ec2_conn_new.run(pytest_command, warn=True)
-                    print(f"Downloading Test reports for tf image: {image}")
-                    ec2_conn_new.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
+                try:
+                    print("sleep 800s for tensorflow inference images to avoid 502 gateway issues")
+                    sleep(800)
+                    print("setting up new connection")
+                    ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
+
+                    with ec2_conn.cd(path):
+                        ec2_conn.run(f"source ./env/bin/activate")
+                        ec2_conn.run(pytest_command, warn=True)
+                        ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
+
+                except exceptions.CommandTimedOut as exc:
+                    print(f"Ec2 connection timed out for {image}, {exc}")
             else:
                 print(f"general execution")
                 ec2_conn.run(pytest_command)
