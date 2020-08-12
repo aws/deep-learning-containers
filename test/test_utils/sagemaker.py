@@ -230,6 +230,7 @@ def execute_local_tests(image, ec2_client):
             install_sm_local_dependencies(framework, job_type, image, ec2_conn)
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
+            print(f"variables {framework}--{job_type}--{image}")
             if framework == "mxnet" and job_type == "training" and "cpu" in image:
                 try:
                     ec2_conn.run(pytest_command, timeout=1000, warn=True)
@@ -247,6 +248,7 @@ def execute_local_tests(image, ec2_client):
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
             elif framework == "tensorflow" and job_type == "inference" and "cpu" in image: 
                 try:
+                    print(f"executing {framework}-{job_type}-cpu")
                     ec2_conn.run(pytest_command, warn=True)
                 except Exception as exc:
                     print(f"Error {image}, {exc}")
@@ -256,6 +258,7 @@ def execute_local_tests(image, ec2_client):
                     print(f"Downloading Test reports for tf image: {image}")
                     ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
             else:
+                print(f"general execution")
                 ec2_conn.run(pytest_command)
                 print(f"Downloading Test reports for image: {image}")
                 ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
