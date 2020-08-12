@@ -186,8 +186,8 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
         # TF inference test fail if run as soon as instance boots, even after health check pass. rootcause:
         # sockets?/nginx startup?/?
         print("sleep 600s for tensorflow inference images to avoid socket issues")
-        #sleep(300)
-        #sleep(300)
+        sleep(300)
+        sleep(300)
         install_custom_python("3.6", ec2_conn)
     ec2_conn.run(f"virtualenv env")
     ec2_conn.run(f"source ./env/bin/activate")
@@ -245,6 +245,16 @@ def execute_local_tests(image, ec2_client):
                                                      executable="/bin/bash")
                     if 'failures="0"' not in str(output):
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
+            elif framework == "tensorflow" and job_type == "inference" and "cpu" in image: 
+                try:
+                    ec2_conn.run(pytest_command, warn=True)
+                except Exception as exc:
+                    print(f"Error {image}, {exc}")
+                    print("setting up new connection")
+                    ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
+                    ec2_conn_new.run(pytest_command, warn=True)
+                    print(f"Downloading Test reports for tf image: {image}")
+                    ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
             else:
                 ec2_conn.run(pytest_command)
                 print(f"Downloading Test reports for image: {image}")
