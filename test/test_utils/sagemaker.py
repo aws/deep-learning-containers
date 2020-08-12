@@ -244,10 +244,10 @@ def execute_local_tests(image, ec2_client):
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
             elif framework == "tensorflow" and job_type == "inference" and "gpu" in image: 
                 try:
-                    print("sleep 900s for tensorflow inference images to avoid 502 gateway issues")
+                    print("sleep 800s for tensorflow inference images to avoid socket issues")
                     sleep(300)
                     sleep(300)
-                    sleep(300)
+                    sleep(200)
                     ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
 
                     with ec2_conn.cd(path):
