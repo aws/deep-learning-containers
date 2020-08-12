@@ -28,6 +28,6 @@ python -m torch.distributed.launch --nproc_per_node=8 dlbs/python/pytorch_benchm
 #aws s3 cp ${LOG_DIR}/"${LOG_FILE}" s3://dlinfra-dlc-cicd-performance/pytorch/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}"
 #echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/pytorch/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}" >&2
 #set +e
-ls ${LOG_DIR}
+ls ${LOG_DIR} >&2
 
 exit 0

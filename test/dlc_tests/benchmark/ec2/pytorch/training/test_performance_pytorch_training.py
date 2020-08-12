@@ -67,8 +67,9 @@ def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test(ecr_uri
     )
     LOGGER.info(f"Benchmark Results:\n"
                 f"PyTorch {framework_version} Training gpu {py_version}")
-    ctx.run(f"ls ~/container_tests >&2")
     ctx.run(f"pwd >&2")
+    ctx.run(f"ls ~/container_tests >&2")
+
     ctx.run(f"tail {log_file} >&2")
     ctx.run(
         f"aws s3 cp {log_file} {s3_location}")
