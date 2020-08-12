@@ -333,7 +333,10 @@ def main():
         testing_image_list = [image for image in standard_images_list if
                               not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))]
         '''
-        testing_image_list = ["669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-inference:2.2.0-gpu-py37-cu102-ubuntu18.04-pr-462", "669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-inference:2.2.0-cpu-py37-ubuntu18.04-pr-462"]
+        account_id = os.getenv("ACCOUNT_ID", standard_images_list[0].split(".")[0])
+        
+        testing_image_list = [f"{account_id}.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-inference:2.2.0-gpu-py37-cu102-ubuntu18.04-pr-462", f"{account_id}.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-inference:2.2.0-cpu-py37-ubuntu18.04-pr-462"]
+        
         run_sagemaker_local_tests(testing_image_list)
         # for EIA Images
         if len(testing_image_list) == 0:
