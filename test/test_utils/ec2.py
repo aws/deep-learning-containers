@@ -442,7 +442,7 @@ def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     timestamp = time.strftime('%Y-%m-%d-%H-%M-%S')
-    log_name = f"{log_name_prefix}_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}"
+    log_name = f"{log_name_prefix}_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
 
     # Make sure we are logged into ECR so we can pull the image

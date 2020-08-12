@@ -65,8 +65,8 @@ def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test(ecr_uri
     s3_location = os.path.join(
         BENCHMARK_RESULTS_S3_BUCKET, "pytorch", framework_version, "ec2", "training", "gpu", py_version, log_file
     )
-    LOGGER.info(f"echo Benchmark Results:"
-                f"echo PyTorch {framework_version} Training gpu {py_version}")
+    LOGGER.info(f"Benchmark Results:\n"
+                f"PyTorch {framework_version} Training gpu {py_version}")
     ctx.run(f"tail {log_file} >&2")
     ctx.run(
         f"aws s3 cp {log_file} {s3_location}")
