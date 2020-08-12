@@ -117,10 +117,7 @@ def test_dlc_major_version_dockerfiles(image):
                 versions[dockerfile] = dlc_version
 
     expected_versions = list(range(1, len(dockerfiles) + 1))
-    actual_versions = []
-
-    for version in versions.values():
-        actual_versions.append(version)
+    actual_versions = sorted(versions.values())
 
     # Test case explicitly for TF2.3 gpu, since v1.0 is banned
     if (framework, fw_version_major_minor, processor) == ("tensorflow", "2.3", "gpu"):
@@ -133,7 +130,7 @@ def test_dlc_major_version_dockerfiles(image):
     # Note: If, for example, we find 3 dockerfiles with the same framework major/minor version, same processor,
     # and same python major/minor version, we will expect DLC major versions 1, 2, and 3. If an exception needs to be
     # made to this rule, please see the above handling of TF2.3 as an example.
-    assert sorted(actual_versions) == expected_versions, (
+    assert actual_versions == expected_versions, (
         f"Found DLC major versions {actual_versions} but expected {expected_versions} for "
         f"{framework} {job_type} {processor}. Full version info: {versions}. Py version: {python_major_minor_version}"
     )
