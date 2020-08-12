@@ -63,12 +63,21 @@ def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test(connect
     s3_location = os.path.join(
         BENCHMARK_RESULTS_S3_BUCKET, "pytorch", framework_version, "ec2", "training", "gpu", py_version, log_name
     )
-    LOGGER.info(f"Benchmark Results:\n"
-                f"PyTorch {framework_version} Training gpu {py_version}")
+    LOGGER.info(f"Benchmark Results:")
 
-    connection.run(f"tail {log_location} >&2")
+    throughput = 0
+    for line in reversed(list(open(log_location))):
+        if "__results.throughput__" in line:
+            throughput = int(line.split("=")[1])
+            LOGGER.info(f"PyTorch {framework_version} EC2 training gpu {py_version} Synthetic Throughput: {throughput}")
+            break
     connection.run(
         f"aws s3 cp {log_location} {s3_location}")
     connection.run(
         f"echo To retrieve complete benchmark log, check {s3_location} >&2")
+    assert throughput < PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD,  \
+        f"PyTorch {framework_version} EC2 training gpu {py_version} Synthetic Throughput {throughput} " \
+        f"does not reach the threshold {PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD}"
+
+
 
