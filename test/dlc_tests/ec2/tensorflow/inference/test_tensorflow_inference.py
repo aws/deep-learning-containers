@@ -137,4 +137,5 @@ def check_telemetry(ec2_connection, container_name):
         f"docker exec -it -user root {container_name}  /bin/bash ",
         hide=True, warn=True
     )
-    assert os.path.exists("/tmp/test_request.txt")
+    telemetry_cmd = "python -c 'import os;assert (os.path.exists('/tmp/test_request.txt'))'"
+    ec2_connection.run(telemetry_cmd)
