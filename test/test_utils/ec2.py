@@ -459,7 +459,7 @@ def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=
     )
 
     if post_process:
-        post_process(connection, ecr_uri, log_location)
+        post_process(connection, ecr_uri, log_location, log_name)
 
 
 def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):

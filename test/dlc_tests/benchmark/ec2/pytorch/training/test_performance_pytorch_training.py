@@ -56,19 +56,19 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(connection, e
         connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
 
 
-def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test(connection, ecr_uri, log_file):
+def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test(connection, ecr_uri, log_location, log_name):
     framework_version = re.search(r"[0-9]+(\.\d+){2}", ecr_uri).group()
     py_version = "py2" if "py2" in ecr_uri else "py37" if "py37" in ecr_uri else "py3"
 
     s3_location = os.path.join(
-        BENCHMARK_RESULTS_S3_BUCKET, "pytorch", framework_version, "ec2", "training", "gpu", py_version, log_file
+        BENCHMARK_RESULTS_S3_BUCKET, "pytorch", framework_version, "ec2", "training", "gpu", py_version, log_name
     )
     LOGGER.info(f"Benchmark Results:\n"
                 f"PyTorch {framework_version} Training gpu {py_version}")
 
-    connection.run(f"tail {log_file} >&2")
+    connection.run(f"tail {log_location} >&2")
     connection.run(
-        f"aws s3 cp {log_file} {s3_location}")
+        f"aws s3 cp {log_location} {s3_location}")
     connection.run(
         f"echo To retrieve complete benchmark log, check {s3_location} >&2")
 
