@@ -70,7 +70,7 @@ def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test(connect
         if "__results.throughput__" in line:
             throughput = float(line.split("=")[1])
             connection.run(f"echo PyTorch {framework_version} EC2 training gpu {py_version} Synthetic Throughput: "
-                           f"{throughput} samples/sec >> {log_location}")
+                           f"{throughput} samples/sec | tee {log_location}")
             LOGGER.info(f"PyTorch {framework_version} EC2 training gpu {py_version} Synthetic Throughput: {throughput} samples/sec")
             break
     connection.run(
