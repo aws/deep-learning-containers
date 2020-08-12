@@ -83,7 +83,7 @@ def test_dlc_major_version_dockerfiles(image):
 
     # Find all Dockerfile.<processor> for this framework/job_type's Major.Minor version
     dockerfiles = []
-    fw_version_major_minor = re.match(r"(\d+.\d+)", fw_version).group(1)
+    fw_version_major_minor = re.match(r"(\d+\.\d+)", fw_version).group(1)
     for root, dirnames, filenames in os.walk(root_dir):
         for filename in filenames:
             if filename == f"Dockerfile.{processor}":
