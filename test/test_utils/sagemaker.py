@@ -189,10 +189,12 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
         install_custom_python("3.6", ec2_conn)
     ec2_conn.run(f"virtualenv env")
     ec2_conn.run(f"source ./env/bin/activate")
+    ec2_conn.run(f"pwd")
     if framework == "pytorch":
         # The following distutils package conflict with test dependencies
         ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
     ec2_conn.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
+    ec2_conn.run(f"pwd", warn=True)
 
 
 def execute_local_tests(image, ec2_client):
@@ -248,6 +250,7 @@ def execute_local_tests(image, ec2_client):
                 try:
                     print(f"executing {framework}-{job_type}-cpu")
                     print("sleep 600s for tensorflow inference images to avoid socket issues")
+                    ec2_conn.run(f"pwd", warn=True)
                     sleep(300)
                     sleep(300)
                     ec2_conn.run(pytest_command, warn=True)
@@ -256,9 +259,9 @@ def execute_local_tests(image, ec2_client):
                     print("setting up new connection")
                     is_py3 = " python3 -m "
                     ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
-                    ec2_conn_new.run(f"virtualenv env")
+                    ec2_conn_new.run(f"pwd", warn=True)
                     ec2_conn_new.run(f"source ./env/bin/activate")
-                    ec2_conn_new.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
+                    ec2_conn_new.run(f"pwd", warn=True)
                     ec2_conn_new.run(pytest_command, warn=True)
                     print(f"Downloading Test reports for tf image: {image}")
                     ec2_conn_new.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
