@@ -45,7 +45,19 @@ def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connecti
     run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, "8500", region)
 
 
-def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region):
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
+def test_ec2_tensorflow_inference_gpu_telemetry(tensorflow_inference, ec2_connection, region, gpu_only):
+    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region, True)
+
+
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+def test_ec2_tensorflow_inference_cpu_telemetry(tensorflow_inference, ec2_connection, region, cpu_only):
+    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region, True)
+
+
+def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, telemetry_mode=False):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
     framework_version = get_tensorflow_framework_version(image_uri)
@@ -58,7 +70,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region):
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     docker_run_cmd = (
         f"{docker_cmd} run -id --name {container_name} -p {grpc_port}:8500 "
-        f"--mount type=bind,source={model_path},target=/models/mnist -e MODEL_NAME=mnist"
+        f"--mount type=bind,source={model_path},target=/models/mnist -e TEST_MODE=1 -e MODEL_NAME=mnist"
         f" {image_uri}"
     )
     try:
@@ -77,6 +89,8 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region):
         test_utils.request_tensorflow_inference_grpc(
             script_file_path=mnist_client_path, port=grpc_port, connection=ec2_connection
         )
+        if telemetry_mode:
+            check_telemetry(ec2_connection, container_name)
     finally:
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
 
@@ -116,3 +130,11 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
         local_scripts_path = os.path.join("container_tests", "bin", "tensorflow_serving")
         ec2_connection.run(f"mkdir -p {serving_folder_path}")
         ec2_connection.run(f"cp -r {local_scripts_path} {serving_folder_path}")
+
+
+def check_telemetry(ec2_connection, container_name):
+    telemetry_cmd = "import os; assert (os.path.exists('/tmp/test_request.txt'))"
+    ec2_connection.run(
+        f'''docker exec -it {container_name} python -c {telemetry_cmd} ''',
+        hide=True, warn=True
+    )
