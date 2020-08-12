@@ -251,8 +251,8 @@ def execute_local_tests(image, ec2_client):
                     print(f"executing {framework}-{job_type}-cpu")
                     print("sleep 100s for tensorflow inference images to avoid socket issues")
                     ec2_conn.run(f"pwd", warn=True)
-                    sleep(100)
-                    #sleep(300)
+                    sleep(300)
+                    sleep(300)
                     ec2_conn.run(pytest_command, warn=True)
                 except Exception as exc:
                     print(f"Error {image}, {exc}")
@@ -260,6 +260,7 @@ def execute_local_tests(image, ec2_client):
                     is_py3 = " python3 -m "
                     ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
                     ec2_conn_new.run(f"pwd", warn=True)
+
                     with ec2_conn_new.cd(path):
                         ec2_conn_new.run(f"pwd", warn=True)
                         ec2_conn_new.run(f"source ./env/bin/activate")
