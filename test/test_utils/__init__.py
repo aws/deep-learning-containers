@@ -524,7 +524,7 @@ def get_processor_from_image_uri(image_uri):
     """
     Return processor from the image URI
 
-    Assumes image uri includes -<processor>- in it's tag, where <processor> is one of cpu, gpu or eia.
+    Assumes image uri includes -<processor> in it's tag, where <processor> is one of cpu, gpu or eia.
 
     :param image_uri: ECR image URI
     :return: cpu, gpu, or eia
@@ -532,6 +532,7 @@ def get_processor_from_image_uri(image_uri):
     allowed_processors = ("cpu", "gpu", "eia")
 
     for processor in allowed_processors:
-        match = re.search(rf'-({processor})-', image_uri)
+        match = re.search(rf'-({processor})', image_uri)
         if match:
             return match.group(1)
+    raise RuntimeError("Cannot find processor")

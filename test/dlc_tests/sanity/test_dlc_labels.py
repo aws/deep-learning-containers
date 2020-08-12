@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import packaging
 
 import boto3
 import pytest
@@ -49,7 +50,7 @@ def test_dlc_major_version_label(image, region):
 
 @pytest.mark.integration("dlc_major_version_label")
 @pytest.mark.model("N/A")
-def test_dlc_version_dockerfiles(image):
+def test_dlc_major_version_dockerfiles(image):
     """
     Test to make sure semantic versioning scheme in Dockerfiles is correct
 
@@ -59,6 +60,10 @@ def test_dlc_version_dockerfiles(image):
     job_type = test_utils.get_job_type_from_image(image)
     framework, fw_version = test_utils.get_framework_and_version_from_tag(image)
     processor = test_utils.get_processor_from_image_uri(image)
+
+    # Assign a string of numbers associated with python version in tag. Python major version is not sufficient to
+    # define DLC major version
+    python_major_minor_version = re.search(r'-py(\d{2,})', image).group(1)
 
     root_dir = os.path.join(dlc_dir, framework, job_type, "docker")
 
@@ -70,12 +75,13 @@ def test_dlc_version_dockerfiles(image):
         reference_fw = "tensorflow2"
     else:
         reference_fw = framework
-    if processor != "eia" and fw_version < references[reference_fw]:
+    if processor != "eia" and packaging.version.parse(fw_version) < packaging.version.parse(references[reference_fw]):
         pytest.skip(
             f"Not enforcing new versioning scheme on old image {image}. "
             f"Started enforcing version scheme on the following: {references}"
         )
 
+    # Find all Dockerfile.<processor> for this framework/job_type's Major.Minor version
     dockerfiles = []
     fw_version_major_minor = re.match(r"(\d+.\d+)", fw_version).group(1)
     for root, dirnames, filenames in os.walk(root_dir):
@@ -85,19 +91,35 @@ def test_dlc_version_dockerfiles(image):
                 if "example" not in dockerfile_path and f"{os.sep}{fw_version_major_minor}" in dockerfile_path:
                     dockerfiles.append(dockerfile_path)
 
+    # For the collected dockerfiles above, note the DLC major versions in each Dockerfile if python version matches
+    # the current image under test
     versions = {}
     dlc_label_regex = re.compile(r'LABEL dlc_major_version="(\d+)"')
+    python_version_regex = re.compile(r'ARG PYTHON_VERSION=(\d+.\d+)')
     for dockerfile in dockerfiles:
         with open(dockerfile, "r") as df:
+            dlc_version = None
+            python_version = None
             for line in df:
                 major_version_match = dlc_label_regex.match(line)
+                python_version_match = python_version_regex.match(line)
                 if major_version_match:
-                    versions[dockerfile] = int(major_version_match.group(1))
+                    dlc_version = int(major_version_match.group(1))
+                elif python_version_match:
+                    python_version = python_version_match.group(1).replace('.', '')
+
+            # Raise errors if dlc major version label and python version arg are not found in Dockerfile
+            if not dlc_version:
+                raise DLCMajorVersionLabelNotFound(f"Cannot find dlc_major_version label in {dockerfile}")
+            if not python_version:
+                raise DLCPythonVersionNotFound(f"Cannot find PYTHON_VERSION arg in {dockerfile}")
+            if python_version == python_major_minor_version:
+                versions[dockerfile] = dlc_version
 
     expected_versions = list(range(1, len(dockerfiles) + 1))
     actual_versions = []
 
-    for _, version in versions.items():
+    for version in versions.values():
         actual_versions.append(version)
 
     # Test case explicitly for TF2.3 gpu, since v1.0 is banned
@@ -108,7 +130,18 @@ def test_dlc_version_dockerfiles(image):
             f"in one of the Dockerfiles. Please inspect {versions}"
         )
 
+    # Note: If, for example, we find 3 dockerfiles with the same framework major/minor version, same processor,
+    # and same python major/minor version, we will expect DLC major versions 1, 2, and 3. If an exception needs to be
+    # made to this rule, please see the above handling of TF2.3 as an example.
     assert sorted(actual_versions) == expected_versions, (
         f"Found DLC major versions {actual_versions} but expected {expected_versions} for "
-        f"{framework} {job_type} {processor}. Full version info: {versions}"
+        f"{framework} {job_type} {processor}. Full version info: {versions}. Py version: {python_major_minor_version}"
     )
+
+
+class DLCMajorVersionLabelNotFound(Exception):
+    pass
+
+
+class DLCPythonVersionNotFound(Exception):
+    pass
