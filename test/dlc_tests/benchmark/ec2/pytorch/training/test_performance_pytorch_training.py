@@ -64,7 +64,9 @@ def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test(connect
         BENCHMARK_RESULTS_S3_BUCKET, "pytorch", framework_version, "ec2", "training", "gpu", py_version, log_name
     )
     LOGGER.info(f"Benchmark Results:")
-
+    connection.run(
+        f"tail {log_location} >&2")
+    open(log_location)
     throughput = 0
     for line in reversed(list(open(log_location))):
         if "__results.throughput__" in line:
