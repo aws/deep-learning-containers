@@ -69,8 +69,8 @@ def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance_test(connect
     for line in reversed(last_lines):
         if "__results.throughput__" in line:
             throughput = float(line.split("=")[1])
-            connection.run(f"sudo echo PyTorch {framework_version} EC2 training gpu {py_version} Synthetic Throughput: "
-                           f"{throughput} samples/sec >> {log_location}")
+            connection.run(f"echo PyTorch {framework_version} EC2 training gpu {py_version} Synthetic Throughput: "
+                           f"{throughput} samples/sec | sudo tee -a {log_location}")
             LOGGER.info(f"PyTorch {framework_version} EC2 training gpu {py_version} Synthetic Throughput: {throughput} samples/sec")
             break
     connection.run(
