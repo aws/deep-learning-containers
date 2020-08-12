@@ -253,6 +253,7 @@ def execute_local_tests(image, ec2_client):
                     ec2_conn.run(f"pwd", warn=True)
                     sleep(300)
                     sleep(300)
+                    sleep(200)
                     ec2_conn.run(pytest_command, warn=True)
                 except Exception as exc:
                     print(f"Error {image}, {exc}")
