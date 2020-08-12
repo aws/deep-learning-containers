@@ -244,7 +244,7 @@ def execute_local_tests(image, ec2_client):
                                                      executable="/bin/bash")
                     if 'failures="0"' not in str(output):
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
-            elif framework == "tensorflow" and job_type == "inference" and "cpu" in image: 
+            elif framework == "tensorflow" and job_type == "inference": 
                 try:
                     print(f"executing {framework}-{job_type}-cpu")
                     print("sleep 600s for tensorflow inference images to avoid socket issues")
