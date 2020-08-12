@@ -95,7 +95,7 @@ def test_dlc_major_version_dockerfiles(image):
     # the current image under test
     versions = {}
     dlc_label_regex = re.compile(r'LABEL dlc_major_version="(\d+)"')
-    python_version_regex = re.compile(r'ARG PYTHON_VERSION=(\d+.\d+)')
+    python_version_regex = re.compile(r'ARG PYTHON_VERSION=(\d+\.\d+)')
     for dockerfile in dockerfiles:
         with open(dockerfile, "r") as df:
             dlc_version = None
