@@ -254,10 +254,14 @@ def execute_local_tests(image, ec2_client):
                 except Exception as exc:
                     print(f"Error {image}, {exc}")
                     print("setting up new connection")
+                    is_py3 = " python3 -m "
                     ec2_conn_new = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
+                    ec2_conn_new.run(f"virtualenv env")
+                    ec2_conn_new.run(f"source ./env/bin/activate")
+                    ec2_conn_new.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
                     ec2_conn_new.run(pytest_command, warn=True)
                     print(f"Downloading Test reports for tf image: {image}")
-                    ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
+                    ec2_conn_new.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
             else:
                 print(f"general execution")
                 ec2_conn.run(pytest_command)
