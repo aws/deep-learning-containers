@@ -49,7 +49,7 @@ RUN pip install --no-cache-dir \
     https://s3.amazonaws.com/amazonei-apachemxnet/amazonei_mxnet-1.5.1-py2.py3-none-manylinux1_x86_64.whl \
     multi-model-server==$MMS_VERSION \
     keras-mxnet==2.2.4.1 \
-    numpy==1.16.5 \
+    numpy \
     onnx==1.4.1 \
     "sagemaker-mxnet-inference<2"
 

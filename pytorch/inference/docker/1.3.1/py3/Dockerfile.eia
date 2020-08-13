@@ -4,7 +4,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL dlc_major_version="1"
 
 # Add arguments to achieve the version, python and url
-ARG PYTHON_VERSION=3.6.6
+ARG PYTHON_VERSION=3.6.9
 ARG PYTORCH_VERSION=1.3.1
 ARG TORCHVISION_VERSION=0.4.2
 ARG GRAPHVIZ_VERSION=0.13.2
@@ -55,21 +55,21 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -y \
     python=$PYTHON_VERSION \
-    cython==0.29.12 \
-    ipython==7.7.0 \
-    numpy==1.16.4 \
-    scipy==1.3.0 \
-    typing==3.6.4 \
+    cython \
+    ipython \
+    numpy \
+    scipy \
+    typing \
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c \
     conda-forge \
-    opencv==4.0.1 \
+    opencv \
  && conda install -y \
-    scikit-learn==0.21.2 \
-    pandas==0.25.0 \
-    h5py==2.9.0 \
-    requests==2.22.0 \
+    scikit-learn \
+    pandas \
+    h5py \
+    requests \
  && conda clean -ya \
  && /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
@@ -79,7 +79,7 @@ RUN conda install -c \
  && pip install https://s3.amazonaws.com/amazonei-pytorch/torch_eia-1.3.1-cp36-cp36m-manylinux1_x86_64.whl \
  && pip install graphviz==$GRAPHVIZ_VERSION \
  && pip install mxnet-model-server==$MMS_VERSION \
- && pip install pillow==7.1.0
+ && pip install pillow==7.2.0
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
