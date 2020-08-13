@@ -12,7 +12,7 @@ MX_PERFORMANCE_TRAINING_CPU_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "benchmar
 MX_EC2_GPU_INSTANCE_TYPE = "p3.16xlarge"
 MX_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
 
-
+@pytest.mark.skip()
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50_v2")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GPU_INSTANCE_TYPE], indirect=True)
