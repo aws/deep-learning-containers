@@ -35,6 +35,7 @@ RUN apt-get update \
     libxext6 \
     libxrender-dev \
     openjdk-8-jdk-headless \
+    libopenblas-dev \
     vim \
     wget \
     zlib1g-dev
