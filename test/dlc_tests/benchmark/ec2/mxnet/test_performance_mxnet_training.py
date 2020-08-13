@@ -1,5 +1,5 @@
 import os
-
+import re
 import pytest
 
 from test.test_utils import CONTAINER_TESTS_PREFIX
@@ -33,18 +33,13 @@ def test_performance_ec2_mxnet_training_cpu(mxnet_training, ec2_connection, cpu_
 
 
 def post_process_mxnet_ec2_performance(connection, log_location):
-    index = 4
-    if "cpu" in log_location and "inference" in log_location:
-        index = 1
     log_content = connection.run(f"cat {log_location}").stdout.split("\n")
     total = 0.0
     n = 0
     for line in log_content:
-        if "Speed" in line:
-            try:
-                total += float(line.split()[index])
-            except ValueError as e:
-                raise RuntimeError("LINE: {} split {} ERROR: {}".format(line, line.split()[index], e))
+        if "samples/sec" in line:
+            throughput = re.search(r'((?P<throughput>[0-9]+\.{0,1}[0-9]+)[ ]+samples/sec)', line).group("throughput")
+            total += float(throughput)
             n += 1
     if total and n:
         return total / n
