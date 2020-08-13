@@ -41,7 +41,7 @@ def get_ecr_registry(account, region):
     :return: AWS ECR registry
     """
     endpoint_data = _botocore_resolver().construct_endpoint('ecr', region)
-    return '{}.dkr.{}'.format(account, endpoint_data['hostname'])
+    return f'{account}.dkr.{endpoint_data["hostname"]}'
 
 
 def image_uri(registry, region, repo, tag):
@@ -86,7 +86,7 @@ def _production_variants(model_name, instance_type, accelerator_type):
 
 def _test_bucket(region, boto_session):
     domain_suffix = '.cn' if region in ('cn-north-1', 'cn-northwest-1') else ''
-    sts_regional_endpoint = 'https://sts.{}.amazonaws.com{}'.format(region, domain_suffix)
+    sts_regional_endpoint = f'https://sts.{region}.amazonaws.com{domain_suffix}'
     sts = boto_session.client(
         'sts',
         region_name=region,
@@ -135,7 +135,7 @@ def sagemaker_endpoint(sagemaker_client, model_name, instance_type, accelerator_
 
     # Add jitter so we can run tests in parallel without running into service side limits.
     delay = round(random.random()*5, 3)
-    logger.info('waiting for {} seconds'.format(delay))
+    logger.info(f'waiting for {delay} seconds')
     time.sleep(delay)
 
     production_variants = _production_variants(model_name, instance_type, accelerator_type)
