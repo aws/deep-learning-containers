@@ -47,13 +47,13 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
     model_name = "pytorch-densenet"
-    mms_inference_cmd = test_utils.get_mms_run_command(model_name, processor)
+    inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
 
     docker_run_cmd = (
         f"{docker_cmd} run -itd --name {container_name}"
         f" -p 80:8080 -p 8081:8081"
-        f" {image_uri} {mms_inference_cmd}"
+        f" {image_uri} {inference_cmd}"
     )
     try:
         ec2_connection.run(

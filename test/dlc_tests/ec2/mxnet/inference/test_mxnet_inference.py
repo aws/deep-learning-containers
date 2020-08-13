@@ -65,7 +65,7 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2-{container_tag}"
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
-    mms_inference_cmd = test_utils.get_mms_run_command(model_name, processor)
+    mms_inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
     docker_run_cmd = (
         f"{docker_cmd} run -itd --name {container_name}"
         f" -p {target_port}:8080 -p {target_management_port}:8081"
