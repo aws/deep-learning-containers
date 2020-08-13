@@ -9,12 +9,10 @@ from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
-from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
-
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
-
+BENCHMARK_RESULTS_S3_BUCKET = "s3://dlinfra-dlc-cicd-performance"
 
 def get_ec2_instance_type(default, processor, disable_p3dn=False):
     """
