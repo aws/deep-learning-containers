@@ -40,9 +40,9 @@ def test_stray_files(image):
     # Ensure tmp dir is empty except for whitelisted files
     tmp_files = tmp.stdout.split()
     for tmp_file in tmp_files:
-        assert tmp_file in allowed_tmp_files, (
-            f"Found unexpected file in tmp dir: {tmp_file}. Allowed tmp files: {allowed_tmp_files}"
-        )
+        assert (
+            tmp_file in allowed_tmp_files
+        ), f"Found unexpected file in tmp dir: {tmp_file}. Allowed tmp files: {allowed_tmp_files}"
 
     # We always expect /var/tmp to be empty
     var_tmp = _run_cmd_on_container(container_name, ctx, "ls -A /var/tmp")
@@ -193,8 +193,10 @@ def test_pip_check(image):
 
     # TF inference containers do not have core tensorflow installed by design. Allowing for this pip check error
     # to occur in order to catch other pip check issues that may be associated with TF inference
-    allowed_exception = re.compile(rf'^tensorflow-serving-api{gpu_suffix} \d\.\d+\.\d+ requires '
-                                   rf'tensorflow{gpu_suffix}, which is not installed.$')
+    allowed_exception = re.compile(
+        rf"^tensorflow-serving-api{gpu_suffix} \d\.\d+\.\d+ requires "
+        rf"tensorflow{gpu_suffix}, which is not installed.$"
+    )
 
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
@@ -204,8 +206,8 @@ def test_pip_check(image):
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
 
-@pytest.mark.model('N/A')
-@pytest.mark.integration('pandas')
+@pytest.mark.model("N/A")
+@pytest.mark.integration("pandas")
 def test_pandas(image):
     """
     It's possible that in newer python versions, we may have issues with installing pandas due to lack of presence
@@ -221,12 +223,18 @@ def test_pandas(image):
     # Make sure we can install pandas, do not fail right away if there are pip check issues
     _run_cmd_on_container(container_name, ctx, "pip install pandas", warn=True)
 
+    pandas_import_output = _run_cmd_on_container(container_name, ctx, "import pandas", executable="python")
+
+    assert (
+        not pandas_import_output.stdout.strip()
+    ), f"Expected no output when importing pandas, but got  {pandas_import_output.stdout}"
+
     # Simple import test to ensure we do not get a bz2 module import failure
     _run_cmd_on_container(container_name, ctx, "import pandas; print(pandas.__version__)", executable="python")
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.integration('emacs')
+@pytest.mark.integration("emacs")
 def test_emacs(image):
     """
     Ensure that emacs is installed on every image
@@ -341,7 +349,7 @@ def _run_cmd_on_container(container_name, context, cmd, executable="bash", warn=
     if executable not in ("bash", "python"):
         LOGGER.warn(f"Unrecognized executable {executable}. It will be run as {executable} -c '{cmd}'")
     return context.run(
-        f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=30
+        f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
     )
 
 

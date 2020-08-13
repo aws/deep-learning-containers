@@ -39,6 +39,7 @@ RUN apt-get update \
     wget \
     vim \
     libbz2-dev \
+    liblzma-dev \
     libffi-dev \
     build-essential \
     zlib1g-dev \
