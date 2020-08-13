@@ -461,7 +461,8 @@ def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=
                                                                  threshold, post_process, log_name)
 
 
-def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
+def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION,
+                                           post_process=None, data_source="", threshold=0):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
@@ -484,6 +485,12 @@ def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region
         raise Exception("Failed to exec benchmark command.\n", e)
     finally:
         connection.run(f"docker rm -f {container_name}")
+
+    timestamp = time.strftime('%Y-%m-%d-%H-%M-%S')
+    log_name = f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
+    log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
+    ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr_uri, log_location, data_source,
+                                                                 threshold, post_process, log_name)
 
 
 def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr_uri, log_location,

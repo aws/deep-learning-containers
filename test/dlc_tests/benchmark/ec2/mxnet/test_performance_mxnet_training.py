@@ -32,6 +32,8 @@ def test_performance_ec2_mxnet_training_cpu(mxnet_training, ec2_connection, cpu_
 
 def post_process_mxnet_ec2_performance(connection, log_location):
     index = 4
+    if "cpu" in log_location and "inference" in log_location:
+        index = 1
     log_content = connection.run(f"cat {log_location}").stdout.split("\n")
     total = 0.0
     n = 0
