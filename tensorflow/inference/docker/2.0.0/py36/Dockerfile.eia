@@ -56,13 +56,13 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir \
     "awscli<2" \
-    cython==0.29.16 \
-    falcon==2.0.0 \
-    gunicorn==20.0.4 \
-    gevent==1.4.0 \
-    requests==2.23.0 \
-    grpcio==1.27.2 \
-    protobuf==3.11.3 \
+    cython \
+    falcon \
+    gunicorn \
+    gevent \
+    requests \
+    grpcio \
+    protobuf \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
     tensorflow-serving-api==2.0.0
