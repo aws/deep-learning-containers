@@ -465,10 +465,10 @@ def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region
                                            post_process=None, data_source="", threshold=0):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-
+    timestamp = time.strftime('%Y-%m-%d-%H-%M-%S')
+    log_name = f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
     # Run training command, display benchmark results to console
@@ -476,7 +476,7 @@ def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
     connection.run(
         f"{docker_cmd} run -d --name {container_name} "
-        f"-e COMMIT_INFO={os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')} "
+        f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri}"
     )
     try:
@@ -485,9 +485,6 @@ def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region
         raise Exception("Failed to exec benchmark command.\n", e)
     finally:
         connection.run(f"docker rm -f {container_name}")
-
-    timestamp = time.strftime('%Y-%m-%d-%H-%M-%S')
-    log_name = f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
     ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr_uri, log_location, data_source,
                                                                  threshold, post_process, log_name)
