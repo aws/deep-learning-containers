@@ -242,23 +242,7 @@ def execute_local_tests(image, ec2_client):
                                                      executable="/bin/bash")
                     if 'failures="0"' not in str(output):
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
-            elif framework == "tensorflow" and job_type == "inference" and "abcd" in image: 
-                try:
-                    print("sleep 300s for tensorflow inference images to avoid socket issues")
-                    sleep(300)
-                    #sleep(300)
-                    #sleep(200)
-                    ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
-
-                    with ec2_conn.cd(path):
-                        ec2_conn.run(f"source ./env/bin/activate")
-                        ec2_conn.run(pytest_command, warn=True)
-                        ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
-
-                except exceptions.CommandTimedOut as exc:
-                    print(f"Ec2 connection timed out for {image}, {exc}")
             else:
-                print("general execution")
                 ec2_conn.run(pytest_command)
                 print(f"Downloading Test reports for image: {image}")
                 ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
