@@ -467,7 +467,7 @@ def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=
         BENCHMARK_RESULTS_S3_BUCKET, framework, framework_version, "ec2", "training", processor, py_version, log_name
     )
     LOGGER.info(f"Benchmark Results:")
-    throughput = post_process(log_location)
+    throughput = post_process(connection, log_location)
     connection.run(f"echo {framework} {framework_version} EC2 training {processor} {py_version} {data_source} Throughput: "
                    f"{throughput} images/sec | sudo tee -a {log_location}")
     LOGGER.info(
