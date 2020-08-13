@@ -35,14 +35,13 @@ def post_process_mxnet_ec2_performance(connection, log_location):
     log_content = connection.run(f"cat {log_location}").stdout.split("\n")
     total = 0.0
     n = 0
-    with open(log_content) as f:
-        for line in f:
-            if "Speed" in line:
-                try:
-                    total += float(line.split()[index])
-                except ValueError as e:
-                    raise RuntimeError("LINE: {} split {} ERROR: {}".format(line, line.split()[index], e))
-                n += 1
+    for line in log_content:
+        if "Speed" in line:
+            try:
+                total += float(line.split()[index])
+            except ValueError as e:
+                raise RuntimeError("LINE: {} split {} ERROR: {}".format(line, line.split()[index], e))
+            n += 1
     if total and n:
         return total / n
     else:
