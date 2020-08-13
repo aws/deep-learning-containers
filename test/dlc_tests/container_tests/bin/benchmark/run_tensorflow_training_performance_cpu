@@ -8,7 +8,7 @@ then
 fi
 HOME_DIR=/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
-LOG_DIR=${HOME_DIR}/logs/cpu
+LOG_DIR=${HOME_DIR}/logs
 
 mkdir -p ${HOME_DIR}
 mkdir -p ${BIN_DIR}

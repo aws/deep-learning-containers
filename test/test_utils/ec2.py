@@ -457,27 +457,8 @@ def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
         f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
     )
-
-    framework = "tensorflow" if "tensorflow" in ecr_uri else "mxnet" if "mxnet" in ecr_uri else "pytorch"
-    framework_version = re.search(r"[0-9]+(\.\d+){2}", ecr_uri).group()
-    py_version = "py2" if "py2" in ecr_uri else "py37" if "py37" in ecr_uri else "py3"
-    processor = "gpu" if "gpu" in ecr_uri else "cpu"
-    s3_location = os.path.join(
-        BENCHMARK_RESULTS_S3_BUCKET, framework, framework_version, "ec2", "training", processor, py_version, log_name
-    )
-    LOGGER.info(f"Benchmark Results:")
-    throughput = post_process(connection, log_location)
-    connection.run(f"echo {framework} {framework_version} EC2 training {processor} {py_version} {data_source} Throughput: "
-                   f"{throughput} images/sec | sudo tee -a {log_location}")
-    LOGGER.info(
-        f"{framework} {framework_version} EC2 training {processor} {py_version} {data_source} Throughput: {throughput} images/sec")
-    connection.run(
-        f"aws s3 cp {log_location} {s3_location}")
-    connection.run(
-        f"echo To retrieve complete benchmark log, check {s3_location} >&2")
-    assert throughput > threshold, \
-        f"{framework} {framework_version} EC2 training {processor} {py_version} {data_source} " \
-        f"Throughput {throughput} does not reach the threshold {threshold}"
+    ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr_uri, log_location, data_source,
+                                                                 threshold, post_process, log_name)
 
 
 def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
@@ -503,3 +484,29 @@ def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region
         raise Exception("Failed to exec benchmark command.\n", e)
     finally:
         connection.run(f"docker rm -f {container_name}")
+
+
+def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr_uri, log_location,
+                                                                 data_source, threshold, post_process, log_name):
+    framework = "tensorflow" if "tensorflow" in ecr_uri else "mxnet" if "mxnet" in ecr_uri else "pytorch"
+    framework_version = re.search(r"[0-9]+(\.\d+){2}", ecr_uri).group()
+    py_version = "py2" if "py2" in ecr_uri else "py37" if "py37" in ecr_uri else "py3"
+    processor = "gpu" if "gpu" in ecr_uri else "cpu"
+    work_type = "training" if "training" in ecr_uri else "inference"
+    s3_location = os.path.join(
+        BENCHMARK_RESULTS_S3_BUCKET, framework, framework_version, "ec2", {work_type}, processor, py_version, log_name
+    )
+    LOGGER.info(f"Benchmark Results:")
+    throughput = post_process(connection, log_location)
+    connection.run(
+        f"echo {framework} {framework_version} ec2 {work_type} {processor} {py_version} {data_source} Throughput: "
+        f"{throughput} images/sec | sudo tee -a {log_location}")
+    LOGGER.info(
+        f"{framework} {framework_version} ec2 {work_type} {processor} {py_version} {data_source} Throughput: {throughput} images/sec")
+    connection.run(
+        f"aws s3 cp {log_location} {s3_location}")
+    connection.run(
+        f"echo To retrieve complete benchmark log, check {s3_location} >&2")
+    assert throughput > threshold, \
+        f"{framework} {framework_version} ec2 {work_type} {processor} {py_version} {data_source} " \
+        f"Throughput {throughput} does not reach the threshold {threshold}"
