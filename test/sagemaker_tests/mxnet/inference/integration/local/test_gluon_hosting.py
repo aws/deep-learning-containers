@@ -15,6 +15,8 @@ from __future__ import absolute_import
 import json
 import os
 
+import pytest
+
 from sagemaker.mxnet.model import MXNetModel
 
 from ...integration.local import local_mode_utils
@@ -26,6 +28,8 @@ SCRIPT_PATH = os.path.join(MODEL_PATH, 'code', 'gluon.py')
 
 
 # The image should support serving Gluon-created models.
+@pytest.mark.integration("gluon")
+@pytest.mark.model("mnist")
 def test_gluon_hosting(docker_image, sagemaker_local_session, local_instance_type):
     model = MXNetModel('file://{}'.format(MODEL_PATH),
                        'SageMakerRole',

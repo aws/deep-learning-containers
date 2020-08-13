@@ -15,10 +15,10 @@ set -e
 
 if [ ${RETURN_VAL} -eq 0 ]; then
   echo "Running testTF2HVD.py on gpu"
-  python ${BIN_DIR}/testTF2HVD.py > ${TRAINING_LOG} 2>&1
+  python ${BIN_DIR}/testTF2HVD.py 2>&1 | tee $TRAINING_LOG
 else
   echo "Running testTF2HVD.py on cpu"
-  python ${BIN_DIR}/testTF2HVD.py --no-cuda > ${TRAINING_LOG} 2>&1
+  python ${BIN_DIR}/testTF2HVD.py --no-cuda 2>&1 | tee $TRAINING_LOG
 fi
 
 if grep "Loss =" $TRAINING_LOG; then

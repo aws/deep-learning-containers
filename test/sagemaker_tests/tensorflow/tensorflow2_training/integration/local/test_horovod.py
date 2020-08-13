@@ -24,6 +24,10 @@ from ...integration.utils import processor, py_version  # noqa: F401
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 
+@pytest.mark.processor("cpu")
+@pytest.mark.multinode("multinode")
+@pytest.mark.integration("horovod")
+@pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
 @pytest.mark.parametrize('instances, processes', [
     [1, 2],

@@ -14,6 +14,8 @@ from __future__ import absolute_import
 
 import os
 
+import pytest
+
 from sagemaker import utils
 from sagemaker.mxnet.model import MXNetModel
 
@@ -25,6 +27,8 @@ MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model.tar.gz')
 SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'empty_module.py')
 
 
+@pytest.mark.integration("hosting")
+@pytest.mark.model("linear_regression")
 def test_hosting(sagemaker_session, ecr_image, instance_type, framework_version):
     prefix = 'mxnet-serving/default-handlers'
     model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=prefix)

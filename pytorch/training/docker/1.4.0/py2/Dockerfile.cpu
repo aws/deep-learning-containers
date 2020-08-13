@@ -88,7 +88,7 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 # The following section uninstalls torch and torchvision before installing the
 # custom versions from an S3 bucket. This will need to be removed in the future
 RUN pip install --no-cache-dir \
-    awscli \
+    "awscli<2" \
     scipy==1.2.2 \
     sphinxcontrib-websupport==1.1.2 \
     future \
