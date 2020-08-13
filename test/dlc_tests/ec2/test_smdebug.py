@@ -18,14 +18,14 @@ SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", proc
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
     # TODO: Remove this once test timeout has been debugged (failures especially on p2.8xlarge)
+    if is_tf2(training) and "2.3.0" in training and "p2.8xlarge" in SMDEBUG_EC2_GPU_INSTANCE_TYPE:
+        pytest.skip("Currently skipping for TF2.3.0 on p2.8xlarge until the issue is fixed")
     if is_tf1(training):
         pytest.skip("Currently skipping for TF1 until the issue is fixed")
     test_script = SMDEBUG_SCRIPT
     framework = get_framework_from_image_uri(training)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(
-        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
-    )
+    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     ec2_connection.run(
         f"nvidia-docker run --name smdebug-gpu -v "
@@ -53,9 +53,7 @@ def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
     test_script = SMDEBUG_SCRIPT
     framework = get_framework_from_image_uri(training)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(
-        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
-    )
+    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     ec2_connection.run(
         f"docker run --name smdebug-cpu -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {training}",

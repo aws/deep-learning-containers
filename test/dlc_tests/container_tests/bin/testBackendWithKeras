@@ -4,11 +4,10 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-KERASDIR=${HOME_DIR}/artifacts/keras
-set -e
-cd ${KERASDIR}
+git clone https://github.com/keras-team/keras.git ${HOME_DIR}/artifacts/keras
+cd ${HOME_DIR}/artifacts/keras
 
-export KERAS_BACKEND=$1
+export KERAS_BACKEND="tensorflow"
 if [ -z "$KERAS_BACKEND" ]; then
     echo "usage: testBackendWithKeras theano OR testBackendWithKeras tensorflow OR testBackendWithKeras mxnet OR cntk"
     exit 1
@@ -19,7 +18,7 @@ TRAINING_LOG=${LOG_DIR}/${KERAS_BACKEND}_train_mnist.log
 sed -i 's/import keras/from tensorflow import keras/g; s/from keras/from tensorflow.keras/g' examples/mnist_cnn.py
 echo "Training mnist using $KERAS_BACKEND... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
 set +e
-python examples/mnist_cnn.py >$TRAINING_LOG 2>&1
+python examples/mnist_cnn.py 2>&1 | tee $TRAINING_LOG
 RETURN_VAL=`echo $?`
 set -e
 
