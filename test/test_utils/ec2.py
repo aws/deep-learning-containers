@@ -494,7 +494,7 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
     processor = "gpu" if "gpu" in ecr_uri else "cpu"
     work_type = "training" if "training" in ecr_uri else "inference"
     s3_location = os.path.join(
-        BENCHMARK_RESULTS_S3_BUCKET, framework, framework_version, "ec2", {work_type}, processor, py_version, log_name
+        BENCHMARK_RESULTS_S3_BUCKET, framework, framework_version, "ec2", work_type, processor, py_version, log_name
     )
     LOGGER.info(f"Benchmark Results:")
     throughput = post_process(connection, log_location)
