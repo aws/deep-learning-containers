@@ -144,7 +144,7 @@ def ec2_instance(
     }
     extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300,}}]
     if (
-        "benchmark" in os.getenv("TEST_TYPE")
+        True
         and (
             ("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames)
             or "mxnet_inference" in request.fixturenames
