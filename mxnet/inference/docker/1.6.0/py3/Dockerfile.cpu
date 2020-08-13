@@ -96,7 +96,7 @@ WORKDIR /
 
 RUN ${PIP} install --no-cache-dir \
     ${MX_URL} \
-    git+git://github.com/dmlc/gluon-nlp.git@v0.9.0 \
+    gluonnlp==0.10.0 \
     gluoncv==0.6.0 \
     multi-model-server==$MMS_VERSION \
     keras-mxnet==2.2.4.1 \
