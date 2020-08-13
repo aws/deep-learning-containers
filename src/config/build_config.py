@@ -1,6 +1,6 @@
 # Please only set it to True if you are preparing an EI related PR
 # Do remember to revert it back to False before merging any PR (including EI dedicated PR)
-ENABLE_EI_MODE = False
+ENABLE_EI_MODE = True
 # Frameworks for which you want to disable both builds and tests
 DISABLE_FRAMEWORK_TESTS = []
 # Disable new builds or build without datetime tag
