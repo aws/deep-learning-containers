@@ -38,7 +38,7 @@ def post_process_mxnet_ec2_performance(connection, log_location):
     n = 0
     for line in log_content:
         if "samples/sec" in line:
-            throughput = re.search(r'((?P<throughput>[0-9]+\.{0,1}[0-9]+)[ ]+samples/sec)', line).group("throughput")
+            throughput = re.search(r'((?P<throughput>[0-9]+\.?[0-9]+)[ ]+samples/sec)', line).group("throughput")
             total += float(throughput)
             n += 1
     if total and n:
