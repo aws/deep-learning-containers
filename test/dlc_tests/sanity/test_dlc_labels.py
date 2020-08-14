@@ -63,7 +63,7 @@ def test_dlc_major_version_dockerfiles(image):
 
     # Assign a string of numbers associated with python version in tag. Python major version is not sufficient to
     # define DLC major version
-    python_major_minor_version = re.search(r'-py(\d{2,})', image).group(1)
+    python_major_minor_version = re.search(r"-py(\d{2,})", image).group(1)
 
     root_dir = os.path.join(dlc_dir, framework, job_type, "docker")
 
@@ -95,7 +95,7 @@ def test_dlc_major_version_dockerfiles(image):
     # the current image under test
     versions = {}
     dlc_label_regex = re.compile(r'LABEL dlc_major_version="(\d+)"')
-    python_version_regex = re.compile(r'ARG PYTHON_VERSION=(\d+\.\d+)')
+    python_version_regex = re.compile(r"ARG PYTHON_VERSION=(\d+\.\d+)")
     for dockerfile in dockerfiles:
         with open(dockerfile, "r") as df:
             dlc_version = None
@@ -106,7 +106,7 @@ def test_dlc_major_version_dockerfiles(image):
                 if major_version_match:
                     dlc_version = int(major_version_match.group(1))
                 elif python_version_match:
-                    python_version = python_version_match.group(1).replace('.', '')
+                    python_version = python_version_match.group(1).replace(".", "")
 
             # Raise errors if dlc major version label and python version arg are not found in Dockerfile
             if not dlc_version:
@@ -120,7 +120,13 @@ def test_dlc_major_version_dockerfiles(image):
     actual_versions = sorted(versions.values())
 
     # Test case explicitly for TF2.3 gpu, since v1.0 is banned
-    if (framework, fw_version_major_minor, processor) == ("tensorflow", "2.3", "gpu"):
+    if (framework, fw_version_major_minor, processor, python_major_minor_version, job_type) == (
+        "tensorflow",
+        "2.3",
+        "gpu",
+        "37",
+        "training",
+    ):
         expected_versions = [v + 1 for v in expected_versions]
         assert 1 not in actual_versions, (
             f"DLC v1.0 is deprecated in TF2.3 gpu containers, but found major version 1 "

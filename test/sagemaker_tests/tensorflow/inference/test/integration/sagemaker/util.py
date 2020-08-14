@@ -15,6 +15,7 @@ import json
 import logging
 import os
 
+import boto3
 import botocore
 import random
 import time
@@ -23,8 +24,29 @@ logger = logging.getLogger(__name__)
 BATCH_CSV = os.path.join('data', 'batch.csv')
 
 
+def _botocore_resolver():
+    """
+    Get the DNS suffix for the given region.
+    :return: endpoint object
+    """
+    loader = botocore.loaders.create_loader()
+    return botocore.regions.EndpointResolver(loader.load_data('endpoints'))
+
+
+def get_ecr_registry(account, region):
+    """
+    Get prefix of ECR image URI
+    :param account: Account ID
+    :param region: region where ECR repo exists
+    :return: AWS ECR registry
+    """
+    endpoint_data = _botocore_resolver().construct_endpoint('ecr', region)
+    return f'{account}.dkr.{endpoint_data["hostname"]}'
+
+
 def image_uri(registry, region, repo, tag):
-    return f'{registry}.dkr.ecr.{region}.amazonaws.com/{repo}:{tag}'
+    ecr_registry = get_ecr_registry(registry, region)
+    return f'{ecr_registry}/{repo}:{tag}'
 
 
 def _execution_role(boto_session):
@@ -63,10 +85,12 @@ def _production_variants(model_name, instance_type, accelerator_type):
 
 
 def _test_bucket(region, boto_session):
+    domain_suffix = '.cn' if region in ('cn-north-1', 'cn-northwest-1') else ''
+    sts_regional_endpoint = f'https://sts.{region}.amazonaws.com{domain_suffix}'
     sts = boto_session.client(
         'sts',
         region_name=region,
-        endpoint_url='https://sts.{}.amazonaws.com'.format(region)
+        endpoint_url=sts_regional_endpoint
     )
     account = sts.get_caller_identity()['Account']
     return f'sagemaker-{region}-{account}'
@@ -111,7 +135,7 @@ def sagemaker_endpoint(sagemaker_client, model_name, instance_type, accelerator_
 
     # Add jitter so we can run tests in parallel without running into service side limits.
     delay = round(random.random()*5, 3)
-    logger.info('waiting for {} seconds'.format(delay))
+    logger.info(f'waiting for {delay} seconds')
     time.sleep(delay)
 
     production_variants = _production_variants(model_name, instance_type, accelerator_type)
