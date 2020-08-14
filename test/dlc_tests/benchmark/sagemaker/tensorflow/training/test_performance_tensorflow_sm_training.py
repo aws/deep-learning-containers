@@ -12,10 +12,19 @@ from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
 
 
 @pytest.mark.integration("imagenet dataset")
-@pytest.mark.multinode("multinode")
+@pytest.mark.multinode(4)
 @pytest.mark.model("resnet50")
-@pytest.mark.parametrize("num_nodes", [1, 4], indirect=True)
-def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_nodes, region):
+def test_tensorflow_sagemaker_training_performance_multinode(tensorflow_training, region):
+    run_sm_perf_test(tensorflow_training, 4, region)
+
+
+@pytest.mark.integration("imagenet dataset")
+@pytest.mark.model("resnet50")
+def test_tensorflow_sagemaker_training_performance_singlenode(tensorflow_training, region):
+    run_sm_perf_test(tensorflow_training, 1, region)
+
+
+def run_sm_perf_test(image_uri, num_nodes, region):
     """
     Run TF sagemaker training performance tests
 
@@ -29,15 +38,15 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
     :param num_nodes: Number of nodes to run on
     :param region: AWS region
     """
-    framework_version = re.search(r"[1,2](\.\d+){2}", tensorflow_training).group()
+    framework_version = re.search(r"[1,2](\.\d+){2}", image_uri).group()
     if framework_version.startswith("1."):
         pytest.skip("Skipping benchmark test on TF 1.x images.")
 
-    processor = "gpu" if "gpu" in tensorflow_training else "cpu"
+    processor = "gpu" if "gpu" in image_uri else "cpu"
 
     ec2_instance_type = "p3.16xlarge" if processor == "gpu" else "c5.18xlarge"
 
-    py_version = "py2" if "py2" in tensorflow_training else "py37" if "py37" in tensorflow_training else "py3"
+    py_version = "py2" if "py2" in image_uri else "py37" if "py37" in image_uri else "py3"
 
     time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
@@ -60,7 +69,7 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
         log_file = f"results-{commit_info}-{time_str}-{framework_version}-{processor}-{py_version}-{num_nodes}-node.txt"
         run_out = ctx.run(f"timeout 45m python tf_sm_benchmark.py "
                           f"--framework-version {framework_version} "
-                          f"--image-uri {tensorflow_training} "
+                          f"--image-uri {image_uri} "
                           f"--instance-type ml.{ec2_instance_type} "
                           f"--node-count {num_nodes} "
                           f"--python {py_version} "

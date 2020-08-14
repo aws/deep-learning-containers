@@ -24,7 +24,7 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
 @pytest.mark.model("mnist")
-@pytest.mark.multinode("multinode")
+@pytest.mark.multinode("multinode(needs_clarification)")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
 def test_mnist_distributed_cpu(sagemaker_session, ecr_image, instance_type):
@@ -34,7 +34,7 @@ def test_mnist_distributed_cpu(sagemaker_session, ecr_image, instance_type):
 
 
 @pytest.mark.model("mnist")
-@pytest.mark.multinode("multinode")
+@pytest.mark.multinode("multinode(needs_clarification)")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 def test_mnist_distributed_gpu(sagemaker_session, ecr_image, instance_type):
