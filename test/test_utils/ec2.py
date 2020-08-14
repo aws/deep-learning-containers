@@ -512,8 +512,8 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
         else "images/sec"
     description = "p99 latency " if unit == "s" or unit == "ms" else ""
     for k, v in performance_number.items():
-        performance_statement = f"{framework} {framework_version} ec2 {work_type} {processor} {py_version} " \
-                                f"{data_source} {k} {description}: {v} {unit} (threshold: {threshold[k]} {unit})"
+        performance_statement = f'{framework} {framework_version} ec2 {work_type} {processor} {py_version} ' \
+                                f'{data_source} {k} {description}: {v} {unit}, threshold: {threshold[k]} {unit}'
         connection.run(
             f"echo {performance_statement} | sudo tee -a {log_location}")
         LOGGER.info(

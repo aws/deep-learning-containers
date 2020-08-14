@@ -91,7 +91,7 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
         else TENSORFLOW2_SM_TRAINING_GPU_1NODE_THRESHOLD if num_nodes == 1 \
         else TENSORFLOW2_SM_TRAINING_GPU_4NODE_THRESHOLD
     LOGGER.info(f"tensorflow {framework_version} sagemaker training {processor} {py_version} "
-                f"imagenet {num_nodes} nodes Throughput: {throughput} images/sec (threshold: {threshold} images/sec)")
+                f"imagenet {num_nodes} nodes Throughput: {throughput} images/sec, threshold: {threshold} images/sec")
     assert throughput > threshold, \
         f"tensorflow {framework_version} sagemaker training {processor} {py_version} imagenet {num_nodes} nodes " \
         f"Benchmark Result {throughput} does not reach the threshold {threshold}"
