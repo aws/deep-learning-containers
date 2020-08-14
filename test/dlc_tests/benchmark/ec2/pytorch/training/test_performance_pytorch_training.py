@@ -75,7 +75,7 @@ def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance(connection, 
 
 def post_process_pytorch_gpu_py3_imagenet_ec2_training_performance(connection, log_location):
     log_content = connection.run(f"cat {log_location}").stdout.split("\n")
-    cost = 0
+    cost = None
     for line in reversed(log_content):
         if "took time" in line:
             cost = float(re.search(r'(took time:[ ]*)(?P<cost>[0-9]+\.?[0-9]+)', line).group("cost"))
