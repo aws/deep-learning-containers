@@ -84,14 +84,14 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
 
     assert run_out.ok, (f"Benchmark Test failed with return code {run_out.return_code}. "
                         f"Test results can be found at {os.path.join(target_upload_location, log_file)}")
-    LOGGER.info(f"tensorflow {framework_version} sagemaker training {processor} {py_version} "
-                f"imagenet {num_nodes} nodes Throughput: {throughput} images/sec")
 
     threshold = (TENSORFLOW2_SM_TRAINING_CPU_1NODE_THRESHOLD if num_nodes == 1
                  else TENSORFLOW2_SM_TRAINING_CPU_4NODE_THRESHOLD) \
         if processor == "cpu" \
         else TENSORFLOW2_SM_TRAINING_GPU_1NODE_THRESHOLD if num_nodes == 1 \
         else TENSORFLOW2_SM_TRAINING_GPU_4NODE_THRESHOLD
+    LOGGER.info(f"tensorflow {framework_version} sagemaker training {processor} {py_version} "
+                f"imagenet {num_nodes} nodes Throughput: {throughput} images/sec (threshold: {threshold} images/sec)")
     assert throughput > threshold, \
         f"tensorflow {framework_version} sagemaker training {processor} {py_version} imagenet {num_nodes} nodes " \
         f"Benchmark Result {throughput} does not reach the threshold {threshold}"
