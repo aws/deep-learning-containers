@@ -25,7 +25,7 @@ import boto3
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
-from .utils import image_utils
+from .utils import image_utils, get_ecr_registry
 
 
 logger = logging.getLogger(__name__)
@@ -40,9 +40,10 @@ logging.getLogger('connectionpool.py').setLevel(logging.INFO)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 NO_P2_REGIONS = ['ap-east-1', 'ap-northeast-3', 'ap-southeast-2', 'ca-central-1', 'eu-central-1', 'eu-north-1',
-                 'eu-west-2', 'eu-west-3', 'us-west-1', 'sa-east-1', 'me-south-1']
+                 'eu-west-2', 'eu-west-3', 'us-west-1', 'sa-east-1', 'me-south-1', 'cn-northwest-1']
 NO_P3_REGIONS = ['ap-east-1', 'ap-northeast-3', 'ap-southeast-1', 'ap-southeast-2', 'ap-south-1', 'ca-central-1',
-                 'eu-central-1', 'eu-north-1', 'eu-west-2', 'eu-west-3', 'sa-east-1', 'us-west-1', 'me-south-1']
+                 'eu-central-1', 'eu-north-1', 'eu-west-2', 'eu-west-3', 'sa-east-1', 'us-west-1', 'me-south-1',
+                 'cn-northwest-1']
 
 
 def pytest_addoption(parser):
@@ -85,7 +86,7 @@ def fixture_framework_version(request):
 
 @pytest.fixture(scope='session', name='py_version')
 def fixture_py_version(request):
-    return 'py{}'.format(int(request.config.getoption('--py-version')))
+    return f'py{int(request.config.getoption("--py-version"))}'
 
 
 @pytest.fixture(scope='session', name='processor')
@@ -96,13 +97,13 @@ def fixture_processor(request):
 @pytest.fixture(scope='session', name='tag')
 def fixture_tag(request, framework_version, processor, py_version):
     provided_tag = request.config.getoption('--tag')
-    default_tag = '{}-{}-{}'.format(framework_version, processor, py_version)
+    default_tag = f'{framework_version}-{processor}-{py_version}'
     return provided_tag if provided_tag else default_tag
 
 
 @pytest.fixture(scope='session', name='docker_image')
 def fixture_docker_image(docker_base_name, tag):
-    return '{}:{}'.format(docker_base_name, tag)
+    return f'{docker_base_name}:{tag}'
 
 
 @pytest.fixture
@@ -112,7 +113,7 @@ def opt_ml():
 
     # Docker cannot mount Mac OS /var folder properly see
     # https://forums.docker.com/t/var-folders-isnt-mounted-properly/9600
-    opt_ml_dir = '/private{}'.format(tmp) if platform.system() == 'Darwin' else tmp
+    opt_ml_dir = f'/private{tmp}' if platform.system() == 'Darwin' else tmp
     yield opt_ml_dir
 
     shutil.rmtree(tmp, True)
@@ -135,6 +136,7 @@ def fixture_build_base_image(request, framework_version, py_version, processor, 
                                             cwd=os.path.join(dir_path, '..'))
 
     return tag
+
 
 @pytest.fixture(scope='session', name='sagemaker_session')
 def fixture_sagemaker_session(region):
@@ -160,12 +162,12 @@ def fixture_instance_type(request, processor):
 
 @pytest.fixture(name='docker_registry', scope='session')
 def fixture_docker_registry(aws_id, region):
-    return '{}.dkr.ecr.{}.amazonaws.com'.format(aws_id, region)
+    return get_ecr_registry(aws_id, region)
 
 
 @pytest.fixture(name='ecr_image', scope='session')
 def fixture_ecr_image(docker_registry, docker_base_name, tag):
-    return '{}/{}:{}'.format(docker_registry, docker_base_name, tag)
+    return f'{docker_registry}/{docker_base_name}:{tag}'
 
 
 @pytest.fixture(scope='session', name='dist_cpu_backend', params=['gloo'])
@@ -183,7 +185,7 @@ def skip_by_device_type(request, use_gpu, instance_type):
     is_gpu = use_gpu or instance_type[3] in ['g', 'p']
     if (request.node.get_closest_marker('skip_gpu') and is_gpu) or \
             (request.node.get_closest_marker('skip_cpu') and not is_gpu):
-        pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
+        pytest.skip(f'Skipping because running on "{instance_type}" instance')
 
 
 @pytest.fixture(autouse=True)
@@ -201,18 +203,18 @@ def skip_by_py_version(request, py_version):
 def skip_test_in_region(request, region):
     if request.node.get_closest_marker('skip_test_in_region'):
         if region == 'me-south-1':
-            pytest.skip('Skipping SageMaker test in region {}'.format(region))
+            pytest.skip(f'Skipping SageMaker test in region {region}')
 
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
     if ((region in NO_P2_REGIONS and instance_type.startswith('ml.p2'))
        or (region in NO_P3_REGIONS and instance_type.startswith('ml.p3'))):
-        pytest.skip('Skipping GPU test in region {}'.format(region))
+        pytest.skip(f'Skipping GPU test in region {region}')
 
 
 @pytest.fixture(autouse=True)
 def skip_py2_containers(request, tag):
     if request.node.get_closest_marker('skip_py2_containers'):
         if 'py2' in tag:
-            pytest.skip('Skipping python2 container with tag {}'.format(tag))
+            pytest.skip(f'Skipping python2 container with tag {tag}')
