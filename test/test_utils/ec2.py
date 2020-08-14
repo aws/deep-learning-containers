@@ -506,7 +506,8 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
     if "threshold" in signature(post_process).parameters:
         params["threshold"] = threshold
     performance_number = post_process(**params)
-    unit = "s p99 latency" if work_type == "inference" and framework != "mxnet" \
+    unit = "s p99 latency" if work_type == "inference" and framework == "tensorflow" \
+        else "ms p99 latency" if work_type == "inference" and framework == "pytorch" \
         else "s/epoch" if work_type == "training" and framework == "pytorch" and data_source == "imagenet" \
         else "images/sec"
     for k, v in performance_number.items():
@@ -548,6 +549,7 @@ def post_process_inference(connection, log_location, threshold):
             for key in threshold.keys():
                 if key in line:
                     performance_number[key] = \
-                        float(re.search(r'(p99[ ]* :[ ]*)(?P<result>[0-9]+\.?[0-9]+)', line).group("result"))
+                        float(re.search(r'(p99[ ]*(Latency)?[ ]*:[ ]*)(?P<result>[0-9]+\.?[0-9]+)', line)
+                              .group("result"))
                     break
     return performance_number

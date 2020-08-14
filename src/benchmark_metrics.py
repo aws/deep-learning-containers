@@ -2,6 +2,7 @@
 TENSORFLOW2_TRAINING_CPU_SYNTHETIC_THRESHOLD = 50
 TENSORFLOW2_TRAINING_GPU_SYNTHETIC_THRESHOLD = 7000
 TENSORFLOW2_TRAINING_GPU_IMAGENET_THRESHOLD = 7000
+# unit of tensorflow inference threshold is s
 TENSORFLOW2_INFERENCE_CPU_THRESHOLD = {"INCEPTION": 0.06,
                                        "RCNN-Resnet101-kitti": 0.65,
                                        "Resnet50v2": 0.35,
@@ -40,6 +41,7 @@ MXNET_INFERENCE_GPU_IMAGENET_THRESHOLD = 4500
 # PyTorch
 PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD = 2400
 PYTORCH_TRAINING_GPU_IMAGENET_THRESHOLD = 660
+# unit of pytorch inference threshold is ms
 PYTORCH_INFERENCE_CPU_THRESHOLD = {"ResNet18": 0.00075,
                                    "VGG13": 0.004,
                                    "MobileNetV2": 0.013,
