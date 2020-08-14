@@ -529,7 +529,7 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
         if len(performance_number) == 0:
             return False
         failure_count = 0
-        for _k, _v in performance_number:
+        for _k, _v in performance_number.items():
             if _v > _threshold[_k]:
                 failure_count += 1
         return failure_count <= 2
