@@ -26,6 +26,7 @@ ALL = "all"
 SUCCESS = 0
 FAIL = 1
 NOT_BUILT = -1
+FAIL_IMAGE_SIZE_LIMIT = 2
 
 # Left and right padding between text and margins in output
 PADDING = 1
@@ -33,7 +34,7 @@ PADDING = 1
 # Docker connections
 DOCKER_URL = "unix://var/run/docker.sock"
 
-STATUS_MESSAGE = {SUCCESS: "Success", FAIL: "Failed", NOT_BUILT: "Not Built"}
+STATUS_MESSAGE = {SUCCESS: "Success", FAIL: "Failed", NOT_BUILT: "Not Built", FAIL_IMAGE_SIZE_LIMIT: "Build with invalid image size"}
 
 BUILD_CONTEXT = os.environ.get("BUILD_CONTEXT", "DEV")
 
