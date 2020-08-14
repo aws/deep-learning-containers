@@ -5,6 +5,7 @@ from invoke.context import Context
 from test.test_utils.benchmark import execute_single_node_benchmark, get_py_version
 
 
+@pytest.mark.skip(reason="Temp skip due to timeout")
 @pytest.mark.model("resnet18_v2")
 @pytest.mark.integration("cifar10 dataset")
 def test_performance_mxnet_cpu(mxnet_training, cpu_only):
