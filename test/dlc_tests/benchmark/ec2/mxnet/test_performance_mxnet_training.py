@@ -44,6 +44,6 @@ def post_process_mxnet_ec2_performance(connection, log_location):
             total += float(throughput)
             n += 1
     if total and n:
-        return total / n
+        return {"Throughput": total / n}
     else:
         raise ValueError("total: {}; n: {} -- something went wrong".format(total, n))

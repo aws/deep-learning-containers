@@ -51,4 +51,4 @@ def post_process_tensorflow_cpu_synthetic_ec2_training_performance(connection, l
         if "images/sec" in line:
             throughput = float(line.split(":")[1].strip())
             break
-    return throughput
+    return {"Throughput": throughput}

@@ -523,9 +523,9 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
 
     def _assertion_results(_performance_number, _unit, _threshold):
         if "Cost" in performance_number:
-            return _performance_number["Cost"] < _threshold
+            return _performance_number["Cost"] < _threshold["Cost"]
         if "Throughput" in performance_number:
-            return _performance_number["Throughput"] > _threshold
+            return _performance_number["Throughput"] > _threshold["Throughput"]
         if len(performance_number) == 0:
             return False
         failure_count = 0
@@ -548,6 +548,6 @@ def post_process_inference(connection, log_location, threshold):
             for key in threshold.keys():
                 if key in line:
                     performance_number[key] = \
-                        re.search(r'(p99[ ]* :[ ]*)(?P<result>[0-9]+\.?[0-9]+)', line).group("result")
+                        float(re.search(r'(p99[ ]* :[ ]*)(?P<result>[0-9]+\.?[0-9]+)', line).group("result"))
                     break
     return performance_number
