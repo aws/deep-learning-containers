@@ -1,7 +1,7 @@
 import os
 import time
 import re
-
+from inspect import signature
 import boto3
 
 from retrying import retry
@@ -502,7 +502,10 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
     s3_location = os.path.join(
         BENCHMARK_RESULTS_S3_BUCKET, framework, framework_version, "ec2", work_type, processor, py_version, log_name
     )
-    performance_number = post_process(connection, log_location, threshold=threshold)
+    params = {"connection": connection, "log_location": log_location}
+    if "threshold" in signature(post_process):
+        params["threshold"] = threshold
+    performance_number = post_process(**params)
     unit = "s p99 latency" if work_type == "inference" and framework != "mxnet" \
         else "s/epoch" if work_type == "training" and framework == "pytorch" and data_source == "imagenet" \
         else "images/sec"
