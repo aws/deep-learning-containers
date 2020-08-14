@@ -13,6 +13,7 @@ from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
+
 def get_ec2_instance_type(default, processor, disable_p3dn=False):
     """
     Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
@@ -65,8 +66,8 @@ def get_ec2_accelerator_type(default, processor):
 
 
 def launch_instance(
-    ami_id, instance_type, ei_accelerator_type, ec2_key_name=None, region=DEFAULT_REGION, user_data=None,
-    iam_instance_profile_name=None, instance_name=""
+        ami_id, instance_type, ei_accelerator_type, ec2_key_name=None, region=DEFAULT_REGION, user_data=None,
+        iam_instance_profile_name=None, instance_name=""
 ):
     """
     Launch an instance
@@ -388,8 +389,8 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     return conn
 
 
-
-def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash", large_shm=False, host_network=False,
+def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash", large_shm=False,
+                              host_network=False,
                               container_name='ec2_training_container'):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
@@ -480,7 +481,8 @@ def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri}"
     )
     try:
-        connection.run(f"{docker_cmd} exec --user root {container_name} " f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}")
+        connection.run(
+            f"{docker_cmd} exec --user root {container_name} " f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}")
     except Exception as e:
         raise Exception("Failed to exec benchmark command.\n", e)
     finally:
@@ -500,17 +502,40 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
     s3_location = os.path.join(
         BENCHMARK_RESULTS_S3_BUCKET, framework, framework_version, "ec2", work_type, processor, py_version, log_name
     )
-    LOGGER.info(f"Benchmark Results:")
-    throughput = post_process(connection, log_location)
-    connection.run(
-        f"echo {framework} {framework_version} ec2 {work_type} {processor} {py_version} {data_source} Throughput: "
-        f"{throughput} images/sec | sudo tee -a {log_location}")
-    LOGGER.info(
-        f"{framework} {framework_version} ec2 {work_type} {processor} {py_version} {data_source} Throughput: {throughput} images/sec")
+    performance_number = post_process(connection, log_location)
+    unit = "images/sec"
+    if work_type == "inference" and framework != "mxnet":
+        unit = "s p99 latency"
+    elif work_type == "training" and framework == "pytorch" and processor == "gpu":
+        unit = "s/epoch"
+        performance_number = {"Cost": performance_number}
+    else:
+        performance_number = {"Throughput": performance_number}
+
+    for k, v in performance_number.items():
+        performance_statement = f"{framework} {framework_version} ec2 {work_type} {processor} {py_version} " \
+                                f"{data_source} {k}: {v} {unit}"
+        connection.run(
+            f"echo {performance_statement} | sudo tee -a {log_location}")
+        LOGGER.info(
+            f"{performance_statement}")
     connection.run(
         f"aws s3 cp {log_location} {s3_location}")
     connection.run(
         f"echo To retrieve complete benchmark log, check {s3_location} >&2")
-    assert throughput > threshold, \
-        f"{framework} {framework_version} ec2 {work_type} {processor} {py_version} {data_source} " \
-        f"Throughput {throughput} does not reach the threshold {threshold}"
+
+    def _assertion_results(_performance_number, _unit, _threshold):
+        if _unit == "s/epoch":
+            return _performance_number["Cost"] < _threshold
+        if unit == "images/sec":
+            return _performance_number["Throughput"] > _threshold
+        failure_count = 0
+        for _k, _v in performance_number:
+            if _v > _threshold[_k]:
+                failure_count += 1
+        return failure_count <= 2
+
+    for _ in performance_number:
+        assert _assertion_results(performance_number, unit, threshold), \
+            f"{framework} {framework_version} ec2 {work_type} {processor} {py_version} {data_source} " \
+            f"Benchmark Result {performance_number} does not reach the threshold {threshold}"
