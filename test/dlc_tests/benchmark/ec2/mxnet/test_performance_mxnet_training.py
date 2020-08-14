@@ -20,7 +20,8 @@ MX_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
 def test_performance_ec2_mxnet_training_gpu(mxnet_training, ec2_connection, gpu_only, py3_only):
     execute_ec2_training_performance_test(ec2_connection, mxnet_training, MX_PERFORMANCE_TRAINING_GPU_CMD,
                                           post_process=post_process_mxnet_ec2_performance,
-                                          data_source="imagenet", threshold=MXNET_TRAINING_GPU_IMAGENET_THRESHOLD)
+                                          data_source="imagenet",
+                                          threshold={"Throughput": MXNET_TRAINING_GPU_IMAGENET_THRESHOLD})
 
 
 @pytest.mark.integration("cifar10 dataset")
@@ -29,7 +30,8 @@ def test_performance_ec2_mxnet_training_gpu(mxnet_training, ec2_connection, gpu_
 def test_performance_ec2_mxnet_training_cpu(mxnet_training, ec2_connection, cpu_only):
     execute_ec2_training_performance_test(ec2_connection, mxnet_training, MX_PERFORMANCE_TRAINING_CPU_CMD,
                                           post_process=post_process_mxnet_ec2_performance,
-                                          data_source="cifar10", threshold=MXNET_TRAINING_CPU_CIFAR_THRESHOLD)
+                                          data_source="cifar10",
+                                          threshold={"Throughput": MXNET_TRAINING_CPU_CIFAR_THRESHOLD})
 
 
 def post_process_mxnet_ec2_performance(connection, log_location):

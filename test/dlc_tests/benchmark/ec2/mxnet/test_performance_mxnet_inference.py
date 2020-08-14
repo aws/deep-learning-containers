@@ -20,7 +20,7 @@ MX_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
 def test_performance_ec2_mxnet_inference_gpu(mxnet_inference, ec2_connection, gpu_only, py3_only):
     execute_ec2_inference_performance_test(ec2_connection, mxnet_inference, MX_PERFORMANCE_INFERENCE_GPU_CMD,
                                            post_process=post_process_mxnet_ec2_performance, data_source="imagenet",
-                                           threshold=MXNET_INFERENCE_GPU_IMAGENET_THRESHOLD)
+                                           threshold={"Throughput": MXNET_INFERENCE_GPU_IMAGENET_THRESHOLD})
 
 
 @pytest.mark.integration("imagenet dataset")
@@ -29,4 +29,4 @@ def test_performance_ec2_mxnet_inference_gpu(mxnet_inference, ec2_connection, gp
 def test_performance_ec2_mxnet_inference_cpu(mxnet_inference, ec2_connection, cpu_only, py3_only):
     execute_ec2_inference_performance_test(ec2_connection, mxnet_inference, MX_PERFORMANCE_INFERENCE_CPU_CMD,
                                            post_process=post_process_mxnet_ec2_performance, data_source="imagenet",
-                                           threshold=MXNET_INFERENCE_CPU_IMAGENET_THRESHOLD)
+                                           threshold={"Throughput": MXNET_INFERENCE_CPU_IMAGENET_THRESHOLD})

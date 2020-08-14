@@ -25,21 +25,23 @@ def test_performance_tensorflow_cpu(tensorflow_training, ec2_connection, cpu_onl
         TENSORFLOW1_TRAINING_CPU_SYNTHETIC_THRESHOLD
     execute_ec2_training_performance_test(ec2_connection, tensorflow_training, TF_PERFORMANCE_TRAINING_CPU_SYNTHETIC_CMD,
                                           post_process=post_process_tensorflow_cpu_synthetic_ec2_training_performance,
-                                          data_source="synthetic", threshold=threshold)
+                                          data_source="synthetic", threshold={"Throughput": threshold})
 
 @pytest.mark.skip()
 @pytest.mark.integration("synthetic dataset")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_performance_tensorflow_gpu_synthetic(tensorflow_training, ec2_connection, gpu_only):
-    execute_ec2_training_performance_test(ec2_connection, tensorflow_training, TF_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD)
+    execute_ec2_training_performance_test(ec2_connection, tensorflow_training,
+                                          {"Throughput": TF_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD})
 
 @pytest.mark.skip()
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection, gpu_only):
-    execute_ec2_training_performance_test(ec2_connection, tensorflow_training, TF_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD)
+    execute_ec2_training_performance_test(ec2_connection, tensorflow_training,
+                                          {"Throughput": TF_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD})
 
 
 def post_process_tensorflow_cpu_synthetic_ec2_training_performance(connection, log_location):

@@ -21,7 +21,8 @@ PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
 def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu_only, py3_only):
     execute_ec2_training_performance_test(ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD,
                                           post_process=post_process_pytorch_gpu_py3_synthetic_ec2_training_performance,
-                                          data_source="synthetic", threshold=PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD)
+                                          data_source="synthetic",
+                                          threshold={"Throughput": PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD})
 
 @pytest.mark.skip()
 @pytest.mark.model("resnet50")

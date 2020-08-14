@@ -438,7 +438,7 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
 
 
 def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION,
-                                          post_process=None, data_source="", threshold=0):
+                                          post_process=None, data_source="", threshold=None):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
@@ -463,7 +463,7 @@ def execute_ec2_training_performance_test(connection, ecr_uri, test_cmd, region=
 
 
 def execute_ec2_inference_performance_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION,
-                                           post_process=None, data_source="", threshold=0):
+                                           post_process=None, data_source="", threshold=None):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     timestamp = time.strftime('%Y-%m-%d-%H-%M-%S')
@@ -503,15 +503,9 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
         BENCHMARK_RESULTS_S3_BUCKET, framework, framework_version, "ec2", work_type, processor, py_version, log_name
     )
     performance_number = post_process(connection, log_location, threshold=threshold)
-    unit = "images/sec"
-    if work_type == "inference" and framework != "mxnet":
-        unit = "s p99 latency"
-    elif work_type == "training" and framework == "pytorch" and data_source == "imagenet":
-        unit = "s/epoch"
-        performance_number = {"Cost": performance_number}
-    else:
-        performance_number = {"Throughput": performance_number}
-
+    unit = "s p99 latency" if work_type == "inference" and framework != "mxnet" \
+        else "s/epoch" if work_type == "training" and framework == "pytorch" and data_source == "imagenet" \
+        else "images/sec"
     for k, v in performance_number.items():
         performance_statement = f"{framework} {framework_version} ec2 {work_type} {processor} {py_version} " \
                                 f"{data_source} {k}: {v} {unit}"
@@ -547,9 +541,10 @@ def post_process_inference(connection, log_location, threshold):
     log_content = connection.run(f"cat {log_location}").stdout.split("\n")
     performance_number = {}
     for line in log_content:
-        for key in threshold.keys():
-            if key in line:
-                performance_number["key"] = \
-                    re.search(r'(p99[ ]* :[ ]*)(?P<result>[0-9]+\.?[0-9]+)', line).group("result")
-                break
+        if "p99" in line:
+            for key in threshold.keys():
+                if key in line:
+                    performance_number[key] = \
+                        re.search(r'(p99[ ]* :[ ]*)(?P<result>[0-9]+\.?[0-9]+)', line).group("result")
+                    break
     return performance_number
