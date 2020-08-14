@@ -109,8 +109,8 @@ RUN pip uninstall -y torch \
 
 
 RUN useradd -m model-server \
- && mkdir -p /home/model-server/tmp \
- && chown -R model-server /home/model-server
+ && mkdir -p /home/model-server/tmp /opt/ml/model \
+ && chown -R model-server /home/model-server /opt/ml/model
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
