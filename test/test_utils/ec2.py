@@ -502,11 +502,11 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
     s3_location = os.path.join(
         BENCHMARK_RESULTS_S3_BUCKET, framework, framework_version, "ec2", work_type, processor, py_version, log_name
     )
-    performance_number = post_process(connection, log_location)
+    performance_number = post_process(connection, log_location, threshold)
     unit = "images/sec"
     if work_type == "inference" and framework != "mxnet":
         unit = "s p99 latency"
-    elif work_type == "training" and framework == "pytorch" and processor == "gpu":
+    elif work_type == "training" and framework == "pytorch" and data_source == "imagenet":
         unit = "s/epoch"
         performance_number = {"Cost": performance_number}
     else:
@@ -529,6 +529,8 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
             return _performance_number["Cost"] < _threshold
         if unit == "images/sec":
             return _performance_number["Throughput"] > _threshold
+        if len(performance_number) == 0:
+            return False
         failure_count = 0
         for _k, _v in performance_number:
             if _v > _threshold[_k]:
@@ -539,3 +541,14 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
         assert _assertion_results(performance_number, unit, threshold), \
             f"{framework} {framework_version} ec2 {work_type} {processor} {py_version} {data_source} " \
             f"Benchmark Result {performance_number} does not reach the threshold {threshold}"
+
+
+def post_process_inference(connection, log_location, threshold):
+    log_content = connection.run(f"cat {log_location}").stdout.split("\n")
+    performance_number = {}
+    for line in log_content:
+        for key in threshold.keys():
+            if key in line:
+                performance_number["key"] = \
+                    re.search(r'(p99[ ]* :[ ]*)(?P<result>[0-9]+\.?[0-9]+)', line).group("result")
+    return performance_number
