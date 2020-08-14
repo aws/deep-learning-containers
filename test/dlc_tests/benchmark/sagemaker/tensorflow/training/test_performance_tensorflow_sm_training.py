@@ -7,8 +7,11 @@ from random import Random
 import pytest
 
 from invoke.context import Context
-
-from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
+from src.benchmark_metrics import TENSORFLOW2_SM_TRAINING_CPU_1NODE_THRESHOLD, \
+    TENSORFLOW2_SM_TRAINING_CPU_4NODE_THRESHOLD, \
+    TENSORFLOW2_SM_TRAINING_GPU_1NODE_THRESHOLD, \
+    TENSORFLOW2_SM_TRAINING_GPU_4NODE_THRESHOLD
+from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER, is_tf1
 
 
 @pytest.mark.integration("imagenet dataset")
@@ -76,25 +79,41 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
 
     LOGGER.info(f"Test results can be found at {os.path.join(target_upload_location, log_file)}")
 
-    _print_results_of_test(os.path.join(test_dir, log_file), processor)
+    result_statement, throughput = _print_results_of_test(os.path.join(test_dir, log_file), processor)
+    throughput /= num_nodes
 
     assert run_out.ok, (f"Benchmark Test failed with return code {run_out.return_code}. "
                         f"Test results can be found at {os.path.join(target_upload_location, log_file)}")
+
+    threshold = (TENSORFLOW2_SM_TRAINING_CPU_1NODE_THRESHOLD if num_nodes == 1
+                 else TENSORFLOW2_SM_TRAINING_CPU_4NODE_THRESHOLD) \
+        if processor == "cpu" \
+        else TENSORFLOW2_SM_TRAINING_GPU_1NODE_THRESHOLD if num_nodes == 1 \
+        else TENSORFLOW2_SM_TRAINING_GPU_4NODE_THRESHOLD
+    assert throughput > threshold, \
+        f"tensorflow {framework_version} sagemaker training {processor} {py_version} imagenet {num_nodes} nodes " \
+        f"Benchmark Result {throughput} does not reach the threshold {threshold}"
 
 
 def _print_results_of_test(file_path, processor):
     last_100_lines = Context().run(f"tail -100 {file_path}").stdout.split("\n")
     result = ""
+    total = 0.0
+    count = 0
     if processor == "cpu":
         for line in last_100_lines:
             if "Total img/sec on " in line:
                 result = line + "\n"
+                total += float(re.search(r'(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)', line).group("throughput"))
+                count += 1
     elif processor == "gpu":
         result_dict = dict()
         for line in last_100_lines:
             if "images/sec: " in line:
                 key = line.split("<stdout>")[0]
                 result_dict[key] = line.strip("\n")
+                total = float(re.search(r'(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)', line).group("throughput"))
+                count += 1
         result = "\n".join(result_dict.values()) + "\n"
     LOGGER.info(result)
-    return result
+    return result, total / count
