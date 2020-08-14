@@ -503,7 +503,7 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
         BENCHMARK_RESULTS_S3_BUCKET, framework, framework_version, "ec2", work_type, processor, py_version, log_name
     )
     params = {"connection": connection, "log_location": log_location}
-    if "threshold" in signature(post_process):
+    if "threshold" in signature(post_process).parameters:
         params["threshold"] = threshold
     performance_number = post_process(**params)
     unit = "s p99 latency" if work_type == "inference" and framework != "mxnet" \
