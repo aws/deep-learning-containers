@@ -506,13 +506,14 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
     if "threshold" in signature(post_process).parameters:
         params["threshold"] = threshold
     performance_number = post_process(**params)
-    unit = "s p99 latency" if work_type == "inference" and framework == "tensorflow" \
-        else "ms p99 latency" if work_type == "inference" and framework == "pytorch" \
+    unit = "s" if work_type == "inference" and framework == "tensorflow" \
+        else "ms" if work_type == "inference" and framework == "pytorch" \
         else "s/epoch" if work_type == "training" and framework == "pytorch" and data_source == "imagenet" \
         else "images/sec"
+    description = "p99 latency " if unit == "s" or unit == "ms" else ""
     for k, v in performance_number.items():
         performance_statement = f"{framework} {framework_version} ec2 {work_type} {processor} {py_version} " \
-                                f"{data_source} {k}: {v} {unit}"
+                                f"{data_source} {k} {description}: {v} {unit} (threshold: {threshold[k]} {unit})"
         connection.run(
             f"echo {performance_statement} | sudo tee -a {log_location}")
         LOGGER.info(
@@ -522,21 +523,21 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
     connection.run(
         f"echo To retrieve complete benchmark log, check {s3_location} >&2")
 
-    def _assertion_results(_performance_number, _unit, _threshold):
+    def _assertion_results():
         if "Cost" in performance_number:
-            return _performance_number["Cost"] < _threshold["Cost"]
+            return performance_number["Cost"] < threshold["Cost"]
         if "Throughput" in performance_number:
-            return _performance_number["Throughput"] > _threshold["Throughput"]
+            return performance_number["Throughput"] > threshold["Throughput"]
         if len(performance_number) == 0:
             return False
         failure_count = 0
-        for _k, _v in performance_number.items():
-            if _v > _threshold[_k]:
+        for k, v in performance_number.items():
+            if v > threshold[k]:
                 failure_count += 1
         return failure_count <= 2
 
     for _ in performance_number:
-        assert _assertion_results(performance_number, unit, threshold), \
+        assert _assertion_results(), \
             f"{framework} {framework_version} ec2 {work_type} {processor} {py_version} {data_source} " \
             f"Benchmark Result {performance_number} does not reach the threshold {threshold}"
 

@@ -31,3 +31,4 @@ set +e
 rm -rf ${HOME_DIR}/artifacts/mxnet/deep-learning-benchmark-mirror
 
 exit 0
+#TODO: line 23: prepend '--num-epochs 20'
