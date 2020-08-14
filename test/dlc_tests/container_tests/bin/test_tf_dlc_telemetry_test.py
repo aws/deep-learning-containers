@@ -10,6 +10,7 @@ def opt_in_opt_out_test():
     os.environ["OPT_OUT_TRACKING"] = "True"
     cmd = "python -c 'import tensorflow'"
     os.system(cmd)
+    time.sleep(1)
     assert not os.path.exists("/tmp/test_request.txt"), "Test failed on OPT_OUT_TRACKING."
 
     if os.path.exists("/tmp/test_request.txt"):
@@ -17,6 +18,7 @@ def opt_in_opt_out_test():
     os.environ["OPT_OUT_TRACKING"] = "False"
     cmd = "python -c 'import tensorflow'"
     os.system(cmd)
+    time.sleep(1)
     assert os.path.exists("/tmp/test_request.txt")
 
     if os.path.exists("/tmp/test_request.txt"):
@@ -24,6 +26,7 @@ def opt_in_opt_out_test():
     os.environ["OPT_OUT_TRACKING"] = "TRUE"
     cmd = "python -c 'import tensorflow'"
     os.system(cmd)
+    time.sleep(1)
     assert not os.path.exists("/tmp/test_request.txt"), "Test failed on OPT_OUT_TRACKING."
 
     if os.path.exists("/tmp/test_request.txt"):
@@ -31,6 +34,7 @@ def opt_in_opt_out_test():
     os.environ["OPT_OUT_TRACKING"] = "true"
     cmd = "python -c 'import tensorflow'"
     os.system(cmd)
+    time.sleep(1)
     assert not os.path.exists("/tmp/test_request.txt"), "Test failed on OPT_OUT_TRACKING."
 
     if os.path.exists("/tmp/test_request.txt"):
@@ -38,6 +42,7 @@ def opt_in_opt_out_test():
     os.environ["OPT_OUT_TRACKING"] = "XYgg"
     cmd = "python -c 'import tensorflow'"
     os.system(cmd)
+    time.sleep(1)
     assert os.path.exists("/tmp/test_request.txt")
 
     print("Opt-In/Opt-Out Test passed")
