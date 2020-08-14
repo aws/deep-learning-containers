@@ -502,7 +502,7 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
     s3_location = os.path.join(
         BENCHMARK_RESULTS_S3_BUCKET, framework, framework_version, "ec2", work_type, processor, py_version, log_name
     )
-    performance_number = post_process(connection, log_location, threshold)
+    performance_number = post_process(connection, log_location, threshold=threshold)
     unit = "images/sec"
     if work_type == "inference" and framework != "mxnet":
         unit = "s p99 latency"
@@ -551,4 +551,5 @@ def post_process_inference(connection, log_location, threshold):
             if key in line:
                 performance_number["key"] = \
                     re.search(r'(p99[ ]* :[ ]*)(?P<result>[0-9]+\.?[0-9]+)', line).group("result")
+                break
     return performance_number

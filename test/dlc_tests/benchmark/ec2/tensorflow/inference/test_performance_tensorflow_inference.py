@@ -26,7 +26,6 @@ def test_performance_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_conn
 
 def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, region, threshold):
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
-    python_version = "py2" if "py2" in image_uri else "py3"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     tf_version = "1" if is_tf1(image_uri) else "2"
     tf_api_version = '1.15' if tf_version == '1' else '2.3.0'
