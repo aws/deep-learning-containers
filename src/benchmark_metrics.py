@@ -42,15 +42,15 @@ MXNET_INFERENCE_GPU_IMAGENET_THRESHOLD = 4500
 PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD = 2400
 PYTORCH_TRAINING_GPU_IMAGENET_THRESHOLD = 660
 # unit of pytorch inference threshold is ms
-PYTORCH_INFERENCE_CPU_THRESHOLD = {"ResNet18": 0.00075,
-                                   "VGG13": 0.004,
-                                   "MobileNetV2": 0.013,
-                                   "GoogleNet": 0.018,
-                                   "DenseNet121": 0.04,
-                                   "InceptionV3": 0.03}
-PYTORCH_INFERENCE_GPU_THRESHOLD = {"ResNet18": 0.08,
+PYTORCH_INFERENCE_CPU_THRESHOLD = {"ResNet18": 0.08,
                                    "VGG13": 0.45,
                                    "MobileNetV2": 0.06,
                                    "GoogleNet": 0.12,
                                    "DenseNet121": 0.15,
                                    "InceptionV3": 0.25}
+PYTORCH_INFERENCE_GPU_THRESHOLD = {"ResNet18": 0.00075,
+                                   "VGG13": 0.004,
+                                   "MobileNetV2": 0.013,
+                                   "GoogleNet": 0.018,
+                                   "DenseNet121": 0.04,
+                                   "InceptionV3": 0.03}
