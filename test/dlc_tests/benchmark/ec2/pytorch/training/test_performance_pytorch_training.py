@@ -50,7 +50,8 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(connection, e
     # Run training command, display benchmark results to console
     try:
         connection.run(
-            f"nvidia-docker run --user root -e LOG_NAME={log_name} --shm-size 8G --env OMP_NUM_THREADS=1 --name {container_name} "
+            f"nvidia-docker run --user root -e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
+            f"--shm-size 8G --env OMP_NUM_THREADS=1 --name {container_name} "
             f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
             f"-v /home/ubuntu/:/root/:delegated "
             f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}")
