@@ -519,9 +519,9 @@ def ec2_performance_upload_result_to_s3_and_validate_performance(connection, ecr
         f"echo To retrieve complete benchmark log, check {s3_location} >&2")
 
     def _assertion_results(_performance_number, _unit, _threshold):
-        if _unit == "s/epoch":
+        if "Cost" in performance_number:
             return _performance_number["Cost"] < _threshold
-        if unit == "images/sec":
+        if "Throughput" in performance_number:
             return _performance_number["Throughput"] > _threshold
         if len(performance_number) == 0:
             return False
