@@ -140,8 +140,6 @@ def test_dlc_major_version_dockerfiles(image):
         f"Found DLC major versions {actual_versions} but expected {expected_versions} for "
         f"{framework} {job_type} {processor}. Full version info: {versions}. Py version: {python_major_minor_version}"
     )
-    print(framework, fw_version_major_minor, processor, python_major_minor_version, job_type)
-    print(versions)
 
 
 class DLCMajorVersionLabelNotFound(Exception):
