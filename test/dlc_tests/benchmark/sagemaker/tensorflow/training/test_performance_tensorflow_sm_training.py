@@ -98,22 +98,21 @@ def test_tensorflow_sagemaker_training_performance(tensorflow_training, num_node
 def _print_results_of_test(file_path, processor):
     last_100_lines = Context().run(f"tail -100 {file_path}").stdout.split("\n")
     result = ""
-    total = 0.0
-    count = 0
+    throughput = 0
     if processor == "cpu":
         for line in last_100_lines:
             if "Total img/sec on " in line:
                 result = line + "\n"
-                total += float(re.search(r'(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)', line).group("throughput"))
-                count += 1
+                throughput = float(re.search(r'(CPU\(s\):[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)', line).group("throughput"))
+                break
     elif processor == "gpu":
         result_dict = dict()
         for line in last_100_lines:
             if "images/sec: " in line:
                 key = line.split("<stdout>")[0]
                 result_dict[key] = line.strip("\n")
-                total = float(re.search(r'(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)', line).group("throughput"))
-                count += 1
+                if throughput != 0:
+                    throughput = float(re.search(r'(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)', line).group("throughput"))
         result = "\n".join(result_dict.values()) + "\n"
     LOGGER.info(result)
-    return result, total / count
+    return result, throughput
