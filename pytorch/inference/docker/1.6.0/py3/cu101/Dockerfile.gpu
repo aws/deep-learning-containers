@@ -47,6 +47,13 @@ RUN apt-get update \
     wget \
     zlib1g-dev
 
+
+# https://github.com/docker-library/openjdk/pull/263/files
+RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
+    mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
+    /var/lib/dpkg/info/ca-certificates-java.postinst configure;
+
+
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
  && cd openmpi-$OPEN_MPI_VERSION \

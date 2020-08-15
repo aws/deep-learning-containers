@@ -41,6 +41,13 @@ RUN apt-get update \
     wget \
     zlib1g-dev
 
+
+# https://github.com/docker-library/openjdk/pull/263/files
+RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
+    mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
+    /var/lib/dpkg/info/ca-certificates-java.postinst configure;
+
+
 RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
