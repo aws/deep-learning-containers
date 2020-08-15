@@ -9,7 +9,8 @@ ARG PYTORCH_VERSION=1.3.1
 ARG TORCHVISION_VERSION=0.4.2
 ARG GRAPHVIZ_VERSION=0.13.2
 ARG MMS_VERSION=1.1.2
-ARG HEALTH_CHECK_VERSION=s3://pytorch-eia-beta/openssl_fix/torch_eia-1.3.1-cp36-cp36m-manylinux1_x86_64.whl
+ARG HEALTH_CHECK_VERSION=1.7.0
+ARG HEALTH_CHECK_VERSION_LOCATION=torch_eia-1.3.1-cp36-cp36m-manylinux1_x86_64.whl
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
@@ -98,8 +99,9 @@ RUN conda install -y -c conda-forge pyyaml==5.3.1 \
  && pip install -U \
     "awscli<2"
 
-RUN wget https://amazonei-tools.s3.amazonaws.com/v${HEALTH_CHECK_VERSION}/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz -O /opt/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz \
- && tar -xvf /opt/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz -C /opt/ \
+COPY ${HEALTH_CHECK_VERSION_LOCATION} /opt/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz
+
+RUN tar -xvf /opt/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz -C /opt/ \
  && rm -rf /opt/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz \
  && chmod a+x /opt/ei_tools/bin/health_check \
  && mkdir -p /opt/ei_health_check/bin \

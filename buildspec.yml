@@ -16,6 +16,8 @@ phases:
   build:
     commands:
       - echo Build started on `date`
+      - echo Fetching s3 binary for PT EIA...
+      - aws s3 cp s3://pytorch-eia-beta/openssl_fix/torch_eia-1.3.1-cp36-cp36m-manylinux1_x86_64.whl pytorch/inference/docker/build_artifacts/torch_eia-1.3.1-cp36-cp36m-manylinux1_x86_64.whl
       - echo Building the Docker image...
       - |
         if expr "${CODEBUILD_BUILD_ARN}" : ".*eia" >/dev/null; then
