@@ -17,7 +17,7 @@ import os
 
 # Environment settings
 FRAMEWORKS = {"mxnet", "tensorflow", "pytorch"}
-DEVICE_TYPES = {"cpu", "gpu"}
+DEVICE_TYPES = {"cpu", "gpu", "eia"}
 IMAGE_TYPES = {"training", "inference"}
 PYTHON_VERSIONS = {"py2", "py3", "py36"}
 ALL = "all"
@@ -38,7 +38,7 @@ STATUS_MESSAGE = {SUCCESS: "Success", FAIL: "Failed", NOT_BUILT: "Not Built", FA
 
 BUILD_CONTEXT = os.environ.get("BUILD_CONTEXT", "DEV")
 
-METRICS_NAMESPACE = "dlc-metrics-to-be-deleted"
+METRICS_NAMESPACE = "dlc-metrics"
 
 # Logging level
 INFO = 1

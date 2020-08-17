@@ -8,8 +8,10 @@ from time import sleep
 
 from invoke.context import Context
 from invoke import exceptions
+from junit_xml import TestSuite, TestCase
 
 from test_utils import ec2 as ec2_utils
+from test_utils import metrics as metrics_utils
 from test_utils import (
     destroy_ssh_keypair,
     generate_ssh_keypair,
@@ -57,6 +59,8 @@ def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
         region=region,
         ec2_key_name=ec2_key_name,
         instance_type=instance_type,
+        # EIA does not have SM Local test
+        ei_accelerator_type=None,
         user_data=None,
         iam_instance_profile_name=ec2_utils.EC2_INSTANCE_ROLE_NAME,
         instance_name=f"sm-local-{instance_name}",
@@ -64,9 +68,7 @@ def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
     instance_id = instance["InstanceId"]
     public_ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
-    ec2_utils.check_system_state(
-        instance_id, system_status="ok", instance_status="ok", region=region
-    )
+    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
     return instance_id, public_ip_address
 
 
@@ -97,9 +99,11 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     aws_id_arg = "--aws-id"
     docker_base_arg = "--docker-base-name"
     instance_type_arg = "--instance-type"
+    accelerator_type_arg = "--accelerator-type"
+    eia_arg = "ml.eia1.large"
     framework_version = re.search(r"\d+(\.\d+){2}", tag).group()
     framework_major_version = framework_version.split(".")[0]
-    processor = "gpu" if "gpu" in image else "cpu"
+    processor = "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
     py_version = re.search(r"py\d+", tag).group()
     sm_local_py_version = "37" if py_version == "py37" else "2" if py_version == "py27" else "3"
     if framework == "tensorflow" and job_type == "inference":
@@ -113,19 +117,24 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         if job_type == "inference":
             aws_id_arg = "--registry"
             docker_base_arg = "--repo"
-            integration_path = os.path.join(integration_path, "test_tfs.py")
             instance_type_arg = "--instance-types"
+            integration_path = os.path.join(integration_path, "test_tfs.py") if processor != "eia" else os.path.join(integration_path, "test_ei.py")
 
-    if framework == "tensorflow" and job_type == 'training':
+    if framework == "tensorflow" and job_type == "training":
         aws_id_arg = "--account-id"
 
     test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     is_py3 = " python3 -m "
 
-    remote_pytest_cmd = (f"pytest {integration_path} --region {region} {docker_base_arg} "
-                         f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
-                         f"{instance_type_arg} {instance_type} --junitxml {test_report}")
+    remote_pytest_cmd = (
+        f"pytest {integration_path} --region {region} {docker_base_arg} "
+        f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
+        f"{instance_type_arg} {instance_type} --junitxml {test_report}"
+    )
+
+    if processor == "eia" :
+        remote_pytest_cmd += (f" {accelerator_type_arg} {eia_arg}")
 
     local_pytest_cmd = (f"{is_py3} pytest -v {integration_path} {docker_base_arg} "
                         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
@@ -140,7 +149,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         remote_pytest_cmd if sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE else local_pytest_cmd,
         path,
         tag,
-        job_type
+        job_type,
     )
 
 
@@ -249,9 +258,7 @@ def execute_local_tests(image, ec2_client):
 def execute_sagemaker_remote_tests(image):
     """
     Run pytest in a virtual env for a particular image
-
     Expected to run via multiprocessing
-
     :param image: ECR url
     """
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
@@ -260,4 +267,17 @@ def execute_sagemaker_remote_tests(image):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
-            context.run(pytest_command)
+            res = context.run(pytest_command, warn=True)
+            metrics_utils.send_test_result_metrics(res.return_code)
+
+
+def generate_empty_report(report, test_type, case):
+    """
+    Generate empty junitxml report if no tests are run
+    :param report: CodeBuild Report
+    Returns: None
+    """
+    test_cases = [TestCase(test_type, case, 1, f"Skipped {test_type} on {case}", '')]
+    ts = TestSuite(report, test_cases)
+    with open(report, "w") as skip_file:
+        TestSuite.to_file(skip_file, [ts], prettyprint=False)

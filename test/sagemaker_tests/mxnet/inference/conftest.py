@@ -20,7 +20,7 @@ import pytest
 from sagemaker import LocalSession, Session
 from sagemaker.mxnet import MXNet
 
-from .integration import NO_P2_REGIONS, NO_P3_REGIONS
+from .integration import NO_P2_REGIONS, NO_P3_REGIONS, get_ecr_registry
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
@@ -37,7 +37,7 @@ def pytest_addoption(parser):
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default=MXNet.LATEST_VERSION)
     parser.addoption('--py-version', default='3', choices=['2', '3', '2,3'])
-    parser.addoption('--processor', default='cpu', choices=['gpu', 'cpu', 'cpu,gpu'])
+    parser.addoption('--processor', default='cpu', choices=['gpu', 'cpu', 'cpu,gpu', 'eia'])
     parser.addoption('--aws-id', default=None)
     parser.addoption('--instance-type', default=None)
     parser.addoption('--accelerator-type', default=None)
@@ -110,7 +110,8 @@ def docker_image(docker_base_name, tag):
 
 @pytest.fixture(scope='session')
 def ecr_image(aws_id, docker_base_name, tag, region):
-    return '{}.dkr.ecr.{}.amazonaws.com/{}:{}'.format(aws_id, region, docker_base_name, tag)
+    registry = get_ecr_registry(aws_id, region)
+    return '{}/{}:{}'.format(registry, docker_base_name, tag)
 
 
 @pytest.fixture(scope='session')
@@ -141,3 +142,10 @@ def skip_py2_containers(request, tag):
     if request.node.get_closest_marker('skip_py2_containers'):
         if 'py2' in tag:
             pytest.skip('Skipping python2 container with tag {}'.format(tag))
+
+
+@pytest.fixture(autouse=True)
+def skip_eia_containers(request, docker_base_name):
+    if request.node.get_closest_marker('skip_eia_containers'):
+        if 'eia' in docker_base_name:
+            pytest.skip('Skipping eia container with tag {}'.format(docker_base_name))

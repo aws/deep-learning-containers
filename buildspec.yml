@@ -12,6 +12,7 @@ phases:
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - pip install -r src/requirements.txt
       - bash src/setup.sh $FRAMEWORK
+      - yamllint -d .yamllint *.yml
   build:
     commands:
       - echo Build started on `date`
@@ -40,4 +41,3 @@ artifacts:
     - $HOME/test_type_images.json
   name: DLC_IMAGES_JSON
   discard-paths: yes
-
