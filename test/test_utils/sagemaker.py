@@ -161,7 +161,6 @@ def install_custom_python(python_version, ec2_conn):
     :param ec2_conn:
     :return:
     """
-    print("install py3.6")
     ec2_conn.run("sudo add-apt-repository ppa:deadsnakes/ppa -y && sudo apt-get update")
     ec2_conn.run(f"sudo apt-get install python{python_version} -y ")
     ec2_conn.run(f"wget https://bootstrap.pypa.io/get-pip.py && sudo python{python_version} get-pip.py")
@@ -186,9 +185,7 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     if framework == "tensorflow" and job_type == "inference":
         # TF inference test fail if run as soon as instance boots, even after health check pass. rootcause:
         # sockets?/nginx startup?/?
-        print("sleep 100s for tensorflow inference images to avoid socket issues")
-        sleep(100)
-    install_custom_python("3.6", ec2_conn)
+        install_custom_python("3.6", ec2_conn)
     ec2_conn.run(f"virtualenv env")
     ec2_conn.run(f"source ./env/bin/activate")
     if framework == "pytorch":
