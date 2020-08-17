@@ -93,7 +93,7 @@ def aws_id(request):
 @pytest.fixture(scope='session')
 def tag(request, framework_version, processor, py_version):
     provided_tag = request.config.getoption('--tag')
-    default_tag = f'{framework_version}-{processor}-{py_version}'
+    default_tag = '{}-{}-{}'.format(framework_version, processor, py_version)
     return provided_tag if provided_tag is not None else default_tag
 
 
@@ -106,18 +106,18 @@ def instance_type(request, processor):
 
 @pytest.fixture(scope='session')
 def docker_image(docker_base_name, tag):
-    return f'{docker_base_name}:{tag}'
+    return '{}:{}'.format(docker_base_name, tag)
 
 
 @pytest.fixture(scope='session')
 def ecr_image(aws_id, docker_base_name, tag, region):
     registry = get_ecr_registry(aws_id, region)
-    return f'{registry}/{docker_base_name}:{tag}'
+    return '{}/{}:{}'.format(registry, docker_base_name, tag)
 
 
 @pytest.fixture(scope='session')
 def image_uri(docker_base_name, tag):
-    return f'{docker_base_name}:{tag}'
+    return '{}:{}'.format(docker_base_name, tag)
 
 
 @pytest.fixture(scope='session')
@@ -139,7 +139,7 @@ def local_instance_type(processor):
 def skip_test_in_region(request, region):
     if request.node.get_closest_marker('skip_test_in_region'):
         if region == 'me-south-1':
-            pytest.skip(f'Skipping SageMaker test in region {region}')
+            pytest.skip('Skipping SageMaker test in region {}'.format(region))
 
 
 @pytest.fixture(autouse=True)
@@ -147,17 +147,17 @@ def skip_by_device_type(request, processor):
     is_gpu = (processor == 'gpu')
     if (request.node.get_closest_marker('skip_gpu') and is_gpu) or \
             (request.node.get_closest_marker('skip_cpu') and not is_gpu):
-        pytest.skip(f'Skipping because running on "{processor}" instance')
+        pytest.skip('Skipping because running on \'{}\' instance'.format(processor))
 
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
     if region in NO_P2_REGIONS and instance_type.startswith('ml.p2'):
-        pytest.skip(f'Skipping GPU test in region {region} to avoid insufficient capacity')
+        pytest.skip('Skipping GPU test in region {} to avoid insufficient capacity'.format(region))
 
 
 @pytest.fixture(autouse=True)
 def skip_py2_containers(request, tag):
     if request.node.get_closest_marker('skip_py2_containers'):
         if 'py2' in tag:
-            pytest.skip(f'Skipping python2 container with tag {tag}')
+            pytest.skip('Skipping python2 container with tag {}'.format(tag))
