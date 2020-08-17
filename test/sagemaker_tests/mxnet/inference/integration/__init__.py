@@ -48,4 +48,4 @@ def get_ecr_registry(account, region):
     :return: AWS ECR registry
     """
     endpoint_data = _botocore_resolver().construct_endpoint('ecr', region)
-    return f'{account}.dkr.{endpoint_data["hostname"]}'
+    return '{}.dkr.{}'.format(account, endpoint_data['hostname'])

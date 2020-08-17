@@ -92,11 +92,9 @@ def main():
                 run_test_job(commit, pr_test_job, images_str)
 
                 # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
-                # Note: Commenting out the following lines because there is currently no flag to turn off local
-                # sagemaker tests
-                # if test_type == "sagemaker":
-                #     test_job = f"dlc-pr-{test_type}-local-test"
-                #     run_test_job(commit, test_job, images_str)
+                if test_type == "sagemaker":
+                    test_job = f"dlc-pr-{test_type}-local-test"
+                    run_test_job(commit, test_job, images_str)
 
 
 if __name__ == "__main__":
