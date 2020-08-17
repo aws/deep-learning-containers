@@ -42,13 +42,13 @@ def volume(tmpdir_factory, request):
         shutil.copytree(model_src_dir, model_dir)
         shutil.copytree(test_example, code_dir)
 
-        volume_name = f'model_volume_1'
+        volume_name = 'model_volume_1'
         subprocess.check_call(
             'docker volume create --name {} --opt type=none '
             '--opt device={} --opt o=bind'.format(volume_name, model_dir).split())
         yield volume_name
     finally:
-        subprocess.check_call(f'docker volume rm {volume_name}'.split())
+        subprocess.check_call('docker volume rm {}'.format(volume_name).split())
 
 
 @pytest.fixture(scope='module', autouse=True)

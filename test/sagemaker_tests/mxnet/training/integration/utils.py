@@ -26,7 +26,7 @@ def unique_name_from_base(base, max_length=63):
     ts = str(int(time.time()))
     available_length = max_length - 2 - len(ts) - len(unique)
     trimmed = base[:available_length]
-    return f'{trimmed}-{ts}-{unique}'
+    return '{}-{}-{}'.format(trimmed, ts, unique)
 
 
 def _botocore_resolver():
@@ -46,4 +46,4 @@ def get_ecr_registry(account, region):
     :return: AWS ECR registry
     """
     endpoint_data = _botocore_resolver().construct_endpoint('ecr', region)
-    return f'{account}.dkr.{endpoint_data["hostname"]}'
+    return '{}.dkr.{}'.format(account, endpoint_data['hostname'])

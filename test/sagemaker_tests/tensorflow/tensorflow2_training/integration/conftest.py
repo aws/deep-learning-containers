@@ -75,7 +75,7 @@ def framework_version(request):
 @pytest.fixture
 def tag(request, framework_version, processor, py_version):
     provided_tag = request.config.getoption('--tag')
-    default_tag = f'{framework_version}-{processor}-py{py_version}'
+    default_tag = '{}-{}-py{}'.format(framework_version, processor, py_version)
     return provided_tag if provided_tag is not None else default_tag
 
 
@@ -120,29 +120,29 @@ def skip_by_device_type(request, processor):
     is_gpu = (processor == 'gpu')
     if (request.node.get_closest_marker('skip_gpu') and is_gpu) or \
             (request.node.get_closest_marker('skip_cpu') and not is_gpu):
-        pytest.skip(f'Skipping because running on "{processor}" instance')
+        pytest.skip('Skipping because running on \'{}\' instance'.format(processor))
 
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
     if (region in NO_P2_REGIONS and instance_type.startswith('ml.p2')) or \
             (region in NO_P3_REGIONS and instance_type.startswith('ml.p3')):
-        pytest.skip(f'Skipping GPU test in region {region}')
+        pytest.skip('Skipping GPU test in region {}'.format(region))
 
 
 @pytest.fixture
 def docker_image(docker_base_name, tag):
-    return f'{docker_base_name}:{tag}'
+    return '{}:{}'.format(docker_base_name, tag)
 
 
 @pytest.fixture
 def ecr_image(account_id, docker_base_name, tag, region):
     registry = get_ecr_registry(account_id, region)
-    return f'{registry}/{docker_base_name}:{tag}'
+    return '{}/{}:{}'.format(registry, docker_base_name, tag)
 
 
 @pytest.fixture(autouse=True)
 def skip_py2_containers(request, tag):
     if request.node.get_closest_marker('skip_py2_containers'):
         if 'py2' in tag:
-            pytest.skip(f'Skipping python2 container with tag {tag}')
+            pytest.skip('Skipping python2 container with tag {}'.format(tag))

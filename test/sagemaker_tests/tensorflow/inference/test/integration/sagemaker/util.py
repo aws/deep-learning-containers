@@ -41,12 +41,12 @@ def get_ecr_registry(account, region):
     :return: AWS ECR registry
     """
     endpoint_data = _botocore_resolver().construct_endpoint('ecr', region)
-    return f'{account}.dkr.{endpoint_data["hostname"]}'
+    return '{}.dkr.{}'.format(account, endpoint_data['hostname'])
 
 
 def image_uri(registry, region, repo, tag):
     ecr_registry = get_ecr_registry(registry, region)
-    return f'{ecr_registry}/{repo}:{tag}'
+    return '{}/{}:{}'.format(ecr_registry, repo, tag)
 
 
 def _execution_role(boto_session):
@@ -86,21 +86,21 @@ def _production_variants(model_name, instance_type, accelerator_type):
 
 def _test_bucket(region, boto_session):
     domain_suffix = '.cn' if region in ('cn-north-1', 'cn-northwest-1') else ''
-    sts_regional_endpoint = f'https://sts.{region}.amazonaws.com{domain_suffix}'
+    sts_regional_endpoint = 'https://sts.{}.amazonaws.com{}'.format(region, domain_suffix)
     sts = boto_session.client(
         'sts',
         region_name=region,
         endpoint_url=sts_regional_endpoint
     )
     account = sts.get_caller_identity()['Account']
-    return f'sagemaker-{region}-{account}'
+    return 'sagemaker-{}-{}'.format(region, account)
 
 
 def find_or_put_model_data(region, boto_session, local_path):
     model_file = os.path.basename(local_path)
 
     bucket = _test_bucket(region, boto_session)
-    key = f'test-tfs/{model_file}'
+    key = 'test-tfs/{}'.format(model_file)
 
     s3 = boto_session.client('s3', region)
 
@@ -126,7 +126,7 @@ def find_or_put_model_data(region, boto_session, local_path):
         # file doesn't exist - upload it
         s3.upload_file(local_path, bucket, key)
 
-    return f's3://{bucket}/{key}'
+    return 's3://{}/{}'.format(bucket, key)
 
 
 @contextlib.contextmanager
@@ -135,7 +135,7 @@ def sagemaker_endpoint(sagemaker_client, model_name, instance_type, accelerator_
 
     # Add jitter so we can run tests in parallel without running into service side limits.
     delay = round(random.random()*5, 3)
-    logger.info(f'waiting for {delay} seconds')
+    logger.info('waiting for {} seconds'.format(delay))
     time.sleep(delay)
 
     production_variants = _production_variants(model_name, instance_type, accelerator_type)
@@ -149,7 +149,7 @@ def sagemaker_endpoint(sagemaker_client, model_name, instance_type, accelerator_
     finally:
         status = sagemaker_client.describe_endpoint(EndpointName=model_name)['EndpointStatus']
         if status != 'InService':
-            raise ValueError(f'failed to create endpoint {model_name}')
+            raise ValueError('failed to create endpoint {}'.format(model_name))
 
     try:
         yield model_name  # return the endpoint name
@@ -187,8 +187,8 @@ def _create_transform_job_request(model_name, batch_output, batch_input, instanc
 
 def _read_batch_output(region, boto_session, bucket, model_name):
     s3 = boto_session.client('s3', region)
-    output_file = f'/tmp/{model_name}.out'
-    s3.download_file(bucket, f'output/{model_name}/batch.csv.out', output_file)
+    output_file = '/tmp/{}.out'.format(model_name)
+    s3.download_file(bucket, 'output/{}/batch.csv.out'.format(model_name), output_file)
     return json.loads(open(output_file, 'r').read())['predictions']
 
 
@@ -197,11 +197,11 @@ def _wait_for_transform_job(region, boto_session, sagemaker_client, model_name, 
     job_runtime = 0
     while status == 'InProgress':
 
-        logger.info(f'Waiting for batch transform job {model_name} to finish')
+        logger.info('Waiting for batch transform job {} to finish'.format(model_name))
         time.sleep(poll)
         job_runtime += poll
         if job_runtime > timeout:
-            raise ValueError(f'Batch transform job {model_name} exceeded maximum runtime {timeout} seconds')
+            raise ValueError('Batch transform job {} exceeded maximum runtime {} seconds'.format(model_name, timeout))
 
         status = sagemaker_client.describe_transform_job(TransformJobName=model_name)['TransformJobStatus']
         if status == 'Completed':
@@ -210,9 +210,9 @@ def _wait_for_transform_job(region, boto_session, sagemaker_client, model_name, 
                                       bucket=_test_bucket(region, boto_session),
                                       model_name=model_name)
         if status == 'Failed':
-            raise ValueError(f'Failed to execute batch transform job {model_name}')
+            raise ValueError('Failed to execute batch transform job {}'.format(model_name))
         if status in ['Stopped', 'Stopping']:
-            raise ValueError(f'Batch transform job {model_name} was stopped')
+            raise ValueError('Batch transform job {} was stopped'.format(model_name))
 
 
 def run_batch_transform_job(region, boto_session, model_data, image_uri,
@@ -222,7 +222,7 @@ def run_batch_transform_job(region, boto_session, model_data, image_uri,
     with sagemaker_model(boto_session, sagemaker_client, image_uri, model_name, model_data):
         batch_input = find_or_put_model_data(region, boto_session, BATCH_CSV)
         bucket = _test_bucket(region, boto_session)
-        batch_output = f's3://{bucket}/output/{model_name}'
+        batch_output = 's3://{}/output/{}'.format(bucket, model_name)
 
         request = _create_transform_job_request(
             model_name=model_name, batch_input=batch_input,

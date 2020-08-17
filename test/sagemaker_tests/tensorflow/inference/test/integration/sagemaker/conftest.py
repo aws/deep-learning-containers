@@ -95,7 +95,7 @@ def registry(request, region):
         return request.config.getoption('--registry')
 
     domain_suffix = '.cn' if region in ('cn-north-1', 'cn-northwest-1') else ''
-    sts_regional_endpoint = f'https://sts.{region}.amazonaws.com{domain_suffix}'
+    sts_regional_endpoint = 'https://sts.{}.amazonaws.com{}'.format(region, domain_suffix)
 
     sts = boto3.client(
         'sts',
@@ -125,7 +125,7 @@ def unique_name_from_base(base, max_length=63):
     ts = str(int(time.time()))
     available_length = max_length - 2 - len(ts) - len(unique)
     trimmed = base[:available_length]
-    return f'{trimmed}-{ts}-{unique}'
+    return '{}-{}-{}'.format(trimmed, ts, unique)
 
 
 @pytest.fixture
@@ -137,7 +137,7 @@ def model_name():
 def skip_gpu_instance_restricted_regions(region, instance_type):
     if (region in NO_P2_REGIONS and instance_type.startswith('ml.p2')) or \
             (region in NO_P3_REGIONS and instance_type.startswith('ml.p3')):
-        pytest.skip(f'Skipping GPU test in region {region}')
+        pytest.skip('Skipping GPU test in region {}'.format(region))
 
 
 @pytest.fixture(autouse=True)
@@ -145,4 +145,4 @@ def skip_by_device_type(request, instance_type):
     is_gpu = instance_type[3] in ['g', 'p']
     if (request.node.get_closest_marker('skip_gpu') and is_gpu) or \
             (request.node.get_closest_marker('skip_cpu') and not is_gpu):
-        pytest.skip(f'Skipping because running on "{instance_type}" instance')
+        pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
