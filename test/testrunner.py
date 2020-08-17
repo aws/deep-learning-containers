@@ -198,7 +198,7 @@ def setup_eks_cluster(framework_name):
         eks_utils.eks_setup()
         eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
     except Exception:
-        eks_utils.delete_eks_cluster(cluster_name)
+        #eks_utils.delete_eks_cluster(cluster_name)
         raise
     return cluster_name
 
@@ -321,8 +321,8 @@ def main():
             else:
                 raise RuntimeError(pytest_cmds)
         finally:
-            if specific_test_type == "eks" and eks_cluster_name:
-                eks_utils.delete_eks_cluster(eks_cluster_name)
+            #if specific_test_type == "eks" and eks_cluster_name:
+            #    eks_utils.delete_eks_cluster(eks_cluster_name)
 
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
