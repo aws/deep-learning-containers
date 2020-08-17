@@ -26,7 +26,7 @@
   images:
     BuildINFMXNetInferencePy3DockerImage:
       <<: *INFERENCE_REPOSITORY
-      build: &MXNET_CPU_INFERENCE_PY3 false
+      build: &MXNET_INF_INFERENCE_PY3 false
       image_size_baseline: 5000
       device_type: &DEVICE_TYPE inf
       python_version: &DOCKER_PYTHON_VERSION py3
@@ -37,7 +37,7 @@
         <<: *INFERENCE_CONTEXT
     BuildINFMXNetInferencePy2DockerImage:
       <<: *INFERENCE_REPOSITORY
-      build: &MXNET_CPU_INFERENCE_PY2 false
+      build: &MXNET_INF_INFERENCE_PY2 false
       image_size_baseline: 5000
       device_type: &DEVICE_TYPE inf
       python_version: &DOCKER_PYTHON_VERSION py2
