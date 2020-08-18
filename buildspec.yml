@@ -12,7 +12,6 @@ phases:
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - pip install -r src/requirements.txt
       - bash src/setup.sh $FRAMEWORK
-      - yamllint -d .yamllint *.yml
   build:
     commands:
       - echo Build started on `date`
@@ -23,6 +22,12 @@ phases:
             python src/main.py --buildspec $FRAMEWORK/buildspec-tf1-eia.yml --framework $FRAMEWORK
           else
             python src/main.py --buildspec $FRAMEWORK/buildspec-eia.yml --framework $FRAMEWORK
+          fi
+        elif expr "${CODEBUILD_BUILD_ARN}" : ".*neuron" >/dev/null; then
+          if expr "${CODEBUILD_BUILD_ARN}" : ".*tensorflow-1" >/dev/null; then
+            python src/main.py --buildspec $FRAMEWORK/buildspec-tf1-neuron.yml --framework $FRAMEWORK
+          else
+            python src/main.py --buildspec $FRAMEWORK/buildspec-neuron.yml --framework $FRAMEWORK
           fi
         else
           if expr "${CODEBUILD_BUILD_ARN}" : ".*tensorflow-1" >/dev/null; then
