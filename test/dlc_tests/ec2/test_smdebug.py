@@ -16,6 +16,7 @@ SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", proc
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.timeout(120)
 def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
     # TODO: Remove this once test timeout has been debugged (failures especially on p2.8xlarge)
     if is_tf1(training):
@@ -44,6 +45,7 @@ def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.timeout(120)
 def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
     # TODO: Remove this once test timeout has been debugged (failures especially on m4.16xlarge)
     if is_tf1(training):
