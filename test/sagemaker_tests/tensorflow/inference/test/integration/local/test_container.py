@@ -80,7 +80,7 @@ def make_request(data, content_type='application/json', method='predict'):
     response = requests.post(BASE_URL, data=data, headers=headers)
     return json.loads(response.content.decode('utf-8'))
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict():
     x = {
@@ -90,7 +90,7 @@ def test_predict():
     y = make_request(json.dumps(x))
     assert y == {'predictions': [3.5, 4.0, 5.5]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_twice():
     x = {
@@ -102,7 +102,7 @@ def test_predict_twice():
     assert y == {'predictions': [3.5, 4.0, 5.5]}
     assert z == {'predictions': [3.5, 4.0, 5.5]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_two_instances():
     x = {
@@ -112,91 +112,91 @@ def test_predict_two_instances():
     y = make_request(json.dumps(x))
     assert y == {'predictions': [[3.5, 4.0, 5.5], [3.5, 4.0, 5.5]]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_jsons_json_content_type():
     x = '[1.0, 2.0, 5.0]\n[1.0, 2.0, 5.0]'
     y = make_request(x)
     assert y == {'predictions': [[3.5, 4.0, 5.5], [3.5, 4.0, 5.5]]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_jsonlines():
     x = '[1.0, 2.0, 5.0]\n[1.0, 2.0, 5.0]'
     y = make_request(x, 'application/jsonlines')
     assert y == {'predictions': [[3.5, 4.0, 5.5], [3.5, 4.0, 5.5]]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_jsons():
     x = '[1.0, 2.0, 5.0]\n[1.0, 2.0, 5.0]'
     y = make_request(x, 'application/jsons')
     assert y == {'predictions': [[3.5, 4.0, 5.5], [3.5, 4.0, 5.5]]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_jsons_2():
     x = '{"x": [1.0, 2.0, 5.0]}\n{"x": [1.0, 2.0, 5.0]}'
     y = make_request(x)
     assert y == {'predictions': [[3.5, 4.0, 5.5], [3.5, 4.0, 5.5]]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_generic_json():
     x = [1.0, 2.0, 5.0]
     y = make_request(json.dumps(x))
     assert y == {'predictions': [[3.5, 4.0, 5.5]]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_generic_json_two_instances():
     x = [[1.0, 2.0, 5.0], [1.0, 2.0, 5.0]]
     y = make_request(json.dumps(x))
     assert y == {'predictions': [[3.5, 4.0, 5.5], [3.5, 4.0, 5.5]]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_csv():
     x = '1.0'
     y = make_request(x, 'text/csv')
     assert y == {'predictions': [3.5]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_csv_with_zero():
     x = '0.0'
     y = make_request(x, 'text/csv')
     assert y == {'predictions': [3.0]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_csv_one_instance_three_values_with_zero():
     x = '0.0,2.0,5.0'
     y = make_request(x, 'text/csv')
     assert y == {'predictions': [[3.0, 4.0, 5.5]]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_csv_one_instance_three_values():
     x = '1.0,2.0,5.0'
     y = make_request(x, 'text/csv')
     assert y == {'predictions': [[3.5, 4.0, 5.5]]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_csv_two_instances_three_values():
     x = '1.0,2.0,5.0\n1.0,2.0,5.0'
     y = make_request(x, 'text/csv')
     assert y == {'predictions': [[3.5, 4.0, 5.5], [3.5, 4.0, 5.5]]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_csv_three_instances():
     x = '1.0\n2.0\n5.0'
     y = make_request(x, 'text/csv')
     assert y == {'predictions': [3.5, 4.0, 5.5]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_csv_wide_categorical_input():
     x = ('0.0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,0.0\n'   # noqa
@@ -210,7 +210,7 @@ def test_predict_csv_wide_categorical_input():
     assert 97 == sum(predictions[0])  # half_plus_three with row sum 14 and n = 30
     assert 100 == sum(predictions[1])  # half_plus_three with row sum 20 and n = 30
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_regress():
     x = {
@@ -221,7 +221,7 @@ def test_regress():
     y = make_request(json.dumps(x), method='regress')
     assert y == {'results': [3.5, 4.0]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_regress_one_instance():
     # tensorflow serving docs indicate response should have 'result' key,
@@ -235,20 +235,20 @@ def test_regress_one_instance():
     y = make_request(json.dumps(x), method='regress')
     assert y == {'results': [3.5]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_bad_input():
     y = make_request('whatever')
     assert 'error' in y
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_bad_input_instances():
     x = json.dumps({'junk': 'data'})
     y = make_request(x)
     assert y['error'].startswith('Failed to process element: 0 key: junk of \'instances\' list.')
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_no_custom_attributes_header():
     x = {
@@ -263,7 +263,7 @@ def test_predict_no_custom_attributes_header():
 
     assert y == {'predictions': [3.5, 4.0, 5.5]}
 
-
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
 @pytest.mark.model("half_plus_three")
 def test_predict_with_jsonlines():
     x = {

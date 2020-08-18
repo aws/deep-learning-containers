@@ -245,20 +245,18 @@ Example:
        ```
    * To run the SageMaker local integration tests (aside from tensorflow_inference), use the pytest command below:
        ```
-       python3 -m  pytest -v integration/local --region us-west-2 \
+       python3 -m pytest -v integration/local --region us-west-2 \
        --docker-base-name {aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/beta-mxnet-inference \
         --tag 1.6.0-cpu-py36-ubuntu18.04 --framework-version 1.6.0 --processor cpu \
         --py-version 3
        ```
-
    * To test tensorflow_inference py3 images, run the command below:
      ```
      python3 -m  pytest -v integration/local \
      --docker-base-name {aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference \
      --tag 1.15.2-cpu-py36-ubuntu16.04 --framework-version 1.15.2 --processor cpu
      ```
-
-8) To run SageMaker remote tests on your account please setup following pre-requisites
+8. To run SageMaker remote tests on your account please setup following pre-requisites
 
     * Create an IAM role with name “SageMakerRole” in the above account and add the below AWS Manged policies
        ```
@@ -283,5 +281,36 @@ Example:
       --region us-west-2  --repo tensorflow-inference --instance-types ml.c5.18xlarge \
       --tag 1.15.2-py3-cpu-build
       ```
+9. To run SageMaker benchmark tests on your account please perform the following steps:
+    * Create a file named `sm_benchmark_env_settings.config` in the deep-learning-containers/ folder
+    * Add the following to the file (commented lines are optional):
+        ```shell script
+        export DLC_IMAGES="<image_uri_1-you-want-to-benchmark-test>"
+        # export DLC_IMAGES="$DLC_IMAGES <image_uri_2-you-want-to-benchmark-test>"
+        # export DLC_IMAGES="$DLC_IMAGES <image_uri_3-you-want-to-benchmark-test>"
+        export BUILD_CONTEXT=PR
+        export TEST_TYPE=benchmark-sagemaker
+        export CODEBUILD_RESOLVED_SOURCE_VERSION=$USER
+        export REGION=us-west-2
+        ```
+    * Run:
+        ```shell script
+        source sm_benchmark_env_settings.config
+        ```
+    * To test all images for multiple frameworks, run:
+        ```shell script
+        pip install -r requirements.txt
+        python test/testrunner.py
+        ```
+    * To test one individual framework image type, run:
+        ```shell script
+        # Assuming that the cwd is deep-learning-containers/
+        cd test/dlc_tests
+        pytest benchmark/sagemaker/<framework-name>/<image-type>/test_*.py
+        ```
+    * The scripts and model-resources used in these tests will be located at:
+        ```
+        deep-learning-containers/test/dlc_tests/benchmark/sagemaker/<framework-name>/<image-type>/resources/
+        ```
 
 Note: SageMaker does not support tensorflow_inference py2 images.
