@@ -1,4 +1,4 @@
 FROM ubuntu:16.04
 
-# Filler Dockerfile for inf
+# Placeholder Dockerfile for inf
 RUN apt-get update
