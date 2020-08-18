@@ -27,7 +27,7 @@
         target: dockerd-entrypoint.py
 
   images:
-    BuildINFTFInferencePy3DockerImage:
+    BuildNeuronTFInferencePy3DockerImage:
       <<: *INFERENCE_REPOSITORY
       build: &TENSORFLOW_CPU_INFERENCE_PY3 false
       image_size_baseline: 5000
