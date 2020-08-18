@@ -24,7 +24,6 @@ def test_performance_ec2_mxnet_training_gpu(mxnet_training, ec2_connection, gpu_
                                           threshold={"Throughput": MXNET_TRAINING_GPU_IMAGENET_THRESHOLD})
 
 
-
 @pytest.mark.integration("cifar10 dataset")
 @pytest.mark.model("resnet18_v2")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_CPU_INSTANCE_TYPE], indirect=True)
