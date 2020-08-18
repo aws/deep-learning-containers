@@ -329,6 +329,9 @@ def main():
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
 
     elif specific_test_type == "sagemaker":
+        if "neuron" in dlc_images:
+            LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
+            return
         if benchmark_mode:
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
             os.chdir(os.path.join("test", "dlc_tests"))
@@ -344,6 +347,9 @@ def main():
         metrics_utils.send_test_duration_metrics(start_time)
 
     elif specific_test_type == "sagemaker-local":
+        if "neuron" in dlc_images:
+            LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
+            return
         testing_image_list = [image for image in standard_images_list if
                               not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))]
         run_sagemaker_local_tests(testing_image_list)
