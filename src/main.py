@@ -41,7 +41,9 @@ def main():
 
     # A NEURON dedicated builder will work if in NEURON mode and its framework has not been disabled
     neuron_builder_enabled = (
-        neuron_dedicated and build_config.ENABLE_INF_MODE and args.framework not in build_config.DISABLE_FRAMEWORK_TESTS
+        neuron_dedicated
+        and build_config.ENABLE_NEURON_MODE
+        and args.framework not in build_config.DISABLE_FRAMEWORK_TESTS
     )
 
     utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
