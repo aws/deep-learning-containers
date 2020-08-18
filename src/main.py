@@ -24,14 +24,14 @@ def main():
     # create the empty json file for images
     build_context = os.getenv("BUILD_CONTEXT")
     ei_dedicated = os.getenv("EIA_DEDICATED") == "True"
-    inf_dedicated = os.getenv("INF_DEDICATED") == "True"
+    neuron_dedicated = os.getenv("NEURON_DEDICATED") == "True"
 
-    # A general will work if in non-EI and non-INF mode and its framework not been disabled
+    # A general will work if in non-EI and non-NEURON mode and its framework not been disabled
     general_builder_enabled = (
         not ei_dedicated
-        and not inf_dedicated
+        and not neuron_dedicated
         and not build_config.ENABLE_EI_MODE
-        and not build_config.ENABLE_INF_MODE
+        and not build_config.ENABLE_NEURON_MODE
         and args.framework not in build_config.DISABLE_FRAMEWORK_TESTS
     )
     # An EI dedicated builder will work if in EI mode and its framework not been disabled
@@ -39,14 +39,14 @@ def main():
         ei_dedicated and build_config.ENABLE_EI_MODE and args.framework not in build_config.DISABLE_FRAMEWORK_TESTS
     )
 
-    # An INF dedicated builder will work if in INF mode and its framework has not been disabled
-    inf_builder_enabled = (
-        inf_dedicated and build_config.ENABLE_INF_MODE and args.framework not in build_config.DISABLE_FRAMEWORK_TESTS
+    # A NEURON dedicated builder will work if in NEURON mode and its framework has not been disabled
+    neuron_builder_enabled = (
+        neuron_dedicated and build_config.ENABLE_INF_MODE and args.framework not in build_config.DISABLE_FRAMEWORK_TESTS
     )
 
     utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
     # A builder will always work if it is in non-PR context
-    if general_builder_enabled or ei_builder_enabled or inf_builder_enabled or build_context != "PR":
+    if general_builder_enabled or ei_builder_enabled or neuron_builder_enabled or build_context != "PR":
         utils.build_setup(
             args.framework, device_types=device_types, image_types=image_types, py_versions=py_versions,
         )
