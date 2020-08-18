@@ -5,7 +5,6 @@ import random
 import sys
 
 import boto3
-from botocore.config import Config
 from botocore.exceptions import ClientError
 import docker
 import pytest
@@ -41,7 +40,10 @@ FRAMEWORK_FIXTURES = (
     "eia",
     "pytorch_inference_eia",
     "mxnet_inference_eia",
-    "tensorflow_inference_eia"
+    "tensorflow_inference_eia",
+    "tensorflow_inference_neuron",
+    "pytorch_inference_neuron",
+    "mxnet_inference_neuron"
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
