@@ -87,7 +87,7 @@ def aws_id(request):
 @pytest.fixture(scope='session')
 def tag(request, framework_version, processor, py_version):
     provided_tag = request.config.getoption('--tag')
-    default_tag = f'{framework_version}-{processor}-{py_version}'
+    default_tag = '{}-{}-{}'.format(framework_version, processor, py_version)
     return provided_tag if provided_tag is not None else default_tag
 
 
@@ -105,13 +105,13 @@ def accelerator_type(request):
 
 @pytest.fixture(scope='session')
 def docker_image(docker_base_name, tag):
-    return f'{docker_base_name}:{tag}'
+    return '{}:{}'.format(docker_base_name, tag)
 
 
 @pytest.fixture(scope='session')
 def ecr_image(aws_id, docker_base_name, tag, region):
     registry = get_ecr_registry(aws_id, region)
-    return f'{registry}/{docker_base_name}:{tag}'
+    return '{}/{}:{}'.format(registry, docker_base_name, tag)
 
 
 @pytest.fixture(scope='session')
@@ -134,18 +134,18 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
     no_p2 = region in NO_P2_REGIONS and instance_type.startswith('ml.p2')
     no_p3 = region in NO_P3_REGIONS and instance_type.startswith('ml.p3')
     if no_p2 or no_p3:
-        pytest.skip(f'Skipping GPU test in region {region} to avoid insufficient capacity')
+        pytest.skip('Skipping GPU test in region {} to avoid insufficient capacity'.format(region))
 
 
 @pytest.fixture(autouse=True)
 def skip_py2_containers(request, tag):
     if request.node.get_closest_marker('skip_py2_containers'):
         if 'py2' in tag:
-            pytest.skip(f'Skipping python2 container with tag {tag}')
+            pytest.skip('Skipping python2 container with tag {}'.format(tag))
 
 
 @pytest.fixture(autouse=True)
 def skip_eia_containers(request, docker_base_name):
     if request.node.get_closest_marker('skip_eia_containers'):
         if 'eia' in docker_base_name:
-            pytest.skip(f'Skipping eia container with tag {docker_base_name}')
+            pytest.skip('Skipping eia container with tag {}'.format(docker_base_name))

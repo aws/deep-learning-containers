@@ -97,6 +97,7 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
 
 
+@pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
@@ -104,6 +105,7 @@ def test_mxnet_inference_telemetry_gpu(mxnet_inference, ec2_connection, gpu_only
     execute_ec2_inference_test(ec2_connection, mxnet_inference, MX_TELEMETRY_CMD)
 
 
+@pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
