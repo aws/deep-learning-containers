@@ -15,6 +15,7 @@ language governing permissions and limitations under the License.
 from datetime import datetime
 
 from docker import APIClient
+from docker import DockerClient
 
 import constants
 
@@ -54,6 +55,19 @@ class DockerImage:
 
     def __getattr__(self, name):
         return self.info[name]
+
+    def collect_installed_packages_information(self):
+        """
+        Returns an array with outcomes of the commands listed in the 'commands' array
+        """
+        docker_client = DockerClient(base_url=constants.DOCKER_URL)
+        command_responses = []
+        commands = ["pip list", "dpkg-query -Wf '${Installed-Size}\\t${Package}\\n'", "apt list --installed"]
+        for command in commands:
+            command_responses.append(f"\n{command}")
+            command_responses.append(bytes.decode(docker_client.containers.run(self.ecr_url, command)))
+        docker_client.containers.prune()
+        return command_responses
 
     def build(self):
         """
@@ -115,11 +129,10 @@ class DockerImage:
             if self.summary["image_size"] > self.info["image_size_baseline"] * 1.20:
                 response.append("Image size baseline exceeded")
                 response.append(f"{self.summary['image_size']} > 1.2 * {self.info['image_size_baseline']}")
-                self.log = response
-                self.build_status = constants.FAIL
-                self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
-                self.summary["end_time"] = datetime.now()
-                return self.build_status
+                response += self.collect_installed_packages_information()
+                self.build_status = constants.FAIL_IMAGE_SIZE_LIMIT
+            else:
+                self.build_status = constants.SUCCESS
 
             for line in self.client.push(
                 self.repository, self.tag, stream=True, decode=True
@@ -138,7 +151,6 @@ class DockerImage:
                 else:
                     response.append(str(line))
 
-            self.build_status = constants.SUCCESS
             self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
             self.summary["end_time"] = datetime.now()
             self.summary["ecr_url"] = self.ecr_url
