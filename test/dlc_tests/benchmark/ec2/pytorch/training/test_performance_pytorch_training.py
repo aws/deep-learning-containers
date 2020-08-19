@@ -18,9 +18,7 @@ from src.benchmark_metrics import (
 )
 
 PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX,
-    "benchmark",
-    "run_pytorch_training_performance_gpu_synthetic",
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_training_performance_gpu_synthetic",
 )
 PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_training_performance_gpu_imagenet"
@@ -31,12 +29,8 @@ PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
 
 
 @pytest.mark.model("resnet50")
-@pytest.mark.parametrize(
-    "ec2_instance_type", [PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE], indirect=True
-)
-def test_performance_pytorch_gpu_synthetic(
-    pytorch_training, ec2_connection, gpu_only, py3_only
-):
+@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE], indirect=True)
+def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu_only, py3_only):
     execute_ec2_training_performance_test(
         ec2_connection,
         pytorch_training,
@@ -48,15 +42,9 @@ def test_performance_pytorch_gpu_synthetic(
 
 
 @pytest.mark.model("resnet50")
-@pytest.mark.parametrize(
-    "ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True
-)
-@pytest.mark.parametrize(
-    "ec2_instance_type", [PT_EC2_GPU_IMAGENET_INSTANCE_TYPE], indirect=True
-)
-def test_performance_pytorch_gpu_imagenet(
-    pytorch_training, ec2_connection, gpu_only, py3_only
-):
+@pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_IMAGENET_INSTANCE_TYPE], indirect=True)
+def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_only, py3_only):
     execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD
     )
@@ -71,14 +59,10 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(
-        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
-    )
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
     connection.run(f"nvidia-docker pull -q {ecr_uri}")
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
-    log_name = (
-        f"imagenet_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
-    )
+    log_name = f"imagenet_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
     # Run training command, display benchmark results to console
     try:
@@ -103,9 +87,7 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     )
 
 
-def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance(
-    connection, log_location
-):
+def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance(connection, log_location):
     last_lines = connection.run(f"tail {log_location}").stdout.split("\n")
     throughput = 0
     for line in reversed(last_lines):
@@ -115,17 +97,11 @@ def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance(
     return {"Throughput": throughput}
 
 
-def post_process_pytorch_gpu_py3_imagenet_ec2_training_performance(
-    connection, log_location
-):
+def post_process_pytorch_gpu_py3_imagenet_ec2_training_performance(connection, log_location):
     log_content = connection.run(f"cat {log_location}").stdout.split("\n")
     cost = None
     for line in reversed(log_content):
         if "took time" in line:
-            cost = float(
-                re.search(r"(took time:[ ]*)(?P<cost>[0-9]+\.?[0-9]+)", line).group(
-                    "cost"
-                )
-            )
+            cost = float(re.search(r"(took time:[ ]*)(?P<cost>[0-9]+\.?[0-9]+)", line).group("cost"))
             break
     return {"Cost": cost}

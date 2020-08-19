@@ -97,10 +97,7 @@ def launch_instance(
         "MaxCount": 1,
         "MinCount": 1,
         "TagSpecifications": [
-            {
-                "ResourceType": "instance",
-                "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}],
-            },
+            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}],},
         ],
     }
     if user_data:
@@ -135,9 +132,7 @@ def launch_instance(
 
 
 def get_ec2_client(region):
-    return boto3.client(
-        "ec2", region_name=region, config=Config(retries={"max_attempts": 10})
-    )
+    return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
 
 def get_instance_from_id(instance_id, region=DEFAULT_REGION):
@@ -182,9 +177,7 @@ def get_public_ip_from_private_dns(private_dns, region=DEFAULT_REGION):
     :return: <str> IP Address of instance with matching private DNS
     """
     client = boto3.Session(region_name=region).client("ec2")
-    response = client.describe_instances(
-        Filters={"Name": "private-dns-name", "Value": [private_dns]}
-    )
+    response = client.describe_instances(Filters={"Name": "private-dns-name", "Value": [private_dns]})
     return response.get("Reservations")[0].get("Instances")[0].get("PublicIpAddress")
 
 
@@ -266,9 +259,7 @@ def get_system_state(instance_id, region=DEFAULT_REGION):
 
 
 @retry(stop_max_attempt_number=96, wait_fixed=10000)
-def check_system_state(
-    instance_id, system_status="ok", instance_status="ok", region=DEFAULT_REGION
-):
+def check_system_state(instance_id, system_status="ok", instance_status="ok", region=DEFAULT_REGION):
     """
     Compares the system state (Health Checks).
     Retries 96 times with 10 seconds gap between retries
@@ -376,9 +367,7 @@ def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_R
     :param region: Region where query will be performed
     :return: <int> Number of GPUs on instance with matching instance ID
     """
-    assert (
-        instance_id or instance_type
-    ), "Input must be either instance_id or instance_type"
+    assert instance_id or instance_type, "Input must be either instance_id or instance_type"
     instance_info = (
         get_instance_type_details(instance_type, region=region)
         if instance_type
@@ -397,9 +386,7 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     """
     user = get_instance_user(instance_id, region=region)
     conn = Connection(
-        user=user,
-        host=get_public_ip(instance_id, region),
-        connect_kwargs={"key_filename": [instance_pem_file]},
+        user=user, host=get_public_ip(instance_id, region), connect_kwargs={"key_filename": [instance_pem_file]},
     )
     return conn
 
@@ -415,18 +402,14 @@ def execute_ec2_training_test(
     container_name="ec2_training_container",
 ):
     if executable not in ("bash", "python"):
-        raise RuntimeError(
-            f"This function only supports executing bash or python commands on containers"
-        )
+        raise RuntimeError(f"This function only supports executing bash or python commands on containers")
     if executable == "bash":
         executable = os.path.join(os.sep, "bin", "bash")
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(
-        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
-    )
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
@@ -437,9 +420,7 @@ def execute_ec2_training_test(
         hide=True,
     )
     return connection.run(
-        f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
-        hide=True,
-        timeout=3000,
+        f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'", hide=True, timeout=3000,
     )
 
 
@@ -448,9 +429,7 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(
-        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
-    )
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     # Run training command
     connection.run(
@@ -466,13 +445,7 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
 
 
 def execute_ec2_training_performance_test(
-    connection,
-    ecr_uri,
-    test_cmd,
-    region=DEFAULT_REGION,
-    post_process=None,
-    data_source="",
-    threshold=None,
+    connection, ecr_uri, test_cmd, region=DEFAULT_REGION, post_process=None, data_source="", threshold=None,
 ):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
@@ -482,9 +455,7 @@ def execute_ec2_training_performance_test(
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(
-        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
-    )
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
@@ -496,33 +467,19 @@ def execute_ec2_training_performance_test(
         f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
     )
     ec2_performance_upload_result_to_s3_and_validate(
-        connection,
-        ecr_uri,
-        log_location,
-        data_source,
-        threshold,
-        post_process,
-        log_name,
+        connection, ecr_uri, log_location, data_source, threshold, post_process, log_name,
     )
 
 
 def execute_ec2_inference_performance_test(
-    connection,
-    ecr_uri,
-    test_cmd,
-    region=DEFAULT_REGION,
-    post_process=None,
-    data_source="",
-    threshold=None,
+    connection, ecr_uri, test_cmd, region=DEFAULT_REGION, post_process=None, data_source="", threshold=None,
 ):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
     log_name = f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(
-        f"$(aws ecr get-login --no-include-email --region {region})", hide=True
-    )
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
     # Run training command, display benchmark results to console
@@ -535,8 +492,7 @@ def execute_ec2_inference_performance_test(
     )
     try:
         connection.run(
-            f"{docker_cmd} exec --user root {container_name} "
-            f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
+            f"{docker_cmd} exec --user root {container_name} " f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
         )
     except Exception as e:
         raise Exception("Failed to exec benchmark command.\n", e)
@@ -544,39 +500,20 @@ def execute_ec2_inference_performance_test(
         connection.run(f"docker rm -f {container_name}")
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
     ec2_performance_upload_result_to_s3_and_validate(
-        connection,
-        ecr_uri,
-        log_location,
-        data_source,
-        threshold,
-        post_process,
-        log_name,
+        connection, ecr_uri, log_location, data_source, threshold, post_process, log_name,
     )
 
 
 def ec2_performance_upload_result_to_s3_and_validate(
     connection, ecr_uri, log_location, data_source, threshold, post_process, log_name
 ):
-    framework = (
-        "tensorflow"
-        if "tensorflow" in ecr_uri
-        else "mxnet"
-        if "mxnet" in ecr_uri
-        else "pytorch"
-    )
+    framework = "tensorflow" if "tensorflow" in ecr_uri else "mxnet" if "mxnet" in ecr_uri else "pytorch"
     framework_version = re.search(r"\d+(\.\d+){2}", ecr_uri).group()
     py_version = "py2" if "py2" in ecr_uri else "py37" if "py37" in ecr_uri else "py3"
     processor = "gpu" if "gpu" in ecr_uri else "cpu"
     work_type = "training" if "training" in ecr_uri else "inference"
     s3_location = os.path.join(
-        BENCHMARK_RESULTS_S3_BUCKET,
-        framework,
-        framework_version,
-        "ec2",
-        work_type,
-        processor,
-        py_version,
-        log_name,
+        BENCHMARK_RESULTS_S3_BUCKET, framework, framework_version, "ec2", work_type, processor, py_version, log_name,
     )
     params = {"connection": connection, "log_location": log_location}
     if "threshold" in signature(post_process).parameters:
@@ -588,9 +525,7 @@ def ec2_performance_upload_result_to_s3_and_validate(
         else "ms"
         if work_type == "inference" and framework == "pytorch"
         else "s/epoch"
-        if work_type == "training"
-        and framework == "pytorch"
-        and data_source == "imagenet"
+        if work_type == "training" and framework == "pytorch" and data_source == "imagenet"
         else "images/sec"
     )
     description = "p99 latency " if unit == "s" or unit == "ms" else ""
@@ -632,10 +567,7 @@ def post_process_inference(connection, log_location, threshold):
             for key in threshold.keys():
                 if key in line:
                     performance_number[key] = float(
-                        re.search(
-                            r"(p99[ ]*(Latency)?[ ]*:[ ]*)(?P<result>[0-9]+\.?[0-9]+)",
-                            line,
-                        ).group("result")
+                        re.search(r"(p99[ ]*(Latency)?[ ]*:[ ]*)(?P<result>[0-9]+\.?[0-9]+)", line,).group("result")
                     )
                     break
     return performance_number
@@ -647,9 +579,7 @@ def post_process_mxnet_ec2_performance(connection, log_location):
     n = 0
     for line in log_content:
         if "samples/sec" in line:
-            throughput = re.search(
-                r"((?P<throughput>[0-9]+\.?[0-9]+)[ ]+samples/sec)", line
-            ).group("throughput")
+            throughput = re.search(r"((?P<throughput>[0-9]+\.?[0-9]+)[ ]+samples/sec)", line).group("throughput")
             total += float(throughput)
             n += 1
     if total and n:

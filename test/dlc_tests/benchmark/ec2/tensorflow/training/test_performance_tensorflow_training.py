@@ -17,14 +17,10 @@ TF_PERFORMANCE_TRAINING_CPU_SYNTHETIC_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_tensorflow_training_performance_cpu"
 )
 TF_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX,
-    "benchmark",
-    "run_tensorflow_training_performance_gpu_synthetic",
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_tensorflow_training_performance_gpu_synthetic",
 )
 TF_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX,
-    "benchmark",
-    "run_tensorflow_training_performance_gpu_imagenet",
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_tensorflow_training_performance_gpu_imagenet",
 )
 
 TF_EC2_GPU_INSTANCE_TYPE = "p3.16xlarge"
@@ -53,9 +49,7 @@ def test_performance_tensorflow_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.integration("synthetic dataset")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
-def test_performance_tensorflow_gpu_synthetic(
-    tensorflow_training, ec2_connection, gpu_only
-):
+def test_performance_tensorflow_gpu_synthetic(tensorflow_training, ec2_connection, gpu_only):
     threshold = (
         TENSORFLOW2_TRAINING_GPU_SYNTHETIC_THRESHOLD
         if is_tf2(tensorflow_training)
@@ -74,9 +68,7 @@ def test_performance_tensorflow_gpu_synthetic(
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
-def test_performance_tensorflow_gpu_imagenet(
-    tensorflow_training, ec2_connection, gpu_only
-):
+def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection, gpu_only):
     threshold = (
         TENSORFLOW2_TRAINING_GPU_IMAGENET_THRESHOLD
         if is_tf2(tensorflow_training)
@@ -97,10 +89,6 @@ def post_process_tensorflow_training_performance(connection, log_location):
     throughput = 0
     for line in reversed(last_lines):
         if "images/sec:" in line:
-            throughput = float(
-                re.search(
-                    r"(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line
-                ).group("throughput")
-            )
+            throughput = float(re.search(r"(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput"))
             break
     return {"Throughput": throughput}

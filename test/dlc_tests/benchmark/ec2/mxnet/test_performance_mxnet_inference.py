@@ -26,9 +26,7 @@ MX_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50_v2")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GPU_INSTANCE_TYPE], indirect=True)
-def test_performance_ec2_mxnet_inference_gpu(
-    mxnet_inference, ec2_connection, gpu_only, py3_only
-):
+def test_performance_ec2_mxnet_inference_gpu(mxnet_inference, ec2_connection, gpu_only, py3_only):
     execute_ec2_inference_performance_test(
         ec2_connection,
         mxnet_inference,
@@ -42,9 +40,7 @@ def test_performance_ec2_mxnet_inference_gpu(
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50_v2")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_CPU_INSTANCE_TYPE], indirect=True)
-def test_performance_ec2_mxnet_inference_cpu(
-    mxnet_inference, ec2_connection, cpu_only, py3_only
-):
+def test_performance_ec2_mxnet_inference_cpu(mxnet_inference, ec2_connection, cpu_only, py3_only):
     execute_ec2_inference_performance_test(
         ec2_connection,
         mxnet_inference,
