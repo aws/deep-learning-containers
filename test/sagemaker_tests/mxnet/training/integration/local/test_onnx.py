@@ -14,15 +14,19 @@ from __future__ import absolute_import
 
 import os
 
+import pytest
+
 from sagemaker.mxnet import MXNet
 
-import local_mode_utils
-from test.integration import RESOURCE_PATH
+from ...integration.local import local_mode_utils
+from ...integration import RESOURCE_PATH
 
 ONNX_PATH = os.path.join(RESOURCE_PATH, 'onnx')
 SCRIPT_PATH = os.path.join(ONNX_PATH, 'code', 'onnx_export.py')
 
 
+@pytest.mark.integration("onnx")
+@pytest.mark.model("onnx_model")
 def test_onnx_export(docker_image, sagemaker_local_session, local_instance_type, framework_version,
                      tmpdir):
     mx = MXNet(entry_point=SCRIPT_PATH, role='SageMakerRole', train_instance_count=1,

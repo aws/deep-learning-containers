@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if ls /usr/local/cuda/include | grep curand; then
+    echo "Curand package is present in the Image"
+else
+    echo "Curand package is not present in the Image"
+    exit 1
+fi
+
+exit 0

@@ -95,6 +95,8 @@ def run_test(sagemaker_session, ecr_image, instance_type, framework_version, tes
                       job_name=unique_name_from_base('test-sagemaker-pipemode'))
 
 
+@pytest.mark.integration("pipemode")
+@pytest.mark.model("N/A")
 def test_single_record(sagemaker_session, ecr_image, instance_type, framework_version,
                        single_record_test_data):
     run_test(sagemaker_session,
@@ -105,6 +107,8 @@ def test_single_record(sagemaker_session, ecr_image, instance_type, framework_ve
              'RecordIO')
 
 
+@pytest.mark.integration("pipemode")
+@pytest.mark.model("N/A")
 def test_multi_records(sagemaker_session, ecr_image, instance_type, framework_version,
                        multi_records_test_data):
     run_test(sagemaker_session,

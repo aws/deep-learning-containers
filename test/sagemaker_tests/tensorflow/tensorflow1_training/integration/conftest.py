@@ -20,7 +20,7 @@ import pytest
 from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
 
-from ..integration import NO_P2_REGIONS, NO_P3_REGIONS
+from ..integration import NO_P2_REGIONS, NO_P3_REGIONS, get_ecr_registry
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
@@ -41,6 +41,15 @@ def pytest_addoption(parser):
     parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37'])
     parser.addoption('--account-id', default='142577830533')
     parser.addoption('--instance-type', default=None)
+    parser.addoption('--generate-coverage-doc', default=False, action='store_true',
+                     help='use this option to generate test coverage doc')
+
+
+def pytest_collection_modifyitems(session, config, items):
+    if config.getoption("--generate-coverage-doc"):
+        from test.test_utils.test_reporting import TestReportGenerator
+        report_generator = TestReportGenerator(items, is_sagemaker=True)
+        report_generator.generate_coverage_doc(framework="tensorflow_1", job_type="training")
 
 
 def pytest_configure(config):
@@ -135,5 +144,5 @@ def skip_py2_containers(request, tag):
 
 @pytest.fixture
 def ecr_image(account_id, docker_base_name, tag, region):
-    return '{}.dkr.ecr.{}.amazonaws.com/{}:{}'.format(
-        account_id, region, docker_base_name, tag)
+    registry = get_ecr_registry(account_id, region)
+    return '{}/{}:{}'.format(registry, docker_base_name, tag)

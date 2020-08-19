@@ -24,7 +24,7 @@ import tempfile
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
-from .utils import image_utils
+from .utils import image_utils, get_ecr_registry
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
@@ -38,9 +38,10 @@ logging.getLogger('connectionpool.py').setLevel(logging.INFO)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 NO_P2_REGIONS = ['ap-east-1', 'ap-northeast-3', 'ap-southeast-2', 'ca-central-1', 'eu-central-1', 'eu-north-1',
-                 'eu-west-2', 'eu-west-3', 'us-west-1', 'sa-east-1', 'me-south-1']
+                 'eu-west-2', 'eu-west-3', 'us-west-1', 'sa-east-1', 'me-south-1', 'cn-northwest-1']
 NO_P3_REGIONS = ['ap-east-1', 'ap-northeast-3', 'ap-southeast-1', 'ap-southeast-2', 'ap-south-1', 'ca-central-1',
-                 'eu-central-1', 'eu-north-1', 'eu-west-2', 'eu-west-3', 'sa-east-1', 'us-west-1', 'me-south-1']
+                 'eu-central-1', 'eu-north-1', 'eu-west-2', 'eu-west-3', 'sa-east-1', 'us-west-1', 'me-south-1',
+                 'cn-northwest-1']
 
 
 def pytest_addoption(parser):
@@ -48,15 +49,24 @@ def pytest_addoption(parser):
     parser.addoption('--build-base-image', '-B', action='store_true')
     parser.addoption('--aws-id')
     parser.addoption('--instance-type')
-    parser.addoption('--accelerator-type')
+    parser.addoption('--accelerator-type', default=None)
     parser.addoption('--docker-base-name', default='pytorch')
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default=PyTorch.LATEST_VERSION)
     parser.addoption('--py-version', choices=['2', '3'], default=str(sys.version_info.major))
     # Processor is still "cpu" for EIA tests
-    parser.addoption('--processor', choices=['gpu', 'cpu'], default='cpu')
+    parser.addoption('--processor', choices=['gpu', 'cpu', 'eia'], default='cpu')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
+    parser.addoption('--generate-coverage-doc', default=False, action='store_true',
+                     help='use this option to generate test coverage doc')
+
+
+def pytest_collection_modifyitems(session, config, items):
+    if config.getoption("--generate-coverage-doc"):
+        from test.test_utils.test_reporting import TestReportGenerator
+        report_generator = TestReportGenerator(items, is_sagemaker=True)
+        report_generator.generate_coverage_doc(framework="pytorch", job_type="inference")
 
 
 @pytest.fixture(scope='session', name='docker_base_name')
@@ -157,7 +167,7 @@ def fixture_accelerator_type(request):
 
 @pytest.fixture(name='docker_registry', scope='session')
 def fixture_docker_registry(aws_id, region):
-    return '{}.dkr.ecr.{}.amazonaws.com'.format(aws_id, region)
+    return get_ecr_registry(aws_id, region)
 
 
 @pytest.fixture(name='ecr_image', scope='session')

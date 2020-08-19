@@ -51,10 +51,6 @@ http {
         %FORWARD_INVOCATION_REQUESTS%;
     }
 
-    location ~ ^/models/(.*)/invoke {
-        js_content invocations;
-    }
-
     location /models {
         proxy_pass http://gunicorn_upstream/models;
     }

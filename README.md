@@ -10,7 +10,7 @@ The AWS DLCs are used in Amazon SageMaker as the default vehicles for your SageM
 transforms etc. They've been tested for machine
 learning workloads on Amazon EC2, Amazon ECS and Amazon EKS services as well.
 
-The list of DLC images is maintained [here](available_images.md). 
+For the list of available DLC images, see [Available Deep Learning Containers Images](available_images.md). 
 You can find more information on the images available in Sagemaker [here](https://docs.aws.amazon.com/sagemaker/latest/dg/pre-built-containers-frameworks-deep-learning.html)
 
 ## License
@@ -166,6 +166,7 @@ inference images, add it under training_context or inference_context.
     ```
 4. Build the container as described above.
 ### Adding a package
+The following steps outline how to add a package to your image. For more information on customizing your container, see [Building AWS Deep Learning Containers Custom Images](custom_images.md).
 1. Suppose you want to add a package to the MXNet 1.6.0 py3 GPU docker image, then change the dockerfile from:
     ```
     # mxnet/training/docker/1.6.0/py3/Dockerfile.gpu
@@ -244,20 +245,18 @@ Example:
        ```
    * To run the SageMaker local integration tests (aside from tensorflow_inference), use the pytest command below:
        ```
-       python3 -m  pytest -v integration/local --region us-west-2 \
+       python3 -m pytest -v integration/local --region us-west-2 \
        --docker-base-name {aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/beta-mxnet-inference \
         --tag 1.6.0-cpu-py36-ubuntu18.04 --framework-version 1.6.0 --processor cpu \
         --py-version 3
        ```
-
    * To test tensorflow_inference py3 images, run the command below:
      ```
      python3 -m  pytest -v integration/local \
      --docker-base-name {aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference \
      --tag 1.15.2-cpu-py36-ubuntu16.04 --framework-version 1.15.2 --processor cpu
      ```
-
-8) To run SageMaker remote tests on your account please setup following pre-requisites
+8. To run SageMaker remote tests on your account please setup following pre-requisites
 
     * Create an IAM role with name “SageMakerRole” in the above account and add the below AWS Manged policies
        ```
@@ -282,5 +281,36 @@ Example:
       --region us-west-2  --repo tensorflow-inference --instance-types ml.c5.18xlarge \
       --tag 1.15.2-py3-cpu-build
       ```
+9. To run SageMaker benchmark tests on your account please perform the following steps:
+    * Create a file named `sm_benchmark_env_settings.config` in the deep-learning-containers/ folder
+    * Add the following to the file (commented lines are optional):
+        ```shell script
+        export DLC_IMAGES="<image_uri_1-you-want-to-benchmark-test>"
+        # export DLC_IMAGES="$DLC_IMAGES <image_uri_2-you-want-to-benchmark-test>"
+        # export DLC_IMAGES="$DLC_IMAGES <image_uri_3-you-want-to-benchmark-test>"
+        export BUILD_CONTEXT=PR
+        export TEST_TYPE=benchmark-sagemaker
+        export CODEBUILD_RESOLVED_SOURCE_VERSION=$USER
+        export REGION=us-west-2
+        ```
+    * Run:
+        ```shell script
+        source sm_benchmark_env_settings.config
+        ```
+    * To test all images for multiple frameworks, run:
+        ```shell script
+        pip install -r requirements.txt
+        python test/testrunner.py
+        ```
+    * To test one individual framework image type, run:
+        ```shell script
+        # Assuming that the cwd is deep-learning-containers/
+        cd test/dlc_tests
+        pytest benchmark/sagemaker/<framework-name>/<image-type>/test_*.py
+        ```
+    * The scripts and model-resources used in these tests will be located at:
+        ```
+        deep-learning-containers/test/dlc_tests/benchmark/sagemaker/<framework-name>/<image-type>/resources/
+        ```
 
 Note: SageMaker does not support tensorflow_inference py2 images.

@@ -14,12 +14,16 @@ from __future__ import absolute_import
 
 import os
 
+import pytest
+
 from sagemaker.mxnet import MXNet
 
-import local_mode_utils
-from test.integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
+from ...integration.local import local_mode_utils
+from ...integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
 
 
+@pytest.mark.integration("linear_regression")
+@pytest.mark.model("linear_regression")
 def test_linear_regression(docker_image, sagemaker_local_session, local_instance_type,
                            framework_version, tmpdir):
     lr_path = os.path.join(RESOURCE_PATH, 'linear_regression')

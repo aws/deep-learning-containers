@@ -23,6 +23,9 @@ from ...integration import model_cpu_dir, mnist_cpu_script, mnist_gpu_script, mo
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
+@pytest.mark.model("mnist")
+@pytest.mark.multinode("multinode")
+@pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
 def test_mnist_distributed_cpu(sagemaker_session, ecr_image, instance_type):
     instance_type = instance_type or 'ml.c4.xlarge'
@@ -30,6 +33,9 @@ def test_mnist_distributed_cpu(sagemaker_session, ecr_image, instance_type):
     _test_mnist_distributed(sagemaker_session, ecr_image, instance_type, model_dir, mnist_cpu_script)
 
 
+@pytest.mark.model("mnist")
+@pytest.mark.multinode("multinode")
+@pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 def test_mnist_distributed_gpu(sagemaker_session, ecr_image, instance_type):
     instance_type = instance_type or 'ml.p2.xlarge'
@@ -37,6 +43,9 @@ def test_mnist_distributed_gpu(sagemaker_session, ecr_image, instance_type):
     _test_mnist_distributed(sagemaker_session, ecr_image, instance_type, model_dir, mnist_gpu_script)
 
 
+@pytest.mark.model("mnist")
+@pytest.mark.integration("elastic_inference")
+@pytest.mark.processor("eia")
 @pytest.mark.eia_test
 def test_mnist_eia(sagemaker_session, ecr_image, instance_type, accelerator_type):
     instance_type = instance_type or 'ml.c4.xlarge'

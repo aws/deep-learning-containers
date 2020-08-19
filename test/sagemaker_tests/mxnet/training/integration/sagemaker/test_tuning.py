@@ -14,6 +14,8 @@ from __future__ import absolute_import
 
 import os
 
+import pytest
+
 from sagemaker import utils
 from sagemaker.mxnet.estimator import MXNet
 from sagemaker.tuner import ContinuousParameter, HyperparameterTuner
@@ -25,6 +27,8 @@ DATA_PATH = os.path.join(RESOURCE_PATH, 'mnist')
 SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist.py')
 
 
+@pytest.mark.integration("hpo")
+@pytest.mark.model("mnist")
 def test_tuning(sagemaker_session, ecr_image, instance_type):
     mx = MXNet(entry_point=SCRIPT_PATH,
                role='SageMakerRole',

@@ -1,0 +1,53 @@
+apiVersion: kubeflow.org/v1alpha2
+kind: MPIJob
+metadata:
+  name: <JOB_NAME>
+spec:
+  slotsPerWorker: 1
+  cleanPodPolicy: Running
+  mpiReplicaSpecs:
+    Launcher:
+      replicas: 1
+      template:
+         spec:
+           containers:
+           - image: <CONTAINER_IMAGE>
+             name: <JOB_NAME>
+             command:
+              - mpirun
+              - -mca
+              - btl_tcp_if_exclude
+              - lo
+              - -mca
+              - pml
+              - ob1
+              - -mca
+              - btl
+              - ^openib
+              - --bind-to
+              - none
+              - -map-by
+              - slot
+              - -x
+              - LD_LIBRARY_PATH
+              - -x
+              - PATH
+              - -x
+              - NCCL_SOCKET_IFNAME=eth0
+              - -x
+              - NCCL_DEBUG=INFO
+              - -x
+              - MXNET_CUDNN_AUTOTUNE_DEFAULT=0
+              - python
+              - <SCRIPT_NAME>
+             args: <ARGS>
+    Worker:
+      replicas: <NUM_WORKERS>
+      template:
+        spec:
+          containers:
+          - image: <CONTAINER_IMAGE>
+            name: tensorflow-worker
+            resources:
+              limits:
+                nvidia.com/gpu: <GPUS>

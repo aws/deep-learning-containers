@@ -25,6 +25,9 @@ DGL_DATA_PATH = os.path.join(resources_path, 'dgl-gcn')
 DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, 'gcn.py')
 
 
+@pytest.mark.integration("dgl")
+@pytest.mark.processor("cpu")
+@pytest.mark.model("gcn")
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
 def test_dgl_gcn_training_cpu(sagemaker_session, ecr_image, instance_type):
@@ -32,6 +35,9 @@ def test_dgl_gcn_training_cpu(sagemaker_session, ecr_image, instance_type):
     _test_dgl_training(sagemaker_session, ecr_image, instance_type)
 
 
+@pytest.mark.integration("dgl")
+@pytest.mark.processor("gpu")
+@pytest.mark.model("gcn")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_dgl_gcn_training_gpu(sagemaker_session, ecr_image, instance_type):
