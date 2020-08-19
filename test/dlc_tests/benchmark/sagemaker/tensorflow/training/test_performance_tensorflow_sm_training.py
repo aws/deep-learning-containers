@@ -13,7 +13,7 @@ from src.benchmark_metrics import (
     TENSORFLOW2_SM_TRAINING_GPU_1NODE_THRESHOLD,
     TENSORFLOW2_SM_TRAINING_GPU_4NODE_THRESHOLD,
 )
-from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER, is_tf1
+from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
 
 
 @pytest.mark.integration("imagenet dataset")
@@ -39,7 +39,7 @@ def run_sm_perf_test(image_uri, num_nodes, region):
     TODO: Refactor the above setup function to be more obviously connected to this function,
     TODO: and install requirements via a requirements.txt file
 
-    :param tensorflow_training: ECR image URI
+    :param image_uri: ECR image URI
     :param num_nodes: Number of nodes to run on
     :param region: AWS region
     """
@@ -59,8 +59,7 @@ def run_sm_perf_test(image_uri, num_nodes, region):
         BENCHMARK_RESULTS_S3_BUCKET, "tensorflow", framework_version, "sagemaker", "training", processor, py_version
     )
     training_job_name = (
-        f"tf{framework_version[0]}-tr-bench-{processor}-{num_nodes}-node-{py_version}"
-        f"-{commit_info[:7]}-{time_str}"
+        f"tf{framework_version[0]}-tr-bench-{processor}-{num_nodes}-node-{py_version}" f"-{commit_info[:7]}-{time_str}"
     )
 
     # Inserting random sleep because this test starts multiple training jobs around the same time, resulting in
@@ -74,31 +73,28 @@ def run_sm_perf_test(image_uri, num_nodes, region):
 
     with ctx.cd(test_dir), ctx.prefix(f"source {venv_dir}/bin/activate"):
         log_file = f"results-{commit_info}-{time_str}-{framework_version}-{processor}-{py_version}-{num_nodes}-node.txt"
-        run_out = ctx.run(f"timeout 45m python tf_sm_benchmark.py "
-                          f"--framework-version {framework_version} "
-                          f"--image-uri {image_uri} "
-                          f"--instance-type ml.{ec2_instance_type} "
-                          f"--node-count {num_nodes} "
-                          f"--python {py_version} "
-                          f"--region {region} "
-                          f"--job-name {training_job_name}"
-                          f"2>&1 | tee {log_file}",
-                          warn=True, echo=True)
+        run_out = ctx.run(
+            f"timeout 45m python tf_sm_benchmark.py "
+            f"--framework-version {framework_version} "
+            f"--image-uri {image_uri} "
+            f"--instance-type ml.{ec2_instance_type} "
+            f"--node-count {num_nodes} "
+            f"--python {py_version} "
+            f"--region {region} "
+            f"--job-name {training_job_name}"
+            f"2>&1 | tee {log_file}",
+            warn=True,
+            echo=True,
+        )
 
         if not (run_out.ok or run_out.return_code == 124):
             target_upload_location = os.path.join(target_upload_location, "failure_log")
 
-    ctx.run(
-        f"aws s3 cp {os.path.join(test_dir, log_file)} {os.path.join(target_upload_location, log_file)}"
-    )
+    ctx.run(f"aws s3 cp {os.path.join(test_dir, log_file)} {os.path.join(target_upload_location, log_file)}")
 
-    LOGGER.info(
-        f"Test results can be found at {os.path.join(target_upload_location, log_file)}"
-    )
+    LOGGER.info(f"Test results can be found at {os.path.join(target_upload_location, log_file)}")
 
-    result_statement, throughput = _print_results_of_test(
-        os.path.join(test_dir, log_file), processor
-    )
+    result_statement, throughput = _print_results_of_test(os.path.join(test_dir, log_file), processor)
     throughput /= num_nodes
 
     assert run_out.ok, (
@@ -107,11 +103,7 @@ def run_sm_perf_test(image_uri, num_nodes, region):
     )
 
     threshold = (
-        (
-            TENSORFLOW2_SM_TRAINING_CPU_1NODE_THRESHOLD
-            if num_nodes == 1
-            else TENSORFLOW2_SM_TRAINING_CPU_4NODE_THRESHOLD
-        )
+        (TENSORFLOW2_SM_TRAINING_CPU_1NODE_THRESHOLD if num_nodes == 1 else TENSORFLOW2_SM_TRAINING_CPU_4NODE_THRESHOLD)
         if processor == "cpu"
         else TENSORFLOW2_SM_TRAINING_GPU_1NODE_THRESHOLD
         if num_nodes == 1
@@ -136,9 +128,7 @@ def _print_results_of_test(file_path, processor):
             if "Total img/sec on " in line:
                 result = line + "\n"
                 throughput = float(
-                    re.search(
-                        r"(CPU\(s\):[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line
-                    ).group("throughput")
+                    re.search(r"(CPU\(s\):[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
                 )
                 break
     elif processor == "gpu":
@@ -149,9 +139,7 @@ def _print_results_of_test(file_path, processor):
                 result_dict[key] = line.strip("\n")
                 if throughput == 0:
                     throughput = float(
-                        re.search(
-                            r"(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line
-                        ).group("throughput")
+                        re.search(r"(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
                     )
         result = "\n".join(result_dict.values()) + "\n"
     LOGGER.info(result)
