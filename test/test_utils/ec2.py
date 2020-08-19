@@ -9,7 +9,6 @@ from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
-
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, CONTAINER_TESTS_PREFIX, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
@@ -409,7 +408,6 @@ def execute_ec2_training_test(
     if connection == None:
         print("Running test in local mode.")
         return os.system(f"{executable} -c '{test_cmd}'")
-    
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
