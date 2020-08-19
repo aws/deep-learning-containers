@@ -65,20 +65,6 @@ def test_distributed_training_horovod_basic_two_nodes_two_processes(
     )
 
 
-@pytest.mark.processor("cpu")
-@pytest.mark.multinode(5)
-@pytest.mark.integration("horovod")
-@pytest.mark.model("mnist")
-@pytest.mark.skip_gpu
-@pytest.mark.parametrize("instances, processes", [(5, 2)])
-def test_distributed_training_horovod_basic_five_nodes_two_processes(
-    instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
-):
-    _run_distributed_training_horovod_basic(
-        instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
-    )
-
-
 def _run_distributed_training_horovod_basic(
     instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
 ):
