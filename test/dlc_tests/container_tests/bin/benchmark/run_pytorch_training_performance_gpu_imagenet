@@ -47,7 +47,7 @@ echo Preparation Stage took $(( DIFF/60 )) mins to finish>&2
 
 echo Benchmark started: >&2
 START=$(date +%s)
-trigger_test "100m" "run" 2>&1 | tee "${LOG_FILE}"
+trigger_test "60m" "run" 2>&1 | tee "${LOG_FILE}"
 END=$(date +%s)
 DIFF=$(( END - START ))
 echo Script took $(( DIFF/60 )) mins to finish >> "${LOG_FILE}"
