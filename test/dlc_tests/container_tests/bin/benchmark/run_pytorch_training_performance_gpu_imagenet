@@ -5,11 +5,9 @@ if [ "$PYTHON_VERSION" -eq 2 ]
 then
   exit 0
 fi
-TIMESTAMP=$(date "+%Y-%m-%d-%H-%M-%S")
 HOME_DIR=/test/benchmark
 BIN_DIR=${HOME_DIR}/bin
-LOG_DIR=${HOME_DIR}/logs/gpu
-LOG_FILE=image_results_${COMMIT_INFO}_${TIMESTAMP}.txt
+LOG_DIR=${HOME_DIR}/logs
 
 mkdir -p ${HOME_DIR}
 mkdir -p ${BIN_DIR}
@@ -49,15 +47,9 @@ echo Preparation Stage took $(( DIFF/60 )) mins to finish>&2
 
 echo Benchmark started: >&2
 START=$(date +%s)
-trigger_test "100m" "run" 2>&1 | tee ${LOG_DIR}/${LOG_FILE}
-python /test/bin/benchmark/get_pytorch_performance_num.py ${LOG_DIR}/"${LOG_FILE}" >> ${LOG_DIR}/"${LOG_FILE}"
+trigger_test "100m" "run" 2>&1 | tee "${LOG_FILE}"
 END=$(date +%s)
 DIFF=$(( END - START ))
-echo Script took $(( DIFF/60 )) mins to finish >> ${LOG_DIR}/"${LOG_FILE}"
-echo Benchmark Results: >&2
-echo PyTorch Training py"${PYTHON_VERSION}" gpu imagenet>&2
-tail -3 ${LOG_DIR}/${LOG_FILE} >&2 # Display only the results to console
-aws s3 cp ${LOG_DIR}/"${LOG_FILE}" s3://dlinfra-dlc-cicd-performance/pytorch/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}"
-echo To retrieve complete benchmark log, check s3://dlinfra-dlc-cicd-performance/pytorch/ec2/training/gpu/py"${PYTHON_VERSION}"/"${LOG_FILE}" >&2
+echo Script took $(( DIFF/60 )) mins to finish >> "${LOG_FILE}"
 
 exit 0
