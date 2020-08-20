@@ -3,7 +3,7 @@ set -e
 
 install_kfctl(){
     #install kfctl cli
-    KFCTL_VERSION = "v1.0.2"
+    KFCTL_VERSION="v1.0.2"
 
     if ! command -v kfctl &> /dev/null
     then
