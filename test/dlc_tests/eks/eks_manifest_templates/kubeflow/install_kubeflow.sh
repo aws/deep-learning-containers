@@ -1,14 +1,17 @@
 #!/bin/bash
 set -e
 
+
 install_kfctl(){
-    #install kfctl cli v1.0.2
+    #install kfctl cli
+    KFCTL_VERSION = "v1.0.2"
+
     if ! command -v kfctl &> /dev/null
     then
         echo "not installed"
-        KFCTL_URL=https://github.com/kubeflow/kfctl/releases/download/v1.0.2/kfctl_v1.0.2-0-ga476281_linux.tar.gz
-        curl --silent --location ${KFCTL_URL} -o /tmp/kfctl_v1.0.2_linux.tar.gz
-        tar -xvf /tmp/kfctl_v1.0.2_linux.tar.gz -C /tmp --strip-components=1
+        KFCTL_URL=https://github.com/kubeflow/kfctl/releases/download/KFCTL_VERSION/kfctl_${KFCTL_VERSION}-0-ga476281_linux.tar.gz
+        curl --silent --location ${KFCTL_URL} -o /tmp/kfctl_${KFCTL_VERSION}_linux.tar.gz
+        tar -xvf /tmp/kfctl_${KFCTL_VERSION}_linux.tar.gz -C /tmp --strip-components=1
         mv /tmp/kfctl /usr/local/bin
     fi
 }
@@ -16,7 +19,7 @@ install_kfctl(){
 setup_kubeflow(){
     #install kubeflow in EKS cluster
     REGION=$2
-    KUBEFLOW_URL="https://raw.githubusercontent.com/aws/deep-learning-containers/master/test/dlc_tests/eks/eks_manifest_templates/kubeflow/kfctl_aws_v1.0.2.yaml"
+    KUBEFLOW_URL="https://raw.githubusercontent.com/aws/deep-learning-containers/master/test/dlc_tests/eks/eks_manifest_templates/kubeflow/kfctl_aws.yaml"
     CONFIG_FILE=kfctl_aws.yaml
     wget -O ${CONFIG_FILE} ${KUBEFLOW_URL} 
     sed -i -e 's/<REGION>/'"$REGION"'/' ${CONFIG_FILE}

@@ -390,7 +390,7 @@ def eks_setup():
     run("aws-iam-authenticator version", echo=True)
 
 def setup_kubeflow(eks_cluster_name,region=os.getenv("AWS_REGION", DEFAULT_REGION)):
-    """Function to setup kubeflow v1.0.2, MPI and MXNET operators
+    """Function to setup kubeflow, MPI and MXNET operators
     """
 
     local_template_file_path = os.path.join(
