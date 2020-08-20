@@ -578,7 +578,7 @@ def post_process_mxnet_ec2_performance(connection, log_location):
     total = 0.0
     n = 0
     for line in log_content:
-        if "samples/sec" in line:
+        if "samples/sec" in line and "warmup" not in line:
             throughput = re.search(r"((?P<throughput>[0-9]+\.?[0-9]+)[ ]+samples/sec)", line).group("throughput")
             total += float(throughput)
             n += 1
