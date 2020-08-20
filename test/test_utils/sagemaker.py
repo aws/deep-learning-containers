@@ -181,7 +181,14 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     # To avoid the dpkg lock with apt-daily service if exists
     sleep(200)
     # using virtualenv to avoid package conflicts with the current packages
-    ec2_conn.run(f"sudo apt-get install virtualenv -y ")
+    bash_command = """
+            while pgrep -x apt-get > /dev/null; do 
+                echo "Waiting for apt-get process to finish"
+                sleep 5; 
+            done && sudo apt-get install virtualenv -y 
+            """
+    ec2_conn.run(bash_command)
+    
     if framework == "tensorflow" and job_type == "inference":
         # TF inference test fail if run as soon as instance boots, even after health check pass. rootcause:
         # sockets?/nginx startup?/?
