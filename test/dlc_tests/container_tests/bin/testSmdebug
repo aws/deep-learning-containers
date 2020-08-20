@@ -79,7 +79,7 @@ if [[ ${FRAMEWORK} == "tensorflow2" ]]; then
         if [ "$(printf '%s\n' "0.8.0" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.8.0" ]; then
             pytest mock/tests/zero_code_change/test_${FRAMEWORK}_gradtape_integration.py
         else
-            timeout 720s python mock/tests/zero_code_change/${FRAMEWORK}_gradtape_integration_tests.py
+            python mock/tests/zero_code_change/${FRAMEWORK}_gradtape_integration_tests.py
         fi
     fi
 fi
