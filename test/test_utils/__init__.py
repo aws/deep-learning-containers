@@ -12,6 +12,7 @@ import pytest
 from botocore.exceptions import ClientError
 from invoke import run
 from invoke.context import Context
+from packaging.version import LegacyVersion, Version, parse
 from retrying import retry
 
 LOGGER = logging.getLogger(__name__)
@@ -75,6 +76,16 @@ def is_tf20(image_uri):
     if "tensorflow" not in image_uri:
         return False
     return bool(re.search(r'2\.0\.\d+', image_uri))
+
+
+def get_inference_server_type(image_uri):
+    if "pytorch" not in image_uri:
+        return "mms"
+    image_tag = image_uri.split(':')[1]
+    pytorch_ver = parse(image_tag.split('-')[0])
+    if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"):
+        return "mms"
+    return "ts"
 
 
 def is_pr_context():
@@ -198,7 +209,7 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
-    if run_out.return_code != 0 or 'flowerpot' not in run_out.stdout:
+    if run_out.return_code != 0 or 'pot' not in run_out.stdout:
         return False
 
     return True
@@ -240,23 +251,30 @@ def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", 
     conn_run(f"python {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
-def get_mms_run_command(model_names, processor="cpu"):
+def get_inference_run_command(image_uri, model_names, processor="cpu"):
     """
     Helper function to format run command for MMS
+    :param image_uri:
     :param model_names:
     :param processor:
     :return: <str> Command to start MMS server with given model
     """
-    if processor != "eia":
+    server_type = get_inference_server_type(image_uri)
+    if processor == "eia":
+        multi_model_location = {
+            "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar",
+            "pytorch-densenet": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia.mar",
+        }
+    elif server_type == "ts":
+        multi_model_location = {
+            "squeezenet": "https://torchserve.s3.amazonaws.com/mar_files/squeezenet1_1.mar",
+            "pytorch-densenet": "https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar"
+        }
+    else:
         multi_model_location = {
             "squeezenet": "https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model",
             "pytorch-densenet": "https://dlc-samples.s3.amazonaws.com/pytorch/multi-model-server/densenet/densenet.mar",
             "bert_sst": "https://aws-dlc-sample-models.s3.amazonaws.com/bert_sst/bert_sst.mar"
-        }
-    else:
-        multi_model_location = {
-            "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar",
-            "pytorch-densenet": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia.mar",
         }
 
     if not isinstance(model_names, list):
@@ -271,9 +289,16 @@ def get_mms_run_command(model_names, processor="cpu"):
     parameters = [
         "{}={}".format(name, multi_model_location[name]) for name in model_names
     ]
-    multi_or_mxnet = "multi" if processor != "eia" else "mxnet"
+
+    if processor == "eia":
+        server_cmd = "mxnet-model-server"
+    elif server_type == "ts":
+        server_cmd = "torchserve"
+    else:
+        server_cmd = "multi-model-server"
+
     mms_command = (
-        f"{multi_or_mxnet}-model-server --start --mms-config /home/model-server/config.properties --models "
+        f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
         + " ".join(parameters)
     )
     return mms_command
