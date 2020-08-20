@@ -14,7 +14,7 @@ from src.benchmark_metrics import (
 BENCHMARK_SETTING = "True" if is_benchmark_dev_context() else "False"
 
 MX_PERFORMANCE_TRAINING_GPU_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", f"run_mxnet_training_performance_gpu {BENCHMARK_SETTING()}"
+    CONTAINER_TESTS_PREFIX, "benchmark", f"run_mxnet_training_performance_gpu {BENCHMARK_SETTING}"
 )
 MX_PERFORMANCE_TRAINING_CPU_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_mxnet_training_performance_cpu"

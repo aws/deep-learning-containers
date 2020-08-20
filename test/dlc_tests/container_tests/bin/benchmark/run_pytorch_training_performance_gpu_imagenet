@@ -1,5 +1,11 @@
 #!/bin/bash
 
+echo "$1"
+if [ "$1" == "True" ]
+then
+  echo Running in Benchmark dev mode >&2
+fi
+
 PYTHON_VERSION=$(python -c 'import sys; print(sys.version_info[0])' | tr -d "'")
 if [ "$PYTHON_VERSION" -eq 2 ]
 then
