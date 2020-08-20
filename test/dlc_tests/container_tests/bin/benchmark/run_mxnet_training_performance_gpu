@@ -21,7 +21,7 @@ git clone https://github.com/rahul003/deep-learning-benchmark-mirror.git ${HOME_
 EPOCH_SETTING="--num-epochs 20"
 if [ "$DEV_MODE" == "1" ]
 then
-  EPOCH_SETTING="--num-epochs 3"
+  EPOCH_SETTING=""
   echo Running in Benchmark dev mode >&2
 fi
 START=$(date +%s)
