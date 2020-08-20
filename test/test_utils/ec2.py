@@ -9,7 +9,6 @@ from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
-from src.config.test_config import ENABLE_BENCHMARK_DEV_MODE
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
 
 
