@@ -61,10 +61,13 @@ def run_test_job(commit, codebuild_project, images_str=""):
 def is_test_job_enabled(test_type):
     return (
         (test_type == constants.SAGEMAKER_TESTS and not test_config.DISABLE_SAGEMAKER_TESTS)
-        or (test_type == constants.ECS_TESTS and not test_config.DISABLE_ECS_TESTS)
+        or (test_type == constants.ECS_TESTS and not test_config.DISABLE_ECS_TESTS
+            and not test_config.ENABLE_BENCHMARK_DEV_MODE)
         or (test_type == constants.EC2_TESTS and not test_config.DISABLE_EC2_TESTS)
-        or (test_type == constants.EKS_TESTS and not test_config.DISABLE_EKS_TESTS)
-        or (test_type == constants.SANITY_TESTS and not test_config.DISABLE_SANITY_TESTS)
+        or (test_type == constants.EKS_TESTS and not test_config.DISABLE_EKS_TESTS
+            and not test_config.ENABLE_BENCHMARK_DEV_MODE)
+        or (test_type == constants.SANITY_TESTS and not test_config.DISABLE_SANITY_TESTS
+            and not test_config.ENABLE_BENCHMARK_DEV_MODE)
     )
 
 
@@ -92,7 +95,7 @@ def main():
                 run_test_job(commit, pr_test_job, images_str)
 
                 # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
-                if test_type == "sagemaker":
+                if test_type == "sagemaker" and not test_config.ENABLE_BENCHMARK_DEV_MODE:
                     test_job = f"dlc-pr-{test_type}-local-test"
                     run_test_job(commit, test_job, images_str)
 
