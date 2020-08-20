@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_benchmark_dev_context
 from test.test_utils.ec2 import (
     execute_ec2_training_performance_test,
     post_process_mxnet_ec2_performance,
@@ -13,7 +13,7 @@ from src.benchmark_metrics import (
 
 
 MX_PERFORMANCE_TRAINING_GPU_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", "run_mxnet_training_performance_gpu"
+    CONTAINER_TESTS_PREFIX, "benchmark", f"run_mxnet_training_performance_gpu {is_benchmark_dev_context()}"
 )
 MX_PERFORMANCE_TRAINING_CPU_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_mxnet_training_performance_cpu"

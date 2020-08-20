@@ -252,8 +252,7 @@ def main():
     eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
-    # test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
-    test_path = specific_test_type
+    test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
     if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary", "bai"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")

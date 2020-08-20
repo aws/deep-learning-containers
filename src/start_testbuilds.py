@@ -67,7 +67,8 @@ def is_test_job_enabled(test_type):
         or (test_type == constants.EC2_TESTS and not test_config.DISABLE_EC2_TESTS)
         or (test_type == constants.EKS_TESTS and not test_config.DISABLE_EKS_TESTS
             and not test_config.ENABLE_BENCHMARK_DEV_MODE)
-        or (test_type == constants.SANITY_TESTS and not test_config.DISABLE_SANITY_TESTS)
+        or (test_type == constants.SANITY_TESTS and not test_config.DISABLE_SANITY_TESTS
+            and not test_config.ENABLE_BENCHMARK_DEV_MODE)
     )
 
 

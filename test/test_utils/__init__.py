@@ -53,11 +53,6 @@ SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test w
 # Reason string for skipping tests in non-PR context
 PR_ONLY_REASON = "Skipping test that doesn't need to be run outside of PR context."
 
-# Reason string for skipping benchmark tests in PR context, even in benchmark_dev_context
-SKIP_PR_BENCHMARK_REASON = "Skipping this test even benchmark dev_context is enabled, " \
-                           "since it is taking too long time to complete in PR context. " \
-                           "Test will be run in nightly/release pipeline."
-
 KEYS_TO_DESTROY_FILE = os.path.join(os.sep, "tmp", "keys_to_destroy.txt")
 
 # Sagemaker test types
