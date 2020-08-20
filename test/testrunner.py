@@ -254,6 +254,7 @@ def main():
     specific_test_type = test_type if is_benchmark_dev_context else \
         re.sub("benchmark-", "", test_type) if benchmark_mode else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
+    test_path = specific_test_type
 
     if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary", "bai"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
