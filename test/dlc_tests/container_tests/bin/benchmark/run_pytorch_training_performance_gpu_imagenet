@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "$1"
+echo "$1" >&2
 if [ "$1" == "True" ]
 then
   echo Running in Benchmark dev mode >&2
