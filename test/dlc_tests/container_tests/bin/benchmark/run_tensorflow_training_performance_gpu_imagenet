@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "$1"  >&2
-if [ "$1" == "True" ]
+echo This is running in DEV_MODE "$DEV_MODE" >&2
+if [ "$DEV_MODE" == "1" ]
 then
   echo Running in Benchmark dev mode >&2
 fi
@@ -24,7 +24,7 @@ set -e
 git clone https://github.com/tensorflow/benchmarks.git ${HOME_DIR}/artifacts/tensorflow/benchmarks && cd ${HOME_DIR}/artifacts/tensorflow/benchmarks && git checkout ${GIT_BRANCH}
 START=$(date +%s)
 TRAINING_TIME="100m"
-if [ "$1" == "True" ]
+if [ "$DEV_MODE" == "1" ]
 then
   TRAINING_TIME="20m"
   echo Running in Benchmark dev mode >&2

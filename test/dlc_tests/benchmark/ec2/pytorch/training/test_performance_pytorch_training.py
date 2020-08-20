@@ -18,13 +18,12 @@ from src.benchmark_metrics import (
     PYTORCH_TRAINING_GPU_IMAGENET_THRESHOLD,
 )
 
-BENCHMARK_SETTING = "True" if is_benchmark_dev_context() else "False"
 
 PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_training_performance_gpu_synthetic",
 )
 PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", f"run_pytorch_training_performance_gpu_imagenet {BENCHMARK_SETTING}"
+    CONTAINER_TESTS_PREFIX, "benchmark", f"run_pytorch_training_performance_gpu_imagenet"
 )
 
 PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "p3.16xlarge"
@@ -72,6 +71,7 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
         connection.run(
             f"nvidia-docker run --user root "
             f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
+            f"-e DEV_MODE={1 if is_benchmark_dev_context() else 0} "
             f"--shm-size 8G --env OMP_NUM_THREADS=1 --name {container_name} "
             f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
             f"-v /home/ubuntu/:/root/:delegated "

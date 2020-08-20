@@ -2,7 +2,7 @@ import os
 import re
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf2, is_benchmark_dev_context
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf2
 from test.test_utils.ec2 import execute_ec2_training_performance_test
 from src.benchmark_metrics import (
     TENSORFLOW2_TRAINING_CPU_SYNTHETIC_THRESHOLD,
@@ -13,16 +13,15 @@ from src.benchmark_metrics import (
     TENSORFLOW1_TRAINING_GPU_IMAGENET_THRESHOLD,
 )
 
-BENCHMARK_SETTING = "True" if is_benchmark_dev_context() else "False"
 
 TF_PERFORMANCE_TRAINING_CPU_SYNTHETIC_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_tensorflow_training_performance_cpu"
 )
 TF_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", f"run_tensorflow_training_performance_gpu_synthetic {BENCHMARK_SETTING}",
+    CONTAINER_TESTS_PREFIX, "benchmark", f"run_tensorflow_training_performance_gpu_synthetic",
 )
 TF_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", f"run_tensorflow_training_performance_gpu_imagenet {BENCHMARK_SETTING}",
+    CONTAINER_TESTS_PREFIX, "benchmark", f"run_tensorflow_training_performance_gpu_imagenet",
 )
 
 TF_EC2_GPU_INSTANCE_TYPE = "p3.16xlarge"

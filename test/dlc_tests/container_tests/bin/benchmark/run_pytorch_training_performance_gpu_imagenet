@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "$1" >&2
-if [ "$1" == "True" ]
+echo This is running in DEV_MODE "$DEV_MODE" >&2
+if [ "$DEV_MODE" == "1" ]
 then
   echo Running in Benchmark dev mode >&2
 fi
@@ -54,7 +54,7 @@ echo Preparation Stage took $(( DIFF/60 )) mins to finish>&2
 echo Benchmark started: >&2
 START=$(date +%s)
 TRAINING_TIME="100m"
-if [ "$1" == "True" ]
+if [ "$DEV_MODE" == "1" ]
 then
   TRAINING_TIME="60m"
   echo Running in Benchmark dev mode >&2
