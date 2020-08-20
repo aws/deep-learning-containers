@@ -9,7 +9,9 @@ from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
+from src.config.test_config import ENABLE_BENCHMARK_DEV_MODE
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
+
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
@@ -537,7 +539,7 @@ def ec2_performance_upload_result_to_s3_and_validate(
         connection.run(f"echo {performance_statement} | sudo tee -a {log_location}")
         LOGGER.info(f"{performance_statement}")
     connection.run(f"aws s3 cp {log_location} {s3_location}")
-    connection.run(f"echo To retrieve complete benchmark log, check {s3_location} >&2")
+    LOGGER.info(f"To retrieve complete benchmark log, check {s3_location} >&2")
 
     def _assertion_results():
         if "Cost" in performance_number:

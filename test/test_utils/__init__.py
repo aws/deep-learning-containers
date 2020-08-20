@@ -14,7 +14,7 @@ from invoke import run
 from invoke.context import Context
 from packaging.version import LegacyVersion, Version, parse
 from retrying import retry
-from src.config.test_config import ENABLE_BENCHMARK_DEV_MODE
+from test.test_utils.ec2 import ENABLE_BENCHMARK_DEV_MODE
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
