@@ -537,7 +537,7 @@ def ec2_performance_upload_result_to_s3_and_validate(
         connection.run(f"echo {performance_statement} | sudo tee -a {log_location}")
         LOGGER.info(f"{performance_statement}")
     connection.run(f"aws s3 cp {log_location} {s3_location}")
-    LOGGER.info(f"To retrieve complete benchmark log, check {s3_location} >&2")
+    LOGGER.info(f"To retrieve complete benchmark log, check {s3_location}")
 
     def _assertion_results():
         if "Cost" in performance_number:
