@@ -14,6 +14,8 @@ from invoke import run
 from invoke.context import Context
 from packaging.version import LegacyVersion, Version, parse
 from retrying import retry
+
+sys.path.append("..")
 from ..dlc_tests import ENABLE_BENCHMARK_DEV_MODE
 
 LOGGER = logging.getLogger(__name__)
