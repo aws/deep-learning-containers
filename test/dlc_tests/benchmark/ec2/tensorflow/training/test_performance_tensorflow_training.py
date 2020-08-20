@@ -13,12 +13,11 @@ from src.benchmark_metrics import (
     TENSORFLOW1_TRAINING_GPU_IMAGENET_THRESHOLD,
 )
 
-
 TF_PERFORMANCE_TRAINING_CPU_SYNTHETIC_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_tensorflow_training_performance_cpu"
 )
 TF_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", f"run_tensorflow_training_performance_gpu_synthetic",
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_tensorflow_training_performance_gpu_synthetic",
 )
 TF_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", f"run_tensorflow_training_performance_gpu_imagenet",

@@ -13,7 +13,7 @@ from src.benchmark_metrics import (
 
 
 MX_PERFORMANCE_TRAINING_GPU_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "benchmark", f"run_mxnet_training_performance_gpu"
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_mxnet_training_performance_gpu"
 )
 MX_PERFORMANCE_TRAINING_CPU_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_mxnet_training_performance_cpu"
