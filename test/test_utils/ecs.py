@@ -8,7 +8,7 @@ import boto3
 
 from retrying import retry
 
-from test.test_utils import DEFAULT_REGION, get_mms_run_command, get_tensorflow_model_name
+from test.test_utils import DEFAULT_REGION, get_inference_run_command, get_tensorflow_model_name
 from test.test_utils import ec2 as ec2_utils
 
 
@@ -807,7 +807,7 @@ def setup_ecs_inference_service(
         print(f"Added environment variables: {arguments_dict['environment']}")
     elif framework in ["mxnet", "pytorch"]:
         arguments_dict["container_command"] = [
-            get_mms_run_command(model_name, processor)
+            get_inference_run_command(docker_image_uri, model_name, processor)
         ]
     if processor == "eia":
         arguments_dict["health_check"] = {
