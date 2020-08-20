@@ -78,13 +78,12 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     """
 
     training_result = False
-    ctx = Context()
     rand_int = random.randint(4001, 6000)
 
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
 
-    dgl_branch = eks_utils.get_dgl_branch(ctx, pytorch_training)
+    dgl_branch = "0.4.x"
 
     args = (
         f"git clone -b {dgl_branch} https://github.com/dmlc/dgl.git && "

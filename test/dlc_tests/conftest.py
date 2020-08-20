@@ -312,7 +312,10 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
     :param values_to_generate_for_fixture: <dict> Mapping of "Fixture used" -> "Fixture to be parametrized"
     :return: <dict> Mapping of "Fixture to be parametrized" -> "Unique values for fixture to be parametrized"
     """
+    job_type_map = {"training": "tr", "inference": "inf"}
+    framework_name_maps = {"tensorflow": "tf", "mxnet": "mx", "pytorch": "pt"}
     fixtures_parametrized = {}
+
     if images_to_parametrize:
         for key, new_fixture_name in values_to_generate_for_fixture.items():
             if key in metafunc_obj.fixturenames:
@@ -330,10 +333,15 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                                 break
 
                     image_tag = image.split(":")[-1].replace(".", "-")
+
+                    framework = image.split(":")[0].split("/")[1].split("-")[0]
+                    job_type = image.split(":")[0].split("/")[1].split("-")[1]
+
                     fixtures_parametrized[new_fixture_name].append(
                         (
                             image,
-                            f"{metafunc_obj.function.__name__}-{image_tag}-"
+                            f"{metafunc_obj.function.__name__}-{framework_name_maps.get(framework, '')}-"
+                            f"{job_type_map.get(job_type, '')}{image_tag}-"
                             f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}{instance_tag}",
                         )
                     )

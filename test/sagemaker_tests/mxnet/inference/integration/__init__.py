@@ -14,6 +14,9 @@ from __future__ import absolute_import
 
 import os
 
+import boto3
+import botocore
+
 RESOURCE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'resources'))
 
 # EI is currently only supported in the following regions
@@ -22,7 +25,27 @@ EI_SUPPORTED_REGIONS = ['us-east-1', 'us-east-2', 'us-west-2', 'eu-west-1', 'ap-
 
 # These regions have some p2 and p3 instances, but not enough for automated testing
 NO_P2_REGIONS = ['ca-central-1', 'eu-central-1', 'eu-west-2', 'us-west-1', 'eu-west-3',
-                 'eu-north-1', 'sa-east-1', 'ap-east-1', 'me-south-1']
+                 'eu-north-1', 'sa-east-1', 'ap-east-1', 'me-south-1', 'cn-northwest-1']
 NO_P3_REGIONS = ['ap-southeast-1', 'ap-southeast-2', 'ap-south-1', 'ca-central-1',
                  'eu-central-1', 'eu-west-2', 'us-west-1', 'eu-west-3', 'eu-north-1',
-                 'sa-east-1', 'ap-east-1', 'me-south-1']
+                 'sa-east-1', 'ap-east-1', 'me-south-1', 'cn-northwest-1']
+
+
+def _botocore_resolver():
+    """
+    Get the DNS suffix for the given region.
+    :return: endpoint object
+    """
+    loader = botocore.loaders.create_loader()
+    return botocore.regions.EndpointResolver(loader.load_data('endpoints'))
+
+
+def get_ecr_registry(account, region):
+    """
+    Get prefix of ECR image URI
+    :param account: Account ID
+    :param region: region where ECR repo exists
+    :return: AWS ECR registry
+    """
+    endpoint_data = _botocore_resolver().construct_endpoint('ecr', region)
+    return '{}.dkr.{}'.format(account, endpoint_data['hostname'])
