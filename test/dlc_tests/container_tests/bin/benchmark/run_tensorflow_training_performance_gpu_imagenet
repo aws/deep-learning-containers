@@ -1,11 +1,5 @@
 #!/bin/bash
 
-echo This is running in DEV_MODE "$DEV_MODE" >&2
-if [ "$DEV_MODE" == "1" ]
-then
-  echo Running in Benchmark dev mode >&2
-fi
-
 TF_VERSION=$(python -c 'import tensorflow as tf; print(tf.__version__[0])'| tr -d "'")
 GIT_BRANCH="cnn_tf_v1.13_compatible"
 if [ "$TF_VERSION" -eq 2 ]
