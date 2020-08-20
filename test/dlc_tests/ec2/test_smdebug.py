@@ -60,7 +60,7 @@ def run_smdebug_test(
         )
     except Exception:
         debug_output = ec2_connection.run(f"cat {logfile}")
-        LOGGER.error(f"Caught exception while trying to run test via fabric. Output: {debug_output}")
+        LOGGER.error(f"Caught exception while trying to run test via fabric. Output: {debug_output.stdout}")
         raise
 
     # LOGGER.info(test_output.stdout) # Uncomment this line for a complete log dump
