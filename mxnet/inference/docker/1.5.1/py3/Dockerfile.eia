@@ -7,8 +7,8 @@ LABEL dlc_major_version="1"
 
 ARG MMS_VERSION=1.1.2
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.6.8
-ARG HEALTH_CHECK_VERSION=1.6.3
+ARG PYTHON_VERSION=3.6.10
+ARG HEALTH_CHECK_VERSION=1.7.0
 
 RUN apt-get update \
  && apt-get -y install --no-install-recommends \
@@ -70,7 +70,7 @@ RUN pip install --no-cache-dir \
     https://s3.amazonaws.com/amazonei-apachemxnet/amazonei_mxnet-1.5.1-py2.py3-none-manylinux1_x86_64.whl \
     multi-model-server==$MMS_VERSION \
     keras-mxnet==2.2.4.1 \
-    numpy==1.17.4 \
+    numpy==1.19.1 \
     onnx==1.4.1 \
     "sagemaker-mxnet-inference<2"
 
