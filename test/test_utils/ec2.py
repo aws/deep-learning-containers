@@ -387,7 +387,6 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     return conn
 
 
-
 def execute_ec2_training_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION, executable="bash", large_shm=False, host_network=False,
                               container_name='ec2_training_container'):
     if executable not in ("bash", "python"):
