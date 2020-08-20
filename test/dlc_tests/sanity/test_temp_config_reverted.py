@@ -1,6 +1,11 @@
 import pytest
+import sys
+import logging
 from src.config.test_config import ENABLE_BENCHMARK_DEV_MODE
 
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 @pytest.mark.model("N/A")
 def test_benchmark_dev_mode_disabled():
