@@ -14,15 +14,8 @@ from invoke import run
 from invoke.context import Context
 from packaging.version import LegacyVersion, Version, parse
 from retrying import retry
+from src.config.test_config import ENABLE_BENCHMARK_DEV_MODE
 
-# from src.config.test_config import ENABLE_BENCHMARK_DEV_MODE #TODO: this line will throw error
-# Traceback (most recent call last):
-#   File "test/testrunner.py", line 16, in <module>
-#     from test_utils import eks as eks_utils
-#   File "/codebuild/output/src011798628/src/github.com/aws/deep-learning-containers/test/test_utils/__init__.py", line 17, in <module>
-#     from src.config.test_config import ENABLE_BENCHMARK_DEV_MODE
-# ModuleNotFoundError: No module named 'src'
-ENABLE_BENCHMARK_DEV_MODE = True
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
