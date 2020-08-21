@@ -180,6 +180,7 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     is_py3 = " python3 -m"
     # To avoid the dpkg lock with apt-daily service if exists
     sleep(200)
+    # waiting for apt-get process to complete if the process is in active state
     # using virtualenv to avoid package conflicts with the current packages
     bash_command = """
             while pgrep -x apt-get > /dev/null; do 
@@ -187,7 +188,7 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
                 sleep 5; 
             done && sudo apt-get install virtualenv -y 
             """
-    ec2_conn.run(bash_command)
+    ec2_conn.run(bash_command, timeout=500)
     
     if framework == "tensorflow" and job_type == "inference":
         # TF inference test fail if run as soon as instance boots, even after health check pass. rootcause:
