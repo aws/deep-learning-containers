@@ -197,16 +197,23 @@ def image_builder(buildspec):
             FORMATTER.table(image.summary.items())
 
         FORMATTER.title("Errors")
-        ANY_FAIL = False
+        is_any_build_failed = False
+        is_any_build_failed_size_limit = False
         for image in IMAGES:
             if image.build_status == constants.FAIL:
                 FORMATTER.title(image.name)
                 FORMATTER.print_lines(image.log[-10:])
-                ANY_FAIL = True
-        if ANY_FAIL:
+                is_any_build_failed = True
+            else:
+                if image.build_status == constants.FAIL_IMAGE_SIZE_LIMIT:
+                    is_any_build_failed_size_limit = True
+        if is_any_build_failed:
             raise Exception("Build failed")
         else:
-            FORMATTER.print("No errors")
+            if is_any_build_failed_size_limit:
+                FORMATTER.print("Build failed. Image size limit breached.")
+            else:
+                FORMATTER.print("No errors")
 
         FORMATTER.title("Uploading Metrics")
         metrics = Metrics(
@@ -218,10 +225,13 @@ def image_builder(buildspec):
             try:
                 metrics.push_image_metrics(image)
             except Exception as e:
-                if ANY_FAIL:
+                if is_any_build_failed or is_any_build_failed_size_limit:
                     raise Exception(f"Build failed.{e}")
                 else:
                     raise Exception(f"Build passed. {e}")
+
+        if is_any_build_failed_size_limit:
+            raise Exception("Build failed because of file limit")
 
         FORMATTER.separator()
 
