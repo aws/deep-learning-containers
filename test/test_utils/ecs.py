@@ -25,8 +25,6 @@ ECS_MXNET_PYTORCH_INFERENCE_PORT_MAPPINGS = [
     {"containerPort": 8080, "hostPort": 80, "protocol": "tcp"},
 ]
 
-ECS_INSTANCE_ROLE_ARN = "arn:aws:iam::669063966089:instance-profile/ecsInstanceRole"
-ECS_INSTANCE_ROLE_NAME = "ecsInstanceRole"
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
 
@@ -182,12 +180,17 @@ def attach_ecs_worker_node(worker_instance_type, ami_id, cluster_name, cluster_a
     """
     ecs_user_data = f"#!/bin/bash\necho ECS_CLUSTER={cluster_name} >> /etc/ecs/ecs.config"
 
+    sts_client = boto3.client('sts')
+    account_id = sts_client.get_caller_identity().get('Account')
+    ecs_role_name = "ecsInstanceRole"
+    ecs_instance_role_arn = f"arn:aws:iam::{account_id}:instance-profile/{ecs_role_name}"
+
     instc = ec2_utils.launch_instance(
         ami_id,
         region=region,
         instance_type=worker_instance_type,
         user_data=ecs_user_data,
-        iam_instance_profile_arn=ECS_INSTANCE_ROLE_ARN,
+        iam_instance_profile_arn=ecs_instance_role_arn,
         instance_name=f"ecs worker {cluster_name}",
         eia_capable=worker_eia_capable
     )
