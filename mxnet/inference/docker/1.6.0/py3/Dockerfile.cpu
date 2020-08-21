@@ -27,6 +27,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     TEMP=/home/model-server/tmp
 
 RUN apt-get update \
+ && apt-get -y install --no-install-recommends software-properties-common \
+ && add-apt-repository ppa:openjdk-r/ppa \
+ && apt-get update \
  && apt-get -y install --no-install-recommends \
     build-essential \
     ca-certificates \
@@ -34,7 +37,7 @@ RUN apt-get update \
     emacs \
     git \
     libopencv-dev \
-    openjdk-8-jdk-headless \
+    openjdk-11-jdk \
     vim \
     wget \
     zlib1g-dev \
@@ -64,13 +67,6 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
 
-RUN apt-get update \
- && apt-get -y install --no-install-recommends \
-    openjdk-8-jdk \
-    openjdk-8-jre \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
 RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
  && apt-get update \
  && apt remove -y --purge openssl \
@@ -87,7 +83,7 @@ RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
 # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
 # causing sslcertverificationerror the below steps are to fix that
 RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/ \
- && ln -s /usr/local/include/openssl /usr/include/openssl
+ && rm -f /usr/include/openssl
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
