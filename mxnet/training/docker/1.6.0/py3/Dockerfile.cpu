@@ -100,13 +100,13 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
     libc6-dev \
     libbz2-dev \
     tk-dev \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
  && make \
  && make install \
  && rm -rf ../Python-$PYTHON_VERSION* \
  && ln -s /usr/local/bin/pip3 /usr/bin/pip \
- && ln -s $(which ${PYTHON}) /usr/local/bin/python
+ && ln -s $(which ${PYTHON}) /usr/local/bin/python \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 
 # MXNet requires pip 19.3.1 due to being backwards compatible
