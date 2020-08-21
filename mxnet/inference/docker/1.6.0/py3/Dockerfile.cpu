@@ -87,7 +87,7 @@ RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
 # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
 # causing sslcertverificationerror the below steps are to fix that
 RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/ \
- && rm -rf /usr/include/openssl
+ && ln -s /usr/local/include/openssl /usr/include/openssl
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
