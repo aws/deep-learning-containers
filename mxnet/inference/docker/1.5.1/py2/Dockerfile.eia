@@ -7,7 +7,7 @@ LABEL dlc_major_version="1"
 
 ARG MMS_VERSION=1.1.2
 ARG PYTHON=python
-ARG HEALTH_CHECK_VERSION=1.6.3
+ARG HEALTH_CHECK_VERSION=1.7.0
 
 RUN apt-get update && \
     apt-get -y install --no-install-recommends \
