@@ -62,9 +62,9 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && rm -rf ../Python-$PYTHON_VERSION* \
  && ln -s /usr/local/bin/pip3 /usr/bin/pip
 
- RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
 
- RUN apt-get update \
+RUN apt-get update \
  && apt-get -y install --no-install-recommends \
     openjdk-8-jdk \
     openjdk-8-jre \
