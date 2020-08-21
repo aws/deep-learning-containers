@@ -280,11 +280,6 @@ class TestReportGenerator:
                 ("_dgl_", "smdebug", "gluonnlp", "smexperiments", "_mme_", "pipemode", "tensorboard", "_s3_", "nccl"),
                 str_keywords,
             )
-            num_instances = _infer_field_value(
-                1, ("_multinode_", "_multi-node_", "_multi_node_", "_dist_"), str_fspath, str_keywords
-            )
-            if num_instances != 1:
-                num_instances = "multinode"
             processor_scope = _infer_field_value("all", ("cpu", "gpu", "eia"), str_keywords)
             if processor_scope == "gpu":
                 processor_scope = self.handle_single_gpu_instances_test_report(function_key, str_keywords)
@@ -296,7 +291,7 @@ class TestReportGenerator:
                 "Name": function_name,
                 "Scope": framework_scope,
                 "Job_Type": job_type_scope,
-                "Num_Instances": self.get_marker_arg_value(item, function_key, "multinode", num_instances),
+                "Num_Instances": self.get_marker_arg_value(item, function_key, "multinode", 1),
                 "Processor": self.get_marker_arg_value(item, function_key, "processor", processor_scope),
                 "Integration": self.get_marker_arg_value(item, function_key, "integration", integration_scope),
                 "Model": self.get_marker_arg_value(item, function_key, "model"),
