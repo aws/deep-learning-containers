@@ -19,10 +19,10 @@ aws s3 sync s3://aws-ml-platform-datasets/imagenet/pass-through/ /home/ubuntu/da
 echo Fetch finished >&2
 git clone https://github.com/rahul003/deep-learning-benchmark-mirror.git ${HOME_DIR}/artifacts/mxnet/deep-learning-benchmark-mirror  && cd ${HOME_DIR}/artifacts/mxnet/
 NUM_EPOCHS=20
-if [ "$DEV_MODE" == "1" ]
+if [ "$PR_CONTEXT" == "1" ]
 then
   NUM_EPOCHS=3
-  echo Running in Benchmark dev mode >&2
+  echo Running under PR context >&2
 fi
 START=$(date +%s)
 pip install psutil gluoncv && python deep-learning-benchmark-mirror/mxnet_benchmark/train_imagenet.py --use-rec --batch-size 256 --dtype float16 --num-data-workers 40 \

@@ -9,7 +9,7 @@ from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
-from test.test_utils import is_benchmark_dev_context
+from test.test_utils import is_pr_context
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
@@ -464,7 +464,7 @@ def execute_ec2_training_performance_test(
     connection.run(
         f"{docker_cmd} run --user root "
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
-        f"-e DEV_MODE={1 if is_benchmark_dev_context() else 0} "
+        f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
         f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
     )

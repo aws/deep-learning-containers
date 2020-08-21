@@ -48,10 +48,10 @@ echo Preparation Stage took $(( DIFF/60 )) mins to finish>&2
 echo Benchmark started: >&2
 START=$(date +%s)
 TRAINING_TIME="100m"
-if [ "$DEV_MODE" == "1" ]
+if [ "$PR_CONTEXT" == "1" ]
 then
   TRAINING_TIME="60m"
-  echo Running in Benchmark dev mode >&2
+  echo Running under PR context >&2
 fi
 trigger_test "$TRAINING_TIME" "run" 2>&1 | tee "${LOG_FILE}"
 END=$(date +%s)

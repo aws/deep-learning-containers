@@ -111,7 +111,7 @@ def is_dlc_cicd_context():
 
 
 def is_benchmark_dev_context():
-    return is_pr_context() and ENABLE_BENCHMARK_DEV_MODE
+    return ENABLE_BENCHMARK_DEV_MODE
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
