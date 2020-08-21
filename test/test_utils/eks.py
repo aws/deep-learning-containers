@@ -508,8 +508,6 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --name {eks_cluster_name} --region {region}"
     run(eksctl_write_kubeconfig_command)
 
-    # run(f"aws eks --region us-west-2 update-kubeconfig --name {eks_cluster_name} --kubeconfig /root/.kube/config --role-arn arn:aws:iam::669063966089:role/nikhilsk-eks-test-role")
-
     run("cat /root/.kube/config", warn=True)
 
 
