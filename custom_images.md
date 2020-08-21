@@ -16,6 +16,19 @@ FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:1.15.2-gpu
 RUN git clone https://github.com/aws-samples/deep-learning-models
 ```
 
+### Training with PyTorch
+
+In the following example Dockerfile, the resulting Docker image will have PyTorch v1\.6\.0 optimized for GPUs. It will also have the Amazon SageMaker samples GitHub repo which contains many deep learning model examples\.
+
+```
+#Take the base PyTorch container
+FROM 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.6.0-gpu-py36-cu101-ubuntu16.04
+
+# Add your custom stack of code
+RUN git clone https://github.com/awslabs/amazon-sagemaker-examples
+```
+
+
 ### Training with MXNet
 
 In the following example Dockerfile, the resulting Docker image will have MXNet v1\.6\.0 optimized for GPU inference built to support Horovod and Python 3\. It will also have the MXNet GitHub repo which contains many deep learning model examples\.
