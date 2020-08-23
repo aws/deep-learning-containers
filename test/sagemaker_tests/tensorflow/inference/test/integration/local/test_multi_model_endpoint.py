@@ -188,6 +188,49 @@ def test_load_two_models():
     assert len(res3) == 2
 
 
+@pytest.mark.model("half_plus_three, half_plus_two")
+@pytest.mark.processor("cpu")
+@pytest.mark.skip_gpu
+def test_unload_two_models():
+    model_name_1 = 'half_plus_two_1'
+    model_data_1 = {
+        'model_name': model_name_1,
+        'url': '/opt/ml/models/half_plus_two'
+    }
+    code1, res1 = make_load_model_request(json.dumps(model_data_1))
+    assert code1 == 200
+
+    # load second model
+    model_name_2 = 'half_plus_three_2'
+    model_data_2 = {
+        'model_name': model_name_2,
+        'url': '/opt/ml/models/half_plus_three'
+    }
+    code2, res2 = make_load_model_request(json.dumps(model_data_2))
+    assert code2 == 200
+
+    code_unload, res3 = make_unload_model_request(model_name_1)
+    assert code_unload == 200
+    assert 'Successfully unloaded model {}'.format(model_name_1) in res3
+
+    code_unload, res4 = make_unload_model_request(model_name_2)
+    assert code_unload == 200
+    assert 'Successfully unloaded model {}'.format(model_name_2) in res4
+
+    x = {
+        'instances': [1.0, 2.0, 5.0]
+    }
+    code_invoke, y1 = make_invocation_request(json.dumps(x), model_name_1)
+    y1 = json.loads(y1)
+    assert code_invoke == 404
+    assert 'Model {} is not loaded yet.'.format(model_name_1) in str(y1)
+
+    code_invoke, y2 = make_invocation_request(json.dumps(x), model_name_2)
+    y2 = json.loads(y2)
+    assert code_invoke == 404
+    assert 'Model {} is not loaded yet.'.format(model_name_2) in str(y2)
+
+
 @pytest.mark.model("cifar")
 @pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu

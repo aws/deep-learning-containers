@@ -160,3 +160,14 @@ def test_unsupported_content_type():
     response = requests.post(INVOCATION_URL.format(MODEL_NAME), data=data, headers=headers)
     assert 500 == response.status_code
     assert 'unsupported content type' in response.text
+
+
+@pytest.mark.processor("cpu")
+@pytest.mark.model("half_plus_three")
+@pytest.mark.integration("mme")
+@pytest.mark.skip_gpu
+def test_non_existing_model():
+    headers = make_headers(content_type='text/csv')
+    data = '1.0,2.0,5.0'
+    response = requests.post(INVOCATION_URL.format("foo"), data=data, headers=headers).json()
+    assert response == {'error': 'Model foo is not loaded yet.'}
