@@ -5,7 +5,7 @@ import re
 
 from invoke.context import Context
 
-from test.test_utils import LOGGER
+from test.test_utils import LOGGER, get_repository_local_path
 from test.test_utils.ec2 import get_instance_num_gpus
 
 
@@ -197,7 +197,7 @@ class TestReportGenerator:
         Append SageMaker data to the report
         """
         ctx = Context()
-        git_repo_path = os.getcwd().split('/test/')[0]
+        git_repo_path = get_repository_local_path()
 
         for repo in self.SM_REPOS:
             framework, job_type = repo.split(os.sep)

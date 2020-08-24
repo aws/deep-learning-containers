@@ -116,6 +116,10 @@ def get_pr_modified_files(pr_number):
     # for local builds and builds outside of Pull Requests.
     from dlc.github_handler import GitHubHandler
 
+    LOGGER.info("\n\n#########################################################")
+    LOGGER.info(os.getenv("CODEBUILD_SOURCE_REPO_URL"))
+    LOGGER.info("#########################################################\n\n")
+
     github_handler = GitHubHandler("aws", "deep-learning-containers")
     files = github_handler.get_pr_files_changed(pr_number)
     files = "\n".join(files)
