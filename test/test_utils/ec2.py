@@ -9,6 +9,7 @@ from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
+from test.test_utils import is_pr_context
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
@@ -463,6 +464,7 @@ def execute_ec2_training_performance_test(
     connection.run(
         f"{docker_cmd} run --user root "
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
+        f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
         f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
     )
@@ -537,7 +539,7 @@ def ec2_performance_upload_result_to_s3_and_validate(
         connection.run(f"echo {performance_statement} | sudo tee -a {log_location}")
         LOGGER.info(f"{performance_statement}")
     connection.run(f"aws s3 cp {log_location} {s3_location}")
-    connection.run(f"echo To retrieve complete benchmark log, check {s3_location} >&2")
+    LOGGER.info(f"To retrieve complete benchmark log, check {s3_location}")
 
     def _assertion_results():
         if "Cost" in performance_number:
@@ -578,7 +580,7 @@ def post_process_mxnet_ec2_performance(connection, log_location):
     total = 0.0
     n = 0
     for line in log_content:
-        if "samples/sec" in line:
+        if "samples/sec" in line and "warmup" not in line:
             throughput = re.search(r"((?P<throughput>[0-9]+\.?[0-9]+)[ ]+samples/sec)", line).group("throughput")
             total += float(throughput)
             n += 1

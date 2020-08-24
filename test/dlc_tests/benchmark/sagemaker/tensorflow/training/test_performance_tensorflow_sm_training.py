@@ -16,6 +16,7 @@ from src.benchmark_metrics import (
 from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
 
 
+@pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.multinode(4)
 @pytest.mark.model("resnet50")

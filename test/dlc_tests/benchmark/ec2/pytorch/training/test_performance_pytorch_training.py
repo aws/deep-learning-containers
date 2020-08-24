@@ -7,6 +7,7 @@ from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     DEFAULT_REGION,
+    is_pr_context
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_performance_test,
@@ -69,6 +70,7 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
         connection.run(
             f"nvidia-docker run --user root "
             f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
+            f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
             f"--shm-size 8G --env OMP_NUM_THREADS=1 --name {container_name} "
             f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
             f"-v /home/ubuntu/:/root/:delegated "
