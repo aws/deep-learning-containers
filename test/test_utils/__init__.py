@@ -296,7 +296,6 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         "{}={}".format(name, multi_model_location[name]) for name in model_names
     ]
 
-
     if server_type == "ts":
         server_cmd = "torchserve"
     else:
