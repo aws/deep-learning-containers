@@ -13,13 +13,13 @@ import pytest
 from botocore.config import Config
 from invoke import run
 from invoke.context import Context
-
 from test_utils import eks as eks_utils
 from test_utils import sagemaker as sm_utils
 from test_utils import metrics as metrics_utils
 from test_utils import (
     get_dlc_images,
     is_pr_context,
+    is_benchmark_dev_context,
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
     get_framework_and_version_from_tag,
@@ -250,8 +250,8 @@ def main():
     # Do not create EKS cluster for when EIA Only Images are present
     is_all_images_list_eia = all("eia" in image_uri for image_uri in all_image_list)
     eks_cluster_name = None
-    benchmark_mode = "benchmark" in test_type
-    specific_test_type = re.sub("benchmark-", "", test_type) if benchmark_mode else test_type
+    benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
+    specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
     if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary", "bai"):

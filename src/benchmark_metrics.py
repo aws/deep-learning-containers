@@ -54,7 +54,7 @@ PYTORCH_INFERENCE_CPU_THRESHOLD = {"ResNet18": 0.08,
                                    "GoogleNet": 0.12,
                                    "DenseNet121": 0.15,
                                    "InceptionV3": 0.25}
-PYTORCH_INFERENCE_GPU_THRESHOLD = {"ResNet18": 0.00075,
+PYTORCH_INFERENCE_GPU_THRESHOLD = {"ResNet18": 0.0075,
                                    "VGG13": 0.004,
                                    "MobileNetV2": 0.013,
                                    "GoogleNet": 0.018,

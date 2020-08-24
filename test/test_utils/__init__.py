@@ -15,6 +15,8 @@ from invoke.context import Context
 from packaging.version import LegacyVersion, Version, parse
 from retrying import retry
 
+from src.config.test_config import ENABLE_BENCHMARK_DEV_MODE
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
@@ -106,6 +108,10 @@ def is_empty_build_context():
 
 def is_dlc_cicd_context():
     return os.getenv("BUILD_CONTEXT") in ["PR", "CANARY", "NIGHTLY", "MAINLINE"]
+
+
+def is_benchmark_dev_context():
+    return ENABLE_BENCHMARK_DEV_MODE
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):

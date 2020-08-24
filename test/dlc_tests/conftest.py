@@ -17,6 +17,7 @@ import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
 from test.test_utils import (
+    is_benchmark_dev_context,
     DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2, KEYS_TO_DESTROY_FILE
 )
@@ -144,7 +145,7 @@ def ec2_instance(
     }
     extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300,}}]
     if (
-        "benchmark" in os.getenv("TEST_TYPE")
+        ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
         and (
             ("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames)
             or "mxnet_inference" in request.fixturenames
