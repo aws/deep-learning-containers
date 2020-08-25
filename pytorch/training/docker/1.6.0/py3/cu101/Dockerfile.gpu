@@ -36,18 +36,22 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
+    coreutils \
     cuda-command-line-tools-10-1 \
     cuda-cufft-10-1 \
     cuda-curand-10-1 \
     cuda-cusolver-10-1 \
     cuda-cusparse-10-1 \
     curl \
+    dh-autoreconf \
     emacs \
     git \
     jq \
+    libboost-all-dev \
     libglib2.0-0 \
     libgl1-mesa-glx \
     libsm6 \
+    libudev-dev \
     libxext6 \
     libxrender-dev \
     libgomp1 \
