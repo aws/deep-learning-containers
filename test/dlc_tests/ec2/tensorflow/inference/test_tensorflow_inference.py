@@ -72,15 +72,30 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
     mnist_client_path = os.path.join(
         serving_folder_path, "tensorflow_serving", "example", "mnist_client.py"
     )
+    is_neuron = False
+    if "neuron" in image_uri:
+        is_neuron = True
+
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
-    docker_run_cmd = (
-        f"{docker_cmd} run -id --name {container_name} -p {grpc_port}:8500 "
-        f"--mount type=bind,source={model_path},target=/models/mnist -e TEST_MODE=1 -e MODEL_NAME=mnist"
-        f" {image_uri}"
-    )
+    docker_run_cmd = ""
+    if is_neuron:
+        setup_neuron_sidecar(ec2_connection)
+        docker_run_cmd = (
+            f"{docker_cmd} run -id --name {container_name} -p {grpc_port}:8500 "
+            f"--mount type=bind,source={model_path},target=/models/mnist -e TEST_MODE=1 -e MODEL_NAME=mnist"
+            f" {image_uri}"
+            f"--env NEURON_RTD_ADDRESS=unix:/sock/neuron.sock"
+            f"-v /tmp/neuron_rtd_sock/:/sock "
+        )
+    else:
+        docker_run_cmd = (
+            f"{docker_cmd} run -id --name {container_name} -p {grpc_port}:8500 "
+            f"--mount type=bind,source={model_path},target=/models/mnist -e TEST_MODE=1 -e MODEL_NAME=mnist"
+            f" {image_uri}"
+        )
     try:
         host_setup_for_tensorflow_inference(
-            serving_folder_path, framework_version, ec2_connection
+            serving_folder_path, framework_version, ec2_connection, is_neuron, 'mnist'
         )
         sleep(2)
         train_mnist_model(serving_folder_path, ec2_connection)
@@ -112,7 +127,7 @@ def train_mnist_model(serving_folder_path, ec2_connection):
     )
 
 
-def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection):
+def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection, is_neuron, model_name):
     # Tensorflow 1.x doesn't have package with version 1.15.2 so use only 1.15
     ec2_connection.run(
         (
@@ -131,6 +146,15 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
             f"cd {serving_folder_path} && git checkout r{git_branch_version}"
         )
         LOGGER.info(f"Clone TF serving repository status {run_out.return_code == 0}")
+    elif is_neuron:
+        neuron_model_file_path = os.path.join(serving_folder_path, "models/{model_name}/1")
+        neuron_model_file = os.path.join(neuron_model_file_path, "saved_model.pb")
+        ec2_connection.run(f"mkdir -p {neuron_model_file_path}")
+        model_file_path = f"https://aws-dlc-sample-models.s3.amazonaws.com/{model_name}_neuron/1/saved_model.pb"
+        model_dwld = (
+            f"wget -o {neuron_model_file} {model_file_path} "
+        )
+        ec2_connection.run(model_dwld)
     else:
         local_scripts_path = os.path.join("container_tests", "bin", "tensorflow_serving")
         ec2_connection.run(f"mkdir -p {serving_folder_path}")
@@ -143,3 +167,23 @@ def check_telemetry(ec2_connection, container_name):
         f'''docker exec -it {container_name} python -c {telemetry_cmd} ''',
         hide=True, warn=True
     )
+
+def setup_neuron_sidecar(ec2_connection):
+    neuron_ecr_registry = 790709498068
+    region = us-west-2
+    nrtd_tag = "neuron-rtd"
+    ecr_login_cmd = f"$(aws ecr get-login --no-include-email --region {region} --registry-ids {neuron_ecr_registry})"
+    ecr_pull_cmd = f"docker pull {neuron_ecr_registry}.dkr.ecr.{region}.amazonaws.com/neuron-rtd:latest"
+    docker_tag_cmd = f"docker tag {neuron_ecr_registry}.dkr.ecr.{region}.amazonaws.com/neuron-rtd:latest {nrtd_tag}"
+
+    ec2_connection.run(ecr_login_cmd, hide=True)
+    ec2_connection.run(ecr_pull_cmd, hide=True)
+    ec2_connection.run(docker_tag_cmd, hide=True)
+
+    socket_dir = "/tmp/neuron_rtd_sock"
+    ec2_connection.run(f"mkdir -p {socket_dir}")
+    ec2_connection.run(f"chmod o+rwx {socket_dir}")
+    
+    neuron_devices = "ALL"
+    docker_run_cmd = f"docker run --env AWS_NEURON_VISIBLE_DEVICES={neuron_devices} --cap-add SYS_ADMIN --cap-add IPC_LOCK -v {socket_dir} -it {nrtd_tag}"
+    ec2_connection.run(docker_run_cmd, hide=True)
