@@ -11,15 +11,22 @@ import test.test_utils as test_utils
 
 @pytest.mark.model("densenet")
 def test_eks_pytorch_densenet_inference(pytorch_inference):
+    server_type = test_utils.get_inference_server_type(pytorch_inference)
     if "eia" in pytorch_inference:
         pytest.skip("Skipping EKS Test for EIA")
+    elif server_type == "ts":
+        model = "pytorch-densenet=https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar"
+        server_cmd = "torchserve"
+    else:
+        model = "pytorch-densenet=https://dlc-samples.s3.amazonaws.com/pytorch/multi-model-server/densenet/densenet.mar"
+        server_cmd = "multi-model-server"
+
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
 
     processor = "gpu" if "gpu" in pytorch_inference else "cpu"
 
-    model = "pytorch-densenet=https://dlc-samples.s3.amazonaws.com/pytorch/multi-model-server/densenet/densenet.mar"
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_{processor}_inference_{rand_int}.yaml")
     inference_service_name = selector_name = f"densenet-service-{processor}-{rand_int}"
 
@@ -28,7 +35,9 @@ def test_eks_pytorch_densenet_inference(pytorch_inference):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": pytorch_inference
+        "<DOCKER_IMAGE_BUILD_ID>": pytorch_inference,
+        "<SERVER_TYPE>": server_type,
+        "<SERVER_CMD>": server_cmd
     }
 
     if processor == "gpu":
