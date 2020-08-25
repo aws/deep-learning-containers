@@ -55,15 +55,17 @@ if [ $# -ne 2 ]; then
     exit 1
 fi
 
+eks_cluster_name=$1
+region_name=$2
 
 echo "> Setup installation directory"
-create_dir $1
+create_dir $eks_cluster_name
 
 echo "> Installing kfctl"
 install_kfctl 
 
 echo "> Setting up kubeflow"
-setup_kubeflow $2 
+setup_kubeflow $region_name
 
 echo "> Installing mxnet operator"
 install_mxnet_operator
