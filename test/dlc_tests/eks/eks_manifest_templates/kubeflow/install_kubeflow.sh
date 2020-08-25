@@ -17,7 +17,7 @@ install_kfctl(){
 
 setup_kubeflow(){
     #install kubeflow in EKS cluster
-    REGION=$2
+    local REGION=$1
     KUBEFLOW_URL="https://raw.githubusercontent.com/aws/deep-learning-containers/master/test/dlc_tests/eks/eks_manifest_templates/kubeflow/kfctl_aws.yaml"
     CONFIG_FILE=kfctl_aws.yaml
     wget -O ${CONFIG_FILE} ${KUBEFLOW_URL} 
@@ -39,8 +39,8 @@ install_mxnet_operator() {
 }
 
 create_dir(){
-
-    DIRECTORY="$HOME/$1"
+    local EKS_CLUSTER_NAME=$1
+    DIRECTORY="$HOME/$EKS_CLUSTER_NAME"
 
     if [ -d "$DIRECTORY" ]; then
         rm -rf $DIRECTORY;
