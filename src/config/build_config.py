@@ -3,7 +3,7 @@
 ENABLE_EI_MODE = False
 # Please only set it to True if you are preparing an NEURON related PR
 # Do remember to revert it back to False before merging any PR (including NEURON dedicated PR)
-ENABLE_NEURON_MODE = False
+ENABLE_NEURON_MODE = True
 # Frameworks for which you want to disable both builds and tests
 DISABLE_FRAMEWORK_TESTS = []
 # Disable new builds or build without datetime tag
