@@ -62,7 +62,7 @@ def get_ec2_accelerator_type(default, processor):
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
     a list.
     """
-    allowed_processors = "eia"
+    allowed_processors = ("eia", "neuron")
     if processor not in allowed_processors:
         raise RuntimeError(
             f"Aborting EC2 test run. Unrecognized processor type {processor}. "
