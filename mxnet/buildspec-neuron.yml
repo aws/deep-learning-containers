@@ -12,9 +12,6 @@
         repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
   context:
-    deep_learning_container.py:
-      source: docker/artifacts/deep_learning_container.py
-      target: deep_learning_container.py
     inference_context: &INFERENCE_CONTEXT
       config:
         source: docker/artifacts/config.properties
