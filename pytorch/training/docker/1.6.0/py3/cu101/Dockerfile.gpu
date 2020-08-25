@@ -36,7 +36,6 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    coreutils \
     cuda-command-line-tools-10-1 \
     cuda-cufft-10-1 \
     cuda-curand-10-1 \
@@ -51,7 +50,6 @@ RUN apt-get update \
     libglib2.0-0 \
     libgl1-mesa-glx \
     libsm6 \
-    libudev-dev \
     libxext6 \
     libxrender-dev \
     libgomp1 \
