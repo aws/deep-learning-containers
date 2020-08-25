@@ -40,9 +40,11 @@ FRAMEWORK_FIXTURES = (
     "gpu",
     "cpu",
     "eia",
+    "neuron",
     "pytorch_inference_eia",
     "mxnet_inference_eia",
-    "tensorflow_inference_eia"
+    "tensorflow_inference_eia",
+    "tensorflow_inference_neuron"
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -265,6 +267,11 @@ def gpu_only():
 @pytest.fixture(scope="session")
 def eia_only():
     pass
+
+@pytest.fixture(scope="session")
+def neuron_only():
+    pass
+
 
 @pytest.fixture(scope="session")
 def py3_only():
