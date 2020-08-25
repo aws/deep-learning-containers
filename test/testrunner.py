@@ -192,15 +192,16 @@ def setup_eks_cluster(framework_name):
     short_name = frameworks[long_name]
     codebuild_version = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')[0:7]
     num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
-    cluster_name = f"dlc-{short_name}-cluster-" \
-                   f"{codebuild_version}-{random.randint(1, 10000)}"
+    cluster_name = f"dlc-{short_name}-cluster-"
+    nodegroup_name = f"ng-{codebuild_version}-{random.randint(1, 10000)}"
     try:
         eks_utils.eks_setup()
-        eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
+        eks_utils.eks_write_kubeconfig(cluster_name)
+        eks_utils.create_eks_cluster_nodegroup(cluster_name, nodegroup_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
     except Exception:
-        eks_utils.delete_eks_cluster(cluster_name)
+        eks_utils.delete_eks_nodegroup(cluster_name, nodegroup_name)
         raise
-    return cluster_name
+    return cluster_name, nodegroup_name
 
 
 def setup_sm_benchmark_env(dlc_images, test_path):
@@ -280,7 +281,7 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
-            eks_cluster_name = setup_eks_cluster(framework)
+            eks_cluster_name, eks_nodegroup_name = setup_eks_cluster(framework)
 
             # setup kubeflow
             eks_utils.setup_kubeflow(eks_cluster_name)
@@ -292,10 +293,10 @@ def main():
             # Change 2: Separate multi-node EKS tests from single-node tests in execution to prevent resource contention
             pytest_cmds = [
                 ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=4",
-                 "-m", "not multinode"],
+                 "-m", "not multinode", f"--eks-nodegroup-name={eks_nodegroup_name}"],
                 ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4",
-                 "-m", "not multinode"],
-                ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
+                 "-m", "not multinode", f"--eks-nodegroup-name={eks_nodegroup_name}"],
+                ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode", f"--eks-nodegroup-name={eks_nodegroup_name}"],
             ]
             if is_pr_context():
                 for cmd in pytest_cmds:
@@ -322,7 +323,7 @@ def main():
                 raise RuntimeError(pytest_cmds)
         finally:
             if specific_test_type == "eks" and eks_cluster_name:
-                eks_utils.delete_eks_cluster(eks_cluster_name)
+                eks_utils.delete_eks_nodegroup(eks_cluster_name, nodegroup_name)
 
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):

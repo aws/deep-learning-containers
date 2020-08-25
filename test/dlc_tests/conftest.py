@@ -63,6 +63,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--multinode", action="store_true", default=False, help="Run only multi-node tests",
     )
+    parser.addoption('--eks-nodegroup-name', default=None, help="Specify name of EKS node group")
 
 
 @pytest.fixture(scope="function")
@@ -392,3 +393,6 @@ def pytest_generate_tests(metafunc):
     # Parametrize for framework agnostic tests, i.e. sanity
     if "image" in metafunc.fixturenames:
         metafunc.parametrize("image", images)
+
+    if "eks-nodegroup-name" in metafunc.fixturenames:
+        metafunc.parametrize("eks_nodegroup_name", metafunc.config.getoption("eks-nodegroup-name"))

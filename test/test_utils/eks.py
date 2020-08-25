@@ -539,9 +539,22 @@ def is_service_running(selector_name, namespace="default"):
     else:
         raise ValueError("Service not running yet, try again")
 
+def delete_eks_nodegroup(eks_cluster_name, nodegroup_name, region=DEFAULT_REGION):
+    eksctl_delete_nodegroup_command = (
+        f"eksctl delete nodegroup "
+        f"--name {nodegroup_name}"
+        f"--cluster {eks_cluster_name} "
+        f"--region {region}"
+    )
+
+    run(eksctl_delete_nodegroup_command)
+
+    LOGGER.info("EKS cluster nodegroup deleted successfully, with the following parameters\n"
+                f"cluster_name: {eks_cluster_name}\n"
+                f"nodegroup_name: {nodegroup_name}")
 
 def create_eks_cluster_nodegroup(
-        eks_cluster_name, processor_type, num_nodes, instance_type, ssh_public_key_name, region=DEFAULT_REGION
+        eks_cluster_name, nodegroup_name, processor_type, num_nodes, instance_type, ssh_public_key_name, region=DEFAULT_REGION
 ):
     """
     Function to create and attach a nodegroup to an existing EKS cluster.
@@ -555,13 +568,14 @@ def create_eks_cluster_nodegroup(
     """
     eksctl_create_nodegroup_command = (
         f"eksctl create nodegroup "
-        f"--cluster {eks_cluster_name} "
-        f"--node-ami {EKS_AMI_ID.get(processor_type)} "
-        f"--nodes {num_nodes} "
-        f"--node-type={instance_type} "
-        f"--timeout=40m "
-        f"--ssh-access "
-        f"--ssh-public-key {ssh_public_key_name} "
+        f"--name {nodegroup_name} " \
+        f"--cluster {eks_cluster_name} " \
+        f"--node-ami {EKS_AMI_ID.get(processor_type)} " \
+        f"--nodes {num_nodes} " \
+        f"--node-type={instance_type} " \
+        f"--timeout=40m " \
+        f"--ssh-access " \
+        f"--ssh-public-key {ssh_public_key_name} " \
         f"--region {region}"
     )
 

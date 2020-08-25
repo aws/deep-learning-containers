@@ -10,7 +10,7 @@ import test.test_utils as test_utils
 
 
 @pytest.mark.model("squeezenet")
-def test_eks_mxnet_squeezenet_inference(mxnet_inference):
+def test_eks_mxnet_squeezenet_inference(mxnet_inference, eks_nodegroup_name):
     if "eia" in mxnet_inference:
         pytest.skip("Skipping EKS Test for EIA")
     num_replicas = "1"
@@ -28,7 +28,8 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference
+        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference,
+        "<LABEL>": eks_nodegroup_name
     }
 
     if processor == "gpu":
