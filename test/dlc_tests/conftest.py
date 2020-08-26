@@ -3,6 +3,7 @@ import os
 import logging
 import random
 import sys
+import re
 
 import boto3
 from botocore.exceptions import ClientError
