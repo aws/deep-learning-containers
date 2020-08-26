@@ -183,6 +183,7 @@ def setup_neuron_sidecar(ec2_connection):
     ec2_connection.run(docker_tag_cmd, hide=True)
 
     ec2_connection.run(f"sudo cp /opt/aws/neuron/share/docker-daemon.json /etc/docker/daemon.json")
+    ec2_connection.run(f"sudo service docker restart")
 
     socket_dir = "/tmp/neuron_rtd_sock"
     ec2_connection.run(f"mkdir -p {socket_dir}")
