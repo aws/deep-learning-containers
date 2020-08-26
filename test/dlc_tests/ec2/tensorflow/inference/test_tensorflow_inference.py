@@ -152,7 +152,7 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
         ec2_connection.run(f"mkdir -p {neuron_model_file_path}")
         model_file_path = f"https://aws-dlc-sample-models.s3.amazonaws.com/{model_name}_neuron/1/saved_model.pb"
         model_dwld = (
-            f"wget -o {neuron_model_file} {model_file_path} "
+            f"wget -O {neuron_model_file} {model_file_path} "
         )
         ec2_connection.run(model_dwld)
     else:
