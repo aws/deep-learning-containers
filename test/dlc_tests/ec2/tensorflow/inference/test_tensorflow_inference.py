@@ -185,5 +185,5 @@ def setup_neuron_sidecar(ec2_connection):
     ec2_connection.run(f"chmod o+rwx {socket_dir}")
     
     neuron_devices = "ALL"
-    docker_run_cmd = f"docker run --env AWS_NEURON_VISIBLE_DEVICES={neuron_devices} --cap-add SYS_ADMIN --cap-add IPC_LOCK -v {socket_dir} -it {nrtd_tag}"
+    docker_run_cmd = f"docker run --env AWS_NEURON_VISIBLE_DEVICES={neuron_devices} --cap-add SYS_ADMIN --cap-add IPC_LOCK -v {socket_dir} {nrtd_tag}"
     ec2_connection.run(docker_run_cmd, hide=True)
