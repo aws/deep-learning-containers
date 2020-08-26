@@ -179,10 +179,8 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     # Install custom packages which need to be latest version"
     is_py3 = " python3 -m"
     # To avoid the dpkg lock with apt-daily service if exists
-    sleep(200)
-    # waiting for apt-get process to complete if the process is in active state
     # using virtualenv to avoid package conflicts with the current packages
-    bash_command = """while pgrep -x apt > /dev/null; do 
+    bash_command = """while pgrep -x apt-daily > /dev/null; do 
                         echo "Waiting for apt-get process to finish"
                         sleep 5; 
                     done && sudo apt-get install virtualenv -y"""
