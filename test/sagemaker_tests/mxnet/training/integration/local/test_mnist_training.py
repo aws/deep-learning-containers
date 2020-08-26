@@ -39,7 +39,7 @@ def test_single_machine(docker_image, sagemaker_local_session, local_instance_ty
 
 
 @pytest.mark.model("mnist")
-@pytest.mark.multinode("multinode(2)")
+@pytest.mark.multinode(2)
 @pytest.mark.processor("cpu")
 def test_distributed(docker_image, sagemaker_local_session, framework_version, processor, tmpdir):
     if processor == 'gpu':
