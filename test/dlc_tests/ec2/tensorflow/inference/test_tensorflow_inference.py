@@ -157,7 +157,6 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
             f"wget -O {neuron_model_file} {model_file_path} "
         )
         ec2_connection.run(model_dwld)
-        ec2_connection.run(f"sudo cp /opt/aws/neuron/share/docker-daemon.json /etc/docker/daemon.json")
     else:
         local_scripts_path = os.path.join("container_tests", "bin", "tensorflow_serving")
         ec2_connection.run(f"mkdir -p {serving_folder_path}")
@@ -182,6 +181,8 @@ def setup_neuron_sidecar(ec2_connection):
     ec2_connection.run(ecr_login_cmd, hide=True)
     ec2_connection.run(ecr_pull_cmd, hide=True)
     ec2_connection.run(docker_tag_cmd, hide=True)
+
+    ec2_connection.run(f"sudo cp /opt/aws/neuron/share/docker-daemon.json /etc/docker/daemon.json")
 
     socket_dir = "/tmp/neuron_rtd_sock"
     ec2_connection.run(f"mkdir -p {socket_dir}")
