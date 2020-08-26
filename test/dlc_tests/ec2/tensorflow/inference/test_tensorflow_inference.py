@@ -19,6 +19,8 @@ TF_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="inf1.xlarge",
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURON_ACCELERATOR_TYPE, indirect=True)
+#FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
+@pytest.mark.parametrize("ec2_instance_ami", ["ami-06f97292c26320154"], indirect=True)
 def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, region, neuron_only):
     run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, "8500", region)
 
@@ -155,6 +157,7 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
             f"wget -O {neuron_model_file} {model_file_path} "
         )
         ec2_connection.run(model_dwld)
+        ec2_connection.run(f"sudo cp /opt/aws/neuron/share/docker-daemon.json /etc/docker/daemon.json")
     else:
         local_scripts_path = os.path.join("container_tests", "bin", "tensorflow_serving")
         ec2_connection.run(f"mkdir -p {serving_folder_path}")
