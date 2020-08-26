@@ -80,6 +80,11 @@ def is_tf20(image_uri):
     return bool(re.search(r'2\.0\.\d+', image_uri))
 
 
+def get_repository_local_path():
+    git_repo_path = os.getcwd().split("/test/")[0]
+    return git_repo_path
+
+
 def get_inference_server_type(image_uri):
     if "pytorch" not in image_uri:
         return "mms"
@@ -296,9 +301,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         "{}={}".format(name, multi_model_location[name]) for name in model_names
     ]
 
-    if processor == "eia":
-        server_cmd = "mxnet-model-server"
-    elif server_type == "ts":
+    if server_type == "ts":
         server_cmd = "torchserve"
     else:
         server_cmd = "multi-model-server"
