@@ -170,7 +170,7 @@ def check_telemetry(ec2_connection, container_name):
 
 def setup_neuron_sidecar(ec2_connection):
     neuron_ecr_registry = 790709498068
-    region = us-west-2
+    region = "us-west-2"
     nrtd_tag = "neuron-rtd"
     ecr_login_cmd = f"$(aws ecr get-login --no-include-email --region {region} --registry-ids {neuron_ecr_registry})"
     ecr_pull_cmd = f"docker pull {neuron_ecr_registry}.dkr.ecr.{region}.amazonaws.com/neuron-rtd:latest"
