@@ -104,8 +104,8 @@ RUN conda install -c \
  && /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && conda install -y torchserve==$TS_VERSION \
- && conda install -y torch-model-archiver==$TS_VERSION
+ && conda install -y -c pytorch-test torchserve==$TS_VERSION \
+ && conda install -y -c pytorch-test torch-model-archiver==$TS_VERSION
 
 # Uninstall and re-install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
