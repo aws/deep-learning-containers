@@ -181,6 +181,7 @@ def setup_neuron_sidecar(ec2_connection):
     ec2_connection.run(f"sudo usermod -aG docker $USER")
     ec2_connection.run(f"newgrp docker")
     ec2_connection.run(f"sudo service docker restart")
+    ec2_connection.run(f"sudo chmod 666 /var/run/docker.sock")
 
     ec2_connection.run(ecr_login_cmd, hide=True)
     ec2_connection.run(ecr_pull_cmd, hide=True)
