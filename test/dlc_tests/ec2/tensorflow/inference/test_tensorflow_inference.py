@@ -178,6 +178,8 @@ def setup_neuron_sidecar(ec2_connection):
     ecr_pull_cmd = f"docker pull {neuron_ecr_registry}.dkr.ecr.{region}.amazonaws.com/neuron-rtd:latest"
     docker_tag_cmd = f"docker tag {neuron_ecr_registry}.dkr.ecr.{region}.amazonaws.com/neuron-rtd:latest {nrtd_tag}"
 
+    ec2_connection.run(f"sudo service docker restart")
+
     ec2_connection.run(ecr_login_cmd, hide=True)
     ec2_connection.run(ecr_pull_cmd, hide=True)
     ec2_connection.run(docker_tag_cmd, hide=True)
