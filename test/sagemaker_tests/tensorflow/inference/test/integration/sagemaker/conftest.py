@@ -30,7 +30,8 @@ NO_P2_REGIONS = [
     'eu-north-1',
     'sa-east-1',
     'ap-east-1',
-    'me-south-1'
+    'me-south-1',
+    'cn-northwest-1',
 ]
 NO_P3_REGIONS = [
     'ap-southeast-1',
@@ -44,7 +45,8 @@ NO_P3_REGIONS = [
     'eu-north-1',
     'sa-east-1',
     'ap-east-1',
-    'me-south-1'
+    'me-south-1',
+    'cn-northwest-1',
 ]
 
 
@@ -92,10 +94,13 @@ def registry(request, region):
     if request.config.getoption('--registry'):
         return request.config.getoption('--registry')
 
+    domain_suffix = '.cn' if region in ('cn-north-1', 'cn-northwest-1') else ''
+    sts_regional_endpoint = 'https://sts.{}.amazonaws.com{}'.format(region, domain_suffix)
+
     sts = boto3.client(
         'sts',
         region_name=region,
-        endpoint_url='https://sts.{}.amazonaws.com'.format(region)
+        endpoint_url=sts_regional_endpoint
     )
     return sts.get_caller_identity()['Account']
 

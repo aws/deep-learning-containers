@@ -47,13 +47,13 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
     model_name = "pytorch-densenet"
-    mms_inference_cmd = test_utils.get_mms_run_command(model_name, processor)
+    inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
 
     docker_run_cmd = (
         f"{docker_cmd} run -itd --name {container_name}"
         f" -p 80:8080 -p 8081:8081"
-        f" {image_uri} {mms_inference_cmd}"
+        f" {image_uri} {inference_cmd}"
     )
     try:
         ec2_connection.run(
@@ -74,13 +74,13 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
 
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
 def test_pytorch_inference_telemetry_gpu(pytorch_inference, ec2_connection, gpu_only):
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TELEMETRY_CMD)
 
 
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_pytorch_inference_telemetry_cpu(pytorch_inference, ec2_connection, cpu_only):
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TELEMETRY_CMD)

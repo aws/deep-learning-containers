@@ -78,13 +78,12 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     """
 
     training_result = False
-    ctx = Context()
     rand_int = random.randint(4001, 6000)
 
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
 
-    dgl_branch = eks_utils.get_dgl_branch(ctx, pytorch_training)
+    dgl_branch = "0.4.x"
 
     args = (
         f"git clone -b {dgl_branch} https://github.com/dmlc/dgl.git && "
@@ -129,7 +128,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
-@pytest.mark.multinode("multinode(4)")
+@pytest.mark.multinode(4)
 def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     """
        Function to create mutliple pods using kubectl and given container image, and run Pytorch training

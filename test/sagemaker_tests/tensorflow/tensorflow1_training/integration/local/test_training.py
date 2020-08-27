@@ -89,7 +89,7 @@ def test_gpu(sagemaker_local_session, docker_image, framework_version):
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("mnist")
-@pytest.mark.multinode("multinode(2)")
+@pytest.mark.multinode(2)
 @pytest.mark.integration("no parameter server")
 @pytest.mark.skip_gpu
 def test_distributed_training_cpu_no_ps(sagemaker_local_session,
@@ -112,7 +112,7 @@ def test_distributed_training_cpu_no_ps(sagemaker_local_session,
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("parameter server")
 @pytest.mark.model("mnist")
-@pytest.mark.multinode("multinode(2)")
+@pytest.mark.multinode(2)
 @pytest.mark.skip_gpu
 def test_distributed_training_cpu_ps(sagemaker_local_session,
                                      docker_image,
