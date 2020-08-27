@@ -93,7 +93,7 @@ RUN conda install -c \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
-    enum-compat=0.0.3 \
+    enum-compat==0.0.3 \
  && conda install -y -c pytorch torchserve=$TS_VERSION \
  && conda install -y -c pytorch torch-model-archiver=$TS_VERSION
 
