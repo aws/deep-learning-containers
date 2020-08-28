@@ -41,5 +41,11 @@
       tag_python_version: &TAG_PYTHON_VERSION py36
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+      download_artifacts:
+        mxnet:
+          type: s3
+          version: *VERSION
+          URI: s3://mxnet-wheel-mkl-blas/aws_mxnet_mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
+          VAR_IN_DOCKERFILE: MX_BINARY_WHL
       context:
         <<: *INFERENCE_CONTEXT

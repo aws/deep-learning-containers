@@ -11,12 +11,14 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG MMS_VERSION=1.1.2
-ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet-1.6.0-py2.py3-none-manylinux1_x86_64.whl
+ARG MX_BINARY_WHL
 ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.6.10
 ARG OPENSSL_VERSION=1.1.1g
+
+COPY ${MX_BINARY_WHL} /
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -95,7 +97,7 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 WORKDIR /
 
 RUN ${PIP} install --no-cache-dir \
-    ${MX_URL} \
+    ${MX_BINARY_WHL} \
     gluonnlp==0.10.0 \
     gluoncv==0.6.0 \
     multi-model-server==$MMS_VERSION \
@@ -111,7 +113,8 @@ RUN ln -s /dev/null /dev/raw1394
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
- && chown -R model-server /home/model-server
+ && chown -R model-server /home/model-server \
+ && rm ${MX_BINARY_WHL}
 
 COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
