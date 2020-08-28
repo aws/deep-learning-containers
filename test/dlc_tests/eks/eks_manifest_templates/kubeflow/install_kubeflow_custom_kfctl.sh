@@ -4,7 +4,7 @@ set -e
 install_kfctl(){
     #install kfctl cli
     KFCTL_VERSION="v1.0.2"
-    S3_BUCKET="kfctl-binary"
+    S3_BUCKET="kubeflow-kfctl-binary"
 
     if ! command -v kfctl &> /dev/null
     then
