@@ -11,7 +11,7 @@ import test.test_utils.eks as eks_utils
 
 
 @pytest.mark.model("mnist")
-def test_eks_mxnet_single_node_training(mxnet_training):
+def test_eks_mxnet_single_node_training(mxnet_training, eks_nodegroup_name):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
     Args:
@@ -48,6 +48,7 @@ def test_eks_mxnet_single_node_training(mxnet_training):
         "<CONTAINER_NAME>": mxnet_training,
         "<ARGS>": args,
         "<CPU_LIMIT>": cpu_limit,
+        "<LABEL>": eks_nodegroup_name
     }
 
     eks_utils.write_eks_yaml_file_from_template(
@@ -72,7 +73,7 @@ def test_eks_mxnet_single_node_training(mxnet_training):
 
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
-def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
+def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only, eks_nodegroup_name):
 
     """
     Function to create a pod using kubectl and given container image, and run
@@ -108,6 +109,7 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
         "<CONTAINER_NAME>": mxnet_training,
         "<ARGS>": args,
         "<CPU_LIMIT>": cpu_limit,
+        "<LABEL>": eks_nodegroup_name
     }
 
     eks_utils.write_eks_yaml_file_from_template(
@@ -132,7 +134,7 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
 
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("TextCNN")
-def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
+def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only, eks_nodegroup_name):
 
     """
     Function to create a pod using kubectl and given container image, and run
@@ -168,6 +170,7 @@ def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
         "<CONTAINER_NAME>": mxnet_training,
         "<ARGS>": args,
         "<CPU_LIMIT>": cpu_limit,
+        "<LABEL>": eks_nodegroup_name
     }
 
     eks_utils.write_eks_yaml_file_from_template(

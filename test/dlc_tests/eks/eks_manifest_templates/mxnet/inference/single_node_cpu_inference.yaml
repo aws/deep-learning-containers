@@ -50,4 +50,4 @@ spec:
             cpu: "1"
             memory: 1Gi
       nodeSelector:
-        nodegroup_id: <LABEL>
+        alpha.eksctl.io/nodegroup-name: <LABEL>

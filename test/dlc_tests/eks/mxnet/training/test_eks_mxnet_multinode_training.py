@@ -21,7 +21,7 @@ LOGGER = eks_utils.LOGGER
 @pytest.mark.integration("horovod")
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(3)
-def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_only):
+def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_only, eks_nodegroup_name):
     """
     Run MXNet distributed training on EKS using docker images with MNIST dataset (horovod)
     """
@@ -30,10 +30,10 @@ def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_onl
 
     eks_gpus_per_worker = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)
     
-    _run_eks_mxnet_multinode_training_horovod_mpijob(mxnet_training, eks_cluster_size, eks_gpus_per_worker)
+    _run_eks_mxnet_multinode_training_horovod_mpijob(mxnet_training, eks_cluster_size, eks_gpus_per_worker, eks_nodegroup_name)
 
 
-def _run_eks_mxnet_multinode_training_horovod_mpijob(example_image_uri, cluster_size, eks_gpus_per_worker):
+def _run_eks_mxnet_multinode_training_horovod_mpijob(example_image_uri, cluster_size, eks_gpus_per_worker, eks_nodegroup_name):
     
     LOGGER.info("Starting run_eks_mxnet_multi_node_training on MNIST dataset using horovod")
     LOGGER.info("The test will run on an example image %s", example_image_uri)
@@ -61,7 +61,8 @@ def _run_eks_mxnet_multinode_training_horovod_mpijob(example_image_uri, cluster_
         "<JOB_NAME>": job_name,
         "<NUM_WORKERS>": cluster_size,
         "<CONTAINER_IMAGE>": example_image_uri,
-        "<GPUS>": str(eks_gpus_per_worker)
+        "<GPUS>": str(eks_gpus_per_worker),
+        "<LABEL>": eks_nodegroup_name
     }
 
     eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file_path, replace_dict)
@@ -73,7 +74,7 @@ def _run_eks_mxnet_multinode_training_horovod_mpijob(example_image_uri, cluster_
 @pytest.mark.integration("parameter server")
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(3)
-def test_eks_mxnet_multinode_training(mxnet_training, example_only):
+def test_eks_mxnet_multinode_training(mxnet_training, example_only, eks_nodegroup_name):
     """
     Run MXNet distributed training on EKS using docker images with MNIST dataset (parameter server)
     """
@@ -108,7 +109,8 @@ def test_eks_mxnet_multinode_training(mxnet_training, example_only):
         "<EPOCHS>": epochs,
         "<LAYERS>": layers,
         "<GPUS>": gpus,
-        "<GPU_LIMIT>": gpu_limit
+        "<GPU_LIMIT>": gpu_limit,
+        "<LABEL>": eks_nodegroup_name
     }
 
     eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file_path, replace_dict)

@@ -46,7 +46,7 @@ spec:
             - python
             - /horovod/examples/mxnet_mnist.py
           nodeSelector:
-            nodegroup_id: <LABEL>
+            alpha.eksctl.io/nodegroup-name: <LABEL>
     Worker:
       replicas: <NUM_WORKERS>
       template:
@@ -58,4 +58,4 @@ spec:
               limits:
                 nvidia.com/gpu: <GPUS>
           nodeSelector:
-            nodegroup_id: <LABEL>
+            alpha.eksctl.io/nodegroup-name: <LABEL>
