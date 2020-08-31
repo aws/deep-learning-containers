@@ -47,7 +47,6 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 EKS_VERSION = "1.14.6"
 EKSCTL_VERSION = "0.22.0"
-KFCTL_VERSION = "v1.0.2"
 KUBEFLOW_VERSION = "v0.4.1"
 KUBETAIL_VERSION = "1.6.7"
 
@@ -335,12 +334,11 @@ def eks_setup():
     1. eksctl: create and manage cluster
     2. kubectl: create and manage runs on eks cluster
     3. aws-iam-authenticator: authenticate the instance to access eks with the appropriate aws credentials
-    4. kfctl: control plane for deploying and managing Kubeflow
     """
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
     run_out = run(
-        "eksctl version && kubectl version --short --client && aws-iam-authenticator version && kfctl version",
+        "eksctl version && kubectl version --short --client && aws-iam-authenticator version",
         warn=True,
     )
 
@@ -360,11 +358,6 @@ def eks_setup():
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
         f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/aws-iam-authenticator "
         f"-o /usr/local/bin/aws-iam-authenticator"
-    )
-
-    kfctl_download_command = (
-        f"curl --silent --location https://github.com/kubeflow/kfctl/releases/download/{KFCTL_VERSION}/kfctl_{KFCTL_VERSION}-0-ga476281_{platform.lower()}.tar.gz "
-        f"-o /tmp/kfctl_{KFCTL_VERSION}_{platform.lower()}.tar.gz"
     )
 
     kubetail_download_command = (
