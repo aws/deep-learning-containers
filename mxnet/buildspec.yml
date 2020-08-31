@@ -45,7 +45,7 @@
         mxnet:
           type: s3
           version: *VERSION
-          URI: s3://mxnet-wheel-mkl-blas/aws_mxnet_mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
+          URI: s3://mxnet-wheel-mkl-blas/with-libiomp5/aws_mxnet_mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
           VAR_IN_DOCKERFILE: MX_BINARY_WHL
       context:
         <<: *INFERENCE_CONTEXT
