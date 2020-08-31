@@ -31,7 +31,6 @@ ENV MODEL_BASE_PATH=/models
 ENV MODEL_NAME=model
 
 # Define framework-related package sources
-ARG TF_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws/20200609-012254/cpu/py37/tensorflow_cpu-1.15.3-cp37-cp37m-manylinux2010_x86_64.whl
 ARG SMDEBUG_VERSION=0.9.2
 ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
@@ -49,7 +48,6 @@ RUN apt-get update \
     curl \
     emacs \
     git \
-    g++ \
     gnupg2 \
     openssh-client \
     openssh-server \
@@ -100,6 +98,7 @@ RUN apt-get update \
     libsqlite3-dev \
     libssl-dev \
     tk-dev \
+    python3-venv \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -137,15 +136,15 @@ RUN ${PIP} install --no-cache-dir -U \
     "cryptography>=2.3" \
     "sagemaker-tensorflow>=1.15,<1.16" \
     "sagemaker-tensorflow-training>=10,<20" \
-    # Let's install TensorFlow separately in the end to avoid
-    # the library version to be overwritten
- && ${PIP} install --force-reinstall --no-cache-dir -U \
-    ${TF_URL} \
- && ${PIP} install --no-cache-dir -U \
-    "awscli<2" \
- && ${PIP} install  tensorflow-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install  tensorflow_serving_api --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install  tensorboard-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com
+    && ${PIP} install --no-cache-dir -U \
+       "awscli<2" \
+    && ${PIP} install  tensorflow_serving_api --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
+    && ${PIP} install  tensorboard-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com \
+    && ${PIP} install  neuron-cc --extra-index-url https://pip.repos.neuron.amazonaws.com \
+    && ${PIP} install  tensorflow-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com
+
+
+
 
 RUN curl ${TF_S3_URL}/MKL-Libraries/libiomp5.so -o /usr/local/lib/libiomp5.so \
 && curl ${TF_S3_URL}/MKL-Libraries/libmklml_intel.so -o /usr/local/lib/libmklml_intel.so
@@ -175,4 +174,4 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 
-CMD ["/usr/bin/tf_serving_entrypoint.sh"]
+#CMD ["/usr/bin/tf_serving_entrypoint.sh"]
