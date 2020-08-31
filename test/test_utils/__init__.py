@@ -451,7 +451,7 @@ def parse_canary_images(framework, region):
                 versions_counter[version]["inf"] = True
 
     versions = []
-    for v, inf_train in versions_counter:
+    for v, inf_train in versions_counter.items():
         if inf_train['inf'] and inf_train['tr']:
             versions.append(v)
 
