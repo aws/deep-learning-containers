@@ -31,5 +31,7 @@ def test_canary_images_pullable(region):
 
     images = parse_canary_images(framework, region)
     login_to_ecr_registry(ctx, PUBLIC_DLC_REGISTRY, region)
+    if not images:
+        return
     for image in images.split(" "):
         ctx.run(f"docker pull {image}", hide=True)
