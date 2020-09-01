@@ -64,6 +64,7 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
 
     LOGGER.info("Started running SageMaker test.....")
     pytest_command, path, tag, job_type = sm_utils.generate_sagemaker_pytest_cmd(image, "sagemaker")
+    LOGGER.info(f"SM remote pytest command: {pytest_command}")
 
     # update resource pool accordingly, then add a try-catch statement here to update the pool in case of failure
     try:
@@ -335,6 +336,7 @@ def main():
 
             setup_sm_benchmark_env(dlc_images, test_path)
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
+            print(pytest_cmd)
             sys.exit(pytest.main(pytest_cmd))
 
         else:
