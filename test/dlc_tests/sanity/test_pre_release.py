@@ -7,6 +7,7 @@ from invoke.context import Context
 
 from test.test_utils import (
     LOGGER,
+    CONTAINER_TESTS_PREFIX,
     ec2,
     get_framework_and_version_from_tag,
     is_canary_context,
@@ -178,6 +179,15 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
 
     # Ensure that cuda version in tag is in the container
     assert cuda_version in cuda_output.stdout.replace(".", "")
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+def test_dependency_check(image, ec2_connection):
+    test_script = os.path.join(CONTAINER_TESTS_PREFIX, 'testDependencyCheck')
+    output = ec2.execute_ec2_training_test(ec2_connection, image, test_script);
+
+    LOGGER.info(output.stdout)
 
 
 @pytest.mark.model("N/A")
