@@ -114,7 +114,14 @@ def test_safety(image):
             run_out = run(f"{docker_exec_cmd} yolk -M {package} -f version ", warn=True, hide=True)
             if run_out.return_code != 0:
                 continue
-            LOGGER.info(f"yolk version output = {run_out.stdout}")
+            LOGGER.info(
+                f"yolk version stdout = {run_out.stdout} for package {package} with version {curr_version} "
+                f"on vulnerability_id {vulnerability_id}"
+            )
+            LOGGER.info(
+                f"yolk version stderr = {run_out.stderr} for package {package} with version {curr_version} "
+                f"on vulnerability_id {vulnerability_id}"
+            )
             latest_version = run_out.stdout
             if Version(latest_version) in SpecifierSet(affected_versions):
                 # Version(x) gives an object that can be easily compared with another version, or with a SpecifierSet.
