@@ -425,26 +425,38 @@ def parse_canary_images(framework, region):
             framework = "tensorflow1"
 
     version_regex = {
-        "tensorflow1": r"tf-1.\d+",
-        "tensorflow2": r"tf-2.\d+",
-        "mxnet": r"mx-\d+.\d+",
-        "pytorch": r"pt-\d+.\d+"
+        "tensorflow1": r"tf-(1.\d+)",
+        "tensorflow2": r"tf-(2.\d+)",
+        "mxnet": r"mx-(\d+.\d+)",
+        "pytorch": r"pt-(\d+.\d+)"
     }
 
     repo = git.Repo(os.getcwd(), search_parent_directories=True)
 
-    versions = []
+    versions_counter = {}
 
     for tag in repo.tags:
         tag_str = str(tag)
         match = re.search(version_regex[framework], tag_str)
-        if match and "tr" not in tag_str and "inf" not in tag_str:
-            version = match.group().split('-')[-1]
-            if version not in versions:
-                versions.append(version)
+        if match:
+            version = match.group(1)
+            if not versions_counter.get(version):
+                versions_counter[version] = {"tr": False, "inf": False}
+            if "tr" not in tag_str and "inf" not in tag_str:
+                versions_counter[version]["tr"] = True
+                versions_counter[version]["inf"] = True
+            elif "tr" in tag_str:
+                versions_counter[version]["tr"] = True
+            elif "inf" in tag_str:
+                versions_counter[version]["inf"] = True
 
-    # Sort ascending to descending
-    versions = sorted(versions, reverse=True)
+    versions = []
+    for v, inf_train in versions_counter.items():
+        if inf_train['inf'] and inf_train['tr']:
+            versions.append(v)
+
+    # Sort ascending to descending, use lambda to ensure 2.2 < 2.15, for instance
+    versions.sort(key=lambda version_str: [int(point) for point in version_str.split('.')], reverse=True)
 
     registry = PUBLIC_DLC_REGISTRY
     framework_versions = versions if len(versions) < 4 else versions[:3]
