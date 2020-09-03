@@ -19,4 +19,4 @@ set -ex
 python mxnet_imagenet_resnet50.py \
 --dtype "float16" --data-nthreads "40"  \
 --lr "0.3" --warmup-epochs 0 \
---num-epochs "1" --batch-size 256 --mode "gluon"
+--num-epochs "40" --batch-size 256 --mode "gluon"
