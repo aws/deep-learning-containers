@@ -69,3 +69,5 @@ spec:
           requests:
             cpu: "1"
             memory: 1Gi
+      nodeSelector:
+        alpha.eksctl.io/nodegroup-name: <LABEL>

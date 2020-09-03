@@ -18,6 +18,8 @@ spec:
               - <BACKEND>
               - "--epochs"
               - <EPOCHS>
+          nodeSelector:
+            alpha.eksctl.io/nodegroup-name: <LABEL>
     Worker:
       replicas: <NUM_WORKERS>
       restartPolicy: OnFailure
@@ -34,3 +36,5 @@ spec:
             resources:
               limits:
                 nvidia.com/gpu: <GPU_LIMIT>
+          nodeSelector:
+            alpha.eksctl.io/nodegroup-name: <LABEL>

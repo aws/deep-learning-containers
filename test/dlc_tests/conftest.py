@@ -98,6 +98,9 @@ def ec2_client(region):
 def ec2_resource(region):
     return boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
+@pytest.fixture(scope="session")
+def eks_nodegroup_name(request):
+    return request.config.getoption('--eks-nodegroup-name') 
 
 @pytest.fixture(scope="function")
 def ec2_instance_type(request):

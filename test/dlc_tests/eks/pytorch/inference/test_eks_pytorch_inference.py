@@ -10,7 +10,7 @@ import test.test_utils as test_utils
 
 
 @pytest.mark.model("densenet")
-def test_eks_pytorch_densenet_inference(pytorch_inference):
+def test_eks_pytorch_densenet_inference(pytorch_inference, eks_nodegroup_name):
     server_type = test_utils.get_inference_server_type(pytorch_inference)
     if "eia" in pytorch_inference:
         pytest.skip("Skipping EKS Test for EIA")
@@ -37,7 +37,8 @@ def test_eks_pytorch_densenet_inference(pytorch_inference):
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
         "<DOCKER_IMAGE_BUILD_ID>": pytorch_inference,
         "<SERVER_TYPE>": server_type,
-        "<SERVER_CMD>": server_cmd
+        "<SERVER_CMD>": server_cmd,
+        "<LABEL>": eks_nodegroup_name
     }
 
     if processor == "gpu":

@@ -16,3 +16,5 @@ spec:
     resources:
       limits:
         cpu: <CPU_LIMIT>
+  nodeSelector:
+    alpha.eksctl.io/nodegroup-name: <LABEL>

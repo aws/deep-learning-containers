@@ -192,7 +192,7 @@ def setup_eks_cluster(framework_name):
     short_name = frameworks[long_name]
     codebuild_version = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')[0:7]
     num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
-    cluster_name = f"dlc-{short_name}-cluster-"
+    cluster_name = f"dlc-{short_name}-cluster"
     nodegroup_name = f"ng-{codebuild_version}-{random.randint(1, 10000)}"
     try:
         eks_utils.eks_setup()
@@ -283,9 +283,6 @@ def main():
             framework = frameworks_in_images[0]
             eks_cluster_name, eks_nodegroup_name = setup_eks_cluster(framework)
 
-            # setup kubeflow
-            eks_utils.setup_kubeflow(eks_cluster_name)
-
             # Change 1: Split training and inference, and run one after the other, to prevent scheduling issues
             # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in
             # pods timing-out while they were in the Pending state. Scheduling 4 tests (and hence, 4 pods) at once
@@ -323,7 +320,7 @@ def main():
                 raise RuntimeError(pytest_cmds)
         finally:
             if specific_test_type == "eks" and eks_cluster_name:
-                eks_utils.delete_eks_nodegroup(eks_cluster_name, nodegroup_name)
+                eks_utils.delete_eks_nodegroup(eks_cluster_name, eks_nodegroup_name)
 
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):

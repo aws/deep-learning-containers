@@ -18,16 +18,16 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON, is_tf1
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
 @pytest.mark.multinode(3)
-def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example_only):
+def test_eks_tensorflow_multi_node_training_gpu(tensorflow_training, example_only, eks_nodegroup_name):
     eks_cluster_size = "3"
     ec2_instance_type = "p3.16xlarge"
 
     eks_gpus_per_worker = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)
 
-    _run_eks_tensorflow_multinode_training_resnet50_mpijob(tensorflow_training, eks_cluster_size, eks_gpus_per_worker)
+    _run_eks_tensorflow_multinode_training_resnet50_mpijob(tensorflow_training, eks_cluster_size, eks_gpus_per_worker, eks_nodegroup_name)
 
 
-def _run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, cluster_size, eks_gpus_per_worker):
+def _run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, cluster_size, eks_gpus_per_worker, eks_nodegroup_name):
     """
     Run Tensorflow distributed training on EKS using horovod docker images with synthetic dataset
     :param example_image_uri:
@@ -65,7 +65,8 @@ def _run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, cl
         "<CONTAINER_IMAGE>": example_image_uri,
         "<SCRIPT_NAME>": script_name,
         "<ARGS>": args_to_pass,
-        "<GPUS>": str(eks_gpus_per_worker)
+        "<GPUS>": str(eks_gpus_per_worker),
+        "<LABEL>": eks_nodegroup_name
     }
 
     eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file_path, replace_dict)

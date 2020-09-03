@@ -18,7 +18,7 @@ LOGGER = eks_utils.LOGGER
 
 @pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline")
 @pytest.mark.model("mnist")
-def test_eks_pytorch_single_node_training(pytorch_training):
+def test_eks_pytorch_single_node_training(pytorch_training, eks_nodegroup_name):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
     Args:
@@ -44,6 +44,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
         "<CONTAINER_NAME>": pytorch_training,
         "<ARGS>": args,
         "<CPU_LIMIT>": cpu_limit,
+        "<LABEL>": eks_nodegroup_name
     }
 
     eks_utils.write_eks_yaml_file_from_template(
@@ -68,7 +69,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
 @pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
-def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
+def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only, eks_nodegroup_name):
 
     """
     Function to create a pod using kubectl and given container image, and run
@@ -104,6 +105,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
         "<CONTAINER_NAME>": pytorch_training,
         "<ARGS>": args,
         "<CPU_LIMIT>": cpu_limit,
+        "<LABEL>": eks_nodegroup_name
     }
 
     eks_utils.write_eks_yaml_file_from_template(
@@ -129,7 +131,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(4)
-def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
+def test_eks_pytorch_multinode_node_training(pytorch_training, example_only, eks_nodegroup_name):
     """
        Function to create mutliple pods using kubectl and given container image, and run Pytorch training
        Args:
@@ -163,7 +165,8 @@ def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
         "<CONTAINER_IMAGE>": pytorch_training,
         "<BACKEND>": backend,
         "<EPOCHS>": epochs,
-        "<GPU_LIMIT>": gpu_limit
+        "<GPU_LIMIT>": gpu_limit,
+        "<LABEL>": eks_nodegroup_name
     }
 
     eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_path, replace_dict)

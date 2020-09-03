@@ -491,9 +491,15 @@ def is_service_running(selector_name, namespace="default"):
         raise ValueError("Service not running yet, try again")
 
 def delete_eks_nodegroup(eks_cluster_name, nodegroup_name, region=DEFAULT_REGION):
+    """ Function to delete EKS NodeGroup
+        :param eks_cluster_name: Name of the EKS cluster
+        :param nodegroup_name: Name of the nodegroup attached to the cluster
+        :param region: Region where EKS cluster is located
+        :return: None
+    """
     eksctl_delete_nodegroup_command = (
         f"eksctl delete nodegroup "
-        f"--name {nodegroup_name}"
+        f"--name {nodegroup_name} "
         f"--cluster {eks_cluster_name} "
         f"--region {region}"
     )

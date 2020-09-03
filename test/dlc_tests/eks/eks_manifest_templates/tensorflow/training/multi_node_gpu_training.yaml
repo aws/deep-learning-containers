@@ -9,8 +9,8 @@ spec:
     Launcher:
       replicas: 1
       template:
-         spec:
-           containers:
+        spec:
+          containers:
            - image: <CONTAINER_IMAGE>
              name: <JOB_NAME>
              command:
@@ -41,6 +41,8 @@ spec:
               - python
               - <SCRIPT_NAME>
              args: <ARGS>
+          nodeSelector:
+            alpha.eksctl.io/nodegroup-name: <LABEL>
     Worker:
       replicas: <NUM_WORKERS>
       template:
@@ -51,3 +53,5 @@ spec:
             resources:
               limits:
                 nvidia.com/gpu: <GPUS>
+          nodeSelector:
+            alpha.eksctl.io/nodegroup-name: <LABEL>

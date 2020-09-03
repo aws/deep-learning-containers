@@ -10,7 +10,7 @@ import test.test_utils as test_utils
 
 
 @pytest.mark.model("half_plus_two")
-def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
+def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference, eks_nodegroup_name):
     if "eia" in tensorflow_inference:
         pytest.skip("Skipping EKS Test for EIA")
     num_replicas = "1"
@@ -29,7 +29,8 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference
+        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference,
+        "<LABEL>": eks_nodegroup_name
     }
 
     if processor == "gpu":
