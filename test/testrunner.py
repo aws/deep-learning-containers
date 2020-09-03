@@ -186,7 +186,7 @@ def pull_dlc_images(images):
         run(f"docker pull {image}", hide="out")
 
 
-def setup_eks_cluster(framework_name):
+def setup_eks_nodegroup(framework_name):
     frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
     long_name = framework_name
     short_name = frameworks[long_name]
@@ -281,7 +281,7 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
-            eks_cluster_name, eks_nodegroup_name = setup_eks_cluster(framework)
+            eks_cluster_name, eks_nodegroup_name = setup_eks_nodegroup(framework)
 
             # Change 1: Split training and inference, and run one after the other, to prevent scheduling issues
             # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in

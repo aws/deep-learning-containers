@@ -396,6 +396,3 @@ def pytest_generate_tests(metafunc):
     # Parametrize for framework agnostic tests, i.e. sanity
     if "image" in metafunc.fixturenames:
         metafunc.parametrize("image", images)
-
-    if "eks-nodegroup-name" in metafunc.fixturenames:
-        metafunc.parametrize("eks_nodegroup_name", metafunc.config.getoption("eks-nodegroup-name"))
