@@ -174,4 +174,4 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 
-#CMD ["/usr/bin/tf_serving_entrypoint.sh"]
+CMD ["/usr/bin/tf_serving_entrypoint.sh"]
