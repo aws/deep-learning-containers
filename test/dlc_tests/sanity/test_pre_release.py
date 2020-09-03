@@ -191,7 +191,7 @@ def test_dependency_check(cpu, ec2_connection):
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_dependency_check(gpu, ec2_connection):
     test_script = os.path.join(CONTAINER_TESTS_PREFIX, 'testDependencyCheck')
     output = ec2.execute_ec2_training_test(ec2_connection, gpu, test_script);
