@@ -49,19 +49,34 @@ pip install tensorflow-datasets
 echo "Running framework tests."
 
 
-if [[ $FRAMEWORK == "tensorflow" ]]; then
-    pytest mock/tests/${FRAMEWORK} \
-                            -k "not test_keras and not test_mnist_s3 and not test_mnist_s3_multi_save_configs" \
-                            --ignore=mock/tests/mxnet/test_training_end.py
-else
-    pytest mock/tests/${FRAMEWORK} --ignore=mock/tests/mxnet/test_training_end.py
+echo "Setting up SMDebug environment."
+echo "{\"LocalPath\": \"newlogsRunTest1/test_hook_from_json_config\"}" | tee /tmp/test_hook_from_json_config.json
+export SMDEBUG_CONFIG_FILE_PATH=/tmp/test_hook_from_json_config.json
+export PYTHONPATH=$(pwd)/mock
+
+if [ ! ${ZCC_TEST_NAME[$FRAMEWORK]} ]; then
+    echo "$FRAMEWORK is not a valid entry in list of frameworks"
+    exit 1
 fi
+if [[ ${FRAMEWORK} == "tensorflow2" ]]; then
+    if [ "$(printf '%s\n' "0.7.2" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.7.2" ]; then
+        if [ "$(printf '%s\n' "0.8.0" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.8.0" ]; then
+            pytest mock/tests/zero_code_change/test_${FRAMEWORK}_gradtape_integration.py
+        else
+            python mock/tests/zero_code_change/${FRAMEWORK}_gradtape_integration_tests.py
+        fi
+    fi
+fi
+
+echo "Running ZCC tests."
+
+pytest mock/tests/zero_code_change/${ZCC_TEST_NAME[$FRAMEWORK]}
 
 if [ "$?" -eq "0" ]
 then
-    echo "SMDebug framework tests succeeded."
+    echo "SMDebug ZCC tests succeeded."
 else
-    echo "SMDebug framework tests Failed."
+    echo "SMDebug ZCC tests Failed."
     exit 1
 fi
 
