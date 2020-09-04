@@ -267,6 +267,7 @@ def execute_sagemaker_remote_tests(image):
             context.run("pip install -r requirements.txt", warn=True)
             res = context.run("pytest xyz", warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
+            assert res.ok, f"{pytest_command} failed."
 
 
 def generate_empty_report(report, test_type, case):
