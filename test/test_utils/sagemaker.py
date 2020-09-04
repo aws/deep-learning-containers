@@ -123,7 +123,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     if framework == "tensorflow" and job_type == "training":
         aws_id_arg = "--account-id"
 
-    test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
+    test_report = os.path.join(os.getcwd(), "test", f"{job_type}_{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     is_py3 = " python3 -m "
 
@@ -265,7 +265,7 @@ def execute_sagemaker_remote_tests(image):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
-            res = context.run("pytest xyz", warn=True)
+            res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
             assert res.ok, f"{pytest_command} failed."
 
