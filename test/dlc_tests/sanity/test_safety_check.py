@@ -111,17 +111,16 @@ def test_safety(image):
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
         safety_result = json.loads(json_str_safety_result)
         for package, affected_versions, curr_version, _, vulnerability_id in safety_result:
-            run_out = run(f"{docker_exec_cmd} yolk -M {package} -f version ", warn=True, hide=True)
-            if run_out.return_code != 0:
+            num_retries_latest_version = 3
+            get_latest_version_command = f"{docker_exec_cmd} yolk -M {package} -f version "
+            for attempt in range(num_retries_latest_version):
+                run_out = run(get_latest_version_command, warn=True, hide=True)
+                if run_out.failed or run_out.stdout:
+                    break
+                LOGGER.info(f"Failed {attempt}: '{get_latest_version_command}' returned {run_out.stdout}")
+            if run_out.failed:
                 continue
-            LOGGER.info(
-                f"yolk version stdout = {run_out.stdout} for package {package} with version {curr_version} "
-                f"on vulnerability_id {vulnerability_id}"
-            )
-            LOGGER.info(
-                f"yolk version stderr = {run_out.stderr} for package {package} with version {curr_version} "
-                f"on vulnerability_id {vulnerability_id}"
-            )
+            assert run_out.stdout, f"'{get_latest_version_command}' returned '{run_out.stdout}'"
             latest_version = run_out.stdout
             if Version(latest_version) in SpecifierSet(affected_versions):
                 # Version(x) gives an object that can be easily compared with another version, or with a SpecifierSet.
