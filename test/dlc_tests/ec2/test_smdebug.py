@@ -60,7 +60,7 @@ def run_smdebug_test(
         test_output = ec2_connection.run(
             f"{docker_executable} exec --user root {container_name} "
             f"/bin/bash -c '{test_script} {framework}' | tee {logfile}",
-            show=True,
+            hide=True,
             warn=True,
             timeout=3000,
         )
