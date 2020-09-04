@@ -265,7 +265,7 @@ def execute_sagemaker_remote_tests(image):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
-            res = context.run(pytest_command, warn=True)
+            res = context.run("pytest xyz", warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
 
 
