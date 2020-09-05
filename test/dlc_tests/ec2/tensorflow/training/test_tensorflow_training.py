@@ -22,7 +22,7 @@ TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p2.8xlarge", processor
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 
 
-@pytest.mark.integration('tensorflow_sanity_test')
+@pytest.mark.integration("tensorflow_sanity_test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_standalone_gpu(tensorflow_training, ec2_connection, gpu_only):
@@ -30,7 +30,7 @@ def test_tensorflow_standalone_gpu(tensorflow_training, ec2_connection, gpu_only
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
 
-@pytest.mark.integration('tensorflow_sanity_test')
+@pytest.mark.integration("tensorflow_sanity_test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_standalone_cpu(tensorflow_training, ec2_connection, cpu_only):
@@ -55,8 +55,12 @@ def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_connection, gpu_only):
     test_script = TF1_HVD_CMD if is_tf1(tensorflow_training) else TF2_HVD_CMD
-    execute_ec2_training_test(ec2_connection, tensorflow_training, test_script,
-                              large_shm=True if "p2.8xlarge" in TF_EC2_GPU_INSTANCE_TYPE else False)
+    execute_ec2_training_test(
+        ec2_connection,
+        tensorflow_training,
+        test_script,
+        large_shm=True if "p2.8xlarge" in TF_EC2_GPU_INSTANCE_TYPE else False,
+    )
 
 
 @pytest.mark.integration("horovod")
@@ -108,7 +112,9 @@ def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only)
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_keras_horovod_amp(tensorflow_training, ec2_connection, gpu_only):
     if is_tf1(tensorflow_training) or is_tf20(tensorflow_training):
-        pytest.skip("This test is for TF2.1 and later only") # https://github.com/tensorflow/tensorflow/issues/33484#issuecomment-555299647
+        pytest.skip(
+            "This test is for TF2.1 and later only"
+        )  # https://github.com/tensorflow/tensorflow/issues/33484#issuecomment-555299647
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_KERAS_HVD_CMD_AMP)
 
 
@@ -161,18 +167,21 @@ def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
 
 
-# Helper function to test data service 
+# Helper function to test data service
 def run_data_service_test(ec2_connection, tensorflow_training):
-    ec2_connection.run('python3 -m pip install --upgrade pip')
-    ec2_connection.run('pip3 install tensorflow')
-    ec2_connection.run('pip3 install tf-nightly')
-    container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(f'cd {container_test_local_dir}/bin && screen -d -m python3 start_dataservice.py', timeout=1800)
+    venv = "data_service_venv"
+    ec2_connection.run(f"python3 -m venv {venv}", hide=True)
+    with ec2_connection.prefix(f"source {venv}/bin/activate"):
+        ec2_connection.run("pip install tensorflow && pip install tf-nightly", hide=True)
+        container_test_local_dir = os.path.join("$HOME", "container_tests")
+        ec2_connection.run(
+            f"cd {container_test_local_dir}/bin && screen -d -m python3 start_dataservice.py", timeout=1800, hide=True
+        )
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
 
 
 # Testing Data Service on only one CPU instance
-@pytest.mark.integration('tensorflow-dataservice-test')
+@pytest.mark.integration("tensorflow-dataservice-test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_only):
@@ -182,7 +191,7 @@ def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_onl
 
 
 # Testing Data Service on only one GPU instance
-@pytest.mark.integration('tensorflow-dataservice-test')
+@pytest.mark.integration("tensorflow-dataservice-test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, gpu_only):
