@@ -175,7 +175,7 @@ def run_data_service_test(ec2_connection, tensorflow_training):
         ec2_connection.run("pip install tensorflow && pip install tf-nightly", hide=True)
         container_test_local_dir = os.path.join("$HOME", "container_tests")
         ec2_connection.run(
-            f"cd {container_test_local_dir}/bin && screen -d -m python start_dataservice.py", timeout=1800, hide=True
+            f"cd {container_test_local_dir}/bin && screen -d -m python start_dataservice.py", timeout=120, hide=True
         )
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
 
