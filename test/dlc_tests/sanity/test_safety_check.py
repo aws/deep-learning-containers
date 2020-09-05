@@ -97,7 +97,7 @@ def _get_latest_package_version(docker_exec_cmd, package, num_tries=3):
         if run_out.failed or run_out.stdout:
             break
         LOGGER.info(f"Failed {attempt}: '{get_latest_version_command}' returned '{run_out.stdout}'")
-    assert run_out.stdout, f"'{get_latest_version_command}' returned '{run_out.stdout}'"
+    assert run_out.failed or run_out.stdout, f"'{get_latest_version_command}' returned '{run_out.stdout}'"
     return run_out.ok, run_out.stdout.strip("\n")
 
 
