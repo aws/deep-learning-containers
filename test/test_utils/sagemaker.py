@@ -29,6 +29,10 @@ from test_utils import (
 )
 
 
+class DLCSageMakerRemoteTestFailure(Exception):
+    pass
+
+
 def assign_sagemaker_remote_job_instance_type(image):
     if "tensorflow" in image:
         return "ml.p3.8xlarge" if "gpu" in image else "ml.c4.4xlarge"
@@ -267,7 +271,11 @@ def execute_sagemaker_remote_tests(image):
             context.run("pip install -r requirements.txt", warn=True)
             res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
-            assert res.ok, f"{pytest_command} failed."
+            if res.failed:
+                raise DLCSageMakerRemoteTestFailure(
+                    f"{pytest_command} failed with error code: {res.return_code}\n"
+                    f"Traceback:\n{res.stdout}"
+                )
 
 
 def generate_empty_report(report, test_type, case):
