@@ -17,7 +17,6 @@ PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_p
 
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
-PT_EC2_EFA_INSTANCE_TYPE = get_ec2_instance_type(default="p3dn.24xlarge", processor="gpu")
 
 @pytest.mark.integration("pytorch_sanity_test")
 @pytest.mark.model("N/A")
@@ -96,17 +95,6 @@ def test_pytorch_gloo(pytorch_training, ec2_connection, gpu_only, py3_only):
 def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only):
     """
     Tests nccl backend
-    """
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl")
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
-
-
-@pytest.mark.integration("nccl")
-@pytest.mark.model("resnet18")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_EFA_INSTANCE_TYPE, indirect=True)
-def test_pytorch_nccl_efa(pytorch_training, ec2_connection, gpu_only, py3_only):
-    """
-    Tests nccl backend with EFA
     """
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl")
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
