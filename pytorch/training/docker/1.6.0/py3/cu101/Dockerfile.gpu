@@ -96,6 +96,7 @@ RUN cd /tmp && \
   ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify && \
   cd /tmp && \
   rm -rf aws-efa-installer && \
+  rm -rf aws-efa-installer-1.8.4.tar.gz && \
   echo export PATH="$OPEN_MPI_PATH/bin:$PATH" >> /root/.bashrc && \
   echo export LD_LIBRARY_PATH="$OPEN_MPI_PATH/lib:$AMAZON_EFA_PATH/lib:$LD_LIBRARY_PATH" >> /root/.bashrc
 
