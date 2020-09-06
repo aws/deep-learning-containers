@@ -5,6 +5,8 @@ import random
 import sys
 
 import boto3
+from botocore.config import Config
+from botocore.exceptions import ClientError
 import docker
 import pytest
 
@@ -15,7 +17,8 @@ import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
 from test.test_utils import (
-    DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2, KEYS_TO_DESTROY_FILE
+    DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2,
+    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2, KEYS_TO_DESTROY_FILE
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -35,6 +38,10 @@ FRAMEWORK_FIXTURES = (
     "inference",
     "gpu",
     "cpu",
+    "eia",
+    "pytorch_inference_eia",
+    "mxnet_inference_eia",
+    "tensorflow_inference_eia"
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -105,16 +112,23 @@ def ec2_instance_ami(request):
     return request.param if hasattr(request, "param") else UBUNTU_16_BASE_DLAMI_US_WEST_2
 
 
+@pytest.fixture(scope="function")
+def ei_accelerator_type(request):
+    return request.param if hasattr(request, "param") else None
+
+
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
 def ec2_instance(
-    request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami, region
+        request, ec2_client, ec2_resource, ec2_instance_type, ec2_key_name, ec2_instance_role_name, ec2_instance_ami,
+        region, ei_accelerator_type
 ):
     if ec2_instance_type == "p3dn.24xlarge":
         region = P3DN_REGION
         ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
-        ec2_instance_ami = UBUNTU_16_BASE_DLAMI_US_EAST_1
+        if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
+            ec2_instance_ami = UBUNTU_16_BASE_DLAMI_US_EAST_1
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
     params = {
@@ -141,7 +155,28 @@ def ec2_instance(
         and "horovod" in ec2_key_name
     ):
         params["BlockDeviceMappings"] = extra_volume_size_mapping
-    instances = ec2_resource.create_instances(**params)
+    if ei_accelerator_type:
+        params["ElasticInferenceAccelerators"] = [
+            {
+                'Type': ei_accelerator_type,
+                'Count': 1
+            }
+        ]
+        availability_zones = {"us-west-2": ["us-west-2a", "us-west-2b", "us-west-2c"],
+                              "us-east-1": ["us-east-1a", "us-east-1b", "us-east-1c"]}
+        for a_zone in availability_zones[region]:
+            params["Placement"] = {
+                'AvailabilityZone': a_zone
+            }
+            try:
+                instances = ec2_resource.create_instances(**params)
+                if instances:
+                    break
+            except ClientError as e:
+                LOGGER.error(f"Failed to launch in {a_zone} with Error: {e}")
+                continue
+    else:
+        instances = ec2_resource.create_instances(**params)
     instance_id = instances[0].id
 
     # Define finalizer to terminate instance after this fixture completes
@@ -227,6 +262,10 @@ def gpu_only():
 
 
 @pytest.fixture(scope="session")
+def eia_only():
+    pass
+
+@pytest.fixture(scope="session")
 def py3_only():
     pass
 
@@ -273,7 +312,10 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
     :param values_to_generate_for_fixture: <dict> Mapping of "Fixture used" -> "Fixture to be parametrized"
     :return: <dict> Mapping of "Fixture to be parametrized" -> "Unique values for fixture to be parametrized"
     """
+    job_type_map = {"training": "tr", "inference": "inf"}
+    framework_name_maps = {"tensorflow": "tf", "mxnet": "mx", "pytorch": "pt"}
     fixtures_parametrized = {}
+
     if images_to_parametrize:
         for key, new_fixture_name in values_to_generate_for_fixture.items():
             if key in metafunc_obj.fixturenames:
@@ -291,10 +333,15 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                                 break
 
                     image_tag = image.split(":")[-1].replace(".", "-")
+
+                    framework = image.split(":")[0].split("/")[1].split("-")[0]
+                    job_type = image.split(":")[0].split("/")[1].split("-")[1]
+
                     fixtures_parametrized[new_fixture_name].append(
                         (
                             image,
-                            f"{metafunc_obj.function.__name__}-{image_tag}-"
+                            f"{metafunc_obj.function.__name__}-{framework_name_maps.get(framework, '')}-"
+                            f"{job_type_map.get(job_type, '')}{image_tag}-"
                             f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}{instance_tag}",
                         )
                     )
@@ -314,13 +361,14 @@ def pytest_generate_tests(metafunc):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
                     if is_example_lookup or is_standard_lookup:
-                        if "cpu_only" in metafunc.fixturenames and "cpu" in image:
+                        if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
-                        elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames:
+                        elif "eia_only" in metafunc.fixturenames and "eia" in image:
                             images_to_parametrize.append(image)
-
+                        elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames and "eia_only" not in metafunc.fixturenames:
+                            images_to_parametrize.append(image)
             # Remove all images tagged as "py2" if py3_only is a fixture
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
                 images_to_parametrize = [py3_image for py3_image in images_to_parametrize if "py2" not in py3_image]

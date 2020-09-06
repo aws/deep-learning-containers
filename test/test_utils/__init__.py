@@ -6,6 +6,7 @@ import time
 import logging
 import sys
 
+import git
 import pytest
 
 from botocore.exceptions import ClientError
@@ -25,7 +26,9 @@ P3DN_REGION = "us-east-1"
 # Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
 UBUNTU_16_BASE_DLAMI_US_WEST_2 = "ami-0e5a388144f62e4f5"
 UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0da7f2daf5e92c6f2"
-UL_AMI_LIST = [UBUNTU_16_BASE_DLAMI_US_WEST_2, UBUNTU_16_BASE_DLAMI_US_EAST_1]
+PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
+PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
+UL_AMI_LIST = [UBUNTU_16_BASE_DLAMI_US_WEST_2, UBUNTU_16_BASE_DLAMI_US_EAST_1, PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2]
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 
@@ -123,7 +126,7 @@ def retry_if_result_is_false(result):
     wait_fixed=10000,
     retry_on_result=retry_if_result_is_false,
 )
-def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80", connection=None):
+def request_mxnet_inference(ip_address="127.0.0.1", port="80", connection=None, model= "squeezenet"):
     """
     Send request to container to test inference on kitten.jpg
     :param ip_address:
@@ -138,7 +141,7 @@ def request_mxnet_inference_squeezenet(ip_address="127.0.0.1", port="80", connec
     if run_out.return_code != 0:
         conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg", hide=True)
 
-    run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/squeezenet -T kitten.jpg", warn=True)
+    run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/{model} -T kitten.jpg", warn=True)
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
@@ -223,6 +226,27 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
 
     return True
 
+@retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8501"):
+    """
+    Method to run tensorflow inference on half_plus_two model using CURL command
+    :param model_name:
+    :param ip_address:
+    :param port:
+    :connection: ec2_connection object to run the commands remotely over ssh
+    :return:
+    """
+    inference_string = "'{\"instances\": [[2,1952,25,10901,3]]}'"
+    run_out = run(
+        f"curl -d {inference_string} -X POST http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
+    )
+
+    # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
+    # is 404. Hence the extra check.
+    if run_out.return_code != 0 or 'predictions' not in run_out.stdout:
+        return False
+
+    return True
 
 def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None):
     """
@@ -252,7 +276,8 @@ def get_mms_run_command(model_names, processor="cpu"):
         }
     else:
         multi_model_location = {
-            "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar"
+            "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar",
+            "pytorch-densenet": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia.mar",
         }
 
     if not isinstance(model_names, list):
@@ -267,8 +292,9 @@ def get_mms_run_command(model_names, processor="cpu"):
     parameters = [
         "{}={}".format(name, multi_model_location[name]) for name in model_names
     ]
+    multi_or_mxnet = "multi" if processor != "eia" else "mxnet"
     mms_command = (
-        "multi-model-server --start --mms-config /home/model-server/config.properties --models "
+        f"{multi_or_mxnet}-model-server --start --mms-config /home/model-server/config.properties --models "
         + " ".join(parameters)
     )
     return mms_command
@@ -286,6 +312,11 @@ def get_tensorflow_model_name(processor, model_name):
             "cpu": "saved_model_half_plus_two_cpu",
             "gpu": "saved_model_half_plus_two_gpu",
             "eia": "saved_model_half_plus_two",
+        },
+        "albert": {
+            "cpu": "albert",
+            "gpu": "albert",
+            "eia": "albert",
         },
         "saved_model_half_plus_three": {"eia": "saved_model_half_plus_three"},
     }
@@ -372,51 +403,87 @@ def get_dlc_images():
 
 
 def parse_canary_images(framework, region):
-    tf1 = "1.15"
-    tf2 = "2.2"
-    mx = "1.6"
-    pt = "1.5"
+    """
+    Return which canary images to run canary tests on for a given framework and AWS region
 
+    :param framework: ML framework (mxnet, tensorflow, pytorch)
+    :param region: AWS region
+    :return: dlc_images string (space separated string of image URIs)
+    """
     if framework == "tensorflow":
-        framework = "tensorflow2" if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") else "tensorflow1"
+        if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") or "tensorflow2" in os.getenv("CODEBUILD_INITIATOR"):
+            framework = "tensorflow2"
+        else:
+            framework = "tensorflow1"
+
+    version_regex = {
+        "tensorflow1": r"tf-1.\d+",
+        "tensorflow2": r"tf-2.\d+",
+        "mxnet": r"mx-\d+.\d+",
+        "pytorch": r"pt-\d+.\d+"
+    }
+
+    repo = git.Repo(os.getcwd(), search_parent_directories=True)
+
+    versions = []
+
+    for tag in repo.tags:
+        tag_str = str(tag)
+        match = re.search(version_regex[framework], tag_str)
+        if match and "tr" not in tag_str and "inf" not in tag_str:
+            version = match.group().split('-')[-1]
+            if version not in versions:
+                versions.append(version)
+
+    # Sort ascending to descending
+    versions = sorted(versions, reverse=True)
 
     registry = PUBLIC_DLC_REGISTRY
+    framework_versions = versions if len(versions) < 4 else versions[:3]
+    dlc_images = ""
+    for fw_version in framework_versions:
+        py_minor_version = '7' if framework == "tensorflow2" and fw_version == '2.2' else ''
+        images = {
+            "tensorflow1":
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
+            "tensorflow2":
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-py3{py_minor_version} "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-py3{py_minor_version} "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
 
-    images = {
-        "tensorflow1":
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-cpu-py2 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf1}-gpu-py2 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-gpu "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf1}-cpu",
-        "tensorflow2":
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-gpu-py37 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{tf2}-cpu-py37 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-gpu "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{tf2}-cpu",
+            "mxnet":
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-py2 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-py2",
+            "pytorch":
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-py3 "
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-py3"
+        }
+        if not dlc_images:
+            dlc_images = images[framework]
+        else:
+            dlc_images += f" {images[framework]}"
 
-        "mxnet":
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-gpu-py2 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{mx}-cpu-py2 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-gpu-py2 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{mx}-cpu-py2",
-        "pytorch":
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-gpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{pt}-cpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-gpu-py3 "
-            f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{pt}-cpu-py3"
-    }
-    return images[framework]
+    return dlc_images
 
 
 def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2_env):
     """
     Create a virtual environment for benchmark tests if it doesn't already exist, and download all necessary scripts
+
     :param resources_location: <str> directory in which test resources should be placed
     :param setup_tf1_env: <bool> True if tf1 resources need to be setup
     :param setup_tf2_env: <bool> True if tf2 resources need to be setup
@@ -443,9 +510,9 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install -U sagemaker awscli boto3 botocore six==1.11")
+            ctx.run("pip install -U 'sagemaker<2' awscli boto3 botocore six==1.11")
 
-            # SageMaker TF estimator is coded to only accept framework versions upto 2.1.0 as py2 compatible.
+            # SageMaker TF estimator is coded to only accept framework versions up to 2.1.0 as py2 compatible.
             # Fixing this through the following changes:
             estimator_location = ctx.run(
                 "echo $(pip3 show sagemaker |grep 'Location' |sed s/'Location: '//g)/sagemaker/tensorflow/estimator.py"
@@ -493,6 +560,9 @@ def get_job_type_from_image(image_uri):
             tested_job_type = job_type
             break
 
+    if not tested_job_type and "eia" in image_uri:
+        tested_job_type = "inference"
+
     if not tested_job_type:
         raise RuntimeError(f"Cannot find Job Type in image uri {image_uri} "
                            f"from allowed frameworks {allowed_job_types}")
@@ -510,3 +580,21 @@ def get_repository_and_tag_from_image_uri(image_uri):
     repository_uri, tag = image_uri.split(":")
     _, repository_name = repository_uri.split("/")
     return repository_name, tag
+
+
+def get_processor_from_image_uri(image_uri):
+    """
+    Return processor from the image URI
+
+    Assumes image uri includes -<processor> in it's tag, where <processor> is one of cpu, gpu or eia.
+
+    :param image_uri: ECR image URI
+    :return: cpu, gpu, or eia
+    """
+    allowed_processors = ("cpu", "gpu", "eia")
+
+    for processor in allowed_processors:
+        match = re.search(rf'-({processor})', image_uri)
+        if match:
+            return match.group(1)
+    raise RuntimeError("Cannot find processor")
