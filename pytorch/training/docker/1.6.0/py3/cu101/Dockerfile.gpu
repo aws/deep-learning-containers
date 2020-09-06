@@ -43,6 +43,7 @@ RUN apt-get update \
     cuda-cusolver-10-1 \
     cuda-cusparse-10-1 \
     curl \
+    dh-autoreconf \
     emacs \
     git \
     jq \
@@ -56,6 +57,7 @@ RUN apt-get update \
     libhwloc-dev \
     libnuma1 \
     libnuma-dev \
+    libudev-dev \
     vim \
     wget \
     zlib1g-dev \
