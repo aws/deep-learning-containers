@@ -74,17 +74,17 @@ RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86
  && apt-get install -f -y \
  && rm libcublas10_${CUBLAS_VERSION}.deb
 
-RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
- && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
- && cd openmpi-$OPEN_MPI_VERSION \
- && ./configure --prefix=/home/.openmpi \
- && make all install \
- && cd .. \
- && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
- && rm -rf openmpi-$OPEN_MPI_VERSION
+# RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
+#  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
+#  && cd openmpi-$OPEN_MPI_VERSION \
+#  && ./configure --prefix=/home/.openmpi \
+#  && make all install \
+#  && cd .. \
+#  && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
+#  && rm -rf openmpi-$OPEN_MPI_VERSION
 
-ENV PATH="$PATH:/home/.openmpi/bin"
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+# ENV PATH="$PATH:/home/.openmpi/bin"
+# ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 
 # Upgrade NCCL from 2.4.8 to 2.6.4
 RUN rm -rf  /usr/lib/x86_64-linux-gnu/libnccl* && \
