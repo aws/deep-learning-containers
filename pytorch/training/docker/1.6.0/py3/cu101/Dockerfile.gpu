@@ -97,8 +97,9 @@ RUN cd /tmp && \
   cd /tmp && \
   rm -rf aws-efa-installer && \
   echo export PATH="$OPEN_MPI_PATH/bin:$PATH" >> /root/.bashrc && \
-  echo export LD_LIBRARY_PATH="$OPEN_MPI_PATH/lib:$AMAZON_EFA_PATH/lib:$LD_LIBRARY_PATH" >> /root/.bashrc && \
-  source /root/.bashrc
+  echo export LD_LIBRARY_PATH="$OPEN_MPI_PATH/lib:$AMAZON_EFA_PATH/lib:$LD_LIBRARY_PATH" >> /root/.bashrc
+
+RUN ["/bin/bash", "-c", "source /root/.bashrc"]
 
 # Set the Env Paths to reflect new MPI and EFA
 ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
