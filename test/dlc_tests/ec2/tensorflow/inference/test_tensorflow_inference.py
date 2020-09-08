@@ -100,7 +100,8 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
             serving_folder_path, framework_version, ec2_connection, is_neuron, 'mnist'
         )
         sleep(2)
-        train_mnist_model(serving_folder_path, ec2_connection)
+        if not is_neuron:
+            train_mnist_model(serving_folder_path, ec2_connection)
         sleep(10)
         ec2_connection.run(
             f"$(aws ecr get-login --no-include-email --region {region})", hide=True
