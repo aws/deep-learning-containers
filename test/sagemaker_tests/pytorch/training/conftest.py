@@ -53,7 +53,7 @@ def pytest_addoption(parser):
     parser.addoption('--instance-type')
     parser.addoption('--docker-base-name', default='pytorch')
     parser.addoption('--region', default='us-west-2')
-    parser.addoption('--framework-version', default=PyTorch.LATEST_VERSION)
+    parser.addoption('--framework-version', default='')
     parser.addoption('--py-version', choices=['2', '3'], default=str(sys.version_info.major))
     parser.addoption('--processor', choices=['gpu', 'cpu'], default='cpu')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}

@@ -1,7 +1,7 @@
   account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK pytorch
-  version: &VERSION 1.5.1
+  version: &VERSION 1.6.0
   cuda_version: &CUDA_VERSION cu101
   os_version: &OS_VERSION ubuntu16.04
 
@@ -19,15 +19,12 @@
 
   context:
     inference_context: &INFERENCE_CONTEXT
-      mms-entrypoint:
-        source: docker/build_artifacts/mms-entrypoint.py
-        target: mms-entrypoint.py
+      torchserve-entrypoint:
+        source: docker/build_artifacts/torchserve-entrypoint.py
+        target: torchserve-entrypoint.py
       config:
         source: docker/build_artifacts/config.properties
         target: config.properties
-      deep_learning_container:
-        source: docker/build_artifacts/deep_learning_container.py
-        target: deep_learning_container.py
 
   images:
     BuildCPUPTInferencePy3DockerImage:

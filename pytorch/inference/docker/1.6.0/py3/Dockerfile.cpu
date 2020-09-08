@@ -7,10 +7,9 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON_VERSION=3.6.10
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.2.0
+ARG TS_VERSION="0.2.1=py36_0"
 ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_inference/20200727-223446/b0251e7e070e57f34ee08ac59ab4710081b41918/cpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
 ARG PT_VISION_URL=https://torchvision-build.s3.amazonaws.com/1.6.0/cpu/torchvision-0.7.0-cp36-cp36m-linux_x86_64.whl
-
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
@@ -93,8 +92,10 @@ RUN conda install -c \
  && conda clean -ya \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install torchserve==$TS_VERSION \
- && pip install torch-model-archiver==$TS_VERSION
+ && pip install packaging==20.4 \
+    enum-compat==0.0.3 \
+ && conda install -y -c pytorch torchserve=$TS_VERSION \
+ && conda install -y -c pytorch torch-model-archiver=$TS_VERSION
 
 
 # Uninstall and re-install torch and torchvision from the PyTorch website
@@ -113,7 +114,7 @@ COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
-ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 

@@ -15,6 +15,8 @@ from invoke.context import Context
 from packaging.version import LegacyVersion, Version, parse
 from retrying import retry
 
+from src.config.test_config import ENABLE_BENCHMARK_DEV_MODE
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
@@ -78,6 +80,11 @@ def is_tf20(image_uri):
     return bool(re.search(r'2\.0\.\d+', image_uri))
 
 
+def get_repository_local_path():
+    git_repo_path = os.getcwd().split("/test/")[0]
+    return git_repo_path
+
+
 def get_inference_server_type(image_uri):
     if "pytorch" not in image_uri:
         return "mms"
@@ -106,6 +113,10 @@ def is_empty_build_context():
 
 def is_dlc_cicd_context():
     return os.getenv("BUILD_CONTEXT") in ["PR", "CANARY", "NIGHTLY", "MAINLINE"]
+
+
+def is_benchmark_dev_context():
+    return ENABLE_BENCHMARK_DEV_MODE
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
@@ -290,9 +301,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         "{}={}".format(name, multi_model_location[name]) for name in model_names
     ]
 
-    if processor == "eia":
-        server_cmd = "mxnet-model-server"
-    elif server_type == "ts":
+    if server_type == "ts":
         server_cmd = "torchserve"
     else:
         server_cmd = "multi-model-server"
@@ -416,32 +425,44 @@ def parse_canary_images(framework, region):
             framework = "tensorflow1"
 
     version_regex = {
-        "tensorflow1": r"tf-1.\d+",
-        "tensorflow2": r"tf-2.\d+",
-        "mxnet": r"mx-\d+.\d+",
-        "pytorch": r"pt-\d+.\d+"
+        "tensorflow1": r"tf-(1.\d+)",
+        "tensorflow2": r"tf-(2.\d+)",
+        "mxnet": r"mx-(\d+.\d+)",
+        "pytorch": r"pt-(\d+.\d+)"
     }
 
     repo = git.Repo(os.getcwd(), search_parent_directories=True)
 
-    versions = []
+    versions_counter = {}
 
     for tag in repo.tags:
         tag_str = str(tag)
         match = re.search(version_regex[framework], tag_str)
-        if match and "tr" not in tag_str and "inf" not in tag_str:
-            version = match.group().split('-')[-1]
-            if version not in versions:
-                versions.append(version)
+        if match:
+            version = match.group(1)
+            if not versions_counter.get(version):
+                versions_counter[version] = {"tr": False, "inf": False}
+            if "tr" not in tag_str and "inf" not in tag_str:
+                versions_counter[version]["tr"] = True
+                versions_counter[version]["inf"] = True
+            elif "tr" in tag_str:
+                versions_counter[version]["tr"] = True
+            elif "inf" in tag_str:
+                versions_counter[version]["inf"] = True
 
-    # Sort ascending to descending
-    versions = sorted(versions, reverse=True)
+    versions = []
+    for v, inf_train in versions_counter.items():
+        if inf_train['inf'] and inf_train['tr']:
+            versions.append(v)
+
+    # Sort ascending to descending, use lambda to ensure 2.2 < 2.15, for instance
+    versions.sort(key=lambda version_str: [int(point) for point in version_str.split('.')], reverse=True)
 
     registry = PUBLIC_DLC_REGISTRY
     framework_versions = versions if len(versions) < 4 else versions[:3]
     dlc_images = ""
     for fw_version in framework_versions:
-        py_minor_version = '7' if framework == "tensorflow2" and fw_version == '2.2' else ''
+        py_minor_version = '7' if framework == "tensorflow2" and Version(fw_version) >= Version('2.2') else ''
         images = {
             "tensorflow1":
                 f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-py3 "
