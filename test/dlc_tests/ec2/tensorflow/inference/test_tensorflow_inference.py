@@ -84,10 +84,10 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
         setup_neuron_sidecar(ec2_connection)
         docker_run_cmd = (
             f"{docker_cmd} run -id --name {container_name} -p {grpc_port}:8500 "
-            f"--mount type=bind,source={model_path},target=/models/mnist -e TEST_MODE=1 -e MODEL_NAME=mnist"
-            f" {image_uri}"
             f"--env NEURON_RTD_ADDRESS=unix:/sock/neuron.sock"
             f"-v /tmp/neuron_rtd_sock/:/sock "
+            f"--mount type=bind,source={model_path},target=/models/mnist -e TEST_MODE=1 -e MODEL_NAME=mnist"
+            f" {image_uri}"
         )
     else:
         docker_run_cmd = (
