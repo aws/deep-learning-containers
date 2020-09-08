@@ -154,6 +154,13 @@ def init_cfn_client():
     """
     return boto3.client('cloudformation')
 
+def init_iam_client():
+    """Function to initiate the iam session
+    Args:
+        material_set: str
+    """
+    return boto3.client('iam')
+
 def list_cfn_stack_names():
     """Function to list the cfn stacks in the account.
     Note: lists all the cfn stacks that aren't
@@ -220,7 +227,7 @@ def delete_oidc_provider(eks_cluster_name):
     Args:
         eks_cluster_name: str
     """
-    iam_client = boto3.client('iam')
+    iam_client = init_iam_client()
     eks_client = boto3.client('eks', region_name=DEFAULT_REGION)
     sts_client = boto3.client('sts')
 
@@ -449,7 +456,10 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     Args:
         eks_cluster_name, region: str
     """
-    eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --name {eks_cluster_name} --region {region}"
+
+    iam_client = init_iam_client()
+    eks_role = iam_client.Role('eksClusterAccess').arn
+    eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --name {eks_cluster_name} --region {region} --authenticator-role-arn {eks_role}"
     run(eksctl_write_kubeconfig_command)
 
     run("cat /root/.kube/config", warn=True)
