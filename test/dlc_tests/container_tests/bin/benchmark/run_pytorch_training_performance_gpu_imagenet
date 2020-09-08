@@ -1,0 +1,61 @@
+#!/bin/bash
+
+PYTHON_VERSION=$(python -c 'import sys; print(sys.version_info[0])' | tr -d "'")
+if [ "$PYTHON_VERSION" -eq 2 ]
+then
+  exit 0
+fi
+HOME_DIR=/test/benchmark
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+
+mkdir -p ${HOME_DIR}
+mkdir -p ${BIN_DIR}
+mkdir -p ${LOG_DIR}
+
+function trigger_test() {
+  time_out=$1
+  epochs=0
+  port='tcp://127.0.0.1:8080'
+  if [ "$2" == "run" ]
+  then
+    epochs=4
+  fi
+  if [ "$2" == "prep" ]
+  then
+    port='tcp://127.0.0.1:8081' # Use a differnet port to avoid flaky error "RuntimeError: Address already in use"
+  fi
+  timeout "$time_out" python examples/imagenet/main.py \
+       -a resnet50 \
+       --dist-url $port \
+       --dist-backend 'nccl' \
+       --multiprocessing-distributed \
+       --world-size 1 \
+       --rank 0 \
+       --workers 30 \
+       --epochs $epochs \
+       ~/imagenet
+}
+
+cd ~
+echo Benchmark Preparation started: >&2
+START=$(date +%s)
+trigger_test "5m" "prep"  # Introduce a prep stage to avoid training gettting stuck
+END=$(date +%s)
+DIFF=$(( END - START ))
+echo Preparation Stage took $(( DIFF/60 )) mins to finish>&2
+
+echo Benchmark started: >&2
+START=$(date +%s)
+TRAINING_TIME="100m"
+if [ "$PR_CONTEXT" == "1" ]
+then
+  TRAINING_TIME="60m"
+  echo Running under PR context >&2
+fi
+trigger_test "$TRAINING_TIME" "run" 2>&1 | tee "${LOG_FILE}"
+END=$(date +%s)
+DIFF=$(( END - START ))
+echo Script took $(( DIFF/60 )) mins to finish >> "${LOG_FILE}"
+
+exit 0

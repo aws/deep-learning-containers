@@ -4,6 +4,7 @@ import random
 import datetime
 
 import pytest
+
 from invoke import run
 from invoke.context import Context
 from retrying import retry
@@ -77,15 +78,16 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     """
 
     training_result = False
-
     rand_int = random.randint(4001, 6000)
 
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
 
+    dgl_branch = "0.4.x"
+
     args = (
-        "git clone https://github.com/dmlc/dgl.git && "
-        "cd /dgl/examples/pytorch/gcn/ && DGLBACKEND=pytorch python train.py --dataset cora"
+        f"git clone -b {dgl_branch} https://github.com/dmlc/dgl.git && "
+        f"cd /dgl/examples/pytorch/gcn/ && DGLBACKEND=pytorch python train.py --dataset cora"
     )
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
@@ -126,7 +128,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
-@pytest.mark.multinode("multinode(4)")
+@pytest.mark.multinode(4)
 def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     """
        Function to create mutliple pods using kubectl and given container image, and run Pytorch training

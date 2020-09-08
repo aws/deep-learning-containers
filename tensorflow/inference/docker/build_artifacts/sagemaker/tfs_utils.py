@@ -141,7 +141,7 @@ def find_models():
             model_path = '/'.join(parts[0:-2])
             if model_path not in models:
                 models.append(model_path)
-        return models
+    return models
 
 
 def _find_saved_model_files(path):

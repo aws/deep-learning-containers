@@ -8,11 +8,11 @@ import boto3
 
 from retrying import retry
 
-from test.test_utils import DEFAULT_REGION, get_mms_run_command, get_tensorflow_model_name
+from test.test_utils import DEFAULT_REGION, get_inference_run_command, get_tensorflow_model_name
 from test.test_utils import ec2 as ec2_utils
 
 
-ECS_AMI_ID = {"cpu": "ami-0fb71e703258ab7eb", "gpu": "ami-0a36be2e955646bb2"}
+ECS_AMI_ID = {"cpu": "ami-0fb71e703258ab7eb", "gpu": "ami-0a36be2e955646bb2", "eia": "ami-0fb71e703258ab7eb"}
 
 ECS_TENSORFLOW_INFERENCE_PORT_MAPPINGS = [
     {"containerPort": 8500, "hostPort": 8500, "protocol": "tcp"},
@@ -25,8 +25,6 @@ ECS_MXNET_PYTORCH_INFERENCE_PORT_MAPPINGS = [
     {"containerPort": 8080, "hostPort": 80, "protocol": "tcp"},
 ]
 
-ECS_INSTANCE_ROLE_ARN = "arn:aws:iam::669063966089:instance-profile/ecsInstanceRole"
-ECS_INSTANCE_ROLE_NAME = "ecsInstanceRole"
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
 
@@ -170,7 +168,7 @@ def list_ecs_container_instances(cluster_arn_or_name, filter_value=None, status=
         raise Exception(f"Failed list instances with given arguments. Exception - {e}")
 
 
-def attach_ecs_worker_node(worker_instance_type, ami_id, cluster_name, cluster_arn=None, region=DEFAULT_REGION):
+def attach_ecs_worker_node(worker_instance_type, ami_id, cluster_name, cluster_arn=None, region=DEFAULT_REGION, worker_eia_capable=False):
     """
     Launch a worker instance in a cluster.
     :param worker_instance_type:
@@ -182,13 +180,19 @@ def attach_ecs_worker_node(worker_instance_type, ami_id, cluster_name, cluster_a
     """
     ecs_user_data = f"#!/bin/bash\necho ECS_CLUSTER={cluster_name} >> /etc/ecs/ecs.config"
 
+    sts_client = boto3.client('sts')
+    account_id = sts_client.get_caller_identity().get('Account')
+    ecs_role_name = "ecsInstanceRole"
+    ecs_instance_role_arn = f"arn:aws:iam::{account_id}:instance-profile/{ecs_role_name}"
+
     instc = ec2_utils.launch_instance(
         ami_id,
         region=region,
         instance_type=worker_instance_type,
         user_data=ecs_user_data,
-        iam_instance_profile_arn=ECS_INSTANCE_ROLE_ARN,
+        iam_instance_profile_arn=ecs_instance_role_arn,
         instance_name=f"ecs worker {cluster_name}",
+        eia_capable=worker_eia_capable
     )
 
     instance_id = instc["InstanceId"]
@@ -764,7 +768,7 @@ def ecs_training_test_executor(cluster_name, cluster_arn, training_command, imag
 
 
 def setup_ecs_inference_service(
-        docker_image_uri, framework, cluster_arn, model_name, worker_instance_id, num_gpus=None, region=DEFAULT_REGION
+        docker_image_uri, framework, cluster_arn, model_name, worker_instance_id, ei_accelerator_type=None, num_gpus=None, region=DEFAULT_REGION,
 ):
     """
     Function to setup Inference service on ECS
@@ -806,8 +810,21 @@ def setup_ecs_inference_service(
         print(f"Added environment variables: {arguments_dict['environment']}")
     elif framework in ["mxnet", "pytorch"]:
         arguments_dict["container_command"] = [
-            get_mms_run_command(model_name, processor)
+            get_inference_run_command(docker_image_uri, model_name, processor)
         ]
+    if processor == "eia":
+        arguments_dict["health_check"] = {
+            "retries": 2,
+            "command": ["CMD-SHELL",
+                        "LD_LIBRARY_PATH=/opt/ei_health_check/lib /opt/ei_health_check/bin/health_check"],
+            "timeout": 5,
+            "interval": 30,
+            "startPeriod": 60
+        }
+        arguments_dict["inference_accelerators"] = {
+            "deviceName": "device_1",
+            "deviceType": ei_accelerator_type
+        }
     try:
         task_family, revision = register_ecs_task_definition(**arguments_dict)
         print(f"Created Task definition - {task_family}:{revision}")

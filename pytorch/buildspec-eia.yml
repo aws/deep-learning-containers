@@ -8,7 +8,7 @@
     inference_repository: &INFERENCE_REPOSITORY
         image_type: &INFERENCE_IMAGE_TYPE inference
         root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
-        repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", eia]
+        repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE, "-", eia]
         repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
   context:
@@ -19,9 +19,6 @@
       config:
         source: docker/build_artifacts/config.properties
         target: config.properties
-      deep_learning_container:
-        source: docker/build_artifacts/deep_learning_container.py
-        target: deep_learning_container.py
 
   images:
     BuildEIAPTInferencePy3DockerImage:

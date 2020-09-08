@@ -14,9 +14,9 @@ RETURN_VAL=`echo $?`
 set -e
 
 if [ ${RETURN_VAL} -eq 0 ]; then
-  python ${BIN_DIR}/testTF1HVD.py 2> ${TRAINING_LOG}
+  python ${BIN_DIR}/testTF1HVD.py 2>&1 | tee $TRAINING_LOG
 else
-  python ${BIN_DIR}/testTF1HVD.py --no-cuda 2> ${TRAINING_LOG}
+  python ${BIN_DIR}/testTF1HVD.py --no-cuda 2>&1 | tee $TRAINING_LOG
 fi
 
 if grep "loss =" $TRAINING_LOG; then

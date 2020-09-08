@@ -11,6 +11,8 @@ import test.test_utils as test_utils
 
 @pytest.mark.model("half_plus_two")
 def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
+    if "eia" in tensorflow_inference:
+        pytest.skip("Skipping EKS Test for EIA")
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)

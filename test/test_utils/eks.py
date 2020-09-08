@@ -7,6 +7,8 @@ import sys
 import json
 import logging
 import random
+import re
+
 import boto3
 
 from botocore.exceptions import ClientError
@@ -45,7 +47,6 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 EKS_VERSION = "1.14.6"
 EKSCTL_VERSION = "0.22.0"
-KFCTL_VERSION = "v1.0.2"
 KUBEFLOW_VERSION = "v0.4.1"
 KUBETAIL_VERSION = "1.6.7"
 
@@ -153,7 +154,6 @@ def init_cfn_client():
     """
     return boto3.client('cloudformation')
 
-
 def list_cfn_stack_names():
     """Function to list the cfn stacks in the account.
     Note: lists all the cfn stacks that aren't
@@ -215,13 +215,56 @@ def delete_cfn_stack_and_wait(stack_name):
         LOGGER.error(f"Error: Cannot delete stack: {stack_name}. Full Exception:\n{e}")
         describe_cfn_stack_events(stack_name)
 
-
-def delete_eks_cluster(eks_cluster_name):
-    """Function to delete the EKS cluster, if it exists. Additionally, the function cleans up any cloudformation stacks
-    that are dangling.
+def delete_oidc_provider(eks_cluster_name):
+    """Function to delete the oidc provider created by kubeflow
     Args:
         eks_cluster_name: str
     """
+    iam_client = boto3.client('iam')
+    eks_client = boto3.client('eks', region_name=DEFAULT_REGION)
+    sts_client = boto3.client('sts')
+
+    try:
+        account_id = sts_client.get_caller_identity().get('Account')
+        response = eks_client.describe_cluster(name=eks_cluster_name)        
+        oidc_issuer = response['cluster']['identity']['oidc']['issuer']
+        oidc_url = oidc_issuer.rsplit('//', 1)[-1]
+        oidc_provider_arn = f"arn:aws:iam::{account_id}:oidc-provider/{oidc_url}"
+
+        LOGGER.info(f"Deleting oidc provider: {oidc_provider_arn}")
+        iam_client.delete_open_id_connect_provider(OpenIDConnectProviderArn=oidc_provider_arn)
+        LOGGER.info(f"Deleting IAM roles created by kubeflow")
+        delete_iam_roles(eks_cluster_name)
+
+    except ClientError as e:
+        LOGGER.error(f"Error: Cannot describe the EKS cluster: {eks_cluster_name}. Full Exception:\n{e}")
+
+def delete_iam_roles(eks_cluster_name):
+    """Function to delete IAM role and policy created by kubeflow
+    """
+    iam_resource = boto3.resource('iam')
+    role_list = [f'kf-admin-{eks_cluster_name}', f'kf-user-{eks_cluster_name}']
+    try:
+        for role in role_list:
+            iam_role = iam_resource.Role(name=role)
+            
+            for role_policy in iam_role.policies.all():
+                LOGGER.info(f"Deleting Policy {role_policy.name}")
+                role_policy.delete()
+
+            iam_role.delete()
+            LOGGER.info(f"IAM role {iam_role.name} deleted\n")
+    except ClientError as e:
+        LOGGER.error(f"Error: Cannot delete IAM role. Full Exception:\n{e}")
+
+def delete_eks_cluster(eks_cluster_name):
+    """Function to delete the EKS cluster, if it exists. Additionally, the function cleans up the oidc provider
+    created by kubeflow and any cloudformation stacks that are dangling. 
+    Args:
+        eks_cluster_name: str
+    """
+    
+    delete_oidc_provider(eks_cluster_name)
 
     run("eksctl delete cluster {} --wait".format(eks_cluster_name), warn=True)
 
@@ -230,7 +273,6 @@ def delete_eks_cluster(eks_cluster_name):
         if eks_cluster_name in stack_name:
             LOGGER.info(f"Deleting dangling cloudformation stack: {stack_name}")
             delete_cfn_stack_and_wait(stack_name)
-
 
 def setup_eksctl():
     run_out = run("eksctl version", echo=True, warn=True)
@@ -292,12 +334,11 @@ def eks_setup():
     1. eksctl: create and manage cluster
     2. kubectl: create and manage runs on eks cluster
     3. aws-iam-authenticator: authenticate the instance to access eks with the appropriate aws credentials
-    4. kfctl: control plane for deploying and managing Kubeflow
     """
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
     run_out = run(
-        "eksctl version && kubectl version --short --client && aws-iam-authenticator version && kfctl version",
+        "eksctl version && kubectl version --short --client && aws-iam-authenticator version",
         warn=True,
     )
 
@@ -319,11 +360,6 @@ def eks_setup():
         f"-o /usr/local/bin/aws-iam-authenticator"
     )
 
-    kfctl_download_command = (
-        f"curl --silent --location https://github.com/kubeflow/kfctl/releases/download/{KFCTL_VERSION}/kfctl_{KFCTL_VERSION}-0-ga476281_{platform.lower()}.tar.gz "
-        f"-o /tmp/kfctl_{KFCTL_VERSION}_{platform.lower()}.tar.gz"
-    )
-
     kubetail_download_command = (
         f"curl --silent --location https://raw.githubusercontent.com/johanhaleby/kubetail/"
         f"{KUBETAIL_VERSION}/kubetail -o /usr/local/bin/kubetail"
@@ -338,10 +374,6 @@ def eks_setup():
     run(aws_iam_authenticator_download_command, echo=True)
     run("chmod +x /usr/local/bin/aws-iam-authenticator")
 
-    run(kfctl_download_command, echo=True)
-    run(f"tar -xvf /tmp/kfctl_{KFCTL_VERSION}_{platform.lower()}.tar.gz -C /tmp --strip-components=1")
-    run("mv /tmp/kfctl /usr/local/bin")
-
     run(kubetail_download_command, echo=True)
     run("chmod +x /usr/local/bin/kubetail")
 
@@ -349,65 +381,20 @@ def eks_setup():
     run("eksctl version", echo=True)
     run("kubectl version --short --client", echo=True)
     run("aws-iam-authenticator version", echo=True)
-    run("kfctl version", echo=True)
-
 
 def setup_kubeflow(eks_cluster_name,region=os.getenv("AWS_REGION", DEFAULT_REGION)):
-    """Function to setup kubeflow v1.0.2
-        The mxnet operator configuration is not included in the kubeflow v1.0.2 hence installing manually.
-        The mpi operator included in kubeflow v1.0.2 has version v0.1 which has known issues in EKS hence installing the latest
-        version available v0.2
+    """Function to setup kubeflow, MPI and MXNET operators
     """
 
-    unique_id = random.randint(1, 6000)
     local_template_file_path = os.path.join(
         "eks",
         "eks_manifest_templates",
         "kubeflow",
-        "kfctl_aws_v1.0.2.yaml"
+        "install_kubeflow_custom_kfctl.sh"
     )
-    run(f"mkdir -p /tmp/{eks_cluster_name}")
 
-    remote_yaml_path = os.path.join(os.sep, "tmp", eks_cluster_name, f"kfctl_aws_{unique_id}.yaml")
-    replace_dict = {
-        "<REGION>": region
-    }
-    
-    write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_path, replace_dict)
-
-    run(f"kfctl apply -V -f {remote_yaml_path}",echo=True)
-
-    deploy_mxnet_operator()
-    deploy_mpi_operator()
-
-
-def deploy_mxnet_operator():
-    """Function to deploy mxnet operator in the EKS cluster. This will support v1beta1 crd for mxjobs.
-    """
-    ctx = Context()
-    home_dir = ctx.run("echo $HOME").stdout.strip("\n")
-    mxnet_operator_dir = os.path.join(home_dir, "mxnet-operator")
-    if os.path.isdir(mxnet_operator_dir):
-        ctx.run(f"rm -rf {mxnet_operator_dir}")
-
-    clone_mxnet_command = f"git clone https://github.com/kubeflow/mxnet-operator.git {mxnet_operator_dir}"
-    ctx.run(clone_mxnet_command, echo=True)
-    run(f"kubectl create -k {mxnet_operator_dir}/manifests/overlays/v1beta1/", echo=True)
-
-
-def deploy_mpi_operator():
-    """Function to deploy mpi operator in the EKS cluster. This will support v1alpha2 crd for mpijobs.
-    """
-    ctx = Context()
-    home_dir = ctx.run("echo $HOME").stdout.strip("\n")
-    mpi_operator_dir = os.path.join(home_dir, "mpi-operator")
-    if os.path.isdir(mpi_operator_dir):
-        ctx.run(f"rm -rf {mpi_operator_dir}")
-
-    clone_mxnet_command = f"git clone https://github.com/kubeflow/mpi-operator {mpi_operator_dir}"
-    run(clone_mxnet_command, echo=True)
-    run(f"kubectl create -f {mpi_operator_dir}/deploy/v1alpha2/mpi-operator.yaml", echo=True)
-
+    run(f"chmod +x {local_template_file_path}")
+    run(f"./{local_template_file_path} {eks_cluster_name} {region}", echo=True)
 
 def write_eks_yaml_file_from_template(
     local_template_file_path, remote_yaml_file_path, search_replace_dict
@@ -464,8 +451,6 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     """
     eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --name {eks_cluster_name} --region {region}"
     run(eksctl_write_kubeconfig_command)
-
-    # run(f"aws eks --region us-west-2 update-kubeconfig --name {eks_cluster_name} --kubeconfig /root/.kube/config --role-arn arn:aws:iam::669063966089:role/nikhilsk-eks-test-role")
 
     run("cat /root/.kube/config", warn=True)
 
@@ -612,3 +597,27 @@ def is_eks_multinode_training_complete(remote_yaml_file_path, namespace, pod_nam
                 raise ValueError("IN-PROGRESS: Retry.")
 
     return False
+
+
+def get_dgl_branch(ctx, image_uri):
+    """
+    Determine which dgl git branch to use based on the latest version
+
+    :param ctx: Invoke context
+    :param image_uri: docker image URI, used to uniqify repo name to avoid asynchronous git pulls
+    :return: latest dgl branch, i.e. 0.4.x
+    """
+    image_addition = image_uri.split('/')[-1].replace(':', '-')
+    dgl_local_repo = f'.dgl_branch-{image_addition}'
+    ctx.run(f"git clone https://github.com/dmlc/dgl.git {dgl_local_repo}", hide=True, warn=True)
+    with ctx.cd(dgl_local_repo):
+        branch = ctx.run("git branch -r", hide=True)
+        branches = branch.stdout.split()
+        release_branch_regex = re.compile(r'\d+.\d+.x')
+        release_branches = []
+        for branch in branches:
+            match = release_branch_regex.search(branch)
+            if match:
+                release_branches.append(match.group())
+    release_branches = sorted(release_branches, reverse=True)
+    return release_branches[0]

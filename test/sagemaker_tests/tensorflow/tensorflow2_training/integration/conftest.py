@@ -20,7 +20,7 @@ import pytest
 from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
 
-from ..integration import NO_P2_REGIONS, NO_P3_REGIONS
+from ..integration import NO_P2_REGIONS, NO_P3_REGIONS, get_ecr_registry
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
@@ -36,7 +36,7 @@ def pytest_addoption(parser):
     parser.addoption('--docker-base-name', default='sagemaker-tensorflow-scriptmode')
     parser.addoption('--tag', default=None)
     parser.addoption('--region', default='us-west-2')
-    parser.addoption('--framework-version', default=TensorFlow.LATEST_VERSION)
+    parser.addoption('--framework-version', default='')
     parser.addoption('--processor', default='cpu', choices=['cpu', 'gpu', 'cpu,gpu'])
     parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37'])
     parser.addoption('--account-id', default='142577830533')
@@ -137,8 +137,8 @@ def docker_image(docker_base_name, tag):
 
 @pytest.fixture
 def ecr_image(account_id, docker_base_name, tag, region):
-    return '{}.dkr.ecr.{}.amazonaws.com/{}:{}'.format(
-        account_id, region, docker_base_name, tag)
+    registry = get_ecr_registry(account_id, region)
+    return '{}/{}:{}'.format(registry, docker_base_name, tag)
 
 
 @pytest.fixture(autouse=True)

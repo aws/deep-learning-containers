@@ -25,7 +25,7 @@ import boto3
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
-from .utils import image_utils
+from .utils import image_utils, get_ecr_registry
 
 
 logger = logging.getLogger(__name__)
@@ -40,9 +40,10 @@ logging.getLogger('connectionpool.py').setLevel(logging.INFO)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 NO_P2_REGIONS = ['ap-east-1', 'ap-northeast-3', 'ap-southeast-2', 'ca-central-1', 'eu-central-1', 'eu-north-1',
-                 'eu-west-2', 'eu-west-3', 'us-west-1', 'sa-east-1', 'me-south-1']
+                 'eu-west-2', 'eu-west-3', 'us-west-1', 'sa-east-1', 'me-south-1', 'cn-northwest-1']
 NO_P3_REGIONS = ['ap-east-1', 'ap-northeast-3', 'ap-southeast-1', 'ap-southeast-2', 'ap-south-1', 'ca-central-1',
-                 'eu-central-1', 'eu-north-1', 'eu-west-2', 'eu-west-3', 'sa-east-1', 'us-west-1', 'me-south-1']
+                 'eu-central-1', 'eu-north-1', 'eu-west-2', 'eu-west-3', 'sa-east-1', 'us-west-1', 'me-south-1',
+                 'cn-northwest-1']
 
 
 def pytest_addoption(parser):
@@ -52,7 +53,7 @@ def pytest_addoption(parser):
     parser.addoption('--instance-type')
     parser.addoption('--docker-base-name', default='pytorch')
     parser.addoption('--region', default='us-west-2')
-    parser.addoption('--framework-version', default=PyTorch.LATEST_VERSION)
+    parser.addoption('--framework-version', default='')
     parser.addoption('--py-version', choices=['2', '3'], default=str(sys.version_info.major))
     parser.addoption('--processor', choices=['gpu', 'cpu'], default='cpu')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
@@ -136,6 +137,7 @@ def fixture_build_base_image(request, framework_version, py_version, processor, 
 
     return tag
 
+
 @pytest.fixture(scope='session', name='sagemaker_session')
 def fixture_sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
@@ -160,7 +162,7 @@ def fixture_instance_type(request, processor):
 
 @pytest.fixture(name='docker_registry', scope='session')
 def fixture_docker_registry(aws_id, region):
-    return '{}.dkr.ecr.{}.amazonaws.com'.format(aws_id, region)
+    return get_ecr_registry(aws_id, region)
 
 
 @pytest.fixture(name='ecr_image', scope='session')
