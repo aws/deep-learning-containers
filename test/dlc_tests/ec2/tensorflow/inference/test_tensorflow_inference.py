@@ -140,7 +140,7 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
     )
     if os.path.exists(f"{serving_folder_path}"):
         ec2_connection.run(f"rm -rf {serving_folder_path}")
-    if str(framework_version).startswith(TENSORFLOW1_VERSION):
+    if str(framework_version).startswith(TENSORFLOW1_VERSION) and not is_neuron:
         run_out = ec2_connection.run(
             f"git clone https://github.com/tensorflow/serving.git {serving_folder_path}"
         )
