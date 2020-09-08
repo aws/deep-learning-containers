@@ -150,8 +150,9 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
         )
         LOGGER.info(f"Clone TF serving repository status {run_out.return_code == 0}")
     elif is_neuron:
-        neuron_model_file_path = os.path.join(serving_folder_path, "models/{model_name}/1")
+        neuron_model_file_path = os.path.join(serving_folder_path, f"models/{model_name}/1")
         neuron_model_file = os.path.join(neuron_model_file_path, "saved_model.pb")
+        LOGGER.info(f"Host Modle path {neuron_model_file_path}")
         ec2_connection.run(f"mkdir -p {neuron_model_file_path}")
         model_file_path = f"https://aws-dlc-sample-models.s3.amazonaws.com/{model_name}_neuron/1/saved_model.pb"
         model_dwld = (
