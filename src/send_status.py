@@ -67,7 +67,11 @@ def post_status(state):
     context = f"{trigger_job}_{project_name}"
     description = set_build_description(state, project_name, trigger_job)
 
-    handler = GitHubHandler()
+    # Example: "https://github.com/aws/deep-learning-containers.git"
+    repo_url = os.getenv("CODEBUILD_SOURCE_REPO_URL")
+    _, user, repo_name = repo_url.rstrip(".git").rsplit("/", 2)
+
+    handler = GitHubHandler(user, repo_name)
     handler.set_status(
         state=state,
         context=context,

@@ -85,7 +85,7 @@ def above_tf23(image_uri):
         return False
     return bool(re.search(r'2\.[3-9]\.\d+', image_uri))
 
-
+  
 def get_repository_local_path():
     git_repo_path = os.getcwd().split("/test/")[0]
     return git_repo_path
