@@ -2,9 +2,9 @@
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
 ENABLE_BENCHMARK_DEV_MODE = False
 # Disable the test codebuild jobs to be run
-DISABLE_SANITY_TESTS = False
-DISABLE_SAGEMAKER_TESTS = False
-DISABLE_ECS_TESTS = False
-DISABLE_EKS_TESTS = False
+DISABLE_SANITY_TESTS = True
+DISABLE_SAGEMAKER_TESTS = True
+DISABLE_ECS_TESTS = True
+DISABLE_EKS_TESTS = True
 DISABLE_EC2_TESTS = False
 USE_SCHEDULER = False
