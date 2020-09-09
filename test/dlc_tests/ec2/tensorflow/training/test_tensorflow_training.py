@@ -176,7 +176,7 @@ def run_data_service_test(ec2_connection, tensorflow_training):
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_only):
     if not is_tf23(tensorflow_training):
-	pytest.skip("This test is for TF2.3")
+        pytest.skip("This test is for TF2.3")
     run_data_service_test(ec2_connection, tensorflow_training)
 
 
