@@ -80,10 +80,10 @@ def is_tf20(image_uri):
     return bool(re.search(r'2\.0\.\d+', image_uri))
 
 
-def is_tf23(image_uri):
+def above_tf23(image_uri):
     if "tensorflow" not in image_uri:
         return False
-    return bool(re.search(r'2\.3\.\d+', image_uri))
+    return bool(re.search(r'2\.[3-9]\.\d+', image_uri))
 
   
 def get_repository_local_path():

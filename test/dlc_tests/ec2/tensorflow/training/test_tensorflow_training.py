@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf20, is_tf23
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf20, above_tf23
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -175,8 +175,8 @@ def run_data_service_test(ec2_connection, tensorflow_training):
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_only):
-    if not is_tf23(tensorflow_training):
-        pytest.skip("This test is for TF2.3")
+    if not above_tf23(tensorflow_training):
+        pytest.skip("This test is for TF2.3 and higher")
     run_data_service_test(ec2_connection, tensorflow_training)
 
 
@@ -185,6 +185,6 @@ def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, gpu_only):
-    if not is_tf23(tensorflow_training):
-        pytest.skip("This test is for TF2.3")
+    if not above_tf23(tensorflow_training):
+        pytest.skip("This test is for TF2.3 and higher")
     run_data_service_test(ec2_connection, tensorflow_training)
