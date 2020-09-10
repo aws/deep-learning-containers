@@ -95,7 +95,7 @@ def test_ecs_tensorflow_inference_cpu_nlp(tensorflow_inference, ecs_container_in
 
 
 @pytest.mark.model("albert")
-@pytest.mark.parametrize("ecs_instance_type", ["p2.xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_tensorflow_inference_gpu_nlp(tensorflow_inference, ecs_container_instance, region, gpu_only):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
