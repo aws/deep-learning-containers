@@ -458,7 +458,7 @@ def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     """
 
     iam_client = init_iam_client()
-    eks_role = iam_client.Role('eksClusterAccess').arn
+    eks_role = iam_client.get_role(RoleName='eksClusterAccess')['Role']['Arn']
     eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --name {eks_cluster_name} --region {region} --authenticator-role-arn {eks_role}"
     run(eksctl_write_kubeconfig_command)
 

@@ -192,8 +192,8 @@ def setup_eks_nodegroup(framework_name):
     short_name = frameworks[long_name]
     codebuild_version = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')[0:7]
     num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
-    cluster_name = f"dlc-{short_name}-cluster"
-    nodegroup_name = f"ng-{codebuild_version}-{random.randint(1, 10000)}"
+    cluster_name = f"dlc-{long_name}-cluster"
+    nodegroup_name = f"ng-{short_name}-{codebuild_version}-{random.randint(1, 10000)}"
     try:
         eks_utils.eks_setup()
         eks_utils.eks_write_kubeconfig(cluster_name)
