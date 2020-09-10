@@ -48,7 +48,7 @@ def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
-@pytest.mark.multinode("multinode(2)")
+@pytest.mark.multinode(2)
 @pytest.mark.integration("no parameter server")
 def test_distributed_mnist_no_ps(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
@@ -69,7 +69,7 @@ def test_distributed_mnist_no_ps(sagemaker_session, ecr_image, instance_type, fr
 
 
 @pytest.mark.model("mnist")
-@pytest.mark.multinode("multinode(2)")
+@pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
 def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
