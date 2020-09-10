@@ -25,8 +25,9 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 IGNORE_SAFETY_IDS = {
     "tensorflow": {
         "training": {
-            # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452']
+            # 38449, 38450, 38451, 38452: for shipping pillow<=6.2.2 - the last available version for py2
+            # 35015: for shipping pycrypto<=2.6.1 - the last available version for py2
+            "py2": ['38449', '38450', '38451', '38452', '35015']
         },
         "inference": {
             # for shipping pillow<=6.2.2 - the last available version for py2
@@ -81,6 +82,26 @@ def _get_safety_ignore_list(image_uri):
     return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version)
 
 
+def _get_latest_package_version(docker_exec_cmd, package, num_tries=3):
+    """
+    Get the latest package version available on pypi for a package.
+    It is retried multiple times in case there are transient failures in executing the command.
+
+    :param docker_exec_cmd: str "docker exec" command containing the name of the container to be tested
+    :param package: str Name of the package whose latest version must be retrieved
+    :param num_tries: int Number of times the docker exec command can be tried before giving up
+    :return: tuple(command_success: bool, latest_version_value: str)
+    """
+    get_latest_version_command = f"{docker_exec_cmd} yolk -M {package} -f version "
+    for attempt in range(num_tries):
+        run_out = run(get_latest_version_command, warn=True, hide=True)
+        if run_out.failed or run_out.stdout:
+            break
+        LOGGER.info(f"Failed {attempt}: '{get_latest_version_command}' returned '{run_out.stdout}'")
+    assert run_out.failed or run_out.stdout, f"'{get_latest_version_command}' returned '{run_out.stdout}'"
+    return run_out.ok, run_out.stdout.strip("\n")
+
+
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run safety tests regularly on production images")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
@@ -111,10 +132,11 @@ def test_safety(image):
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
         safety_result = json.loads(json_str_safety_result)
         for package, affected_versions, curr_version, _, vulnerability_id in safety_result:
-            run_out = run(f"{docker_exec_cmd} yolk -M {package} -f version ", warn=True, hide=True)
-            if run_out.return_code != 0:
+            # Get the latest version of the package with vulnerability
+            command_success, latest_version = _get_latest_package_version(docker_exec_cmd, package)
+            if not command_success:
                 continue
-            latest_version = run_out.stdout
+            # If the latest version of the package is also affected, ignore this vulnerability
             if Version(latest_version) in SpecifierSet(affected_versions):
                 # Version(x) gives an object that can be easily compared with another version, or with a SpecifierSet.
                 # Comparing two versions as a string has some edge cases which require us to write more code.
