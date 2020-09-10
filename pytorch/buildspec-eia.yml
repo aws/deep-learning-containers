@@ -19,9 +19,6 @@
       config:
         source: docker/build_artifacts/config.properties
         target: config.properties
-      deep_learning_container:
-        source: docker/build_artifacts/deep_learning_container.py
-        target: deep_learning_container.py
 
   images:
     BuildEIAPTInferencePy3DockerImage:

@@ -9,7 +9,7 @@ LABEL dlc_major_version="2"
 # Add arguments to achieve the version, python and url
 ARG PYTHON=python3
 ARG PIP=pip3
-ARG HEALTH_CHECK_VERSION=1.6.3
+ARG HEALTH_CHECK_VERSION=1.7.0
 ARG S3_TF_EI_VERSION=1-5
 ARG S3_TF_VERSION=1-15-2
 #This is the serving version not TF version
@@ -59,13 +59,13 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir \
     "awscli<2" \
-    cython==0.29.16 \
+    cython==0.29.21 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
-    gevent==1.4.0 \
-    requests==2.23.0 \
-    grpcio==1.27.2 \
-    protobuf==3.11.3 \
+    gevent==1.5.0 \
+    requests==2.24.0 \
+    grpcio==1.31.0 \
+    protobuf==3.12.4 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
     tensorflow-serving-api==1.15.0
