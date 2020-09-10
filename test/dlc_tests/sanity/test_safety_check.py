@@ -26,15 +26,15 @@ IGNORE_SAFETY_IDS = {
     "tensorflow": {
         "training": {
             # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452', '35015']
+            "py2": ['38449', '38450', '38451', '38452']
         },
         "inference": {
             # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452', '35015']
+            "py2": ['38449', '38450', '38451', '38452']
         },
         "inference-eia": {
             # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452', '35015']
+            "py2": ['38449', '38450', '38451', '38452']
         }
     },
     "mxnet": {
