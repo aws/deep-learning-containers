@@ -80,6 +80,12 @@ def is_tf20(image_uri):
     return bool(re.search(r'2\.0\.\d+', image_uri))
 
 
+def below_tf23(image_uri):
+    if "tensorflow" not in image_uri:
+        return False
+    return bool(re.search(r'2\.[0-2]\.\d+', image_uri))
+
+  
 def get_repository_local_path():
     git_repo_path = os.getcwd().split("/test/")[0]
     return git_repo_path
