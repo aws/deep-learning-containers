@@ -195,9 +195,12 @@ def setup_eks_nodegroup(framework_name):
     cluster_name = f"dlc-{long_name}-cluster"
     nodegroup_name = f"ng-{short_name}-{codebuild_version}-{random.randint(1, 10000)}"
     try:
-        eks_utils.eks_setup()
-        eks_utils.eks_write_kubeconfig(cluster_name)
-        eks_utils.create_eks_cluster_nodegroup(cluster_name, nodegroup_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
+        if eks_utils.check_eks_cluster_state(cluster_name):
+            eks_utils.eks_setup()
+            eks_utils.eks_write_kubeconfig(cluster_name)
+            eks_utils.create_eks_cluster_nodegroup(cluster_name, nodegroup_name, num_nodes, "p3.16xlarge", "MyKeyPair")
+        else:
+            raise Exception(f'EKS cluster {cluster_name} is not in active state')
     except Exception:
         eks_utils.delete_eks_nodegroup(cluster_name, nodegroup_name)
         raise

@@ -45,15 +45,8 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
-EKS_VERSION = "1.14.6"
-EKSCTL_VERSION = "0.22.0"
-KUBEFLOW_VERSION = "v0.4.1"
+EKS_VERSION = "1.17.9"
 KUBETAIL_VERSION = "1.6.7"
-
-EKS_NVIDIA_PLUGIN_VERSION = "0.6.0"
-
-# https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
-EKS_AMI_ID = {"cpu": "ami-03086423d09685de3", "gpu": "ami-061798711b2adafb4"}
 
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
 PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"
@@ -161,6 +154,13 @@ def init_iam_client():
     """
     return boto3.client('iam')
 
+def init_eks_client():
+    """Function to initiate the eks session
+    Args:
+        material_set: str
+    """
+    return boto3.client('eks', region_name=DEFAULT_REGION)
+
 def list_cfn_stack_names():
     """Function to list the cfn stacks in the account.
     Note: lists all the cfn stacks that aren't
@@ -200,152 +200,16 @@ def describe_cfn_stack_events(stack_name):
     except ClientError as e:
         LOGGER.error(f"Error: Cannot describe events on stack: {stack_name}. Full Exception:\n{e}")
 
-
-def delete_cfn_stack_and_wait(stack_name):
-    """Function to delete cfn stack. The waiter checks if the stack has been deleted every _delay seconds,
-    for a maximum of _max_attempts times i.e. for _max_attempts min.
-    Args:
-        stack_name, material_set: str
-    """
-    cfn = init_cfn_client()
-    _delay = 60
-    _max_attempts = 20
-    try:
-        cfn.delete_stack(StackName=stack_name)
-        cfn_waiter = cfn.get_waiter("stack_delete_complete")
-        cfn_waiter.wait(StackName=stack_name,
-                        WaiterConfig={
-                            'Delay': _delay,
-                            'MaxAttempts': _max_attempts
-                        })
-    except ClientError as e:
-        LOGGER.error(f"Error: Cannot delete stack: {stack_name}. Full Exception:\n{e}")
-        describe_cfn_stack_events(stack_name)
-
-def delete_oidc_provider(eks_cluster_name):
-    """Function to delete the oidc provider created by kubeflow
-    Args:
-        eks_cluster_name: str
-    """
-    iam_client = init_iam_client()
-    eks_client = boto3.client('eks', region_name=DEFAULT_REGION)
-    sts_client = boto3.client('sts')
-
-    try:
-        account_id = sts_client.get_caller_identity().get('Account')
-        response = eks_client.describe_cluster(name=eks_cluster_name)        
-        oidc_issuer = response['cluster']['identity']['oidc']['issuer']
-        oidc_url = oidc_issuer.rsplit('//', 1)[-1]
-        oidc_provider_arn = f"arn:aws:iam::{account_id}:oidc-provider/{oidc_url}"
-
-        LOGGER.info(f"Deleting oidc provider: {oidc_provider_arn}")
-        iam_client.delete_open_id_connect_provider(OpenIDConnectProviderArn=oidc_provider_arn)
-        LOGGER.info(f"Deleting IAM roles created by kubeflow")
-        delete_iam_roles(eks_cluster_name)
-
-    except ClientError as e:
-        LOGGER.error(f"Error: Cannot describe the EKS cluster: {eks_cluster_name}. Full Exception:\n{e}")
-
-def delete_iam_roles(eks_cluster_name):
-    """Function to delete IAM role and policy created by kubeflow
-    """
-    iam_resource = boto3.resource('iam')
-    role_list = [f'kf-admin-{eks_cluster_name}', f'kf-user-{eks_cluster_name}']
-    try:
-        for role in role_list:
-            iam_role = iam_resource.Role(name=role)
-            
-            for role_policy in iam_role.policies.all():
-                LOGGER.info(f"Deleting Policy {role_policy.name}")
-                role_policy.delete()
-
-            iam_role.delete()
-            LOGGER.info(f"IAM role {iam_role.name} deleted\n")
-    except ClientError as e:
-        LOGGER.error(f"Error: Cannot delete IAM role. Full Exception:\n{e}")
-
-def delete_eks_cluster(eks_cluster_name):
-    """Function to delete the EKS cluster, if it exists. Additionally, the function cleans up the oidc provider
-    created by kubeflow and any cloudformation stacks that are dangling. 
-    Args:
-        eks_cluster_name: str
-    """
-    
-    delete_oidc_provider(eks_cluster_name)
-
-    run("eksctl delete cluster {} --wait".format(eks_cluster_name), warn=True)
-
-    cfn_stack_names = list_cfn_stack_names()
-    for stack_name in cfn_stack_names:
-        if eks_cluster_name in stack_name:
-            LOGGER.info(f"Deleting dangling cloudformation stack: {stack_name}")
-            delete_cfn_stack_and_wait(stack_name)
-
-def setup_eksctl():
-    run_out = run("eksctl version", echo=True, warn=True)
-
-    eksctl_installed = not run_out.return_code
-
-    if eksctl_installed:
-        return
-
-    platform = run("uname -s", echo=True).stdout.strip()
-    eksctl_download_command = (
-        f"curl --silent --location https://github.com/weaveworks/eksctl/releases/download/"
-        f"{EKSCTL_VERSION}/eksctl_{platform}_amd64.tar.gz | tar xz -C /tmp"
-    )
-    run(eksctl_download_command, echo=True)
-    run("mv /tmp/eksctl /usr/local/bin")
-
-
-@retry(stop_max_attempt_number=2, wait_fixed=60000)
-def create_eks_cluster(eks_cluster_name, processor_type, num_nodes,
-                       instance_type, ssh_public_key_name, region=os.getenv("AWS_REGION", DEFAULT_REGION)):
-    """Function to setup an EKS cluster using eksctl. The AWS credentials used to perform eks operations
-    are that the user deepamiuser-beta as used in other functions. The 'deeplearning-ami-beta' public key
-    will be used to access the nodes created as EC2 instances in the EKS cluster.
-    Note: eksctl creates a cloudformation stack by the name of eksctl-${eks_cluster_name}-cluster.
-    Args:
-        eks_cluster_name, processor_type, num_nodes, instance_type, ssh_public_key_name: str
-    """
-    setup_eksctl()
-
-    delete_eks_cluster(eks_cluster_name)
-
-    eksctl_create_cluster_command = f"eksctl create cluster {eks_cluster_name} " \
-                                    f"--node-ami {EKS_AMI_ID[processor_type]} " \
-                                    f"--nodes {num_nodes} " \
-                                    f"--node-type={instance_type} " \
-                                    f"--timeout=40m " \
-                                    f"--ssh-access " \
-                                    f"--ssh-public-key {ssh_public_key_name} " \
-                                    f"--region {region}"
-
-    # In us-east-1 you are likely to get UnsupportedAvailabilityZoneException,
-    # if the allocated zones is us-east-1e as it does not support AmazonEKS
-    if region == "us-east-1":
-        eksctl_create_cluster_command += " --zones=us-east-1a,us-east-1b,us-east-1d "
-    eksctl_create_cluster_command += " --auto-kubeconfig "
-    run(eksctl_create_cluster_command)
-
-    eks_write_kubeconfig(eks_cluster_name, "us-west-2")
-    
-    LOGGER.info(f"EKS cluster created successfully, with the following parameters cluster_name: "
-                f"{eks_cluster_name} ami-id: {EKS_AMI_ID[processor_type]} num_nodes: {num_nodes} instance_type: "
-                f"{instance_type} ssh_public_key: {ssh_public_key_name}")
-
-
 def eks_setup():
-    """Function to download eksctl, kubectl, aws-iam-authenticator and ksonnet binaries
+    """Function to download kubectl, aws-iam-authenticator and ksonnet binaries
     Utilities:
-    1. eksctl: create and manage cluster
-    2. kubectl: create and manage runs on eks cluster
-    3. aws-iam-authenticator: authenticate the instance to access eks with the appropriate aws credentials
+    1. kubectl: create and manage runs on eks cluster
+    2. aws-iam-authenticator: authenticate the instance to access eks with the appropriate aws credentials
     """
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
     run_out = run(
-        "eksctl version && kubectl version --short --client && aws-iam-authenticator version",
+        "kubectl version --short --client && aws-iam-authenticator version",
         warn=True,
     )
 
@@ -358,12 +222,12 @@ def eks_setup():
 
     kubectl_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
+        f"{EKS_VERSION}/2020-08-04/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
     )
 
     aws_iam_authenticator_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/aws-iam-authenticator "
+        f"{EKS_VERSION}/2020-08-04/bin/{platform.lower()}/amd64/aws-iam-authenticator "
         f"-o /usr/local/bin/aws-iam-authenticator"
     )
 
@@ -371,9 +235,6 @@ def eks_setup():
         f"curl --silent --location https://raw.githubusercontent.com/johanhaleby/kubetail/"
         f"{KUBETAIL_VERSION}/kubetail -o /usr/local/bin/kubetail"
     )
-
-    # Separate function handles setting up eksctl
-    setup_eksctl()
 
     run(kubectl_download_command, echo=True)
     run("chmod +x /usr/local/bin/kubectl")
@@ -385,23 +246,8 @@ def eks_setup():
     run("chmod +x /usr/local/bin/kubetail")
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
-    run("eksctl version", echo=True)
     run("kubectl version --short --client", echo=True)
     run("aws-iam-authenticator version", echo=True)
-
-def setup_kubeflow(eks_cluster_name,region=os.getenv("AWS_REGION", DEFAULT_REGION)):
-    """Function to setup kubeflow, MPI and MXNET operators
-    """
-
-    local_template_file_path = os.path.join(
-        "eks",
-        "eks_manifest_templates",
-        "kubeflow",
-        "install_kubeflow_custom_kfctl.sh"
-    )
-
-    run(f"chmod +x {local_template_file_path}")
-    run(f"./{local_template_file_path} {eks_cluster_name} {region}", echo=True)
 
 def write_eks_yaml_file_from_template(
     local_template_file_path, remote_yaml_file_path, search_replace_dict
@@ -423,44 +269,23 @@ def write_eks_yaml_file_from_template(
 
     LOGGER.info("Copied generated yaml file to %s", remote_yaml_file_path)
 
-
-def is_eks_cluster_active(eks_cluster_name):
-    """Function to verify if the default eks cluster is up and running.
-    Args:
-        eks_cluster_name: str
-    Return:
-        if_active: bool, true if status is active
-    """
-    if_active = False
-
-    eksctl_check_cluster_command = """eksctl get cluster {} -o json
-    """.format(
-        eks_cluster_name
-    )
-
-    run_out = run(eksctl_check_cluster_command, warn=True)
-
-    if run_out.return_code == 0:
-        cluster_info = json.loads(run_out.stdout)[0]
-        if_active = cluster_info["Status"] == "ACTIVE"
-
-    return if_active
+def get_iam_role_arn(role_name):
+    iam_client = init_iam_client()
+    return iam_client.get_role(RoleName=role_name)['Role']['Arn']
 
 
 def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     """Function that writes the aws eks configuration for the specified cluster in the file ~/.kube/config
-    This file is used by the kubectl and ks utilities along with aws-iam-authenticator to authenticate with aws
+    This file is used by the kubectl and kfctl utilities along with aws-iam-authenticator to authenticate with aws
     and query the eks cluster.
-    Note: This function assumes the cluster is 'ACTIVE'. Please use check_eks_cluster_status() to obtain status
-    of the cluster.
     Args:
         eks_cluster_name, region: str
     """
 
     iam_client = init_iam_client()
-    eks_role = iam_client.get_role(RoleName='eksClusterAccess')['Role']['Arn']
-    eksctl_write_kubeconfig_command = f"eksctl utils write-kubeconfig --name {eks_cluster_name} --region {region} --authenticator-role-arn {eks_role}"
-    run(eksctl_write_kubeconfig_command)
+    eks_role = get_iam_role_arn('eksClusterAccess')
+    write_kubeconfig_command = f"aws eks update-kubeconfig --name {eks_cluster_name} --region {region} --role-arn {eks_role}"
+    run(write_kubeconfig_command)
 
     run("cat /root/.kube/config", warn=True)
 
@@ -493,61 +318,136 @@ def is_service_running(selector_name, namespace="default"):
     else:
         raise ValueError("Service not running yet, try again")
 
-def delete_eks_nodegroup(eks_cluster_name, nodegroup_name, region=DEFAULT_REGION):
+def delete_eks_nodegroup(eks_cluster_name, nodegroup_name):
     """ Function to delete EKS NodeGroup
         :param eks_cluster_name: Name of the EKS cluster
         :param nodegroup_name: Name of the nodegroup attached to the cluster
         :param region: Region where EKS cluster is located
         :return: None
     """
-    eksctl_delete_nodegroup_command = (
-        f"eksctl delete nodegroup "
-        f"--name {nodegroup_name} "
-        f"--cluster {eks_cluster_name} "
-        f"--region {region}"
-    )
+    eks_client = init_eks_client()
 
-    run(eksctl_delete_nodegroup_command)
+    eks_client.delete_nodegroup(
+    clusterName=eks_cluster_name,
+    nodegroupName=nodegroup_name
+)
+
+    nodegroup_waiter(eks_cluster_name, nodegroup_name, 'nodegroup_deleted')
 
     LOGGER.info("EKS cluster nodegroup deleted successfully, with the following parameters\n"
                 f"cluster_name: {eks_cluster_name}\n"
                 f"nodegroup_name: {nodegroup_name}")
 
+
+def describe_eks_cluster(eks_cluster_name):
+    """ Function to describe EKS cluster
+        :param eks_cluster_name: Name of the EKS cluster
+        :return: information about EKS cluster 
+    """
+
+    eks_client = init_eks_client()
+
+    try:
+        response = eks_client.describe_cluster(name=eks_cluster_name)
+    except Exception as e:
+        LOGGER.error(f"Error: Cannot describe EKS cluster {eks_cluster_name}. Full Exception:\n{e}")
+    return response['cluster']
+
+def check_eks_cluster_state(eks_cluster_name):
+    """ Function to check the state EKS cluster
+        :param eks_cluster_name: Name of the EKS cluster
+        :return: boolean  
+    """
+    response = describe_eks_cluster(eks_cluster_name)
+    return response['status'] == 'ACTIVE'
+
+
+def get_eks_cluster_security_group(eks_cluster_name):
+    """ Function to get security group attached to the EKS cluster 
+        :param eks_cluster_name: Name of the EKS cluster
+        :return: security group id
+    """
+    response = describe_eks_cluster(eks_cluster_name)
+    return response['resourcesVpcConfig']['clusterSecurityGroupId']
+
+def get_eks_cluster_subnet(eks_cluster_name):
+    """ Function to get list of subnets configured for EKS cluster 
+        :param eks_cluster_name: Name of the EKS cluster
+        :return: vpc subnets
+    """
+    response = describe_eks_cluster(eks_cluster_name)
+    return response['resourcesVpcConfig']['subnetIds']
+
 def create_eks_cluster_nodegroup(
-        eks_cluster_name, nodegroup_name, processor_type, num_nodes, instance_type, ssh_public_key_name, region=DEFAULT_REGION
+        eks_cluster_name, nodegroup_name, num_nodes, instance_type, ssh_public_key_name, region=DEFAULT_REGION
 ):
     """
     Function to create and attach a nodegroup to an existing EKS cluster.
     :param eks_cluster_name: Cluster name of the form PR_EKS_CLUSTER_NAME_TEMPLATE
-    :param processor_type: cpu/gpu
+    :nodegroup_name: nodegroup name
     :param num_nodes: number of nodes to create in nodegroup
     :param instance_type: instance type to use for nodegroup instances
     :param ssh_public_key_name:
     :param region: Region where EKS cluster is located
     :return: None
     """
-    eksctl_create_nodegroup_command = (
-        f"eksctl create nodegroup "
-        f"--name {nodegroup_name} " \
-        f"--cluster {eks_cluster_name} " \
-        f"--node-ami {EKS_AMI_ID.get(processor_type)} " \
-        f"--nodes {num_nodes} " \
-        f"--node-type={instance_type} " \
-        f"--timeout=40m " \
-        f"--ssh-access " \
-        f"--ssh-public-key {ssh_public_key_name} " \
-        f"--region {region}"
-    )
+    eks_client = init_eks_client()
 
-    run(eksctl_create_nodegroup_command)
+    nodegroup_role = get_iam_role_arn('eks_nodegroup_role')
+    security_group = get_eks_cluster_security_group(eks_cluster_name)
+    subnet_id = get_eks_cluster_subnet(eks_cluster_name)
+
+    eks_client.create_nodegroup(
+    clusterName=eks_cluster_name,
+    nodegroupName=nodegroup_name,
+    scalingConfig={
+        'minSize': num_nodes,
+        'maxSize': num_nodes,
+        'desiredSize': num_nodes
+    },
+    subnets=subnet_id,
+    instanceTypes=[
+        instance_type
+    ],
+    amiType='AL2_x86_64_GPU',
+    remoteAccess={
+        'ec2SshKey': ssh_public_key_name,
+        'sourceSecurityGroups': [
+            security_group
+        ]
+    },
+    nodeRole=nodegroup_role,
+)
+    nodegroup_waiter(eks_cluster_name, nodegroup_name, 'nodegroup_active')
 
     LOGGER.info("EKS cluster nodegroup created successfully, with the following parameters\n"
                 f"cluster_name: {eks_cluster_name}\n"
-                f"ami-id: {EKS_AMI_ID[processor_type]}\n"
                 f"num_nodes: {num_nodes}\n"
                 f"instance_type: {instance_type}\n"
                 f"ssh_public_key: {ssh_public_key_name}")
 
+
+def nodegroup_waiter(eks_cluster_name, nodegroup_name, action):
+    """ Wait for the nodegroup to be active
+        :param eks_cluster_name: Name of the EKS cluster
+        :nodegroup_name: nodegroup name
+        :param action: boto3 waiter action
+        :return: None  
+    """
+    eks_client = init_eks_client()
+    _delay = 60
+    _max_attempts = 20
+    try:
+        waiter = eks_client.get_waiter(action)
+        waiter.wait(
+            clusterName=eks_cluster_name,
+            nodegroupName=nodegroup_name,
+            WaiterConfig={
+                'Delay': _delay,
+                'MaxAttempts': _max_attempts
+            })
+    except ClientError as e:
+        LOGGER.error(f"Error: Cannot create/delete nodegroup: {nodegroup_name}. Full Exception:\n{e}")
 
 def eks_multinode_cleanup(remote_yaml_file_path, namespace):
     """
