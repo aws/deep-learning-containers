@@ -452,7 +452,7 @@ def train_module():
             batch_end_callback=batch_callback,
             epoch_end_callback=epoch_callback,
             optimizer=dist_opt)
-
+    mx.nd.waitall()
     # Evaluate performance if not using synthetic data
     if args.use_rec:
         acc_top1 = mx.metric.Accuracy()
