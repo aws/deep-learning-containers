@@ -16,5 +16,4 @@ set -ex
 
 # Training
 
-python mxnet_imagenet_resnet50.py \
---mode "gluon"
+python mxnet_imagenet_resnet50.py
