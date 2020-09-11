@@ -1,0 +1,11 @@
+apt-get update
+apt install openjdk-8-jdk openjdk-8-jre -y
+cat >> /etc/environment <<EOL
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+JRE_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
+EOL
+
+pip install dependency-check
+dependency-check --disableAssembly -s / -o build
+
+cat /build/dependency-check-report.html
