@@ -8,7 +8,13 @@ LOG_DIR=/logs/train/plugins/profile
 
 python ${BIN_DIR}/testTensorBoard.py || exit 1
 
-LOG_RESULT=$(find $LOG_DIR -name "*.pb")
+# profiler: tf > 2.* and < 2.2 generates local.trace where as tf > 2.2 generates *.pb
+if [[ $(python -c 'import tensorflow as tf; print(tf.__version__)') < 2.2 ]]; then
+    LOG_RESULT=$(find $PROFILER_LOG_DIR -name "local.trace")
+else
+    LOG_RESULT=$(find $PROFILER_LOG_DIR -name "*.pb")
+fi
+
 echo "Checking the logs result: $LOG_RESULT"
 
 [ -z "$LOG_RESULT" ] && echo "Cannot find Profiler logs!" && exit 1
