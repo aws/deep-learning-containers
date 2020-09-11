@@ -191,9 +191,8 @@ def test_dependency_check_cpu(cpu, ec2_connection):
     test_script = os.path.join(CONTAINER_TESTS_PREFIX, 'testDependencyCheck')
     ec2.execute_ec2_training_test(ec2_connection, cpu, test_script, container_name=container_name)
 
-    if is_mainline_context():
-        ec2_connection.run(f"docker cp {container_name}:/build/dependency-check-report.html ~/{dependency_check_report}")
-        ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
+    ec2_connection.run(f"docker cp {container_name}:/build/dependency-check-report.html ~/{dependency_check_report}")
+    ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
 
 
 @pytest.mark.model("N/A")
@@ -205,9 +204,8 @@ def test_dependency_check_gpu(gpu, ec2_connection):
     test_script = os.path.join(CONTAINER_TESTS_PREFIX, 'testDependencyCheck')
     ec2.execute_ec2_training_test(ec2_connection, gpu, test_script, container_name=container_name)
 
-    if is_mainline_context():
-        ec2_connection.run(f"docker cp {container_name}:/build/dependency-check-report.html ~/{dependency_check_report}")
-        ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
+    ec2_connection.run(f"docker cp {container_name}:/build/dependency-check-report.html ~/{dependency_check_report}")
+    ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
 
 
 @pytest.mark.model("N/A")
