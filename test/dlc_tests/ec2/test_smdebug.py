@@ -69,7 +69,7 @@ def run_smdebug_test(
         LOGGER.error(f"Caught exception while trying to run test via fabric. Output: {debug_output.stdout}")
         raise
 
-    # LOGGER.info(test_output.stdout) # Uncomment this line for a complete log dump
+    # LOGGER.info(test_output.stdout)  # Uncomment this line for a complete log dump
 
     assert test_output.ok, f"SMDebug tests failed. Output:\n{test_output.stdout}"
 
