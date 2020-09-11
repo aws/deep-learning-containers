@@ -16,4 +16,4 @@ set -ex
 
 # Training
 
-python mxnet_imagenet_resnet50.py --num-epochs "1"
+python mxnet_imagenet_resnet50.py --num-epochs "60"
