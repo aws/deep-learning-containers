@@ -26,6 +26,7 @@ GLUONNLP_PATH = os.path.join(RESOURCE_PATH, 'gluonnlp')
 SCRIPT_PATH = os.path.join(GLUONNLP_PATH, 'bert.py')
 
 
+@pytest.mark.skip("Skipping the test due to known prediction issue. Ticket opened for gluonnlp. Failure in case of mx1.6 & mx1.7")
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("bert_sst")
 @pytest.mark.skip_py2_containers
