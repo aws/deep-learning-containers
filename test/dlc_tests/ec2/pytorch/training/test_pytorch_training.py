@@ -2,7 +2,8 @@ import os
 
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX
+from src.config.test_config import ENABLE_P3DN_PR_TESTS
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_pr_context
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -93,6 +94,16 @@ def test_pytorch_gloo(pytorch_training, ec2_connection, gpu_only, py3_only):
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only):
+    """
+    Tests nccl backend
+    """
+    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl")
+    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
+
+
+@pytest.mark.skipif(is_pr_context() and not ENABLE_P3DN_PR_TESTS, reason="Skipping PR tests on p3dn instances")
+@pytest.mark.parametrize("ec2_instance_type", ["p3dn.24xlarge"], indirect=True)
+def test_pytorch_nccl_efa(pytorch_training, ec2_connection, gpu_only, py3_only):
     """
     Tests nccl backend
     """
