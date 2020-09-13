@@ -10,4 +10,4 @@ DISABLE_EC2_TESTS = False
 USE_SCHEDULER = False
 
 # Enable only if you want to use p3dn instances on PR builds. Disable when PR is being merged.
-ENABLE_P3DN_PR_TESTS = False
+ENABLE_P3DN_PR_TESTS = True
