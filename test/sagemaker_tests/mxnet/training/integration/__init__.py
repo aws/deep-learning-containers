@@ -28,6 +28,7 @@ NO_P2_REGIONS = [
     'ap-east-1',
     'me-south-1',
     'cn-northwest-1',
+    'us-west-2'
 ]
 
 MODEL_SUCCESS_FILES = {
