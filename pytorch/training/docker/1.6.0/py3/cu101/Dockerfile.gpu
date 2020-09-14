@@ -78,28 +78,29 @@ RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86
 
 # Install OpenMPI & EFA
 RUN cd /tmp \
-  && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-1.8.4.tar.gz\
-  && tar -xf aws-efa-installer-1.8.4.tar.gz \
-  && cd aws-efa-installer \
-  && ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify \
-  && cd /tmp \
-  && rm -rf aws-efa-installer \
-  && rm -rf aws-efa-installer-1.8.4.tar.gz \
-  && echo export PATH="$OPEN_MPI_PATH/bin:$PATH" >> /root/.bashrc \
-  && echo export LD_LIBRARY_PATH="$OPEN_MPI_PATH/lib:$AMAZON_EFA_PATH/lib:$LD_LIBRARY_PATH" >> /root/.bashrc
+ && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-1.8.4.tar.gz\
+ && tar -xf aws-efa-installer-1.8.4.tar.gz \
+ && cd aws-efa-installer \
+ && ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify \
+ && cd /tmp \
+ && rm -rf aws-efa-installer \
+ && rm -rf aws-efa-installer-1.8.4.tar.gz \
+ && echo export PATH="$OPEN_MPI_PATH/bin:$PATH" >> /root/.bashrc \
+ && echo export LD_LIBRARY_PATH="$OPEN_MPI_PATH/lib:$AMAZON_EFA_PATH/lib:$LD_LIBRARY_PATH" >> /root/.bashrc
 
-RUN ["/bin/bash", "-c", "source /root/.bashrc"]
+RUN /bin/bash -c source /root/.bashrc
 
 # Set the Env Paths to reflect new MPI and EFA
 ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH="$OPEN_MPI_PATH/lib:$AMAZON_EFA_PATH/lib:$LD_LIBRARY_PATH"
 
 # Upgrade NCCL from 2.4.8 to 2.6.4
-RUN rm -rf  /usr/lib/x86_64-linux-gnu/libnccl* && \
-  cd /tmp && \
-  git clone https://github.com/NVIDIA/nccl.git -b v2.6.4-1 && \
-  cd nccl && make -j64 src.build BUILDDIR=/usr/local CUDA_HOME=${CUDA_HOME} NVCC_GENCODE="-gencode=arch=compute_70,code=sm_70" && \
-  rm -rf /tmp/nccl
+RUN rm -rf  /usr/lib/x86_64-linux-gnu/libnccl* \
+ && cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v2.6.4-1 && \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_HOME=${CUDA_HOME} NVCC_GENCODE="-gencode=arch=compute_70,code=sm_70" \
+ && rm -rf /tmp/nccl
 
 # Set the Env Paths to reflect new NCCL
 ENV LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
@@ -194,16 +195,16 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # Install OFI Plugin
-RUN cd /tmp && \
-  git clone https://github.com/aws/aws-ofi-nccl.git -b v1.0.1-aws && \
-  cd aws-ofi-nccl && \
-  ./autogen.sh && \
-  ./configure --with-libfabric=/opt/amazon/efa --with-mpi=${OPEN_MPI_PATH} \
-  --with-cuda=${CUDA_HOME} \
-   --with-nccl=/usr/local --prefix=/usr/local && \
-  make && \
-  make install && \
-  rm -rf /tmp/aws-ofi-nccl
+RUN cd /tmp \
+ && git clone https://github.com/aws/aws-ofi-nccl.git -b v1.0.1-aws \
+ && cd aws-ofi-nccl \
+ && ./autogen.sh \
+ && ./configure --with-libfabric=/opt/amazon/efa --with-mpi=${OPEN_MPI_PATH} \
+ --with-cuda=${CUDA_HOME} \
+ --with-nccl=/usr/local --prefix=/usr/local \
+ && make \
+ && make install \
+ && rm -rf /tmp/aws-ofi-nccl
 
 WORKDIR /
 
