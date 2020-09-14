@@ -29,7 +29,7 @@ def check_ib_uverbs():
     except subprocess.CalledProcessError:
         LOGGER.error("Error: test check_ib_uverbs failed.")
         raise
-    return True
+    return
 
 
 def check_fi_info():
@@ -44,7 +44,7 @@ def check_fi_info():
     except subprocess.CalledProcessError:
         LOGGER.error("Error: test Check Efa provider failed.")
         raise
-    return True
+    return
 
 
 def check_efa_installed_packages():
@@ -58,7 +58,7 @@ def check_efa_installed_packages():
     except subprocess.CalledProcessError:
         LOGGER.error("Error: test check EFA packages failed.")
         raise
-    return True
+    return
 
 
 def run_fi_pingpong_test():
@@ -72,7 +72,7 @@ def run_fi_pingpong_test():
     except subprocess.CalledProcessError:
         LOGGER.error("Error: fi ping test failed.")
         raise
-    return True
+    return
 
 
 if __name__ == "__main__":
