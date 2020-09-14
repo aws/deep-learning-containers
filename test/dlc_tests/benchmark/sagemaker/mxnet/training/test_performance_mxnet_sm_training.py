@@ -6,7 +6,7 @@ import time
 import pytest
 
 from invoke.context import Context
-from src.benchmark_metrics import MXNET_TRAINING_GPU_IMAGENET_ACCURACY_THRESHOLD
+from src.benchmark_metrics import MXNET_TRAINING_GPU_IMAGENET_ACCURACY_THRESHOLD, MXNET_TRAINING_GPU_IMAGENET_LATENCY_THRESHOLD
 from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
 
 
@@ -25,6 +25,7 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
 
     TODO: Refactor the above setup function to be more obviously connected to this function,
     TODO: and install requirements via a requirements.txt file
+    TODO: Change latency [time/epoch] metric to Throughput metric
 
     :param mxnet_training: ECR image URI
     :param num_nodes: Number of nodes to run on
@@ -75,10 +76,16 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
 
     result_statement, time_val, accuracy = _print_results_of_test(os.path.join(test_dir, log_file))
 
-    threshold = MXNET_TRAINING_GPU_IMAGENET_ACCURACY_THRESHOLD
-    assert accuracy > threshold, (
+    accuracy_threshold = MXNET_TRAINING_GPU_IMAGENET_ACCURACY_THRESHOLD
+    assert accuracy > accuracy_threshold, (
         f"mxnet {framework_version} sagemaker training {py_version} imagenet {num_nodes} nodes "
-        f"Benchmark Result {accuracy} does not reach the threshold {threshold}"
+        f"Benchmark Result {accuracy} does not reach the threshold accuracy {threshold}"
+    )
+
+    time_threshold = MXNET_TRAINING_GPU_IMAGENET_LATENCY_THRESHOLD
+    assert time_val < time_threshold, (
+        f"mxnet {framework_version} sagemaker training {py_version} imagenet {num_nodes} nodes "
+        f"Benchmark Result {time_val} does not reach the threshold latency {time_threshold}"
     )
 
 
