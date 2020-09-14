@@ -10,7 +10,7 @@ import pytest
 
 from invoke import run
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_dlc_cicd_context
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_dlc_cicd_context, is_canary_context
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -78,6 +78,13 @@ def _get_safety_ignore_list(image_uri):
                  "tensorflow")
     job_type = "training" if "training" in image_uri else "inference-eia" if "eia" in image_uri else "inference"
     python_version = "py2" if "py2" in image_uri else "py3"
+
+    # TODO: Remove each if condition on each subsequent release
+    if is_canary_context():
+        if (framework == "tensorflow" and "2.1" in image_uri) or \
+                (framework == "pytorch" and "1.4" in image_uri) or \
+                (framework == "pytorch" and job_type == "training" and "1.5" in image_uri):
+            IGNORE_SAFETY_IDS[framework][job_type]["py3"].append('38414')
 
     return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version)
 
