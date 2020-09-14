@@ -2,7 +2,6 @@ import os
 
 import pytest
 
-from src.config.test_config import ENABLE_P3DN_PR_TESTS
 from test.test_utils import CONTAINER_TESTS_PREFIX, is_pr_context
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
