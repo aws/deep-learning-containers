@@ -101,6 +101,8 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
+@pytest.mark.integration("efa")
+@pytest.mark.model("resnet18")
 @pytest.mark.skipif(is_pr_context() and not ENABLE_P3DN_PR_TESTS, reason="Skipping PR tests on p3dn instances")
 @pytest.mark.parametrize("ec2_instance_type", ["p3dn.24xlarge"], indirect=True)
 def test_pytorch_nccl_efa(pytorch_training, ec2_connection, gpu_only, py3_only):
