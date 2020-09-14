@@ -50,7 +50,7 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
         log_file = f"results-{commit_info}-{time_str}-{num_nodes}-node.txt"
         run_out = ctx.run(f"timeout 180m python mx_sm_benchmark.py "
                           f"--framework-version {framework_version} "
-                          f"--image-uri {mxnet_training} "
+                          f"--image-uri 669063966089.dkr.ecr.us-west-2.amazonaws.com/beta-mxnet-training:1.7.0-gpu-py36-cu101-ubuntu16.04-benchmark-tested "
                           f"--instance-type ml.{ec2_instance_type} "
                           f"--node-count {num_nodes} "
                           f"--python {py_version} "
