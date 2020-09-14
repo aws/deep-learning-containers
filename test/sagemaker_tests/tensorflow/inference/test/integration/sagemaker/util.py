@@ -235,7 +235,7 @@ def run_batch_transform_job(region, boto_session, model_data, image_uri,
                sagemaker_client=sagemaker_client,
                model_name=model_name,
                poll=5, # seconds
-               timeout=300) # seconds
+               timeout=600) # seconds
 
 
 def invoke_endpoint(sagemaker_runtime_client, endpoint_name, input_data):
