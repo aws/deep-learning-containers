@@ -109,9 +109,9 @@ release_images:
       python_versions: ["py37", "py36", "py27"]
       os_version: "ubuntu18.04"
       cuda_version: "cu100"
-      example: False        
-      disable_sm_tag: False             
-      force_release: False  
+      example: False
+      disable_sm_tag: False
+      force_release: False
   9:
     framework: "tensorflow"
     version: "1.15.3"
