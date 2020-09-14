@@ -122,6 +122,7 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
+# TODO DLC folks to use the updated license file with Intel MKL package license
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mxnet-1.6.0/license.txt -o /license.txt
 
 EXPOSE 8080 8081
