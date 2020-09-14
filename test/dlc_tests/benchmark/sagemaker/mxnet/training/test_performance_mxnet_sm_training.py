@@ -49,7 +49,7 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
 
     with ctx.cd(test_dir), ctx.prefix(f"source {venv_dir}/bin/activate"):
         log_file = f"results-{commit_info}-{time_str}-{num_nodes}-node.txt"
-        run_out = ctx.run(f"timeout 180m python mx_sm_benchmark.py "
+        run_out = ctx.run(f"timeout 90m python mx_sm_benchmark.py "
                           f"--framework-version {framework_version} "
                           f"--image-uri {mxnet_training} "
                           f"--instance-type ml.{ec2_instance_type} "
