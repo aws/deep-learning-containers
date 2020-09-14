@@ -10,6 +10,8 @@ EFA_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "test_efa_sanity.py")
 EFA_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3dn.24xlarge", processor="gpu")
 
 
+@pytest.mark.model("N/A")
+@pytest.mark.integration("EFA")
 @pytest.mark.parametrize("ec2_instance_type", EFA_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_sanity(training, ec2_connection, region, gpu_only, py3_only):
     run_efa_test(training, ec2_connection, region, docker_executable="nvidia-docker", container_name="efa")
