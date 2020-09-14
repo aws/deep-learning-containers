@@ -62,7 +62,9 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
         if not run_out.ok:
             target_upload_location = os.path.join(target_upload_location, "failure_log")
 
-    ctx.run(f"aws s3 cp {os.path.join(test_dir, log_file)} {os.path.join(target_upload_location, log_file)}")
+    ctx.run(f"aws s3 cp {os.path.join(test_dir, log_file)} {os.path.join(target_upload_location, log_file)}",
+            warn=True,
+            echo=True)
 
     LOGGER.info(f"Test results can be found at {os.path.join(target_upload_location, log_file)}")
 
@@ -81,7 +83,7 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
 
 
 def _print_results_of_test(file_path):
-    last_n_lines = Context().run(f"tail -30 {file_path}").stdout.split("\n")
+    last_n_lines = Context().run(f"tail -500 {file_path}").stdout.split("\n")
     result_dict = dict()
     accuracy = 0
     time_cost = 0
