@@ -81,19 +81,30 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
 
 
 def _print_results_of_test(file_path):
-    last_3_lines = Context().run(f"tail -3 {file_path}").stdout.split("\n")
+    last_n_lines = Context().run(f"tail -30 {file_path}").stdout.split("\n")
     result_dict = dict()
     accuracy = 0
-    time = 0
-    for line in last_3_lines:
-        if "Train-accuracy" in line:
+    time_cost = 0
+    accuracy_key = "Train-accuracy"
+    time_cost_key = "Time cost"
+    reversed_log = reversed(last_n_lines)
+    for line in reversed_log:
+        if all(key in result_dict for key in ("Train-accuracy", "Time cost")):
+            break
+        if accuracy_key in line:
+            if accuracy_key in result_dict:
+                continue
             accuracy_str = line.split("=")[1]
-            result_dict["Train-accuracy"] = accuracy_str
+            result_dict[accuracy_key] = accuracy_str
             accuracy = float(accuracy_str)
-        if "Time cost" in line:
+        if time_cost_key in line:
+            if time_cost_key in result_dict:
+                continue
             time_str = line.split("=")[1]
-            result_dict["Time cost"] = time_str
-            time = float(time_str)
+            result_dict[time_cost_key] = time_str
+            time_cost = float(time_str)
     result = "\n".join(result_dict.values()) + "\n"
-    LOGGER.info(result)
-    return result, time, accuracy
+    LOGGER.info(f'Result is {result}')
+    LOGGER.info(f'{accuracy_key} is {accuracy}')
+    LOGGER.info(f'{time_cost_key} is {time_cost}')
+    return result, time_cost, accuracy
