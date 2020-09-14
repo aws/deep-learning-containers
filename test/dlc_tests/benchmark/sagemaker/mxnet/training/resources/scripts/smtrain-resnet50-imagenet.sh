@@ -4,16 +4,16 @@
 
 # PreRequisities
 # Install mxnet >=1.3b and gluoncv on each machine
-# Ensure data is kept at ~/data for each machine or change the data paths below
-# Example command to start the training job
+# Ensure you have Horovod, OpenMPI installed on each machine
 # Specify hosts in the file `hosts`
 
 set -ex
-# p3 instances have larger GPU memory, so a higher batch size can be used
-# GPU_MEM=`nvidia-smi --query-gpu=memory.total --format=csv,noheader -i 0 | awk '{print $1}'`
-# returns per GPU memory in MB
-# if [ $GPU_MEM -gt 15000 ] ; then BATCH_SIZE=1280; else BATCH_SIZE=256; fi
 
 # Training
+# num-epochs is configurable.
+# Ideally user can specify num-epochs of their choice or rely on default value=90
+# CodeBuild timeout is currently 90mins.
+# When num-epochs = 40 and warmup-epochs = 10, training completes within 90min timeout
+# Hence, for purpose of the PR num-epochs has been set to 40
 
 python mxnet_imagenet_resnet50.py --num-epochs "40"

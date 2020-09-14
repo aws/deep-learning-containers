@@ -6,8 +6,8 @@ import time
 import pytest
 
 from invoke.context import Context
-
-from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET
+from src.benchmark_metrics import MXNET_TRAINING_GPU_IMAGENET_ACCURACY_THRESHOLD
+from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
 
 
 # This test can also be performed for 1 node, but it takes a very long time, and CodeBuild job may expire before the
@@ -20,6 +20,9 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
     Additonal context: Setup for this function is performed by 'setup_sm_benchmark_mx_train_env' -- this installs
     some prerequisite packages, pulls required script, and creates a virtualenv called sm_benchmark_venv.
 
+    The training script mxnet_imagenet_resnet50.py is invoked via a shell script smtrain-resnet50-imagenet.sh
+    The shell script sets num-epochs to 40. This parameter is configurable.
+
     TODO: Refactor the above setup function to be more obviously connected to this function,
     TODO: and install requirements via a requirements.txt file
 
@@ -27,7 +30,7 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
     :param num_nodes: Number of nodes to run on
     :param region: AWS region
     """
-    framework_version = re.search(r"1(\.\d+){2}", mxnet_training).group()
+    framework_version = re.search(r"\d+(\.\d+){2}", mxnet_training).group()
     py_version = "py37" if "py37" in mxnet_training else "py2" if "py2" in mxnet_training else "py3"
     ec2_instance_type = "p3.16xlarge"
 
@@ -61,5 +64,36 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
 
     ctx.run(f"aws s3 cp {os.path.join(test_dir, log_file)} {os.path.join(target_upload_location, log_file)}")
 
-    assert run_out.ok, f"Benchmark Test failed with return code {run_out.return_code}. "\
-                       f"Error logs in {os.path.join(target_upload_location, log_file)}"
+    LOGGER.info(f"Test results can be found at {os.path.join(target_upload_location, log_file)}")
+
+    assert run_out.ok, (
+        f"Benchmark Test failed with return code {run_out.return_code}. "
+        f"Test results can be found at {os.path.join(target_upload_location, log_file)}"
+    )
+
+    result_statement, time_val, accuracy = _print_results_of_test(os.path.join(test_dir, log_file))
+
+    threshold = MXNET_TRAINING_GPU_IMAGENET_ACCURACY_THRESHOLD
+    assert accuracy > threshold, (
+        f"mxnet {framework_version} sagemaker training {py_version} imagenet {num_nodes} nodes "
+        f"Benchmark Result {accuracy} does not reach the threshold {threshold}"
+    )
+
+
+def _print_results_of_test(file_path):
+    last_3_lines = Context().run(f"tail -3 {file_path}").stdout.split("\n")
+    result_dict = dict()
+    accuracy = 0
+    time = 0
+    for line in last_3_lines:
+        if "Train-accuracy" in line:
+            accuracy_str = line.split("=")[1]
+            result_dict["Train-accuracy"] = accuracy_str
+            accuracy = float(accuracy_str)
+        if "Time cost" in line:
+            time_str = line.split("=")[1]
+            result_dict["Time cost"] = time_str
+            time = float(time_str)
+    result = "\n".join(result_dict.values()) + "\n"
+    LOGGER.info(result)
+    return result, time, accuracy
