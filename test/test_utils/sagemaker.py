@@ -274,7 +274,8 @@ def execute_sagemaker_remote_tests(image):
             if res.failed:
                 raise DLCSageMakerRemoteTestFailure(
                     f"{pytest_command} failed with error code: {res.return_code}\n"
-                    f"Traceback:\n{res.stderr}"
+                    f"stdout:\n{res.stdout}\n"
+                    f"stderr:\n{res.stderr}"
                 )
 
 
