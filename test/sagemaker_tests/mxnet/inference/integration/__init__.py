@@ -25,7 +25,7 @@ EI_SUPPORTED_REGIONS = ['us-east-1', 'us-east-2', 'us-west-2', 'eu-west-1', 'ap-
 
 # These regions have some p2 and p3 instances, but not enough for automated testing
 NO_P2_REGIONS = ['ca-central-1', 'eu-central-1', 'eu-west-2', 'us-west-1', 'eu-west-3',
-                 'eu-north-1', 'sa-east-1', 'ap-east-1', 'me-south-1', 'cn-northwest-1', 'us-west-2']
+                 'eu-north-1', 'sa-east-1', 'ap-east-1', 'me-south-1', 'cn-northwest-1']
 NO_P3_REGIONS = ['ap-southeast-1', 'ap-southeast-2', 'ap-south-1', 'ca-central-1',
                  'eu-central-1', 'eu-west-2', 'us-west-1', 'eu-west-3', 'eu-north-1',
                  'sa-east-1', 'ap-east-1', 'me-south-1', 'cn-northwest-1']
