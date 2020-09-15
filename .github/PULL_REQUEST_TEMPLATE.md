@@ -8,8 +8,8 @@
 - [ ] (If applicable) I've scanned the updated and new binaries to make sure they do not have vulnerabilities associated with them.
 
 ## Pytest Marker Checklist
-- [ ] (If applicable) I have added the marker `@pytest.mark.integration("<feature-being-tested>")` to the new tests which I have added, to specify the feature that will be tested
 - [ ] (If applicable) I have added the marker `@pytest.mark.model("<model-type>")` to the new tests which I have added, to specify the Deep Learning model that is used in the test (use `"N/A"` if the test doesn't use a model)
+- [ ] (If applicable) I have added the marker `@pytest.mark.integration("<feature-being-tested>")` to the new tests which I have added, to specify the feature that will be tested
 - [ ] (If applicable) I have added the marker `@pytest.mark.multinode(<integer-num-nodes>)` to the new tests which I have added, to specify the number of nodes used on a multi-node test
 - [ ] (If applicable) I have added the marker `@pytest.mark.processor(<"cpu"/"gpu"/"eia"/"inf">)` to the new tests which I have added, if a test is specifically applicable to only one processor type
 - [ ] (If applicable) I have added the marker `@pytest.mark.canary("<reason>")` to the new tests which I have added, if a test should be run as a canary test apart from being run as just a unit/integration test
