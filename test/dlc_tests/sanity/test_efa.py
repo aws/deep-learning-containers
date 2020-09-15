@@ -28,9 +28,9 @@ def run_efa_test(
     image_uri,
     ec2_connection,
     region,
+    test_script,
     docker_executable="nvidia-docker",
     container_name="efa",
-    test_script,
     logfile="output.log",
 ):
     framework = get_framework_from_image_uri(image_uri)
