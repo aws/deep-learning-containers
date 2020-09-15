@@ -9,7 +9,7 @@ from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
-from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, CONTAINER_TESTS_PREFIX, BENCHMARK_RESULTS_S3_BUCKET
+from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
