@@ -9,8 +9,9 @@ from invoke.context import Context
 from test.test_utils import LOGGER, is_mainline_context
 from test.test_utils.test_reporting import get_test_coverage_file_path
 
-account_id = boto3.client('sts').get_caller_identity().get('Account')
-TEST_COVERAGE_REPORT_BUCKET = f"dlc-test-coverage-reports-{account_id}"
+
+ACCOUNT_ID = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity().get("Account"))
+TEST_COVERAGE_REPORT_BUCKET = f"dlc-test-coverage-reports-{ACCOUNT_ID}"
 
 
 @pytest.mark.integration("Generating this coverage doc")
@@ -37,7 +38,8 @@ def test_generate_coverage_doc():
         client = boto3.client("s3")
         with open(test_coverage_file, "rb") as test_file:
             try:
-                client.put_object(Bucket=TEST_COVERAGE_REPORT_BUCKET, Key=os.path.basename(test_coverage_file), Body=test_file)
+                client.put_object(Bucket=TEST_COVERAGE_REPORT_BUCKET, Key=os.path.basename(test_coverage_file),
+                                  Body=test_file)
             except ClientError as e:
                 LOGGER.error(f"Unable to upload report to bucket {TEST_COVERAGE_REPORT_BUCKET}. Error: {e}")
                 raise
