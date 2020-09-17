@@ -17,7 +17,7 @@ import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
 from test.test_utils import (
-    is_benchmark_dev_context,
+    below_tf23, is_benchmark_dev_context, is_tf1, is_tf2, is_tf20,
     DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2, KEYS_TO_DESTROY_FILE
 )
@@ -266,6 +266,7 @@ def gpu_only():
 def eia_only():
     pass
 
+
 @pytest.fixture(scope="session")
 def py3_only():
     pass
@@ -273,6 +274,21 @@ def py3_only():
 
 @pytest.fixture(scope="session")
 def example_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def tf2_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def tf23_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def tf21_and_above_only():
     pass
 
 
@@ -361,6 +377,13 @@ def pytest_generate_tests(metafunc):
                 if lookup in image:
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
+                    tf2_requirement_failed = "tf2_only" in metafunc.fixturenames and is_tf1(image)
+                    tf21_requirement_failed = "tf21_and_above_only" in metafunc.fixturenames \
+                                              and (is_tf1(image) or is_tf20(image))
+                    tf23_requirement_failed = "tf23_and_above_only" in metafunc.fixturenames \
+                                              and (is_tf1(image) or below_tf23(image))
+                    if tf2_requirement_failed or tf21_requirement_failed or tf23_requirement_failed:
+                        continue
                     if is_example_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
@@ -368,7 +391,8 @@ def pytest_generate_tests(metafunc):
                             images_to_parametrize.append(image)
                         elif "eia_only" in metafunc.fixturenames and "eia" in image:
                             images_to_parametrize.append(image)
-                        elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames and "eia_only" not in metafunc.fixturenames:
+                        elif ("cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames
+                              and "eia_only" not in metafunc.fixturenames):
                             images_to_parametrize.append(image)
             # Remove all images tagged as "py2" if py3_only is a fixture
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
