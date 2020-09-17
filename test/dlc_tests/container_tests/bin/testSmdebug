@@ -56,7 +56,7 @@ if [[ $FRAMEWORK == "tensorflow" ]]; then
 else
     for test_file in mock/tests/${FRAMEWORK}/*
     do
-        if [ $test_file == "mock/tests/mxnet/test_training_end.py"]; then
+        if [ $test_file == "mock/tests/mxnet/test_training_end.py" ]; then
             echo "Ignoring $test_file"
         else
             pytest $test_file --ignore=mock/tests/mxnet/test_training_end.py
