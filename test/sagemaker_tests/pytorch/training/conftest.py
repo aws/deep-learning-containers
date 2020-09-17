@@ -39,11 +39,40 @@ logging.getLogger('connectionpool.py').setLevel(logging.INFO)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-NO_P2_REGIONS = ['ap-east-1', 'ap-northeast-3', 'ap-southeast-2', 'ca-central-1', 'eu-central-1', 'eu-north-1',
-                 'eu-west-2', 'eu-west-3', 'us-west-1', 'sa-east-1', 'me-south-1', 'cn-northwest-1']
-NO_P3_REGIONS = ['ap-east-1', 'ap-northeast-3', 'ap-southeast-1', 'ap-southeast-2', 'ap-south-1', 'ca-central-1',
-                 'eu-central-1', 'eu-north-1', 'eu-west-2', 'eu-west-3', 'sa-east-1', 'us-west-1', 'me-south-1',
-                 'cn-northwest-1']
+NO_P2_REGIONS = [
+    "ap-east-1",
+    "ap-northeast-3",
+    "ap-southeast-2",
+    "ca-central-1",
+    "eu-central-1",
+    "eu-north-1",
+    "eu-west-2",
+    "eu-west-3",
+    "us-west-1",
+    "sa-east-1",
+    "me-south-1",
+    "cn-northwest-1",
+    "eu-south-1",
+    "af-south-1",
+]
+NO_P3_REGIONS = [
+    "ap-east-1",
+    "ap-northeast-3",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ap-south-1",
+    "ca-central-1",
+    "eu-central-1",
+    "eu-north-1",
+    "eu-west-2",
+    "eu-west-3",
+    "sa-east-1",
+    "us-west-1",
+    "me-south-1",
+    "cn-northwest-1",
+    "eu-south-1",
+    "af-south-1",
+]
 
 
 def pytest_addoption(parser):
