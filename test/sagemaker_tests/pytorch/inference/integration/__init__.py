@@ -35,15 +35,37 @@ model_eia_dir = os.path.join(mnist_path, eia_sub_dir)
 mnist_eia_script = os.path.join(model_eia_dir, 'mnist.py')
 call_model_fn_once_script = os.path.join(resources_path, code_sub_dir, 'call_model_fn_once.py')
 
-ROLE = 'dummy/unused-role'
+ROLE = "dummy/unused-role"
 DEFAULT_TIMEOUT = 20
-PYTHON3 = 'py3'
+PYTHON3 = "py3"
 
-RESOURCE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'resources'))
+RESOURCE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
 
 # These regions have some p2 and p3 instances, but not enough for automated testing
-NO_P2_REGIONS = ['ca-central-1', 'eu-central-1', 'eu-west-2', 'us-west-1', 'eu-west-3',
-                 'eu-north-1', 'sa-east-1', 'ap-east-1']
-NO_P3_REGIONS = ['ap-southeast-1', 'ap-southeast-2', 'ap-south-1', 'ca-central-1',
-                 'eu-central-1', 'eu-west-2', 'us-west-1', 'eu-west-3', 'eu-north-1',
-                 'sa-east-1', 'ap-east-1']
+NO_P2_REGIONS = [
+    "ca-central-1",
+    "eu-central-1",
+    "eu-west-2",
+    "us-west-1",
+    "eu-west-3",
+    "eu-north-1",
+    "sa-east-1",
+    "ap-east-1",
+    "eu-south-1",
+    "af-south-1",
+]
+NO_P3_REGIONS = [
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ap-south-1",
+    "ca-central-1",
+    "eu-central-1",
+    "eu-west-2",
+    "us-west-1",
+    "eu-west-3",
+    "eu-north-1",
+    "sa-east-1",
+    "ap-east-1",
+    "eu-south-1",
+    "af-south-1",
+]

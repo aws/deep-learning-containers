@@ -54,7 +54,15 @@ if [[ $FRAMEWORK == "tensorflow" ]]; then
                             -k "not test_keras and not test_mnist_s3 and not test_mnist_s3_multi_save_configs" \
                             --ignore=mock/tests/mxnet/test_training_end.py
 else
-    pytest mock/tests/${FRAMEWORK} --ignore=mock/tests/mxnet/test_training_end.py
+    for test_file in mock/tests/${FRAMEWORK}/*
+    do
+        if [ $test_file == "mock/tests/mxnet/test_training_end.py" ]; then
+            echo "Ignoring $test_file"
+        else
+            pytest $test_file --ignore=mock/tests/mxnet/test_training_end.py
+        fi
+    done
+
 fi
 
 if [ "$?" -eq "0" ]
