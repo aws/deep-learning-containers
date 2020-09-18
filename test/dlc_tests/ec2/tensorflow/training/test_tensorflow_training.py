@@ -105,10 +105,10 @@ def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only)
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
 
 
+# Skip test for TF 2.0 and below: https://github.com/tensorflow/tensorflow/issues/33484#issuecomment-555299647
 @pytest.mark.integration("keras, horovod, automatic_mixed_precision (AMP)")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
-# Skip for TF 2.0 and below: https://github.com/tensorflow/tensorflow/issues/33484#issuecomment-555299647
 def test_tensorflow_keras_horovod_amp(tensorflow_training, ec2_connection, tf21_and_above_only, gpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_KERAS_HVD_CMD_AMP)
 
@@ -162,6 +162,7 @@ def run_data_service_test(ec2_connection, tensorflow_training):
 
 
 # Testing Data Service on only one CPU instance
+# Skip test for TF 2.2 and below
 @pytest.mark.integration('tensorflow-dataservice-test')
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
@@ -170,6 +171,7 @@ def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, tf23_an
 
 
 # Testing Data Service on only one GPU instance
+# Skip test for TF 2.2 and below
 @pytest.mark.integration('tensorflow-dataservice-test')
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
