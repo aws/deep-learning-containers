@@ -60,6 +60,13 @@ else
             echo "Ignoring $test_file"
         else
             pytest $test_file --ignore=mock/tests/mxnet/test_training_end.py
+            if [ "$?" -eq "0" ]
+            then
+                echo "SMDebug test succeeded: $test_file"
+            else
+                echo "SMDebug test failed: $test_file"
+                exit 1
+            fi
         fi
     done
 
