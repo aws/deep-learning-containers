@@ -72,8 +72,6 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONIOENCODING=UTF-8 LANG=C.UTF-8 LC_ALL=C.UTF-8
 
-ARG framework_support_installable=sagemaker_tensorflow_container-2.0.0.tar.gz
-COPY $framework_support_installable .
 ARG TF_URL="https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.13/AmazonLinux/cpu/latest-patch-latest-patch/tensorflow-1.13.1-cp36-cp36m-linux_x86_64.whl"
 
 RUN ${PIP} --no-cache-dir install --upgrade pip setuptools
@@ -101,8 +99,6 @@ RUN ${PIP} install --no-cache-dir -U \
     ${PIP} install --force-reinstall --no-cache-dir -U \
            ${TF_URL} \
            horovod==0.16.4 && \
-    ${PIP} install --no-cache-dir -U $framework_support_installable && \
-           rm -f $framework_support_installable && \
     ${PIP} uninstall -y --no-cache-dir \
            markdown \
            tensorboard
