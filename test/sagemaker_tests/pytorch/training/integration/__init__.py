@@ -34,4 +34,3 @@ call_model_fn_once_script = os.path.join(resources_path, 'call_model_fn_once.py'
 
 ROLE = 'dummy/unused-role'
 DEFAULT_TIMEOUT = 20
-PYTHON3 = 'py3'
