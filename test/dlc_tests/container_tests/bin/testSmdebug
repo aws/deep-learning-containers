@@ -66,6 +66,8 @@ else
                 echo "SMDebug test succeeded: $test_file"
             elif [ "$exit_code" -eq "5" ]
             then
+                # pytest enum ExitCode.NO_TESTS_COLLECTED = 5
+                # See: https://github.com/pytest-dev/pytest/blob/050c2df737f7c6c3b1de7a6f375de107edcb6873/src/_pytest/config/__init__.py#L98
                 echo "SMDebug no tests collected: $test_file"
             else
                 echo "SMDebug test failed: $test_file"
