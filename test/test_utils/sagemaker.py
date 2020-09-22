@@ -227,6 +227,7 @@ def execute_local_tests(image, ec2_client):
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
         ec2_conn.run(f"docker pull {image}")
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
+        ec2_conn.run("sleep 300")  # Sleep for 5 minutes while EC2 instance file-system changes are completed
         with ec2_conn.cd(path):
             install_sm_local_dependencies(framework, job_type, image, ec2_conn)
             # Workaround for mxnet cpu training images as test distributed
