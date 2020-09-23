@@ -1,5 +1,6 @@
 import os
 import pytest
+import re
 
 from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf20, below_tf23
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
@@ -92,6 +93,8 @@ def test_tensorflow_opencv_cpu(tensorflow_training, ec2_connection, cpu_only):
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
 def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only):
+    if re.search(r"1\.13\.d+", tensorflow_training):
+        pytest.skip('Skipping TF 1.13')
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
 
 
@@ -101,6 +104,8 @@ def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only)
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only):
+    if re.search(r"1\.13\.d+", tensorflow_training):
+        pytest.skip('Skipping TF 1.13')
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
 
 
