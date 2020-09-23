@@ -99,7 +99,7 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
     ${PIP} install --force-reinstall --no-cache-dir -U \
            ${TF_URL} \
-           horovod==0.16.4 && \
+           horovod==0.16.4
     # ${PIP} uninstall -y --no-cache-dir \
     #       markdown \
     #       tensorboard
