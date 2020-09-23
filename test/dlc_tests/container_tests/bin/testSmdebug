@@ -1,7 +1,5 @@
 #!/bin/bash
 
-exit 1
-
 if [ $# -lt 1 ]; then
     echo $0
     echo "Not enough args"
