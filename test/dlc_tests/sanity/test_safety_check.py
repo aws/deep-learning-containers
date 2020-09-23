@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import re
 import sys
 
 from pkg_resources._vendor.packaging.specifiers import SpecifierSet
@@ -27,43 +28,53 @@ IGNORE_SAFETY_IDS = {
         "training": {
             # 38449, 38450, 38451, 38452: for shipping pillow<=6.2.2 - the last available version for py2
             # 35015: for shipping pycrypto<=2.6.1 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452', '35015']
+            "py2": ["38449", "38450", "38451", "38452", "35015"]
         },
         "inference": {
             # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452']
+            "py2": ["38449", "38450", "38451", "38452"]
         },
         "inference-eia": {
             # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452']
-        }
+            "py2": ["38449", "38450", "38451", "38452"]
+        },
     },
     "mxnet": {
         "inference-eia": {
             # numpy<=1.16.0 -- This has to only be here while we publish MXNet 1.4.1 EI DLC v1.0
-            "py2": ['36810',
-                    # for shipping pillow<=6.2.2 - the last available version for py2
-                    '38449', '38450', '38451', '38452'],
-            "py3": ['36810']
+            "py2": [
+                "36810",
+                # for shipping pillow<=6.2.2 - the last available version for py2
+                "38449",
+                "38450",
+                "38451",
+                "38452",
+            ],
+            "py3": ["36810"],
         },
         "inference": {
             # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452']
+            "py2": ["38449", "38450", "38451", "38452"]
         },
         "training": {
             # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452']
-        }
+            "py2": ["38449", "38450", "38451", "38452"]
+        },
     },
     "pytorch": {
         "training": {
             # astropy<3.0.1
-            "py2": ['35810',
-                    # for shipping pillow<=6.2.2 - the last available version for py2
-                    '38449', '38450', '38451', '38452'],
-            "py3": []
+            "py2": [
+                "35810",
+                # for shipping pillow<=6.2.2 - the last available version for py2
+                "38449",
+                "38450",
+                "38451",
+                "38452",
+            ],
+            "py3": [],
         }
-    }
+    },
 }
 
 
@@ -73,19 +84,35 @@ def _get_safety_ignore_list(image_uri):
     :param image_uri:
     :return: <list> list of safety check IDs to ignore
     """
-    framework = ("mxnet" if "mxnet" in image_uri else
-                 "pytorch" if "pytorch" in image_uri else
-                 "tensorflow")
+    framework = "mxnet" if "mxnet" in image_uri else "pytorch" if "pytorch" in image_uri else "tensorflow"
     job_type = "training" if "training" in image_uri else "inference-eia" if "eia" in image_uri else "inference"
     python_version = "py2" if "py2" in image_uri else "py3"
 
     # TODO: Remove each if condition on each subsequent release
     additional_skips = []
     if is_canary_context():
-        if (framework == "tensorflow" and "2.1" in image_uri) or \
-                (framework == "pytorch" and "1.4" in image_uri) or \
-                (framework == "pytorch" and job_type == "training" and "1.5" in image_uri):
-            additional_skips.append('38414')
+        if (
+            (framework == "tensorflow" and "2.1" in image_uri)
+            or (framework == "pytorch" and "1.4" in image_uri)
+            or (framework == "pytorch" and job_type == "training" and "1.5" in image_uri)
+        ):
+            additional_skips.append("38414")
+    # TF 1.13 has many CVEs, recommended to upgrade to TF 1.15
+    if framework == "tensorflow" and re.search(r"1\.13\.d+", image_uri):
+        additional_skips += [
+            "37524",
+            "38038",
+            "37776",
+            "38039",
+            "38038",
+            "37776",
+            "38039",
+            "38038",
+            "37776",
+            "38039",
+            "38462",
+            "38549",
+        ]
 
     return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, []) + additional_skips
 
@@ -119,9 +146,10 @@ def test_safety(image):
     error if an issue is fixable.
     """
     from dlc.safety_check import SafetyCheck
+
     safety_check = SafetyCheck()
 
-    repo_name, image_tag = image.split('/')[-1].split(':')
+    repo_name, image_tag = image.split("/")[-1].split(":")
     ignore_ids_list = _get_safety_ignore_list(image)
     sep = " -i "
     ignore_str = "" if not ignore_ids_list else f"{sep}{sep.join(ignore_ids_list)}"
@@ -130,11 +158,14 @@ def test_safety(image):
     docker_exec_cmd = f"docker exec -i {container_name}"
     test_file_path = os.path.join(CONTAINER_TESTS_PREFIX, "testSafety")
     # Add null entrypoint to ensure command exits immediately
-    run(f"docker run -id "
+    run(
+        f"docker run -id "
         f"--name {container_name} "
         f"--mount type=bind,src=$(pwd)/container_tests,target=/test "
         f"--entrypoint='/bin/bash' "
-        f"{image}", hide=True)
+        f"{image}",
+        hide=True,
+    )
     try:
         run(f"{docker_exec_cmd} pip install safety yolk3k ", hide=True)
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
@@ -152,7 +183,8 @@ def test_safety(image):
                 # gives an object that can be easily compared against a Version object.
                 # https://packaging.pypa.io/en/latest/specifiers/
                 ignore_str += f" -i {vulnerability_id}"
-        assert (safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str) == 0), \
-            f"Safety test failed for {image}"
+        assert (
+            safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str) == 0
+        ), f"Safety test failed for {image}"
     finally:
         run(f"docker rm -f {container_name}", hide=True)
