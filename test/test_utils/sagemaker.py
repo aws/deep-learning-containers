@@ -184,7 +184,7 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     is_py3 = " python3 -m"
     # To avoid the dpkg lock with apt-daily service if exists
     sleep(300)
-    # using virtualenv to avoid package conflicts with the current packages            
+    # using virtualenv to avoid package conflicts with the current packages
     ec2_conn.run(f"sudo apt-get install virtualenv -y ")
     if framework == "tensorflow" and job_type == "inference":
         # TF inference test fail if run as soon as instance boots, even after health check pass. rootcause:
@@ -227,7 +227,22 @@ def execute_local_tests(image, ec2_client):
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
         ec2_conn.run(f"docker pull {image}")
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
-        ec2_conn.run("sleep 300")  # Sleep for 5 minutes while EC2 instance file-system changes are completed
+
+        stop_updates_command = """
+                    APT_DAILYS="apt-daily.service apt-daily-upgrade.service unattended-upgrades.service";
+                    (sudo systemctl stop ${APT_DAILYS} &&
+                        sudo systemctl kill --kill-who=all ${APT_DAILYS} &&
+                        (while ! (systemctl list-units --all ${APT_DAILYS} | egrep -q '(dead|failed)'); do
+                            echo 'stopping unattended upgrades';
+                            sleep 1;
+                        done);
+                    ) || echo "skip stopping of unattended upgrades";
+                    sudo rm -rf /var/lib/dpkg/lock*;
+                    sudo dpkg --configure -a;
+                    sudo apt-get update
+                    """
+        ec2_conn.run(stop_updates_command)
+
         with ec2_conn.cd(path):
             install_sm_local_dependencies(framework, job_type, image, ec2_conn)
             # Workaround for mxnet cpu training images as test distributed
