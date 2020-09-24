@@ -1,6 +1,9 @@
 version: 0.2
 
 phases:
+  pre_build:
+    commands:
+      - start-dockerd
   build:
     commands:
       - post_release_tag_test --release-spec $(pwd)/release_images.yml
