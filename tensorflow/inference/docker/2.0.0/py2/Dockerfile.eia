@@ -5,7 +5,7 @@ LABEL dlc_major_version="3"
 # Add arguments to achieve the version, python and url
 ARG PYTHON=python
 ARG PIP=pip
-ARG HEALTH_CHECK_VERSION=1.6.3
+ARG HEALTH_CHECK_VERSION=1.7.0
 ARG S3_TF_EI_VERSION=1-5
 ARG S3_TF_VERSION=2-0-0
 

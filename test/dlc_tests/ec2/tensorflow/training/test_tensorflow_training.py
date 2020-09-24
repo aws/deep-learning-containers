@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf20
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf20, below_tf23
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -44,6 +44,7 @@ def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_onl
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
 
+@pytest.mark.skip(reason="Temporarily skip test due to timeout on small instance types")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_only):
@@ -164,8 +165,7 @@ def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, cpu_only):
 # Helper function to test data service 
 def run_data_service_test(ec2_connection, tensorflow_training):
     ec2_connection.run('python3 -m pip install --upgrade pip')
-    ec2_connection.run('pip3 install tensorflow')
-    ec2_connection.run('pip3 install tf-nightly')
+    ec2_connection.run('pip3 install tensorflow==2.3')
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(f'cd {container_test_local_dir}/bin && screen -d -m python3 start_dataservice.py')
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
@@ -176,9 +176,9 @@ def run_data_service_test(ec2_connection, tensorflow_training):
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_only):
-	if is_tf1(tensorflow_training):
-		pytest.skip("This test is for TF2 only")
-	run_data_service_test(ec2_connection, tensorflow_training)
+    if below_tf23(tensorflow_training) or is_tf1(tensorflow_training):
+        pytest.skip("This test is for TF2.3 and higher")
+    run_data_service_test(ec2_connection, tensorflow_training)
 
 
 # Testing Data Service on only one GPU instance
@@ -186,6 +186,6 @@ def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, gpu_only):
-	if is_tf1(tensorflow_training):
-		pytest.skip("This test is for TF2 only")
-	run_data_service_test(ec2_connection, tensorflow_training)
+    if below_tf23(tensorflow_training) or is_tf1(tensorflow_training):
+        pytest.skip("This test is for TF2.3 and higher")
+    run_data_service_test(ec2_connection, tensorflow_training)

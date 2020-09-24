@@ -13,17 +13,17 @@ import pytest
 from botocore.config import Config
 from invoke import run
 from invoke.context import Context
-
 from test_utils import eks as eks_utils
 from test_utils import sagemaker as sm_utils
 from test_utils import metrics as metrics_utils
 from test_utils import (
     get_dlc_images,
     is_pr_context,
+    is_benchmark_dev_context,
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
-    get_framework_and_version_from_tag,
-)
+    setup_sm_benchmark_mx_train_env,
+    get_framework_and_version_from_tag)
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 
 
@@ -210,6 +210,9 @@ def setup_sm_benchmark_env(dlc_images, test_path):
         tf2_images_in_list = re.search(r"tensorflow-training:(^ )*2(\.\d+){2}", dlc_images) is not None
         resources_location = os.path.join(test_path, "tensorflow", "training", "resources")
         setup_sm_benchmark_tf_train_env(resources_location, tf1_images_in_list, tf2_images_in_list)
+    elif "mxnet-training" in dlc_images:
+        resources_location = os.path.join(test_path, "mxnet", "training", "resources")
+        setup_sm_benchmark_mx_train_env(resources_location)
 
 
 def delete_key_pairs(keyfile):
@@ -250,8 +253,8 @@ def main():
     # Do not create EKS cluster for when EIA Only Images are present
     is_all_images_list_eia = all("eia" in image_uri for image_uri in all_image_list)
     eks_cluster_name = None
-    benchmark_mode = "benchmark" in test_type
-    specific_test_type = re.sub("benchmark-", "", test_type) if benchmark_mode else test_type
+    benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
+    specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
     if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary", "bai"):
@@ -303,7 +306,7 @@ def main():
         else:
             # Execute dlc_tests pytest command
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
-            if test_type == "ec2":
+            if specific_test_type == "ec2":
                 pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
             if is_pr_context():
                 pytest_cmd.append("--timeout=4860")
