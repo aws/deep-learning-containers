@@ -25,46 +25,80 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 
 @pytest.mark.processor("cpu")
-@pytest.mark.multinode("multinode")
 @pytest.mark.integration("horovod")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
-@pytest.mark.parametrize('instances, processes', [
-    [1, 2],
-    (2, 1),
-    (2, 2),
-    (5, 2)])
-def test_distributed_training_horovod_basic(instances,
-                                            processes,
-                                            sagemaker_local_session,
-                                            docker_image,
-                                            tmpdir,
-                                            framework_version):
-    output_path = 'file://%s' % tmpdir
+@pytest.mark.parametrize("instances, processes", [(1, 2)])
+def test_distributed_training_horovod_basic_singlenode(
+    instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
+):
+    _run_distributed_training_horovod_basic(
+        instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
+    )
+
+
+@pytest.mark.processor("cpu")
+@pytest.mark.multinode(2)
+@pytest.mark.integration("horovod")
+@pytest.mark.model("mnist")
+@pytest.mark.skip_gpu
+@pytest.mark.parametrize("instances, processes", [(2, 1)])
+def test_distributed_training_horovod_basic_two_nodes(
+    instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
+):
+    _run_distributed_training_horovod_basic(
+        instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
+    )
+
+
+@pytest.mark.processor("cpu")
+@pytest.mark.multinode(2)
+@pytest.mark.integration("horovod")
+@pytest.mark.model("mnist")
+@pytest.mark.skip_gpu
+@pytest.mark.parametrize("instances, processes", [(2, 2)])
+def test_distributed_training_horovod_basic_two_nodes_two_processes(
+    instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
+):
+    _run_distributed_training_horovod_basic(
+        instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
+    )
+
+
+def _run_distributed_training_horovod_basic(
+    instances, processes, sagemaker_local_session, docker_image, tmpdir, framework_version
+):
+    output_path = "file://%s" % tmpdir
     estimator = TensorFlow(
-        entry_point=os.path.join(RESOURCE_PATH, 'hvdbasic', 'train_hvd_basic.py'),
-        role='SageMakerRole',
-        train_instance_type='local',
+        entry_point=os.path.join(RESOURCE_PATH, "hvdbasic", "train_hvd_basic.py"),
+        role="SageMakerRole",
+        train_instance_type="local",
         sagemaker_session=sagemaker_local_session,
         train_instance_count=instances,
         image_name=docker_image,
         output_path=output_path,
         framework_version=framework_version,
-        hyperparameters={'sagemaker_mpi_enabled': True,
-                         'sagemaker_network_interface_name': 'eth0',
-                         'sagemaker_mpi_num_of_processes_per_host': processes})
+        hyperparameters={
+            "sagemaker_mpi_enabled": True,
+            "sagemaker_network_interface_name": "eth0",
+            "sagemaker_mpi_num_of_processes_per_host": processes,
+        },
+    )
 
-    estimator.fit('file://{}'.format(os.path.join(RESOURCE_PATH, 'mnist', 'data-distributed')))
+    estimator.fit("file://{}".format(os.path.join(RESOURCE_PATH, "mnist", "data-distributed")))
 
     tmp = str(tmpdir)
-    extract_files(output_path.replace('file://', ''), tmp)
+    extract_files(output_path.replace("file://", ""), tmp)
 
     size = instances * processes
 
     for rank in range(size):
         local_rank = rank % processes
-        assert read_json('local-rank-%s-rank-%s' % (local_rank, rank), tmp) == {
-            'local-rank': local_rank, 'rank': rank, 'size': size}
+        assert read_json("local-rank-%s-rank-%s" % (local_rank, rank), tmp) == {
+            "local-rank": local_rank,
+            "rank": rank,
+            "size": size,
+        }
 
 
 def read_json(file, tmp):
