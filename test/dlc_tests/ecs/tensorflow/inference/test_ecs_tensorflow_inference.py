@@ -50,6 +50,7 @@ def test_ecs_tensorflow_inference_eia(tensorflow_inference_eia, ecs_container_in
         ecs_utils.tear_down_ecs_inference_service(ecs_cluster_arn, service_name, task_family, revision)
 
 
+@pytest.mark.skip(reason="Skip this test on PR and Mainline")
 @pytest.mark.model("half_plus_two")
 @pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
@@ -94,6 +95,7 @@ def test_ecs_tensorflow_inference_cpu_nlp(tensorflow_inference, ecs_container_in
         ecs_utils.tear_down_ecs_inference_service(ecs_cluster_arn, service_name, task_family, revision)
 
 
+@pytest.mark.skip(reason="Skip this test on PR and Mainline")
 @pytest.mark.model("albert")
 @pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
