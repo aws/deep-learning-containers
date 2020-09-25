@@ -29,9 +29,6 @@ ARG OPENSSL_VERSION=1.1.1g
 
 ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.3_aws_hash/20200924-012425/gpu/py37/tensorflow_gpu-2.3.0-cp37-cp37m-manylinux2010_x86_64.whl
 ARG TF_HASH=sha256:618a53167cd5ad2a221ecea4aa16f8fb040c4d12d80e6aa087cf8eceab9f759e
-RUN pip hash ${TF_URL} | tee hashresult.txt
-RUN HASH=$(grep -oE 'sha256[^ ]*' hashresult.txt)
-RUN if test "$TF_HASH" = "$HASH"; then echo Hash Verified; else exit 1; fi
 
 ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.3_aws/20200806-080706/tensorflow_estimator-2.3.0-py2.py3-none-any.whl
 
@@ -181,6 +178,11 @@ RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
+
+# Validate tf binaries hash
+RUN ${PIP} hash ${TF_URL} | tee hashresult.txt
+RUN HASH=$(grep -oE 'sha256[^ ]*' hashresult.txt)
+RUN if test "$TF_HASH" = "$HASH"; then echo Hash Verified; else exit 1; fi
 
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
