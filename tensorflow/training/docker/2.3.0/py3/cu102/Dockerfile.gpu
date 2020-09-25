@@ -180,9 +180,10 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
 # Validate tf binaries hash
-RUN ${PIP} hash ${TF_URL} | tee hashresult.txt
+RUN wget ${TF_URL}
+RUN ${PIP} hash tensorflow_gpu-2.3.0-cp37-cp37m-manylinux2010_x86_64.whl | tee hashresult.txt
 RUN HASH=$(grep -oE 'sha256[^ ]*' hashresult.txt)
-RUN if test "$TF_HASH" = "$HASH"; then echo Hash Verified; else exit 1; fi
+RUN if test "$TF_HASH" = "$HASH"; then echo Hash Verified; else echo Hash Validation Failed && exit 1; fi
 
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
