@@ -59,7 +59,7 @@ def test_ecs_tensorflow_training_fasterrcnn_gpu(gpu_only, ecs_container_instance
     """
     GPU Faster RCNN test for TF Training
 
-    Instance Type - p2.8xlarge
+    Instance Type - g3.8xlarge
 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
