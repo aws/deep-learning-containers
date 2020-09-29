@@ -3,6 +3,7 @@ import os
 import subprocess
 import random
 import re
+from time import sleep
 
 from invoke.context import Context
 from invoke import exceptions
@@ -209,6 +210,7 @@ def kill_background_processes_and_run_apt_get_update(ec2_conn):
     ec2_conn.run(f"sudo systemctl kill --kill-who=all {apt_daily_services}")
     num_stopped_services = 0
     for _ in range(60):
+        sleep(1)
         # List the apt-daily services, get the number of dead services
         num_stopped_services = int(ec2_conn.run(
             f"systemctl list-units --all {apt_daily_services} | egrep '(dead|failed)' | wc -l"
