@@ -183,6 +183,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
 
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.skip(reason="Skipping due to bintray limit")
 def test_dependency_check_cpu(cpu, ec2_connection):
     container_name = "dep_check_cpu"
     report_addon = _get_container_name('depcheck-report', cpu)
@@ -197,6 +198,7 @@ def test_dependency_check_cpu(cpu, ec2_connection):
 
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.skip(reason="Skipping due to bintray limit")
 def test_dependency_check_gpu(gpu, ec2_connection):
     container_name = "dep_check_gpu"
     report_addon = _get_container_name('depcheck-report', gpu)
