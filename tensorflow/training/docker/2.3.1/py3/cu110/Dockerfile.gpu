@@ -39,10 +39,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     ca-certificates \
     cuda-command-line-tools-11-0 \
     cuda-cudart-dev-11-0 \
-    cuda-cufft-dev-11-0 \
-    cuda-curand-dev-11-0 \
-    cuda-cusolver-dev-11-0 \
-    cuda-cusparse-dev-11-0 \
+    libcufft-dev-11-0 \
+    libcurand-dev-11-0 \
+    libcusolver-dev-11-0 \
+    libcusparse-dev-11-0 \
     curl \
     emacs \
     libcudnn8=8.0.2.39-1+cuda11.0 \
