@@ -93,7 +93,7 @@ def main():
             pr_test_job = f"dlc-pr-{test_type}-test"
             images_str = " ".join(images)
             if is_test_job_enabled(test_type):
-                # run_test_job(commit, pr_test_job, images_str)
+                run_test_job(commit, pr_test_job, images_str)
 
                 # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
                 # sagemaker local test is not supported in benchmark dev mode

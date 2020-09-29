@@ -209,6 +209,8 @@ def kill_background_processes_and_run_apt_get_update(ec2_conn):
     ec2_conn.run(f"sudo systemctl stop {apt_daily_services}")
     ec2_conn.run(f"sudo systemctl kill --kill-who=all {apt_daily_services}")
     num_stopped_services = 0
+    # The `systemctl kill` command is expected to take about 1 second. The 60 second loop here exists to force
+    # the execution to wait (if needed) for a longer amount of time than it would normally take to kill the services.
     for _ in range(60):
         sleep(1)
         # List the apt-daily services, get the number of dead services
