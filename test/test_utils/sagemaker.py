@@ -183,7 +183,7 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     # Install custom packages which need to be latest version"
     is_py3 = " python3 -m"
     # To avoid the dpkg lock with apt-daily service if exists
-    ec2_conn.run(f"sudo apt-get update")
+    ec2_conn.run(f"sleep 300")
     # using virtualenv to avoid package conflicts with the current packages
     ec2_conn.run(f"sudo apt-get install virtualenv -y ")
     if framework == "tensorflow" and job_type == "inference":
