@@ -2,7 +2,7 @@ import re
 import os
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf1, is_tf20, below_tf23
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf_version
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -28,7 +28,7 @@ TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_standalone_gpu(tensorflow_training, ec2_connection, gpu_only):
-    test_script = TF1_STANDALONE_CMD if is_tf1(tensorflow_training) else TF2_STANDALONE_CMD
+    test_script = TF1_STANDALONE_CMD if is_tf_version("1", tensorflow_training) else TF2_STANDALONE_CMD
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
 
@@ -36,7 +36,7 @@ def test_tensorflow_standalone_gpu(tensorflow_training, ec2_connection, gpu_only
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_standalone_cpu(tensorflow_training, ec2_connection, cpu_only):
-    test_script = TF1_STANDALONE_CMD if is_tf1(tensorflow_training) else TF2_STANDALONE_CMD
+    test_script = TF1_STANDALONE_CMD if is_tf_version("1", tensorflow_training) else TF2_STANDALONE_CMD
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
 
@@ -57,7 +57,7 @@ def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2_connection, gpu_only):
-    test_script = TF1_HVD_CMD if is_tf1(tensorflow_training) else TF2_HVD_CMD
+    test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
     execute_ec2_training_test(
         connection=ec2_connection,
         ecr_uri=tensorflow_training,
@@ -70,7 +70,7 @@ def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_only):
-    test_script = TF1_HVD_CMD if is_tf1(tensorflow_training) else TF2_HVD_CMD
+    test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
 
@@ -124,7 +124,7 @@ def test_tensorflow_keras_horovod_fp32(tensorflow_training, ec2_connection, tf2_
 # Testing Tensorboard with profiling
 @pytest.mark.integration("tensorboard, keras")
 @pytest.mark.model("sequential")
-@pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_tensorboard_gpu(tensorflow_training, ec2_connection, tf2_only, gpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TENSORBOARD_CMD)
 

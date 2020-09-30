@@ -50,7 +50,6 @@ class TestReportGenerator:
         "test_dependency_check_gpu",
         "test_tensorflow_addons_gpu",
         "test_tensorflow_standalone_gpu",
-        "test_tensorflow_tensorboard_gpu",
     )
     SM_REPOS = (
         os.path.join("pytorch", "training"),

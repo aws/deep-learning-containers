@@ -17,7 +17,7 @@ import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
 from test.test_utils import (
-    below_tf23, is_benchmark_dev_context, is_tf1, is_tf2, is_tf20,
+    is_benchmark_dev_context, is_tf_version, is_below_tf_version,
     DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2, KEYS_TO_DESTROY_FILE
 )
@@ -300,9 +300,9 @@ def tf_version_within_limit(metafunc_obj, image):
     :param image: Image URI for which the validation must be performed
     :return: True if all validation succeeds, else False
     """
-    tf2_requirement_failed = "tf2_only" in metafunc_obj.fixturenames and is_tf1(image)
-    tf23_requirement_failed = "tf23_and_above_only" in metafunc_obj.fixturenames and below_tf23(image)
-    tf21_requirement_failed = "tf21_and_above_only" in metafunc_obj.fixturenames and (is_tf1(image) or is_tf20(image))
+    tf2_requirement_failed = "tf2_only" in metafunc_obj.fixturenames and not is_tf_version("2", image)
+    tf23_requirement_failed = "tf23_and_above_only" in metafunc_obj.fixturenames and is_below_tf_version("2.3", image)
+    tf21_requirement_failed = "tf21_and_above_only" in metafunc_obj.fixturenames and is_below_tf_version("2.1", image)
     if tf2_requirement_failed or tf21_requirement_failed or tf23_requirement_failed:
         return False
     return True
