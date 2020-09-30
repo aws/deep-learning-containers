@@ -138,7 +138,7 @@ RUN pip install \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U \
-     https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch1.6.0/py3/cuda11/py36/torchvision-0.8.0.dev20200921%2Bcu110-cp36-cp36m-linux_x86_64.whl
+     https://torchvision-build.s3.amazonaws.com/1.6.0/gpu/cuda/torchvision-0.7.0a0%2B78ed10c-cp36-cp36m-manylinux1_x86_64.whl
 
 # Install Horovod
 RUN pip uninstall -y horovod \
