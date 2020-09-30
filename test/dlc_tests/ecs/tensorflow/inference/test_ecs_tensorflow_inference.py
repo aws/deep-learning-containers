@@ -52,7 +52,7 @@ def test_ecs_tensorflow_inference_eia(tensorflow_inference_eia, ecs_container_in
 
 
 @pytest.mark.model("half_plus_two")
-@pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_tensorflow_inference_gpu(tensorflow_inference, ecs_container_instance, region, gpu_only):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
