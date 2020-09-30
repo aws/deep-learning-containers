@@ -292,6 +292,22 @@ def tf21_and_above_only():
     pass
 
 
+def tf_version_within_limit(metafunc_obj, image):
+    """
+    Test all pytest fixtures for TensorFlow version limits, and return True if all requirements are satisfied
+
+    :param metafunc_obj: pytest metafunc object from which fixture names used by test function will be obtained
+    :param image: Image URI for which the validation must be performed
+    :return: True if all validation succeeds, else False
+    """
+    tf2_requirement_failed = "tf2_only" in metafunc_obj.fixturenames and is_tf1(image)
+    tf23_requirement_failed = "tf23_and_above_only" in metafunc_obj.fixturenames and below_tf23(image)
+    tf21_requirement_failed = "tf21_and_above_only" in metafunc_obj.fixturenames and (is_tf1(image) or is_tf20(image))
+    if tf2_requirement_failed or tf21_requirement_failed or tf23_requirement_failed:
+        return False
+    return True
+
+
 def pytest_configure(config):
     # register canary marker
     config.addinivalue_line("markers", "canary(message): mark test to run as a part of canary tests.")
@@ -377,12 +393,7 @@ def pytest_generate_tests(metafunc):
                 if lookup in image:
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
-                    tf2_requirement_failed = "tf2_only" in metafunc.fixturenames and is_tf1(image)
-                    tf21_requirement_failed = "tf21_and_above_only" in metafunc.fixturenames \
-                                              and (is_tf1(image) or is_tf20(image))
-                    tf23_requirement_failed = "tf23_and_above_only" in metafunc.fixturenames \
-                                              and (is_tf1(image) or below_tf23(image))
-                    if tf2_requirement_failed or tf21_requirement_failed or tf23_requirement_failed:
+                    if not tf_version_within_limit(metafunc, image):
                         continue
                     if is_example_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:

@@ -88,7 +88,8 @@ def is_tf20(image_uri):
 def below_tf23(image_uri):
     if "tensorflow" not in image_uri:
         return False
-    return bool(re.search(r"2\.[0-2]\.\d+", image_uri))
+    framework_name, framework_version = get_framework_and_version_from_tag(image_uri)
+    return framework_name == "tensorflow" and Version(framework_version) < Version("2.3")
 
 
 def get_repository_local_path():
