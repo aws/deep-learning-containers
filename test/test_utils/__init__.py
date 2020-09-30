@@ -415,13 +415,6 @@ def get_dlc_images():
         test_images = json.load(test_env)
     for dlc_test_type, images in test_images.items():
         if dlc_test_type == "sanity":
-            # TODO: Remove if re-enabling p2.8x tests
-            if os.getenv("EC2_GPU_INSTANCE_TYPE") == "p2.8xlarge":
-                non_gpu_images = []
-                for image in images:
-                    if "gpu" not in image:
-                        non_gpu_images.append(image)
-                return " ".join(non_gpu_images)
             return " ".join(images)
     raise RuntimeError(f"Cannot find any images for in {test_images}")
 
