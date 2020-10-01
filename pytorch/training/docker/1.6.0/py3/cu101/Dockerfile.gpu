@@ -2,7 +2,7 @@
 FROM nvidia/cuda:11.0-cudnn8-devel-ubuntu16.04
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ARG PYTHON_VERSION=3.6.10
 ARG OPEN_MPI_VERSION=4.0.1
@@ -29,10 +29,10 @@ ENV DGLBACKEND=pytorch
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
-ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_cuda/gpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
+ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_aws/20201001-012513/a40b1c195ba679596118514fcbeae1f422591426/gpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
 
 RUN apt-get update \
- && apt-get install -y  --allow-change-held-packages --no-install-recommends \
+ && apt-get install -y --allow-change-held-packages --no-install-recommends \
     build-essential \
     ca-certificates \
     cmake \
