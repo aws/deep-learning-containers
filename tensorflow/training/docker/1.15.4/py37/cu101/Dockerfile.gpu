@@ -33,7 +33,6 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cuda-command-line-tools-10-1 \
-    cuda-cublas-dev-10-1 \
     cuda-cudart-dev-10-1 \
     cuda-cufft-dev-10-1 \
     cuda-curand-dev-10-1 \
@@ -56,6 +55,13 @@ RUN apt-get update \
     openssh-client \
     openssh-server \
     zlib1g-dev \
+    #cuda-cublas-dev not available with 10-1, install libcublas instead
+    #it will downgrade the cublas from 10-2 to 10-1
+    #adding an extra flag --allow-downgrades for it
+    && apt-get update \
+    && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades \
+    libcublas10=10.1.0.105-1 \
+    libcublas-dev=10.1.0.105-1 \
     # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0
     # adds a new list which contains libnvinfer library, so it needs another
     # 'apt-get update' to retrieve that list before it can actually install the
