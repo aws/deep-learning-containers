@@ -1,0 +1,24 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+TRAINING_LOG=${LOG_DIR}/tensorflow_opencv_test.log
+set -e
+
+echo "Simply verify if OpenCV works well. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
+
+echo "Downloading a test image"
+wget -O test_img.jpg https://docs.opencv.org/2.4/_images/GCC_CMake_Example_Tutorial.jpg
+
+python ${BIN_DIR}/testOpenCV.py > ${TRAINING_LOG} 2>&1
+
+if grep "Successfully test OpenCV" $TRAINING_LOG; then
+  echo "Successfully verified OpenCV."
+else
+  echo "OpenCV test failed."
+  cat ${TRAINING_LOG}
+  exit 1
+fi
+
+exit 0

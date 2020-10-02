@@ -1,0 +1,44 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin/gluonnlp_tests
+LOG_DIR=${HOME_DIR}/logs
+
+NLPTESTDIR=${HOME_DIR}/artifacts/gluon-nlp
+TRAINING_LOG=${LOG_DIR}/gluonnlp_train.log
+
+set -e
+
+cd ${NLPTESTDIR}
+
+echo "Training Sentiment Analysis CNN with GluonNLP... This may take a few minutes. You can follow progress in the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
+
+# Check to see if nvidia-smi fails, if so we are assuming a CPU test
+set +e
+nvidia-smi
+WITH_CUDA=$?
+set -e
+
+cd ./scripts/sentiment_analysis/
+
+set +e
+echo "Running GluonNLP training script..."
+if [ ${WITH_CUDA} -eq 0 ]; then
+    python sentiment_analysis_cnn.py --gpu 0 --batch_size 50 --epochs 20 --dropout 0.5 --model_mode multichannel --data_name TREC >> ${TRAINING_LOG} 2>&1
+else
+    echo "Running GluonNLP training script..."
+    python sentiment_analysis_cnn.py --batch_size 50 --epochs 20 --dropout 0.5 --model_mode multichannel --data_name TREC >> ${TRAINING_LOG} 2>&1
+fi
+RETURN_VAL=$?
+set -e
+
+if [ ${RETURN_VAL} -eq 0 ]; then
+    echo "Training complete using GluonNLP."
+    python ${BIN_DIR}/parse_results.py $TRAINING_LOG
+else
+    echo "Training failed"
+    cat $TRAINING_LOG
+    exit 1
+fi
+
+exit 0

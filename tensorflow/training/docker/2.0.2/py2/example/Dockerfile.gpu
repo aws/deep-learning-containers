@@ -1,0 +1,9 @@
+# Use the Deep Learning Container as a base Image
+ARG BASE_IMAGE=""
+
+FROM $BASE_IMAGE
+
+# Add any script or repo as required
+RUN git clone -b v0.1 https://github.com/aws-samples/deep-learning-models
+WORKDIR "/"
+

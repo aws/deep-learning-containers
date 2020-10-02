@@ -1,0 +1,48 @@
+version: 0.2
+
+#TODO: Move all constatns to environment variables
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+  pre_build:
+    commands:
+      - start-dockerd
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - pip install -r src/requirements.txt
+      - bash src/setup.sh $FRAMEWORK
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - |
+        if expr "${CODEBUILD_BUILD_ARN}" : ".*eia" >/dev/null; then
+          if expr "${CODEBUILD_BUILD_ARN}" : ".*tensorflow-1" >/dev/null; then
+            python src/main.py --buildspec $FRAMEWORK/buildspec-tf1-eia.yml --framework $FRAMEWORK
+          else
+            python src/main.py --buildspec $FRAMEWORK/buildspec-eia.yml --framework $FRAMEWORK
+          fi
+        elif expr "${CODEBUILD_BUILD_ARN}" : ".*neuron" >/dev/null; then
+          if expr "${CODEBUILD_BUILD_ARN}" : ".*tensorflow-1" >/dev/null; then
+            python src/main.py --buildspec $FRAMEWORK/buildspec-tf1-neuron.yml --framework $FRAMEWORK
+          else
+            python src/main.py --buildspec $FRAMEWORK/buildspec-neuron.yml --framework $FRAMEWORK
+          fi
+        else
+          if expr "${CODEBUILD_BUILD_ARN}" : ".*tensorflow-1" >/dev/null; then
+            python src/main.py --buildspec $FRAMEWORK/buildspec-tf1.yml --framework $FRAMEWORK
+          else
+            python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK
+          fi
+        fi
+  post_build:
+    commands:
+      - echo Build step finished on `date`
+      - echo Starting test jobs
+      - python src/start_testbuilds.py
+artifacts:
+  files:
+    - $HOME/test_type_images.json
+  name: DLC_IMAGES_JSON
+  discard-paths: yes

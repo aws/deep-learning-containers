@@ -1,0 +1,36 @@
+---
+apiVersion: kubeflow.org/v1
+kind: PyTorchJob
+metadata:
+  name: <JOB_NAME>
+spec:
+  pytorchReplicaSpecs:
+    Master:
+      replicas: <NUM_MASTERS>
+      restartPolicy: OnFailure
+      template:
+        spec:
+          containers:
+          - name: pytorch
+            image: <CONTAINER_IMAGE>
+            args:
+              - "--backend"
+              - <BACKEND>
+              - "--epochs"
+              - <EPOCHS>
+    Worker:
+      replicas: <NUM_WORKERS>
+      restartPolicy: OnFailure
+      template:
+        spec:
+          containers:
+          - name: pytorch
+            image: <CONTAINER_IMAGE>
+            args:
+              - "--backend"
+              - <BACKEND>
+              - "--epochs"
+              - <EPOCHS>
+            resources:
+              limits:
+                nvidia.com/gpu: <GPU_LIMIT>

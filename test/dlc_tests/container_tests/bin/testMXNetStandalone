@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+import sys
+import subprocess
+from subprocess import PIPE
+
+import logging
+import numpy as np
+import mxnet as mx
+
+LOGGER = logging.getLogger(__name__)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
+def main():
+    check_mxnet()
+
+def check_mxnet():
+    try:
+        process = subprocess.Popen(["bash", "-c", "nvidia-smi"], stdout=PIPE)
+        process.communicate()
+        ret_val = process.wait()
+        is_gpu = not ret_val
+
+        if is_gpu:
+            # Add two arrays with context as GPU for executor
+            a = mx.nd.array([1, 2, 3], ctx=mx.gpu())
+            b = mx.nd.array([4, 5, 6], ctx=mx.gpu())
+            assert np.array_equal((a + b).asnumpy(), np.array([5, 7, 9])), "Error: GPU sanity test for MXNet failed."
+        else:
+            # Add two arrays with context as CPU for executor
+            a = mx.nd.array([1, 2, 3], ctx=mx.cpu())
+            b = mx.nd.array([4, 5, 6], ctx=mx.cpu())
+            assert np.array_equal((a + b).asnumpy(), np.array([5, 7, 9])), "Error: CPU sanity test for MXNet failed."
+
+    except Exception as excp:
+        LOGGER.debug("Error: check_mxnet_sanity test failed.")
+        LOGGER.debug("Exception: {}".format(excp))
+        raise
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        pass

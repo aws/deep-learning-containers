@@ -1,0 +1,10 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+
+echo "Testing Nvidia Apex imports"
+
+python -c "import torch; import apex; from apex import amp; from apex.parallel import DistributedDataParallel; from apex import optimizers; from apex.fp16_utils import *"
+
+exit 0
