@@ -189,7 +189,7 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
-    ${ESTIMATOR_URL} \ 
+    # ${ESTIMATOR_URL} \ 
  && ${PIP} install --no-cache-dir -U \
     "awscli<2"
 

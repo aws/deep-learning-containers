@@ -178,7 +178,7 @@ RUN pip install --no-cache-dir -U \
     # the library version to be overwritten
  && pip install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
-    ${ESTIMATOR_URL} \ 
+    # ${ESTIMATOR_URL} \ 
  && pip install --no-cache-dir -U \
     "awscli<2" \
     smdebug==${SMDEBUG_VERSION}
