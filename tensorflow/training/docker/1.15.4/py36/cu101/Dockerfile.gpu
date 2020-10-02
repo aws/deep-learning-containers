@@ -72,9 +72,6 @@ RUN apt-get update \
     nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0 \
  && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
     libnvinfer6=6.0.1-1+cuda10.1 \
- && rm /usr/lib/x86_64-linux-gnu/libnvinfer_plugin* \
- && rm /usr/lib/x86_64-linux-gnu/libnvcaffe_parser* \
- && rm /usr/lib/x86_64-linux-gnu/libnvparsers* \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/run/sshd
 
