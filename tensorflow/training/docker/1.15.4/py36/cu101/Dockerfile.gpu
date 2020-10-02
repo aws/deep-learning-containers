@@ -157,7 +157,7 @@ RUN ln -s $(which python3) /usr/local/bin/python \
  && ln -s $(which pip3) /usr/bin/pip
 
 RUN pip install --no-cache-dir -U \
-    numpy==1.17.4 \
+    numpy==1.18.5 \
     scipy==1.2.2 \
     scikit-learn==0.20.3 \
     pandas==0.24.2 \
