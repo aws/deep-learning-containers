@@ -46,7 +46,6 @@ def run_smdebug_test(
     docker_executable="docker",
     container_name="smdebug",
     test_script=SMDEBUG_SCRIPT,
-    logfile="output.log",
 ):
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
@@ -61,18 +60,15 @@ def run_smdebug_test(
     try:
         test_output = ec2_connection.run(
             f"{docker_executable} exec --user root {container_name} "
-            f"/bin/bash -c '{test_script} {framework}' >> {logfile}",
+            f"/bin/bash -c '{test_script} {framework}'",
             hide=True,
-            timeout=3000,
+            timeout=2400,
         )
     except Exception:
-        debug_output = ec2_connection.run(f"cat {logfile}")
-        LOGGER.error(f"Caught exception while trying to run test via fabric. Output: {debug_output.stdout}")
+        LOGGER.error(f"Caught exception while trying to run smdebug test via fabric. Output: {test_output.stdout}")
         raise
 
     # LOGGER.info(test_output.stdout)  # Uncomment this line for a complete log dump
-
-    assert test_output.ok, f"SMDebug tests failed. Output:\n{test_output.stdout}"
 
 
 def get_framework_from_image_uri(image_uri):
