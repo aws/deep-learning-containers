@@ -53,7 +53,7 @@ def run_smdebug_test(
     try:
         ec2_connection.run(
             f"{docker_executable} run --name {container_name} -v "
-            f"{container_test_local_dir}:{os.path.join(os.sep, 'test')} {shm_setting} -itd {image_uri} "
+            f"{container_test_local_dir}:{os.path.join(os.sep, 'test')} {shm_setting} -it {image_uri} "
             f"/bin/bash -c '{test_script} {framework}'",
             hide=True,
             timeout=3000
