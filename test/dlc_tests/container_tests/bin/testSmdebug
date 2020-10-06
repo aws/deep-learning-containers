@@ -96,6 +96,7 @@ if [ ! ${ZCC_TEST_NAME[$FRAMEWORK]} ]; then
     exit 1
 fi
 if [[ ${FRAMEWORK} == "tensorflow2" ]]; then
+    exit 1
     echo "Running Gradtape test"
     if [ "$(printf '%s\n' "0.7.2" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.7.2" ]; then
         if [ "$(printf '%s\n' "0.8.0" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.8.0" ]; then

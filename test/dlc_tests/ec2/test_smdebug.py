@@ -10,7 +10,7 @@ SMDEBUG_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
 
 
 SMDEBUG_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p2.8xlarge", processor="gpu")
-SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
+SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="m4.16xlarge", processor="cpu")
 
 
 @pytest.mark.integration("smdebug")
@@ -18,11 +18,8 @@ SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", proc
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.flaky(reruns=0)
 def test_smdebug_gpu(training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only):
-    # TODO: Remove this once test timeout has been debugged (failures especially on p2.8xlarge)
-    #if is_tf2(training) and "2.3.1" in training and "p2.8xlarge" in SMDEBUG_EC2_GPU_INSTANCE_TYPE:
-    #    pytest.skip("Currently skipping for TF2.3.0 on p2.8xlarge until the issue is fixed")
-    if is_tf1(training):
-        pytest.skip("Currently skipping for TF1 until the issue is fixed")
+    #if is_tf1(training):
+        #pytest.skip("Currently skipping for TF1 until the issue is fixed")
     run_smdebug_test(training, ec2_connection, region, ec2_instance_type,
                      docker_executable="nvidia-docker", container_name="smdebug-gpu")
 
@@ -33,10 +30,8 @@ def test_smdebug_gpu(training, ec2_connection, region, ec2_instance_type, gpu_on
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_smdebug_cpu(training, ec2_connection, region, ec2_instance_type, cpu_only, py3_only):
     # TODO: Remove this once test timeout has been debugged (failures especially on m4.16xlarge)
-    if is_tf2(training) and "m4.16xlarge" in SMDEBUG_EC2_CPU_INSTANCE_TYPE:
-        pytest.skip("Currently skipping for TF2 on m4.16xlarge until the issue is fixed")
-    if is_tf1(training):
-        pytest.skip("Currently skipping for TF1 until the issue is fixed")
+    #if is_tf1(training):
+        #pytest.skip("Currently skipping for TF1 until the issue is fixed")
     run_smdebug_test(training, ec2_connection, region, ec2_instance_type)
 
 
@@ -49,7 +44,8 @@ def run_smdebug_test(
     container_name="smdebug",
     test_script=SMDEBUG_SCRIPT,
 ):
-    shm_setting = '--shm-size="1g"' if ec2_instance_type == "p2.8xlarge" else ""
+    large_shm_instance_types = ("p2.8xlarge", "m4.16xlarge")
+    shm_setting = '--shm-size="1g"' if ec2_instance_type in large_shm_instance_types else ""
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
