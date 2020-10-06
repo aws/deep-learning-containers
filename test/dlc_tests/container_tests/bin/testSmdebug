@@ -127,7 +127,4 @@ else
     exit 1
 fi
 
-echo "Intentional failure"
-exit 1
-
 exit 0

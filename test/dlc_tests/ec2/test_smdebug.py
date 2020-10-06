@@ -18,10 +18,16 @@ SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="m4.16xlarge", pro
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.flaky(reruns=0)
 def test_smdebug_gpu(training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only):
-    #if is_tf1(training):
-        #pytest.skip("Currently skipping for TF1 until the issue is fixed")
-    run_smdebug_test(training, ec2_connection, region, ec2_instance_type,
-                     docker_executable="nvidia-docker", container_name="smdebug-gpu")
+    # if is_tf1(training):
+    # pytest.skip("Currently skipping for TF1 until the issue is fixed")
+    run_smdebug_test(
+        training,
+        ec2_connection,
+        region,
+        ec2_instance_type,
+        docker_executable="nvidia-docker",
+        container_name="smdebug-gpu",
+    )
 
 
 @pytest.mark.flaky(reruns=0)
@@ -30,9 +36,13 @@ def test_smdebug_gpu(training, ec2_connection, region, ec2_instance_type, gpu_on
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_smdebug_cpu(training, ec2_connection, region, ec2_instance_type, cpu_only, py3_only):
     # TODO: Remove this once test timeout has been debugged (failures especially on m4.16xlarge)
-    #if is_tf1(training):
-        #pytest.skip("Currently skipping for TF1 until the issue is fixed")
+    # if is_tf1(training):
+    # pytest.skip("Currently skipping for TF1 until the issue is fixed")
     run_smdebug_test(training, ec2_connection, region, ec2_instance_type)
+
+
+class SMDebugTestFailure(Exception):
+    pass
 
 
 def run_smdebug_test(
@@ -56,12 +66,13 @@ def run_smdebug_test(
             f"{container_test_local_dir}:{os.path.join(os.sep, 'test')}{shm_setting}{image_uri} "
             f"/bin/bash -c '{test_script} {framework}'",
             hide=True,
-            timeout=3000
+            timeout=3000,
         )
-    except Exception:
+    except Exception as e:
         debug_output = ec2_connection.run(f"docker logs {container_name}")
-        LOGGER.error(f"Caught exception while trying to run test via fabric. Output: {debug_output.stdout}")
-        raise
+        raise SMDebugTestFailure(
+            f"SMDebug test failed on {image_uri} on {ec2_instance_type}. Full output:\n {debug_output.stdout}"
+        ) from e
 
 
 def get_framework_from_image_uri(image_uri):
