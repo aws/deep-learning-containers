@@ -55,7 +55,7 @@ def run_smdebug_test(
     test_script=SMDEBUG_SCRIPT,
 ):
     large_shm_instance_types = ("p2.8xlarge", "m4.16xlarge")
-    shm_setting = ' --shm-size="1g" ' if ec2_instance_type in large_shm_instance_types else " "
+    shm_setting = ' --shm-size=1g ' if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
