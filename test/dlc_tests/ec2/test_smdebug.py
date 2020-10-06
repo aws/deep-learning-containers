@@ -55,7 +55,7 @@ def run_smdebug_test(
     test_script=SMDEBUG_SCRIPT,
 ):
     large_shm_instance_types = ("p2.8xlarge", "m4.16xlarge")
-    shm_setting = ' --shm-size=1g ' if ec2_instance_type in large_shm_instance_types else " "
+    shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
@@ -70,8 +70,14 @@ def run_smdebug_test(
         )
     except Exception as e:
         debug_output = ec2_connection.run(f"docker logs {container_name}")
+        debug_stdout = debug_output.stdout
+        if "All SMDebug tests succeeded!" in debug_stdout:
+            LOGGER.warning(
+                f"SMDebug tests succeeded, but there is an issue with fabric. Error:\n{e}\nTest output: {debug_stdout}"
+            )
+            return
         raise SMDebugTestFailure(
-            f"SMDebug test failed on {image_uri} on {ec2_instance_type}. Full output:\n {debug_output.stdout}"
+            f"SMDebug test failed on {image_uri} on {ec2_instance_type}. Full output:\n {debug_stdout}"
         ) from e
 
 

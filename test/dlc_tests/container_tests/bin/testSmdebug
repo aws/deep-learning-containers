@@ -122,8 +122,10 @@ pytest mock/tests/zero_code_change/${ZCC_TEST_NAME[$FRAMEWORK]}
 if [ "$?" -eq "0" ]
 then
     echo "SMDebug ZCC tests succeeded."
-    exit 0
 else
     echo "SMDebug ZCC tests Failed."
     exit 1
 fi
+
+echo "All SMDebug tests succeeded!"
+exit 0
