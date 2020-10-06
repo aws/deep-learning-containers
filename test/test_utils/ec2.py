@@ -15,7 +15,7 @@ from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 
-def get_ec2_instance_type(default, processor, disable_p3dn=False):
+def get_ec2_instance_type(default, processor, disable_p3dn=True):
     """
     Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
     for contexts where the variable is not present (i.e. PR, Nightly, local testing)
