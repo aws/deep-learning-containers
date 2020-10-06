@@ -53,7 +53,7 @@ def run_smdebug_test(
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     ec2_connection.run(
-        f"{docker_executable} run --name {container_name} -v "
+        f"{docker_executable} run --shm-size=1g --name {container_name} -v "
         f"{container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {image_uri}",
         hide=True,
     )
