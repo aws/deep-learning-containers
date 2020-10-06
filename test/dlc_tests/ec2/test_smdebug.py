@@ -17,26 +17,27 @@ SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", proc
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.flaky(reruns=0)
-def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
+def test_smdebug_gpu(training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only):
     # TODO: Remove this once test timeout has been debugged (failures especially on p2.8xlarge)
     #if is_tf2(training) and "2.3.1" in training and "p2.8xlarge" in SMDEBUG_EC2_GPU_INSTANCE_TYPE:
     #    pytest.skip("Currently skipping for TF2.3.0 on p2.8xlarge until the issue is fixed")
     if is_tf1(training):
         pytest.skip("Currently skipping for TF1 until the issue is fixed")
-    run_smdebug_test(training, ec2_connection, region, docker_executable="nvidia-docker", container_name="smdebug-gpu")
+    run_smdebug_test(training, ec2_connection, region, ec2_instance_type,
+                     docker_executable="nvidia-docker", container_name="smdebug-gpu")
 
 
 @pytest.mark.flaky(reruns=0)
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_smdebug_cpu(training, ec2_connection, region, cpu_only, py3_only):
+def test_smdebug_cpu(training, ec2_connection, region, ec2_instance_type, cpu_only, py3_only):
     # TODO: Remove this once test timeout has been debugged (failures especially on m4.16xlarge)
     if is_tf2(training) and "m4.16xlarge" in SMDEBUG_EC2_CPU_INSTANCE_TYPE:
         pytest.skip("Currently skipping for TF2 on m4.16xlarge until the issue is fixed")
     if is_tf1(training):
         pytest.skip("Currently skipping for TF1 until the issue is fixed")
-    run_smdebug_test(training, ec2_connection, region)
+    run_smdebug_test(training, ec2_connection, region, ec2_instance_type)
 
 
 def run_smdebug_test(
