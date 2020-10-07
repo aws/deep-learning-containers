@@ -23,7 +23,8 @@ def test_smdebug_gpu(training, ec2_connection, region, gpu_only, py3_only):
         pytest.skip("Currently skipping for TF2.3.0 on p2.8xlarge until the issue is fixed")
     if is_tf1(training):
         pytest.skip("Currently skipping for TF1 until the issue is fixed")
-    run_smdebug_test(training, ec2_connection, region, docker_executable="nvidia-docker", container_name="smdebug-gpu")
+    run_smdebug_test(training, ec2_connection, region, docker_executable="nvidia-docker", container_name="smdebug-gpu",
+                     is_large_shm="p2.8xlarge" in SMDEBUG_EC2_GPU_INSTANCE_TYPE)
 
 
 @pytest.mark.flaky(reruns=0)
@@ -47,13 +48,15 @@ def run_smdebug_test(
     container_name="smdebug",
     test_script=SMDEBUG_SCRIPT,
     logfile="output.log",
+    is_large_shm=False
 ):
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
+    shm_setting = '--shm-size=1g' if is_large_shm else ""
     ec2_connection.run(
-        f"{docker_executable} run --name {container_name} -v "
+        f"{docker_executable} run {shm_setting} --name {container_name} -v "
         f"{container_test_local_dir}:{os.path.join(os.sep, 'test')} -itd {image_uri}",
         hide=True,
     )
