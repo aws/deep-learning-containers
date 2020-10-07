@@ -16,9 +16,9 @@ import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
 from test.test_utils import (
-    is_benchmark_dev_context,
+    is_benchmark_dev_context, get_framework_and_version_from_tag, get_job_type_from_image,
     DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2,
-    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2, KEYS_TO_DESTROY_FILE
+    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, KEYS_TO_DESTROY_FILE
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -312,6 +312,8 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
     :param values_to_generate_for_fixture: <dict> Mapping of "Fixture used" -> "Fixture to be parametrized"
     :return: <dict> Mapping of "Fixture to be parametrized" -> "Unique values for fixture to be parametrized"
     """
+    job_type_map = {"training": "tr", "inference": "inf"}
+    framework_name_map = {"tensorflow": "tf", "mxnet": "mx", "pytorch": "pt"}
     fixtures_parametrized = {}
 
     if images_to_parametrize:
@@ -332,18 +334,15 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
 
                     image_tag = image.split(":")[-1].replace(".", "-")
 
-                    framework_tag = (
-                        "tf" if "tensorflow" in image else "pt" if "pytorch" in image else "mx"
-                        if "mxnet" in image else ""
-                    )
+                    framework, _ = get_framework_and_version_from_tag(image)
 
-                    job_type_tag = "tr" if "training" in image else "inf" if "inference" in image else ""
+                    job_type = get_job_type_from_image(image)
 
                     fixtures_parametrized[new_fixture_name].append(
                         (
                             image,
-                            f"{metafunc_obj.function.__name__}-{framework_tag}-"
-                            f"{job_type_tag}-{image_tag}-"
+                            f"{metafunc_obj.function.__name__}-{framework_name_map.get(framework)}-"
+                            f"{job_type_map.get(job_type)}-{image_tag}-"
                             f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}{instance_tag}",
                         )
                     )
