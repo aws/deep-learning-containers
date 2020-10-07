@@ -39,7 +39,7 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     cuda-command-line-tools-11-0 \
-    cuda-cudart-dev-11-0 \
+    cuda-cudart-11-0=11.0.221-1 \
     libcufft-dev-11-0 \
     libnccl-dev=2.7.8-1+cuda11.0 \
     libcublas-dev-11-0=11.2.0.252-1 \
@@ -105,9 +105,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     "pyopenssl>=17.5.0" \
  && /opt/conda/bin/conda clean -ya
 
-RUN pip install dgl==0.6a201002
-
-#RUN pip install https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_cuda/dgl-0.6-cp36-cp36m-manylinux1_x86_64.whl
+RUN pip install https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_cuda/dgl-0.5.2-cp36-cp36m-manylinux1_x86_64.whl
 
 RUN conda install -c pytorch magma-cuda110==2.5.2 \
  && conda install -c conda-forge \
