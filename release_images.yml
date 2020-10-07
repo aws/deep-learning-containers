@@ -71,7 +71,7 @@ release_images:
       force_release: False
   6:
     framework: "tensorflow"
-    version: "2.3.0"
+    version: "2.3.1"
     training:
       device_types: ["cpu", "gpu"]
       python_versions: ["py37"]
@@ -82,17 +82,9 @@ release_images:
       # to images being published.
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
       # has already been published. Re-released image will have minor version incremented by 1.
-    inference:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu102"
-      example: False
-      disable_sm_tag: False
-      force_release: False
   7:
     framework: "tensorflow"
-    version: "2.3.0"
+    version: "2.3.1"
     training:
       device_types: ["gpu"]
       python_versions: ["py37"]
