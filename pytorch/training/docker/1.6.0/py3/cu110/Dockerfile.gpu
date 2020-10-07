@@ -105,6 +105,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     "pyopenssl>=17.5.0" \
  && /opt/conda/bin/conda clean -ya
 
+
 RUN pip install https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_cuda/dgl-0.5.2-cp36-cp36m-manylinux1_x86_64.whl
 
 RUN conda install -c pytorch magma-cuda110==2.5.2 \
