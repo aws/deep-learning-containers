@@ -5,7 +5,6 @@ import random
 import sys
 
 import boto3
-from botocore.config import Config
 from botocore.exceptions import ClientError
 import docker
 import pytest
@@ -313,8 +312,6 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
     :param values_to_generate_for_fixture: <dict> Mapping of "Fixture used" -> "Fixture to be parametrized"
     :return: <dict> Mapping of "Fixture to be parametrized" -> "Unique values for fixture to be parametrized"
     """
-    job_type_map = {"training": "tr", "inference": "inf"}
-    framework_name_maps = {"tensorflow": "tf", "mxnet": "mx", "pytorch": "pt"}
     fixtures_parametrized = {}
 
     if images_to_parametrize:
@@ -335,14 +332,18 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
 
                     image_tag = image.split(":")[-1].replace(".", "-")
 
-                    framework = image.split(":")[0].split("/")[1].split("-")[0]
-                    job_type = image.split(":")[0].split("/")[1].split("-")[1]
+                    framework_tag = (
+                        "tf" if "tensorflow" in image else "pt" if "pytorch" in image else "mx"
+                        if "mxnet" in image else ""
+                    )
+
+                    job_type_tag = "tr" if "training" in image else "inf" if "inference" in image else ""
 
                     fixtures_parametrized[new_fixture_name].append(
                         (
                             image,
-                            f"{metafunc_obj.function.__name__}-{framework_name_maps.get(framework, '')}-"
-                            f"{job_type_map.get(job_type, '')}{image_tag}-"
+                            f"{metafunc_obj.function.__name__}-{framework_tag}-"
+                            f"{job_type_tag}-{image_tag}-"
                             f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}{instance_tag}",
                         )
                     )
