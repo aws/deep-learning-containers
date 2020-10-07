@@ -1,5 +1,7 @@
 import os
 
+from packaging.version import Version
+
 import pytest
 
 from test.test_utils import CONTAINER_TESTS_PREFIX
@@ -123,7 +125,6 @@ def test_nvapex(pytorch_training, ec2_connection, gpu_only):
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.skipif(PT_EC2_GPU_INSTANCE_TYPE == ["g3.4xlarge"], reason="Skipping AMP DDP test on single gpu instance")
 def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only):
-    from packaging import Version
     if Version(image_framework_version) < Version("1.6"):
         pytest.skip(reason="Native AMP was introduced in PyTorch 1.6")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD)
