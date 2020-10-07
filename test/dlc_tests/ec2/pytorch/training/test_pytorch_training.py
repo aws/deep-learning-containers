@@ -127,7 +127,7 @@ def test_nvapex(pytorch_training, ec2_connection, gpu_only):
 def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("1.6"):
-        pytest.skip(reason="Native AMP was introduced in PyTorch 1.6")
+        pytest.skip("Native AMP was introduced in PyTorch 1.6")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD)
 
 
