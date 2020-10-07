@@ -9,8 +9,8 @@ from test.test_utils.ec2 import get_ec2_instance_type
 SMDEBUG_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
 
 
-SMDEBUG_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p2.8xlarge", processor="gpu")
-SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="m4.16xlarge", processor="cpu")
+SMDEBUG_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.4xlarge", processor="gpu")
+SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="t2.2xlarge", processor="cpu")
 
 
 @pytest.mark.integration("smdebug")
@@ -73,11 +73,11 @@ def run_smdebug_test(
         debug_stdout = debug_output.stdout
         if "All SMDebug tests succeeded!" in debug_stdout:
             LOGGER.warning(
-                f"SMDebug tests succeeded, but there is an issue with fabric. Error:\n{e}\nTest output: {debug_stdout}"
+                f"SMDebug tests succeeded, but there is an issue with fabric. Error:\n{e}\nTest output:\n{debug_stdout}"
             )
             return
         raise SMDebugTestFailure(
-            f"SMDebug test failed on {image_uri} on {ec2_instance_type}. Full output:\n {debug_stdout}"
+            f"SMDebug test failed on {image_uri} on {ec2_instance_type}. Full output:\n{debug_stdout}"
         ) from e
 
 
