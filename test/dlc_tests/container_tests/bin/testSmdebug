@@ -44,12 +44,14 @@ cp -r tests mock/
 
 echo "Installing pre-requisites."
 pip install pytest
-pip install tensorflow-datasets
 
 echo "Running framework tests."
 
 
 if [[ $FRAMEWORK == "tensorflow" ]]; then
+    # Later version of tensorflow-datasets
+    # do not work with tensorflow 1.x
+    pip install tensorflow-datasets==3.2.1
     pytest mock/tests/${FRAMEWORK} \
                             -k "not test_keras and not test_mnist_s3 and not test_mnist_s3_multi_save_configs" \
                             --ignore=mock/tests/mxnet/test_training_end.py
@@ -61,29 +63,35 @@ if [[ $FRAMEWORK == "tensorflow" ]]; then
         echo "SMDebug framework tests failed"
         exit $exit_code
     fi
+elif [[ $FRAMEWORK == "mxnet" ]]; then
+    pytest mock/tests/${FRAMEWORK}  --ignore=mock/tests/mxnet/test_training_end.py
+    exit_code=$?
+    if [ "$exit_code" -eq "0" ]
+    then
+        echo "SMDebug tests succeeded for $FRAMEWORK"
+    else
+        echo "SMDebug tests failed for $FRAMEWORK"
+        exit $exit_code
+    fi
 else
+    pip install tensorflow-datasets
     for test_file in mock/tests/${FRAMEWORK}/*
     do
-        if [ $test_file == "mock/tests/mxnet/test_training_end.py" ]; then
-            echo "Ignoring $test_file"
+        pytest $test_file
+        exit_code=$?
+        if [ "$exit_code" -eq "0" ]
+        then
+            echo "SMDebug test succeeded: $test_file"
+        elif [ "$exit_code" -eq "5" ]
+        then
+            # pytest enum ExitCode.NO_TESTS_COLLECTED = 5
+            # See: https://github.com/pytest-dev/pytest/blob/050c2df737f7c6c3b1de7a6f375de107edcb6873/src/_pytest/config/__init__.py#L98
+            echo "SMDebug no tests collected: $test_file"
         else
-            pytest $test_file --ignore=mock/tests/mxnet/test_training_end.py
-            exit_code=$?
-            if [ "$exit_code" -eq "0" ]
-            then
-                echo "SMDebug test succeeded: $test_file"
-            elif [ "$exit_code" -eq "5" ]
-            then
-                # pytest enum ExitCode.NO_TESTS_COLLECTED = 5
-                # See: https://github.com/pytest-dev/pytest/blob/050c2df737f7c6c3b1de7a6f375de107edcb6873/src/_pytest/config/__init__.py#L98
-                echo "SMDebug no tests collected: $test_file"
-            else
-                echo "SMDebug test failed: $test_file"
-                exit $exit_code
-            fi
+            echo "SMDebug test failed: $test_file"
+            exit $exit_code
         fi
     done
-
 fi
 
 echo "Setting up SMDebug environment."
