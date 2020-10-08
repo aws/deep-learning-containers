@@ -50,6 +50,7 @@ def test_ecs_tensorflow_training_mnist_gpu(gpu_only, ecs_container_instance, ten
                                          num_gpus=num_gpus)
 
 
+@pytest.mark.skip(reason="Skip this test on PR and Mainline")
 @pytest.mark.model("FasterRCNN")
 @pytest.mark.parametrize("training_script", [TF_FasterRCNN_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["g3.8xlarge"], indirect=True)
