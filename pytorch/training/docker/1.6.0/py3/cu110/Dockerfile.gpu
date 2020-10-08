@@ -1,5 +1,5 @@
 # The tag for the base image is: 11.0-cudnn8-devel-ubuntu16.04
-FROM nvidia/cuda:11.0-cudnn8-runtime-ubuntu16.04
+FROM nvidia/cuda:11.0-cudnn8-devel-ubuntu16.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
@@ -39,7 +39,7 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     cuda-command-line-tools-11-0 \
-    cuda-cudart-11-0=11.0.221-1 \
+    cuda-cudart-11-0 \
     libcufft-dev-11-0 \
     libnccl-dev=2.7.8-1+cuda11.0 \
     libcublas-dev-11-0=11.2.0.252-1 \
