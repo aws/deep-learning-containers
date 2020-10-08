@@ -10,12 +10,11 @@ import pytest
 
 from invoke import run
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_dlc_cicd_context, is_canary_context
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_dlc_cicd_context, is_canary_context, is_mainline_context
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
-
 
 # List of safety check vulnerability IDs to ignore. To get the ID, run safety check on the container,
 # and copy paste the ID given by the safety check for a package.
@@ -112,6 +111,9 @@ def _get_latest_package_version(docker_exec_cmd, package, num_tries=3):
 
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
+@pytest.mark.skipif(not is_mainline_context(),
+                    reason="Skipping the test to decrease the number of calls to the Safety Check DB. "
+                           "Test will be executed in the 'mainline' pipeline only")
 def test_safety(image):
     """
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
