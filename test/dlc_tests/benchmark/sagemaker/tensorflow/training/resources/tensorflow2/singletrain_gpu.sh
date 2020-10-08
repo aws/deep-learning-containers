@@ -17,4 +17,4 @@ printenv
 # Training
 
 python -W ignore deep-learning-models/models/resnet/tensorflow2/train_tf2_resnet.py \
---data_dir $SM_CHANNEL_TRAIN --synthetic --batch_size 128 --num_batches 5000 --clear_log 2
+--data_dir $SM_CHANNEL_TRAIN --synthetic --batch_size 128 --num_batches 1000 --clear_log 2
