@@ -127,4 +127,5 @@ else
     exit 1
 fi
 
+echo "All SMDebug tests succeeded!"
 exit 0
