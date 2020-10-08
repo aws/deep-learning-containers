@@ -11,7 +11,10 @@ set -ex
 GPU_MEM=`nvidia-smi --query-gpu=memory.total --format=csv,noheader -i 0 | awk '{print $1}'`
 if [ $GPU_MEM -gt 15000 ] ; then BATCH_SIZE=256; else BATCH_SIZE=128; fi
 
+# print env vars
+printenv
+
 # Training
 
 python -W ignore deep-learning-models/models/resnet/tensorflow2/train_tf2_resnet.py \
---data_dir $SM_CHANNEL_TRAIN --synthetic --batch_size 128 --num_batches 5000 --clear_log 2
+--data_dir $SM_CHANNEL_TRAIN --synthetic --batch_size 128 --num_batches 1000 --clear_log 2

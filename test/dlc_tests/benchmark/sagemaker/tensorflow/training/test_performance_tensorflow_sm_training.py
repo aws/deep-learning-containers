@@ -133,15 +133,18 @@ def _print_results_of_test(file_path, processor):
                 )
                 break
     elif processor == "gpu":
+        """calculate average throughput"""
+        counter = 0
         result_dict = dict()
         for line in last_100_lines:
             if "images/sec: " in line:
+                counter += 1
                 key = line.split("<stdout>")[0]
                 result_dict[key] = line.strip("\n")
-                if throughput == 0:
-                    throughput = float(
-                        re.search(r"(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
-                    )
+                throughput += float(
+                    re.search(r"(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
+                )
         result = "\n".join(result_dict.values()) + "\n"
+        throughput = throughput/counter
     LOGGER.info(result)
     return result, throughput
