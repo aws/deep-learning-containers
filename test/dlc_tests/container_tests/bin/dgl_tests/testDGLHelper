@@ -27,7 +27,7 @@ cd ./examples/${FRAMEWORK}/gcn
 set +e
 if [ ${RETURN_VAL} -eq 0 ]; then
     echo "Running DGL training script..."
-    $PYTHON_BIN ./train.py --dataset cora --gpu 0 >> ${TRAINING_LOG} 2>&1
+    $PYTHON_BIN ./train.py --dataset cora >> ${TRAINING_LOG} 2>&1
 else
     echo "Running DGL training script..."
     $PYTHON_BIN ./train.py --dataset cora --gpu -1 >> ${TRAINING_LOG} 2>&1
