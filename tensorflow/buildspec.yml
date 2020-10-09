@@ -2,8 +2,7 @@
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK tensorflow
   version: &VERSION 2.3.1
-  cuda_version_102: &CUDA_VERSION_102 cu102
-  cuda_version_110: &CUDA_VERSION_110 cu110
+  cuda_version: &CUDA_VERSION cu110
   os_version: &OS_VERSION ubuntu18.04
 
   repository_info:
@@ -46,15 +45,15 @@
 #      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
 #      context:
 #        <<: *TRAINING_CONTEXT
-#    BuildTensorflowGPUCu102TrainPy3DockerImage:
+#    BuildTensorflowGPUTrainPy3DockerImage:
 #      <<: *TRAINING_REPOSITORY
 #      build: &TENSORFLOW_GPU_TRAINING_PY3 false
 #      image_size_baseline: 4899
 #      device_type: &DEVICE_TYPE gpu
 #      python_version: &DOCKER_PYTHON_VERSION py3
 #      tag_python_version: &TAG_PYTHON_VERSION py37
-#      tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION_102, "-", *OS_VERSION ]
-#      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION_102, /Dockerfile., *DEVICE_TYPE ]
+#      tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
+#      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
 #      context:
 #        <<: *TRAINING_CONTEXT
 #    BuildTensorflowExampleCu102GPUTrainPy3DockerImage:
@@ -65,31 +64,31 @@
 #      device_type: &DEVICE_TYPE gpu
 #      python_version: &DOCKER_PYTHON_VERSION py3
 #      tag_python_version: &TAG_PYTHON_VERSION py37
-#      tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION_102, "-", *OS_VERSION,
+#      tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
 #                   "-example" ]
 #      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /example, /Dockerfile., *DEVICE_TYPE ]
 #      context:
 #        <<: *TRAINING_CONTEXT
-    BuildTensorflowGPUCu110TrainPy3DockerImage:
+    BuildTensorflowGPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &TENSORFLOW_GPU_TRAINING_PY3 false
       image_size_baseline: 7738
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
       tag_python_version: &TAG_PYTHON_VERSION py37
-      tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION_110, "-", *OS_VERSION ]
-      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION_110, /Dockerfile., *DEVICE_TYPE ]
+      tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
+      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
-    BuildTensorflowExampleGPUCu110TrainPy3DockerImage:
+    BuildTensorflowExampleGPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &TENSORFLOW_GPU_TRAINING_PY3 false
       image_size_baseline: 7738
-      base_image_name: BuildTensorflowGPUCu110TrainPy3DockerImage
+      base_image_name: BuildTensorflowGPUTrainPy3DockerImage
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
       tag_python_version: &TAG_PYTHON_VERSION py37
-      tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION_110, "-", *OS_VERSION,
+      tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
                    "-example" ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /example, /Dockerfile., *DEVICE_TYPE ]
       context:
