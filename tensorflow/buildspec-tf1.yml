@@ -48,7 +48,7 @@
     BuildTensorflowGPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &TENSORFLOW_GPU_TRAINING_PY3 false
-      image_size_baseline: 5768
+      image_size_baseline: 5868
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
       tag_python_version: &TAG_PYTHON_VERSION py37
@@ -59,7 +59,7 @@
     BuildTensorflowExampleGPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &TENSORFLOW_GPU_TRAINING_PY3 false
-      image_size_baseline: 4899
+      image_size_baseline: 5868
       base_image_name: BuildTensorflowGPUTrainPy3DockerImage
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
