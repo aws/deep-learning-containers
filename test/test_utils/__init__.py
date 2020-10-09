@@ -629,6 +629,20 @@ def get_framework_and_version_from_tag(image_uri):
     return tested_framework, tag_framework_version
 
 
+def get_cuda_version_from_tag(image_uri):
+    """
+    Return the cuda version from the image tag.
+    :param image_uri: ECR image URI
+    :return: cuda version
+    """
+    cuda_framework_version = None
+
+    cuda_str = ["cu", "gpu"]
+    if all(keyword in image_uri for keyword in cuda_str):
+        cuda_framework_version = image_uri.split(":")[-1].split("-")[3]
+
+    return cuda_framework_version
+
 def get_job_type_from_image(image_uri):
     """
     Return the Job type from the image tag.
