@@ -73,7 +73,7 @@ release_images:
     framework: "tensorflow"
     version: "2.3.1"
     training:
-      device_types: ["cpu", "gpu"]
+      device_types: ["gpu"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
       cuda_version: "cu110"
