@@ -23,7 +23,7 @@ ENV LC_ALL=C.UTF-8
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
 # Define framework-related package sources
-ARG TF_URL=https://aws-tensorflow-binaries-beta.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws/20200609-012254/cpu/py37/tensorflow_cpu-1.15.3-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws/20201014-122550/cpu/py37/tensorflow_cpu-1.15.4-cp37-cp37m-manylinux2010_x86_64.whl
 ARG SMDEBUG_VERSION=0.9.3
 ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
@@ -129,7 +129,7 @@ RUN ln -s $(which python3) /usr/local/bin/python \
  && ln -s $(which pip3) /usr/bin/pip
 
 RUN ${PIP} install --no-cache-dir -U \
-    numpy==1.17.4 \
+    numpy==1.18.5 \
     scipy==1.2.2 \
     scikit-learn==0.20.3 \
     pandas==0.24.2 \
