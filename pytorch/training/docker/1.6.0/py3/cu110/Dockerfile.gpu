@@ -6,7 +6,6 @@ LABEL dlc_major_version="2"
 
 ARG PYTHON_VERSION=3.6.10
 ARG OPEN_MPI_VERSION=4.0.1
-#ARG CUBLAS_VERSION=10.2.1.243-1_amd64
 ARG CUBLAS_VERSION=11.2.0.252-1_amd64
 
 
@@ -32,6 +31,7 @@ ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_aws/20201001-012513/a40b1c195ba679596118514fcbeae1f422591426/gpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://torchvision-build.s3.amazonaws.com/1.6.0/gpu/cuda/torchvision-0.7.0a0%2B78ed10c-cp36-cp36m-manylinux1_x86_64.whl
 
 RUN apt-get update \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
@@ -63,12 +63,13 @@ RUN apt-get update \
     vim \
     wget \
     zlib1g-dev \
- && apt-get remove -y cuda-cufft-dev-10-1 \
-    cuda-cusolver-dev-10-1 \
-    cuda-npp-dev-10-1 \
-    cuda-nvgraph-dev-10-1 \
-    cuda-nvjpeg-dev-10-1 \
-    cuda-nvrtc-dev-10-1 \
+# These packages need to be removed once there are stable packages available for them in CUDA 11
+# && apt-get remove -y cuda-cufft-dev-10-1 \
+#    cuda-cusolver-dev-10-1 \
+#    cuda-npp-dev-10-1 \
+#    cuda-nvgraph-dev-10-1 \
+#    cuda-nvjpeg-dev-10-1 \
+#    cuda-nvrtc-dev-10-1 \
  && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/libcublas-11-0_${CUBLAS_VERSION}.deb \
@@ -144,8 +145,7 @@ RUN pip install \
     click \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U \
-     https://torchvision-build.s3.amazonaws.com/1.6.0/gpu/cuda/torchvision-0.7.0a0%2B78ed10c-cp36-cp36m-manylinux1_x86_64.whl
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
 
 # Install Horovod
 RUN pip uninstall -y horovod \
