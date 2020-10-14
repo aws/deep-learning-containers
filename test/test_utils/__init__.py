@@ -121,6 +121,10 @@ def is_mainline_context():
     return os.getenv("BUILD_CONTEXT") == "MAINLINE"
 
 
+def is_nightly_context():
+    return os.getenv("BUILD_CONTEXT") == "NIGHTLY"
+
+
 def is_empty_build_context():
     return not os.getenv("BUILD_CONTEXT")
 
