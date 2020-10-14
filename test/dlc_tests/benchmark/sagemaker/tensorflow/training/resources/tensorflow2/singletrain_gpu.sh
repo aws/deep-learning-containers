@@ -14,4 +14,4 @@ if [ $GPU_MEM -gt 15000 ] ; then BATCH_SIZE=256; else BATCH_SIZE=128; fi
 # Training
 
 python -W ignore deep-learning-models/models/resnet/tensorflow2/train_tf2_resnet.py \
---data_dir $SM_CHANNEL_TRAIN --synthetic --batch_size 128 --num_batches 100 --clear_log 2
+--data_dir $SM_CHANNEL_TRAIN --synthetic --batch_size 128 --num_batches 1000 --clear_log 2
