@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER, is_tf2, is_tf1
+from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER, is_tf_version
 from test.test_utils.ec2 import get_ec2_instance_type
 
 
@@ -80,7 +80,7 @@ def get_framework_from_image_uri(image_uri):
     frameworks = ("tensorflow", "mxnet", "pytorch")
     for framework in frameworks:
         if framework in image_uri:
-            if framework == "tensorflow" and is_tf2(image_uri):
+            if framework == "tensorflow" and is_tf_version("2", image_uri):
                 return "tensorflow2"
             return framework
     raise RuntimeError(f"Could not find any framework {frameworks} in {image_uri}")

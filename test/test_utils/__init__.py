@@ -13,6 +13,7 @@ from botocore.exceptions import ClientError
 from invoke import run
 from invoke.context import Context
 from packaging.version import LegacyVersion, Version, parse
+from packaging.specifiers import SpecifierSet
 from retrying import retry
 
 from src.config.test_config import ENABLE_BENCHMARK_DEV_MODE
@@ -67,28 +68,30 @@ SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 PUBLIC_DLC_REGISTRY = "763104351884"
 
 
-def is_tf1(image_uri):
-    if "tensorflow" not in image_uri:
-        return False
-    return bool(re.search(r"1\.\d+\.\d+", image_uri))
+def is_tf_version(required_version, image_uri):
+    """
+    Validate that image_uri has framework version equal to required_version
+
+    :param required_version: str Framework version which is required from the image_uri
+    :param image_uri: str ECR Image URI for the image to be validated
+    :return: bool True if image_uri has same framework version as required_version, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    required_version_specifier_set = SpecifierSet(f"=={required_version}.*")
+    return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
 
 
-def is_tf2(image_uri):
-    if "tensorflow" not in image_uri:
-        return False
-    return bool(re.search(r"2\.\d+\.\d+", image_uri))
+def is_below_tf_version(version_upper_bound, image_uri):
+    """
+    Validate that image_uri has framework version strictly less than version_upper_bound
 
-
-def is_tf20(image_uri):
-    if "tensorflow" not in image_uri:
-        return False
-    return bool(re.search(r"2\.0\.\d+", image_uri))
-
-
-def below_tf23(image_uri):
-    if "tensorflow" not in image_uri:
-        return False
-    return bool(re.search(r"2\.[0-2]\.\d+", image_uri))
+    :param version_upper_bound: str Framework version that image_uri is required to be below
+    :param image_uri: str ECR Image URI for the image to be validated
+    :return: bool True if image_uri has framework version less than version_upper_bound, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
+    return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
 
 
 def get_repository_local_path():
