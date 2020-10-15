@@ -12,7 +12,7 @@ from test.test_utils import (
     get_framework_and_version_from_tag,
     is_canary_context,
     is_tf_version,
-    is_dlc_cicd_context
+    is_dlc_cicd_context,
     is_pr_context,
 )
 
