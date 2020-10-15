@@ -310,6 +310,9 @@ def test_cuda_paths(gpu):
     python_version = re.search(r"(py\d+)", image).group(1)
 
     framework_version_path = os.path.join(dlc_path, framework, job_type, "docker", framework_version)
+    if not os.path.exists(framework_version_path):
+        framework_short_version = re.match(r"(\d+.\d+)", framework_version).group(1)
+        framework_version_path = os.path.join(dlc_path, framework, job_type, "docker", framework_short_version)
     if not os.path.exists(os.path.join(framework_version_path, python_version)):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
         python_version = python_version[:3]
