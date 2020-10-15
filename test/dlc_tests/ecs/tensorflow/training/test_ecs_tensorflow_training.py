@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2, CONTAINER_TESTS_PREFIX
+from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2, CONTAINER_TESTS_PREFIX, is_nightly_context
 from test.test_utils import ecs as ecs_utils
 from test.test_utils import ec2 as ec2_utils
 
@@ -50,7 +50,7 @@ def test_ecs_tensorflow_training_mnist_gpu(gpu_only, ecs_container_instance, ten
                                          num_gpus=num_gpus)
 
 
-@pytest.mark.skip(reason="Skip this test on PR and Mainline")
+@pytest.mark.skipif(not is_nightly_context(), reason="Running additional model in nightly context only")
 @pytest.mark.model("FasterRCNN")
 @pytest.mark.parametrize("training_script", [TF_FasterRCNN_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["g3.8xlarge"], indirect=True)
