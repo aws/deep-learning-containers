@@ -39,32 +39,3 @@ ROLE = "dummy/unused-role"
 DEFAULT_TIMEOUT = 20
 
 RESOURCE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
-
-# These regions have some p2 and p3 instances, but not enough for automated testing
-NO_P2_REGIONS = [
-    "ca-central-1",
-    "eu-central-1",
-    "eu-west-2",
-    "us-west-1",
-    "eu-west-3",
-    "eu-north-1",
-    "sa-east-1",
-    "ap-east-1",
-    "eu-south-1",
-    "af-south-1",
-]
-NO_P3_REGIONS = [
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-south-1",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-west-2",
-    "us-west-1",
-    "eu-west-3",
-    "eu-north-1",
-    "sa-east-1",
-    "ap-east-1",
-    "eu-south-1",
-    "af-south-1",
-]
