@@ -11,7 +11,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG MMS_VERSION=1.1.2
-ARG MX_URL=https://aws-mxnet-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mxnet_mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
+ARG MX_URL=https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.6.0/aws_mx_mkl-1.6.0-py2.py3-none-manylinux1_x86_64.whl
 ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
@@ -122,7 +122,7 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mxnet-1.6.0/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mxnet-mkl-1.6.0/license.txt -o /license.txt
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
