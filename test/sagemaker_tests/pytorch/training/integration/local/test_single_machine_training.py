@@ -18,7 +18,7 @@ import pytest
 from sagemaker.pytorch import PyTorch
 
 from ...utils.local_mode_utils import assert_files_exist
-from ...integration import data_dir, fastai_path, fastai_mnist_script, mnist_script, PYTHON3, ROLE
+from ...integration import data_dir, fastai_path, fastai_mnist_script, mnist_script, ROLE
 
 
 @pytest.mark.model("mnist")
@@ -37,10 +37,8 @@ def test_mnist(docker_image, processor, instance_type, sagemaker_local_session, 
 
 @pytest.mark.integration("fastai")
 @pytest.mark.model("mnist")
+@pytest.mark.skip_py2_containers
 def test_fastai_mnist(docker_image, instance_type, py_version, sagemaker_local_session, tmpdir):
-    if py_version != PYTHON3:
-        pytest.skip('Skipping the test because fastai supports >= Python 3.6.')
-
     estimator = PyTorch(entry_point=fastai_mnist_script,
                         role=ROLE,
                         image_name=docker_image,
