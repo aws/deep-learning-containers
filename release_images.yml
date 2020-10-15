@@ -14,13 +14,13 @@ release_images:
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
                             # has already been published. Re-released image will have minor version incremented by 1.
     inference:
-      device_types: ["cpu", "gpu"]
+      device_types: ["gpu"]
       python_versions: ["py36"]
       os_version: "ubuntu16.04"
       cuda_version: "cu101"
       example: False
       disable_sm_tag: False
-      force_release: False
+      force_release: True
   2:
     framework: "pytorch"
     version: "1.6.0"
