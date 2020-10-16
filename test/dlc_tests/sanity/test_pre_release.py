@@ -11,7 +11,7 @@ from test.test_utils import (
     ec2,
     get_framework_and_version_from_tag,
     is_canary_context,
-    is_tf1,
+    is_tf_version,
     is_dlc_cicd_context
 )
 
@@ -316,7 +316,7 @@ def test_cuda_paths(gpu):
 
     # Check buildspec for cuda version
     buildspec = "buildspec.yml"
-    if is_tf1(image):
+    if is_tf_version("1", image):
         buildspec = "buildspec-tf1.yml"
 
     cuda_in_buildspec = False

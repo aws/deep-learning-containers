@@ -13,6 +13,7 @@ from botocore.exceptions import ClientError
 from invoke import run
 from invoke.context import Context
 from packaging.version import LegacyVersion, Version, parse
+from packaging.specifiers import SpecifierSet
 from retrying import retry
 
 from src.config.test_config import ENABLE_BENCHMARK_DEV_MODE
@@ -67,28 +68,30 @@ SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 PUBLIC_DLC_REGISTRY = "763104351884"
 
 
-def is_tf1(image_uri):
-    if "tensorflow" not in image_uri:
-        return False
-    return bool(re.search(r"1\.\d+\.\d+", image_uri))
+def is_tf_version(required_version, image_uri):
+    """
+    Validate that image_uri has framework version equal to required_version
+
+    :param required_version: str Framework version which is required from the image_uri
+    :param image_uri: str ECR Image URI for the image to be validated
+    :return: bool True if image_uri has same framework version as required_version, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    required_version_specifier_set = SpecifierSet(f"=={required_version}.*")
+    return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
 
 
-def is_tf2(image_uri):
-    if "tensorflow" not in image_uri:
-        return False
-    return bool(re.search(r"2\.\d+\.\d+", image_uri))
+def is_below_tf_version(version_upper_bound, image_uri):
+    """
+    Validate that image_uri has framework version strictly less than version_upper_bound
 
-
-def is_tf20(image_uri):
-    if "tensorflow" not in image_uri:
-        return False
-    return bool(re.search(r"2\.0\.\d+", image_uri))
-
-
-def below_tf23(image_uri):
-    if "tensorflow" not in image_uri:
-        return False
-    return bool(re.search(r"2\.[0-2]\.\d+", image_uri))
+    :param version_upper_bound: str Framework version that image_uri is required to be below
+    :param image_uri: str ECR Image URI for the image to be validated
+    :return: bool True if image_uri has framework version less than version_upper_bound, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
+    return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
 
 
 def get_repository_local_path():
@@ -116,6 +119,10 @@ def is_canary_context():
 
 def is_mainline_context():
     return os.getenv("BUILD_CONTEXT") == "MAINLINE"
+
+
+def is_nightly_context():
+    return os.getenv("BUILD_CONTEXT") == "NIGHTLY"
 
 
 def is_empty_build_context():
@@ -261,6 +268,27 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
 
     return True
 
+@retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8501"):
+    """
+    Method to run tensorflow inference on half_plus_two model using CURL command
+    :param model_name:
+    :param ip_address:
+    :param port:
+    :connection: ec2_connection object to run the commands remotely over ssh
+    :return:
+    """
+    inference_string = "'{\"instances\": [[2,1952,25,10901,3]]}'"
+    run_out = run(
+        f"curl -d {inference_string} -X POST http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
+    )
+
+    # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
+    # is 404. Hence the extra check.
+    if run_out.return_code != 0 or 'predictions' not in run_out.stdout:
+        return False
+
+    return True
 
 def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None):
     """
@@ -334,6 +362,11 @@ def get_tensorflow_model_name(processor, model_name):
             "cpu": "saved_model_half_plus_two_cpu",
             "gpu": "saved_model_half_plus_two_gpu",
             "eia": "saved_model_half_plus_two",
+        },
+        "albert": {
+            "cpu": "albert",
+            "gpu": "albert",
+            "eia": "albert",
         },
         "saved_model_half_plus_three": {"eia": "saved_model_half_plus_three"},
     }
