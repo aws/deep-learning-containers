@@ -1,8 +1,8 @@
   account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK mxnet
-  version: &VERSION 1.7.0
-  cuda_version: &CUDA_VERSION cu101
+  version: &VERSION 1.8.0
+  cuda_version: &CUDA_VERSION cu110
   os_version: &OS_VERSION ubuntu16.04
 
   repository_info:
