@@ -103,7 +103,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     docker_base_arg = "--docker-base-name"
     instance_type_arg = "--instance-type"
     accelerator_type_arg = "--accelerator-type"
-    eia_arg = "ml.eia1.large"
+    eia_arg = "ml.eia2.large"
     framework_version = re.search(r"\d+(\.\d+){2}", tag).group()
     framework_major_version = framework_version.split(".")[0]
     processor = "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"

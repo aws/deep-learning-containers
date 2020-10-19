@@ -48,7 +48,7 @@ def instance_type(request, region):
 
 @pytest.fixture(scope='module')
 def accelerator_type(request):
-    return request.config.getoption('--accelerator-type') or 'ml.eia1.medium'
+    return request.config.getoption('--accelerator-type') or 'ml.eia2.large'
 
 
 @pytest.fixture(scope='session')

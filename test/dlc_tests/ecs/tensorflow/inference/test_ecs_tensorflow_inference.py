@@ -36,7 +36,7 @@ def test_ecs_tensorflow_inference_cpu(tensorflow_inference, ecs_container_instan
 @pytest.mark.model("half_plus_two")
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
-@pytest.mark.parametrize("ei_accelerator_type", ["eia1.large"], indirect=True)
+@pytest.mark.parametrize("ei_accelerator_type", ["eia2.large"], indirect=True)
 def test_ecs_tensorflow_inference_eia(
     tensorflow_inference_eia, ecs_container_instance, ei_accelerator_type, region, eia_only
 ):
