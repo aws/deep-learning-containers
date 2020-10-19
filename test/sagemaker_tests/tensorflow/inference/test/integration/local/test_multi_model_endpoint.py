@@ -188,6 +188,7 @@ def test_load_two_models():
     assert len(res3) == 2
 
 
+@pytest.mark.integration("mme")
 @pytest.mark.model("half_plus_three, half_plus_two")
 @pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu
