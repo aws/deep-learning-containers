@@ -7,11 +7,13 @@ from invoke.context import Context
 
 from test.test_utils import (
     LOGGER,
+    CONTAINER_TESTS_PREFIX,
     ec2,
     get_framework_and_version_from_tag,
     is_canary_context,
-    is_tf1,
+    is_tf_version,
     is_dlc_cicd_context,
+    is_pr_context,
 )
 
 
@@ -181,6 +183,36 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+def test_dependency_check_cpu(cpu, ec2_connection):
+    container_name = "dep_check_cpu"
+    report_addon = _get_container_name('depcheck-report', cpu)
+    dependency_check_report = f"{report_addon}.html"
+    test_script = os.path.join(CONTAINER_TESTS_PREFIX, 'testDependencyCheck')
+    ec2.execute_ec2_training_test(ec2_connection, cpu, test_script, container_name=container_name)
+
+    if is_dlc_cicd_context():
+        ec2_connection.run(f"docker cp {container_name}:/build/dependency-check-report.html ~/{dependency_check_report}")
+        ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+def test_dependency_check_gpu(gpu, ec2_connection):
+    container_name = "dep_check_gpu"
+    report_addon = _get_container_name('depcheck-report', gpu)
+    dependency_check_report = f"{report_addon}.html"
+    test_script = os.path.join(CONTAINER_TESTS_PREFIX, 'testDependencyCheck')
+    ec2.execute_ec2_training_test(ec2_connection, gpu, test_script, container_name=container_name)
+
+    if is_dlc_cicd_context():
+        ec2_connection.run(f"docker cp {container_name}:/build/dependency-check-report.html ~/{dependency_check_report}")
+        ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
+
+
+@pytest.mark.model("N/A")
 @pytest.mark.canary("Run pip check test regularly on production images")
 def test_pip_check(image):
     """
@@ -279,13 +311,16 @@ def test_cuda_paths(gpu):
     python_version = re.search(r"(py\d+)", image).group(1)
 
     framework_version_path = os.path.join(dlc_path, framework, job_type, "docker", framework_version)
+    if not os.path.exists(framework_version_path):
+        framework_short_version = re.match(r"(\d+.\d+)", framework_version).group(1)
+        framework_version_path = os.path.join(dlc_path, framework, job_type, "docker", framework_short_version)
     if not os.path.exists(os.path.join(framework_version_path, python_version)):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
         python_version = python_version[:3]
 
     # Check buildspec for cuda version
     buildspec = "buildspec.yml"
-    if is_tf1(image):
+    if is_tf_version("1", image):
         buildspec = "buildspec-tf1.yml"
 
     cuda_in_buildspec = False

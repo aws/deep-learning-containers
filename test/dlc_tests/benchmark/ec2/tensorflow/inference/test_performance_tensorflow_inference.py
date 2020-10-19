@@ -8,7 +8,7 @@ from src.benchmark_metrics import (
     TENSORFLOW1_INFERENCE_GPU_THRESHOLD,
     TENSORFLOW1_INFERENCE_CPU_THRESHOLD,
 )
-from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, is_tf1
+from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, is_tf_version
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
     post_process_inference,
@@ -19,7 +19,9 @@ from test.test_utils.ec2 import (
 @pytest.mark.parametrize("ec2_instance_type", ["p3.16xlarge"], indirect=True)
 def test_performance_ec2_tensorflow_inference_gpu(tensorflow_inference, ec2_connection, region, gpu_only):
     threshold = (
-        TENSORFLOW1_INFERENCE_GPU_THRESHOLD if is_tf1(tensorflow_inference) else TENSORFLOW2_INFERENCE_GPU_THRESHOLD
+        TENSORFLOW1_INFERENCE_GPU_THRESHOLD
+        if is_tf_version("1", tensorflow_inference)
+        else TENSORFLOW2_INFERENCE_GPU_THRESHOLD
     )
     ec2_performance_tensorflow_inference(tensorflow_inference, "gpu", ec2_connection, region, threshold)
 
@@ -28,7 +30,9 @@ def test_performance_ec2_tensorflow_inference_gpu(tensorflow_inference, ec2_conn
 @pytest.mark.parametrize("ec2_instance_type", ["c5.18xlarge"], indirect=True)
 def test_performance_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, region, cpu_only):
     threshold = (
-        TENSORFLOW1_INFERENCE_CPU_THRESHOLD if is_tf1(tensorflow_inference) else TENSORFLOW2_INFERENCE_CPU_THRESHOLD
+        TENSORFLOW1_INFERENCE_CPU_THRESHOLD
+        if is_tf_version("1", tensorflow_inference)
+        else TENSORFLOW2_INFERENCE_CPU_THRESHOLD
     )
     ec2_performance_tensorflow_inference(tensorflow_inference, "cpu", ec2_connection, region, threshold)
 
@@ -36,7 +40,7 @@ def test_performance_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_conn
 def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, region, threshold):
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    tf_version = "1" if is_tf1(image_uri) else "2"
+    tf_version = "1" if is_tf_version("1", image_uri) else "2"
     tf_api_version = "1.15" if tf_version == "1" else "2.3.0"
 
     # Make sure we are logged into ECR so we can pull the image

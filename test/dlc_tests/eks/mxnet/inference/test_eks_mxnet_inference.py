@@ -54,6 +54,7 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
         run(f"kubectl delete service {selector_name}")
 
 
+@pytest.mark.skip("Flaky test. Same test passes on EC2. Fails for gpu-inference for mx1.7. Refer: https://github.com/aws/deep-learning-containers/issues/587")
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("bert_sst")
 def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):

@@ -150,7 +150,8 @@ RUN pip install --no-cache-dir --upgrade \
     requests==2.22.0 \
     scikit-learn==0.20.4 \
     scipy==1.2.2 \
-    urllib3==1.25.8 \
+    # Putting a cap in versions number to avoid potential issues with a new major version
+    "urllib3>=1.25.10,<1.26.0" \
     python-dateutil==2.8.0 \
     mpi4py==3.0.2 \
     ${MX_URL} \
@@ -193,7 +194,7 @@ RUN ln -s /dev/null /dev/raw1394
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/aws-mxnet-1.6.0/license.txt
 
-ADD https://raw.githubusercontent.com/aws/aws-deep-learning-containers-utils/master/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
