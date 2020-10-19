@@ -5,7 +5,7 @@ import re
 
 from invoke.context import Context
 
-from test.test_utils import LOGGER
+from test.test_utils import LOGGER, get_repository_local_path
 from test.test_utils.ec2 import get_instance_num_gpus
 
 
@@ -14,11 +14,11 @@ def get_test_coverage_file_path():
 
     dlc_dir = cwd.split('/test/')[0]
 
-    return os.path.join(
-        dlc_dir,
-        "test",
-        f"test_coverage_report-{datetime.datetime.now().strftime('%Y-%m-%d')}.csv",
-    )
+    repo_url = os.getenv("CODEBUILD_SOURCE_REPO_URL", "https://github.com/aws/deep-learning-containers.git")
+    _, user, repo_name = repo_url.rstrip(".git").rsplit("/", 2)
+    coverage_filename = f"test_coverage_report-{user}-{repo_name}-{datetime.datetime.now().strftime('%Y-%m-%d')}.csv"
+
+    return os.path.join(dlc_dir, "test", coverage_filename)
 
 
 def _infer_field_value(default, options, *comparison_str):
@@ -43,7 +43,14 @@ class TestReportGenerator:
     Class to generate test report files
     """
 
-    ALLOWED_SINGLE_GPU_TESTS = ("telemetry", "test_framework_and_cuda_version_gpu", "test_curand_gpu")
+    ALLOWED_SINGLE_GPU_TESTS = (
+        "telemetry",
+        "test_framework_and_cuda_version_gpu",
+        "test_curand_gpu",
+        "test_dependency_check_gpu",
+        "test_tensorflow_addons_gpu",
+        "test_tensorflow_standalone_gpu",
+    )
     SM_REPOS = (
         os.path.join("pytorch", "training"),
         os.path.join("pytorch", "inference"),
@@ -197,7 +204,7 @@ class TestReportGenerator:
         Append SageMaker data to the report
         """
         ctx = Context()
-        git_repo_path = os.getcwd().split('/test/')[0]
+        git_repo_path = get_repository_local_path()
 
         for repo in self.SM_REPOS:
             framework, job_type = repo.split(os.sep)
@@ -254,10 +261,10 @@ class TestReportGenerator:
             category = str_fspath.split("/dlc_tests/")[-1].split("/")[0]
             if self.is_sagemaker:
                 category = "sagemaker_local" if "local" in str_fspath else "sagemaker"
-            github_link = (
-                f"https://github.com/aws/deep-learning-containers/blob/master/test/"
-                f"{str_fspath.split('/test/')[-1]}"
-            )
+            repo_url = os.getenv(
+                "CODEBUILD_SOURCE_REPO_URL", "https://github.com/aws/deep-learning-containers.git"
+            ).rstrip(".git")
+            github_link = f"{repo_url}/blob/master/test/{str_fspath.split('/test/')[-1]}"
 
             # Only create a new test coverage item if we have not seen the function before. This is a necessary step,
             # as parametrization can make it appear as if the same test function is a unique test function
@@ -280,11 +287,6 @@ class TestReportGenerator:
                 ("_dgl_", "smdebug", "gluonnlp", "smexperiments", "_mme_", "pipemode", "tensorboard", "_s3_", "nccl"),
                 str_keywords,
             )
-            num_instances = _infer_field_value(
-                1, ("_multinode_", "_multi-node_", "_multi_node_", "_dist_"), str_fspath, str_keywords
-            )
-            if num_instances != 1:
-                num_instances = "multinode"
             processor_scope = _infer_field_value("all", ("cpu", "gpu", "eia"), str_keywords)
             if processor_scope == "gpu":
                 processor_scope = self.handle_single_gpu_instances_test_report(function_key, str_keywords)
@@ -296,7 +298,7 @@ class TestReportGenerator:
                 "Name": function_name,
                 "Scope": framework_scope,
                 "Job_Type": job_type_scope,
-                "Num_Instances": self.get_marker_arg_value(item, function_key, "multinode", num_instances),
+                "Num_Instances": self.get_marker_arg_value(item, function_key, "multinode", 1),
                 "Processor": self.get_marker_arg_value(item, function_key, "processor", processor_scope),
                 "Integration": self.get_marker_arg_value(item, function_key, "integration", integration_scope),
                 "Model": self.get_marker_arg_value(item, function_key, "model"),

@@ -5,7 +5,6 @@ import random
 import sys
 
 import boto3
-from botocore.config import Config
 from botocore.exceptions import ClientError
 import docker
 import pytest
@@ -17,8 +16,9 @@ import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
 from test.test_utils import (
+    is_benchmark_dev_context, get_framework_and_version_from_tag, get_job_type_from_image, is_tf_version, is_below_tf_version,
     DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2,
-    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2, KEYS_TO_DESTROY_FILE
+    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, KEYS_TO_DESTROY_FILE
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -159,7 +159,7 @@ def ec2_instance(
     }
     extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300,}}]
     if (
-        "benchmark" in os.getenv("TEST_TYPE")
+        ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
         and (
             ("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames)
             or "mxnet_inference" in request.fixturenames
@@ -284,6 +284,7 @@ def gpu_only():
 def eia_only():
     pass
 
+
 @pytest.fixture(scope="session")
 def py3_only():
     pass
@@ -292,6 +293,37 @@ def py3_only():
 @pytest.fixture(scope="session")
 def example_only():
     pass
+
+
+@pytest.fixture(scope="session")
+def tf2_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def tf23_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def tf21_and_above_only():
+    pass
+
+
+def tf_version_within_limit(metafunc_obj, image):
+    """
+    Test all pytest fixtures for TensorFlow version limits, and return True if all requirements are satisfied
+
+    :param metafunc_obj: pytest metafunc object from which fixture names used by test function will be obtained
+    :param image: Image URI for which the validation must be performed
+    :return: True if all validation succeeds, else False
+    """
+    tf2_requirement_failed = "tf2_only" in metafunc_obj.fixturenames and not is_tf_version("2", image)
+    tf23_requirement_failed = "tf23_and_above_only" in metafunc_obj.fixturenames and is_below_tf_version("2.3", image)
+    tf21_requirement_failed = "tf21_and_above_only" in metafunc_obj.fixturenames and is_below_tf_version("2.1", image)
+    if tf2_requirement_failed or tf21_requirement_failed or tf23_requirement_failed:
+        return False
+    return True
 
 
 def pytest_configure(config):
@@ -332,7 +364,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
     :return: <dict> Mapping of "Fixture to be parametrized" -> "Unique values for fixture to be parametrized"
     """
     job_type_map = {"training": "tr", "inference": "inf"}
-    framework_name_maps = {"tensorflow": "tf", "mxnet": "mx", "pytorch": "pt"}
+    framework_name_map = {"tensorflow": "tf", "mxnet": "mx", "pytorch": "pt"}
     fixtures_parametrized = {}
 
     if images_to_parametrize:
@@ -353,14 +385,15 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
 
                     image_tag = image.split(":")[-1].replace(".", "-")
 
-                    framework = image.split(":")[0].split("/")[1].split("-")[0]
-                    job_type = image.split(":")[0].split("/")[1].split("-")[1]
+                    framework, _ = get_framework_and_version_from_tag(image)
+
+                    job_type = get_job_type_from_image(image)
 
                     fixtures_parametrized[new_fixture_name].append(
                         (
                             image,
-                            f"{metafunc_obj.function.__name__}-{framework_name_maps.get(framework, '')}-"
-                            f"{job_type_map.get(job_type, '')}{image_tag}-"
+                            f"{metafunc_obj.function.__name__}-{framework_name_map.get(framework)}-"
+                            f"{job_type_map.get(job_type)}-{image_tag}-"
                             f"{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}-{index}{instance_tag}",
                         )
                     )
@@ -379,6 +412,8 @@ def pytest_generate_tests(metafunc):
                 if lookup in image:
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
+                    if not tf_version_within_limit(metafunc, image):
+                        continue
                     if is_example_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
@@ -386,7 +421,8 @@ def pytest_generate_tests(metafunc):
                             images_to_parametrize.append(image)
                         elif "eia_only" in metafunc.fixturenames and "eia" in image:
                             images_to_parametrize.append(image)
-                        elif "cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames and "eia_only" not in metafunc.fixturenames:
+                        elif ("cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames
+                              and "eia_only" not in metafunc.fixturenames):
                             images_to_parametrize.append(image)
             # Remove all images tagged as "py2" if py3_only is a fixture
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:

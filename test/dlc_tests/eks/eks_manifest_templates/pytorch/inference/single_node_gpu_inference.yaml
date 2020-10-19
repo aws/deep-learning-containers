@@ -8,7 +8,7 @@ metadata:
 spec:
   ports:
   - port: 8080
-    targetPort: mms
+    targetPort: <SERVER_TYPE>
   selector:
     app: <INFERENCE_SERVICE_NAME>
 ---
@@ -29,17 +29,17 @@ spec:
         app: <SELECTOR_NAME>
     spec:
       containers:
-      - name: mms-container
+      - name: <SERVER_TYPE>-container
         image: <DOCKER_IMAGE_BUILD_ID>
         args:
-        - multi-model-server
+        - <SERVER_CMD>
         - --start
-        - --mms-config /home/model-server/config.properties
+        - --<SERVER_TYPE>-config /home/model-server/config.properties
         - --models <MODELS>
         ports:
-        - name: mms
+        - name: <SERVER_TYPE>
           containerPort: 8080
-        - name: mms-management
+        - name: <SERVER_TYPE>-management
           containerPort: 8081
         imagePullPolicy: IfNotPresent
         resources:
