@@ -20,8 +20,8 @@ import torch
 import torch.utils.data
 import torch.utils.data.distributed
 from sagemaker.pytorch import PyTorchModel
-from sagemaker.predictor import BytesDeserializer, csv_deserializer, csv_serializer, \
-    json_deserializer, json_serializer, npy_serializer, numpy_deserializer
+from sagemaker import deserializers
+from sagemaker import serializers
 from sagemaker_inference import content_types
 from torchvision import datasets, transforms
 
@@ -30,15 +30,15 @@ from ...integration import training_dir, mnist_script, mnist_1d_script, model_cp
 from ...utils import local_mode_utils
 
 CONTENT_TYPE_TO_SERIALIZER_MAP = {
-    content_types.CSV: csv_serializer,
-    content_types.JSON: json_serializer,
-    content_types.NPY: npy_serializer,
+    content_types.CSV: serializers.CSVSerializer(),
+    content_types.JSON: serializers.JSONSerializer(),
+    content_types.NPY: serializers.NumpySerializer(),
 }
 
 ACCEPT_TYPE_TO_DESERIALIZER_MAP = {
-    content_types.CSV: csv_deserializer,
-    content_types.JSON: json_deserializer,
-    content_types.NPY: numpy_deserializer,
+    content_types.CSV: deserializers.CSVDeserializer(),
+    content_types.JSON: deserializers.JSONDeserializer(),
+    content_types.NPY: deserializers.NumpyDeserializer(),
 }
 
 
@@ -82,7 +82,7 @@ def test_serving_calls_model_fn_once(docker_image, sagemaker_local_session, inst
     with _predictor(model_cpu_dir, call_model_fn_once_script, docker_image, sagemaker_local_session,
                     instance_type, model_server_workers=2) as predictor:
         predictor.accept = None
-        predictor.deserializer = BytesDeserializer()
+        predictor.deserializer = deserializers.BytesDeserializer()
 
         # call enough times to ensure multiple requests to a worker
         for i in range(3):
@@ -92,14 +92,15 @@ def test_serving_calls_model_fn_once(docker_image, sagemaker_local_session, inst
 
 
 @contextmanager
-def _predictor(model_dir, script, image, sagemaker_local_session, instance_type,
-               model_server_workers=None):
-    model = PyTorchModel('file://{}'.format(model_dir),
-                         ROLE,
-                         script,
-                         image=image,
-                         sagemaker_session=sagemaker_local_session,
-                         model_server_workers=model_server_workers)
+def _predictor(model_dir, script, image, sagemaker_local_session, instance_type, model_server_workers=None):
+    model = PyTorchModel(
+        'file://{}'.format(model_dir),
+        ROLE,
+        script,
+        image_uri=image,
+        sagemaker_session=sagemaker_local_session,
+        model_server_workers=model_server_workers
+    )
 
     with local_mode_utils.lock():
         try:
@@ -132,10 +133,11 @@ def _assert_prediction_csv(predictor, test_loader, accept):
 
 def _get_test_data_loader(batch_size):
     return torch.utils.data.DataLoader(
-        datasets.MNIST(training_dir, train=False, transform=transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))
-        ])),
+        datasets.MNIST(
+            training_dir,
+            train=False,
+            transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]),
+        ),
         batch_size=batch_size, shuffle=True)
 
 

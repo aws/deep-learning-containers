@@ -50,8 +50,9 @@ def test_mnist_eia(sagemaker_session, ecr_image, instance_type, accelerator_type
     # Scripted model is serialized with torch.jit.save().
     # Inference test for EIA doesn't need to instantiate model definition then load state_dict
     model_dir = os.path.join(model_eia_dir, 'model_mnist.tar.gz')
-    _test_mnist_distributed(sagemaker_session, ecr_image, instance_type, model_dir, mnist_eia_script,
-                            accelerator_type=accelerator_type)
+    _test_mnist_distributed(
+        sagemaker_session, ecr_image, instance_type, model_dir, mnist_eia_script, accelerator_type=accelerator_type
+    )
 
 
 def _test_mnist_distributed(sagemaker_session, ecr_image, instance_type, model_dir, mnist_script,
@@ -63,17 +64,29 @@ def _test_mnist_distributed(sagemaker_session, ecr_image, instance_type, model_d
         key_prefix="sagemaker-pytorch-serving/models",
     )
 
-    pytorch = PyTorchModel(model_data=model_data, role='SageMakerRole', entry_point=mnist_script,
-                           image=ecr_image, sagemaker_session=sagemaker_session)
+    pytorch = PyTorchModel(
+        model_data=model_data,
+        role='SageMakerRole',
+        entry_point=mnist_script,
+        image_uri=ecr_image,
+        sagemaker_session=sagemaker_session
+    )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
         # Use accelerator type to differentiate EI vs. CPU and GPU. Don't use processor value
         if accelerator_type is not None:
-            predictor = pytorch.deploy(initial_instance_count=1, instance_type=instance_type,
-                                       accelerator_type=accelerator_type, endpoint_name=endpoint_name)
+            predictor = pytorch.deploy(
+                initial_instance_count=1,
+                instance_type=instance_type,
+                accelerator_type=accelerator_type,
+                endpoint_name=endpoint_name
+            )
         else:
-            predictor = pytorch.deploy(initial_instance_count=1, instance_type=instance_type,
-                                       endpoint_name=endpoint_name)
+            predictor = pytorch.deploy(
+                initial_instance_count=1,
+                instance_type=instance_type,
+                endpoint_name=endpoint_name
+            )
 
         batch_size = 100
         data = np.random.rand(batch_size, 1, 28, 28).astype(np.float32)
