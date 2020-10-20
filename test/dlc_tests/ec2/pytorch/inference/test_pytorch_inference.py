@@ -45,6 +45,8 @@ def test_ec2_pytorch_inference_eia_gpu(pytorch_inference_eia, ec2_connection, re
 
 
 def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
+    if not ec2_connection:
+        pytest.skip("Skipping test because instance could not be started.")
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
     model_name = "pytorch-densenet"

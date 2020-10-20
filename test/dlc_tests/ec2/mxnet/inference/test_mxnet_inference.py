@@ -63,6 +63,8 @@ def test_ec2_mxnet_gluonnlp_inference_cpu(mxnet_inference, ec2_connection, regio
 
 
 def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection, processor, region, target_port, target_management_port):
+    if not ec2_connection:
+        pytest.skip("Skipping test because instance could not be started.")
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2-{container_tag}"
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
