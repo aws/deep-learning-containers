@@ -23,17 +23,23 @@ from ...integration.sagemaker.timeout import timeout
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
 def test_training_smdebug(sagemaker_session, ecr_image, instance_type):
-    hyperparameters = {'random_seed': True, 'num_steps': 50, 'smdebug_path': '/tmp/ml/output/tensors', 'epochs': 1,
-                       'data_dir': training_dir}
+    hyperparameters = {
+        'random_seed': True,
+        'num_steps': 50,
+        'smdebug_path': '/tmp/ml/output/tensors',
+        'epochs': 1,
+        'data_dir': training_dir,
+    }
 
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(entry_point=smdebug_mnist_script,
-                          role='SageMakerRole',
-                          train_instance_count=1,
-                          train_instance_type=instance_type,
-                          sagemaker_session=sagemaker_session,
-                          image_name=ecr_image,
-                          hyperparameters=hyperparameters)
-        training_input = pytorch.sagemaker_session.upload_data(path=training_dir,
-                                                               key_prefix='pytorch/mnist')
+        pytorch = PyTorch(
+            entry_point=smdebug_mnist_script,
+            role='SageMakerRole',
+            instance_count=1,
+            instance_type=instance_type,
+            sagemaker_session=sagemaker_session,
+            image_uri=ecr_image,
+            hyperparameters=hyperparameters,
+        )
+        training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
         pytorch.fit({'training': training_input})

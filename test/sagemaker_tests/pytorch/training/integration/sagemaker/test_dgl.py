@@ -46,12 +46,14 @@ def test_dgl_gcn_training_gpu(sagemaker_session, ecr_image, instance_type):
 
 
 def _test_dgl_training(sagemaker_session, ecr_image, instance_type):
-    dgl = PyTorch(entry_point=DGL_SCRIPT_PATH,
-                  role='SageMakerRole',
-                  train_instance_count=1,
-                  train_instance_type=instance_type,
-                  sagemaker_session=sagemaker_session,
-                  image_name=ecr_image)
+    dgl = PyTorch(
+        entry_point=DGL_SCRIPT_PATH,
+        role='SageMakerRole',
+        instance_count=1,
+        instance_type=instance_type,
+        sagemaker_session=sagemaker_session,
+        image_uri=ecr_image,
+    )
     with timeout(minutes=DEFAULT_TIMEOUT):
         job_name = utils.unique_name_from_base('test-pytorch-dgl-image')
         dgl.fit(job_name=job_name)

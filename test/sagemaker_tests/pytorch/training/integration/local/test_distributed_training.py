@@ -35,14 +35,16 @@ def fixture_dist_gpu_backend(request):
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_gpu
 def test_dist_operations_path_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpdir):
-    estimator = PyTorch(entry_point=dist_operations_path,
-                        role=ROLE,
-                        image_name=docker_image,
-                        train_instance_count=2,
-                        train_instance_type='local',
-                        sagemaker_session=sagemaker_local_session,
-                        hyperparameters={'backend': dist_cpu_backend},
-                        output_path='file://{}'.format(tmpdir))
+    estimator = PyTorch(
+        entry_point=dist_operations_path,
+        role=ROLE,
+        image_uri=docker_image,
+        instance_count=2,
+        instance_type='local',
+        sagemaker_session=sagemaker_local_session,
+        hyperparameters={'backend': dist_cpu_backend},
+        output_path='file://{}'.format(tmpdir)
+    )
 
     _train_and_assert_success(estimator, str(tmpdir))
 
@@ -52,14 +54,16 @@ def test_dist_operations_path_cpu(docker_image, dist_cpu_backend, sagemaker_loca
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
 def test_dist_operations_path_gpu_nccl(docker_image, sagemaker_local_session, tmpdir):
-    estimator = PyTorch(entry_point=dist_operations_path,
-                        role=ROLE,
-                        image_name=docker_image,
-                        train_instance_count=1,
-                        train_instance_type='local_gpu',
-                        sagemaker_session=sagemaker_local_session,
-                        hyperparameters={'backend': 'nccl'},
-                        output_path='file://{}'.format(tmpdir))
+    estimator = PyTorch(
+        entry_point=dist_operations_path,
+        role=ROLE,
+        image_uri=docker_image,
+        instance_count=1,
+        instance_type='local_gpu',
+        sagemaker_session=sagemaker_local_session,
+        hyperparameters={'backend': 'nccl'},
+        output_path='file://{}'.format(tmpdir)
+    )
 
     _train_and_assert_success(estimator, str(tmpdir))
 
@@ -69,14 +73,16 @@ def test_dist_operations_path_gpu_nccl(docker_image, sagemaker_local_session, tm
 @pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
 def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
-    estimator = PyTorch(entry_point=mnist_script,
-                        role=ROLE,
-                        image_name=docker_image,
-                        train_instance_count=2,
-                        train_instance_type='local',
-                        sagemaker_session=sagemaker_local_session,
-                        hyperparameters={'backend': 'nccl'},
-                        output_path='file://{}'.format(tmpdir))
+    estimator = PyTorch(
+        entry_point=mnist_script,
+        role=ROLE,
+        image_uri=docker_image,
+        instance_count=2,
+        instance_type='local',
+        sagemaker_session=sagemaker_local_session,
+        hyperparameters={'backend': 'nccl'},
+        output_path='file://{}'.format(tmpdir)
+    )
 
     with pytest.raises(RuntimeError):
         estimator.fit({'training': 'file://{}'.format(os.path.join(data_dir, 'training'))})
@@ -89,14 +95,16 @@ def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
 @pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
 def test_mnist_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpdir):
-    estimator = PyTorch(entry_point=mnist_script,
-                        role=ROLE,
-                        image_name=docker_image,
-                        train_instance_count=2,
-                        train_instance_type='local',
-                        sagemaker_session=sagemaker_local_session,
-                        hyperparameters={'backend': dist_cpu_backend},
-                        output_path='file://{}'.format(tmpdir))
+    estimator = PyTorch(
+        entry_point=mnist_script,
+        role=ROLE,
+        image_uri=docker_image,
+        instance_count=2,
+        instance_type='local',
+        sagemaker_session=sagemaker_local_session,
+        hyperparameters={'backend': dist_cpu_backend},
+        output_path='file://{}'.format(tmpdir)
+    )
 
     success_files = {
         'model': ['model.pth'],

@@ -41,13 +41,14 @@ def test_mnist_distributed_gpu(sagemaker_session, ecr_image, instance_type, dist
 
 def _test_mnist_distributed(sagemaker_session, ecr_image, instance_type, dist_backend):
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(entry_point=mnist_script,
-                          role='SageMakerRole',
-                          train_instance_count=2,
-                          train_instance_type=instance_type,
-                          sagemaker_session=sagemaker_session,
-                          image_name=ecr_image,
-                          hyperparameters={'backend': dist_backend, 'epochs': 1})
-        training_input = pytorch.sagemaker_session.upload_data(path=training_dir,
-                                                               key_prefix='pytorch/mnist')
+        pytorch = PyTorch(
+            entry_point=mnist_script,
+            role='SageMakerRole',
+            instance_count=2,
+            instance_type=instance_type,
+            sagemaker_session=sagemaker_session,
+            image_uri=ecr_image,
+            hyperparameters={'backend': dist_backend, 'epochs': 1},
+        )
+        training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
         pytorch.fit({'training': training_input})
