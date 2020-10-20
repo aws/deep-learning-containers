@@ -12,7 +12,6 @@ ARG TS_VERSION="0.2.1=py36_0"
 ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.0_inference/20201017-204603/d97d467ddb9bee56bb3a6248f18f7d97618b03b2/gpu/torch-1.7.0-cp36-cp36m-manylinux1_x86_64.whl
 ARG PT_VISION_URL=https://torchvision-build.s3.amazonaws.com/1.6.0/gpu/torchvision-0.7.0-cp36-cp36m-linux_x86_64.whl
 
-
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
@@ -46,12 +45,10 @@ RUN apt-get update \
     wget \
     zlib1g-dev
 
-
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
-
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
@@ -115,7 +112,6 @@ RUN pip uninstall -y torch \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U $PT_VISION_URL
 
-
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
@@ -131,7 +127,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.6.0/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.7/license.txt -o /license.txt
 
 RUN conda install -y -c conda-forge pyyaml==5.3.1
 RUN pip install pillow==7.2.0 "awscli<2"
