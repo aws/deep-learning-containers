@@ -36,8 +36,8 @@ def test_keras_training(sagemaker_local_session, docker_image, tmpdir, framework
     estimator = TensorFlow(
         entry_point=entry_point,
         role='SageMakerRole',
-        train_instance_count=1,
-        train_instance_type='local',
+        instance_count=1,
+        instance_type='local',
         image_name=docker_image,
         sagemaker_session=sagemaker_local_session,
         model_dir='/opt/ml/model',
