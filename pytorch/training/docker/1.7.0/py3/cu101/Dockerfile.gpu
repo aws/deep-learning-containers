@@ -150,7 +150,7 @@ RUN pip uninstall -y horovod \
 RUN git clone https://github.com/NVIDIA/apex.git \
  && cd apex \
  && git checkout f3a960f \
- && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+ && python3 setup.py install
 
 # Configure Open MPI and configure NCCL parameters
 RUN mv /home/.openmpi/bin/mpirun /home/.openmpi/bin/mpirun.real \
