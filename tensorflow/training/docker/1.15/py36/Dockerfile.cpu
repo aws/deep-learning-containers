@@ -23,7 +23,13 @@ ENV LC_ALL=C.UTF-8
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
 # Define framework-related package sources
-ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.2/AmazonLinux/cpu/final/tensorflow-1.15.2-cp27-cp27mu-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws/20201014-122550/cpu/tensorflow_cpu-1.15.4-cp36-cp36m-manylinux2010_x86_64.whl
+
+# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
+# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
+ARG SMDEBUG_VERSION=0.9.4
+
+ARG OPENSSL_VERSION=1.1.1g
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -38,6 +44,30 @@ RUN apt-get update \
     wget \
     vim \
     zlib1g-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt-get update \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get install -y \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-*
+
+ # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    python3-dev \
+    python3-pip \
+    python3-setuptools \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Open MPI
@@ -76,40 +106,40 @@ RUN mkdir -p /root/.ssh/ \
 
 WORKDIR /
 
-RUN apt-get update \
- && apt-get install -y \
-    python \
-    python-pip
-
-RUN pip --no-cache-dir install --upgrade \
+RUN pip3 --no-cache-dir install --upgrade \
     pip \
     setuptools
 
 # Some TF tools expect a "python" binary
-RUN ln -s $(which python) /usr/local/bin/python
+RUN ln -s $(which python3) /usr/local/bin/python \
+ && ln -s $(which pip3) /usr/bin/pip
 
 RUN pip install --no-cache-dir -U \
-    numpy==1.16.5 \
+    numpy==1.18.5 \
     scipy==1.2.2 \
     scikit-learn==0.20.3 \
     pandas==0.24.2 \
-    Pillow==6.2.2 \
+    Pillow \
     h5py==2.9.0 \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
-    requests==2.22.0 \
     keras==2.3.1 \
+    requests==2.22.0 \
+    "sagemaker<2" \
+    sagemaker-experiments==0.* \
     mpi4py==3.0.2 \
     "cryptography>=2.3" \
     "sagemaker-tensorflow>=1.15,<1.16" \
     "sagemaker-tensorflow-training>=10,<20" \
-    # Let's install TensorFlow separately in the end to avoid the library version to be overwritten
+    # Let's install TensorFlow separately in the end to avoid
+    # the library version to be overwritten
  && pip install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
+ && pip install --force-reinstall --no-cache-dir -U \
+    horovod==0.19.5 \
  && pip install --no-cache-dir -U \
     "awscli<2" \
- && pip install --no-cache-dir -U \
-    horovod==0.18.2
+    smdebug==${SMDEBUG_VERSION}
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
