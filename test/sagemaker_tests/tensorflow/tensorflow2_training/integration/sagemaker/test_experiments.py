@@ -62,13 +62,13 @@ def test_training(sagemaker_session, ecr_image, instance_type, framework_version
         resource_path = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
         script = os.path.join(resource_path, "mnist", "mnist.py")
         estimator = TensorFlow(
+            model_dir=False,
             entry_point=script,
             role="SageMakerRole",
             instance_type=instance_type,
             instance_count=1,
             sagemaker_session=sagemaker_session,
-            image_uri=ecr_image,
-            framework_version=framework_version,
+            image_uri=ecr_image, framework_version=framework_version,
         )
         inputs = estimator.sagemaker_session.upload_data(
             path=os.path.join(resource_path, "mnist", "data"), key_prefix="scriptmode/mnist"
