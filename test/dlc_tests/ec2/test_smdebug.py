@@ -49,6 +49,8 @@ def run_smdebug_test(
     container_name="smdebug",
     test_script=SMDEBUG_SCRIPT,
 ):
+    if not ec2_connection:
+        pytest.skip("Skipping test because instance could not be started.")
     large_shm_instance_types = ("p2.8xlarge", "m4.16xlarge")
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
