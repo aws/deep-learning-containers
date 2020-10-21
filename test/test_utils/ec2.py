@@ -2,9 +2,8 @@ import os
 import time
 import re
 from inspect import signature
-
 import boto3
-import pytest
+
 from retrying import retry
 from fabric import Connection
 from botocore.config import Config
@@ -406,8 +405,6 @@ def execute_ec2_training_test(
     host_network=False,
     container_name="ec2_training_container",
 ):
-    if not connection:
-        pytest.skip("Skipping test because instance could not be started.")
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
     if executable == "bash":
@@ -432,8 +429,6 @@ def execute_ec2_training_test(
 
 
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
-    if not connection:
-        pytest.skip("Skipping test because instance could not be started.")
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 

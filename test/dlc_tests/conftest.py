@@ -188,10 +188,10 @@ def ec2_instance(
         try:
             instances = ec2_resource.create_instances(**params)
         except ClientError as e:
-            if "InsufficientInstanceCapacity" in str(e):
+            if e.response['Error']['Code'] == "InsufficientInstanceCapacity":
                 LOGGER.warning(f"Failed to launch {ec2_instance_type} in {region} because of insufficient capacity")
                 if ec2_instance_type in ec2_utils.ICE_SKIP_INSTANCE_LIST:
-                    return None
+                    pytest.skip(f"Skipping test because {ec2_instance_type} instance could not be launched.")
             raise
     instance_id = instances[0].id
 
@@ -217,8 +217,6 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     :param region: Region where ec2 instance is launched
     :return: Fabric connection object
     """
-    if not ec2_instance:
-        return None
     instance_id, instance_pem_file = ec2_instance
     region = P3DN_REGION if ec2_instance_type == "p3dn.24xlarge" else region
     ip_address = ec2_utils.get_public_ip(instance_id, region=region)
