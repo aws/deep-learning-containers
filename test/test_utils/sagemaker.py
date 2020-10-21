@@ -131,8 +131,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     is_py3 = " python3 -m "
 
     remote_pytest_cmd = (
-        f"pytest {integration_path} --region {region} {docker_base_arg} "
-        f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
+        f"pytest {integration_path} --region {region} {docker_base_arg} {sm_remote_docker_base_name} "
+        f"--tag {tag} {aws_id_arg} {account_id} --framework-version {framework_version} "
         f"{instance_type_arg} {instance_type} --junitxml {test_report}"
     )
 
