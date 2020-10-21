@@ -31,9 +31,9 @@ MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
 @pytest.mark.skip_gpu
 @pytest.mark.deploy_test
 @pytest.mark.skip_test_in_region
-def test_dist_operations_cpu(sagemaker_session, ecr_image, instance_type, dist_cpu_backend):
+def test_dist_operations_cpu(sagemaker_session, framework_version, ecr_image, instance_type, dist_cpu_backend):
     instance_type = instance_type or 'ml.c4.xlarge'
-    _test_dist_operations(sagemaker_session, ecr_image, instance_type, dist_cpu_backend)
+    _test_dist_operations(sagemaker_session, framework_version, ecr_image, instance_type, dist_cpu_backend)
 
 
 @pytest.mark.processor("gpu")
@@ -41,22 +41,22 @@ def test_dist_operations_cpu(sagemaker_session, ecr_image, instance_type, dist_c
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
 @pytest.mark.deploy_test
-def test_dist_operations_gpu(sagemaker_session, instance_type, ecr_image, dist_gpu_backend):
+def test_dist_operations_gpu(sagemaker_session, framework_version, instance_type, ecr_image, dist_gpu_backend):
     """
     Test is run as multinode
     """
     instance_type = instance_type or 'ml.p2.xlarge'
-    _test_dist_operations(sagemaker_session, ecr_image, instance_type, dist_gpu_backend)
+    _test_dist_operations(sagemaker_session, framework_version, ecr_image, instance_type, dist_gpu_backend)
 
 
 @pytest.mark.processor("gpu")
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
-def test_dist_operations_multi_gpu(sagemaker_session, ecr_image, dist_gpu_backend):
+def test_dist_operations_multi_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_backend):
     """
     Test is run as single node, but multi-gpu
     """
-    _test_dist_operations(sagemaker_session, ecr_image, MULTI_GPU_INSTANCE, dist_gpu_backend, 1)
+    _test_dist_operations(sagemaker_session, framework_version, ecr_image, MULTI_GPU_INSTANCE, dist_gpu_backend, 1)
 
 
 @pytest.mark.processor("gpu")
@@ -64,7 +64,7 @@ def test_dist_operations_multi_gpu(sagemaker_session, ecr_image, dist_gpu_backen
 @pytest.mark.model("cifar")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_dist_operations_fastai_gpu(sagemaker_session, ecr_image):
+def test_dist_operations_fastai_gpu(sagemaker_session, framework_version, ecr_image):
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(
             entry_point='train_cifar.py',
@@ -74,6 +74,7 @@ def test_dist_operations_fastai_gpu(sagemaker_session, ecr_image):
             instance_type=MULTI_GPU_INSTANCE,
             sagemaker_session=sagemaker_session,
             image_uri=ecr_image,
+            framework_version=framework_version,
         )
         pytorch.sagemaker_session.default_bucket()
         training_input = pytorch.sagemaker_session.upload_data(
@@ -91,16 +92,17 @@ def test_dist_operations_fastai_gpu(sagemaker_session, ecr_image):
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_mnist_gpu(sagemaker_session, ecr_image, dist_gpu_backend):
+def test_mnist_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_backend):
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(
             entry_point=mnist_script,
             role='SageMakerRole',
             instance_count=2,
             image_uri=ecr_image,
+            framework_version=framework_version,
             instance_type=MULTI_GPU_INSTANCE,
             sagemaker_session=sagemaker_session,
-            hyperparameters={'backend': dist_gpu_backend}
+            hyperparameters={'backend': dist_gpu_backend},
         )
 
         training_input = sagemaker_session.upload_data(
@@ -109,7 +111,9 @@ def test_mnist_gpu(sagemaker_session, ecr_image, dist_gpu_backend):
         pytorch.fit({'training': training_input})
 
 
-def _test_dist_operations(sagemaker_session, ecr_image, instance_type, dist_backend, train_instance_count=3):
+def _test_dist_operations(
+        sagemaker_session, framework_version, ecr_image, instance_type, dist_backend, train_instance_count=3
+):
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(
             entry_point=dist_operations_path,
@@ -118,7 +122,8 @@ def _test_dist_operations(sagemaker_session, ecr_image, instance_type, dist_back
             instance_type=instance_type,
             sagemaker_session=sagemaker_session,
             image_uri=ecr_image,
-            hyperparameters={'backend': dist_backend}
+            framework_version=framework_version,
+            hyperparameters={'backend': dist_backend},
         )
         pytorch.sagemaker_session.default_bucket()
         fake_input = pytorch.sagemaker_session.upload_data(

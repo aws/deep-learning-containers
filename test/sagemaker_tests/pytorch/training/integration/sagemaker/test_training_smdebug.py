@@ -22,7 +22,7 @@ from ...integration.sagemaker.timeout import timeout
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
-def test_training_smdebug(sagemaker_session, ecr_image, instance_type):
+def test_training_smdebug(sagemaker_session, framework_version, ecr_image, instance_type):
     hyperparameters = {
         'random_seed': True,
         'num_steps': 50,
@@ -39,6 +39,7 @@ def test_training_smdebug(sagemaker_session, ecr_image, instance_type):
             instance_type=instance_type,
             sagemaker_session=sagemaker_session,
             image_uri=ecr_image,
+            framework_version=framework_version,
             hyperparameters=hyperparameters,
         )
         training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
