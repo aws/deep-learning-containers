@@ -429,6 +429,8 @@ def execute_ec2_training_test(
 
 
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
+    if not connection:
+        pytest.skip("Skipping test because instance could not be started.")
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
