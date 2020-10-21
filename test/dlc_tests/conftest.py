@@ -188,8 +188,10 @@ def ec2_instance(
         try:
             instances = ec2_resource.create_instances(**params)
         except ClientError as e:
-            if ec2_instance_type in ec2_utils.ICE_SKIP_INSTANCE_LIST and "InsufficientInstanceCapacity" in str(e):
-                return None
+            if "InsufficientInstanceCapacity" in str(e):
+                LOGGER.warning(f"Failed to launch {ec2_instance_type} in {region} because of insufficient capacity")
+                if ec2_instance_type in ec2_utils.ICE_SKIP_INSTANCE_LIST:
+                    return None
             raise
     instance_id = instances[0].id
 
