@@ -188,7 +188,7 @@ def ec2_instance(
         try:
             instances = ec2_resource.create_instances(**params)
         except ClientError as e:
-            if ec2_instance_type == "p3dn.24xlarge" and "InsufficientInstanceCapacity" in str(e):
+            if ec2_instance_type in ec2_utils.ICE_SKIP_INSTANCE_LIST and "InsufficientInstanceCapacity" in str(e):
                 return None
             raise
     instance_id = instances[0].id
