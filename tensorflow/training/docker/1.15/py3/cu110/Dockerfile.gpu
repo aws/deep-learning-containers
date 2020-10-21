@@ -1,94 +1,88 @@
-# Nvidia does not publish a TensorRT Runtime library for Ubuntu 18.04 with Cuda 10.1 support, so we stick with cuda 10.0.
-# https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64/
-FROM nvidia/cuda:10.0-base-ubuntu18.04
+FROM nvidia/cuda:11.0-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="7"
+LABEL dlc_major_version="3"
 
-# Prevent docker build get stopped by requesting user interaction
-ENV DEBIAN_FRONTEND=noninteractive
-ENV DEBCONF_NONINTERACTIVE_SEEN=true
-# Python won’t try to write .pyc or .pyo files on the import of source modules
+# prevent stopping by user interaction
+ENV DEBIAN_FRONTEND noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN true
+ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
+
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-# See http://bugs.python.org/issue19846
 ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
-# Specify the location of module that contains the training logic for SageMaker
-# https://docs.aws.amazon.com/sagemaker/latest/dg/docker-container-environmental-variables-entrypoint.html
-ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
-# Define framework-related package sources
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws/20201014-122550/gpu/py37/tensorflow_gpu-1.15.4-cp37-cp37m-manylinux2010_x86_64.whl
-ARG SMDEBUG_VERSION=0.9.4
-ARG PYTHON=python3
+# Set environment variables for MKL
+# For more about MKL with TensorFlow see:
+# https://www.tensorflow.org/performance/performance_guide#tensorflow_with_intel%C2%AE_mkl_dnn
+ENV KMP_AFFINITY=granularity=fine,compact,1,0
+ENV KMP_BLOCKTIME=1
+ENV KMP_SETTINGS=0
+
+ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.7
-
 ARG OPENSSL_VERSION=1.1.1g
 
-RUN apt-get update \
- && apt-get install -y --no-install-recommends --allow-unauthenticated \
-    build-essential \
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws_cuda11/20201016-202159/gpu/py37/tensorflow_gpu-1.15.4-cp37-cp37m-manylinux2010_x86_64.whl
+
+ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r1.15_aws/20201001-204030/tensorflow_estimator-1.15.2-py2.py3-none-any.whl
+
+# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
+# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
+ARG SMDEBUG_VERSION=0.9.4
+
+RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
-    cuda-command-line-tools-10-0 \
-    cuda-cublas-dev-10-0 \
-    cuda-cudart-dev-10-0 \
-    cuda-cufft-dev-10-0 \
-    cuda-curand-dev-10-0 \
-    cuda-cusolver-dev-10-0 \
-    cuda-cusparse-dev-10-0 \
+    cuda-command-line-tools-11-0 \
+    cuda-cudart-dev-11-0 \
+    libcufft-dev-11-0 \
+    libcurand-dev-11-0 \
+    libcusolver-dev-11-0 \
+    libcusparse-dev-11-0 \
     curl \
     emacs \
-    libcudnn7=7.5.1.10-1+cuda10.0 \
+    libcudnn8=8.0.4.30-1+cuda11.0 \
     # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
-    libnccl2=2.4.7-1+cuda10.0 \
+    libnccl2=2.7.8-1+cuda11.0 \
     libgomp1 \
-    libnccl-dev=2.4.7-1+cuda10.0 \
+    libnccl-dev=2.7.8-1+cuda11.0 \
     libfreetype6-dev \
     libhdf5-serial-dev \
+    liblzma-dev \
     libpng-dev \
+    libtemplate-perl \
     libzmq3-dev \
     git \
     wget \
     vim \
+    build-essential \
     openssh-client \
     openssh-server \
     zlib1g-dev \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends --allow-unauthenticated \
+    libcublas-11-0=11.2.0.252-1 \
+    libcublas-dev-11-0=11.2.0.252-1 \
     # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0
     # adds a new list which contains libnvinfer library, so it needs another
     # 'apt-get update' to retrieve that list before it can actually install the
     # library.
     # We don't install libnvinfer-dev since we don't need to build against TensorRT,
     # and libnvinfer4 doesn't contain libnvinfer.a static library.
+    # nvinfer-runtime-trt-repo doesn't have a 1804-cuda10.1 version yet. see:
+    # https://developer.download.nvidia.cn/compute/machine-learning/repos/ubuntu1804/x86_64/
  && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
     nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0 \
  && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
-    libnvinfer5=5.0.2-1+cuda10.0 \
- && rm /usr/lib/x86_64-linux-gnu/libnvinfer_plugin* \
- && rm /usr/lib/x86_64-linux-gnu/libnvcaffe_parser* \
- && rm /usr/lib/x86_64-linux-gnu/libnvparsers* \
+    libnvinfer7=7.1.3-1+cuda11.0 \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/run/sshd
-
- RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt-get update \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && apt-get install -y \
-    ca-certificates \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test \
- && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-*
-
- # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
-# causing sslcertverificationerror the below steps are to fix that
-RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
 ###########################################################################
 # Horovod & its dependencies
@@ -97,9 +91,9 @@ RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 # Install Open MPI
 RUN mkdir /tmp/openmpi \
  && cd /tmp/openmpi \
- && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.1.tar.gz \
- && tar zxf openmpi-4.0.1.tar.gz \
- && cd openmpi-4.0.1 \
+ && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz \
+ && tar zxf openmpi-4.0.4.tar.gz \
+ && cd openmpi-4.0.4 \
  && ./configure --enable-orterun-prefix-by-default \
  && make -j $(nproc) all \
  && make install \
@@ -121,13 +115,8 @@ RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params
 RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
 
 ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
-# Resolve missing libcuda.so issue
-RUN cp /usr/local/cuda-10.0/extras/CUPTI/lib64/libcupti* /usr/local/cuda/lib64/
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64/:$LD_LIBRARY_PATH
-
-ENV PATH=/usr/local/openmpi/bin/:$PATH
+ENV PATH /usr/local/openmpi/bin/:$PATH
 ENV PATH=/usr/local/nvidia/bin:$PATH
-
 
 # SSH login fix. Otherwise user is kicked off after login
 RUN mkdir -p /var/run/sshd \
@@ -152,8 +141,8 @@ RUN apt-get update \
     libsqlite3-dev \
     libssl-dev \
     tk-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
@@ -165,41 +154,66 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
-# Some TF tools expect a "python" binary
-RUN ln -s $(which python3) /usr/local/bin/python \
- && ln -s $(which pip3) /usr/bin/pip
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && apt-get update \
+ && apt remove -y --purge openssl \
+ && rm -rf /usr/include/openssl \
+ && apt-get install -y \
+    ca-certificates \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make && make test \
+ && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-*
 
+# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
+# causing sslcertverificationerror the below steps are to fix that
+RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
+
+# Some TF tools expect a "python" binary
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
+ && ln -s $(which ${PIP}) /usr/bin/pip
+
+# install PyYAML==5.1.2 to avoid conflict with latest awscli
+# # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
-    numpy==1.18.5 \
-    scipy==1.2.2 \
-    scikit-learn==0.20.3 \
-    pandas==0.24.2 \
-    Pillow \
+    numpy==1.19.1 \
+    scipy==1.5.2 \
+    scikit-learn==0.23 \
+    pandas==1.1 \
+    Pillow==7.2.0 \
     h5py==2.10.0 \
-    requests==2.22.0 \
-    smdebug==${SMDEBUG_VERSION} \
+    python-dateutil==2.8.1 \
+    pyYAML==5.3.1 \
+    requests==2.24.0 \
+    "awscli<2" \
+    mpi4py==3.0.3 \
+    opencv-python==4.3.0.36 \
+    "sagemaker<2" \
     sagemaker-experiments==0.* \
-    mpi4py==3.0.2 \
-    "cryptography>=2.3" \
     "sagemaker-tensorflow>=1.15,<1.16" \
     "sagemaker-tensorflow-training>=10,<20" \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
- && ${PIP} install --force-reinstall --no-cache-dir -U \
-    ${TF_URL} \
  && ${PIP} install --no-cache-dir -U \
-    "awscli<2"
+    ${TF_URL} \
+    # ${ESTIMATOR_URL} \
+    werkzeug==1.0.1 \
+    smdebug==${SMDEBUG_VERSION}
 
 # Install Horovod, temporarily using CUDA stubs
-RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 pip install --no-cache-dir \
-    horovod==0.19.5 \
+RUN ldconfig /usr/local/cuda-11.0/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.19.5 \
  && ldconfig
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
+
+# Add NGC vars
+ENV TF_ADJUST_HUE_FUSED=1 TF_AUTOTUNE_THRESHOLD=2 TF_USE_CUDNN_BATCHNORM_SPATIAL_PERSISTENT=1 TF_ADJUST_SATURATION_FUSED=1 TF_ENABLE_WINOGRAD_NONFUSED=1 CUDA_CACHE_DISABLE=1
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
