@@ -80,7 +80,7 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
     accuracy_threshold = MXNET_TRAINING_GPU_IMAGENET_ACCURACY_THRESHOLD
     assert accuracy > accuracy_threshold, (
         f"mxnet {framework_version} sagemaker training {py_version} imagenet {num_nodes} nodes "
-        f"Benchmark Result {accuracy} does not reach the threshold accuracy {threshold}"
+        f"Benchmark Result {accuracy} does not reach the threshold accuracy {accuracy_threshold}"
     )
 
     time_threshold = MXNET_TRAINING_GPU_IMAGENET_LATENCY_THRESHOLD
