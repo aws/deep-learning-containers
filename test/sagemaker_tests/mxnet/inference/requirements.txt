@@ -6,11 +6,13 @@ pytest==5.3.5
 pytest-cov
 pytest-rerunfailures==9.0
 pytest-xdist
+requests==2.24
+urllib3>=1.25.10,<1.26.0
 mock
 sagemaker<2
 docker-compose
 mxnet==1.7.0.post1
 awslogs
-requests_mock
+requests_mock==1.7.0
 fabric
 gitpython
