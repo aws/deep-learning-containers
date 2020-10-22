@@ -59,7 +59,7 @@ release_images:
     framework: "pytorch"
     version: "1.5.1"
     training:
-      device_types: ["cpu", "gpu"]
+      device_types: ["gpu"]
       python_versions: ["py36"]
       os_version: "ubuntu16.04"
       cuda_version: "cu101"
