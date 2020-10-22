@@ -674,9 +674,9 @@ def get_cuda_version_from_tag(image_uri):
     if all(keyword in image_uri for keyword in cuda_str):
         cuda_framework_version = re.search(r"(cu\d+)-", image_uri).groups()[0]
 
-    if not cuda_framework_version:
+    if not cuda_framework_version and "gpu" in image_uri:
         raise RuntimeError(
-            f"Cannot find cuda version or gpu usage in image uri {image_uri}"
+            f"Cannot find cuda version in gpu image uri {image_uri}"
         )
 
     return cuda_framework_version
