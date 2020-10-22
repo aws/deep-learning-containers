@@ -136,7 +136,7 @@ RUN pip install \
 # Install Horovod
 RUN ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
- && ldconfig
+ && ldconfig \
  && pip install mpi4py==3.0.3
 
 # Configure Open MPI and configure NCCL parameters
