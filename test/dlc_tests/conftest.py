@@ -131,6 +131,15 @@ def ec2_instance(
             ec2_instance_ami = UBUNTU_16_BASE_DLAMI_US_EAST_1
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
+
+    def delete_ssh_keypair():
+        if test_utils.is_pr_context():
+            test_utils.destroy_ssh_keypair(ec2_client, key_filename)
+        else:
+            with open(KEYS_TO_DESTROY_FILE, "a") as destroy_keys:
+                destroy_keys.write(f"{key_filename}\n")
+    request.addfinalizer(delete_ssh_keypair)
+
     params = {
         "KeyName": ec2_key_name,
         "ImageId": ec2_instance_ami,
@@ -176,17 +185,19 @@ def ec2_instance(
                 LOGGER.error(f"Failed to launch in {a_zone} with Error: {e}")
                 continue
     else:
-        instances = ec2_resource.create_instances(**params)
+        try:
+            instances = ec2_resource.create_instances(**params)
+        except ClientError as e:
+            if e.response['Error']['Code'] == "InsufficientInstanceCapacity":
+                LOGGER.warning(f"Failed to launch {ec2_instance_type} in {region} because of insufficient capacity")
+                if ec2_instance_type in ec2_utils.ICE_SKIP_INSTANCE_LIST:
+                    pytest.skip(f"Skipping test because {ec2_instance_type} instance could not be launched.")
+            raise
     instance_id = instances[0].id
 
     # Define finalizer to terminate instance after this fixture completes
     def terminate_ec2_instance():
         ec2_client.terminate_instances(InstanceIds=[instance_id])
-        if test_utils.is_pr_context():
-            test_utils.destroy_ssh_keypair(ec2_client, key_filename)
-        else:
-            with open(KEYS_TO_DESTROY_FILE, "a") as destroy_keys:
-                destroy_keys.write(f"{key_filename}\n")
 
     request.addfinalizer(terminate_ec2_instance)
 
