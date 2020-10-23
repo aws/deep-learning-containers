@@ -38,12 +38,14 @@ DATA_PATH = os.path.join(MNIST_PATH, 'images', DATA_FILE)
 def test_batch_transform(sagemaker_session, ecr_image, instance_type, framework_version):
     s3_prefix = 'mxnet-serving/mnist'
     model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=s3_prefix)
-    model = MXNetModel(model_data,
-                       'SageMakerRole',
-                       SCRIPT_PATH,
-                       image=ecr_image,
-                       framework_version=framework_version,
-                       sagemaker_session=sagemaker_session)
+    model = MXNetModel(
+        model_data,
+        'SageMakerRole',
+        SCRIPT_PATH,
+        image_uri=ecr_image,
+        framework_version=framework_version,
+        sagemaker_session=sagemaker_session,
+    )
 
     transformer = model.transformer(1, instance_type)
     with timeout.timeout_and_delete_model_with_transformer(transformer, sagemaker_session, minutes=20):

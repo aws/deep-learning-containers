@@ -46,22 +46,26 @@ def skip_if_non_supported_ei_region(region):
 def test_elastic_inference(ecr_image, sagemaker_session, instance_type, accelerator_type, framework_version):
     endpoint_name = utils.unique_name_from_base('test-mxnet-ei')
 
-    with timeout_and_delete_endpoint_by_name(endpoint_name=endpoint_name,
-                                             sagemaker_session=sagemaker_session,
-                                             minutes=20):
+    with timeout_and_delete_endpoint_by_name(
+            endpoint_name=endpoint_name, sagemaker_session=sagemaker_session, minutes=20,
+    ):
         prefix = 'mxnet-serving/default-handlers'
         model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=prefix)
-        model = MXNetModel(model_data=model_data,
-                           entry_point=SCRIPT_PATH,
-                           role='SageMakerRole',
-                           image=ecr_image,
-                           framework_version=framework_version,
-                           sagemaker_session=sagemaker_session)
+        model = MXNetModel(
+            model_data=model_data,
+            entry_point=SCRIPT_PATH,
+            role='SageMakerRole',
+            image_uri=ecr_image,
+            framework_version=framework_version,
+            sagemaker_session=sagemaker_session,
+        )
 
-        predictor = model.deploy(initial_instance_count=1,
-                                 instance_type=instance_type,
-                                 accelerator_type=accelerator_type,
-                                 endpoint_name=endpoint_name)
+        predictor = model.deploy(
+            initial_instance_count=1,
+            instance_type=instance_type,
+            accelerator_type=accelerator_type,
+            endpoint_name=endpoint_name,
+        )
 
         output = predictor.predict([[1, 2]])
         assert [[4.9999918937683105]] == output

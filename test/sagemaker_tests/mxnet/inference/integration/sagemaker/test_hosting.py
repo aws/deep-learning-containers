@@ -32,12 +32,14 @@ SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'empty_module.
 def test_hosting(sagemaker_session, ecr_image, instance_type, framework_version):
     prefix = 'mxnet-serving/default-handlers'
     model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=prefix)
-    model = MXNetModel(model_data,
-                       'SageMakerRole',
-                       SCRIPT_PATH,
-                       image=ecr_image,
-                       framework_version=framework_version,
-                       sagemaker_session=sagemaker_session)
+    model = MXNetModel(
+        model_data,
+        'SageMakerRole',
+        SCRIPT_PATH,
+        image_uri=ecr_image,
+        framework_version=framework_version,
+        sagemaker_session=sagemaker_session
+    )
 
     endpoint_name = utils.unique_name_from_base('test-mxnet-serving')
     with timeout.timeout_and_delete_endpoint_by_name(endpoint_name, sagemaker_session):

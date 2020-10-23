@@ -16,8 +16,8 @@ import os
 
 import pytest
 
+from sagemaker import deserializers
 from sagemaker.mxnet.model import MXNetModel
-from sagemaker.predictor import StringDeserializer
 
 from ...integration.local import local_mode_utils
 from ...integration import RESOURCE_PATH
@@ -31,18 +31,19 @@ SCRIPT_PATH = os.path.join(HOSTING_RESOURCE_PATH, 'code', 'dummy_hosting_module.
 # in the user-provided script when serving.
 @pytest.mark.integration("hosting")
 @pytest.mark.model("dummy_model")
-def test_hosting(docker_image, sagemaker_local_session, local_instance_type):
+def test_hosting(docker_image, framework_version, sagemaker_local_session, local_instance_type):
     model = MXNetModel('file://{}'.format(MODEL_PATH),
                        'SageMakerRole',
                        SCRIPT_PATH,
-                       image=docker_image,
+                       image_uri=docker_image,
+                       framework_version=framework_version,
                        sagemaker_session=sagemaker_local_session)
 
     with local_mode_utils.lock():
         try:
             predictor = model.deploy(1, local_instance_type)
             predictor.serializer = None
-            predictor.deserializer = StringDeserializer()
+            predictor.deserializer = deserializers.StringDeserializer()
             predictor.accept = None
             predictor.content_type = None
 

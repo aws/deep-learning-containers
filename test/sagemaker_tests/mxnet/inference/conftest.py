@@ -18,7 +18,6 @@ import os
 import boto3
 import pytest
 from sagemaker import LocalSession, Session
-from sagemaker.mxnet import MXNet
 
 from .integration import NO_P2_REGIONS, NO_P3_REGIONS, get_ecr_registry
 

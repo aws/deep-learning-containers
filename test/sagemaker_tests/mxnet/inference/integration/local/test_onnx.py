@@ -29,12 +29,15 @@ SCRIPT_PATH = os.path.join(MODEL_PATH, 'code', 'onnx_import.py')
 
 @pytest.mark.integration("onnx")
 @pytest.mark.model("onnx_model")
-def test_onnx_import(docker_image, sagemaker_local_session, local_instance_type):
-    model = MXNetModel('file://{}'.format(MODEL_PATH),
-                       'SageMakerRole',
-                       SCRIPT_PATH,
-                       image=docker_image,
-                       sagemaker_session=sagemaker_local_session)
+def test_onnx_import(docker_image, framework_version, sagemaker_local_session, local_instance_type):
+    model = MXNetModel(
+        'file://{}'.format(MODEL_PATH),
+        'SageMakerRole',
+        SCRIPT_PATH,
+        image_uri=docker_image,
+        framework_version=framework_version,
+        sagemaker_session=sagemaker_local_session
+    )
 
     input = numpy.zeros(shape=(1, 1, 28, 28))
 
