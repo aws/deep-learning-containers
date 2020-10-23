@@ -6,6 +6,9 @@ from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2, CONTAINE
 from test.test_utils import ecs as ecs_utils
 from test.test_utils import ec2 as ec2_utils
 
+from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
+from packaging.version import Version
+
 
 PT_MNIST_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorch")
 PT_DGL_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
@@ -93,6 +96,11 @@ def test_ecs_pytorch_training_dgl_gpu(gpu_only, py3_only, ecs_container_instance
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
     """
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    image_cuda_version = get_cuda_version_from_tag(pytorch_training)
+    if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
+        pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
+
     instance_id, cluster_arn = ecs_container_instance
 
     num_gpus = ec2_utils.get_instance_num_gpus(instance_id)
