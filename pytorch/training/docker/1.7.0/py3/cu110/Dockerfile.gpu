@@ -2,7 +2,7 @@
 FROM nvidia/cuda:11.0-cudnn8-devel-ubuntu16.04
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="2"
+LABEL dlc_major_version="1"
 
 ARG PYTHON_VERSION=3.6.10
 ARG OPEN_MPI_VERSION=4.0.1
