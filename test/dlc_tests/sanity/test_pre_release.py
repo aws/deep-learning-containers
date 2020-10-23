@@ -1,6 +1,8 @@
 import os
 import re
 
+from packaging import version
+
 import pytest
 
 from invoke.context import Context
@@ -280,6 +282,38 @@ def test_emacs(image):
     # Make sure the following emacs sanity tests exit with code 0
     _run_cmd_on_container(container_name, ctx, "which emacs")
     _run_cmd_on_container(container_name, ctx, "emacs -version")
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.integration("sagemaker python sdk")
+def test_sm_pysdk_version(image):
+    """
+    Simply verify that we have sagemaker > 2 in the python sdk
+
+    :param image: ECR image URI
+    """
+    ctx = Context()
+    container_name = _get_container_name("sm_pysdk", image)
+    _start_container(container_name, image, ctx)
+
+    framework, framework_version = get_framework_and_version_from_tag(image)
+
+    if framework == "tensorflow":
+        if is_tf_version("2", image):
+            framework = "tensorflow2"
+        elif is_tf_version("1", image):
+            framework = "tensorflow1"
+
+    sm_pysdk_v2 = {"tensorflow2": "2.3.0", "tensorflow1": "1.15.0"}
+
+    # Ensure
+    sm_version = _run_cmd_on_container(container_name, ctx, "python -c 'import sagemaker; print(sagemaker.__version__)", warn=True).strip()
+
+    if "NameError" in sm_version:
+        LOGGER.warn("This container does not have SageMaker python sdk")
+    else:
+        if version.parse(framework_version) > version.parse(sm_pysdk_v2[framework]):
+            assert version.parse(sm_version) > version.parse("2.0.0")
 
 
 @pytest.mark.model("N/A")
