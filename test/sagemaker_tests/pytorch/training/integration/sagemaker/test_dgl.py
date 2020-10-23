@@ -48,8 +48,8 @@ def test_dgl_gcn_training_gpu(sagemaker_session, ecr_image, instance_type):
 
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
-        pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
+    if image_cuda_version == "cu110":
+        pytest.skip("DGL does not suport CUDA 11.0 yet")
 
     instance_type = instance_type or 'ml.p2.xlarge'
     _test_dgl_training(sagemaker_session, ecr_image, instance_type)

@@ -80,8 +80,8 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     """
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     image_cuda_version = get_cuda_version_from_tag(pytorch_training)
-    if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
-        pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
+    if image_cuda_version == "cu110":
+        pytest.skip("DGL does not suport CUDA 11.0 yet")
 
     training_result = False
     rand_int = random.randint(4001, 6000)

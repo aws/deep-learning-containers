@@ -64,8 +64,8 @@ def test_pytorch_linear_regression_cpu(pytorch_training, ec2_connection, cpu_onl
 def test_pytorch_train_dgl_gpu(pytorch_training, ec2_connection, gpu_only, py3_only):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     image_cuda_version = get_cuda_version_from_tag(pytorch_training)
-    if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
-        pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
+    if image_cuda_version == "cu110":
+        pytest.skip("DGL does not suport CUDA 11.0 yet")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DGL_CMD)
 
 

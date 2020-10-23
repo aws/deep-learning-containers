@@ -98,8 +98,8 @@ def test_ecs_pytorch_training_dgl_gpu(gpu_only, py3_only, ecs_container_instance
     """
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     image_cuda_version = get_cuda_version_from_tag(pytorch_training)
-    if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
-        pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
+    if image_cuda_version == "cu110":
+        pytest.skip("DGL does not suport CUDA 11.0 yet")
 
     instance_id, cluster_arn = ecs_container_instance
 
