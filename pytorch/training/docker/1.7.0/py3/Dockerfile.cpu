@@ -24,7 +24,7 @@ ENV PATH=/opt/conda/bin:$PATH
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV DGLBACKEND=pytorch
 
-ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.0_aws/20201022-034414/8b63079036b4bafe5a28fa4dc791caadd7c505e6/cpu/torch-1.7.0-cp36-cp36m-manylinux1_x86_64.whl
+ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.0_aws/20201023-033303/7626c0c94565c7f94d05dd25dda3b29500037017/cpu/torch-1.7.0-cp36-cp36m-manylinux1_x86_64.whl
 WORKDIR /
 
 RUN apt-get update \

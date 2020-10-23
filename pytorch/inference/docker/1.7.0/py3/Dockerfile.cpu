@@ -8,7 +8,7 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 ARG PYTHON_VERSION=3.6.10
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION="0.2.1=py36_0"
-ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.0_inference/20201022-034030/aa69833d973a5e8a8252826638f131afd57ea722/cpu/torch-1.7.0-cp36-cp36m-manylinux1_x86_64.whl
+ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.0_inference/20201023-041613/30525ef129b6def810885e5f3b2be27e3e1dd813/cpu/torch-1.7.0-cp36-cp36m-manylinux1_x86_64.whl
 ARG PT_VISION_URL=https://choidong-dev.s3-us-west-2.amazonaws.com/torchvision-0.8.0/cpu/torchvision-0.8.0-cp36-cp36m-linux_x86_64.whl
 
 # See http://bugs.python.org/issue19846
