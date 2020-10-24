@@ -307,7 +307,8 @@ def test_sm_pysdk_version(image):
     sm_pysdk_v2 = {"tensorflow2": "2.3.0", "tensorflow1": "1.15.0"}
 
     # Ensure
-    sm_version = _run_cmd_on_container(container_name, ctx, "python -c 'import sagemaker; print(sagemaker.__version__)", warn=True).strip()
+    sm_version = _run_cmd_on_container(
+        container_name, ctx, "python -c 'import sagemaker; print(sagemaker.__version__)", warn=True).stdout.strip()
 
     if "NameError" in sm_version:
         LOGGER.warn("This container does not have SageMaker python sdk")
