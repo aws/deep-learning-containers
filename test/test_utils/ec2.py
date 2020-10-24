@@ -14,6 +14,9 @@ from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
+# List of instance types for which if instance spin-up fails, the test is skipped instead of failing.
+ICE_SKIP_INSTANCE_LIST = ["p3dn.24xlarge"]
+
 
 def get_ec2_instance_type(default, processor, disable_p3dn=False):
     """
