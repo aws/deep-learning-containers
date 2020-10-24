@@ -96,7 +96,7 @@ def _predictor(
         model_dir, script, image, framework_version, sagemaker_local_session, instance_type, model_server_workers=None
 ):
     model = PyTorchModel(
-        'file://{}'.format(model_dir),
+        'file://{}/model.tar.gz'.format(model_dir),
         ROLE,
         script,
         image_uri=image,
