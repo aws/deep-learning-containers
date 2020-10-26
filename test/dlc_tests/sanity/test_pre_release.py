@@ -346,6 +346,38 @@ def test_cuda_paths(gpu):
     assert os.path.exists(dockerfile_path), f"Cannot find dockerfile for image {image} in {dockerfile_path}"
 
 
+@pytest.mark.model("N/A")
+def test_ld_library_path(image):
+    """
+    Test that the LD_LIBRARY_PATH env variable in each image contains all expected paths.
+    TODO: Establish the ordering for paths that must be enforced in images.
+
+    :param image: <str> Image URI
+    """
+    framework, _ = get_framework_and_version_from_tag(image)
+    if framework == "tensorflow":
+        pytest.mark.xfail("The env variable `/usr/local/lib` has not been added into GPU TF images.")
+    ctx = Context()
+    container_name = _get_container_name("ld_library_path", image)
+    _start_container(container_name, image, ctx)
+
+    # Make sure the following emacs sanity tests exit with code 0
+    ld_library_path_value = _run_cmd_on_container(container_name, ctx, "env | grep LD_LIBRARY_PATH").stdout
+
+    paths_to_check_for = ["/usr/local/lib"]  # All images must have this in LD_LIBRARY_PATH
+
+    # Horovod compatible images must have this in LD_LIBRARY_PATH
+    if "training" in image and (framework != "pytorch" or "gpu" in image):
+        paths_to_check_for.append("/usr/local/openmpi/lib")
+
+    # GPU images must have this in LD_LIBRARY_PATH
+    if "gpu" in image:
+        paths_to_check_for += ["/usr/local/nvidia/lib", "/usr/local/nvidia/lib64"]
+
+    paths_not_in_env = [path for path in paths_to_check_for if path not in ld_library_path_value]
+    assert not paths_not_in_env, f"The following were not found in LD_LIBRARY_PATH for {image}:\n{paths_not_in_env}"
+
+
 def _get_container_name(prefix, image_uri):
     """
     Create a unique container name based off of a test related prefix and the image uri
