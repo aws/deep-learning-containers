@@ -299,7 +299,7 @@ def test_sm_pysdk_version(image):
     _start_container(container_name, image, ctx)
 
     sm_version = _run_cmd_on_container(
-        container_name, ctx, "python -c 'import sagemaker; print(sagemaker.__version__)"
+        container_name, ctx, "import sagemaker; print(sagemaker.__version__)", executable="python"
     ).stdout.strip()
 
     assert Version(sm_version) >= Version("2"), f"Sagemaker version should be >=2, but found version: {sm_version}"
