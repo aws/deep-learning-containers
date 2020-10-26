@@ -680,6 +680,7 @@ def get_cuda_version_from_tag(image_uri):
 
     return cuda_framework_version
 
+
 def get_job_type_from_image(image_uri):
     """
     Return the Job type from the image tag.

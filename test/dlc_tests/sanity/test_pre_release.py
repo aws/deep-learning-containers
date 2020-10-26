@@ -12,6 +12,7 @@ from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     ec2,
     get_framework_and_version_from_tag,
+    get_job_type_from_image,
     is_canary_context,
     is_tf_version,
     is_dlc_cicd_context,
@@ -301,6 +302,8 @@ def test_sm_pysdk_version(image):
     _start_container(container_name, image, ctx)
 
     framework, framework_version = get_framework_and_version_from_tag(image)
+    python_version = re.search(r"py\d+", image).group()
+    job_type = get_job_type_from_image(image)
 
     if framework == "tensorflow":
         if is_tf_version("2", image):
@@ -308,16 +311,15 @@ def test_sm_pysdk_version(image):
         elif is_tf_version("1", image):
             framework = "tensorflow1"
 
-    sm_pysdk_v2 = {"tensorflow2": "2.3.0", "tensorflow1": "1.15.0"}
+    sm_pysdk_v2 = {"tensorflow2": {"training": {"py37": "2.3.0"}}, "tensorflow1": {"training": {"py36": "1.15.0"}}}
 
     sm_version = _run_cmd_on_container(
         container_name, ctx, "import sagemaker; print(sagemaker.__version__)", warn=True, executable="python"
     ).stdout.strip()
 
-    if "ModuleNotFoundError" in sm_version:
-        LOGGER.warn("This container does not have SageMaker python sdk")
-    else:
-        if version.parse(framework_version) > version.parse(sm_pysdk_v2[framework]):
+    whitelisted_fw_version = sm_pysdk_v2.get(framework, {}).get(job_type, {}).get(python_version)
+    if whitelisted_fw_version:
+        if version.parse(framework_version) > version.parse(whitelisted_fw_version):
             assert version.parse(sm_version) > version.parse(
                 "2.0.0"
             ), f"Sagemaker version should be greater than 2. Found version: {sm_version}"
