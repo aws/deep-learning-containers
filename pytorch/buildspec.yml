@@ -2,7 +2,7 @@
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK pytorch
   version: &VERSION 1.6.0
-  cuda_version: &CUDA_VERSION cu101
+  cuda_version: &CUDA_VERSION cu110
   os_version: &OS_VERSION ubuntu16.04
 
   repository_info:
@@ -51,7 +51,7 @@
     BuildGPUPTTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &PYTORCH_GPU_TRAINING_PY3 false
-      image_size_baseline: 9228
+      image_size_baseline: 14000
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
       tag_python_version: &TAG_PYTHON_VERSION py36
@@ -62,7 +62,7 @@
     BuildPyTorchExampleGPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &PYTORCH_GPU_TRAINING_PY3 false
-      image_size_baseline: 8500
+      image_size_baseline: 14500
       base_image_name: BuildGPUPTTrainPy3DockerImage
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
@@ -81,16 +81,5 @@
       tag_python_version: &TAG_PYTHON_VERSION py36
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
-      context:
-        <<: *INFERENCE_CONTEXT
-    BuildGPUPTInferencePy3DockerImage:
-      <<: *INFERENCE_REPOSITORY
-      build: &PYTORCH_GPU_INFERENCE_PY3 false
-      image_size_baseline: 9228
-      device_type: &DEVICE_TYPE gpu
-      python_version: &DOCKER_PYTHON_VERSION py3
-      tag_python_version: &TAG_PYTHON_VERSION py36
-      tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
-      docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *INFERENCE_CONTEXT
