@@ -21,31 +21,33 @@ from sagemaker.mxnet.estimator import MXNet
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
 
-DATA_PATH = os.path.join(RESOURCE_PATH, 'mnist')
-SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist.py')
+DATA_PATH = os.path.join(RESOURCE_PATH, "mnist")
+SCRIPT_PATH = os.path.join(DATA_PATH, "mnist.py")
 
 
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_test_in_region
 def test_training(sagemaker_session, ecr_image, instance_type, instance_count):
-    hyperparameters = {'sagemaker_parameter_server_enabled': True} if instance_count > 1 else {}
-    hyperparameters['epochs'] = 1
+    hyperparameters = {"sagemaker_parameter_server_enabled": True} if instance_count > 1 else {}
+    hyperparameters["epochs"] = 1
 
-    mx = MXNet(entry_point=SCRIPT_PATH,
-               role='SageMakerRole',
-               train_instance_count=instance_count,
-               train_instance_type=instance_type,
-               sagemaker_session=sagemaker_session,
-               image_name=ecr_image,
-               hyperparameters=hyperparameters)
+    mx = MXNet(
+        entry_point=SCRIPT_PATH,
+        role="SageMakerRole",
+        instance_count=instance_count,
+        instance_type=instance_type,
+        sagemaker_session=sagemaker_session,
+        image_uri=ecr_image,
+        hyperparameters=hyperparameters,
+    )
 
     with timeout(minutes=15):
-        prefix = 'mxnet_mnist/{}'.format(utils.sagemaker_timestamp())
-        train_input = mx.sagemaker_session.upload_data(path=os.path.join(DATA_PATH, 'train'),
-                                                       key_prefix=prefix + '/train')
-        test_input = mx.sagemaker_session.upload_data(path=os.path.join(DATA_PATH, 'test'),
-                                                      key_prefix=prefix + '/test')
+        prefix = "mxnet_mnist/{}".format(utils.sagemaker_timestamp())
+        train_input = mx.sagemaker_session.upload_data(
+            path=os.path.join(DATA_PATH, "train"), key_prefix=prefix + "/train"
+        )
+        test_input = mx.sagemaker_session.upload_data(path=os.path.join(DATA_PATH, "test"), key_prefix=prefix + "/test")
 
-        job_name = utils.unique_name_from_base('test-mxnet-image')
-        mx.fit({'train': train_input, 'test': test_input}, job_name=job_name)
+        job_name = utils.unique_name_from_base("test-mxnet-image")
+        mx.fit({"train": train_input, "test": test_input}, job_name=job_name)
