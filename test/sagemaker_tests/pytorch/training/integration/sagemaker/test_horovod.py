@@ -27,6 +27,7 @@ from ...integration.sagemaker.timeout import timeout
 @pytest.mark.multinode(2)
 @pytest.mark.integration("horovod")
 @pytest.mark.skip_cpu
+@pytest.mark.model("mnist")
 def test_horovod_simple(
     instance_type,
     sagemaker_session,
@@ -81,6 +82,7 @@ def test_horovod_simple(
 @pytest.mark.multinode(2)
 @pytest.mark.integration("horovod")
 @pytest.mark.skip_cpu
+@pytest.mark.model("mnist")
 def test_horovod_training(
     instance_type,
     sagemaker_session,

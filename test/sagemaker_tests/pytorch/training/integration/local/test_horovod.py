@@ -25,6 +25,7 @@ from ...integration import resources_path
 @pytest.mark.integration("horovod")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
+@pytest.mark.model("mnist")
 def test_horovod_simple(sagemaker_local_session, docker_image, tmpdir):
     instances, processes = 1, 2
     output_path = 'file://' + str(tmpdir)
@@ -62,6 +63,7 @@ def test_horovod_simple(sagemaker_local_session, docker_image, tmpdir):
 @pytest.mark.integration("horovod")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
+@pytest.mark.model("mnist")
 def test_horovod_training(sagemaker_local_session, docker_image, tmpdir):
     estimator = PyTorch(
         entry_point=os.path.join(resources_path, 'horovod', 'train.py'),
