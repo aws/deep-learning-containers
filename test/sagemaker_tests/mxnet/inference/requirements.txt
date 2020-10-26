@@ -9,7 +9,7 @@ pytest-xdist
 requests==2.24
 urllib3>=1.25.10,<1.26.0
 mock
-sagemaker<2
+sagemaker>=2.15,<3
 docker-compose
 mxnet==1.7.0.post1
 awslogs
