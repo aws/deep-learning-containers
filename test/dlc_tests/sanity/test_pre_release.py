@@ -290,6 +290,8 @@ def test_sm_pysdk_version(image):
     Simply verify that we have sagemaker>=2 in the python sdk
     :param image: ECR image URI
     """
+    if "tensorflow" in image:
+        pytest.xfail("TensorFlow docker files do not have sagemaker>=2 yet.")
     if "training" not in image:
         pytest.skip("sagemaker is not expected to be installed in non-training images.")
     ctx = Context()
