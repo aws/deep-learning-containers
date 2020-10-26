@@ -314,7 +314,8 @@ def test_sm_pysdk_version(image):
         LOGGER.warn("This container does not have SageMaker python sdk")
     else:
         if version.parse(framework_version) > version.parse(sm_pysdk_v2[framework]):
-            assert version.parse(sm_version) > version.parse("2.0.0")
+            assert version.parse(sm_version) > version.parse("2.0.0"),\
+                f"Sagemaker version should be greater than 2. Found version: {sm_version}"
 
 
 @pytest.mark.model("N/A")
