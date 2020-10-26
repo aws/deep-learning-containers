@@ -24,23 +24,23 @@ from sagemaker.mxnet.model import MXNetModel
 from ...integration import RESOURCE_PATH
 from ...integration.sagemaker import timeout
 
-SCRIPT_PATH = os.path.join(RESOURCE_PATH, 'default_handlers', 'model', 'code', 'empty_module.py')
-MNIST_PATH = os.path.join(RESOURCE_PATH, 'mnist')
-MODEL_PATH = os.path.join(MNIST_PATH, 'model', 'model.tar.gz')
+SCRIPT_PATH = os.path.join(RESOURCE_PATH, "default_handlers", "model", "code", "empty_module.py")
+MNIST_PATH = os.path.join(RESOURCE_PATH, "mnist")
+MODEL_PATH = os.path.join(MNIST_PATH, "model", "model.tar.gz")
 
-DATA_FILE = '07.csv'
-DATA_PATH = os.path.join(MNIST_PATH, 'images', DATA_FILE)
+DATA_FILE = "07.csv"
+DATA_PATH = os.path.join(MNIST_PATH, "images", DATA_FILE)
 
 
 @pytest.mark.skip("Known issue: https://github.com/aws/deep-learning-containers/issues/586")
 @pytest.mark.integration("batch_transform")
 @pytest.mark.model("mnist")
 def test_batch_transform(sagemaker_session, ecr_image, instance_type, framework_version):
-    s3_prefix = 'mxnet-serving/mnist'
+    s3_prefix = "mxnet-serving/mnist"
     model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=s3_prefix)
     model = MXNetModel(
         model_data,
-        'SageMakerRole',
+        "SageMakerRole",
         SCRIPT_PATH,
         image_uri=ecr_image,
         framework_version=framework_version,
@@ -51,8 +51,8 @@ def test_batch_transform(sagemaker_session, ecr_image, instance_type, framework_
     with timeout.timeout_and_delete_model_with_transformer(transformer, sagemaker_session, minutes=20):
         input_data = sagemaker_session.upload_data(path=DATA_PATH, key_prefix=s3_prefix)
 
-        job_name = utils.unique_name_from_base('test-mxnet-serving-batch')
-        transformer.transform(input_data, content_type='text/csv', job_name=job_name)
+        job_name = utils.unique_name_from_base("test-mxnet-serving-batch")
+        transformer.transform(input_data, content_type="text/csv", job_name=job_name)
         transformer.wait()
 
     prediction = _transform_result(sagemaker_session.boto_session, transformer.output_path)
@@ -60,14 +60,14 @@ def test_batch_transform(sagemaker_session, ecr_image, instance_type, framework_
 
 
 def _transform_result(boto_session, output_path):
-    s3 = boto_session.resource('s3', region_name=boto_session.region_name)
+    s3 = boto_session.resource("s3", region_name=boto_session.region_name)
 
     parsed_url = urlparse(output_path)
     bucket_name = parsed_url.netloc
     prefix = parsed_url.path[1:]
 
-    output_obj = s3.Object(bucket_name, '{}/{}.out'.format(prefix, DATA_FILE))
-    output = output_obj.get()['Body'].read().decode('utf-8')
+    output_obj = s3.Object(bucket_name, "{}/{}.out".format(prefix, DATA_FILE))
+    output = output_obj.get()["Body"].read().decode("utf-8")
 
     probabilities = json.loads(output)[0]
     return probabilities.index(max(probabilities))

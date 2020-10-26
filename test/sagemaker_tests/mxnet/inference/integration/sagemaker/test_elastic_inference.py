@@ -21,21 +21,21 @@ from sagemaker.mxnet import MXNetModel
 from ...integration import EI_SUPPORTED_REGIONS, RESOURCE_PATH
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint_by_name
 
-DEFAULT_HANDLER_PATH = os.path.join(RESOURCE_PATH, 'default_handlers')
-MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model.tar.gz')
-SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'empty_module.py')
+DEFAULT_HANDLER_PATH = os.path.join(RESOURCE_PATH, "default_handlers")
+MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, "model.tar.gz")
+SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, "model", "code", "empty_module.py")
 
 
 @pytest.fixture(autouse=True)
 def skip_if_no_accelerator(accelerator_type):
     if accelerator_type is None:
-        pytest.skip('Skipping because accelerator type was not provided')
+        pytest.skip("Skipping because accelerator type was not provided")
 
 
 @pytest.fixture(autouse=True)
 def skip_if_non_supported_ei_region(region):
     if region not in EI_SUPPORTED_REGIONS:
-        pytest.skip('EI is not supported in {}'.format(region))
+        pytest.skip("EI is not supported in {}".format(region))
 
 
 @pytest.mark.processor("eia")
@@ -44,17 +44,17 @@ def skip_if_non_supported_ei_region(region):
 @pytest.mark.skip_if_non_supported_ei_region()
 @pytest.mark.skip_if_no_accelerator()
 def test_elastic_inference(ecr_image, sagemaker_session, instance_type, accelerator_type, framework_version):
-    endpoint_name = utils.unique_name_from_base('test-mxnet-ei')
+    endpoint_name = utils.unique_name_from_base("test-mxnet-ei")
 
     with timeout_and_delete_endpoint_by_name(
-            endpoint_name=endpoint_name, sagemaker_session=sagemaker_session, minutes=20,
+        endpoint_name=endpoint_name, sagemaker_session=sagemaker_session, minutes=20,
     ):
-        prefix = 'mxnet-serving/default-handlers'
+        prefix = "mxnet-serving/default-handlers"
         model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=prefix)
         model = MXNetModel(
             model_data=model_data,
             entry_point=SCRIPT_PATH,
-            role='SageMakerRole',
+            role="SageMakerRole",
             image_uri=ecr_image,
             framework_version=framework_version,
             sagemaker_session=sagemaker_session,
