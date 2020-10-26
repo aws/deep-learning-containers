@@ -293,14 +293,14 @@ def test_emacs(image):
 @pytest.mark.integration("sagemaker python sdk")
 def test_sm_pysdk_version(image):
     """
-    Simply verify that we have sagemaker > 2 in the python sdk
+    Simply verify that we have sagemaker > 2 in the python sdk.
+
+    Currently, since not all images have pysdk 2, we keep a dictionary whitelisting the images that should have pysdk
+    version 2. Once pysdk is the standard across all images, we can remove this.
 
     :param image: ECR image URI
     """
-    ctx = Context()
-    container_name = _get_container_name("sm_pysdk", image)
-    _start_container(container_name, image, ctx)
-
+    # Check if the image is whitelisted
     framework, framework_version = get_framework_and_version_from_tag(image)
     python_version = re.search(r"py\d+", image).group()
     job_type = get_job_type_from_image(image)
@@ -311,18 +311,27 @@ def test_sm_pysdk_version(image):
         elif is_tf_version("1", image):
             framework = "tensorflow1"
 
+    # TODO: Add images with pysdk2 to this dictionary. Remove once pysdk2 becomes standard.
     sm_pysdk_v2 = {"tensorflow2": {"training": {"py37": "2.3.0"}}, "tensorflow1": {"training": {"py36": "1.15.0"}}}
+
+    whitelisted_fw_version = sm_pysdk_v2.get(framework, {}).get(job_type, {}).get(python_version)
+
+    if not whitelisted_fw_version:
+        pytest.skip(f"Image {image} has not been whitelisted for pysdk v2. Whitelisted images {sm_pysdk_v2}")
+
+    # Ensure that sm pysdk2 is on the container
+    ctx = Context()
+    container_name = _get_container_name("sm_pysdk", image)
+    _start_container(container_name, image, ctx)
 
     sm_version = _run_cmd_on_container(
         container_name, ctx, "import sagemaker; print(sagemaker.__version__)", warn=True, executable="python"
     ).stdout.strip()
 
-    whitelisted_fw_version = sm_pysdk_v2.get(framework, {}).get(job_type, {}).get(python_version)
-    if whitelisted_fw_version:
-        if version.parse(framework_version) > version.parse(whitelisted_fw_version):
-            assert version.parse(sm_version) > version.parse(
-                "2.0.0"
-            ), f"Sagemaker version should be greater than 2. Found version: {sm_version}"
+    if version.parse(framework_version) > version.parse(whitelisted_fw_version):
+        assert version.parse(sm_version) > version.parse(
+            "2.0.0"
+        ), f"Sagemaker version should be greater than 2. Found version: {sm_version}"
 
 
 @pytest.mark.model("N/A")
