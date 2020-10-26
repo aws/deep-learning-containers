@@ -11,6 +11,8 @@ from retrying import retry
 
 import test.test_utils.eks as eks_utils
 from test.test_utils import is_pr_context, SKIP_PR_REASON
+from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
+from packaging.version import Version
 
 
 LOGGER = eks_utils.LOGGER
@@ -76,6 +78,10 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     Args:
         :param pytorch_training: the ECR URI
     """
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    image_cuda_version = get_cuda_version_from_tag(pytorch_training)
+    if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
+        pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
 
     training_result = False
     rand_int = random.randint(4001, 6000)
