@@ -356,7 +356,7 @@ def test_ld_library_path(image):
     """
     framework, _ = get_framework_and_version_from_tag(image)
     if framework == "tensorflow":
-        pytest.mark.xfail("The env variable `/usr/local/lib` has not been added into GPU TF images.")
+        pytest.xfail("The env variable `/usr/local/lib` has not been added into GPU TF images.")
     ctx = Context()
     container_name = _get_container_name("ld_library_path", image)
     _start_container(container_name, image, ctx)
@@ -367,15 +367,21 @@ def test_ld_library_path(image):
     paths_to_check_for = ["/usr/local/lib"]  # All images must have this in LD_LIBRARY_PATH
 
     # Horovod compatible images must have this in LD_LIBRARY_PATH
-    if "training" in image and (framework != "pytorch" or "gpu" in image):
-        paths_to_check_for.append("/usr/local/openmpi/lib")
+    if "training" in image and "gpu" in image:
+        if framework == "pytorch":
+            paths_to_check_for.append("/home/.openmpi/lib")
+        else:
+            paths_to_check_for.append("/usr/local/openmpi/lib")
 
     # GPU images must have this in LD_LIBRARY_PATH
     if "gpu" in image:
         paths_to_check_for += ["/usr/local/nvidia/lib", "/usr/local/nvidia/lib64"]
 
     paths_not_in_env = [path for path in paths_to_check_for if path not in ld_library_path_value]
-    assert not paths_not_in_env, f"The following were not found in LD_LIBRARY_PATH for {image}:\n{paths_not_in_env}"
+    assert not paths_not_in_env, (
+        f"The following were not found in LD_LIBRARY_PATH for {image}:\n{paths_not_in_env}\n"
+        f"Actual value of LD_LIBRARY_PATH={ld_library_path_value}"
+    )
 
 
 def _get_container_name(prefix, image_uri):
