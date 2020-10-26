@@ -44,10 +44,13 @@ def _test_mnist_distributed(sagemaker_session, framework_version, ecr_image, ins
         pytorch = PyTorch(
             entry_point=mnist_script,
             role='SageMakerRole',
-            instance_count=2,
-            instance_type=instance_type,
+            train_instance_count=2,
+            train_instance_type=instance_type,
+            # instance_count=2,
+            # instance_type=instance_type,
             sagemaker_session=sagemaker_session,
-            image_uri=ecr_image,
+            image_name=ecr_image,
+            # image_uri=ecr_image,
             framework_version=framework_version,
             hyperparameters={'backend': dist_backend, 'epochs': 1},
         )

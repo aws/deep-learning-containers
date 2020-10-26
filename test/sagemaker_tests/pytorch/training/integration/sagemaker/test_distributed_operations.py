@@ -70,16 +70,18 @@ def test_dist_operations_fastai_gpu(sagemaker_session, framework_version, ecr_im
             entry_point='train_cifar.py',
             source_dir=os.path.join(fastai_path, 'cifar'),
             role='SageMakerRole',
-            instance_count=1,
-            instance_type=MULTI_GPU_INSTANCE,
+            train_instance_count=1,
+            train_instance_type=MULTI_GPU_INSTANCE,
+            # instance_count=1,
+            # instance_type=MULTI_GPU_INSTANCE,
             sagemaker_session=sagemaker_session,
-            image_uri=ecr_image,
+            image_name=ecr_image,
+            # image_uri=ecr_image,
             framework_version=framework_version,
         )
         pytorch.sagemaker_session.default_bucket()
         training_input = pytorch.sagemaker_session.upload_data(
-            path=os.path.join(fastai_path, 'cifar_tiny', 'training'),
-            key_prefix='pytorch/distributed_operations',
+            path=os.path.join(fastai_path, 'cifar_tiny', 'training'), key_prefix='pytorch/distributed_operations'
         )
         pytorch.fit({'training': training_input})
 
@@ -97,16 +99,19 @@ def test_mnist_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_bac
         pytorch = PyTorch(
             entry_point=mnist_script,
             role='SageMakerRole',
-            instance_count=2,
-            image_uri=ecr_image,
+            train_instance_count=2,
+            image_name=ecr_image,
+            train_instance_type=MULTI_GPU_INSTANCE,
+            # instance_count=2,
+            # image_uri=ecr_image,
             framework_version=framework_version,
-            instance_type=MULTI_GPU_INSTANCE,
+            # instance_type=MULTI_GPU_INSTANCE,
             sagemaker_session=sagemaker_session,
             hyperparameters={'backend': dist_gpu_backend},
         )
 
         training_input = sagemaker_session.upload_data(
-            path=os.path.join(data_dir, 'training'), key_prefix='pytorch/mnist',
+            path=os.path.join(data_dir, 'training'), key_prefix='pytorch/mnist'
         )
         pytorch.fit({'training': training_input})
 
@@ -118,16 +123,19 @@ def _test_dist_operations(
         pytorch = PyTorch(
             entry_point=dist_operations_path,
             role='SageMakerRole',
-            instance_count=train_instance_count,
-            instance_type=instance_type,
+            train_instance_count=train_instance_count,
+            train_instance_type=instance_type,
+            # instance_count=train_instance_count,
+            # instance_type=instance_type,
             sagemaker_session=sagemaker_session,
-            image_uri=ecr_image,
+            # image_uri=ecr_image,
+            image_name=ecr_image,
             framework_version=framework_version,
             hyperparameters={'backend': dist_backend},
         )
         pytorch.sagemaker_session.default_bucket()
         fake_input = pytorch.sagemaker_session.upload_data(
-            path=dist_operations_path, key_prefix='pytorch/distributed_operations',
+            path=dist_operations_path, key_prefix='pytorch/distributed_operations'
         )
         pytorch.fit({'required_argument': fake_input})
 

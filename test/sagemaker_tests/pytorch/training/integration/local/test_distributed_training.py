@@ -38,12 +38,15 @@ def test_dist_operations_path_cpu(docker_image, dist_cpu_backend, sagemaker_loca
     estimator = PyTorch(
         entry_point=dist_operations_path,
         role=ROLE,
-        image_uri=docker_image,
-        instance_count=2,
-        instance_type='local',
+        image_name=docker_image,
+        train_instance_count=2,
+        train_instance_type='local',
+        # image_uri=docker_image,
+        # instance_count=2,
+        # instance_type='local',
         sagemaker_session=sagemaker_local_session,
         hyperparameters={'backend': dist_cpu_backend},
-        output_path='file://{}'.format(tmpdir)
+        output_path='file://{}'.format(tmpdir),
     )
 
     _train_and_assert_success(estimator, str(tmpdir))
@@ -57,12 +60,15 @@ def test_dist_operations_path_gpu_nccl(docker_image, sagemaker_local_session, tm
     estimator = PyTorch(
         entry_point=dist_operations_path,
         role=ROLE,
-        image_uri=docker_image,
-        instance_count=1,
-        instance_type='local_gpu',
+        image_name=docker_image,
+        train_instance_count=1,
+        train_instance_type='local_gpu',
+        # image_uri=docker_image,
+        # instance_count=1,
+        # instance_type='local_gpu',
         sagemaker_session=sagemaker_local_session,
         hyperparameters={'backend': 'nccl'},
-        output_path='file://{}'.format(tmpdir)
+        output_path='file://{}'.format(tmpdir),
     )
 
     _train_and_assert_success(estimator, str(tmpdir))
@@ -76,12 +82,15 @@ def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
     estimator = PyTorch(
         entry_point=mnist_script,
         role=ROLE,
-        image_uri=docker_image,
-        instance_count=2,
-        instance_type='local',
+        image_name=docker_image,
+        train_instance_count=2,
+        train_instance_type='local',
+        # image_uri=docker_image,
+        # instance_count=2,
+        # instance_type='local',
         sagemaker_session=sagemaker_local_session,
         hyperparameters={'backend': 'nccl'},
-        output_path='file://{}'.format(tmpdir)
+        output_path='file://{}'.format(tmpdir),
     )
 
     with pytest.raises(RuntimeError):
@@ -98,12 +107,15 @@ def test_mnist_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpd
     estimator = PyTorch(
         entry_point=mnist_script,
         role=ROLE,
-        image_uri=docker_image,
-        instance_count=2,
-        instance_type='local',
+        image_name=docker_image,
+        train_instance_count=2,
+        train_instance_type='local',
+        # image_uri=docker_image,
+        # instance_count=2,
+        # instance_type='local',
         sagemaker_session=sagemaker_local_session,
         hyperparameters={'backend': dist_cpu_backend},
-        output_path='file://{}'.format(tmpdir)
+        output_path='file://{}'.format(tmpdir),
     )
 
     success_files = {
