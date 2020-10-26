@@ -1,7 +1,7 @@
 import os
 import re
 
-from packaging import version
+from packaging.version import Version
 
 import pytest
 
@@ -12,7 +12,6 @@ from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     ec2,
     get_framework_and_version_from_tag,
-    get_job_type_from_image,
     is_canary_context,
     is_tf_version,
     is_dlc_cicd_context,
@@ -291,47 +290,30 @@ def test_emacs(image):
 
 @pytest.mark.model("N/A")
 @pytest.mark.integration("sagemaker python sdk")
-def test_sm_pysdk_version(image):
+def test_sm_pysdk_2(tensorflow_training):
     """
     Simply verify that we have sagemaker > 2 in the python sdk.
 
-    Currently, since not all images have pysdk 2, we keep a dictionary whitelisting the images that should have pysdk
-    version 2. Once pysdk is the standard across all images, we can remove this.
+    If you find that this test is failing because sm pysdk version is not greater than 2, then that means that
+    the image under test needs to be updated.
 
-    :param image: ECR image URI
+    If you find that the training image under test does not have sagemaker pysdk, it should be added or explicitly
+    skipped (with reasoning provided).
+
+    :param tensorflow_training: training ECR image URI - to be updated to simply "training" when mx/pt are added
     """
-    # Check if the image is whitelisted
-    framework, framework_version = get_framework_and_version_from_tag(image)
-    python_version = re.search(r"py\d+", image).group()
-    job_type = get_job_type_from_image(image)
-
-    if framework == "tensorflow":
-        if is_tf_version("2", image):
-            framework = "tensorflow2"
-        elif is_tf_version("1", image):
-            framework = "tensorflow1"
-
-    # TODO: Add images with pysdk2 to this dictionary. Remove once pysdk2 becomes standard.
-    sm_pysdk_v2 = {"tensorflow2": {"training": {"py37": "2.3.0"}}, "tensorflow1": {"training": {"py36": "1.15.0"}}}
-
-    whitelisted_fw_version = sm_pysdk_v2.get(framework, {}).get(job_type, {}).get(python_version)
-
-    if not whitelisted_fw_version:
-        pytest.skip(f"Image {image} has not been whitelisted for pysdk v2. Whitelisted images {sm_pysdk_v2}")
+    image_uri = tensorflow_training
 
     # Ensure that sm pysdk2 is on the container
     ctx = Context()
-    container_name = _get_container_name("sm_pysdk", image)
-    _start_container(container_name, image, ctx)
+    container_name = _get_container_name("sm_pysdk", image_uri)
+    _start_container(container_name, image_uri, ctx)
 
     sm_version = _run_cmd_on_container(
         container_name, ctx, "import sagemaker; print(sagemaker.__version__)", warn=True, executable="python"
     ).stdout.strip()
 
-    if version.parse(framework_version) > version.parse(whitelisted_fw_version):
-        assert version.parse(sm_version) > version.parse(
-            "2.0.0"
-        ), f"Sagemaker version should be greater than 2. Found version: {sm_version}"
+    assert Version(sm_version) > Version("2"), f"Sagemaker version should be greater than 2. Found version {sm_version}"
 
 
 @pytest.mark.model("N/A")

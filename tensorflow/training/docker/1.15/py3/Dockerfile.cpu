@@ -136,6 +136,7 @@ RUN ${PIP} install --no-cache-dir -U \
     Pillow \
     h5py==2.10.0 \
     requests==2.22.0 \
+    "sagemaker>=2,<3" \
     smdebug==${SMDEBUG_VERSION} \
     sagemaker-experiments==0.* \
     mpi4py==3.0.2 \

@@ -3,7 +3,7 @@
   framework: &FRAMEWORK tensorflow
   version: &VERSION 2.3.1
   short_version: &SHORT_VERSION 2.3
-  cuda_version: &CUDA_VERSION cu102
+  cuda_version: &CUDA_VERSION cu110
   os_version: &OS_VERSION ubuntu18.04
 
   repository_info:
