@@ -19,8 +19,8 @@ from test_utils import (
 )
 
 from test_utils import (
-    UBUNTU_16_BASE_DLAMI_US_EAST_1,
-    UBUNTU_16_BASE_DLAMI_US_WEST_2,
+    UBUNTU_18_BASE_DLAMI_US_EAST_1,
+    UBUNTU_18_BASE_DLAMI_US_WEST_2,
     SAGEMAKER_LOCAL_TEST_TYPE,
     SAGEMAKER_REMOTE_TEST_TYPE,
     UBUNTU_HOME_DIR,
@@ -131,8 +131,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     is_py3 = " python3 -m "
 
     remote_pytest_cmd = (
-        f"pytest {integration_path} --region {region} {docker_base_arg} "
-        f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
+        f"pytest {integration_path} --region {region} {docker_base_arg} {sm_remote_docker_base_name} "
+        f"--tag {tag} {aws_id_arg} {account_id} --framework-version {framework_version} "
         f"{instance_type_arg} {instance_type} --junitxml {test_report}"
     )
 
@@ -251,7 +251,7 @@ def execute_local_tests(image, ec2_client):
         print(f"Launching new Instance for image: {image}")
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(
             image,
-            UBUNTU_16_BASE_DLAMI_US_EAST_1 if region == "us-east-1" else UBUNTU_16_BASE_DLAMI_US_WEST_2,
+            UBUNTU_18_BASE_DLAMI_US_EAST_1 if region == "us-east-1" else UBUNTU_18_BASE_DLAMI_US_WEST_2,
             ec2_key_name,
             region
         )
