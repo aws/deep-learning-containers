@@ -31,7 +31,7 @@ def test_mnist(docker_image, processor, instance_type, sagemaker_local_session, 
         instance_type=instance_type,
         sagemaker_session=sagemaker_local_session,
         hyperparameters={'processor': processor},
-        output_path='file://{}'.format(tmpdir)
+        output_path='file://{}'.format(tmpdir),
     )
 
     _train_and_assert_success(estimator, data_dir, str(tmpdir))
@@ -48,7 +48,7 @@ def test_fastai_mnist(docker_image, instance_type, py_version, sagemaker_local_s
         instance_count=1,
         instance_type=instance_type,
         sagemaker_session=sagemaker_local_session,
-        output_path='file://{}'.format(tmpdir)
+        output_path='file://{}'.format(tmpdir),
     )
 
     input_dir = os.path.join(fastai_path, 'mnist_tiny')
