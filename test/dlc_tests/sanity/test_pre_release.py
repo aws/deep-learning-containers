@@ -4,6 +4,7 @@ import re
 import pytest
 
 from invoke.context import Context
+from packaging.version import Version
 
 from test.test_utils import (
     LOGGER,
@@ -280,6 +281,26 @@ def test_emacs(image):
     # Make sure the following emacs sanity tests exit with code 0
     _run_cmd_on_container(container_name, ctx, "which emacs")
     _run_cmd_on_container(container_name, ctx, "emacs -version")
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.integration("sagemaker python sdk")
+def test_sm_pysdk_version(image):
+    """
+    Simply verify that we have sagemaker>=2 in the python sdk
+    :param image: ECR image URI
+    """
+    if "training" not in image:
+        pytest.skip("sagemaker is not expected to be installed in non-training images.")
+    ctx = Context()
+    container_name = _get_container_name("sm_pysdk", image)
+    _start_container(container_name, image, ctx)
+
+    sm_version = _run_cmd_on_container(
+        container_name, ctx, "python -c 'import sagemaker; print(sagemaker.__version__)"
+    ).stdout.strip()
+
+    assert Version(sm_version) >= Version("2"), f"Sagemaker version should be >=2, but found version: {sm_version}"
 
 
 @pytest.mark.model("N/A")

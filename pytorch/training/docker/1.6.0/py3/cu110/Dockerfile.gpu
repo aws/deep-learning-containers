@@ -132,7 +132,7 @@ RUN /opt/conda/bin/conda config --set ssl_verify False \
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install \
     --no-cache-dir smdebug==${SMDEBUG_VERSION} \
-    "sagemaker<2" \
+    "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     --no-cache-dir "sagemaker-pytorch-training<3" \
     --no-cache-dir fastai==1.0.59 \
