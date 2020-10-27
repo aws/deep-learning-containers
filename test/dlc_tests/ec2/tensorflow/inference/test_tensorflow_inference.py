@@ -81,11 +81,9 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     docker_run_cmd = ""
     if is_neuron:
-        setup_neuron_sidecar(ec2_connection)
         docker_run_cmd = (
             f"{docker_cmd} run -id --name {container_name} -p {grpc_port}:8500 "
-            f"--env NEURON_RTD_ADDRESS=unix:/sock/neuron.sock "
-            f"-v /tmp/neuron_rtd_sock/:/sock "
+            f"--env NEURON_RTD_ADDRESS=unix:/run/neuron.sock"
             f"--mount type=bind,source={model_path},target=/models/mnist -e TEST_MODE=1 -e MODEL_NAME=mnist"
             f" {image_uri}"
         )

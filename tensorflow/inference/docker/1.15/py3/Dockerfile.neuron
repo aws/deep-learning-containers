@@ -97,6 +97,7 @@ RUN apt-get update \
     libreadline-gplv2-dev \
     libsqlite3-dev \
     libssl-dev \
+    libcap-dev \
     tk-dev \
     python3-venv \
     && rm -rf /var/lib/apt/lists/* \
@@ -151,8 +152,12 @@ RUN curl ${TF_S3_URL}/MKL-Libraries/libiomp5.so -o /usr/local/lib/libiomp5.so \
 
 RUN echo "deb https://apt.repos.neuron.amazonaws.com bionic main" > /etc/apt/sources.list.d/neuron.list
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
-RUN apt-get update \
- && apt-get install -y tensorflow-model-server-neuron
+RUN apt-get update
+
+RUN apt-get install -y \
+    tensorflow-model-server-neuron \
+    aws-neuron-runtime \
+    aws-neuron-tools
 
 # Expose ports
 # gRPC and REST
@@ -174,4 +179,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 
-CMD ["/usr/bin/tf_serving_entrypoint.sh"]
+COPY entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+CMD ["/usr/local/bin/entrypoint.sh"]
+
