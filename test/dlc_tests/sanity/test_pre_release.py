@@ -300,7 +300,7 @@ def test_sm_pysdk_2(tensorflow_training):
     If you find that the training image under test does not have sagemaker pysdk, it should be added or explicitly
     skipped (with reasoning provided).
 
-    :param tensorflow_training: training ECR image URI - to be updated to simply "training" when mx/pt are added
+    :param tensorflow_training: training ECR image URI - TODO: update to simply "training" when mx/pt are added
     """
     image_uri = tensorflow_training
 

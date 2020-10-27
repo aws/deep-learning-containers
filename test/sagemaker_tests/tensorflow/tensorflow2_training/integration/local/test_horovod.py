@@ -79,7 +79,8 @@ def _run_distributed_training_horovod_basic(
         sagemaker_session=sagemaker_local_session,
         instance_count=instances,
         image_uri=docker_image,
-        output_path=output_path, framework_version=framework_version,
+        output_path=output_path,
+        framework_version=framework_version,
     )
 
     estimator.fit("file://{}".format(os.path.join(RESOURCE_PATH, "mnist", "data-distributed")))
