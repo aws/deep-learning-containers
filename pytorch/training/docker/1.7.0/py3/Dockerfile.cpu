@@ -5,7 +5,7 @@ LABEL dlc_major_version="1"
 
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.6.10
-ARG OPEN_MPI_VERSION=4.0.1
+ARG OPEN_MPI_VERSION=4.0.3
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.

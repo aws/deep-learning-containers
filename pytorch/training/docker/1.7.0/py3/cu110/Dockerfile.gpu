@@ -5,7 +5,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON_VERSION=3.6.10
-ARG OPEN_MPI_VERSION=4.0.1
+ARG OPEN_MPI_VERSION=4.0.3
 ARG CUBLAS_VERSION=11.2.0.252-1_amd64
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
