@@ -21,7 +21,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
 ENV PATH="$PATH:/sagemaker"
-ENV LD_LIBRARY_PATH='/usr/local/lib:$LD_LIBRARY_PATH'
+ENV LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
 ENV MODEL_BASE_PATH=/models
 # The only required piece is the model name in order to differentiate endpoints
 ENV MODEL_NAME=model

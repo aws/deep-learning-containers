@@ -15,8 +15,7 @@ ARG MMS_VERSION=1.1.2
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib/"
-ENV LD_LIBRARY_PATH="/opt/conda/lib/:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp

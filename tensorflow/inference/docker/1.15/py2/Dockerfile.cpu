@@ -66,7 +66,7 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
 RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/MKL-Libraries/libiomp5.so -o /usr/local/lib/libiomp5.so
 RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/MKL-Libraries/libmklml_intel.so -o /usr/local/lib/libmklml_intel.so
 
-ENV LD_LIBRARY_PATH '/usr/local/lib:$LD_LIBRARY_PATH'
+ENV LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
 
 RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.3/Serving/CPU-WITH-MKL/tensorflow_model_server -o /usr/bin/tensorflow_model_server \
  && chmod 555 /usr/bin/tensorflow_model_server

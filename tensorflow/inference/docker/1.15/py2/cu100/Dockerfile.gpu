@@ -109,6 +109,7 @@ EXPOSE 8500
 EXPOSE 8501
 
 # Set where models should be stored in the container
+ENV LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
 ENV MODEL_BASE_PATH=/models
 RUN mkdir -p ${MODEL_BASE_PATH}
 
