@@ -101,7 +101,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     scipy==1.2.2 \
     click \
     smdebug==${SMDEBUG_VERSION} \
-    "sagemaker<2" \
+    "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-pytorch-training<3" \
     psutil==5.6.7 \

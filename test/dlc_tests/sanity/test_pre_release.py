@@ -290,30 +290,29 @@ def test_emacs(image):
 
 @pytest.mark.model("N/A")
 @pytest.mark.integration("sagemaker python sdk")
-def test_sm_pysdk_2(tensorflow_training):
+def test_sm_pysdk_2(training):
     """
-    Simply verify that we have sagemaker > 2 in the python sdk.
+    Simply verify that we have sagemaker > 2.0 in the python sdk.
 
-    If you find that this test is failing because sm pysdk version is not greater than 2, then that means that
+    If you find that this test is failing because sm pysdk version is not greater than 2.0, then that means that
     the image under test needs to be updated.
 
     If you find that the training image under test does not have sagemaker pysdk, it should be added or explicitly
     skipped (with reasoning provided).
 
-    :param tensorflow_training: training ECR image URI - TODO: update to simply "training" when mx/pt are added
+    :param training: training ECR image URI
     """
-    image_uri = tensorflow_training
 
-    # Ensure that sm pysdk2 is on the container
+    # Ensure that sm py sdk 2 is on the container
     ctx = Context()
-    container_name = _get_container_name("sm_pysdk", image_uri)
-    _start_container(container_name, image_uri, ctx)
+    container_name = _get_container_name("sm_pysdk", training)
+    _start_container(container_name, training, ctx)
 
     sm_version = _run_cmd_on_container(
-        container_name, ctx, "import sagemaker; print(sagemaker.__version__)", warn=True, executable="python"
+        container_name, ctx, "import sagemaker; print(sagemaker.__version__)", executable="python"
     ).stdout.strip()
 
-    assert Version(sm_version) > Version("2"), f"Sagemaker version should be greater than 2. Found version {sm_version}"
+    assert Version(sm_version) > Version("2"), f"Sagemaker version should be > 2.0. Found version {sm_version}"
 
 
 @pytest.mark.model("N/A")
