@@ -45,7 +45,7 @@ UL_AMI_LIST = [
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 #NEURON_AL2_DLAMI = "ami-096792e5e9fd5f7fd"
-NEURON_AL2_DLAMI = "ami-0aca45362a46db801"
+NEURON_AL2_DLAMI = "ami-0e681fa74a86cd413"
 
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
