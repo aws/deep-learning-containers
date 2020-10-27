@@ -86,6 +86,9 @@ def _get_safety_ignore_list(image_uri):
                 (framework == "pytorch" and job_type == "training" and "1.5" in image_uri):
             additional_skips.append('38414')
 
+    # 38932 is for cryptography warning, which affects the latest package
+    additional_skips.append('38932')
+
     return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, []) + additional_skips
 
 
@@ -111,9 +114,9 @@ def _get_latest_package_version(docker_exec_cmd, package, num_tries=3):
 
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
-@pytest.mark.skipif(not is_mainline_context(),
-                    reason="Skipping the test to decrease the number of calls to the Safety Check DB. "
-                           "Test will be executed in the 'mainline' pipeline only")
+# @pytest.mark.skipif(not is_mainline_context(),
+#                     reason="Skipping the test to decrease the number of calls to the Safety Check DB. "
+#                            "Test will be executed in the 'mainline' pipeline only")
 def test_safety(image):
     """
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
