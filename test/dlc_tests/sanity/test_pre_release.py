@@ -1,6 +1,8 @@
 import os
 import re
 
+from packaging.version import Version
+
 import pytest
 
 from invoke.context import Context
@@ -187,13 +189,15 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
 @pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_cpu(cpu, ec2_connection):
     container_name = "dep_check_cpu"
-    report_addon = _get_container_name('depcheck-report', cpu)
+    report_addon = _get_container_name("depcheck-report", cpu)
     dependency_check_report = f"{report_addon}.html"
-    test_script = os.path.join(CONTAINER_TESTS_PREFIX, 'testDependencyCheck')
+    test_script = os.path.join(CONTAINER_TESTS_PREFIX, "testDependencyCheck")
     ec2.execute_ec2_training_test(ec2_connection, cpu, test_script, container_name=container_name)
 
     if is_dlc_cicd_context():
-        ec2_connection.run(f"docker cp {container_name}:/build/dependency-check-report.html ~/{dependency_check_report}")
+        ec2_connection.run(
+            f"docker cp {container_name}:/build/dependency-check-report.html ~/{dependency_check_report}"
+        )
         ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
 
 
@@ -202,13 +206,15 @@ def test_dependency_check_cpu(cpu, ec2_connection):
 @pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_gpu(gpu, ec2_connection):
     container_name = "dep_check_gpu"
-    report_addon = _get_container_name('depcheck-report', gpu)
+    report_addon = _get_container_name("depcheck-report", gpu)
     dependency_check_report = f"{report_addon}.html"
-    test_script = os.path.join(CONTAINER_TESTS_PREFIX, 'testDependencyCheck')
+    test_script = os.path.join(CONTAINER_TESTS_PREFIX, "testDependencyCheck")
     ec2.execute_ec2_training_test(ec2_connection, gpu, test_script, container_name=container_name)
 
     if is_dlc_cicd_context():
-        ec2_connection.run(f"docker cp {container_name}:/build/dependency-check-report.html ~/{dependency_check_report}")
+        ec2_connection.run(
+            f"docker cp {container_name}:/build/dependency-check-report.html ~/{dependency_check_report}"
+        )
         ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
 
 
@@ -280,6 +286,34 @@ def test_emacs(image):
     # Make sure the following emacs sanity tests exit with code 0
     _run_cmd_on_container(container_name, ctx, "which emacs")
     _run_cmd_on_container(container_name, ctx, "emacs -version")
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.integration("sagemaker python sdk")
+def test_sm_pysdk_2(tensorflow_training):
+    """
+    Simply verify that we have sagemaker > 2 in the python sdk.
+
+    If you find that this test is failing because sm pysdk version is not greater than 2, then that means that
+    the image under test needs to be updated.
+
+    If you find that the training image under test does not have sagemaker pysdk, it should be added or explicitly
+    skipped (with reasoning provided).
+
+    :param tensorflow_training: training ECR image URI - TODO: update to simply "training" when mx/pt are added
+    """
+    image_uri = tensorflow_training
+
+    # Ensure that sm pysdk2 is on the container
+    ctx = Context()
+    container_name = _get_container_name("sm_pysdk", image_uri)
+    _start_container(container_name, image_uri, ctx)
+
+    sm_version = _run_cmd_on_container(
+        container_name, ctx, "import sagemaker; print(sagemaker.__version__)", warn=True, executable="python"
+    ).stdout.strip()
+
+    assert Version(sm_version) > Version("2"), f"Sagemaker version should be greater than 2. Found version {sm_version}"
 
 
 @pytest.mark.model("N/A")
