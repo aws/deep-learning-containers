@@ -138,7 +138,7 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
     )
     if os.path.exists(f"{serving_folder_path}"):
         ec2_connection.run(f"rm -rf {serving_folder_path}")
-    if str(framework_version).startswith(TENSORFLOW1_VERSION) and not is_neuron:
+    if str(framework_version).startswith(TENSORFLOW1_VERSION):
         run_out = ec2_connection.run(
             f"git clone https://github.com/tensorflow/serving.git {serving_folder_path}"
         )
@@ -147,16 +147,16 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
             f"cd {serving_folder_path} && git checkout r{git_branch_version}"
         )
         LOGGER.info(f"Clone TF serving repository status {run_out.return_code == 0}")
-    elif is_neuron:
-        neuron_model_file_path = os.path.join(serving_folder_path, f"models/{model_name}/1")
-        neuron_model_file = os.path.join(neuron_model_file_path, "saved_model.pb")
-        LOGGER.info(f"Host Modle path {neuron_model_file_path}")
-        ec2_connection.run(f"mkdir -p {neuron_model_file_path}")
-        model_file_path = f"https://aws-dlc-sample-models.s3.amazonaws.com/{model_name}_neuron/1/saved_model.pb"
-        model_dwld = (
-            f"wget -O {neuron_model_file} {model_file_path} "
-        )
-        ec2_connection.run(model_dwld)
+        if is_neuron:
+            neuron_model_file_path = os.path.join(serving_folder_path, f"models/{model_name}/1")
+            neuron_model_file = os.path.join(neuron_model_file_path, "saved_model.pb")
+            LOGGER.info(f"Host Modle path {neuron_model_file_path}")
+            ec2_connection.run(f"mkdir -p {neuron_model_file_path}")
+            model_file_path = f"https://aws-dlc-sample-models.s3.amazonaws.com/{model_name}_neuron/1/saved_model.pb"
+            model_dwld = (
+                f"wget -O {neuron_model_file} {model_file_path} "
+            )
+            ec2_connection.run(model_dwld)
     else:
         local_scripts_path = os.path.join("container_tests", "bin", "tensorflow_serving")
         ec2_connection.run(f"mkdir -p {serving_folder_path}")
