@@ -118,6 +118,7 @@ RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params
 RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
 
 ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib/"
 # Resolve missing libcuda.so issue
 RUN cp /usr/local/cuda-10.0/extras/CUPTI/lib64/libcupti* /usr/local/cuda/lib64/
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64/:$LD_LIBRARY_PATH
