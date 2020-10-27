@@ -12,7 +12,7 @@ pytest-rerunfailures==9.0
 pytest-xdist
 requests==2.24
 mock
-sagemaker<2
+sagemaker>=2,<3
 docker-compose
 boto3
 six==1.13.0

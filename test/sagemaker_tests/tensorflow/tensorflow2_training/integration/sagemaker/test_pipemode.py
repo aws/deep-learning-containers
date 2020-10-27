@@ -18,7 +18,7 @@ import uuid
 
 import pytest
 from .recordio_utils import build_record_file, build_single_record_file
-from sagemaker import s3_input
+from sagemaker import TrainingInput
 from sagemaker.tensorflow import TensorFlow
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
@@ -78,15 +78,14 @@ def run_test(sagemaker_session, ecr_image, instance_type, framework_version, tes
     script = os.path.join(source_path, 'pipemode.py')
     estimator = TensorFlow(entry_point=script,
                            role='SageMakerRole',
-                           train_instance_type=instance_type,
-                           train_instance_count=1,
+                           instance_type=instance_type,
+                           instance_count=1,
                            sagemaker_session=sagemaker_session,
-                           image_name=ecr_image,
+                           image_uri=ecr_image,
                            framework_version=framework_version,
-                           script_mode=True,
                            input_mode='Pipe',
                            hyperparameters={'dimension': DIMENSION})
-    input = s3_input(s3_data=test_data,
+    input = TrainingInput(s3_data=test_data,
                      distribution='FullyReplicated',
                      record_wrapping=record_wrapper_type,
                      input_mode='Pipe')
