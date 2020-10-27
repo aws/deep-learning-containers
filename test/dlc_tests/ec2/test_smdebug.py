@@ -61,7 +61,7 @@ def run_smdebug_test(
             f"{container_test_local_dir}:{os.path.join(os.sep, 'test')}{shm_setting}{image_uri} "
             f"./{test_script} {framework}",
             hide=True,
-            timeout=3000,
+            timeout=20000,
         )
     except Exception as e:
         debug_output = ec2_connection.run(f"docker logs {container_name}")
