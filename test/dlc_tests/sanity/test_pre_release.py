@@ -6,7 +6,6 @@ from packaging.version import Version
 import pytest
 
 from invoke.context import Context
-from packaging.version import Version
 
 from test.test_utils import (
     LOGGER,
