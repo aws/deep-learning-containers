@@ -355,8 +355,6 @@ def test_ld_library_path(image):
     :param image: <str> Image URI
     """
     framework, _ = get_framework_and_version_from_tag(image)
-    if framework == "tensorflow":
-        pytest.xfail("The env variable `/usr/local/lib` has not been added into GPU TF images.")
     ctx = Context()
     container_name = _get_container_name("ld_library_path", image)
     _start_container(container_name, image, ctx)
