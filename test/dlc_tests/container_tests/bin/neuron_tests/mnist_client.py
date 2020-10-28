@@ -33,8 +33,6 @@ import threading
 
 import subprocess
 
-subprocess.check_call([sys.executable, "-m", "pip", "install", "grpcio"])
-
 
 # This is a placeholder for a Google-internal import.
 
