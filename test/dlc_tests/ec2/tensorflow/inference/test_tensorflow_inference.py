@@ -150,7 +150,7 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
         LOGGER.info(f"Clone TF serving repository status {run_out.return_code == 0}")
         if is_neuron:
             container_test_local_file = os.path.join("$HOME", "container_tests/bin/neuron_tests/mnist_client.py")
-            ec2_connection.run(f"cp -f {container_test_local_dir} {serving_folder_path}/tensorflow_serving/example")
+            ec2_connection.run(f"cp -f {container_test_local_file} {serving_folder_path}/tensorflow_serving/example")
             neuron_model_file_path = os.path.join(serving_folder_path, f"models/{model_name}/1")
             neuron_model_file = os.path.join(neuron_model_file_path, "saved_model.pb")
             LOGGER.info(f"Host Modle path {neuron_model_file_path}")
