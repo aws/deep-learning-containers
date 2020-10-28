@@ -146,6 +146,7 @@ RUN ${PIP} install --no-cache-dir -U \
     sagemaker-experiments==0.* \
     "cryptography>=2.3" \
     "sagemaker-tensorflow>=1.15,<1.16" \
+    "sagemaker-tensorflow-training>=10,<20" \
     && ${PIP} install --no-cache-dir -U \
        "awscli<2" \
     && ${PIP} install  tensorflow_serving_api --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
