@@ -135,7 +135,7 @@ RUN pip install \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     --no-cache-dir "sagemaker-pytorch-training<3" \
-    --no-cache-dir fastai==2.0.16 \
+    --no-cache-dir fastai==1.0.61 \
     "awscli<2" \
     psutil \
     Pillow \

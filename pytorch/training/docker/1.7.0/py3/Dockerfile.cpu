@@ -80,7 +80,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
     "awscli<2" \
-    fastai==2.0.16 \
+    fastai==1.0.61 \
     scipy==1.2.2 \
     click \
     smdebug==${SMDEBUG_VERSION} \
