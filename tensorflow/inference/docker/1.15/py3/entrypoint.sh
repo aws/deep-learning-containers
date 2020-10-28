@@ -34,6 +34,8 @@ wait_for_nrtd() {
   cat /tmp/nrtd.log
 }
 
+python /usr/local/bin/deep_learning_container.py >> /dev/null &
+
 # Start neuron-rtd
 /opt/aws/neuron/bin/neuron-rtd -g unix:/run/neuron.sock --log-console  >>  /tmp/nrtd.log 2>&1 &
 nrtd_pid=$!
