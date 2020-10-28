@@ -109,6 +109,15 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && ./configure && make && make install \
  && make && make install && rm -rf ../Python-$PYTHON_VERSION*
 
+RUN echo "deb https://apt.repos.neuron.amazonaws.com bionic main" > /etc/apt/sources.list.d/neuron.list
+RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
+RUN apt-get update
+
+RUN apt-get install -y \
+    tensorflow-model-server-neuron \
+    aws-neuron-runtime \
+    aws-neuron-tools
+
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
@@ -150,14 +159,6 @@ RUN ${PIP} install --no-cache-dir -U \
 RUN curl ${TF_S3_URL}/MKL-Libraries/libiomp5.so -o /usr/local/lib/libiomp5.so \
 && curl ${TF_S3_URL}/MKL-Libraries/libmklml_intel.so -o /usr/local/lib/libmklml_intel.so
 
-RUN echo "deb https://apt.repos.neuron.amazonaws.com bionic main" > /etc/apt/sources.list.d/neuron.list
-RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
-RUN apt-get update
-
-RUN apt-get install -y \
-    tensorflow-model-server-neuron \
-    aws-neuron-runtime \
-    aws-neuron-tools
 
 # Expose ports
 # gRPC and REST
