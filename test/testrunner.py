@@ -186,7 +186,7 @@ def pull_dlc_images(images):
         run(f"docker pull {image}", hide="out")
 
 
-def setup_eks_cluster(framework_name):
+def setup_eks_cluster(framework_name, is_neuron):
     frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
     long_name = framework_name
     short_name = frameworks[long_name]
@@ -196,7 +196,10 @@ def setup_eks_cluster(framework_name):
                    f"{codebuild_version}-{random.randint(1, 10000)}"
     try:
         eks_utils.eks_setup()
-        eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
+        if is_neuron:
+            eks_utils.create_eks_cluster(cluster_name, "neuron", num_nodes, "inf1.xlarge", "pytest.pem")
+        else:
+            eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
     except Exception:
         eks_utils.delete_eks_cluster(cluster_name)
         raise
@@ -283,7 +286,10 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
-            eks_cluster_name = setup_eks_cluster(framework)
+            is_neuron = False
+            if "neuron" in dlc_images:
+                is_neuron = True
+            eks_cluster_name = setup_eks_cluster(framework, is_neuron)
 
             # setup kubeflow
             eks_utils.setup_kubeflow(eks_cluster_name)
