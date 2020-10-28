@@ -30,11 +30,15 @@ P3DN_REGION = "us-east-1"
 # Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
 UBUNTU_16_BASE_DLAMI_US_WEST_2 = "ami-0e5a388144f62e4f5"
 UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0da7f2daf5e92c6f2"
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-016cebe2c5b2257db"
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-0e03b889434a51f52"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 UL_AMI_LIST = [
     UBUNTU_16_BASE_DLAMI_US_WEST_2,
     UBUNTU_16_BASE_DLAMI_US_EAST_1,
+    UBUNTU_18_BASE_DLAMI_US_EAST_1,
+    UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
 ]
@@ -657,9 +661,24 @@ def get_framework_and_version_from_tag(image_uri):
             f"Cannot find framework in image uri {image_uri} " f"from allowed frameworks {allowed_frameworks}"
         )
 
-    tag_framework_version = image_uri.split(":")[-1].split("-")[0]
+    tag_framework_version = re.search(r"(\d+(\.\d+){2})", image_uri).groups()[0]
 
     return tested_framework, tag_framework_version
+
+
+def get_cuda_version_from_tag(image_uri):
+    """
+    Return the cuda version from the image tag.
+    :param image_uri: ECR image URI
+    :return: cuda version
+    """
+    cuda_framework_version = None
+
+    cuda_str = ["cu", "gpu"]
+    if all(keyword in image_uri for keyword in cuda_str):
+        cuda_framework_version = re.search(r"(cu\d+)-", image_uri).groups()[0]
+
+    return cuda_framework_version
 
 
 def get_job_type_from_image(image_uri):
