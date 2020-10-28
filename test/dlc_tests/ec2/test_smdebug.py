@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER, is_tf_version
+from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER, is_tf_version, is_nightly_context
 from test.test_utils.ec2 import get_ec2_instance_type
 
 
@@ -18,6 +18,13 @@ SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", proc
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.flaky(reruns=0)
 def test_smdebug_gpu(training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only):
+    smdebug_test_timeout = 2400
+    if is_tf_version("1", training):
+        if is_nightly_context():
+            smdebug_test_timeout = 7200
+        else:
+            pytest.skip("TF1 gpu smdebug tests can take up to 2 hours, thus we are only running in nightly context")
+
     run_smdebug_test(
         training,
         ec2_connection,
@@ -25,6 +32,7 @@ def test_smdebug_gpu(training, ec2_connection, region, ec2_instance_type, gpu_on
         ec2_instance_type,
         docker_executable="nvidia-docker",
         container_name="smdebug-gpu",
+        timeout=smdebug_test_timeout
     )
 
 
@@ -48,6 +56,7 @@ def run_smdebug_test(
     docker_executable="docker",
     container_name="smdebug",
     test_script=SMDEBUG_SCRIPT,
+    timeout=2400,
 ):
     large_shm_instance_types = ("p2.8xlarge", "m4.16xlarge")
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
@@ -61,7 +70,7 @@ def run_smdebug_test(
             f"{container_test_local_dir}:{os.path.join(os.sep, 'test')}{shm_setting}{image_uri} "
             f"./{test_script} {framework}",
             hide=True,
-            timeout=2400,
+            timeout=timeout,
         )
     except Exception as e:
         debug_output = ec2_connection.run(f"docker logs {container_name}")
