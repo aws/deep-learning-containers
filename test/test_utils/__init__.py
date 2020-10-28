@@ -44,7 +44,6 @@ UL_AMI_LIST = [
 ]
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
-#NEURON_AL2_DLAMI = "ami-096792e5e9fd5f7fd"
 NEURON_AL2_DLAMI = "ami-092059396c7e51f52"
 
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
@@ -729,7 +728,7 @@ def get_processor_from_image_uri(image_uri):
     :param image_uri: ECR image URI
     :return: cpu, gpu, or eia
     """
-    allowed_processors = ("cpu", "gpu", "eia")
+    allowed_processors = ("cpu", "gpu", "eia", "neuron")
 
     for processor in allowed_processors:
         match = re.search(rf"-({processor})", image_uri)
