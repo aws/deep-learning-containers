@@ -11,21 +11,14 @@ wait_for_nrtd() {
   pid=$1
   while $is_wait; do
     if [ -S "$nrtd_sock" ]; then
-      echo "$nrtd_sock Exist. exiting"
+      echo "$nrtd_sock Exist..."
       is_wait=false
     else
-      kill -s 0 $pid
-      ret=$?
-      if [ "$ret" -ne "0" ]; then
-        echo "neuron-rtd exited with error"
-	cat /tmp/nrtd.log
-	exit 1
-      fi
       sleep 1
       wait_time=$((wait_time + 1))
       if [ "$wait_time" -gt "$SOCKET_TIMEOUT" ]; then
         echo "neuron-rtd failed to start, exiting"
-	cat /tmp/nrtd.log
+	      cat /tmp/nrtd.log
         exit 1
       fi
       printf "\b${sp:i++%${#sp}:1}"
@@ -36,12 +29,17 @@ wait_for_nrtd() {
 
 python /usr/local/bin/deep_learning_container.py >> /dev/null &
 
-# Start neuron-rtd
-/opt/aws/neuron/bin/neuron-rtd -g unix:/run/neuron.sock --log-console  >>  /tmp/nrtd.log 2>&1 &
-nrtd_pid=$!
-echo "NRTD PID: "$nrtd_pid""
-#wait for nrtd to be up (5 minutes timeout)
-wait_for_nrtd $nrtd_pid
+if [[ -z "${NEURON_RTD_ADDRESS}" ]]; then
+  # Start neuron-rtd
+  /opt/aws/neuron/bin/neuron-rtd -g unix:/run/neuron.sock --log-console  >>  /tmp/nrtd.log 2>&1 &
+  nrtd_pid=$!
+  echo "NRTD PID: "$nrtd_pid""
+  #wait for nrtd to be up (5 minutes timeout)
+  wait_for_nrtd $nrtd_pid
+  export NEURON_RTD_ADDRESS=unix:/run/neuron.sock
+else
+  echo "Neuron RTD is running as a side car container...."
+fi
 
 # Start the Model Server
 /usr/local/bin/tensorflow_model_server_neuron --port=8500 --rest_api_port=8501 --model_name=${MODEL_NAME} --model_base_path=${MODEL_BASE_PATH}/${MODEL_NAME} "$@" &
