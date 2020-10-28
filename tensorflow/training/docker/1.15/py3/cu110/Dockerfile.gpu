@@ -198,7 +198,6 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    ${ESTIMATOR_URL} \
     werkzeug==1.0.1 \
     smdebug==${SMDEBUG_VERSION}
 
