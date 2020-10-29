@@ -60,15 +60,13 @@ def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2_connection, gpu_only):
-    if is_tf_version("1", tensorflow_training) and ec2_instance_type == "p3.16xlarge":
-        pytest.xfail("Test is flaky on TF1 p3.16 and has been timing out")
+def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2_connection, gpu_only, tf2_only):
     test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
     execute_ec2_training_test(
         connection=ec2_connection,
         ecr_uri=tensorflow_training,
         test_cmd=test_script,
-        large_shm=True
+        large_shm=bool(re.match(r"(p2\.8xlarge)|(g3\.16xlarge)", ec2_instance_type))
     )
 
 
