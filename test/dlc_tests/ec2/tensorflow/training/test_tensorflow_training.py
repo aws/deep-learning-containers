@@ -24,6 +24,10 @@ TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.16xlarge", processo
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="cpu")
 
 
+class TFTrainingTestFailure(Exception):
+    pass
+
+
 @pytest.mark.integration('tensorflow_sanity_test')
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
@@ -73,7 +77,9 @@ def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_on
     container_name = "tf_hvd_cpu_test"
     test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
     try:
-        execute_ec2_training_test(ec2_connection, tensorflow_training, test_script, container_name=container_name)
+        execute_ec2_training_test(
+            ec2_connection, tensorflow_training, test_script, container_name=container_name, timeout=1800
+        )
     except Exception as e:
         debug_output = ec2_connection.run(f"docker logs {container_name}")
         debug_stdout = debug_output.stdout
@@ -82,7 +88,7 @@ def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_on
                 f"TF HVD tests succeeded, but there is an issue with fabric. Error:\n{e}\nTest output:\n{debug_stdout}"
             )
             return
-        raise
+        raise TFTrainingTestFailure(f"TF HVD test. Full output:\n{debug_stdout}") from e
 
 
 @pytest.mark.integration("opencv")
