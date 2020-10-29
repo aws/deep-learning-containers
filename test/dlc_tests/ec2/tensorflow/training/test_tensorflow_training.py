@@ -78,12 +78,7 @@ def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_on
     test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
     try:
         execute_ec2_training_test(
-            ec2_connection,
-            tensorflow_training,
-            test_script,
-            container_name=container_name,
-            timeout=1800,
-            large_shm=True
+            ec2_connection, tensorflow_training, test_script, container_name=container_name, timeout=1800
         )
     except Exception as e:
         debug_output = ec2_connection.run(f"docker logs {container_name}")
