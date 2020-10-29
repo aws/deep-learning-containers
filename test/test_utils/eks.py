@@ -309,7 +309,7 @@ def create_eks_cluster(eks_cluster_name, processor_type, num_nodes, volume_size,
                                     f"--node-ami {EKS_AMI_ID[processor_type]} " \
                                     f"--nodes {num_nodes} " \
                                     f"--node-type={instance_type} " \
-                                    f"--node-volume-size={volume_size}" \
+                                    f"--node-volume-size={volume_size} " \
                                     f"--timeout=40m " \
                                     f"--ssh-access " \
                                     f"--ssh-public-key {ssh_public_key_name} " \
