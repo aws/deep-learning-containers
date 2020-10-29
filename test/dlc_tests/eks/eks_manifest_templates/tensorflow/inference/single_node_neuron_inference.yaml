@@ -41,8 +41,7 @@ spec:
       containers:
       - name: tfs-service
         image: <DOCKER_IMAGE_BUILD_ID>
-        command:
-        - ["/bin/sh","-c"]
+        command: ["/bin/sh","-c"]
         args:
         - "aws s3 sync <MODEL_BASE_PATH> /models/<MODEL_NAME> && \
         /usr/local/bin/entrypoint.sh"
