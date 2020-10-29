@@ -11,7 +11,7 @@ import test.test_utils as test_utils
 
 @pytest.mark.model("mnist")
 def test_eks_tensorflow_neuron_inference(tensorflow_inference):
-    if "eia" in tensorflow_inference and "neuron" not in tensorflow_inference:
+    if "eia" in tensorflow_inference or "neuron" not in tensorflow_inference:
         pytest.skip("Skipping EKS Neuron Test for EIA and Non Neuron Images")
     num_replicas = "1"
 
@@ -25,7 +25,6 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference):
 
     search_replace_dict = {
         "<MODEL_NAME>": model_name,
-        #"<MODEL_BASE_PATH>": f"S3://aws-dlc-sample-models/{model_name}",
         "<MODEL_BASE_PATH>": f"https://aws-dlc-sample-models.s3.amazonaws.com",
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
@@ -42,7 +41,6 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference):
     secret_yml_path = eks_utils.get_aws_secret_yml_path()
 
     try:
-        #run("kubectl apply -f {}".format(secret_yml_path))
         run("kubectl apply -f {}".format(yaml_path))
 
         port_to_forward = random.randint(49152, 65535)
@@ -61,7 +59,7 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference):
 
 @pytest.mark.model("half_plus_two")
 def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
-    if "eia" in tensorflow_inference and "neuron" in tensorflow_inference:
+    if "eia" in tensorflow_inference or "neuron" in tensorflow_inference:
         pytest.skip("Skipping EKS Test for EIA and neuron Images")
     num_replicas = "1"
 
@@ -108,7 +106,7 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
 @pytest.mark.skipif(not test_utils.is_nightly_context(), reason="Running additional model in nightly context only")
 @pytest.mark.model("albert")
 def test_eks_tensorflow_albert(tensorflow_inference):
-    if "eia" in tensorflow_inference and "neuron" in tensorflow_inference:
+    if "eia" in tensorflow_inference or "neuron" in tensorflow_inference:
         pytest.skip("Skipping EKS Test for EIA and neuron Images")
     num_replicas = "1"
 
