@@ -62,7 +62,7 @@ def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2_connection, gpu_only):
     if is_tf_version("1", tensorflow_training) and ec2_instance_type == "p3.16xlarge":
-        pytest.skip("Test is flaky on TF1 p3.16 and has been timing out")
+        pytest.xfail("Test is flaky on TF1 p3.16 and has been timing out")
     test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
     execute_ec2_training_test(
         connection=ec2_connection,
