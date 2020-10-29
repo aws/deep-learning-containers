@@ -58,6 +58,17 @@ EKS_AMI_ID = {"cpu": "ami-03086423d09685de3", "gpu": "ami-061798711b2adafb4", "n
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
 PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"
 
+def get_aws_secret_yml_path():
+
+    return os.path.join(
+        os.sep,
+        DLC_TESTS_PREFIX,
+        "eks",
+        "eks_manifest_templates",
+        "aws_access",
+        "secret.yaml",
+    )
+
 def get_single_node_training_template_path():
 
     return os.path.join(

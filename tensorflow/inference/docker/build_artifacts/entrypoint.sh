@@ -29,6 +29,7 @@ wait_for_nrtd() {
 
 python /usr/local/bin/deep_learning_container.py >> /dev/null &
 
+nrtd_present=0
 if [[ -z "${NEURON_RTD_ADDRESS}" ]]; then
   # Start neuron-rtd
   /opt/aws/neuron/bin/neuron-rtd -g unix:/run/neuron.sock --log-console  >>  /tmp/nrtd.log 2>&1 &
@@ -37,6 +38,7 @@ if [[ -z "${NEURON_RTD_ADDRESS}" ]]; then
   #wait for nrtd to be up (5 minutes timeout)
   wait_for_nrtd $nrtd_pid
   export NEURON_RTD_ADDRESS=unix:/run/neuron.sock
+  nrtd_present=1
 else
   echo "Neuron RTD is running as a side car container...."
 fi
@@ -54,14 +56,21 @@ fi
 # Otherwise it loops forever, waking up every 60 seconds
 
 while sleep 60; do
-  ps aux |grep neuron-rtd |grep -q -v grep
-  NRTD_STATUS=$?
+  if [ $nrtd_present -ne 0 ]; then
+    ps aux |grep neuron-rtd |grep -q -v grep
+    NRTD_STATUS=$?
+    if [ $NRTD_STATUS -ne 0 ]; then
+      echo "neuron-rtd service exited."
+      cat /tmp/nrtd.log
+      exit 1
+    fi
+  fi
   ps aux |grep tensorflow_model_server_neuron |grep -q -v grep
   MODEL_SERVER_STATUS=$?
   # If the greps above find anything, they exit with 0 status
   # If they are not both 0, then something is wrong
-  if [ $NRTD_STATUS -ne 0 -o $MODEL_SERVER_STATUS -ne 0 ]; then
-    echo "One of the processes has already exited."
+  if [ $MODEL_SERVER_STATUS -ne 0 ]; then
+    echo "tensorflow_model_server_neuron  has already exited."
     exit 1
   fi
 done

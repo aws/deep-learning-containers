@@ -171,32 +171,3 @@ def check_telemetry(ec2_connection, container_name):
         f'''docker exec -it {container_name} python -c {telemetry_cmd} ''',
         hide=True, warn=True
     )
-
-def setup_neuron_sidecar(ec2_connection):
-    neuron_ecr_registry = 790709498068
-    region = "us-west-2"
-    nrtd_tag = "neuron-rtd"
-    ecr_login_cmd = f"$(aws ecr get-login --no-include-email --region {region} --registry-ids {neuron_ecr_registry})"
-    ecr_pull_cmd = f"docker pull {neuron_ecr_registry}.dkr.ecr.{region}.amazonaws.com/neuron-rtd:latest"
-    docker_tag_cmd = f"docker tag {neuron_ecr_registry}.dkr.ecr.{region}.amazonaws.com/neuron-rtd:latest {nrtd_tag}"
-
-    ec2_connection.run(f"newgrp docker")
-    ec2_connection.run(f"sudo service docker restart")
-    ec2_connection.run(f"sudo chmod 666 /var/run/docker.sock")
-    ec2_connection.run(f"sudo usermod -aG docker $USER")
-    ec2_connection.run(f"sudo systemctl stop neuron-rtd")
-
-    ec2_connection.run(ecr_login_cmd, hide=True)
-    ec2_connection.run(ecr_pull_cmd, hide=True)
-    ec2_connection.run(docker_tag_cmd, hide=True)
-
-    #ec2_connection.run(f"sudo cp /opt/aws/neuron/share/docker-daemon.json /etc/docker/daemon.json")
-    #ec2_connection.run(f"sudo service docker restart")
-
-    socket_dir = "/tmp/neuron_rtd_sock"
-    ec2_connection.run(f"mkdir -p {socket_dir}")
-    ec2_connection.run(f"chmod o+rwx {socket_dir}")
-    
-    neuron_devices = "ALL"
-    docker_run_cmd = f"docker run --env AWS_NEURON_VISIBLE_DEVICES={neuron_devices} --cap-add SYS_ADMIN --cap-add IPC_LOCK -v {socket_dir} {nrtd_tag}"
-    ec2_connection.run(docker_run_cmd, hide=True)
