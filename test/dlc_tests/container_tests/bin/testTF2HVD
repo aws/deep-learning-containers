@@ -20,4 +20,5 @@ pip install typeguard
 
 ${BIN_DIR}/testTF2HVDHelper || exit 1
 
+echo "TF HVD tests passed!"
 exit 0

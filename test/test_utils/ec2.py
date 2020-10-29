@@ -404,6 +404,7 @@ def execute_ec2_training_test(
     large_shm=False,
     host_network=False,
     container_name="ec2_training_container",
+    timeout=3000,
 ):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
@@ -424,7 +425,7 @@ def execute_ec2_training_test(
         hide=True,
     )
     return connection.run(
-        f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'", hide=True, timeout=3000,
+        f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'", hide=True, timeout=timeout,
     )
 
 
