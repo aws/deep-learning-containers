@@ -94,6 +94,7 @@ RUN conda install -c \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
+    "cryptography>3.2" \
  && conda install -y -c pytorch torchserve=$TS_VERSION \
  && conda install -y -c pytorch torch-model-archiver=$TS_VERSION
 
