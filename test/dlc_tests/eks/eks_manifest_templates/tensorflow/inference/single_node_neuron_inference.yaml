@@ -43,8 +43,7 @@ spec:
         image: <DOCKER_IMAGE_BUILD_ID>
         command: ["/bin/sh","-c"]
         args:
-        - "aws s3 sync <MODEL_BASE_PATH> /models/<MODEL_NAME> && \
-        /usr/local/bin/entrypoint.sh"
+        - "/usr/local/bin/entrypoint.sh"
         ports:
         - containerPort: 8500
         - containerPort: 8501
@@ -56,6 +55,8 @@ spec:
         env:
         - name: MODEL_NAME
           value: <MODEL_NAME>
+        - name: MODEL_BASE_PATH
+          value: <MODEL_BASE_PATH>
         - name: AWS_REGION
           value: us-east-1
         - name: S3_USE_HTTPS

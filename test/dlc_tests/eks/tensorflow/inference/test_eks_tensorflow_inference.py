@@ -25,7 +25,8 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference):
 
     search_replace_dict = {
         "<MODEL_NAME>": model_name,
-        "<MODEL_BASE_PATH>": f"S3://aws-dlc-sample-models/{model_name}",
+        #"<MODEL_BASE_PATH>": f"S3://aws-dlc-sample-models/{model_name}",
+        "<MODEL_BASE_PATH>": f"https://aws-dlc-sample-models.s3.amazonaws.com",
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
@@ -41,7 +42,7 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference):
     secret_yml_path = eks_utils.get_aws_secret_yml_path()
 
     try:
-        run("kubectl apply -f {}".format(secret_yml_path))
+        #run("kubectl apply -f {}".format(secret_yml_path))
         run("kubectl apply -f {}".format(yaml_path))
 
         port_to_forward = random.randint(49152, 65535)
