@@ -29,8 +29,8 @@ ENV DGLBACKEND=pytorch
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
-ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.0_aws/20201023-100208/7626c0c94565c7f94d05dd25dda3b29500037017/gpu/torch-1.7.0-cp36-cp36m-manylinux1_x86_64.whl
-ARG PT_TORCHVISION_URL=https://choidong-dev.s3-us-west-2.amazonaws.com/torchvision-0.8.0/cu110/torchvision-0.8.0-cp36-cp36m-linux_x86_64.whl
+ARG PT_TRAINING_URL=https://choidong-dev.s3-us-west-2.amazonaws.com/1.7.0/gpu/train/torch-1.7.0-cp36-cp36m-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://choidong-dev.s3-us-west-2.amazonaws.com/1.7.0/gpu/torchvision-0.8.1-cp36-cp36m-manylinux1_x86_64.whl
 
 RUN apt-get update \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
