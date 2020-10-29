@@ -55,7 +55,7 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
         run(f"kubectl delete service {selector_name}")
 
 
-@pytest.mark.skip(reason="Skip this test on PR and Mainline")
+@pytest.mark.skipif(not test_utils.is_nightly_context(), reason="Running additional model in nightly context only")
 @pytest.mark.model("albert")
 def test_eks_tensorflow_albert(tensorflow_inference):
     if "eia" in tensorflow_inference:

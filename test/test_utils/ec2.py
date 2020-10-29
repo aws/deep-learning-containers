@@ -14,6 +14,9 @@ from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
+# List of instance types for which if instance spin-up fails, the test is skipped instead of failing.
+ICE_SKIP_INSTANCE_LIST = ["p3dn.24xlarge"]
+
 
 def get_ec2_instance_type(default, processor, disable_p3dn=False):
     """
@@ -401,6 +404,7 @@ def execute_ec2_training_test(
     large_shm=False,
     host_network=False,
     container_name="ec2_training_container",
+    timeout=3000,
 ):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
@@ -421,7 +425,7 @@ def execute_ec2_training_test(
         hide=True,
     )
     return connection.run(
-        f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'", hide=True, timeout=3000,
+        f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'", hide=True, timeout=timeout,
     )
 
 
