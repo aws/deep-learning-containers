@@ -23,7 +23,8 @@ from test_utils import (
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
     setup_sm_benchmark_mx_train_env,
-    get_framework_and_version_from_tag)
+    get_framework_and_version_from_tag,
+)
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 
 
@@ -43,10 +44,8 @@ def run_sagemaker_local_tests(images):
     framework, _ = get_framework_and_version_from_tag(images[0])
     sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
-    run(
-        f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
-    ec2_client = boto3.client("ec2", config=Config(
-        retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
+    run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
+    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
     for image in images:
         sm_utils.execute_local_tests(image, ec2_client)
 
@@ -65,13 +64,11 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
     import log_return
 
     LOGGER.info("Started running SageMaker test.....")
-    pytest_command, path, tag, job_type = sm_utils.generate_sagemaker_pytest_cmd(
-        image, "sagemaker")
+    pytest_command, path, tag, job_type = sm_utils.generate_sagemaker_pytest_cmd(image, "sagemaker")
 
     # update resource pool accordingly, then add a try-catch statement here to update the pool in case of failure
     try:
-        log_return.update_pool("running", instance_type,
-                               num_of_instances, job_type)
+        log_return.update_pool("running", instance_type, num_of_instances, job_type)
         context = Context()
         with context.cd(path):
             context.run(f"python3 -m virtualenv {tag}")
@@ -114,8 +111,7 @@ def send_scheduler_requests(requester, image):
         if test_status == "completed":
             LOGGER.info(f"Test for image {image} completed.")
             logs_response = requester.receive_logs(identifier)
-            LOGGER.info(
-                f"Receive logs success for ticket {identifier.ticket_name}, report path: {report_path}")
+            LOGGER.info(f"Receive logs success for ticket {identifier.ticket_name}, report path: {report_path}")
             print_log_stream(logs_response)
             metrics_utils.send_test_result_metrics(0)
             with open(report_path, "w") as xml_report:
@@ -133,8 +129,7 @@ def send_scheduler_requests(requester, image):
 
         elif test_status == "failed":
             metrics_utils.send_test_result_metrics(1)
-            raise Exception(
-                f"Scheduling failed for image {image}. Reason: {query_status_response['reason']}")
+            raise Exception(f"Scheduling failed for image {image}. Reason: {query_status_response['reason']}")
             break
 
 
@@ -153,21 +148,17 @@ def run_sagemaker_remote_tests(images):
         num_of_instances = os.getenv("NUM_INSTANCES")
         image = images[0]
         job_type = "training" if "training" in image else "inference"
-        instance_type = sm_utils.assign_sagemaker_remote_job_instance_type(
-            image)
-        test_succeeded = run_sagemaker_test_in_executor(
-            image, num_of_instances, instance_type)
+        instance_type = sm_utils.assign_sagemaker_remote_job_instance_type(image)
+        test_succeeded = run_sagemaker_test_in_executor(image, num_of_instances, instance_type)
 
         tag = image.split("/")[-1].split(":")[-1]
         test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
 
         # update in-progress pool, send the xml reports
         if test_succeeded:
-            log_return.update_pool(
-                "completed", instance_type, num_of_instances, job_type, test_report)
+            log_return.update_pool("completed", instance_type, num_of_instances, job_type, test_report)
         else:
-            log_return.update_pool(
-                "runtimeError", instance_type, num_of_instances, job_type, test_report)
+            log_return.update_pool("runtimeError", instance_type, num_of_instances, job_type, test_report)
         return
 
     elif use_scheduler:
@@ -177,8 +168,7 @@ def run_sagemaker_remote_tests(images):
 
         job_requester = JobRequester()
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(images)) as executor:
-            futures = [executor.submit(
-                send_scheduler_requests, job_requester, image) for image in images]
+            futures = [executor.submit(send_scheduler_requests, job_requester, image) for image in images]
             for future in futures:
                 future.result()
     else:
@@ -201,22 +191,19 @@ def setup_eks_cluster(framework_name, is_neuron):
     frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
     long_name = framework_name
     short_name = frameworks[long_name]
-    codebuild_version = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')[0:7]
+    codebuild_version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")[0:7]
     num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
-    cluster_name = f"dlc-{short_name}-cluster-" \
-                   f"{codebuild_version}-{random.randint(1, 10000)}"
-    #deafult volume size
+    cluster_name = f"dlc-{short_name}-cluster-" f"{codebuild_version}-{random.randint(1, 10000)}"
+    # default volume size
     volume_size = 80
     try:
         eks_utils.eks_setup()
         if is_neuron:
-            #FIXME the eks optimized AMI used for neuron is 500GB
+            # FIXME the eks optimized AMI used for neuron is 500GB
             volume_size = 500
-            eks_utils.create_eks_cluster(
-                cluster_name, "neuron", num_nodes, volume_size, "inf1.xlarge", "pytest.pem")
+            eks_utils.create_eks_cluster(cluster_name, "neuron", num_nodes, volume_size, "inf1.xlarge", "pytest.pem")
         else:
-            eks_utils.create_eks_cluster(
-                cluster_name, "gpu", num_nodes, volume_size, "p3.16xlarge", "pytest.pem")
+            eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, volume_size, "p3.16xlarge", "pytest.pem")
     except Exception:
         eks_utils.delete_eks_cluster(cluster_name)
         raise
@@ -226,17 +213,12 @@ def setup_eks_cluster(framework_name, is_neuron):
 def setup_sm_benchmark_env(dlc_images, test_path):
     # The plan is to have a separate if/elif-condition for each type of image
     if "tensorflow-training" in dlc_images:
-        tf1_images_in_list = re.search(
-            r"tensorflow-training:(^ )*1(\.\d+){2}", dlc_images) is not None
-        tf2_images_in_list = re.search(
-            r"tensorflow-training:(^ )*2(\.\d+){2}", dlc_images) is not None
-        resources_location = os.path.join(
-            test_path, "tensorflow", "training", "resources")
-        setup_sm_benchmark_tf_train_env(
-            resources_location, tf1_images_in_list, tf2_images_in_list)
+        tf1_images_in_list = re.search(r"tensorflow-training:(^ )*1(\.\d+){2}", dlc_images) is not None
+        tf2_images_in_list = re.search(r"tensorflow-training:(^ )*2(\.\d+){2}", dlc_images) is not None
+        resources_location = os.path.join(test_path, "tensorflow", "training", "resources")
+        setup_sm_benchmark_tf_train_env(resources_location, tf1_images_in_list, tf2_images_in_list)
     elif "mxnet-training" in dlc_images:
-        resources_location = os.path.join(
-            test_path, "mxnet", "training", "resources")
+        resources_location = os.path.join(test_path, "mxnet", "training", "resources")
         setup_sm_benchmark_mx_train_env(resources_location)
 
 
@@ -249,8 +231,7 @@ def delete_key_pairs(keyfile):
     with open(keyfile) as key_destroy_file:
         for key_file in key_destroy_file:
             LOGGER.info(key_file)
-            ec2_client = boto3.client(
-                "ec2", config=Config(retries={'max_attempts': 10}))
+            ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}))
             if ".pem" in key_file:
                 _resp, keyname = destroy_ssh_keypair(ec2_client, key_file)
                 LOGGER.info(f"Deleted {keyname}")
@@ -275,28 +256,21 @@ def main():
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
-    standard_images_list = [
-        image_uri for image_uri in all_image_list if "example" not in image_uri]
+    standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
     # Do not create EKS cluster for when EIA Only Images are present
-    is_all_images_list_eia = all(
-        "eia" in image_uri for image_uri in all_image_list)
+    is_all_images_list_eia = all("eia" in image_uri for image_uri in all_image_list)
     eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
-    specific_test_type = re.sub(
-        "benchmark-", "", test_type) if "benchmark" in test_type else test_type
-    test_path = os.path.join(
-        "benchmark", specific_test_type) if benchmark_mode else specific_test_type
+    specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
+    test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
     if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary", "bai"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
         # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.
-        report_train = os.path.join(
-            os.getcwd(), "test", f"{test_type}_train.xml")
-        report_infer = os.path.join(
-            os.getcwd(), "test", f"{test_type}_infer.xml")
-        report_multinode_train = os.path.join(
-            os.getcwd(), "test", f"eks_multinode_train.xml")
+        report_train = os.path.join(os.getcwd(), "test", f"{test_type}_train.xml")
+        report_infer = os.path.join(os.getcwd(), "test", f"{test_type}_infer.xml")
+        report_multinode_train = os.path.join(os.getcwd(), "test", f"eks_multinode_train.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
         os.chdir(os.path.join("test", "dlc_tests"))
@@ -332,16 +306,37 @@ def main():
             # Change 2: Separate multi-node EKS tests from single-node tests in execution to prevent resource contention
             if not is_neuron:
                 pytest_cmds = [
-                    ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=4",
-                    "-m", "not multinode"],
-                    ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4",
-                     "-m", "not multinode"],
+                    [
+                        "-s",
+                        "-rA",
+                        os.path.join(test_path, framework, "training"),
+                        f"--junitxml={report_train}",
+                        "-n=4",
+                        "-m",
+                        "not multinode",
+                    ],
+                    [
+                        "-s",
+                        "-rA",
+                        os.path.join(test_path, framework, "inference"),
+                        f"--junitxml={report_infer}",
+                        "-n=4",
+                        "-m",
+                        "not multinode",
+                    ],
                     ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
                 ]
             else:
                 pytest_cmds = [
-                    ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4",
-                     "-m", "not multinode"],
+                    [
+                        "-s",
+                        "-rA",
+                        os.path.join(test_path, framework, "inference"),
+                        f"--junitxml={report_infer}",
+                        "-n=4",
+                        "-m",
+                        "not multinode",
+                    ],
                     ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
                 ]
 
@@ -350,8 +345,7 @@ def main():
                     cmd.append("--timeout=2340")
         else:
             # Execute dlc_tests pytest command
-            pytest_cmd = ["-s", "-rA", test_path,
-                          f"--junitxml={report}", "-n=auto"]
+            pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
             if specific_test_type == "ec2":
                 pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
             if is_pr_context():
@@ -360,13 +354,11 @@ def main():
             pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
         if specific_test_type == "canary":
-            pytest_cmds = [
-                ["-s", "-rA", f"--junitxml={report}", "-n=auto", "--canary", "--ignore=container_tests/"]]
+            pytest_cmds = [["-s", "-rA", f"--junitxml={report}", "-n=auto", "--canary", "--ignore=container_tests/"]]
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
-            cmd_exit_statuses = [pytest.main(pytest_cmd)
-                                 for pytest_cmd in pytest_cmds]
+            cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
             if all([status == 0 for status in cmd_exit_statuses]):
                 sys.exit(0)
             else:
@@ -381,32 +373,31 @@ def main():
 
     elif specific_test_type == "sagemaker":
         if "neuron" in dlc_images:
-            LOGGER.info(
-                f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
+            LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
             return
         if benchmark_mode:
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
             os.chdir(os.path.join("test", "dlc_tests"))
 
             setup_sm_benchmark_env(dlc_images, test_path)
-            pytest_cmd = ["-s", "-rA", test_path,
-                          f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
+            pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
             sys.exit(pytest.main(pytest_cmd))
 
         else:
             run_sagemaker_remote_tests(
-                [image for image in standard_images_list if not (
-                    "tensorflow-inference" in image and "py2" in image)]
+                [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
             )
         metrics_utils.send_test_duration_metrics(start_time)
 
     elif specific_test_type == "sagemaker-local":
         if "neuron" in dlc_images:
-            LOGGER.info(
-                f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
+            LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
             return
-        testing_image_list = [image for image in standard_images_list if
-                              not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))]
+        testing_image_list = [
+            image
+            for image in standard_images_list
+            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))
+        ]
         run_sagemaker_local_tests(testing_image_list)
         # for EIA Images
         if len(testing_image_list) == 0:
