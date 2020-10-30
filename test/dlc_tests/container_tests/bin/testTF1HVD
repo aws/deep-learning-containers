@@ -11,4 +11,5 @@ LOG_DIR=${HOME_DIR}/logs
 
 ${BIN_DIR}/testTF1HVDHelper || exit 1
 
+echo "TF HVD tests passed!"
 exit 0

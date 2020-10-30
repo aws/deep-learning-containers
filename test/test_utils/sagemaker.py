@@ -33,17 +33,16 @@ class DLCSageMakerRemoteTestFailure(Exception):
 
 
 def assign_sagemaker_remote_job_instance_type(image):
-    if "tensorflow" in image:
-        return "ml.p3.8xlarge" if "gpu" in image else "ml.c4.4xlarge"
+    if "gpu" in image:
+        return "ml.p3.8xlarge"
+    elif "tensorflow" in image:
+        return "ml.c4.4xlarge"
     else:
-        return "ml.p2.8xlarge" if "gpu" in image else "ml.c4.8xlarge"
+        return "ml.c4.8xlarge"
 
 
 def assign_sagemaker_local_job_instance_type(image):
-    if "training" in image:
-        return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
-    else:
-        return "p2.xlarge" if "gpu" in image else "c5.18xlarge"
+    return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
 
 
 def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
