@@ -104,7 +104,7 @@ RUN apt-get update \
  && apt-get -y install --no-install-recommends \
     curl \
     gnupg2 \
- && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
+ && wget -qO- http://nginx.org/keys/nginx_signing.key | apt-key add - \
  && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
  && apt-get update \
  && apt-get -y install --no-install-recommends \
@@ -129,7 +129,7 @@ RUN ${PIP} install -U --no-cache-dir \
 
 COPY ./sagemaker /sagemaker
 
-RUN curl $TFS_URL -o /usr/bin/tensorflow_model_server \
+RUN wget -nv -O /usr/bin/tensorflow_model_server $TFS_URL \
  && chmod 555 /usr/bin/tensorflow_model_server
 
 # put tensorflow library (with only error_codes) to python dist-packages
@@ -155,6 +155,6 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.1/license.txt -o /license.txt
+RUN wget -nv -O /license.txt https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.1/license.txt
 
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]

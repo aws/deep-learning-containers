@@ -42,12 +42,12 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
 
-RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/MKL-Libraries/libiomp5.so -o /usr/local/lib/libiomp5.so
-RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/MKL-Libraries/libmklml_intel.so -o /usr/local/lib/libmklml_intel.so
+RUN wget -nv -O /usr/local/lib/libiomp5.so https://tensorflow-aws.s3-us-west-2.amazonaws.com/MKL-Libraries/libiomp5.so
+RUN wget -nv -O /usr/local/lib/libmklml_intel.so https://tensorflow-aws.s3-us-west-2.amazonaws.com/MKL-Libraries/libmklml_intel.so
 
 ENV LD_LIBRARY_PATH '/usr/local/lib:$LD_LIBRARY_PATH'
 
-RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.1/Serving/CPU-WITH-MKL/tensorflow_model_server -o /usr/bin/tensorflow_model_server \
+RUN  wget -nv -O /usr/bin/tensorflow_model_server https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.1/Serving/CPU-WITH-MKL/tensorflow_model_server \
  && chmod 555 /usr/bin/tensorflow_model_server
 
 RUN ${PIP} install -U --no-cache-dir \
@@ -77,6 +77,6 @@ tensorflow_model_server --port=8500 --rest_api_port=8501 \
 "$@"' > /usr/bin/tf_serving_entrypoint.sh \
 && chmod +x /usr/bin/tf_serving_entrypoint.sh
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0/license.txt -o /license.txt
+RUN wget -nv -O /license.txt https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0/license.txt
 
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]

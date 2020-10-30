@@ -92,7 +92,7 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
 
-RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.2/Serving/GPU/tensorflow_model_server --output /usr/bin/tensorflow_model_server \
+RUN wget -nv -O  /usr/bin/tensorflow_model_server   https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.2/Serving/GPU/tensorflow_model_server \
  && chmod 555 /usr/bin/tensorflow_model_server
 
 RUN pip install -U --no-cache-dir \
@@ -128,6 +128,6 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0/license.txt -o /license.txt
+RUN wget -nv -O /license.txt https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0/license.txt
 
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]

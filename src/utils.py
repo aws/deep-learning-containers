@@ -101,7 +101,7 @@ def download_file(remote_url: str, link_type: str):
             raise ValueError(f"Regex matching on s3 URI failed.")
     else:
         ctx = Context()
-        ctx.run(f"curl -O {remote_url}")
+        ctx.run(f"wget -nv {remote_url}")
 
     return file_name
 

@@ -65,7 +65,7 @@ RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 # Install Open MPI
 RUN mkdir /tmp/openmpi \
  && cd /tmp/openmpi \
- && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.1.tar.gz \
+ && wget -nv https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.1.tar.gz \
  && tar zxf openmpi-4.0.1.tar.gz \
  && cd openmpi-4.0.1 \
  && ./configure --enable-orterun-prefix-by-default \
@@ -141,6 +141,6 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0.1/license.txt -o /license.txt
+RUN wget -nv -O /license.txt https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0.1/license.txt
 
 CMD ["bin/bash"]

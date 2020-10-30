@@ -66,7 +66,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
-RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+RUN wget -nv -O ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
@@ -113,7 +113,7 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.1/license.txt
+RUN wget -nv -O /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.1/license.txt
 
 # fix safety issues
 RUN pip install psutil==5.6.7 \

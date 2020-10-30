@@ -37,7 +37,7 @@ RUN apt-get update \
     git \
     wget \
     vim \
- && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
+ && wget -qO- http://nginx.org/keys/nginx_signing.key | apt-key add - \
  && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
  && apt-get update \
  && apt-get -y install --no-install-recommends \
@@ -104,6 +104,6 @@ RUN echo '#!/bin/bash \n\n' > /usr/bin/tf_serving_entrypoint.sh \
  && echo '/usr/bin/tensorflow_model_server --port=8500 --rest_api_port=8501 --model_name=${MODEL_NAME} --model_base_path=${MODEL_BASE_PATH}/${MODEL_NAME} "$@"' >> /usr/bin/tf_serving_entrypoint.sh \
  && chmod +x /usr/bin/tf_serving_entrypoint.sh
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0/license.txt -o /license.txt
+RUN wget -nv -O /license.txt https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0/license.txt
 
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]

@@ -183,7 +183,7 @@ def request_mxnet_inference(ip_address="127.0.0.1", port="80", connection=None, 
     # Check if image already exists
     run_out = conn_run("[ -f kitten.jpg ]", warn=True)
     if run_out.return_code != 0:
-        conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg", hide=True)
+        conn_run("wget -nv -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg ", hide=True)
 
     run_out = conn_run(f"curl -X POST http://{ip_address}:{port}/predictions/{model} -T kitten.jpg", warn=True)
 
@@ -236,7 +236,7 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
     # Check if image already exists
     run_out = conn_run("[ -f flower.jpg ]", warn=True)
     if run_out.return_code != 0:
-        conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True)
+        conn_run("wget -nv -O https://s3.amazonaws.com/model-server/inputs/flower.jpg ", hide=True)
 
     run_out = conn_run(
         f"curl -X POST http://{ip_address}:{port}/predictions/pytorch-densenet -T flower.jpg", hide=True, warn=True

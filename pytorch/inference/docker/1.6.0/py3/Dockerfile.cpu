@@ -47,7 +47,7 @@ RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeysto
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
 
-RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+RUN wget -nv -O ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
@@ -121,7 +121,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.6.0/license.txt -o /license.txt
+RUN wget -nv -O /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.6.0/license.txt
 
 RUN conda install -y -c conda-forge pyyaml==5.3.1
 RUN pip install pillow==7.2.0 "awscli<2"

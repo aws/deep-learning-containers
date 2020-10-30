@@ -29,7 +29,7 @@ def execute_single_node_benchmark(context, image_uri, framework, task, py_versio
     execute_cmd_on_container(context, container_name, f"git clone {script_url}")
 
     execute_cmd_on_container(
-        context, container_name, f"curl http://{benchmark_endpoint}/api/tools/{benchmark_exec} " f"-o {benchmark_exec}"
+        context, container_name, f"wget -nv -O {benchmark_exec} http://{benchmark_endpoint}/api/tools/{benchmark_exec} "
     )
     execute_cmd_on_container(context, container_name, f"chmod u+x {benchmark_exec}")
     execute_cmd_on_container(context, container_name, f"./{benchmark_exec} --env-setup")

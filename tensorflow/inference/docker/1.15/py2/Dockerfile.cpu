@@ -63,15 +63,15 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
 
-RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/MKL-Libraries/libiomp5.so -o /usr/local/lib/libiomp5.so
-RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/MKL-Libraries/libmklml_intel.so -o /usr/local/lib/libmklml_intel.so
+RUN wget -nv -O /usr/local/lib/libiomp5.so https://tensorflow-aws.s3-us-west-2.amazonaws.com/MKL-Libraries/libiomp5.so
+RUN wget -nv -O /usr/local/lib/libmklml_intel.so https://tensorflow-aws.s3-us-west-2.amazonaws.com/MKL-Libraries/libmklml_intel.so
 
 ENV LD_LIBRARY_PATH '/usr/local/lib:$LD_LIBRARY_PATH'
 
-RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.3/Serving/CPU-WITH-MKL/tensorflow_model_server -o /usr/bin/tensorflow_model_server \
+RUN wget -nv -O /usr/bin/tensorflow_model_server \ https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.3/Serving/CPU-WITH-MKL/tensorflow_model_server \
  && chmod 555 /usr/bin/tensorflow_model_server
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
+RUN wget -nv -O /license.txt https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt
 
 RUN ${PIP} install -U --no-cache-dir \
     docutils==0.14 \
