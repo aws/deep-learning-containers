@@ -284,7 +284,7 @@ def setup_eksctl():
 
     platform = run("uname -s", echo=True).stdout.strip()
     eksctl_download_command = (
-        f"wget -nv https://github.com/weaveworks/eksctl/releases/download/ "
+        f"wget -nv https://github.com/weaveworks/eksctl/releases/download/"
         f"{EKSCTL_VERSION}/eksctl_{platform}_amd64.tar.gz | tar xz -C /tmp"
     )
     run(eksctl_download_command, echo=True)
@@ -350,18 +350,18 @@ def eks_setup():
     platform = run("uname -s").stdout.strip()
 
     kubectl_download_command = (
-        f"wget -nv https://amazon-eks.s3-us-west-2.amazonaws.com/ "
+        f"wget -nv https://amazon-eks.s3-us-west-2.amazonaws.com/"
         f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
     )
 
     aws_iam_authenticator_download_command = (
-        f"wget -nv https://amazon-eks.s3-us-west-2.amazonaws.com/ "
+        f"wget -nv https://amazon-eks.s3-us-west-2.amazonaws.com/"
         f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/aws-iam-authenticator "
         f"-o /usr/local/bin/aws-iam-authenticator"
     )
 
     kubetail_download_command = (
-        f"wget -nv https://raw.githubusercontent.com/johanhaleby/kubetail/ "
+        f"wget -nv https://raw.githubusercontent.com/johanhaleby/kubetail/"
         f"{KUBETAIL_VERSION}/kubetail -o /usr/local/bin/kubetail"
     )
 
