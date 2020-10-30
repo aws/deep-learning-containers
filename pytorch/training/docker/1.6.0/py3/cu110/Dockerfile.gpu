@@ -141,6 +141,7 @@ RUN pip install \
     Pillow \
     scipy \
     click \
+    "cryptography>3.2" \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
