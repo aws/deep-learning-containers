@@ -112,6 +112,9 @@ RUN pip uninstall -y torch \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U $PT_VISION_URL
 
+ RUN cd tmp/ \
+  && rm -rf tmp*
+
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
