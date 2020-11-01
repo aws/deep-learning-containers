@@ -33,6 +33,7 @@ def get_ec2_instance_type(default, processor, disable_p3dn=False):
     """
     allowed_processors = ("cpu", "gpu")
     p3dn = "p3dn.24xlarge"
+    p28x = "p2.8xlarge"
     if processor not in allowed_processors:
         raise RuntimeError(
             f"Aborting EC2 test run. Unrecognized processor type {processor}. "
@@ -41,6 +42,10 @@ def get_ec2_instance_type(default, processor, disable_p3dn=False):
     if default == p3dn:
         raise RuntimeError("Default instance type should never be p3dn.24xlarge")
     instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
+
+    # TODO: Re-enable p28x once capacity issues have been resolved
+    if instance_type == p28x:
+        return []
     if instance_type == p3dn and disable_p3dn:
         instance_type = default
     return [instance_type]
