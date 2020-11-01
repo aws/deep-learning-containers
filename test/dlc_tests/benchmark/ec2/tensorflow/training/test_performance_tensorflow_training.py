@@ -46,10 +46,11 @@ def test_performance_tensorflow_cpu(tensorflow_training, ec2_connection, cpu_onl
     )
 
 
+# TODO: Enable TF1 by removing "tf2_only" fixture once infrastructure issues have been resolved.
 @pytest.mark.integration("synthetic dataset")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
-def test_performance_tensorflow_gpu_synthetic(tensorflow_training, ec2_connection, gpu_only):
+def test_performance_tensorflow_gpu_synthetic(tensorflow_training, ec2_connection, gpu_only, tf2_only):
     threshold = (
         TENSORFLOW2_TRAINING_GPU_SYNTHETIC_THRESHOLD
         if is_tf_version("2", tensorflow_training)
@@ -65,10 +66,11 @@ def test_performance_tensorflow_gpu_synthetic(tensorflow_training, ec2_connectio
     )
 
 
+# TODO: Enable TF1 by removing "tf2_only" fixture once infrastructure issues have been resolved.
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
-def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection, gpu_only):
+def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection, gpu_only, tf2_only):
     threshold = (
         TENSORFLOW2_TRAINING_GPU_IMAGENET_THRESHOLD
         if is_tf_version("2", tensorflow_training)
