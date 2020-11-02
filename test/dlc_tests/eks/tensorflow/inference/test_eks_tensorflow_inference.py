@@ -8,9 +8,8 @@ from invoke import run
 import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
-
 @pytest.mark.model("mnist")
-def test_eks_tensorflow_neuron_inference(tensorflow_inference):
+def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
     if "eia" in tensorflow_inference or "neuron" not in tensorflow_inference:
         pytest.skip("Skipping EKS Neuron Test for EIA and Non Neuron Images")
     num_replicas = "1"

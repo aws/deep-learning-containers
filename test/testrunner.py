@@ -193,7 +193,7 @@ def setup_eks_cluster(framework_name, is_neuron):
     short_name = frameworks[long_name]
     codebuild_version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")[0:7]
     num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
-    cluster_name = f"dlc-{short_name}-cluster-" f"{codebuild_version}-{random.randint(1, 10000)}"
+    cluster_name = f"dlc-{short_name}-cluster-{codebuild_version}-{random.randint(1, 10000)}"
     # default volume size
     volume_size = 80
     try:
@@ -290,9 +290,7 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
-            is_neuron = False
-            if "neuron" in dlc_images:
-                is_neuron = True
+            is_neuron = "neuron" in dlc_images
             eks_cluster_name = setup_eks_cluster(framework, is_neuron)
 
             if not is_neuron:
