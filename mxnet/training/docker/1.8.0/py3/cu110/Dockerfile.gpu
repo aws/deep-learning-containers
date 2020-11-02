@@ -1,5 +1,5 @@
 # Note: We need to install NCCL, cuDNN, and CUDA libraries since we are using base container.
-FROM nvidia/cuda:10.1-base-ubuntu16.04
+FROM nvidia/cuda:11.0-base-ubuntu16.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -30,12 +30,12 @@ RUN apt-get update \
     software-properties-common \
     build-essential \
     ca-certificates \
-    libcudnn7=${CUDNN_VERSION} \
-    cuda-command-line-tools-10-1 \
-    cuda-cufft-10-1 \
-    cuda-curand-10-1 \
-    cuda-cusolver-10-1 \
-    cuda-cusparse-10-1 \
+    libcudnn8=${CUDNN_VERSION} \
+    cuda-command-line-tools-11-0 \
+    cuda-cufft-11-0 \
+    cuda-curand-11-0 \
+    cuda-cusolver-11-0 \
+    cuda-cusparse-11-0 \
     curl \
     emacs \
     git \
@@ -63,25 +63,25 @@ RUN apt-get update \
 
 # Install cuda-dev libraries as a dependency for Horovod with MXNet backend
 ENV CUDA_LIB_URL=https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64
-RUN wget ${CUDA_LIB_URL}/libcublas10_10.2.1.243-1_amd64.deb \
-    ${CUDA_LIB_URL}/libcublas-dev_10.2.1.243-1_amd64.deb \
-    ${CUDA_LIB_URL}/cuda-curand-dev-10-1_10.1.243-1_amd64.deb \
-    ${CUDA_LIB_URL}/cuda-cusolver-dev-10-1_10.1.243-1_amd64.deb \
-    ${CUDA_LIB_URL}/cuda-nvrtc-10-1_10.1.243-1_amd64.deb \
-    ${CUDA_LIB_URL}/cuda-nvrtc-dev-10-1_10.1.243-1_amd64.deb \
- && dpkg -i libcublas10_10.2.1.243-1_amd64.deb \
-    libcublas-dev_10.2.1.243-1_amd64.deb \
-    cuda-curand-dev-10-1_10.1.243-1_amd64.deb \
-    cuda-cusolver-dev-10-1_10.1.243-1_amd64.deb \
-    cuda-nvrtc-10-1_10.1.243-1_amd64.deb \
-    cuda-nvrtc-dev-10-1_10.1.243-1_amd64.deb \
+RUN wget ${CUDA_LIB_URL}/libcublas-11-0_11.0.0.191-1_amd64.deb \
+    ${CUDA_LIB_URL}/libcublas-dev-11-0_11.2.0.252-1_amd64.deb \
+    ${CUDA_LIB_URL}/libcurand-dev-11-0_10.2.1.245-1_amd64.deb \
+    ${CUDA_LIB_URL}/libcusolver-dev-11-0_10.6.0.245-1_amd64.deb \
+    ${CUDA_LIB_URL}/cuda-nvrtc-11-0_11.0.221-1_amd64.deb \
+    ${CUDA_LIB_URL}/cuda-nvrtc-dev-11-0_11.0.221-1_amd64.deb \
+ && dpkg -i libcublas-11-0_11.0.0.191-1_amd64.deb \
+    libcublas-dev-11-0_11.2.0.252-1_amd64.deb \
+    libcurand-dev-11-0_10.2.1.245-1_amd64.deb \
+    libcusolver-dev-11-0_10.6.0.245-1_amd64.deb \
+    cuda-nvrtc-11-0_11.0.221-1_amd64.deb \
+    cuda-nvrtc-dev-11-0_11.0.221-1_amd64.deb \
  && apt-get install -f \
- && rm libcublas10_10.2.1.243-1_amd64.deb \
-    libcublas-dev_10.2.1.243-1_amd64.deb \
-    cuda-curand-dev-10-1_10.1.243-1_amd64.deb \
-    cuda-cusolver-dev-10-1_10.1.243-1_amd64.deb \
-    cuda-nvrtc-10-1_10.1.243-1_amd64.deb \
-    cuda-nvrtc-dev-10-1_10.1.243-1_amd64.deb
+ && rm libcublas-11-0_11.0.0.191-1_amd64.deb \
+    libcublas-dev-11-0_11.2.0.252-1_amd64.deb \
+    libcurand-dev-11-0_10.2.1.245-1_amd64.deb \
+    libcusolver-dev-11-0_10.6.0.245-1_amd64.deb \
+    cuda-nvrtc-11-0_11.0.221-1_amd64.deb \
+    cuda-nvrtc-dev-11-0_11.0.221-1_amd64.deb
 
 ###########################################################################
 # Horovod dependencies
@@ -121,10 +121,10 @@ ENV PATH=/usr/local/nvidia/bin:$PATH
 # install OpenSSL
 # first backup our ca-certificates since ca-certificates requires openssl
 #  and they get uninstalled when we purge current openssl
-RUN mkdir -p /tmp/ca_cert_tmp && cp /etc/ssl/certs/* /tmp/ca_cert_tmp \
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && mkdir -p /tmp/ca_cert_tmp && cp /etc/ssl/certs/*.* /tmp/ca_cert_tmp \
  && apt remove -y --purge openssl \
  && rm -rf /usr/include/openssl \
- && wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
  && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
  && cd openssl-${OPENSSL_VERSION} \
  && ./config && make && make test && make install \
@@ -153,8 +153,8 @@ WORKDIR /
 RUN ${PIP} install --no-cache --upgrade \
     keras-mxnet==2.2.4.2 \
     h5py==2.10.0 \
-    numpy==1.19.1 \
     onnx==1.6.0 \
+    numpy==1.19.1 \
     pandas==0.25.1 \
     Pillow \
     requests==2.22.0 \
@@ -162,7 +162,7 @@ RUN ${PIP} install --no-cache --upgrade \
     scipy==1.2.2 \
     dgl-cu110==0.4.* \
     gluonnlp==0.10.0 \
-    gluoncv==0.6.0 \
+    gluoncv==0.8.0 \
     # Putting a cap in versions number to avoid potential issues with a new major version
     "urllib3>=1.25.10,<1.26.0" \
     python-dateutil==2.8.0 \

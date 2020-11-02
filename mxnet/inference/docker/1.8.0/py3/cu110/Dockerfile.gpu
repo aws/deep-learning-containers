@@ -51,10 +51,10 @@ RUN apt-get update \
 # install OpenSSL
 # first backup our ca-certificates since ca-certificates requires openssl
 #  and they get uninstalled when we purge current openssl
-RUN mkdir -p /tmp/ca_cert_tmp && cp /etc/ssl/certs/* /tmp/ca_cert_tmp \
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && mkdir -p /tmp/ca_cert_tmp && cp /etc/ssl/certs/* /tmp/ca_cert_tmp \
  && apt remove -y --purge openssl \
  && rm -rf /usr/include/openssl \
- && wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
  && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
  && cd openssl-${OPENSSL_VERSION} \
  && ./config && make && make test && make install \
@@ -81,11 +81,11 @@ WORKDIR /
 RUN ${PIP} install --no-cache-dir \
     ${MX_URL} \
     gluonnlp==0.10.0 \
-    gluoncv==0.6.0 \
+    gluoncv==0.8.0 \
     multi-model-server==$MMS_VERSION \
     keras-mxnet==2.2.4.1 \
     numpy==1.17.4 \
-    onnx==1.4.1 \
+    onnx==1.7.0 \
     "sagemaker-mxnet-inference<2"
 
 # This is here to make our installed version of OpenCV work.

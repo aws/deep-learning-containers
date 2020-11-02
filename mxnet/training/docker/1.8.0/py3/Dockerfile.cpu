@@ -77,10 +77,10 @@ ENV PATH=/usr/local/openmpi/bin/:$PATH
 # install OpenSSL
 # first backup our ca-certificates since ca-certificates requires openssl
 #  and they get uninstalled when we purge current openssl
-RUN cd /tmp && mkdir -p /tmp/ca_cert_tmp && cp /etc/ssl/certs/* /tmp/ca_cert_tmp \
+RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && mkdir -p /tmp/ca_cert_tmp && cp /etc/ssl/certs/*.* /tmp/ca_cert_tmp \
  && apt remove -y --purge openssl \
  && rm -rf /usr/include/openssl \
- && wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
  && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
  && cd openssl-${OPENSSL_VERSION} \
  && ./config && make && make test && make install \
