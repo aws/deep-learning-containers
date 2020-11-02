@@ -142,7 +142,6 @@ RUN ${PIP} install --no-cache-dir -U \
     grpcio==1.24.1 \
     protobuf==3.10.0 \
     gast==0.2.2 \
-    smdebug==${SMDEBUG_VERSION} \
     sagemaker-experiments==0.* \
     "cryptography>=2.3" \
     "sagemaker-tensorflow>=1.15,<1.16" \
