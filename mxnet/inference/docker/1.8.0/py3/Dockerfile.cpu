@@ -52,8 +52,6 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # install OpenSSL
-# first backup our ca-certificates since ca-certificates requires openssl
-#  and they get uninstalled when we purge current openssl
 RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
  && tar -xzf openssl-${OPENSSL_VERSION}.tar.gz \
  && cd openssl-${OPENSSL_VERSION} \

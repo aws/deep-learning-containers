@@ -77,8 +77,6 @@ ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
 ENV PATH=/usr/local/openmpi/bin/:$PATH
 
 # install OpenSSL
-# first backup our ca-certificates since ca-certificates requires openssl
-#  and they get uninstalled when we purge current openssl
 RUN wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
  && tar -xzf openssl-${OPENSSL_VERSION}.tar.gz \
  && cd openssl-${OPENSSL_VERSION} \
