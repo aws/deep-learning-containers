@@ -168,7 +168,10 @@ RUN apt-get install -y --no-install-recommends openssh-client openssh-server \
 
 WORKDIR /
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-training<3"
+RUN pip install --no-cache-dir \
+    "sagemaker-pytorch-training<3" \
+    # cryptography required by pyopenssl and paramiko, <=3.2 has safety vulnerabilities
+    "cryptography>3.2"
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
