@@ -3,7 +3,7 @@ scipy
 sklearn
 pandas
 Pillow
-h5py
+h5py==2.10.0
 tox
 flake8
 pytest==5.3.5
