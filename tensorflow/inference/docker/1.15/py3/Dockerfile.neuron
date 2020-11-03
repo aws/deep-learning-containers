@@ -142,22 +142,19 @@ RUN ${PIP} install --no-cache-dir -U \
     grpcio==1.24.1 \
     protobuf==3.10.0 \
     gast==0.2.2 \
-    sagemaker-experiments==0.* \
-    "cryptography>=2.3" \
-    "sagemaker-tensorflow>=1.15,<1.16" \
-    "sagemaker-tensorflow-training>=10,<20" \
-    && ${PIP} install --no-cache-dir -U \
+ && ${PIP} install --no-cache-dir -U \
        "awscli<2" \
-    && ${PIP} install  tensorflow_serving_api==1.15.0 --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
-    && ${PIP} install  tensorboard-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com \
-    && ${PIP} install  neuron-cc --extra-index-url https://pip.repos.neuron.amazonaws.com \
-    && ${PIP} install  tensorflow-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com
+ && ${PIP} install  tensorflow_serving_api==1.15.0 --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install  tensorboard-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install  neuron-cc --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install  tensorflow-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 
+COPY ./sagemaker /sagemaker
 
 
 RUN curl ${TF_S3_URL}/MKL-Libraries/libiomp5.so -o /usr/local/lib/libiomp5.so \
-&& curl ${TF_S3_URL}/MKL-Libraries/libmklml_intel.so -o /usr/local/lib/libmklml_intel.so
+ && curl ${TF_S3_URL}/MKL-Libraries/libmklml_intel.so -o /usr/local/lib/libmklml_intel.so
 
 
 # Expose ports
