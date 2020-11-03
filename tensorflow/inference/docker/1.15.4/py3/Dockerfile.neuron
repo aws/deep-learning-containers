@@ -148,7 +148,7 @@ RUN ${PIP} install --no-cache-dir -U \
     "sagemaker-tensorflow-training>=10,<20" \
     && ${PIP} install --no-cache-dir -U \
        "awscli<2" \
-    && ${PIP} install  tensorflow_serving_api==1.15.4 --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
+    && ${PIP} install  tensorflow_serving_api==1.15.0 --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
     && ${PIP} install  tensorboard-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com \
     && ${PIP} install  neuron-cc --extra-index-url https://pip.repos.neuron.amazonaws.com \
     && ${PIP} install  tensorflow-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com
