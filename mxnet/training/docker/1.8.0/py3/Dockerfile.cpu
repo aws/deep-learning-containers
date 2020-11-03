@@ -5,7 +5,7 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.6.10
+ARG PYTHON_VERSION=3.7.9
 ARG MX_URL=https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.8.0/aws_mx-1.8.0-py2.py3-none-manylinux2014_x86_64.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
@@ -44,6 +44,8 @@ RUN apt-get update \
     libc6-dev \
     libbz2-dev \
     tk-dev \
+    libffi-dev \
+    cmake \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -54,7 +56,7 @@ RUN apt-get update \
 # Install Open MPI
 RUN mkdir /tmp/openmpi \
  && cd /tmp/openmpi \
- && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.1.tar.gz \
+ && wget -q https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.1.tar.gz \
  && tar zxf openmpi-4.0.1.tar.gz \
  && cd openmpi-4.0.1 \
  && ./configure --enable-orterun-prefix-by-default \
@@ -77,24 +79,19 @@ ENV PATH=/usr/local/openmpi/bin/:$PATH
 # install OpenSSL
 # first backup our ca-certificates since ca-certificates requires openssl
 #  and they get uninstalled when we purge current openssl
-RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && mkdir -p /tmp/ca_cert_tmp && cp /etc/ssl/certs/*.* /tmp/ca_cert_tmp \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+RUN wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && tar -xzf openssl-${OPENSSL_VERSION}.tar.gz \
  && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test && make install \
+ && ./config && make -j $(nproc) && make install \
  && ldconfig \
- && cd .. && rm -rf openssl-* \
- && mv -f /tmp/ca_cert_tmp/* /usr/local/ssl/certs/ \
- && rmdir /tmp/ca_cert_tmp
+ && cd .. && rm -rf openssl-*
 
 # install Python
-RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
- && tar -xvf Python-$PYTHON_VERSION.tgz \
+RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xzf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
  && ./configure --enable-shared --prefix=/usr/local \
- && make && make install \
+ && make -j $(nproc) && make install \
  && cd .. && rm -rf ../Python-$PYTHON_VERSION* \
  && ln -s /usr/local/bin/pip3 /usr/bin/pip \
  && ln -s /usr/local/bin/$PYTHON /usr/local/bin/python \
@@ -118,7 +115,7 @@ RUN ${PIP} install --no-cache --upgrade \
     dgl==0.4.* \
     scipy==1.2.2 \
     gluonnlp==0.10.0 \
-    gluoncv==0.6.0 \
+    gluoncv==0.8.0 \
     # Putting a cap in versions number to avoid potential issues with a new major version
     "urllib3>=1.25.10,<1.26.0" \
     python-dateutil==2.8.0 \
@@ -133,7 +130,7 @@ RUN ${PIP} install --no-cache --upgrade \
     awscli
 
 # Install Horovod
-RUN ${PIP} install --no-cache-dir horovod==0.19.5
+RUN ${PIP} install --no-cache-dir horovod==0.20.2
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
