@@ -74,9 +74,9 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
     mnist_client_path = os.path.join(
         serving_folder_path, "tensorflow_serving", "example", "mnist_client.py"
     )
-    is_neuron = False
-    if "neuron" in image_uri:
-        is_neuron = True
+    
+    is_neuron = "neuron" in image_uri
+         
 
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     docker_run_cmd = ""
@@ -152,7 +152,7 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
             ec2_connection.run(f"cp -f {container_test_local_file} {serving_folder_path}/tensorflow_serving/example")
             neuron_model_file_path = os.path.join(serving_folder_path, f"models/{model_name}/1")
             neuron_model_file = os.path.join(neuron_model_file_path, "saved_model.pb")
-            LOGGER.info(f"Host Modle path {neuron_model_file_path}")
+            LOGGER.info(f"Host Model path {neuron_model_file_path}")
             ec2_connection.run(f"mkdir -p {neuron_model_file_path}")
             model_file_path = f"https://aws-dlc-sample-models.s3.amazonaws.com/{model_name}_neuron/1/saved_model.pb"
             model_dwld = (
