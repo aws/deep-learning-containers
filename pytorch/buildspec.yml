@@ -3,7 +3,7 @@
   framework: &FRAMEWORK pytorch
   version: &VERSION 1.7.0
   cuda_version: &CUDA_VERSION cu110
-  os_version: &OS_VERSION ubuntu18.04
+  os_version: &OS_VERSION ubuntu16.04
 
   repository_info:
     training_repository: &TRAINING_REPOSITORY
