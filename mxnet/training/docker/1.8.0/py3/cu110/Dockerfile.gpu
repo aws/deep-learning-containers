@@ -115,9 +115,8 @@ RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params
 # Set default NCCL parameters
 RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
 
-ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
-ENV PATH=/usr/local/openmpi/bin:/usr/local/nvidia/bin:$PATH
-
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+ENV PATH=/usr/local/bin:/usr/local/nvidia/bin:$PATH
 
 # install OpenSSL
 RUN wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
