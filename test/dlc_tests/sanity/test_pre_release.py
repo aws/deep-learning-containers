@@ -190,8 +190,8 @@ class DependencyCheckFailure(Exception):
 
 
 def _run_dependency_check_test(image, ec2_connection, processor):
-    # Medium or Low impact CVEs to be monitored
-    allowed_vulnerabilities = {"CVE-2020-11022", "CVE-2020-11023", "CVE-2019-11358", "CVE-2015-9251", "CVE-2020-1945"}
+    # Record any whitelisted medium/low severity CVEs
+    allowed_vulnerabilities = {}
 
     container_name = f"dep_check_{processor}"
     report_addon = _get_container_name("depcheck-report", image)
@@ -210,6 +210,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     vulnerabilities = set(cves) - allowed_vulnerabilities
     if vulnerabilities:
         vulnerability_severity = {}
+
+        # Check NVD for vulnerability severity to provide this useful info in error message.
         for vulnerabilility in vulnerabilities:
             resp = requests.get(f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerabilility}")
             severity = (
@@ -220,7 +222,14 @@ def _run_dependency_check_test(image, ec2_connection, processor):
                 .get("baseMetricV2", {})
                 .get("severity", "UNKNOWN")
             )
-            vulnerability_severity[vulnerabilility] = severity
+            if vulnerability_severity.get(severity):
+                vulnerability_severity[severity].append(vulnerabilility)
+            else:
+                vulnerability_severity[severity] = [vulnerabilility]
+
+        # TODO: Remove this once we have whitelisted appropriate LOW/MEDIUM vulnerabilities
+        if not (vulnerabilility.get("CRITICAL") or vulnerabilility.get("HIGH")):
+            return
 
         raise DependencyCheckFailure(
             f"Unrecognized CVES have been reported : {vulnerability_severity}. "
