@@ -189,7 +189,8 @@ class DependencyCheckFailure(Exception):
 
 
 def _run_dependency_check_test(image, ec2_connection, processor):
-    allowed_vulnerabilities = {'CVE-2020-11022', 'CVE-2020-11023'}
+    # Medium or Low impact CVEs to be monitored
+    allowed_vulnerabilities = {'CVE-2020-11022', 'CVE-2020-11023', 'CVE-2019-11358', 'CVE-2015-9251', 'CVE-2020-1945'}
 
     container_name = f"dep_check_{processor}"
     report_addon = _get_container_name("depcheck-report", image)
