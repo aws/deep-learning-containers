@@ -207,9 +207,9 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     cves = re.findall(r'CVE-\d+-\d+', html_output)
     vulnerabilities = set(cves) - allowed_vulnerabilities
     if vulnerabilities:
-        raise DependencyCheckFailure(f"Unrecognized CVES have been reported : {cves}. Allowed vulnerabilites are"
-                                     f" {allowed_vulnerabilities}. Please see {dependency_check_report} for more"
-                                     f" details.")
+        raise DependencyCheckFailure(f"Unrecognized CVES have been reported : {vulnerabilities}. "
+                                     f"Allowed vulnerabilites are {allowed_vulnerabilities}. Please see "
+                                     f"{dependency_check_report} for more details.")
 
 
 @pytest.mark.model("N/A")
