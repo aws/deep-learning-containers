@@ -169,7 +169,7 @@ RUN ${PIP} install --no-cache-dir -U \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
-    ${TF_URL}
+    ${TF_URL} \
     h5py==2.10.0 \
 
 # Install Horovod, temporarily using CUDA stubs
