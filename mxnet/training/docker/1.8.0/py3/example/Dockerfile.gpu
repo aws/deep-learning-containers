@@ -11,4 +11,6 @@ RUN git clone -b v0.20.2 https://github.com/horovod/horovod.git
 
 ENV LD_LIBRARY_PATH=/usr/local/cuda-11.0/targets/x86_64-linux/lib/stubs:$LD_LIBRARY_PATH
 
-ENTRYPOINT ["python", "/incubator-mxnet/example/image-classification/train_mnist.py"]
+WORKDIR /
+#ENTRYPOINT ["python", "/incubator-mxnet/example/image-classification/train_mnist.py"]
+
