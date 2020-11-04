@@ -4,6 +4,7 @@ import re
 from packaging.version import Version
 
 import pytest
+import requests
 
 from invoke.context import Context
 
@@ -190,7 +191,7 @@ class DependencyCheckFailure(Exception):
 
 def _run_dependency_check_test(image, ec2_connection, processor):
     # Medium or Low impact CVEs to be monitored
-    allowed_vulnerabilities = {'CVE-2020-11022', 'CVE-2020-11023', 'CVE-2019-11358', 'CVE-2015-9251', 'CVE-2020-1945'}
+    allowed_vulnerabilities = {"CVE-2020-11022", "CVE-2020-11023", "CVE-2019-11358", "CVE-2015-9251", "CVE-2020-1945"}
 
     container_name = f"dep_check_{processor}"
     report_addon = _get_container_name("depcheck-report", image)
@@ -205,26 +206,41 @@ def _run_dependency_check_test(image, ec2_connection, processor):
 
     # Check for any vulnerabilities not mentioned in allowed_vulnerabilities
     html_output = ec2_connection.run(f"cat ~/{dependency_check_report}", hide=True).stdout
-    cves = re.findall(r'>(CVE-\d+-\d+)</a>', html_output)
+    cves = re.findall(r">(CVE-\d+-\d+)</a>", html_output)
     vulnerabilities = set(cves) - allowed_vulnerabilities
     if vulnerabilities:
-        raise DependencyCheckFailure(f"Unrecognized CVES have been reported : {vulnerabilities}. "
-                                     f"Allowed vulnerabilites are {allowed_vulnerabilities}. Please see "
-                                     f"{dependency_check_report} for more details.")
+        vulnerability_severity = {}
+        for vulnerabilility in vulnerabilities:
+            resp = requests.get(f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerabilility}")
+            severity = (
+                resp.json()
+                .get("result", {})
+                .get("CVE_Items", [{}])[0]
+                .get("impact", {})
+                .get("baseMetricV2", {})
+                .get("severity", "UNKNOWN")
+            )
+            vulnerability_severity[vulnerabilility] = severity
+
+        raise DependencyCheckFailure(
+            f"Unrecognized CVES have been reported : {vulnerability_severity}. "
+            f"Allowed vulnerabilites are {allowed_vulnerabilities}. Please see "
+            f"{dependency_check_report} for more details."
+        )
 
 
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-#@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+# @pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_cpu(cpu, ec2_connection):
-    _run_dependency_check_test(cpu, ec2_connection, 'cpu')
+    _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
 
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-#@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+# @pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_gpu(gpu, ec2_connection):
-    _run_dependency_check_test(gpu, ec2_connection, 'gpu')
+    _run_dependency_check_test(gpu, ec2_connection, "gpu")
 
 
 @pytest.mark.model("N/A")
