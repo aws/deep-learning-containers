@@ -159,7 +159,6 @@ RUN pip install --no-cache-dir -U \
     scikit-learn==0.20.3 \
     pandas==0.24.2 \
     Pillow \
-    h5py==2.9.0 \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
     requests==2.22.0 \
@@ -175,6 +174,7 @@ RUN pip install --no-cache-dir -U \
     # the library version to be overwritten
  && pip install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
+    h5py==2.9.0 \
  && pip install --no-cache-dir -U \
     "awscli<2" \
     smdebug==${SMDEBUG_VERSION}
