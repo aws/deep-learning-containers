@@ -212,8 +212,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         vulnerability_severity = {}
 
         # Check NVD for vulnerability severity to provide this useful info in error message.
-        for vulnerabilility in vulnerabilities:
-            resp = requests.get(f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerabilility}")
+        for vulnerability in vulnerabilities:
+            resp = requests.get(f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerability}")
             severity = (
                 resp.json()
                 .get("result", {})
@@ -223,12 +223,12 @@ def _run_dependency_check_test(image, ec2_connection, processor):
                 .get("severity", "UNKNOWN")
             )
             if vulnerability_severity.get(severity):
-                vulnerability_severity[severity].append(vulnerabilility)
+                vulnerability_severity[severity].append(vulnerability)
             else:
-                vulnerability_severity[severity] = [vulnerabilility]
+                vulnerability_severity[severity] = [vulnerability]
 
         # TODO: Remove this once we have whitelisted appropriate LOW/MEDIUM vulnerabilities
-        if not (vulnerabilility.get("CRITICAL") or vulnerabilility.get("HIGH")):
+        if not (vulnerability_severity.get("CRITICAL") or vulnerability_severity.get("HIGH")):
             return
 
         raise DependencyCheckFailure(
