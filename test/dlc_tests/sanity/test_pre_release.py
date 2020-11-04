@@ -203,7 +203,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
 
     # Check for any vulnerabilities not mentioned in allowed_vulnerabilities
-    html_output = ec2_connection.run(f"cat {html_file}").stdout
+    html_output = ec2_connection.run(f"cat ~/{dependency_check_report}", hide=True).stdout
     cves = re.findall(r'CVE-\d+-\d+', html_output)
     vulnerabilities = set(cves) - allowed_vulnerabilities
     if vulnerabilities:
