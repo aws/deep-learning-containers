@@ -12,8 +12,6 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import re
-
 from contextlib import contextmanager
 
 import numpy as np
@@ -51,10 +49,8 @@ def fixture_test_loader():
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
 def test_serve_json_npy(test_loader, use_gpu, docker_image, sagemaker_local_session, instance_type):
-    tag_framework_version = re.search(r"(\d+(\.\d+){2})", docker_image).groups()[0]
-    if tag_framework_version == "1.5.1":
-        pytest.skip("Skipping this test for PyTorch 1.5.1 images")
     model_dir = model_gpu_dir if use_gpu else model_cpu_dir
     with _predictor(model_dir, mnist_script, docker_image, sagemaker_local_session,
                     instance_type) as predictor:
@@ -64,10 +60,8 @@ def test_serve_json_npy(test_loader, use_gpu, docker_image, sagemaker_local_sess
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
 def test_serve_csv(test_loader, use_gpu, docker_image, sagemaker_local_session, instance_type):
-    tag_framework_version = re.search(r"(\d+(\.\d+){2})", docker_image).groups()[0]
-    if tag_framework_version == "1.5.1":
-        pytest.skip("Skipping this test for PyTorch 1.5.1 images")
     with _predictor(model_cpu_1d_dir, mnist_1d_script, docker_image, sagemaker_local_session,
                     instance_type) as predictor:
         for accept in (content_types.JSON, content_types.CSV, content_types.NPY):
@@ -77,10 +71,8 @@ def test_serve_csv(test_loader, use_gpu, docker_image, sagemaker_local_session, 
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
+@pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
 def test_serve_cpu_model_on_gpu(test_loader, docker_image, sagemaker_local_session, instance_type):
-    tag_framework_version = re.search(r"(\d+(\.\d+){2})", docker_image).groups()[0]
-    if tag_framework_version == "1.5.1":
-        pytest.skip("Skipping this test for PyTorch 1.5.1 images")
     with _predictor(model_cpu_1d_dir, mnist_1d_script, docker_image, sagemaker_local_session,
                     instance_type) as predictor:
         _assert_prediction_npy_json(predictor, test_loader, content_types.NPY, content_types.JSON)
@@ -89,10 +81,8 @@ def test_serve_cpu_model_on_gpu(test_loader, docker_image, sagemaker_local_sessi
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu_py2
+@pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
 def test_serving_calls_model_fn_once(docker_image, sagemaker_local_session, instance_type):
-    tag_framework_version = re.search(r"(\d+(\.\d+){2})", docker_image).groups()[0]
-    if tag_framework_version == "1.5.1":
-        pytest.skip("Skipping this test for PyTorch 1.5.1 images")
     with _predictor(model_cpu_dir, call_model_fn_once_script, docker_image, sagemaker_local_session,
                     instance_type, model_server_workers=2) as predictor:
         predictor.accept = None
