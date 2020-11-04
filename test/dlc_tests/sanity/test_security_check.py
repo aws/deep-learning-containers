@@ -30,6 +30,7 @@ def test_security(image):
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.integration("check OS dependencies")
 def test_ecr_scan(image, ecr_client):
     """
     Run ECR Scan Tool on an image being tested, and raise Error if vulnerabilities found
