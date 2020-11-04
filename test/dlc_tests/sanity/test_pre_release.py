@@ -204,7 +204,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
 
     # Check for any vulnerabilities not mentioned in allowed_vulnerabilities
     html_output = ec2_connection.run(f"cat ~/{dependency_check_report}", hide=True).stdout
-    cves = re.findall(r'CVE-\d+-\d+', html_output)
+    cves = re.findall(r'>(CVE-\d+-\d+)</a>', html_output)
     vulnerabilities = set(cves) - allowed_vulnerabilities
     if vulnerabilities:
         raise DependencyCheckFailure(f"Unrecognized CVES have been reported : {vulnerabilities}. "
