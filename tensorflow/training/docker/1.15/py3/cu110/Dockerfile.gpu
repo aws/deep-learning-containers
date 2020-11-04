@@ -197,9 +197,9 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
+    h5py==2.10.0
     werkzeug==1.0.1 \
     smdebug==${SMDEBUG_VERSION} \
-    h5py==2.10.0
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.0/targets/x86_64-linux/lib/stubs \
