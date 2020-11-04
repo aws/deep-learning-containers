@@ -1,5 +1,10 @@
+import json
+
 from test.test_utils import get_repository_and_tag_from_image_uri
 
+
+class ECRScanFailedError(Exception):
+    pass
 
 def get_ecr_image_scan_time(ecr_client, image_uri):
     """
@@ -15,6 +20,24 @@ def get_ecr_image_scan_time(ecr_client, image_uri):
     except ecr_client.exceptions.ScanNotFoundException:
         return None
     return scan_info["imageScanFindings"]["imageScanCompletedAt"]
+
+
+def start_ecr_image_scan(ecr_client, image_uri):
+    """
+    Start ECR Scan for an image
+    :param ecr_client: boto3 client for ECR
+    :param image_uri: image URI for image to be checked
+    :return: bool True if scan was started
+                  False if scan couldn't be started because it was already run within the last 24 hours
+    """
+    repository, tag = get_repository_and_tag_from_image_uri(image_uri)
+    try:
+        scan_info = ecr_client.start_image_scan(repositoryName=repository, imageId={"imageTag": tag})
+    except ecr_client.exceptions.LimitExceededException:
+        return False
+    if scan_info["imageScanStatus"]["status"] == "FAILED":
+        raise ECRScanFailedError(f"ECR Scan failed and returned:\n{json.dumps(scan_info, indent=4)}")
+    return True
 
 
 def get_ecr_image_scan_status(ecr_client, image_uri):
