@@ -13,6 +13,7 @@
 from __future__ import absolute_import
 
 import os
+import re
 
 import pytest
 from sagemaker.pytorch import PyTorch
@@ -35,6 +36,9 @@ def fixture_dist_gpu_backend(request):
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_gpu
 def test_dist_operations_path_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpdir):
+    tag_framework_version = re.search(r"(\d+(\.\d+){2})", docker_image).groups()[0]
+    if tag_framework_version == "1.5.1":
+        pytest.skip("Skipping this test for PyTorch 1.5.1 images")
     estimator = PyTorch(entry_point=dist_operations_path,
                         role=ROLE,
                         image_name=docker_image,
@@ -52,6 +56,9 @@ def test_dist_operations_path_cpu(docker_image, dist_cpu_backend, sagemaker_loca
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
 def test_dist_operations_path_gpu_nccl(docker_image, sagemaker_local_session, tmpdir):
+    tag_framework_version = re.search(r"(\d+(\.\d+){2})", docker_image).groups()[0]
+    if tag_framework_version == "1.5.1":
+        pytest.skip("Skipping this test for PyTorch 1.5.1 images")
     estimator = PyTorch(entry_point=dist_operations_path,
                         role=ROLE,
                         image_name=docker_image,
@@ -69,6 +76,9 @@ def test_dist_operations_path_gpu_nccl(docker_image, sagemaker_local_session, tm
 @pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
 def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
+    tag_framework_version = re.search(r"(\d+(\.\d+){2})", docker_image).groups()[0]
+    if tag_framework_version == "1.5.1":
+        pytest.skip("Skipping this test for PyTorch 1.5.1 images")
     estimator = PyTorch(entry_point=mnist_script,
                         role=ROLE,
                         image_name=docker_image,
@@ -89,6 +99,9 @@ def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
 @pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
 def test_mnist_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpdir):
+    tag_framework_version = re.search(r"(\d+(\.\d+){2})", docker_image).groups()[0]
+    if tag_framework_version == "1.5.1":
+        pytest.skip("Skipping this test for PyTorch 1.5.1 images")
     estimator = PyTorch(entry_point=mnist_script,
                         role=ROLE,
                         image_name=docker_image,
