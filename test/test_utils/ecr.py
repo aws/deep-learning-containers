@@ -51,7 +51,7 @@ def get_ecr_image_scan_status(ecr_client, image_uri):
     image_info = ecr_client.describe_images(repositoryName=repository, imageIds=[{"imageTag": tag}])["imageDetails"][0]
     if "imageScanStatus" not in image_info.keys():
         return None, "Scan not started"
-    return image_info["imageScanStatus"]["status"], image_info["imageScanStatus"]["description"]
+    return image_info["imageScanStatus"]["status"], image_info["imageScanStatus"].get("description", "NO DESCRIPTION")
 
 
 def get_ecr_image_scan_severity_count(ecr_client, image_uri):
