@@ -1,10 +1,11 @@
 import json
 
-from test.test_utils import get_repository_and_tag_from_image_uri
+from test.test_utils import get_repository_and_tag_from_image_uri, LOGGER
 
 
 class ECRScanFailedError(Exception):
     pass
+
 
 def get_ecr_image_scan_time(ecr_client, image_uri):
     """
@@ -34,10 +35,11 @@ def start_ecr_image_scan(ecr_client, image_uri):
     try:
         scan_info = ecr_client.start_image_scan(repositoryName=repository, imageId={"imageTag": tag})
     except ecr_client.exceptions.LimitExceededException:
-        return False
+        LOGGER.warning("Scan has already been run on this image in the last 24 hours.")
+        return
     if scan_info["imageScanStatus"]["status"] == "FAILED":
         raise ECRScanFailedError(f"ECR Scan failed and returned:\n{json.dumps(scan_info, indent=4)}")
-    return True
+    return
 
 
 def get_ecr_image_scan_status(ecr_client, image_uri):
