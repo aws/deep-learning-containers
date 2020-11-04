@@ -74,6 +74,7 @@ def test_ecs_mxnet_training_dgl_cpu(cpu_only, py3_only, ecs_container_instance, 
     ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, mxnet_training, instance_id)
 
 
+@pytest.mark.skip(reason="Skip until DGL with cuda 11.0 is available")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("training_script", [MX_DGL_TRAINING_SCRIPT], indirect=True)

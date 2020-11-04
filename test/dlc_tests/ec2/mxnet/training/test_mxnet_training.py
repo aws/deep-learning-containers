@@ -58,6 +58,7 @@ def test_mxnet_keras_cpu(mxnet_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_KERAS_CMD)
 
 
+@pytest.mark.skip(reason="Skip until DGL with cuda 11.0 is available")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
