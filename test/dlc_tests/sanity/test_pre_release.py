@@ -190,8 +190,8 @@ class DependencyCheckFailure(Exception):
 
 
 def _run_dependency_check_test(image, ec2_connection, processor):
-    # Record any whitelisted medium/low severity CVEs
-    allowed_vulnerabilities = {}
+    # Record any whitelisted medium/low severity CVEs; I.E. allowed_vulnerabilities = {CVE-1000-5555, CVE-9999-9999}
+    allowed_vulnerabilities = set()
 
     container_name = f"dep_check_{processor}"
     report_addon = _get_container_name("depcheck-report", image)
