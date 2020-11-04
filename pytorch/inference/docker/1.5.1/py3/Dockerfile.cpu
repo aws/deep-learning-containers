@@ -88,7 +88,6 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.1/license.txt -o 
 
 RUN conda install -y -c conda-forge pyyaml==5.3.1
 
-# Packages installed to resolve safety vulnerabilities
 RUN pip install \
     pillow==7.1.0 \
     "awscli<2" \
