@@ -25,11 +25,9 @@ def get_ecr_image_scan_time(ecr_client, image_uri):
 
 def start_ecr_image_scan(ecr_client, image_uri):
     """
-    Start ECR Scan for an image
+    Start ECR Scan for an image, and Warn if scan cannot be started
     :param ecr_client: boto3 client for ECR
     :param image_uri: image URI for image to be checked
-    :return: bool True if scan was started
-                  False if scan couldn't be started because it was already run within the last 24 hours
     """
     repository, tag = get_repository_and_tag_from_image_uri(image_uri)
     try:
