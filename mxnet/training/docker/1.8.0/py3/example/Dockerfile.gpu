@@ -9,8 +9,5 @@ RUN git clone -b v1.8.x https://github.com/apache/incubator-mxnet.git
 # Repository to run EKS test case
 RUN git clone -b v0.20.2 https://github.com/horovod/horovod.git
 
-ENV LD_LIBRARY_PATH=/usr/local/cuda-11.0/targets/x86_64-linux/lib/stubs:$LD_LIBRARY_PATH
-
 WORKDIR /
-#ENTRYPOINT ["python", "/incubator-mxnet/example/image-classification/train_mnist.py"]
 

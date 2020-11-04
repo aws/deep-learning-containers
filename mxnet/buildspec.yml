@@ -79,7 +79,7 @@
     BuildMXNetExampleGPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &MXNET_GPU_TRAINING_PY3 false
-      image_size_baseline: 5000
+      image_size_baseline: 6500
       base_image_name: BuildMXNetGPUTrainPy3DockerImage
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
