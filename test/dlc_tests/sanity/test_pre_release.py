@@ -184,38 +184,46 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     assert cuda_version in cuda_output.stdout.replace(".", "")
 
 
+class DependencyCheckFailure(Exception):
+    pass
+
+
+def _run_dependency_check_test(image, ec2_connection, processor):
+    allowed_vulnerabilities = {'CVE-2020-11022', 'CVE-2020-11023'}
+
+    container_name = f"dep_check_{processor}"
+    report_addon = _get_container_name("depcheck-report", image)
+    dependency_check_report = f"{report_addon}.html"
+    html_file = f"{container_name}:/build/dependency-check-report.html"
+    test_script = os.path.join(CONTAINER_TESTS_PREFIX, "testDependencyCheck")
+
+    # Execute test, copy results to s3
+    ec2.execute_ec2_training_test(ec2_connection, image, test_script, container_name=container_name)
+    ec2_connection.run(f"docker cp {html_file} ~/{dependency_check_report}")
+    ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
+
+    # Check for any vulnerabilities not mentioned in allowed_vulnerabilities
+    html_output = ec2_connection.run(f"cat {html_file}").stdout
+    cves = re.findall(r'CVE-\d+-\d+', html_output)
+    vulnerabilities = set(cves) - allowed_vulnerabilities
+    if vulnerabilities:
+        raise DependencyCheckFailure(f"Unrecognized CVES have been reported : {cves}. Allowed vulnerabilites are"
+                                     f" {allowed_vulnerabilities}. Please see {dependency_check_report} for more"
+                                     f" details.")
+
+
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+#@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_cpu(cpu, ec2_connection):
-    container_name = "dep_check_cpu"
-    report_addon = _get_container_name("depcheck-report", cpu)
-    dependency_check_report = f"{report_addon}.html"
-    test_script = os.path.join(CONTAINER_TESTS_PREFIX, "testDependencyCheck")
-    ec2.execute_ec2_training_test(ec2_connection, cpu, test_script, container_name=container_name)
-
-    if is_dlc_cicd_context():
-        ec2_connection.run(
-            f"docker cp {container_name}:/build/dependency-check-report.html ~/{dependency_check_report}"
-        )
-        ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
+    _run_dependency_check_test(cpu, ec2_connection, 'cpu')
 
 
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+#@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_gpu(gpu, ec2_connection):
-    container_name = "dep_check_gpu"
-    report_addon = _get_container_name("depcheck-report", gpu)
-    dependency_check_report = f"{report_addon}.html"
-    test_script = os.path.join(CONTAINER_TESTS_PREFIX, "testDependencyCheck")
-    ec2.execute_ec2_training_test(ec2_connection, gpu, test_script, container_name=container_name)
-
-    if is_dlc_cicd_context():
-        ec2_connection.run(
-            f"docker cp {container_name}:/build/dependency-check-report.html ~/{dependency_check_report}"
-        )
-        ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
+    _run_dependency_check_test(gpu, ec2_connection, 'gpu')
 
 
 @pytest.mark.model("N/A")
