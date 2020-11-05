@@ -54,7 +54,7 @@ def test_elastic_inference(ecr_image, sagemaker_session, instance_type, accelera
         model = MXNetModel(model_data=model_data,
                            entry_point=SCRIPT_PATH,
                            role='SageMakerRole',
-                           image=ecr_image,
+                           image_uri=ecr_image,
                            framework_version=framework_version,
                            sagemaker_session=sagemaker_session)
 

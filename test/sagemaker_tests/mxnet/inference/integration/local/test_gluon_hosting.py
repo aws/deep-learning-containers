@@ -34,7 +34,7 @@ def test_gluon_hosting(docker_image, sagemaker_local_session, local_instance_typ
     model = MXNetModel('file://{}'.format(MODEL_PATH),
                        'SageMakerRole',
                        SCRIPT_PATH,
-                       image=docker_image,
+                       image_uri=docker_image,
                        sagemaker_session=sagemaker_local_session)
 
     with open(os.path.join(RESOURCE_PATH, 'mnist', 'images', '04.json'), 'r') as f:

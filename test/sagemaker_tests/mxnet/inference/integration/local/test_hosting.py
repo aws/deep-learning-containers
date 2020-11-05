@@ -35,7 +35,7 @@ def test_hosting(docker_image, sagemaker_local_session, local_instance_type):
     model = MXNetModel('file://{}'.format(MODEL_PATH),
                        'SageMakerRole',
                        SCRIPT_PATH,
-                       image=docker_image,
+                       image_uri=docker_image,
                        sagemaker_session=sagemaker_local_session)
 
     with local_mode_utils.lock():
