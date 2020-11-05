@@ -37,7 +37,7 @@ def test_training(sagemaker_session, ecr_image, instance_type, instance_count):
                train_instance_count=instance_count,
                train_instance_type=instance_type,
                sagemaker_session=sagemaker_session,
-               image_name=ecr_image,
+               image_uri=ecr_image,
                hyperparameters=hyperparameters)
 
     with timeout(minutes=15):

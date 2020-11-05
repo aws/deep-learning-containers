@@ -35,7 +35,7 @@ def test_tuning(sagemaker_session, ecr_image, instance_type):
                train_instance_count=1,
                train_instance_type=instance_type,
                sagemaker_session=sagemaker_session,
-               image_name=ecr_image,
+               image_uri=ecr_image,
                hyperparameters={'epochs': 1})
 
     hyperparameter_ranges = {'learning-rate': ContinuousParameter(0.01, 0.2)}

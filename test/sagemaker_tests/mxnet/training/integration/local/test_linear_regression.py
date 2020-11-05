@@ -30,7 +30,7 @@ def test_linear_regression(docker_image, sagemaker_local_session, local_instance
 
     mx = MXNet(entry_point=os.path.join(lr_path, 'linear_regression.py'), role='SageMakerRole',
                train_instance_count=1, train_instance_type=local_instance_type,
-               sagemaker_session=sagemaker_local_session, image_name=docker_image,
+               sagemaker_session=sagemaker_local_session, image_uri=docker_image,
                framework_version=framework_version, output_path='file://{}'.format(tmpdir))
 
     data_path = os.path.join(lr_path, 'data')

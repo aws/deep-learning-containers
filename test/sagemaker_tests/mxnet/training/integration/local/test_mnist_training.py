@@ -32,7 +32,7 @@ def test_single_machine(docker_image, sagemaker_local_session, local_instance_ty
                         framework_version, tmpdir):
     mx = MXNet(entry_point=SCRIPT_PATH, role='SageMakerRole', train_instance_count=1,
                train_instance_type=local_instance_type, sagemaker_session=sagemaker_local_session,
-               image_name=docker_image, framework_version=framework_version,
+               image_uri=docker_image, framework_version=framework_version,
                output_path='file://{}'.format(tmpdir))
 
     _train_and_assert_success(mx, str(tmpdir))
@@ -47,7 +47,7 @@ def test_distributed(docker_image, sagemaker_local_session, framework_version, p
 
     mx = MXNet(entry_point=SCRIPT_PATH, role='SageMakerRole', train_instance_count=2,
                train_instance_type='local', sagemaker_session=sagemaker_local_session,
-               image_name=docker_image, framework_version=framework_version,
+               image_uri=docker_image, framework_version=framework_version,
                output_path='file://{}'.format(tmpdir),
                hyperparameters={'sagemaker_parameter_server_enabled': True})
     _train_and_assert_success(mx, str(tmpdir))

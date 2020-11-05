@@ -34,7 +34,7 @@ def test_nlp_training(sagemaker_session, ecr_image, instance_type):
                 train_instance_count=1,
                 train_instance_type=instance_type,
                 sagemaker_session=sagemaker_session,
-                image_name=ecr_image,
+                image_uri=ecr_image,
                 train_max_run=5 * 60)
 
     job_name = utils.unique_name_from_base('test-nlp-image')
