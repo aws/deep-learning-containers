@@ -25,6 +25,7 @@ DGL_DATA_PATH = os.path.join(RESOURCE_PATH, 'dgl_gcn')
 DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, 'gcn.py')
 
 
+@pytest.mark.skip(reason="Skip until DGL with cuda 11.0 is available")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.skip_py2_containers
