@@ -22,11 +22,8 @@ def test_eks_mxnet_single_node_training(mxnet_training):
 
     rand_int = random.randint(4001, 6000)
 
-    framework_version_search = re.search(r"\d+(\.\d+){2}", mxnet_training)
-    framework_version = framework_version_search.group()
-    if not framework_version_search:
-        framework_version_search = re.search(r"\d+\.\d+", mxnet_training)
-        framework_version = "v" + framework_version_search.group() + ".x"
+    framework_version_search = re.search(r"\d+\.\d+", mxnet_training)
+    framework_version = "v" + framework_version_search.group() + ".x"
 
     yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_training_{rand_int}.yaml")
     pod_name = f"mxnet-single-node-training-{rand_int}"
