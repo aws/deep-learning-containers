@@ -125,7 +125,7 @@ RUN wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
  && ./config && make -j $(nproc) && make install \
  && ldconfig \
  && cd .. && rm -rf openssl-* \
- && rm /usr/local/ssl/certs \
+ && rmdir /usr/local/ssl/certs \
  && ln -s /etc/ssl/certs /usr/local/ssl/certs
 
 # install Python
