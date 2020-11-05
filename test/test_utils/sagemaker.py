@@ -97,7 +97,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     find_path = sm_remote_docker_base_name.split("-")
 
     # NOTE: We are relying on the fact that repos are defined as <context>-<framework>-<job_type> in our infrastructure
-    framework, framework_version = get_framework_and_version_from_tag(tag)
+    framework, framework_version = get_framework_and_version_from_tag(image)
     framework_major_version = framework_version.split(".")[0]
     job_type = get_job_type_from_image(image)
     path = os.path.join("test", "sagemaker_tests", framework, job_type)
