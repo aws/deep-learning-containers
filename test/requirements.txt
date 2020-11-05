@@ -10,3 +10,4 @@ xmltodict
 boto3
 retrying
 gitpython
+pytz

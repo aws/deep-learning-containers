@@ -88,6 +88,11 @@ def docker_client(region):
 
 
 @pytest.fixture(scope="session")
+def ecr_client(region):
+    return boto3.client("ecr", region_name=region)
+
+
+@pytest.fixture(scope="session")
 def ec2_client(region):
     return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
