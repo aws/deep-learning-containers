@@ -1,4 +1,4 @@
-sagemaker-inference
+sagemaker-inference==1.1.2
 retrying==1.3.3
 tox
 flake8
