@@ -233,21 +233,21 @@ def _run_dependency_check_test(image, ec2_connection, processor):
 
         raise DependencyCheckFailure(
             f"Unrecognized CVES have been reported : {vulnerability_severity}. "
-            f"Allowed vulnerabilites are {allowed_vulnerabilities}. Please see "
+            f"Allowed vulnerabilites are {allowed_vulnerabilities or None}. Please see "
             f"{dependency_check_report} for more details."
         )
 
 
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-# @pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_cpu(cpu, ec2_connection):
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
 
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-# @pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_gpu(gpu, ec2_connection):
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
 
