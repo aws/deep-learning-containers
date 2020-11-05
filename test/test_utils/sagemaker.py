@@ -188,7 +188,10 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
         # TF inference test fail if run as soon as instance boots, even after health check pass. rootcause:
         # sockets?/nginx startup?/?
         install_custom_python("3.6", ec2_conn)
-    ec2_conn.run(f"virtualenv env")
+    if framework == "mxnet":
+        ec2_conn.run(f"virtualenv -p /usr/local/bin/python env")
+    else:
+        ec2_conn.run(f"virtualenv env")
     ec2_conn.run(f"source ./env/bin/activate")
     if framework == "pytorch":
         # The following distutils package conflict with test dependencies
