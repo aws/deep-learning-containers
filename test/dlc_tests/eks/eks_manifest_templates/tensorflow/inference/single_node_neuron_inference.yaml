@@ -1,0 +1,75 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: <INFERENCE_SERVICE_NAME>
+  labels:
+    app: <INFERENCE_SERVICE_NAME>
+spec:
+  ports:
+  - name: http-tf-serving
+    port: 8500
+    targetPort: 8500
+  - name: grpc-tf-serving
+    port: 8501
+    targetPort: 8501
+  selector:
+    app: <INFERENCE_SERVICE_NAME>
+    role: master
+  type: ClusterIP
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: <INFERENCE_SERVICE_NAME>
+  labels:
+    app: <INFERENCE_SERVICE_NAME>
+    role: master
+spec:
+  replicas: <NUM_REPLICAS>
+  selector:
+    matchLabels:
+      app: <SELECTOR_NAME>
+      role: master
+  template:
+    metadata:
+      labels:
+        app: <SELECTOR_NAME>
+        role: master
+    spec:
+      serviceAccountName: dlc-serviceaccount
+      containers:
+      - name: tfs-service
+        image: <DOCKER_IMAGE_BUILD_ID>
+        command: ["/bin/sh","-c"]
+        args:
+        - "/usr/local/bin/entrypoint.sh"
+        ports:
+        - containerPort: 8500
+        - containerPort: 8501
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          capabilities:
+            add:
+              - IPC_LOCK
+        env:
+        - name: MODEL_NAME
+          value: <MODEL_NAME>
+        - name: MODEL_BASE_PATH
+          value: <MODEL_BASE_PATH>
+        - name: AWS_REGION
+          value: us-west-2
+        - name: S3_USE_HTTPS
+          value: "true"
+        - name: S3_VERIFY_SSL
+          value: "true"
+        - name: S3_ENDPOINT
+          value: s3.us-west-2.amazonaws.com
+        resources:
+          limits:
+            cpu: "4"
+            memory: 4Gi
+            aws.amazon.com/neuron: <NUM_INF1S>
+          requests:
+            cpu: "1"
+            memory: 1Gi
