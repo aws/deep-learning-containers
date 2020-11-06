@@ -78,15 +78,7 @@ def _get_safety_ignore_list(image_uri):
     job_type = "training" if "training" in image_uri else "inference-eia" if "eia" in image_uri else "inference"
     python_version = "py2" if "py2" in image_uri else "py3"
 
-    # TODO: Remove each if condition on each subsequent release
-    additional_skips = []
-    if is_canary_context():
-        if (framework == "tensorflow" and "2.1" in image_uri) or \
-                (framework == "pytorch" and "1.4" in image_uri) or \
-                (framework == "pytorch" and job_type == "training" and "1.5" in image_uri):
-            additional_skips.append('38414')
-
-    return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, []) + additional_skips
+    return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, [])
 
 
 def _get_latest_package_version(docker_exec_cmd, package, num_tries=3):
