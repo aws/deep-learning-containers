@@ -166,10 +166,10 @@ RUN ${PIP} install --no-cache --upgrade \
     sagemaker-experiments==0.* \
     PyYAML==5.3.1 \
     mpi4py==3.0.2 \
-    "sagemaker-mxnet-training<5" \
+    sagemaker-mxnet-training \
     ${MX_URL} \
     smdebug==${SMDEBUG_VERSION} \
-    "sagemaker<2" \
+    sagemaker \
     awscli
 
 # Install Horovod, temporarily using CUDA stubs
