@@ -121,7 +121,6 @@ RUN ${PIP} install --no-cache-dir -U \
     scikit-learn==0.22 \
     pandas==1.0.1 \
     Pillow==6.2.2 \
-    h5py==2.10.0 \
     keras_applications==1.0.8 \
     keras_preprocessing==1.1.0 \
     keras==2.3.1 \
@@ -140,6 +139,8 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
+    h5py==2.10.0 \
+    "absl-py>=0.9,<0.11" \
     horovod==0.19.4
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
