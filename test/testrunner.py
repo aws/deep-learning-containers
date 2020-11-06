@@ -199,7 +199,8 @@ def setup_eks_cluster(framework_name, is_neuron):
     try:
         eks_utils.eks_setup()
         if is_neuron:
-            # FIXME the eks optimized AMI used for neuron is 500GB
+            #TODO the eks AMI used for neuron has a snapshot size of 500GB, if we pass the default 80GB the cluster 
+            #creation will fail. Once official EKS AMI for neuron 1.1 is released, revert this change.
             volume_size = 500
             eks_utils.create_eks_cluster(cluster_name, "neuron", num_nodes, volume_size, "inf1.xlarge", "pytest.pem")
         else:
