@@ -132,8 +132,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     remote_pytest_cmd = (
         f"pytest {integration_path} --region {region} {docker_base_arg} "
-        f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
-        f"{instance_type_arg} {instance_type} --junitxml {test_report}"
+        f"{sm_remote_docker_base_name} --tag {tag} --framework-version {framework_version} "
+        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} --junitxml {test_report}"
     )
 
     if processor == "eia" :
