@@ -32,6 +32,7 @@ DATA_PATH = os.path.join(RESOURCE_PATH, "mnist")
 SCRIPT_PATH = os.path.join(DATA_PATH, "mnist_gluon_basic_hook_demo.py")
 
 
+@pytest.mark.skip(reason="Skipping sm experiments tests until a fix is implemented")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_py2_containers
