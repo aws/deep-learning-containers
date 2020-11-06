@@ -44,6 +44,7 @@ UL_AMI_LIST = [
 ]
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
+NEURON_AL2_DLAMI = "ami-092059396c7e51f52"
 
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
@@ -304,7 +305,7 @@ def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", 
     :return:
     """
     conn_run = connection.run if connection is not None else run
-    conn_run(f"python {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
+    conn_run(f"python3 {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
 def get_inference_run_command(image_uri, model_names, processor="cpu"):
@@ -727,7 +728,7 @@ def get_processor_from_image_uri(image_uri):
     :param image_uri: ECR image URI
     :return: cpu, gpu, or eia
     """
-    allowed_processors = ("cpu", "gpu", "eia")
+    allowed_processors = ("cpu", "gpu", "eia", "neuron")
 
     for processor in allowed_processors:
         match = re.search(rf"-({processor})", image_uri)

@@ -3,6 +3,7 @@ import os
 import logging
 import random
 import sys
+import re
 
 import boto3
 from botocore.exceptions import ClientError
@@ -39,9 +40,11 @@ FRAMEWORK_FIXTURES = (
     "gpu",
     "cpu",
     "eia",
+    "neuron",
     "pytorch_inference_eia",
     "mxnet_inference_eia",
-    "tensorflow_inference_eia"
+    "tensorflow_inference_eia",
+    "tensorflow_inference_neuron"
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -283,6 +286,11 @@ def eia_only():
 
 
 @pytest.fixture(scope="session")
+def neuron_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def py3_only():
     pass
 
@@ -371,7 +379,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                 for index, image in enumerate(images_to_parametrize):
 
                     # Tag fixtures with EC2 instance types if env variable is present
-                    allowed_processors = ("gpu", "cpu", "eia")
+                    allowed_processors = ("gpu", "cpu", "eia, neuron")
                     instance_tag = ""
                     for processor in allowed_processors:
                         if processor in image:
@@ -421,6 +429,9 @@ def pytest_generate_tests(metafunc):
                         elif ("cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames
                               and "eia_only" not in metafunc.fixturenames):
                             images_to_parametrize.append(image)
+                        elif "neuron_only" in metafunc.fixturenames and "neuron" in image:
+                            images_to_parametrize.append(image)
+
             # Remove all images tagged as "py2" if py3_only is a fixture
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
                 images_to_parametrize = [py3_image for py3_image in images_to_parametrize if "py2" not in py3_image]
