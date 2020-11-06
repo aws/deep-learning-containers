@@ -135,21 +135,29 @@ release_images:
     framework: "tensorflow"
     version: "1.15.4"
     training:
-      device_types: ["gpu"]
-      python_versions: ["py37"]
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py36", "py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu110"
+      cuda_version: "cu100"
       example: False
-      disable_sm_tag: True
+      disable_sm_tag: False
+      force_release: False
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu100"
+      example: False
+      disable_sm_tag: False
       force_release: False
   11:
     framework: "tensorflow"
     version: "1.15.4"
     training:
       device_types: ["gpu"]
-      python_versions: ["py37"]
+      python_versions: ["py36", "py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu110"
+      cuda_version: "cu100"
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
