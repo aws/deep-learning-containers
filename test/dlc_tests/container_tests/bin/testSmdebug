@@ -74,7 +74,14 @@ elif [[ $FRAMEWORK == "mxnet" ]]; then
         exit $exit_code
     fi
 else
-    pip install tensorflow-datasets==4.0.1
+    if [[ $FRAMEWORK == "tensorflow2" ]]; then
+        framework_version=$(python -c "import tensorflow; print(tensorflow.__version__)")
+        if [[ $framework_version == *"2.0."* ]]; then
+            # Installing tensorflow-datasets==3.2.1 here prevents future "pip install"s from installing higher versions
+            pip install tensorflow_datasets==3.2.1
+        fi
+    fi
+    pip install tensorflow-datasets
     for test_file in mock/tests/${FRAMEWORK}/*
     do
         pytest $test_file
