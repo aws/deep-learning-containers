@@ -141,7 +141,7 @@ release_images:
       cuda_version: "cu100"
       example: False
       disable_sm_tag: False
-      force_release: False
+      force_release: True
     inference:
       device_types: ["cpu", "gpu"]
       python_versions: ["py36"]
@@ -149,7 +149,7 @@ release_images:
       cuda_version: "cu100"
       example: False
       disable_sm_tag: False
-      force_release: False
+      force_release: True
   11:
     framework: "tensorflow"
     version: "1.15.4"
@@ -160,7 +160,7 @@ release_images:
       cuda_version: "cu100"
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
+      force_release: True
   12:
     framework: "tensorflow"
     version: "2.1.1"
