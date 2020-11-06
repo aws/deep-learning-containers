@@ -22,6 +22,8 @@ from sagemaker.predictor import StringDeserializer
 from ...integration.local import local_mode_utils
 from ...integration import RESOURCE_PATH
 
+from test.test_utils import get_framework_and_version_from_tag
+
 HOSTING_RESOURCE_PATH = os.path.join(RESOURCE_PATH, 'dummy_hosting')
 MODEL_PATH = os.path.join(HOSTING_RESOURCE_PATH, 'code')
 SCRIPT_PATH = os.path.join(HOSTING_RESOURCE_PATH, 'code', 'dummy_hosting_module.py')
@@ -32,10 +34,12 @@ SCRIPT_PATH = os.path.join(HOSTING_RESOURCE_PATH, 'code', 'dummy_hosting_module.
 @pytest.mark.integration("hosting")
 @pytest.mark.model("dummy_model")
 def test_hosting(docker_image, sagemaker_local_session, local_instance_type):
+    framework, framework_version = get_framework_and_version_from_tag(docker_image)
     model = MXNetModel('file://{}'.format(MODEL_PATH),
                        'SageMakerRole',
                        SCRIPT_PATH,
                        image_uri=docker_image,
+                       framework_version=framework_version,
                        sagemaker_session=sagemaker_local_session)
 
     with local_mode_utils.lock():
