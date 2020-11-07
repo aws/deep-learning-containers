@@ -172,7 +172,7 @@ RUN ${PIP} install --no-cache-dir -U \
     "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
-    "sagemaker>=2,sagemaker<3" \
+    "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.0,<2.1" \
     "sagemaker-tensorflow-training>=3.0<4.0" \
