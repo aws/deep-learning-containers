@@ -23,7 +23,8 @@ from test_utils import (
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
     setup_sm_benchmark_mx_train_env,
-    get_framework_and_version_from_tag)
+    get_framework_and_version_from_tag,
+)
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 
 
@@ -186,17 +187,24 @@ def pull_dlc_images(images):
         run(f"docker pull {image}", hide="out")
 
 
-def setup_eks_cluster(framework_name):
+def setup_eks_cluster(framework_name, is_neuron):
     frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
     long_name = framework_name
     short_name = frameworks[long_name]
-    codebuild_version = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')[0:7]
+    codebuild_version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")[0:7]
     num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
-    cluster_name = f"dlc-{short_name}-cluster-" \
-                   f"{codebuild_version}-{random.randint(1, 10000)}"
+    cluster_name = f"dlc-{short_name}-cluster-{codebuild_version}-{random.randint(1, 10000)}"
+    # default volume size
+    volume_size = 80
     try:
         eks_utils.eks_setup()
-        eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, "p3.16xlarge", "pytest.pem")
+        if is_neuron:
+            #TODO the eks AMI used for neuron has a snapshot size of 500GB, if we pass the default 80GB the cluster 
+            #creation will fail. Once official EKS AMI for neuron 1.1 is released, revert this change.
+            volume_size = 500
+            eks_utils.create_eks_cluster(cluster_name, "neuron", num_nodes, volume_size, "inf1.xlarge", "pytest.pem")
+        else:
+            eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, volume_size, "p3.16xlarge", "pytest.pem")
     except Exception:
         eks_utils.delete_eks_cluster(cluster_name)
         raise
@@ -224,7 +232,7 @@ def delete_key_pairs(keyfile):
     with open(keyfile) as key_destroy_file:
         for key_file in key_destroy_file:
             LOGGER.info(key_file)
-            ec2_client = boto3.client("ec2", config=Config(retries={'max_attempts': 10}))
+            ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}))
             if ".pem" in key_file:
                 _resp, keyname = destroy_ssh_keypair(ec2_client, key_file)
                 LOGGER.info(f"Deleted {keyname}")
@@ -283,23 +291,54 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
-            eks_cluster_name = setup_eks_cluster(framework)
+            is_neuron = "neuron" in dlc_images
+            eks_cluster_name = setup_eks_cluster(framework, is_neuron)
 
-            # setup kubeflow
-            eks_utils.setup_kubeflow(eks_cluster_name)
+            if not is_neuron:
+                # setup kubeflow
+                eks_utils.setup_kubeflow(eks_cluster_name)
 
             # Change 1: Split training and inference, and run one after the other, to prevent scheduling issues
             # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in
             # pods timing-out while they were in the Pending state. Scheduling 4 tests (and hence, 4 pods) at once
             # seems to be an optimal configuration.
             # Change 2: Separate multi-node EKS tests from single-node tests in execution to prevent resource contention
-            pytest_cmds = [
-                ["-s", "-rA", os.path.join(test_path, framework, "training"), f"--junitxml={report_train}", "-n=4",
-                 "-m", "not multinode"],
-                ["-s", "-rA", os.path.join(test_path, framework, "inference"), f"--junitxml={report_infer}", "-n=4",
-                 "-m", "not multinode"],
-                ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
-            ]
+            if not is_neuron:
+                pytest_cmds = [
+                    [
+                        "-s",
+                        "-rA",
+                        os.path.join(test_path, framework, "training"),
+                        f"--junitxml={report_train}",
+                        "-n=4",
+                        "-m",
+                        "not multinode",
+                    ],
+                    [
+                        "-s",
+                        "-rA",
+                        os.path.join(test_path, framework, "inference"),
+                        f"--junitxml={report_infer}",
+                        "-n=4",
+                        "-m",
+                        "not multinode",
+                    ],
+                    ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
+                ]
+            else:
+                pytest_cmds = [
+                    [
+                        "-s",
+                        "-rA",
+                        os.path.join(test_path, framework, "inference"),
+                        f"--junitxml={report_infer}",
+                        "-n=4",
+                        "-m",
+                        "not multinode",
+                    ],
+                    ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
+                ]
+
             if is_pr_context():
                 for cmd in pytest_cmds:
                     cmd.append("--timeout=2340")
@@ -332,6 +371,9 @@ def main():
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
 
     elif specific_test_type == "sagemaker":
+        if "neuron" in dlc_images:
+            LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
+            return
         if benchmark_mode:
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
             os.chdir(os.path.join("test", "dlc_tests"))
@@ -347,13 +389,19 @@ def main():
         metrics_utils.send_test_duration_metrics(start_time)
 
     elif specific_test_type == "sagemaker-local":
-        testing_image_list = [image for image in standard_images_list if
-                              not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))]
+        if "neuron" in dlc_images:
+            LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
+            return
+        testing_image_list = [
+            image
+            for image in standard_images_list
+            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))
+        ]
         run_sagemaker_local_tests(testing_image_list)
         # for EIA Images
         if len(testing_image_list) == 0:
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-            sm_utils.generate_empty_report(report,test_type,"eia")
+            sm_utils.generate_empty_report(report, test_type, "eia")
     else:
         raise NotImplementedError(
             f"{test_type} test is not supported. Only support ec2, ecs, eks, sagemaker and sanity currently"
