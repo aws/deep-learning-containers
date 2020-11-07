@@ -23,7 +23,7 @@ from ...integration.local import local_mode_utils
 from ...integration import RESOURCE_PATH
 
 GLUON_PATH = os.path.join(RESOURCE_PATH, 'gluon_hosting')
-MODEL_PATH = os.path.join(GLUON_PATH, 'model')
+MODEL_PATH = os.path.join(GLUON_PATH, 'model', 'model.tar.gz')
 SCRIPT_PATH = os.path.join(MODEL_PATH, 'code', 'gluon.py')
 
 
