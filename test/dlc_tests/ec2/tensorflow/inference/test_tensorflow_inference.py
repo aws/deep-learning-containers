@@ -132,9 +132,8 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
     # Tensorflow 1.x doesn't have package with version 1.15.2 so use only 1.15
     ec2_connection.run(
         (
-            f"pip install --user -qq -U 'tensorflow<={framework_version}' "
+            f"pip3 install --user -qq -U 'tensorflow<={framework_version}' "
             f" 'tensorflow-serving-api<={framework_version}' "
-            f" 'grpcio==1.31.0'"
         ), hide=True
     )
     if os.path.exists(f"{serving_folder_path}"):
