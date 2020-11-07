@@ -24,7 +24,7 @@ from ...integration import RESOURCE_PATH
 
 GLUON_PATH = os.path.join(RESOURCE_PATH, 'gluon_hosting')
 MODEL_PATH = os.path.join(GLUON_PATH, 'model', 'model.tar.gz')
-SCRIPT_PATH = os.path.join(MODEL_PATH, 'code', 'gluon.py')
+SCRIPT_PATH = os.path.join(GLUON_PATH, 'model', 'code', 'gluon.py')
 
 
 # The image should support serving Gluon-created models.
