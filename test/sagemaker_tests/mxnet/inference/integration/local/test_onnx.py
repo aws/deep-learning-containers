@@ -24,7 +24,7 @@ from ...integration import RESOURCE_PATH
 
 ONNX_PATH = os.path.join(RESOURCE_PATH, 'onnx')
 MODEL_PATH = os.path.join(ONNX_PATH, 'onnx_model')
-MODEL_FILE = os.path.join(MODEL_PATH, 'model.onnx')
+MODEL_FILE = os.path.join(MODEL_PATH, 'model.tar.gz')
 SCRIPT_PATH = os.path.join(MODEL_PATH, 'code', 'onnx_import.py')
 
 
