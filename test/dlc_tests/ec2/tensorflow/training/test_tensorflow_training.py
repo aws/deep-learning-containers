@@ -57,10 +57,11 @@ def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_onl
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
 
+# TODO: Re-enable for TF1 by removing tf2_only fixture once infrastructure issues are addressed
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2_connection, gpu_only):
+def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2_connection, gpu_only, tf2_only):
     test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
     execute_ec2_training_test(
         connection=ec2_connection,
@@ -70,10 +71,11 @@ def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2
     )
 
 
+# TODO: Re-enable for TF1 by removing tf2_only fixture once infrastructure issues are addressed
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_only):
+def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_only, tf2_only):
     container_name = "tf_hvd_cpu_test"
     test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
     try:
@@ -88,7 +90,7 @@ def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_on
                 f"TF HVD tests succeeded, but there is an issue with fabric. Error:\n{e}\nTest output:\n{debug_stdout}"
             )
             return
-        raise TFTrainingTestFailure(f"TF HVD test. Full output:\n{debug_stdout}") from e
+        raise TFTrainingTestFailure(f"TF HVD test failed. Full output:\n{debug_stdout}") from e
 
 
 @pytest.mark.integration("opencv")
