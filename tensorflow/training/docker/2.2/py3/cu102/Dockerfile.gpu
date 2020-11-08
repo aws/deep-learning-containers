@@ -192,7 +192,7 @@ RUN ${PIP} install --no-cache-dir -U \
     "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
-    "sagemaker<2" \
+    "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.2,<2.3" \
     "sagemaker-tensorflow-training>=20" \
@@ -202,7 +202,6 @@ RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     ${ESTIMATOR_URL} \
     h5py==2.10.0 \
-    "absl-py>=0.9,<0.11" \
     werkzeug==1.0.1 \
     smdebug==${SMDEBUG_VERSION}
 
