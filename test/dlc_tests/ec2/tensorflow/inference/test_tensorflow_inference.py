@@ -133,7 +133,7 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
     ec2_connection.run(
         (
             f"pip3 install --user -qq -U 'tensorflow<={framework_version}' "
-            f" 'tensorflow-serving-api<={framework_version}'"
+            f" 'tensorflow-serving-api<={framework_version}' "
         ), hide=True
     )
     if os.path.exists(f"{serving_folder_path}"):
