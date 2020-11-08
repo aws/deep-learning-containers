@@ -74,7 +74,7 @@ elif [[ $FRAMEWORK == "mxnet" ]]; then
         exit $exit_code
     fi
 else
-    pip install tensorflow-datasets
+    pip install tensorflow-datasets==4.0.1
     for test_file in mock/tests/${FRAMEWORK}/*
     do
         pytest $test_file
