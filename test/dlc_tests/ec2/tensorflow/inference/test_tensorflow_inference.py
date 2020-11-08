@@ -124,7 +124,7 @@ def train_mnist_model(serving_folder_path, ec2_connection):
     ec2_connection.run(f"cd {serving_folder_path}")
     mnist_script_path = f"{serving_folder_path}/tensorflow_serving/example/mnist_saved_model.py"
     ec2_connection.run(
-        f"python {mnist_script_path} {serving_folder_path}/models/mnist", hide=True
+        f"python3 {mnist_script_path} {serving_folder_path}/models/mnist", hide=True
     )
 
 
@@ -132,8 +132,8 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
     # Tensorflow 1.x doesn't have package with version 1.15.2 so use only 1.15
     ec2_connection.run(
         (
-            f"pip install --user -qq -U 'tensorflow<={framework_version}' "
-            f" 'tensorflow-serving-api<={framework_version}'"
+            f"pip3 install --user -qq -U 'tensorflow<={framework_version}' "
+            f" 'tensorflow-serving-api<={framework_version}' "
         ), hide=True
     )
     if os.path.exists(f"{serving_folder_path}"):
