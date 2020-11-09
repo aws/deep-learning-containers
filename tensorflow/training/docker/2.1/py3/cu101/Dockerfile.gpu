@@ -27,7 +27,7 @@ ARG PIP=pip3
 
 ARG OPENSSL_VERSION=1.1.1g
 
-ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.1.1/AmazonLinux/gpu/final/tensorflow_gpu-2.1.1-cp36-cp36m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.1_aws/20201030-193011/gpu/tensorflow_gpu-2.1.2-cp36-cp36m-manylinux2010_x86_64.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
@@ -166,7 +166,7 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
-    numpy==1.18.1 \
+    numpy==1.18.5 \
     scipy==1.2.2 \
     scikit-learn==0.22 \
     pandas==1.0.1 \
@@ -181,7 +181,7 @@ RUN ${PIP} install --no-cache-dir -U \
     "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
-    "sagemaker<2" \
+    "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.1,<2.2" \
     "sagemaker-tensorflow-training>=20" \
@@ -190,7 +190,7 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     h5py==2.10.0 \
-    "absl-py>=0.9,<0.11" \
+    "absl-py>=0.9,<0.11"
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
