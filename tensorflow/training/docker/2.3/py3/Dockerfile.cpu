@@ -142,7 +142,6 @@ RUN ${PIP} install --no-cache-dir -U \
     scikit-learn==0.23 \
     pandas==1.1 \
     Pillow==7.2.0 \
-    h5py==2.10.0 \
     python-dateutil==2.8.1 \
     pyYAML==5.3.1 \
     requests==2.24.0 \
@@ -159,6 +158,8 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     ${ESTIMATOR_URL} \
+    h5py==2.10.0 \
+    "absl-py>=0.9,<0.11" \
     horovod==0.19.5 \
     werkzeug==1.0.1 \
     psutil==5.7.2 \
