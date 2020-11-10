@@ -23,7 +23,7 @@ from ...integration import RESOURCE_PATH
 
 DEFAULT_HANDLER_PATH = os.path.join(RESOURCE_PATH, 'default_handlers')
 MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model.tar.gz')
-SCRIPT_PATH = os.path.join(MODEL_PATH, 'code', 'empty_module.py')
+SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'empty_module.py')
 
 
 @pytest.fixture(scope='module')
