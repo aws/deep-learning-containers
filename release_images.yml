@@ -205,6 +205,14 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu101"
+      example: False
+      disable_sm_tag: False
+      force_release: False
   14:
     framework: "tensorflow"
     version: "2.1.2"
