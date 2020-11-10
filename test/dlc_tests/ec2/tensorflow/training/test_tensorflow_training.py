@@ -111,7 +111,7 @@ def test_tensorflow_opencv_cpu(tensorflow_training, ec2_connection, tf2_only, cp
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
 
