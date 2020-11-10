@@ -53,10 +53,21 @@ KUBETAIL_VERSION = "1.6.7"
 EKS_NVIDIA_PLUGIN_VERSION = "0.6.0"
 
 # https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
-EKS_AMI_ID = {"cpu": "ami-03086423d09685de3", "gpu": "ami-061798711b2adafb4"}
+EKS_AMI_ID = {"cpu": "ami-03086423d09685de3", "gpu": "ami-061798711b2adafb4", "neuron": "ami-092059396c7e51f52"}
 
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
 PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"
+
+def get_aws_secret_yml_path():
+
+    return os.path.join(
+        os.sep,
+        DLC_TESTS_PREFIX,
+        "eks",
+        "eks_manifest_templates",
+        "aws_access",
+        "secret.yaml",
+    )
 
 def get_single_node_training_template_path():
 
@@ -292,7 +303,7 @@ def setup_eksctl():
 
 
 @retry(stop_max_attempt_number=2, wait_fixed=60000)
-def create_eks_cluster(eks_cluster_name, processor_type, num_nodes,
+def create_eks_cluster(eks_cluster_name, processor_type, num_nodes, volume_size,
                        instance_type, ssh_public_key_name, region=os.getenv("AWS_REGION", DEFAULT_REGION)):
     """Function to setup an EKS cluster using eksctl. The AWS credentials used to perform eks operations
     are that the user deepamiuser-beta as used in other functions. The 'deeplearning-ami-beta' public key
@@ -309,6 +320,7 @@ def create_eks_cluster(eks_cluster_name, processor_type, num_nodes,
                                     f"--node-ami {EKS_AMI_ID[processor_type]} " \
                                     f"--nodes {num_nodes} " \
                                     f"--node-type={instance_type} " \
+                                    f"--node-volume-size={volume_size} " \
                                     f"--timeout=40m " \
                                     f"--ssh-access " \
                                     f"--ssh-public-key {ssh_public_key_name} " \
