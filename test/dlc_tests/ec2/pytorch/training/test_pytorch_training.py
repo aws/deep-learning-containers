@@ -1,8 +1,10 @@
 import os
 
+from packaging.version import Version
+
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX
+from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, get_cuda_version_from_tag
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -60,6 +62,10 @@ def test_pytorch_linear_regression_cpu(pytorch_training, ec2_connection, cpu_onl
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_train_dgl_gpu(pytorch_training, ec2_connection, gpu_only, py3_only):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    image_cuda_version = get_cuda_version_from_tag(pytorch_training)
+    if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
+        pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DGL_CMD)
 
 
@@ -123,6 +129,9 @@ def test_nvapex(pytorch_training, ec2_connection, gpu_only):
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.skipif(PT_EC2_GPU_INSTANCE_TYPE == ["g3.4xlarge"], reason="Skipping AMP DDP test on single gpu instance")
 def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) < Version("1.6"):
+        pytest.skip("Native AMP was introduced in PyTorch 1.6")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD)
 
 

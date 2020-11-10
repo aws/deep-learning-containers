@@ -19,8 +19,8 @@ from test_utils import (
 )
 
 from test_utils import (
-    UBUNTU_16_BASE_DLAMI_US_EAST_1,
-    UBUNTU_16_BASE_DLAMI_US_WEST_2,
+    UBUNTU_18_BASE_DLAMI_US_EAST_1,
+    UBUNTU_18_BASE_DLAMI_US_WEST_2,
     SAGEMAKER_LOCAL_TEST_TYPE,
     SAGEMAKER_REMOTE_TEST_TYPE,
     UBUNTU_HOME_DIR,
@@ -33,17 +33,18 @@ class DLCSageMakerRemoteTestFailure(Exception):
 
 
 def assign_sagemaker_remote_job_instance_type(image):
-    if "tensorflow" in image:
-        return "ml.p3.8xlarge" if "gpu" in image else "ml.c4.4xlarge"
+    if "gpu" in image:
+        return "ml.p3.8xlarge"
+    elif "tensorflow" in image:
+        return "ml.c4.4xlarge"
     else:
-        return "ml.p2.8xlarge" if "gpu" in image else "ml.c4.8xlarge"
+        return "ml.c4.8xlarge"
 
 
 def assign_sagemaker_local_job_instance_type(image):
-    if "training" in image:
-        return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
-    else:
-        return "p2.xlarge" if "gpu" in image else "c5.18xlarge"
+    if "tensorflow" in image and "inference" in image and "gpu" in image:
+        return "p2.xlarge"
+    return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
 
 
 def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
@@ -251,7 +252,7 @@ def execute_local_tests(image, ec2_client):
         print(f"Launching new Instance for image: {image}")
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(
             image,
-            UBUNTU_16_BASE_DLAMI_US_EAST_1 if region == "us-east-1" else UBUNTU_16_BASE_DLAMI_US_WEST_2,
+            UBUNTU_18_BASE_DLAMI_US_EAST_1 if region == "us-east-1" else UBUNTU_18_BASE_DLAMI_US_WEST_2,
             ec2_key_name,
             region
         )

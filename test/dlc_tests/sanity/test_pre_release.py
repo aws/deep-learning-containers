@@ -1,7 +1,10 @@
 import os
 import re
 
+from packaging.version import Version
+
 import pytest
+import requests
 
 from invoke.context import Context
 
@@ -11,8 +14,9 @@ from test.test_utils import (
     ec2,
     get_framework_and_version_from_tag,
     is_canary_context,
-    is_tf1,
-    is_dlc_cicd_context
+    is_tf_version,
+    is_dlc_cicd_context,
+    is_pr_context,
 )
 
 
@@ -181,34 +185,71 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     assert cuda_version in cuda_output.stdout.replace(".", "")
 
 
+class DependencyCheckFailure(Exception):
+    pass
+
+
+def _run_dependency_check_test(image, ec2_connection, processor):
+    # Record any whitelisted medium/low severity CVEs; I.E. allowed_vulnerabilities = {CVE-1000-5555, CVE-9999-9999}
+    allowed_vulnerabilities = set()
+
+    container_name = f"dep_check_{processor}"
+    report_addon = _get_container_name("depcheck-report", image)
+    dependency_check_report = f"{report_addon}.html"
+    html_file = f"{container_name}:/build/dependency-check-report.html"
+    test_script = os.path.join(CONTAINER_TESTS_PREFIX, "testDependencyCheck")
+
+    # Execute test, copy results to s3
+    ec2.execute_ec2_training_test(ec2_connection, image, test_script, container_name=container_name)
+    ec2_connection.run(f"docker cp {html_file} ~/{dependency_check_report}")
+    ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
+
+    # Check for any vulnerabilities not mentioned in allowed_vulnerabilities
+    html_output = ec2_connection.run(f"cat ~/{dependency_check_report}", hide=True).stdout
+    cves = re.findall(r">(CVE-\d+-\d+)</a>", html_output)
+    vulnerabilities = set(cves) - allowed_vulnerabilities
+    if vulnerabilities:
+        vulnerability_severity = {}
+
+        # Check NVD for vulnerability severity to provide this useful info in error message.
+        for vulnerability in vulnerabilities:
+            resp = requests.get(f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerability}")
+            severity = (
+                resp.json()
+                .get("result", {})
+                .get("CVE_Items", [{}])[0]
+                .get("impact", {})
+                .get("baseMetricV2", {})
+                .get("severity", "UNKNOWN")
+            )
+            if vulnerability_severity.get(severity):
+                vulnerability_severity[severity].append(vulnerability)
+            else:
+                vulnerability_severity[severity] = [vulnerability]
+
+        # TODO: Remove this once we have whitelisted appropriate LOW/MEDIUM vulnerabilities
+        if not (vulnerability_severity.get("CRITICAL") or vulnerability_severity.get("HIGH")):
+            return
+
+        raise DependencyCheckFailure(
+            f"Unrecognized CVES have been reported : {vulnerability_severity}. "
+            f"Allowed vulnerabilites are {allowed_vulnerabilities or None}. Please see "
+            f"{dependency_check_report} for more details."
+        )
+
+
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.skip(reason="Skipping due to bintray limit")
+@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_cpu(cpu, ec2_connection):
-    container_name = "dep_check_cpu"
-    report_addon = _get_container_name('depcheck-report', cpu)
-    dependency_check_report = f"{report_addon}.html"
-    test_script = os.path.join(CONTAINER_TESTS_PREFIX, 'testDependencyCheck')
-    ec2.execute_ec2_training_test(ec2_connection, cpu, test_script, container_name=container_name)
-
-    if is_dlc_cicd_context():
-        ec2_connection.run(f"docker cp {container_name}:/build/dependency-check-report.html ~/{dependency_check_report}")
-        ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
+    _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
 
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.skip(reason="Skipping due to bintray limit")
+@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_gpu(gpu, ec2_connection):
-    container_name = "dep_check_gpu"
-    report_addon = _get_container_name('depcheck-report', gpu)
-    dependency_check_report = f"{report_addon}.html"
-    test_script = os.path.join(CONTAINER_TESTS_PREFIX, 'testDependencyCheck')
-    ec2.execute_ec2_training_test(ec2_connection, gpu, test_script, container_name=container_name)
-
-    if is_dlc_cicd_context():
-        ec2_connection.run(f"docker cp {container_name}:/build/dependency-check-report.html ~/{dependency_check_report}")
-        ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
+    _run_dependency_check_test(gpu, ec2_connection, "gpu")
 
 
 @pytest.mark.model("N/A")
@@ -282,6 +323,33 @@ def test_emacs(image):
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.integration("sagemaker python sdk")
+def test_sm_pysdk_2(training):
+    """
+    Simply verify that we have sagemaker > 2.0 in the python sdk.
+
+    If you find that this test is failing because sm pysdk version is not greater than 2.0, then that means that
+    the image under test needs to be updated.
+
+    If you find that the training image under test does not have sagemaker pysdk, it should be added or explicitly
+    skipped (with reasoning provided).
+
+    :param training: training ECR image URI
+    """
+
+    # Ensure that sm py sdk 2 is on the container
+    ctx = Context()
+    container_name = _get_container_name("sm_pysdk", training)
+    _start_container(container_name, training, ctx)
+
+    sm_version = _run_cmd_on_container(
+        container_name, ctx, "import sagemaker; print(sagemaker.__version__)", executable="python"
+    ).stdout.strip()
+
+    assert Version(sm_version) > Version("2"), f"Sagemaker version should be > 2.0. Found version {sm_version}"
+
+
+@pytest.mark.model("N/A")
 def test_cuda_paths(gpu):
     """
     Test to ensure directory structure for GPU Dockerfiles has cuda version in it
@@ -310,13 +378,16 @@ def test_cuda_paths(gpu):
     python_version = re.search(r"(py\d+)", image).group(1)
 
     framework_version_path = os.path.join(dlc_path, framework, job_type, "docker", framework_version)
+    if not os.path.exists(framework_version_path):
+        framework_short_version = re.match(r"(\d+.\d+)", framework_version).group(1)
+        framework_version_path = os.path.join(dlc_path, framework, job_type, "docker", framework_short_version)
     if not os.path.exists(os.path.join(framework_version_path, python_version)):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
         python_version = python_version[:3]
 
     # Check buildspec for cuda version
     buildspec = "buildspec.yml"
-    if is_tf1(image):
+    if is_tf_version("1", image):
         buildspec = "buildspec-tf1.yml"
 
     cuda_in_buildspec = False

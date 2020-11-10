@@ -2,7 +2,7 @@ import os
 import re
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf2
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf_version
 from test.test_utils.ec2 import execute_ec2_training_performance_test
 from src.benchmark_metrics import (
     TENSORFLOW2_TRAINING_CPU_SYNTHETIC_THRESHOLD,
@@ -33,7 +33,7 @@ TF_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
 def test_performance_tensorflow_cpu(tensorflow_training, ec2_connection, cpu_only):
     threshold = (
         TENSORFLOW2_TRAINING_CPU_SYNTHETIC_THRESHOLD
-        if is_tf2(tensorflow_training)
+        if is_tf_version("2", tensorflow_training)
         else TENSORFLOW1_TRAINING_CPU_SYNTHETIC_THRESHOLD
     )
     execute_ec2_training_performance_test(
@@ -46,13 +46,14 @@ def test_performance_tensorflow_cpu(tensorflow_training, ec2_connection, cpu_onl
     )
 
 
+# TODO: Enable TF1 by removing "tf2_only" fixture once infrastructure issues have been resolved.
 @pytest.mark.integration("synthetic dataset")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
-def test_performance_tensorflow_gpu_synthetic(tensorflow_training, ec2_connection, gpu_only):
+def test_performance_tensorflow_gpu_synthetic(tensorflow_training, ec2_connection, gpu_only, tf2_only):
     threshold = (
         TENSORFLOW2_TRAINING_GPU_SYNTHETIC_THRESHOLD
-        if is_tf2(tensorflow_training)
+        if is_tf_version("2", tensorflow_training)
         else TENSORFLOW1_TRAINING_GPU_SYNTHETIC_THRESHOLD
     )
     execute_ec2_training_performance_test(
@@ -65,13 +66,14 @@ def test_performance_tensorflow_gpu_synthetic(tensorflow_training, ec2_connectio
     )
 
 
+# TODO: Enable TF1 by removing "tf2_only" fixture once infrastructure issues have been resolved.
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
-def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection, gpu_only):
+def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection, gpu_only, tf2_only):
     threshold = (
         TENSORFLOW2_TRAINING_GPU_IMAGENET_THRESHOLD
-        if is_tf2(tensorflow_training)
+        if is_tf_version("2", tensorflow_training)
         else TENSORFLOW1_TRAINING_GPU_IMAGENET_THRESHOLD
     )
     execute_ec2_training_performance_test(
