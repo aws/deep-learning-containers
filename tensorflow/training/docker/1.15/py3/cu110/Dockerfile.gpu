@@ -1,7 +1,7 @@
-FROM nvidia/cuda:10.2-base-ubuntu18.04
+FROM nvidia/cuda:11.0-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="2"
+LABEL dlc_major_version="8"
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -27,9 +27,9 @@ ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.7
 ARG OPENSSL_VERSION=1.1.1g
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.3_aws/20201002-134350/gpu/py37/tensorflow_gpu-2.3.1-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws_cuda11/20201108-110725/gpu/py37/tensorflow_gpu-1.15.4-cp37-cp37m-manylinux2010_x86_64.whl
 
-ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.3_aws/20201002-134350/tensorflow_estimator-2.3.0-py2.py3-none-any.whl
+ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r1.15_aws/20201001-204030/tensorflow_estimator-1.15.2-py2.py3-none-any.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
@@ -37,19 +37,19 @@ ARG SMDEBUG_VERSION=0.9.4
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
-    cuda-command-line-tools-10-2 \
-    cuda-cudart-dev-10-2 \
-    cuda-cufft-dev-10-2 \
-    cuda-curand-dev-10-2 \
-    cuda-cusolver-dev-10-2 \
-    cuda-cusparse-dev-10-2 \
+    cuda-command-line-tools-11-0 \
+    cuda-cudart-dev-11-0 \
+    libcufft-dev-11-0 \
+    libcurand-dev-11-0 \
+    libcusolver-dev-11-0 \
+    libcusparse-dev-11-0 \
     curl \
     emacs \
-    libcudnn7=7.6.5.32-1+cuda10.2 \
+    libcudnn8=8.0.4.30-1+cuda11.0 \
     # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
-    libnccl2=2.7.6-1+cuda10.2 \
+    libnccl2=2.7.8-1+cuda11.0 \
     libgomp1 \
-    libnccl-dev=2.7.6-1+cuda10.2 \
+    libnccl-dev=2.7.8-1+cuda11.0 \
     libfreetype6-dev \
     libhdf5-serial-dev \
     liblzma-dev \
@@ -65,13 +65,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     zlib1g-dev \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
-    #cuda-cublas-dev not available with 10-1, install libcublas instead
-    #it will downgrade the cublas from 10-2 to 10-1
-    #adding an extra flag --allow-downgrades for it
     && apt-get update \
-    && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades \
-    libcublas10=10.2.2.89-1 \
-    libcublas-dev=10.2.2.89-1 \
+    && apt-get install -y --no-install-recommends --allow-unauthenticated \
+    libcublas-11-0=11.2.0.252-1 \
+    libcublas-dev-11-0=11.2.0.252-1 \
     # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0
     # adds a new list which contains libnvinfer library, so it needs another
     # 'apt-get update' to retrieve that list before it can actually install the
@@ -83,7 +80,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
  && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
     nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0 \
  && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  \
-    libnvinfer6=6.0.1-1+cuda10.2 \
+    libnvinfer7=7.1.3-1+cuda11.0 \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/run/sshd
 
@@ -178,8 +175,8 @@ RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
-# install PyYAML==5.1.2 to avoid conflict with latest awscli
-# # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
+# install PyYAML==5.3.1 to avoid conflict with latest awscli
+# # python-dateutil==2.8 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
     numpy==1.19.1 \
     scipy==1.5.2 \
@@ -194,20 +191,18 @@ RUN ${PIP} install --no-cache-dir -U \
     opencv-python==4.3.0.36 \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
-    "sagemaker-tensorflow>=2.3,<2.4" \
-    "sagemaker-tensorflow-training>=20" \
+    "sagemaker-tensorflow>=1.15,<1.16" \
+    "sagemaker-tensorflow-training>=10,<20" \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    ${ESTIMATOR_URL} \
     h5py==2.10.0 \
-    "absl-py>=0.9,<0.11" \
     werkzeug==1.0.1 \
     smdebug==${SMDEBUG_VERSION}
 
 # Install Horovod, temporarily using CUDA stubs
-RUN ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
+RUN ldconfig /usr/local/cuda-11.0/targets/x86_64-linux/lib/stubs \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.19.5 \
  && ldconfig
 
@@ -216,10 +211,13 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
 
+# Add NGC vars
+ENV TF_ADJUST_HUE_FUSED=1 TF_AUTOTUNE_THRESHOLD=2 TF_USE_CUDNN_BATCHNORM_SPATIAL_PERSISTENT=1 TF_ADJUST_SATURATION_FUSED=1 TF_ENABLE_WINOGRAD_NONFUSED=1 CUDA_CACHE_DISABLE=1
+
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.3/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 
 CMD ["bin/bash"]

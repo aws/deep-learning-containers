@@ -34,6 +34,7 @@ def fixture_dist_gpu_backend(request):
 @pytest.mark.processor("cpu")
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_gpu
+@pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
 def test_dist_operations_path_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpdir):
     estimator = PyTorch(entry_point=dist_operations_path,
                         role=ROLE,
@@ -51,6 +52,7 @@ def test_dist_operations_path_cpu(docker_image, dist_cpu_backend, sagemaker_loca
 @pytest.mark.integration("nccl")
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
+@pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
 def test_dist_operations_path_gpu_nccl(docker_image, sagemaker_local_session, tmpdir):
     estimator = PyTorch(entry_point=dist_operations_path,
                         role=ROLE,
@@ -68,6 +70,7 @@ def test_dist_operations_path_gpu_nccl(docker_image, sagemaker_local_session, tm
 @pytest.mark.integration("nccl")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
+@pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
 def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
     estimator = PyTorch(entry_point=mnist_script,
                         role=ROLE,
@@ -88,6 +91,7 @@ def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
 @pytest.mark.processor("cpu")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
+@pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
 def test_mnist_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpdir):
     estimator = PyTorch(entry_point=mnist_script,
                         role=ROLE,
