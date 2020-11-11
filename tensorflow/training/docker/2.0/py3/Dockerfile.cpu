@@ -27,7 +27,7 @@ ARG PIP=pip3
 
 ARG OPENSSL_VERSION=1.1.1g
 
-ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.0.2/AmazonLinux/cpu/final/tensorflow-2.0.2-cp36-cp36m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.0_aws/20201109-230348/cpu/tensorflow_cpu-2.0.3-cp36-cp36m-manylinux2010_x86_64.whl
 ARG SMDEBUG_VERSION=0.9.2
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -116,7 +116,7 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
-    numpy==1.18.1 \
+    numpy==1.18.5 \
     scipy==1.2.2 \
     scikit-learn==0.22 \
     pandas==1.0.1 \
@@ -130,7 +130,7 @@ RUN ${PIP} install --no-cache-dir -U \
     "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
-    "sagemaker<2" \
+    "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.0,<2.1" \
     smdebug==${SMDEBUG_VERSION} \
@@ -147,6 +147,6 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0.1/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0/license.txt -o /license.txt
 
 CMD ["bin/bash"]
