@@ -1,7 +1,11 @@
 FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="5"
+# Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
+# https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON=python3
 ARG PIP=pip3
@@ -33,6 +37,9 @@ RUN apt-get update \
     git \
     wget \
     vim \
+    libbz2-dev \
+    liblzma-dev \
+    libffi-dev \
     build-essential \
     zlib1g-dev \
  && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
@@ -77,9 +84,9 @@ RUN ${PIP} install --no-cache-dir \
     cython==0.29.14 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
-    gevent==1.4.0 \
+    gevent==20.9.0 \
     requests==2.22.0 \
-    grpcio==1.27.1 \
+    grpcio==1.31.0 \
     PyYAML==5.3.1 \
     protobuf==3.11.1 \
 # using --no-dependencies to avoid installing tensorflow binary
@@ -88,12 +95,9 @@ RUN ${PIP} install --no-cache-dir \
 
 COPY ./sagemaker /sagemaker
 
-# put tensorflow library (with only error_codes) to python dist-packages
-WORKDIR /
-RUN mv /sagemaker/tensorflow/ /usr/local/lib/python3.*/dist-packages/
-
 # Some TF tools expect a "python" binary
-RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
+ && ln -s $(which ${PIP}) /usr/bin/pip
 
 RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/MKL-Libraries/libiomp5.so -o /usr/local/lib/libiomp5.so
 RUN curl https://tensorflow-aws.s3-us-west-2.amazonaws.com/MKL-Libraries/libmklml_intel.so -o /usr/local/lib/libmklml_intel.so
