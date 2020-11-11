@@ -134,7 +134,6 @@ RUN ${PIP} install --no-cache-dir -U \
     scikit-learn==0.20.3 \
     pandas==0.24.2 \
     Pillow \
-    h5py==2.10.0 \
     requests==2.22.0 \
     "sagemaker>=2,<3" \
     smdebug==${SMDEBUG_VERSION} \
@@ -147,6 +146,7 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
+    h5py==2.10.0 \
  && ${PIP} install --force-reinstall --no-cache-dir -U \
     horovod==0.19.5 \
  && ${PIP} install --no-cache-dir -U \

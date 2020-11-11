@@ -49,19 +49,23 @@ def fixture_test_loader():
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
 def test_serve_json_npy(test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type):
     model_dir = model_gpu_dir if use_gpu else model_cpu_dir
-    with _predictor(model_dir, mnist_script, docker_image, framework_version, sagemaker_local_session,
-                    instance_type) as predictor:
+    with _predictor(
+            model_dir, mnist_script, docker_image, framework_version, sagemaker_local_session, instance_type
+    ) as predictor:
         for content_type in (content_types.JSON, content_types.NPY):
             for accept in (content_types.JSON, content_types.CSV, content_types.NPY):
                 _assert_prediction_npy_json(predictor, test_loader, content_type, accept)
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
 def test_serve_csv(test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type):
-    with _predictor(model_cpu_1d_dir, mnist_1d_script, docker_image, framework_version, sagemaker_local_session,
-                    instance_type) as predictor:
+    with _predictor(
+            model_cpu_1d_dir, mnist_1d_script, docker_image, framework_version, sagemaker_local_session, instance_type
+    ) as predictor:
         for accept in (content_types.JSON, content_types.CSV, content_types.NPY):
             _assert_prediction_csv(predictor, test_loader, accept)
 
@@ -69,18 +73,28 @@ def test_serve_csv(test_loader, use_gpu, docker_image, framework_version, sagema
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
+@pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
 def test_serve_cpu_model_on_gpu(test_loader, docker_image, framework_version, sagemaker_local_session, instance_type):
-    with _predictor(model_cpu_1d_dir, mnist_1d_script, docker_image, framework_version, sagemaker_local_session,
-                    instance_type) as predictor:
+    with _predictor(
+            model_cpu_1d_dir, mnist_1d_script, docker_image, framework_version, sagemaker_local_session, instance_type
+    ) as predictor:
         _assert_prediction_npy_json(predictor, test_loader, content_types.NPY, content_types.JSON)
 
 
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu_py2
+@pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
 def test_serving_calls_model_fn_once(docker_image, framework_version, sagemaker_local_session, instance_type):
-    with _predictor(model_cpu_dir, call_model_fn_once_script, docker_image, framework_version, sagemaker_local_session,
-                    instance_type, model_server_workers=2) as predictor:
+    with _predictor(
+            model_cpu_dir,
+            call_model_fn_once_script,
+            docker_image,
+            framework_version,
+            sagemaker_local_session,
+            instance_type,
+            model_server_workers=2,
+    ) as predictor:
         predictor.deserializer = deserializers.BytesDeserializer()
 
         # call enough times to ensure multiple requests to a worker
