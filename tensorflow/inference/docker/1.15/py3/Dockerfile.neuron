@@ -144,6 +144,8 @@ RUN ${PIP} install --no-cache-dir -U \
     gast==0.2.2 \
     "awscli<2"
 
+# pip install statements have been separated out into multiple sequentially executed statements to
+# resolve package dependencies during installation.
 RUN ${PIP} install tensorflow_serving_api==1.15.0 --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install tensorboard-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install neuron-cc --extra-index-url https://pip.repos.neuron.amazonaws.com \
