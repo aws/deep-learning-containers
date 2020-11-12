@@ -27,7 +27,7 @@ ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.7
 ARG OPENSSL_VERSION=1.1.1g
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws_cuda11/20201016-202159/gpu/py37/tensorflow_gpu-1.15.4-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws_cuda11/20201108-110725/gpu/py37/tensorflow_gpu-1.15.4-cp37-cp37m-manylinux2010_x86_64.whl
 
 ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r1.15_aws/20201001-204030/tensorflow_estimator-1.15.2-py2.py3-none-any.whl
 
@@ -184,7 +184,6 @@ RUN ${PIP} install --no-cache-dir -U \
     scikit-learn==0.23 \
     pandas==1.1 \
     Pillow==7.2.0 \
-    h5py==2.10.0 \
     python-dateutil==2.8.1 \
     pyYAML==5.3.1 \
     requests==2.24.0 \
@@ -199,6 +198,7 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
+    h5py==2.10.0 \
     werkzeug==1.0.1 \
     smdebug==${SMDEBUG_VERSION}
 
