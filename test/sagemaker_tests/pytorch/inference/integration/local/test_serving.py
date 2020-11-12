@@ -115,7 +115,7 @@ def _predictor(
         image_uri=image,
         framework_version=framework_version,
         sagemaker_session=sagemaker_local_session,
-        model_server_workers=model_server_workers
+        model_server_workers=model_server_workers,
     )
 
     with local_mode_utils.lock():

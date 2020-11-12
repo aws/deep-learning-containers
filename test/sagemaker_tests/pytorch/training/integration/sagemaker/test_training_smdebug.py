@@ -35,13 +35,10 @@ def test_training_smdebug(sagemaker_session, framework_version, ecr_image, insta
         pytorch = PyTorch(
             entry_point=smdebug_mnist_script,
             role='SageMakerRole',
-            train_instance_count=1,
-            train_instance_type=instance_type,
-            # instance_count=1,
-            # instance_type=instance_type,
+            instance_count=1,
+            instance_type=instance_type,
             sagemaker_session=sagemaker_session,
-            image_name=ecr_image,
-            # image_uri=ecr_image,
+            image_uri=ecr_image,
             framework_version=framework_version,
             hyperparameters=hyperparameters,
         )
