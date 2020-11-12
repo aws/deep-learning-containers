@@ -18,7 +18,7 @@ import test.test_utils.ec2 as ec2_utils
 from test import test_utils
 from test.test_utils import (
     is_benchmark_dev_context, get_framework_and_version_from_tag, get_job_type_from_image, is_tf_version, is_below_tf_version,
-    DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2,
+    DEFAULT_REGION, P3DN_REGION, UBUNTU_18_BASE_DLAMI_US_EAST_1, UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, KEYS_TO_DESTROY_FILE
 )
 from test.test_utils.test_reporting import TestReportGenerator
@@ -117,7 +117,7 @@ def ec2_instance_role_name(request):
 
 @pytest.fixture(scope="function")
 def ec2_instance_ami(request):
-    return request.param if hasattr(request, "param") else UBUNTU_16_BASE_DLAMI_US_WEST_2
+    return request.param if hasattr(request, "param") else UBUNTU_18_BASE_DLAMI_US_WEST_2
 
 
 @pytest.fixture(scope="function")
@@ -136,7 +136,7 @@ def ec2_instance(
         ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
-            ec2_instance_ami = UBUNTU_16_BASE_DLAMI_US_EAST_1
+            ec2_instance_ami = UBUNTU_18_BASE_DLAMI_US_EAST_1
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
