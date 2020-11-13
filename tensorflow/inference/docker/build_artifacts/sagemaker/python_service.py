@@ -51,6 +51,9 @@ def default_handler(data, context):
     :param context: context instance that contains tfs_rest_uri
     :return: inference response from TFS model server
     """
+    data = data.read().decode("utf-8")
+    if not isinstance(data, str):
+        data = json.loads(data)
     response = requests.post(context.rest_uri, data=data)
     return response.content, context.accept_header
 
