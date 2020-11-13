@@ -10,7 +10,7 @@ ARG MX_URL=https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.8.0/aws_mx-1.8.0-py2
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.9.3
+ARG SMDEBUG_VERSION=0.9.4
 ARG OPENSSL_VERSION=1.1.1g
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -101,8 +101,6 @@ RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VER
 
 WORKDIR /
 
-# install PyYAML==5.1.2 to avoid conflict with latest awscli
-# python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache --upgrade \
     keras-mxnet==2.2.4.2 \
     h5py==2.10.0 \
@@ -118,9 +116,11 @@ RUN ${PIP} install --no-cache --upgrade \
     gluoncv==0.8.0 \
     # Putting a cap in versions number to avoid potential issues with a new major version
     "urllib3>=1.25.10,<1.26.0" \
+    # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
     python-dateutil==2.8.0 \
     tqdm==4.39.0 \
     sagemaker-experiments==0.* \
+    # install PyYAML==5.3.1 to avoid conflict with latest awscli
     PyYAML==5.3.1 \
     mpi4py==3.0.2 \
     sagemaker-mxnet-training \
