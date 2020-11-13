@@ -217,6 +217,36 @@ release_images:
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: True
   15:
+    framework: "tensorflow"
+    version: "2.0.3"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu100"
+      example: False
+      disable_sm_tag: False
+      force_release: True
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu100"
+      example: False
+      disable_sm_tag: False
+      force_release: True
+  16:
+    framework: "tensorflow"
+    version: "2.0.3"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu100"
+      example: True
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: True
+  17:
     framework: "mxnet"
     version: "1.6.0"
     training:
@@ -237,7 +267,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  16:
+  18:
     framework: "mxnet"
     version: "1.6.0"
     training:
@@ -248,7 +278,7 @@ release_images:
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  17:
+  19:
     framework: "mxnet"
     version: "1.7.0"
     training:
@@ -269,7 +299,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  18:
+  20:
     framework: "mxnet"
     version: "1.7.0"
     training:
