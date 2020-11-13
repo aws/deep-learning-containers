@@ -74,7 +74,6 @@ def test_ecs_mxnet_training_dgl_cpu(cpu_only, py3_only, ecs_container_instance, 
     ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, mxnet_training, instance_id)
 
 
-@pytest.mark.skip(reason="Skip until DGL with cuda 11.0 is available")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("training_script", [MX_DGL_TRAINING_SCRIPT], indirect=True)
@@ -93,6 +92,8 @@ def test_ecs_mxnet_training_dgl_gpu(gpu_only, py3_only, ecs_container_instance, 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
     """
+    if "cu110" in mxnet_training:
+        pytest.skip("Skipping dgl tests on cuda 11.0 until available")
     instance_id, cluster_arn = ecs_container_instance
 
     num_gpus = ec2_utils.get_instance_num_gpus(instance_id)

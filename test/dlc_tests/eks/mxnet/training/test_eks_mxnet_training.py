@@ -96,7 +96,8 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
     cpu_limit = str(int(cpu_limit) / 2)
 
     if "gpu" in mxnet_training:
-        pytest.skip("Skipping DGL tests for GPU until dgl-cu110 is available.")
+        if "cu110" in mxnet_training:
+            pytest.skip("Skipping DGL tests for GPU until dgl-cu110 is available.")
         args = args + " --gpu 0"
     else:
         args = args + " --gpu -1"
