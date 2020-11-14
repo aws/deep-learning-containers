@@ -1,4 +1,4 @@
-sagemaker-inference>=1.1.0,<=1.1.2
+sagemaker-inference
 retrying==1.3.3
 tox
 flake8
@@ -9,9 +9,8 @@ pytest-xdist
 requests==2.24
 urllib3>=1.25.10,<1.26.0
 mock
-sagemaker<2
+sagemaker
 docker-compose
-mxnet==1.7.0.post1
 awslogs
 requests_mock==1.7.0
 fabric

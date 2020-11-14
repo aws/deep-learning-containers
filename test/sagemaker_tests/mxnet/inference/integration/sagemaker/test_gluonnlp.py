@@ -43,7 +43,7 @@ def test_gluonnlp(sagemaker_session, ecr_image, instance_type, framework_version
     model = MXNetModel(model_data,
                        'SageMakerRole',
                        SCRIPT_PATH,
-                       image=ecr_image,
+                       image_uri=ecr_image,
                        py_version="py3",
                        framework_version=framework_version,
                        sagemaker_session=sagemaker_session)

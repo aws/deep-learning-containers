@@ -62,6 +62,8 @@ def test_mxnet_keras_cpu(mxnet_training, ec2_connection, cpu_only):
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_train_dgl_gpu(mxnet_training, ec2_connection, gpu_only, py3_only):
+    if "cu110" in mxnet_training:
+        pytest.skip("Skipping dgl tests on cuda 11.0 until available")
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_DGL_CMD)
 
 
