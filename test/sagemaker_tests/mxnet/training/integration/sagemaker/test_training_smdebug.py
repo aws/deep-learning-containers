@@ -36,8 +36,8 @@ def test_training(sagemaker_session, ecr_image, instance_type, instance_count, f
 
     mx = MXNet(entry_point=SCRIPT_PATH,
                role='SageMakerRole',
-               train_instance_count=instance_count,
-               train_instance_type=instance_type,
+               instance_count=instance_count,
+               instance_type=instance_type,
                sagemaker_session=sagemaker_session,
                image_uri=ecr_image,
                framework_version=framework_version,

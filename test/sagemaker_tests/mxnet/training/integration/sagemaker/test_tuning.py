@@ -32,8 +32,8 @@ SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist.py')
 def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
     mx = MXNet(entry_point=SCRIPT_PATH,
                role='SageMakerRole',
-               train_instance_count=1,
-               train_instance_type=instance_type,
+               instance_count=1,
+               instance_type=instance_type,
                sagemaker_session=sagemaker_session,
                image_uri=ecr_image,
                framework_version=framework_version,
