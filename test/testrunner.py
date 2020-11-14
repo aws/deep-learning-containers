@@ -4,6 +4,7 @@ import sys
 import logging
 import re
 
+from junit_xml import TestSuite, TestCase
 from multiprocessing import Pool
 from datetime import datetime
 
@@ -374,7 +375,8 @@ def main():
         if "neuron" in dlc_images:
             LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
             # Creating an empty file for because codebuild job fails without it
-            create_empty_junitxml_file()
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report, test_type, "neuron")
             return
         if benchmark_mode:
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
@@ -394,7 +396,8 @@ def main():
         if "neuron" in dlc_images:
             LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
             # Creating an empty file for because codebuild job fails without it
-            create_empty_junitxml_file()
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report, test_type, "neuron")
             return
         testing_image_list = [
             image
@@ -410,13 +413,6 @@ def main():
         raise NotImplementedError(
             f"{test_type} test is not supported. Only support ec2, ecs, eks, sagemaker and sanity currently"
         )
-
-
-def create_empty_junitxml_file():
-    with open('test/empty_report_file.xml', 'w') as ef:
-        ef.write('< ?xml version = "1.0" encoding = "utf-8"? >'
-                 '< testsuite errors = "0" failures = "1" name = "empty report" skips = "0" tests = "0" time = "0.0" >'
-                 '< / testsuite >')
 
 
 if __name__ == "__main__":
