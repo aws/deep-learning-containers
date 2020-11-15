@@ -137,6 +137,7 @@ def ec2_instance(
         ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
             ec2_instance_ami = UBUNTU_18_BASE_DLAMI_US_EAST_1
+    ec2_key_name = f"{ec2_instance_type}_{ec2_key_name}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
