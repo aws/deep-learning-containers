@@ -379,7 +379,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                 for index, image in enumerate(images_to_parametrize):
 
                     # Tag fixtures with EC2 instance types if env variable is present
-                    allowed_processors = ("gpu", "cpu", "eia, neuron")
+                    allowed_processors = ("gpu", "cpu", "eia", "neuron")
                     instance_tag = ""
                     for processor in allowed_processors:
                         if processor in image:
