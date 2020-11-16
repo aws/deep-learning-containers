@@ -29,9 +29,9 @@ def test_keras_training(docker_image, sagemaker_local_session, local_instance_ty
     keras_path = os.path.join(RESOURCE_PATH, 'keras')
     script_path = os.path.join(keras_path, 'keras_mnist.py')
 
-    mx = MXNet(entry_point=script_path, role='SageMakerRole', train_instance_count=1,
-               train_instance_type=local_instance_type, sagemaker_session=sagemaker_local_session,
-               image_name=docker_image, framework_version=framework_version,
+    mx = MXNet(entry_point=script_path, role='SageMakerRole', instance_count=1,
+               instance_type=local_instance_type, sagemaker_session=sagemaker_local_session,
+               image_uri=docker_image, framework_version=framework_version,
                output_path='file://{}'.format(tmpdir))
 
     train = 'file://{}'.format(os.path.join(keras_path, 'data'))

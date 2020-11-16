@@ -31,14 +31,14 @@ mx_estimator = MXNet(
     entry_point=entrypoint_script,
     source_dir=source_dir,
     role="SageMakerRole",
-    train_instance_count=args.node_count,
-    train_instance_type=args.instance_type,
-    image_name=args.image_uri,
+    instance_count=args.node_count,
+    instance_type=args.instance_type,
+    image_uri=args.image_uri,
     py_version=args.python,
     output_path=f"s3://dlc-bai-results-sagemaker-{args.region}",
     framework_version=args.framework_version,
     debugger_hook_config=False,
-    distributions={
+    distribution={
         "mpi": {
           "enabled": True,
           "processes_per_host": processes_per_host
