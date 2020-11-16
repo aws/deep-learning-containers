@@ -49,19 +49,21 @@ def test_dgl_gcn_training_gpu(sagemaker_session, ecr_image, instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
     if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
-        pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
+        pytest.skip("DGL does not support CUDA 11 for PyTorch 1.6")
 
     instance_type = instance_type or 'ml.p2.xlarge'
     _test_dgl_training(sagemaker_session, ecr_image, instance_type)
 
 
 def _test_dgl_training(sagemaker_session, ecr_image, instance_type):
-    dgl = PyTorch(entry_point=DGL_SCRIPT_PATH,
-                  role='SageMakerRole',
-                  train_instance_count=1,
-                  train_instance_type=instance_type,
-                  sagemaker_session=sagemaker_session,
-                  image_name=ecr_image)
+    dgl = PyTorch(
+        entry_point=DGL_SCRIPT_PATH,
+        role='SageMakerRole',
+        instance_count=1,
+        instance_type=instance_type,
+        sagemaker_session=sagemaker_session,
+        image_uri=ecr_image,
+    )
     with timeout(minutes=DEFAULT_TIMEOUT):
         job_name = utils.unique_name_from_base('test-pytorch-dgl-image')
         dgl.fit(job_name=job_name)
