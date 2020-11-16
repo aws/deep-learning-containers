@@ -169,7 +169,7 @@ release_images:
     version: "1.15.4"
     training:
       device_types: ["gpu"]
-      python_versions: ["py36", "py37"]
+      python_versions: ["py37"]
       os_version: "ubuntu18.04"
       cuda_version: "cu100"
       example: True
