@@ -20,8 +20,8 @@ import torch
 import torch.utils.data
 import torch.utils.data.distributed
 from sagemaker.pytorch import PyTorchModel
-from sagemaker.predictor import BytesDeserializer, csv_deserializer, csv_serializer, \
-    json_deserializer, json_serializer, npy_serializer, numpy_deserializer
+from sagemaker import deserializers
+from sagemaker import serializers
 from sagemaker_inference import content_types
 from torchvision import datasets, transforms
 
@@ -30,15 +30,15 @@ from ...integration import training_dir, mnist_script, mnist_1d_script, model_cp
 from ...utils import local_mode_utils
 
 CONTENT_TYPE_TO_SERIALIZER_MAP = {
-    content_types.CSV: csv_serializer,
-    content_types.JSON: json_serializer,
-    content_types.NPY: npy_serializer,
+    content_types.CSV: serializers.CSVSerializer(),
+    content_types.JSON: serializers.JSONSerializer(),
+    content_types.NPY: serializers.NumpySerializer(),
 }
 
 ACCEPT_TYPE_TO_DESERIALIZER_MAP = {
-    content_types.CSV: csv_deserializer,
-    content_types.JSON: json_deserializer,
-    content_types.NPY: numpy_deserializer,
+    content_types.CSV: deserializers.CSVDeserializer(),
+    content_types.JSON: deserializers.JSONDeserializer(),
+    content_types.NPY: deserializers.NumpyDeserializer(),
 }
 
 
@@ -50,10 +50,11 @@ def fixture_test_loader():
 
 @pytest.mark.model("mnist")
 @pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
-def test_serve_json_npy(test_loader, use_gpu, docker_image, sagemaker_local_session, instance_type):
+def test_serve_json_npy(test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type):
     model_dir = model_gpu_dir if use_gpu else model_cpu_dir
-    with _predictor(model_dir, mnist_script, docker_image, sagemaker_local_session,
-                    instance_type) as predictor:
+    with _predictor(
+            model_dir, mnist_script, docker_image, framework_version, sagemaker_local_session, instance_type
+    ) as predictor:
         for content_type in (content_types.JSON, content_types.NPY):
             for accept in (content_types.JSON, content_types.CSV, content_types.NPY):
                 _assert_prediction_npy_json(predictor, test_loader, content_type, accept)
@@ -61,9 +62,10 @@ def test_serve_json_npy(test_loader, use_gpu, docker_image, sagemaker_local_sess
 
 @pytest.mark.model("mnist")
 @pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
-def test_serve_csv(test_loader, use_gpu, docker_image, sagemaker_local_session, instance_type):
-    with _predictor(model_cpu_1d_dir, mnist_1d_script, docker_image, sagemaker_local_session,
-                    instance_type) as predictor:
+def test_serve_csv(test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type):
+    with _predictor(
+            model_cpu_1d_dir, mnist_1d_script, docker_image, framework_version, sagemaker_local_session, instance_type
+    ) as predictor:
         for accept in (content_types.JSON, content_types.CSV, content_types.NPY):
             _assert_prediction_csv(predictor, test_loader, accept)
 
@@ -72,9 +74,10 @@ def test_serve_csv(test_loader, use_gpu, docker_image, sagemaker_local_session, 
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
-def test_serve_cpu_model_on_gpu(test_loader, docker_image, sagemaker_local_session, instance_type):
-    with _predictor(model_cpu_1d_dir, mnist_1d_script, docker_image, sagemaker_local_session,
-                    instance_type) as predictor:
+def test_serve_cpu_model_on_gpu(test_loader, docker_image, framework_version, sagemaker_local_session, instance_type):
+    with _predictor(
+            model_cpu_1d_dir, mnist_1d_script, docker_image, framework_version, sagemaker_local_session, instance_type
+    ) as predictor:
         _assert_prediction_npy_json(predictor, test_loader, content_types.NPY, content_types.JSON)
 
 
@@ -82,11 +85,17 @@ def test_serve_cpu_model_on_gpu(test_loader, docker_image, sagemaker_local_sessi
 @pytest.mark.processor("cpu")
 @pytest.mark.skip_gpu_py2
 @pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
-def test_serving_calls_model_fn_once(docker_image, sagemaker_local_session, instance_type):
-    with _predictor(model_cpu_dir, call_model_fn_once_script, docker_image, sagemaker_local_session,
-                    instance_type, model_server_workers=2) as predictor:
-        predictor.accept = None
-        predictor.deserializer = BytesDeserializer()
+def test_serving_calls_model_fn_once(docker_image, framework_version, sagemaker_local_session, instance_type):
+    with _predictor(
+            model_cpu_dir,
+            call_model_fn_once_script,
+            docker_image,
+            framework_version,
+            sagemaker_local_session,
+            instance_type,
+            model_server_workers=2,
+    ) as predictor:
+        predictor.deserializer = deserializers.BytesDeserializer()
 
         # call enough times to ensure multiple requests to a worker
         for i in range(3):
@@ -96,14 +105,18 @@ def test_serving_calls_model_fn_once(docker_image, sagemaker_local_session, inst
 
 
 @contextmanager
-def _predictor(model_dir, script, image, sagemaker_local_session, instance_type,
-               model_server_workers=None):
-    model = PyTorchModel('file://{}'.format(model_dir),
-                         ROLE,
-                         script,
-                         image=image,
-                         sagemaker_session=sagemaker_local_session,
-                         model_server_workers=model_server_workers)
+def _predictor(
+        model_dir, script, image, framework_version, sagemaker_local_session, instance_type, model_server_workers=None
+):
+    model = PyTorchModel(
+        'file://{}/model.tar.gz'.format(model_dir),
+        ROLE,
+        script,
+        image_uri=image,
+        framework_version=framework_version,
+        sagemaker_session=sagemaker_local_session,
+        model_server_workers=model_server_workers,
+    )
 
     with local_mode_utils.lock():
         try:
@@ -114,9 +127,7 @@ def _predictor(model_dir, script, image, sagemaker_local_session, instance_type,
 
 
 def _assert_prediction_npy_json(predictor, test_loader, content_type, accept):
-    predictor.content_type = content_type
     predictor.serializer = CONTENT_TYPE_TO_SERIALIZER_MAP[content_type]
-    predictor.accept = accept
     predictor.deserializer = ACCEPT_TYPE_TO_DESERIALIZER_MAP[accept]
 
     data = _get_mnist_batch(test_loader).numpy()
@@ -126,7 +137,6 @@ def _assert_prediction_npy_json(predictor, test_loader, content_type, accept):
 
 
 def _assert_prediction_csv(predictor, test_loader, accept):
-    predictor.accept = accept
     predictor.deserializer = ACCEPT_TYPE_TO_DESERIALIZER_MAP[accept]
 
     data = _get_mnist_batch(test_loader).view(test_loader.batch_size, -1)
@@ -136,10 +146,11 @@ def _assert_prediction_csv(predictor, test_loader, accept):
 
 def _get_test_data_loader(batch_size):
     return torch.utils.data.DataLoader(
-        datasets.MNIST(training_dir, train=False, transform=transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))
-        ])),
+        datasets.MNIST(
+            training_dir,
+            train=False,
+            transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]),
+        ),
         batch_size=batch_size, shuffle=True)
 
 

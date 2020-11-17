@@ -98,6 +98,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     # NOTE: We are relying on the fact that repos are defined as <context>-<framework>-<job_type> in our infrastructure
     framework, framework_version = get_framework_and_version_from_tag(image)
+    framework_major_version = framework_version.split(".")[0]
     job_type = get_job_type_from_image(image)
     path = os.path.join("test", "sagemaker_tests", framework, job_type)
     aws_id_arg = "--aws-id"
@@ -105,8 +106,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     instance_type_arg = "--instance-type"
     accelerator_type_arg = "--accelerator-type"
     eia_arg = "ml.eia1.large"
-    framework_version = re.search(r"\d+(\.\d+){2}", tag).group()
-    framework_major_version = framework_version.split(".")[0]
     processor = "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
     py_version = re.search(r"py\d+", tag).group()
     sm_local_py_version = "37" if py_version == "py37" else "2" if py_version == "py27" else "3"
@@ -133,8 +132,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     remote_pytest_cmd = (
         f"pytest {integration_path} --region {region} {docker_base_arg} "
-        f"{sm_remote_docker_base_name} --tag {tag} {aws_id_arg} {account_id} "
-        f"{instance_type_arg} {instance_type} --junitxml {test_report}"
+        f"{sm_remote_docker_base_name} --tag {tag} --framework-version {framework_version} "
+        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} --junitxml {test_report}"
     )
 
     if processor == "eia" :
