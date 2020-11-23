@@ -26,16 +26,15 @@ sagemaker_session = sagemaker.Session(boto_session=boto3.Session(region_name=arg
 
 tf_estimator = TensorFlow(
     sagemaker_session=sagemaker_session,
-    script_mode=True,
     entry_point=entrypoint_script,
     source_dir=source_dir,
     role="SageMakerRole",
-    train_instance_count=args.node_count,
-    train_instance_type=args.instance_type,
-    image_name=args.image_uri,
+    instance_count=args.node_count,
+    instance_type=args.instance_type,
+    image_uri=args.image_uri,
     py_version=args.python,
     framework_version=args.framework_version,
-    distributions={
+    distribution={
         "mpi": {
           "enabled": True,
           "processes_per_host": processes_per_host,

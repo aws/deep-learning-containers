@@ -128,20 +128,25 @@ def _print_results_of_test(file_path, processor):
         for line in last_100_lines:
             if "Total img/sec on " in line:
                 result = line + "\n"
-                throughput = float(
+                throughput += float(
                     re.search(r"(CPU\(s\):[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
                 )
-                break
     elif processor == "gpu":
+        """calculate average throughput"""
+        counter = 0
         result_dict = dict()
         for line in last_100_lines:
             if "images/sec: " in line:
-                key = line.split("<stdout>")[0]
+                counter += 1
+                # to make parsing compatible for SM1.x and SM2.x
+                key = line.split("<stdout>")[0] if '<stdout>' in line else line.split(' ')[0]
                 result_dict[key] = line.strip("\n")
-                if throughput == 0:
-                    throughput = float(
-                        re.search(r"(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
-                    )
+                throughput += float(
+                    re.search(r"(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
+                )
         result = "\n".join(result_dict.values()) + "\n"
+        if counter == 0:
+            raise Exception("Cannot find throughput lines. Looks like SageMaker job was not run successfully. Please check")
+        throughput = throughput/counter
     LOGGER.info(result)
     return result, throughput
