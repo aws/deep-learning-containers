@@ -22,16 +22,17 @@ from ...integration.local import local_mode_utils
 from ...integration import RESOURCE_PATH
 
 DEFAULT_HANDLER_PATH = os.path.join(RESOURCE_PATH, 'default_handlers')
-MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model')
-SCRIPT_PATH = os.path.join(MODEL_PATH, 'code', 'empty_module.py')
+MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model.tar.gz')
+SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'empty_module.py')
 
 
 @pytest.fixture(scope='module')
-def predictor(docker_image, sagemaker_local_session, local_instance_type):
+def predictor(docker_image, sagemaker_local_session, local_instance_type, framework_version):
     model = MXNetModel('file://{}'.format(MODEL_PATH),
                        'SageMakerRole',
                        SCRIPT_PATH,
-                       image=docker_image,
+                       image_uri=docker_image,
+                       framework_version=framework_version,
                        sagemaker_session=sagemaker_local_session)
 
     with local_mode_utils.lock():

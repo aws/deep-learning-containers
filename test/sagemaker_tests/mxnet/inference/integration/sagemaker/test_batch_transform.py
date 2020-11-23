@@ -32,6 +32,7 @@ DATA_FILE = '07.csv'
 DATA_PATH = os.path.join(MNIST_PATH, 'images', DATA_FILE)
 
 
+@pytest.mark.skip("Known issue: https://github.com/aws/deep-learning-containers/issues/586")
 @pytest.mark.integration("batch_transform")
 @pytest.mark.model("mnist")
 def test_batch_transform(sagemaker_session, ecr_image, instance_type, framework_version):
@@ -40,7 +41,7 @@ def test_batch_transform(sagemaker_session, ecr_image, instance_type, framework_
     model = MXNetModel(model_data,
                        'SageMakerRole',
                        SCRIPT_PATH,
-                       image=ecr_image,
+                       image_uri=ecr_image,
                        framework_version=framework_version,
                        sagemaker_session=sagemaker_session)
 

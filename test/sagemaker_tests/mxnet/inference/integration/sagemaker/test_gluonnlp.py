@@ -26,6 +26,7 @@ GLUONNLP_PATH = os.path.join(RESOURCE_PATH, 'gluonnlp')
 SCRIPT_PATH = os.path.join(GLUONNLP_PATH, 'bert.py')
 
 
+@pytest.mark.skip("Skipping the test due to known prediction issue. Ticket opened for gluonnlp. Failure in case of mx1.6 & mx1.7")
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("bert_sst")
 @pytest.mark.skip_py2_containers
@@ -42,7 +43,7 @@ def test_gluonnlp(sagemaker_session, ecr_image, instance_type, framework_version
     model = MXNetModel(model_data,
                        'SageMakerRole',
                        SCRIPT_PATH,
-                       image=ecr_image,
+                       image_uri=ecr_image,
                        py_version="py3",
                        framework_version=framework_version,
                        sagemaker_session=sagemaker_session)
