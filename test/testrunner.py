@@ -4,6 +4,7 @@ import sys
 import logging
 import re
 
+from junit_xml import TestSuite, TestCase
 from multiprocessing import Pool
 from datetime import datetime
 
@@ -373,6 +374,9 @@ def main():
     elif specific_test_type == "sagemaker":
         if "neuron" in dlc_images:
             LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
+            # Creating an empty file for because codebuild job fails without it
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report, test_type, "neuron")
             return
         if benchmark_mode:
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
@@ -391,6 +395,9 @@ def main():
     elif specific_test_type == "sagemaker-local":
         if "neuron" in dlc_images:
             LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
+            # Creating an empty file for because codebuild job fails without it
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report, test_type, "neuron")
             return
         testing_image_list = [
             image

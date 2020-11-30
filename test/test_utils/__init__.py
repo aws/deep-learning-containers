@@ -28,10 +28,10 @@ DEFAULT_REGION = "us-west-2"
 P3DN_REGION = "us-east-1"
 
 # Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
-UBUNTU_16_BASE_DLAMI_US_WEST_2 = "ami-0e5a388144f62e4f5"
-UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0da7f2daf5e92c6f2"
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-016cebe2c5b2257db"
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-0e03b889434a51f52"
+UBUNTU_16_BASE_DLAMI_US_WEST_2 = "ami-09b49a82b7f258d03"
+UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0743d56bc1f9aa072"
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-032a07adeddce2db8"
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-063f381b07ea97834"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 UL_AMI_LIST = [
@@ -639,7 +639,7 @@ def setup_sm_benchmark_mx_train_env(resources_location):
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install -U 'sagemaker<2' awscli boto3 botocore")
+            ctx.run("pip install -U sagemaker awscli boto3 botocore")
     return venv_dir
 
 
@@ -662,7 +662,7 @@ def get_framework_and_version_from_tag(image_uri):
             f"Cannot find framework in image uri {image_uri} " f"from allowed frameworks {allowed_frameworks}"
         )
 
-    tag_framework_version = re.search(r"(\d+(\.\d+){2})", image_uri).groups()[0]
+    tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]
 
     return tested_framework, tag_framework_version
 
