@@ -4,3 +4,7 @@
 /face_detection/model/code/model_archive_timestamp
 /face_detection/model/code/yaefd_current_sha
 /face_detection/model.tar.gz
+
+/object_detection/model/code/model_archive_timestamp
+/object_detection/model/code/yaefd_current_sha
+/object_detection/model.tar.gz

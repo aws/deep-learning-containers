@@ -1,0 +1,5 @@
+boto3
+pycocotools
+pyyaml
+tqdm
+webcolors
