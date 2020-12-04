@@ -52,6 +52,11 @@ with open(os.path.join(YAEDP_ROOT, 'projects', 'coco.yml')) as fp:
 
 print(f'PARAMS = {PARAMS}')
 
+# input size is fixed on the compound coef level
+MAX_INPUT_SIZES = [512, 640, 768, 896, 1024, 1280, 1280, 1536, 1536]
+MAX_INPUT_SIZE = MAX_INPUT_SIZES[EFFICIENTDET_COMPOUND_COEF]
+print(f"MAX_INPUT_SIZE = {MAX_INPUT_SIZE}")
+
 
 def log_storyblocks_artifact_info():
     """if a face detection repo sha or archive timestamp file exist, print
@@ -159,8 +164,7 @@ def model_fn(model_dir):
     return model
 
 
-def load_s3_image_and_preprocess(bucket, key, max_size=512, mean=(0.485, 0.456, 0.406),
-                                 std=(0.229, 0.224, 0.225)):
+def load_s3_image_and_preprocess(bucket, key):
     """download the file from s3, process it using the external library
 
     returns:
@@ -176,7 +180,7 @@ def load_s3_image_and_preprocess(bucket, key, max_size=512, mean=(0.485, 0.456, 
         with open(ntf.name, 'wb') as fp:
             fp.write(obj['Body'].read())
 
-        return preprocess(ntf.name, max_size=max_size, mean=mean, std=std)
+        return preprocess(ntf.name, max_size=MAX_INPUT_SIZE, mean=PARAMS['mean'], std=PARAMS['std'])
 
 
 def parse_json_input(input_data):
@@ -237,6 +241,7 @@ def input_fn(input_data, content_type):
         iou_threshold (float): threshold for iou filtering in nms postprocessing of detections
 
     """
+    # todo: can we support multiple input files?
     if content_type == content_types.CSV:
         i = input_data.find('/')
         bucket, key = input_data[:i], input_data[i + 1:]

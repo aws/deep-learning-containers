@@ -92,7 +92,7 @@ note: you must have sagemaker python sdk version 2+
 ```python
 from sagemaker.pytorch.model import PyTorchModel
 
-EFFICIENTDET_COMPOUND_COEF = 0
+EFFICIENTDET_COMPOUND_COEF = 5
 DEFAULT_PRED_THRESHOLD = 0.01
 
 env = {'SAGEMAKER_PROGRAM': 'inference.py',
@@ -102,7 +102,7 @@ env = {'SAGEMAKER_PROGRAM': 'inference.py',
 # UPDATE THESE!
 framework_version = '1.4.0'
 py_version = 'py3'
-s3_model_archive = 's3://videoblocks-ml/models/efficientdet/videoblocks/dev/20201204T190238/model.tar.gz'
+s3_model_archive = 's3://videoblocks-ml/models/efficientdet/videoblocks/dev/20201204T203855/model.tar.gz'
 
 model = PyTorchModel(model_data=s3_model_archive,
                      framework_version=framework_version,
@@ -140,7 +140,7 @@ import datetime
 
 N = 100
 loop_start = datetime.datetime.now()
-for i in range(100):
+for i in range(N):
     t0 = datetime.datetime.now()
     result = runtime.invoke_endpoint(EndpointName=model.endpoint_name,
                                      Body=json.dumps({'bucket': bucket, 'key': key}),
@@ -148,10 +148,11 @@ for i in range(100):
     t1 = datetime.datetime.now()
     print(f'attempt {i} took {t1 - t0}')
 loop_end = datetime.datetime.now()
+total_time = loop_end - loop_start
 
-print(f"processed {N} requests in {t1 - t0}")
-print(f"that is {N / (loop_end - loop_start).total_seconds()} FPS")
-print(f"that is {(loop_end - loop_start).total_seconds() / N} SPF")
+print(f"processed {N} requests in {total_time}")
+print(f"that is {N / (total_time).total_seconds()} FPS")
+print(f"that is {(total_time).total_seconds() / N} SPF")
 
 # bring 'er down cap'n
 predictor.delete_endpoint()
