@@ -7,6 +7,7 @@ this repo holds all storyblocks custom sagemaker deep learning development files
     + e.g. `inference.py`, `model.pth`, etc
     + different per modelling framework
 1. build the base container locally using one of the `Dockerfile`s under your chosen framework
+    + note: this can take a *long* time
 1. run the built contianer mounting your custom archive files into `/opt/ml/model`
 1. verify everything works, write tests, etc
 1. write a script to archive your custom model files
