@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.0-cudnn8-devel-ubuntu16.04
+FROM nvidia/cuda:11.0-cudnn8-devel-ubuntu18.04
 # NCCL_VERSION=2.4.7, CUDNN_VERSION=7.6.2.24
 
 LABEL maintainer="Amazon AI"
