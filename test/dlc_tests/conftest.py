@@ -44,7 +44,8 @@ FRAMEWORK_FIXTURES = (
     "pytorch_inference_eia",
     "mxnet_inference_eia",
     "tensorflow_inference_eia",
-    "tensorflow_inference_neuron"
+    "tensorflow_inference_neuron",
+    "pytorch_inference_neuron"
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions

@@ -14,8 +14,8 @@
   context:
     inference_context: &INFERENCE_CONTEXT
       mms-entrypoint:
-        source: docker/build_artifacts/mms-entrypoint.py
-        target: mms-entrypoint.py
+        source: docker/build_artifacts/entrypoint.py
+        target: entrypoint.py
       config:
         source: docker/build_artifacts/config.properties
         target: config.properties
