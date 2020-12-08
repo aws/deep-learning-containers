@@ -13,7 +13,10 @@
 
   context:
     inference_context: &INFERENCE_CONTEXT
-      mms-entrypoint:
+      torchserve-entrypoint:
+        source: docker/build_artifacts/torchserve-entrypoint.py
+        target: torchserve-entrypoint.py
+      dockerd-entrypoint:
         source: docker/build_artifacts/entrypoint.sh
         target: entrypoint.sh
       config:
