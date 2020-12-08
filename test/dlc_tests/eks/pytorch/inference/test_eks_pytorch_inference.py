@@ -12,8 +12,8 @@ import test.test_utils as test_utils
 @pytest.mark.model("densenet")
 def test_eks_pytorch_densenet_inference(pytorch_inference):
     server_type = test_utils.get_inference_server_type(pytorch_inference)
-    if "eia" in pytorch_inference:
-        pytest.skip("Skipping EKS Test for EIA")
+    if "eia" in pytorch_inference or "neuron" in pytorch_inference:
+        pytest.skip("Skipping EKS Test for EIA/neuron")
     elif server_type == "ts":
         model = "pytorch-densenet=https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar"
         server_cmd = "torchserve"
