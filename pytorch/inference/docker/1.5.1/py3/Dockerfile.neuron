@@ -102,6 +102,25 @@ RUN conda install -c \
     enum-compat==0.0.3 \
     "cryptography>3.2"
 
+RUN pip install --no-cache-dir -U \
+    numpy==1.17.4 \
+    scipy==1.2.2 \
+    scikit-learn==0.20.3 \
+    pandas==0.24.2 \
+    Pillow \
+    h5py==2.10.0 \
+    pyYAML==5.3.1 \
+    cython==0.29.12 \
+    falcon==2.0.0 \
+    gunicorn==19.9.0 \
+    gevent==1.4.0 \
+    requests==2.22.0 \
+    grpcio==1.24.1 \
+    protobuf==3.10.0 \
+    gast==0.2.2 \
+    pillow==7.2.0 \
+    "awscli<2"
+
 RUN pip install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install torch-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install torchserve --no-deps \
@@ -127,7 +146,6 @@ RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.6.0/license.txt -o /license.txt
 
 RUN conda install -y -c conda-forge pyyaml==5.3.1
-RUN pip install pillow==7.2.0 "awscli<2"
 
 EXPOSE 8080 8081
 COPY entrypoint.sh /usr/local/bin/
