@@ -328,7 +328,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         multi_model_location = {
             "squeezenet": "https://torchserve.s3.amazonaws.com/mar_files/squeezenet1_1.mar",
             "pytorch-densenet": "https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar",
-            "pytorch-resnet-neuron": "https://aws-dlc-sample-models.s3.amazonaws.com//pytorch//Resnet50-neuron.mar",
+            "pytorch-resnet-neuron": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar",
         }
     else:
         multi_model_location = {
