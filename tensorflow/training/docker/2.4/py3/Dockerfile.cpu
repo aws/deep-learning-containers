@@ -134,6 +134,8 @@ RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
+RUN apt-get update && apt-get -y install cmake protobuf-compiler
+
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
@@ -160,7 +162,7 @@ RUN ${PIP} install --no-cache-dir -U \
     ${ESTIMATOR_URL} \
     h5py==2.10.0 \
     "absl-py>=0.9,<0.11" \
-    horovod==0.19.5 \
+    horovod==0.21.0 \
     werkzeug==1.0.1 \
     psutil==5.7.2 \
     smdebug==${SMDEBUG_VERSION}
