@@ -188,7 +188,7 @@ def run_data_service_test(ec2_connection, tensorflow_training):
 @pytest.mark.integration('tensorflow-dataservice-test')
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, tf23_and_above_only, cpu_only):
+def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, tf24_and_above_only, cpu_only):
     run_data_service_test(ec2_connection, tensorflow_training)
 
 
@@ -197,5 +197,5 @@ def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, tf23_an
 @pytest.mark.integration('tensorflow-dataservice-test')
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, tf23_and_above_only, gpu_only):
+def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, tf24_and_above_only, gpu_only):
     run_data_service_test(ec2_connection, tensorflow_training)

@@ -306,7 +306,7 @@ def tf2_only():
 
 
 @pytest.fixture(scope="session")
-def tf23_and_above_only():
+def tf24_and_above_only():
     pass
 
 
@@ -324,9 +324,9 @@ def tf_version_within_limit(metafunc_obj, image):
     :return: True if all validation succeeds, else False
     """
     tf2_requirement_failed = "tf2_only" in metafunc_obj.fixturenames and not is_tf_version("2", image)
-    tf23_requirement_failed = "tf23_and_above_only" in metafunc_obj.fixturenames and is_below_tf_version("2.3", image)
+    tf24_requirement_failed = "tf24_and_above_only" in metafunc_obj.fixturenames and is_below_tf_version("2.4", image)
     tf21_requirement_failed = "tf21_and_above_only" in metafunc_obj.fixturenames and is_below_tf_version("2.1", image)
-    if tf2_requirement_failed or tf21_requirement_failed or tf23_requirement_failed:
+    if tf2_requirement_failed or tf21_requirement_failed or tf24_requirement_failed:
         return False
     return True
 
