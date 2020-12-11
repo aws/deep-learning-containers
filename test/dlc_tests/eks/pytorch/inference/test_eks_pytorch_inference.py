@@ -27,7 +27,7 @@ def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": pytorch_inference
+        "<DOCKER_IMAGE_BUILD_ID>": pytorch_inference,
         "<SERVER_TYPE>": server_type,
         "<SERVER_CMD>": server_cmd
     }
