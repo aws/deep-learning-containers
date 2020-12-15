@@ -15,7 +15,7 @@ def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
         pytest.skip("Skipping EKS Neuron Test for EIA and Non Neuron Images")
 
     model = "pytorch-resnet-neuron=https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar"
-    server_cmd = "/usr/local/bin/entrypoint.sh -m pytorch-resnet-neuron=https://aws-dlc-sample-models.s3.amazonaws.com//pytorch//Resnet50-neuron.mar -t /home/model-server/config.properties"
+    server_cmd = "/usr/local/bin/entrypoint.sh -m pytorch-resnet-neuron=https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar -t /home/model-server/config.properties"
     num_replicas = "1"
     rand_int = random.randint(4001, 6000)
     processor = "neuron"
