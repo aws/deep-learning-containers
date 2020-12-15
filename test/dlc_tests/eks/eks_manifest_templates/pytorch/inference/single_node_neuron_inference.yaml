@@ -31,7 +31,6 @@ spec:
       volumes:
         - name: sock
           emptyDir: {}
-    spec:
       containers:
       - name: <SERVER_TYPE>-container
         image: <DOCKER_IMAGE_BUILD_ID>
