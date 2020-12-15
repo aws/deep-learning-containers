@@ -62,9 +62,9 @@ printf "Model path: %s\n" "$MODEL_PATH"
 printf "TS_CONFIG: %s\n" "$TS_CONFIG"
 # Start the Model Server
 if [[ -z "$MODEL_PATH" ]]; then
-torchserve --start --ts-config /home/model-server/config.properties --model-store /opt/ml/model "$@" &
+  torchserve --start --ts-config /home/model-server/config.properties --model-store /opt/ml/model &
 else
-    torchserve --start --ts-config $TS_CONFIG --models $MODEL_PATH "$@" &
+  torchserve --start --ts-config $TS_CONFIG --models $MODEL_PATH &
 fi
 status=$?
 if [ $status -ne 0 ]; then
