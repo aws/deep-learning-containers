@@ -8,7 +8,7 @@ metadata:
 spec:
   ports:
   - port: 8080
-    targetPort: <SERVER_TYPE>
+    targetPort: 8080
   selector:
     app: <INFERENCE_SERVICE_NAME>
 ---
@@ -50,3 +50,15 @@ spec:
           requests:
             cpu: "1"
             memory: 1Gi
+        # Shared volume mount, for UDS socket
+        volumeMounts:
+          - name: sock
+            mountPath: /sock
+
+        resources:
+          limits:
+            hugepages-2Mi: 256Mi    # configure to 256 * desired number of Inferentia devices.
+            aws.amazon.com/neuron: 1  # desired number of Inferentia devices.
+          requests:
+            aws.amazon.com/neuron: 1  # desired number of Inferentia devices.
+            memory: 1024Mi
