@@ -28,9 +28,14 @@ spec:
       labels:
         app: <SELECTOR_NAME>
     spec:
+      volumes:
+        - name: sock
+          emptyDir: {}
+    spec:
       containers:
       - name: <SERVER_TYPE>-container
         image: <DOCKER_IMAGE_BUILD_ID>
+        command: ["/bin/sh","-c"]
         args:
         - <SERVER_CMD>
         ports:
@@ -38,15 +43,15 @@ spec:
           containerPort: 8080
         - name: <SERVER_TYPE>-management
           containerPort: 8081
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         securityContext:
           capabilities:
             add:
               - IPC_LOCK
         resources:
           limits:
-            cpu: "1"
-            memory: 1Gi
+            cpu: "4"
+            memory: 4Gi
           requests:
             cpu: "1"
             memory: 1Gi
