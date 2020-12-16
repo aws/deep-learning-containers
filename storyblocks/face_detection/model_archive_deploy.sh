@@ -15,7 +15,7 @@ MODEL_S3_PATH="s3://${BUCKET}/models/retinaface/videoblocks/${ENV}/${MODEL_ARCH_
 aws s3 cp "${MODEL_TAR}" "${MODEL_S3_PATH}"
 
 echo "successfully published archive to:"
-echo "  ${MODEL_S3_PATH}"
+echo "${MODEL_S3_PATH}"
 
 cd "${HERE}" || exit
 

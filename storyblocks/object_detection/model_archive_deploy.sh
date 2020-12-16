@@ -15,7 +15,7 @@ MODEL_S3_PATH="s3://${BUCKET}/models/efficientdet/videoblocks/${ENV}/${MODEL_ARC
 aws s3 cp "${MODEL_TAR}" "${MODEL_S3_PATH}"
 
 echo "successfully published archive to:"
-echo "  ${MODEL_S3_PATH}"
+echo "${MODEL_S3_PATH}"
 
 cd "${HERE}" || exit
 
