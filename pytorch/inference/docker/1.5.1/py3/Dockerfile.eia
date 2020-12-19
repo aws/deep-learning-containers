@@ -77,7 +77,7 @@ RUN conda install -c \
  # Torchvision wheel must be installed first, so that PyTorch-EI framework is not overwritten.
  && pip install https://download.pytorch.org/whl/cpu/torchvision-0.6.1%2Bcpu-cp36-cp36m-linux_x86_64.whl \
  && pip install https://s3-us-west-2.amazonaws.com/wanchunx-pytorch-1.5.1-whl-test/pytorch-1.5.1-whl-test/torcheia-1.0.0-cp36-cp36m-manylinux1_x86_64.whl \
-#  && pip install https://amazonei-pytorcheia.s3.amazonaws.com/releases/v1.0.0/torcheia-1.0.0-cp36-cp36m-manylinux1_x86_64.whl \
+ #&& pip install https://amazonei-pytorcheia.s3.amazonaws.com/releases/v1.0.0/torcheia-1.0.0-cp36-cp36m-manylinux1_x86_64.whl \
  && pip install graphviz==$GRAPHVIZ_VERSION \
  && pip install multi-model-server==$MMS_VERSION \
  && pip install pillow==7.2.0
