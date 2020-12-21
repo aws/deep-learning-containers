@@ -351,7 +351,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
     else:
         server_cmd = "multi-model-server"
 
-    if processor is not neuron:
+    if processor is not "neuron":
         mms_command = (
             f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
             + " ".join(parameters)
