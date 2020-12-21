@@ -126,9 +126,7 @@ def test_safety(image):
         safety_result = json.loads(json_str_safety_result)
         for package, affected_versions, curr_version, _, vulnerability_id in safety_result:
             # Get the latest version of the package with vulnerability
-            command_success, latest_version = _get_latest_package_version(package)
-            if not command_success:
-                continue
+            latest_version = _get_latest_package_version(package)
             # If the latest version of the package is also affected, ignore this vulnerability
             if Version(latest_version) in SpecifierSet(affected_versions):
                 # Version(x) gives an object that can be easily compared with another version, or with a SpecifierSet.
