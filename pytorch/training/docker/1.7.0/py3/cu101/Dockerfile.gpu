@@ -38,11 +38,11 @@ RUN apt-get update \
     cmake \
     cuda-command-line-tools-10-1 \
     cuda-cudart-10-1 \
-    libcufft-dev-10-1 \
+    cuda-cufft-10-1 \
+    cuda-curand-10-1 \
+    cuda-cusolver-10-1 \
+    cuda-cusparse-10-1 \
     libnccl-dev=2.7.8-1+cuda10.1 \
-    libcurand-dev-10-1 \
-    libcusolver-dev-10-1 \
-    libcusparse-dev-10-1 \
     curl \
     emacs \
     git \
