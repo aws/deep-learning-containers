@@ -36,6 +36,8 @@ def test_ecs_pytorch_inference_eia(pytorch_inference_eia, ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
 
     model_name = "pytorch-densenet"
+    if "1.3.1" in pytorch_inference_eia:
+        model_name = "pytorch-densenet-v1-3-1"
     service_name = task_family = revision = None
     try:
         service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(

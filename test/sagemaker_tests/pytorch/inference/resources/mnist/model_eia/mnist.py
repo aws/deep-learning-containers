@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
+# To use new EIA inference API, customer should use attach_eia(model, eia_ordinal_number)
 VERSIONS_USE_NEW_API = ["1.5.1"]
 
 

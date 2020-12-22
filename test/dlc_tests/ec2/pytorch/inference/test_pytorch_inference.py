@@ -53,8 +53,12 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
     model_name = "pytorch-densenet"
+    if processor is "eia":
+        if "1.3.1" in image_tag:
+            model_name = "pytorch-densenet-v1-3-1"
     if processor is "neuron":
         model_name = "pytorch-resnet-neuron"
+        
     inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
 
