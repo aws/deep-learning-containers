@@ -28,7 +28,7 @@ SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist_gluon_basic_hook_demo.py')
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
-def test_training(sagemaker_session, ecr_image, instance_type, instance_count):
+def test_training(sagemaker_session, ecr_image, instance_type, instance_count, framework_version):
     hyperparameters = {'random_seed': True,
                        'num_steps': 50,
                        'smdebug_path': '/tmp/ml/output/tensors',
@@ -36,10 +36,11 @@ def test_training(sagemaker_session, ecr_image, instance_type, instance_count):
 
     mx = MXNet(entry_point=SCRIPT_PATH,
                role='SageMakerRole',
-               train_instance_count=instance_count,
-               train_instance_type=instance_type,
+               instance_count=instance_count,
+               instance_type=instance_type,
                sagemaker_session=sagemaker_session,
-               image_name=ecr_image,
+               image_uri=ecr_image,
+               framework_version=framework_version,
                hyperparameters=hyperparameters)
 
     with timeout(minutes=15):
