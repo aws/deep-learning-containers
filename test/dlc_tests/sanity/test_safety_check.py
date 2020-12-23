@@ -7,6 +7,7 @@ from pkg_resources._vendor.packaging.specifiers import SpecifierSet
 from pkg_resources._vendor.packaging.version import Version
 
 import pytest
+import requests
 
 from invoke import run
 
@@ -81,24 +82,18 @@ def _get_safety_ignore_list(image_uri):
     return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, [])
 
 
-def _get_latest_package_version(docker_exec_cmd, package, num_tries=3):
+def _get_latest_package_version(package):
     """
     Get the latest package version available on pypi for a package.
     It is retried multiple times in case there are transient failures in executing the command.
 
-    :param docker_exec_cmd: str "docker exec" command containing the name of the container to be tested
     :param package: str Name of the package whose latest version must be retrieved
-    :param num_tries: int Number of times the docker exec command can be tried before giving up
     :return: tuple(command_success: bool, latest_version_value: str)
     """
-    get_latest_version_command = f"{docker_exec_cmd} yolk -M {package} -f version "
-    for attempt in range(num_tries):
-        run_out = run(get_latest_version_command, warn=True, hide=True)
-        if run_out.failed or run_out.stdout:
-            break
-        LOGGER.info(f"Failed {attempt}: '{get_latest_version_command}' returned '{run_out.stdout}'")
-    assert run_out.failed or run_out.stdout, f"'{get_latest_version_command}' returned '{run_out.stdout}'"
-    return run_out.ok, run_out.stdout.strip("\n")
+    pypi_package_info = requests.get(f"https://pypi.org/pypi/{package}/json")
+    data = json.loads(pypi_package_info.text)
+    versions = data["releases"].keys()
+    return str(max(Version(v) for v in versions))
 
 
 @pytest.mark.model("N/A")
@@ -134,9 +129,7 @@ def test_safety(image):
         safety_result = json.loads(json_str_safety_result)
         for package, affected_versions, curr_version, _, vulnerability_id in safety_result:
             # Get the latest version of the package with vulnerability
-            command_success, latest_version = _get_latest_package_version(docker_exec_cmd, package)
-            if not command_success:
-                continue
+            latest_version = _get_latest_package_version(package)
             # If the latest version of the package is also affected, ignore this vulnerability
             if Version(latest_version) in SpecifierSet(affected_versions):
                 # Version(x) gives an object that can be easily compared with another version, or with a SpecifierSet.
