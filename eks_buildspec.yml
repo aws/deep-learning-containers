@@ -1,0 +1,16 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+  pre_build:
+    commands:
+      - bash eks_infra/pre_build.sh
+  build:
+    commands:
+      - bash eks_infra/build.sh
+  post_build:
+    commands:
+      - echo "build suceeded"
+
