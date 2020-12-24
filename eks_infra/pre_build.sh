@@ -3,7 +3,11 @@ set -e
 
 #aws
 aws sts get-caller-identity
+which kubectl
 kubectl version --short --client
+rm /usr/local/bin/kubectl
+kubectl version --short --client
+
 eksctl version
 #install kubectl
 
