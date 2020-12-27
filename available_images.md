@@ -121,6 +121,13 @@ Elastic Inference Containers
 |PyTorch 1.3.1 with Elastic Inference 		  |inference 	 |No 			      |CPU 		   |3.6 (py36) 			       |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-eia:1.3.1-cpu-py36-ubuntu16.04      |
 
 
+Neuron Inference Containers
+============================
+
+| Framework 			                    |Job Type 	 |Python Version Options    |Example URL 			                                                                                    |
+|-------------------------------------------|------------|--------------------------|-----------------------------------------------------------------------------------------------------------|
+|TensorFlow 1.15 with Neuron Inference      |inference 	 |3.7 (py37) 	            |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-neuron:1.15.4-neuron-py37-ubuntu18.04    |
+
 Prior Versions
 ==============
 
