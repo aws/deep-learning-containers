@@ -18,6 +18,7 @@ TF_KERAS_HVD_CMD_FP32 = os.path.join(CONTAINER_TESTS_PREFIX, "testTFKerasHVDFP32
 TF_TENSORBOARD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorBoard")
 TF_ADDONS_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTFAddons")
 TF_DATASERVICE_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testDataservice")
+TF_DATASERVICE_DISTRIBUTE_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testDataserviceDistribute")
 
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu")
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.16xlarge", processor="gpu")
@@ -173,27 +174,44 @@ def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, tf2_only, cp
 
 
 # Helper function to test data service 
-def run_data_service_test(ec2_connection, tensorflow_training):
+def run_data_service_test(ec2_connection, tensorflow_training, cmd):
     ec2_connection.run('python3 -m pip install --upgrade pip')
-    ec2_connection.run('pip3 install tensorflow==2.3')
+    ec2_connection.run('pip3 install tensorflow==2.4.0')
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(f'cd {container_test_local_dir}/bin && screen -d -m python3 start_dataservice.py')
-    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD, host_network=True)
+    execute_ec2_training_test(ec2_connection, tensorflow_training, cmd, host_network=True)
 
 
 # Testing Data Service on only one CPU instance
-# Skip test for TF 2.2 and below
+# Skip test for TF 2.3 and below
 @pytest.mark.integration('tensorflow-dataservice-test')
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, tf23_and_above_only, cpu_only):
-    run_data_service_test(ec2_connection, tensorflow_training)
+def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, tf24_and_above_only, cpu_only):
+    run_data_service_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD)
 
 
 # Testing Data Service on only one GPU instance
-# Skip test for TF 2.2 and below
+# Skip test for TF 2.3 and below
 @pytest.mark.integration('tensorflow-dataservice-test')
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, tf23_and_above_only, gpu_only):
-    run_data_service_test(ec2_connection, tensorflow_training)
+def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, tf24_and_above_only, gpu_only):
+    run_data_service_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD)
+
+# Testing Data Service Distributed mode on only one CPU instance
+# Skip test for TF 2.3 and below
+@pytest.mark.integration('tensorflow-dataservice-distribute-test')
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_distribute_dataservice_cpu(tensorflow_training, ec2_connection, tf24_and_above_only, cpu_only):
+    run_data_service_test(ec2_connection, tensorflow_training, TF_DATASERVICE_DISTRIBUTE_TEST_CMD)
+
+
+# Testing Data Service Distributed mode on only one GPU instance
+# Skip test for TF 2.3 and below
+@pytest.mark.integration('tensorflow-dataservice-distribute-test')
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_distribute_dataservice_gpu(tensorflow_training, ec2_connection, tf24_and_above_only, gpu_only):
+    run_data_service_test(ec2_connection, tensorflow_training, TF_DATASERVICE_DISTRIBUTE_TEST_CMD)
