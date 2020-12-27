@@ -107,6 +107,8 @@ def get_repository_local_path():
 def get_inference_server_type(image_uri):
     if "pytorch" not in image_uri:
         return "mms"
+    if "neuron" in image_uri:
+        return "ts"
     image_tag = image_uri.split(":")[1]
     pytorch_ver = parse(image_tag.split("-")[0])
     if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"):
@@ -326,6 +328,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         multi_model_location = {
             "squeezenet": "https://torchserve.s3.amazonaws.com/mar_files/squeezenet1_1.mar",
             "pytorch-densenet": "https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar",
+            "pytorch-resnet-neuron": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar",
         }
     else:
         multi_model_location = {
@@ -348,10 +351,16 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
     else:
         server_cmd = "multi-model-server"
 
-    mms_command = (
-        f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
-        + " ".join(parameters)
-    )
+    if processor is not neuron:
+        mms_command = (
+            f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
+            + " ".join(parameters)
+        )
+    else:
+        mms_command = (
+            f"/usr/local/bin/entrypoint.sh -m {parameters} -t /home/model-server/config.properties"
+        )
+
     return mms_command
 
 
@@ -639,7 +648,7 @@ def setup_sm_benchmark_mx_train_env(resources_location):
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install -U 'sagemaker<2' awscli boto3 botocore")
+            ctx.run("pip install -U sagemaker awscli boto3 botocore")
     return venv_dir
 
 
