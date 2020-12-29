@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-#aws
+#jq
+jq --help
 
 eksctl version
 #install kubectl

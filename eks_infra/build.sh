@@ -17,3 +17,6 @@ eksctl create nodegroup -f eks_infra/nodegroup.yaml
 
 bash ./eks_infra/install_kubeflow_custom_kfctl.sh
 
+
+#cluster upgrades
+#https://eksctl.io/usage/cluster-upgrade/
