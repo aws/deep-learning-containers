@@ -25,4 +25,4 @@ fi
 CLUSTER=$1
 REGION=$2
 
-delete_cluster() $CLUSTER $REGION
+delete_cluster $CLUSTER $REGION
