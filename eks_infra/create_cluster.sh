@@ -45,6 +45,7 @@ create_node_group(){
 
 function update_kubeconfig(){
     eksctl utils write-kubeconfig --name ${CLUSTER} --region $AWS_DEFAULT_REGION
+    kubectl config get-contexts
 }
 
 if [ $# -ne 1 ]; then
