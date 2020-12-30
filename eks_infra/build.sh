@@ -1,37 +1,69 @@
 #!/bin/bash
+set -e
 
-#parse parameters
+#parse parameters from build_param.json
+OPERATION=$(jq -r '.operation' eks_infra/build_param.json)
+EKS_CLUSTERS=$(jq -r '.eks_clusters | .[]' eks_infra/build_param.json)
+EKS_VERSION=$(jq -r '.eks_version | .[]' eks_infra/build_param.json)
+LIST_CLUSTER=$(eksctl get cluster -o json | jq -r '.[].metadata.name')
+CLUSTER_AUTOSCALAR_IMAGE_VERSION=$(jq -r '.cluster_autoscalar_image_version | .[]' eks_infra/build_param.json)
 
-operation=$(jq -r '.operation' eks_infra/build_param.json)
-eks_clusters=$(jq -r '.eks_clusters | .[]' eks_infra/build_param.json)
-list_cluster=$(eksctl get cluster -o json | jq -r '.[].metadata.name')
-#list_node_groups=$(eksctl get nodegroup --cluster eks-cluster -o json | jq -r '.[].StackName')
+function create_cluster(){
 
-case $operation in 
+  cd eks_infra
+
+  for CLUSTER in $EKS_CLUSTERS; do
+    if [[ ! " ${LIST_CLUSTER[@]} " =~ " ${CLUSTER} " ]]; then
+      ./create_cluster.sh $CLUSTER $EKS_VERSION $AWS_REGION
+      ./install_cluster_components.sh $CLUSTER $CLUSTER_AUTOSCALAR_IMAGE_VERSION $AWS_REGION
+    else
+      echo "EKS Cluster ${CLUSTER} already exist. Skipping creation of cluster"
+    fi
+  done
+}
+
+function upgrade_cluster(){
+
+  cd eks_infra
+
+  for CLUSTER in $EKS_CLUSTERS; do
+    if [[ " ${LIST_CLUSTER[@]} " =~ " ${CLUSTER} " ]]; then
+      ./upgrade_cluster.sh $CLUSTER $EKS_VERSION $CLUSTER_AUTOSCALAR_IMAGE_VERSION $AWS_REGION
+    else
+      echo "EKS Cluster ${CLUSTER} does not exist"
+    fi
+  done
+  
+}
+
+function delete_cluster(){
+
+  cd eks_infra
+
+  for CLUSTER in $EKS_CLUSTERS; do
+    if [[ " ${LIST_CLUSTER[@]} " =~ " ${CLUSTER} " ]]; then
+      ./delete_cluster.sh $CLUSTER $AWS_REGION
+    else
+      echo "EKS Cluster ${CLUSTER} does not exist"
+    fi
+  done
+  
+}
+
+case $OPERATION in 
   
   create)
-    for cluster in $eks_clusters; do
-      echo "cluster $cluster"
-      if [[ ! " ${list_cluster[@]} " =~ " ${CLUSTER} " ]]; then
-        cd eks_infra
-        ./create_cluster.sh $cluster
-        ./install_cluster_components.sh $cluster
-      else
-        echo "eks cluster ${CLUSTER} already exist"
-        echo "skipping creation of cluster/ng and component installation"
-      fi
-    done
+    create_cluster
   ;;
 
   upgrade)
-    echo "upgrade 1"
+    upgrade_cluster
   ;;
 
   delete)
-    echo "delete 1"
+    delete_cluster
   ;;
-
   *)
-    echo "something else"
+    echo "Invalid operation"
   ;;
-esac
+esac 

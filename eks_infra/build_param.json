@@ -1,6 +1,8 @@
 {
-    "operation": "create",
+    "operation": "delete",
     "eks_clusters":[
         "pt"
-    ]
+    ],
+    "eks_version": "v1.18",
+    "cluster_autoscalar_image_version": "v1.18.3"
 }

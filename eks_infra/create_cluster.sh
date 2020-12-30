@@ -2,60 +2,62 @@
 set -e
 
 create_ec2_key_pair() {
-    aws ec2 create-key-pair --key-name "${CLUSTER}-KeyPair" --query 'KeyMaterial' --output text > ./${CLUSTER}-KeyPair.pem
+    aws ec2 create-key-pair --key-name "${1}-KeyPair" --query 'KeyMaterial' --output text > ./${1}-KeyPair.pem
 }
 
 create_eks_cluster() {
-    #TODO: add version/zones
     eksctl create cluster \
-    --name ${CLUSTER} \
+    --name ${1} \
+    --version ${2} \
+    --zones=${3}a,${3}b,${3}c \
     --without-nodegroup
 }
 
 create_node_group(){
-    #static
+    #static nodegroup
     eksctl create nodegroup \
-    --name static-nodegroup \
-    --cluster ${CLUSTER} \
+    --name static-nodegroup-${2} \
+    --cluster ${1} \
     --node-type m5.large \
     --nodes 1 \
     --node-labels "static=true" \
     --tags "k8s.io/cluster-autoscaler/node-template/label/static=true" \
     --asg-access \
     --ssh-access \
-    --ssh-public-key "${CLUSTER}-KeyPair"
+    --ssh-public-key "${1}-KeyPair"
 
-    #gpu
+    #gpu nodegroup
     eksctl create nodegroup \
-    --name gpu-nodegroup \
-    --cluster ${CLUSTER} \
+    --name gpu-nodegroup-${2} \
+    --cluster ${1} \
     --node-type p3.16xlarge \
     --nodes-min 0 \
     --nodes-max 100 \
     --node-volume-size 80 \
-    --node-ami ami-061798711b2adafb4 \
     --node-labels "test_type=gpu" \
     --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=gpu" \
     --asg-access \
     --ssh-access \
-    --ssh-public-key "${CLUSTER}-KeyPair"
+    --ssh-public-key "${1}-KeyPair"
 
-#TODO: nodegroup inf
+    #TODO: inf nodegroup
 }
 
 function update_kubeconfig(){
-    eksctl utils write-kubeconfig --name ${CLUSTER} --region $AWS_DEFAULT_REGION
+    eksctl utils write-kubeconfig --name ${1} --region ${2}
     kubectl config get-contexts
 }
 
-if [ $# -ne 1 ]; then
-    echo $0: usage: ./create_cluster.sh cluster_name
+if [ $# -ne 3 ]; then
+    echo ${0}: usage: ./create_cluster.sh cluster_name eks_version aws_region
     exit 1
 fi
 
 CLUSTER=$1
+EKS_VERSION=$2
+REGION=$3
 
-#create_ec2_key_pair
-#create_eks_cluster
-update_kubeconfig
-create_node_group
+create_ec2_key_pair $CLUSTER
+create_eks_cluster $CLUSTER $EKS_VERSION $REGION
+update_kubeconfig $CLUSTER $REGION
+create_node_group $CLUSTER $EKS_VERSION
