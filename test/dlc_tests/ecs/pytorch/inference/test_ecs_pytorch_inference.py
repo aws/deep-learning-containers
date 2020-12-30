@@ -37,7 +37,7 @@ def test_ecs_pytorch_inference_eia(pytorch_inference_eia, ecs_container_instance
 
     model_name = "pytorch-densenet"
     image_framework, image_framework_version = get_framework_and_version_from_tag(pytorch_inference_eia)
-    if image_framework_version is "1.3.1":
+    if image_framework_version == "1.3.1":
         model_name = "pytorch-densenet-v1-3-1"
     service_name = task_family = revision = None
     try:

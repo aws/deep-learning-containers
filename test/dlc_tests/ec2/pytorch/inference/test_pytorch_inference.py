@@ -55,7 +55,7 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
     model_name = "pytorch-densenet"
     if processor is "eia":
         image_framework, image_framework_version = get_framework_and_version_from_tag(image_uri)
-        if image_framework_version is "1.3.1":
+        if image_framework_version == "1.3.1":
             model_name = "pytorch-densenet-v1-3-1"
     if processor is "neuron":
         model_name = "pytorch-resnet-neuron"
