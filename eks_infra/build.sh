@@ -1,22 +1,36 @@
 #!/bin/bash
-set -e
 
-#create eks cluster
+#parse parameters
 
-eksctl create cluster --name <CLUSTER_NAME> --nodegroup-name <NG-NAME> --nodes-min 1 --nodes-max 1 --node-type <INSTANCE_TYPE>
+operation=$(jq -r '.operation' eks_infra/build_param.json)
+eks_clusters=$(jq -r '.eks_clusters | .[]' eks_infra/build_param.json)
+list_cluster=$(eksctl get cluster -o json | jq -r '.[].metadata.name')
+#list_node_groups=$(eksctl get nodegroup --cluster eks-cluster -o json | jq -r '.[].StackName')
 
-#create nodegroups
+case $operation in 
+  
+  create)
+    for cluster in $eks_clusters; do
+      echo "cluster $cluster"
+      if [[ ! " ${list_cluster[@]} " =~ " ${CLUSTER} " ]]; then
+        ./create_cluster.sh $cluster
+        ./install_cluster_components.sh $cluster $AWS_DEFAULT_REGION
+      else
+        echo "eks cluster ${CLUSTER} already exist"
+        echo "skipping creation of cluster/ng and component installation"
+      fi
+    done
+  ;;
 
-eksctl create nodegroup -f eks_infra/nodegroup.yaml
+  upgrade)
+    echo "upgrade 1"
+  ;;
 
-#install cluster autoscalar
+  delete)
+    echo "delete 1"
+  ;;
 
-
-
-#install kubeflow
-
-bash ./eks_infra/install_kubeflow_custom_kfctl.sh
-
-
-#cluster upgrades
-#https://eksctl.io/usage/cluster-upgrade/
+  *)
+    echo "something else"
+  ;;
+esac

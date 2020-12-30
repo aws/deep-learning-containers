@@ -1,8 +1,6 @@
 {
-    "operation": "create",
+    "operation": "create1",
     "eks_clusters":[
-        "tf1",
-        "tf2",
-        "pt"
+        "tf1"
     ]
 }
