@@ -43,6 +43,10 @@ create_node_group(){
 #TODO: nodegroup inf
 }
 
+function update_kubeconfig(){
+    eksctl utils write-kubeconfig --name ${CLUSTER} --region $AWS_DEFAULT_REGION
+}
+
 if [ $# -ne 1 ]; then
     echo $0: usage: ./create_cluster.sh cluster_name
     exit 1
@@ -50,6 +54,7 @@ fi
 
 CLUSTER=$1
 
-create_ec2_key_pair
-create_eks_cluster
+#create_ec2_key_pair
+#create_eks_cluster
+update_kubeconfig
 create_node_group
