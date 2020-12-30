@@ -16,11 +16,11 @@ create_node_group(){
     #static
     eksctl create nodegroup \
     --name static-nodegroup \
-    --cluster ${CLUSTER}\
+    --cluster ${CLUSTER} \
     --node-type m5.large \
     --nodes 1 \
-    --node-labels "static=true"
-    --tags "k8s.io/cluster-autoscaler/node-template/label/static=true"
+    --node-labels "static=true" \
+    --tags "k8s.io/cluster-autoscaler/node-template/label/static=true" \
     --asg-access \
     --ssh-access \
     --ssh-public-key "${CLUSTER}-KeyPair"
@@ -28,14 +28,14 @@ create_node_group(){
     #gpu
     eksctl create nodegroup \
     --name gpu-nodegroup \
-    --cluster ${CLUSTER}\
+    --cluster ${CLUSTER} \
     --node-type p3.16xlarge \
     --nodes-min 0 \
     --nodes-max 100 \
     --node-volume-size 80 \
     --node-ami ami-061798711b2adafb4 \
-    --node-labels "test_type=gpu"
-    --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=gpu"
+    --node-labels "test_type=gpu" \
+    --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=gpu" \
     --asg-access \
     --ssh-access \
     --ssh-public-key "${CLUSTER}-KeyPair"
