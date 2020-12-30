@@ -8,13 +8,21 @@ set -e
 #upgrade cluster autoscalar to the version matching the upgrade https://github.com/kubernetes/autoscaler/releases
 
 function update_kubeconfig(){
-    eksctl utils write-kubeconfig --name ${1} --region ${2}
+    eksctl utils write-kubeconfig 
+    --name ${1} \
+    --region ${2}
     kubectl config get-contexts
 }
 
 function upgrade_eks_control_plane(){
-    eksctl upgrade cluster --name=${1} --version ${2}
-    eksctl upgrade cluster --name=${1} --version ${2} --approve
+    eksctl upgrade cluster \
+    --name=${1} \
+    --version ${2}
+
+    eksctl upgrade cluster 
+    --name=${1} \
+    --version ${2} \
+    --approve
 }
 
 function scale_cluster_autoscalar(){
