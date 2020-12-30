@@ -1,6 +1,6 @@
 {
     "operation": "create",
     "eks_clusters":[
-        "tf1"
+        "pt"
     ]
 }

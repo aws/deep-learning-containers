@@ -12,4 +12,4 @@ kubectl replace -f /tmp/cluster-autoscalar-autodiscover-$CLUSTER_NAME.yaml
 
 #install kubeflow
 
-./install_kubeflow_custom_kfctl.sh $CLUSTER_NAME
+./eks_infra/install_kubeflow_custom_kfctl.sh $CLUSTER_NAME $AWS_DEFAULT_REGION

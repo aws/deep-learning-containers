@@ -16,6 +16,7 @@ create_node_group(){
     #static
     eksctl create nodegroup \
     --name static_nodegroup \
+    --cluster ${CLUSTER}\
     --node-type m5.large \
     --nodes 1 \
     --node-labels "static=true"
@@ -27,6 +28,7 @@ create_node_group(){
     #gpu
     eksctl create nodegroup \
     --name gpu_nodegroup \
+    --cluster ${CLUSTER}\
     --node-type p3.16xlarge \
     --nodes-min 0 \
     --nodes-max 100 \
