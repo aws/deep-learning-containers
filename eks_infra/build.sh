@@ -13,7 +13,7 @@ function create_cluster(){
   cd eks_infra
 
   for CLUSTER in $EKS_CLUSTERS; do
-    if [[ ! " ${LIST_CLUSTER[@]} " =~ " ${CLUSTER} " ]]; then
+    if [[ ! ${LIST_CLUSTER[$CLUSTER]} ]]; then
       ./create_cluster.sh $CLUSTER $EKS_VERSION $AWS_REGION
       ./install_cluster_components.sh $CLUSTER $CLUSTER_AUTOSCALAR_IMAGE_VERSION $AWS_REGION
     else
@@ -27,7 +27,7 @@ function upgrade_cluster(){
   cd eks_infra
 
   for CLUSTER in $EKS_CLUSTERS; do
-    if [[ " ${LIST_CLUSTER[@]} " =~ " ${CLUSTER} " ]]; then
+    if [[ ${LIST_CLUSTER[$CLUSTER]} ]]; then
       ./upgrade_cluster.sh $CLUSTER $EKS_VERSION $CLUSTER_AUTOSCALAR_IMAGE_VERSION $AWS_REGION
     else
       echo "EKS Cluster ${CLUSTER} does not exist"
@@ -41,7 +41,7 @@ function delete_cluster(){
   cd eks_infra
 
   for CLUSTER in $EKS_CLUSTERS; do
-    if [[ " ${LIST_CLUSTER[@]} " =~ " ${CLUSTER} " ]]; then
+    if [[ ${LIST_CLUSTER[$CLUSTER]} ]]; then
       ./delete_cluster.sh $CLUSTER $AWS_REGION
     else
       echo "EKS Cluster ${CLUSTER} does not exist"
