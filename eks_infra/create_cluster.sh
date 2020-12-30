@@ -15,7 +15,7 @@ create_eks_cluster() {
 create_node_group(){
     #static
     eksctl create nodegroup \
-    --name static_nodegroup \
+    --name static-nodegroup \
     --cluster ${CLUSTER}\
     --node-type m5.large \
     --nodes 1 \
@@ -27,7 +27,7 @@ create_node_group(){
 
     #gpu
     eksctl create nodegroup \
-    --name gpu_nodegroup \
+    --name gpu-nodegroup \
     --cluster ${CLUSTER}\
     --node-type p3.16xlarge \
     --nodes-min 0 \
