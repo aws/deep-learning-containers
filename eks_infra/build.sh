@@ -4,9 +4,9 @@ set -e
 #parse parameters from build_param.json
 OPERATION=$(jq -r '.operation' eks_infra/build_param.json)
 EKS_CLUSTERS=$(jq -r '.eks_clusters | .[]' eks_infra/build_param.json)
-EKS_VERSION=$(jq -r '.eks_version | .[]' eks_infra/build_param.json)
+EKS_VERSION=$(jq -r '.eks_version' eks_infra/build_param.json)
 LIST_CLUSTER=$(eksctl get cluster -o json | jq -r '.[].metadata.name')
-CLUSTER_AUTOSCALAR_IMAGE_VERSION=$(jq -r '.cluster_autoscalar_image_version | .[]' eks_infra/build_param.json)
+CLUSTER_AUTOSCALAR_IMAGE_VERSION=$(jq -r '.cluster_autoscalar_image_version' eks_infra/build_param.json)
 
 function create_cluster(){
 
