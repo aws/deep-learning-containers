@@ -13,8 +13,8 @@ case $operation in
     for cluster in $eks_clusters; do
       echo "cluster $cluster"
       if [[ ! " ${list_cluster[@]} " =~ " ${CLUSTER} " ]]; then
-        ./create_cluster.sh $cluster
-        ./install_cluster_components.sh $cluster $AWS_DEFAULT_REGION
+        ./eks_infra/create_cluster.sh $cluster
+        ./eks_infra/install_cluster_components.sh $cluster $AWS_DEFAULT_REGION
       else
         echo "eks cluster ${CLUSTER} already exist"
         echo "skipping creation of cluster/ng and component installation"
