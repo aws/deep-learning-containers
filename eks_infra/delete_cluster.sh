@@ -28,5 +28,5 @@ fi
 CLUSTER=$1
 REGION=$2
 
-delete_ec2_key_pair $CLUSTER
+delete_ec2_key_pair $CLUSTER $REGION
 delete_cluster $CLUSTER $REGION
