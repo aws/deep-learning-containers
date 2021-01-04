@@ -1,5 +1,5 @@
 {
-    "operation": "create",
+    "operation": "delete",
     "eks_clusters":[
         "pt1",
         "tensorflow"
