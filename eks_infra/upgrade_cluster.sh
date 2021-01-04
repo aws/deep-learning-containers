@@ -62,7 +62,7 @@ function create_node_group(){
 
 function delete_nodegroups(){
 
-    LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster eks-cluster -o json | jq -r '.[].StackName')
+    LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${1} -o json | jq -r '.[].StackName')
 
     for NODEGROUP in $LIST_NODE_GROUPS; do
       eksctl delete nodegroup --name $NODEGROUP --cluster ${1} --region ${2} --wait
