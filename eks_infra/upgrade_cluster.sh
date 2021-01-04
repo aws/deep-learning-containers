@@ -72,13 +72,7 @@ function delete_nodegroups(){
 #upgrade control plane
 
 function upgrade_nodegroups(){
-    #create new nodegroups
-    #. create_cluster.sh && create_node_group ${1} ${2}
     create_node_group ${1} ${2}
-
-    #delete old nodegroups
-    #. ./delete_cluster.sh && delete_nodegroups ${1} ${3}
-
     delete_nodegroups ${1} ${4}
 }
 

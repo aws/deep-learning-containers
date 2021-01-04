@@ -44,21 +44,35 @@ function create_node_group(){
     #TODO: inf nodegroup
 }
 
+function add_iam_identity(){ 
+    eksctl create iamidentitymapping --cluster ${1} --arn ${2} --group system:masters --username admin
+    eksctl get iamidentitymapping --cluster ${1}
+}
+
 function update_kubeconfig(){
     eksctl utils write-kubeconfig --cluster ${1} --region ${2}
     kubectl config get-contexts
 }
 
 if [ $# -ne 3 ]; then
-    echo ${0}: usage: ./create_cluster.sh cluster_name eks_version aws_region
+    echo ${0}: usage: ./create_cluster.sh cluster_name eks_version aws_region iam_role
     exit 1
 fi
 
 CLUSTER=$1
 EKS_VERSION=$2
 REGION=$3
+EKS_ROLE_ARN=$4
+
 
 create_ec2_key_pair $CLUSTER
 create_eks_cluster $CLUSTER $EKS_VERSION $REGION
+
+if [ -n "$4" ]; then
+  add_iam_identity $CLUSTER $EKS_ROLE_ARN
+else
+  echo "No IAM role specified for identity mapping"
+fi
+
 update_kubeconfig $CLUSTER $REGION
 create_node_group $CLUSTER $EKS_VERSION

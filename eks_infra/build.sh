@@ -9,11 +9,9 @@ EKS_VERSION=$(jq -r '.eks_version' eks_infra/build_param.json)
 LIST_CLUSTER=($(eksctl get cluster -o json | jq -r '.[].metadata.name'))
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=$(jq -r '.cluster_autoscalar_image_version' eks_infra/build_param.json)
 
-#EKS_CLUSTERS=($(jq -r '.eks_clusters | @sh' eks_infra/build_param.json))
-#LIST_CLUSTER=($(eksctl get cluster -o json | jq -r '.[].metadata.name | @sh' ))
-#answers=($(jq -r '.eks_clusters | @sh' eks_infra/build_param.json))
-#answers1=($(eksctl get cluster -o json | jq -r '.[].metadata.name | @sh' ))
-
+#Modify the name
+EKS_ROLE="admin"
+EKS_ROLE_ARN=$(aws iam get-role --role-name $EKS_ROLE --query Role.Arn --output text)
 
 function create_cluster(){
   cd eks_infra
@@ -21,7 +19,7 @@ function create_cluster(){
   for CLUSTER in "${EKS_CLUSTERS[@]}"; do
     echo $CLUSTER
     if [[ ! " ${LIST_CLUSTER[@]} " =~ " ${CLUSTER} " ]]; then
-      ./create_cluster.sh $CLUSTER $EKS_VERSION $AWS_REGION
+      ./create_cluster.sh $CLUSTER $EKS_VERSION $AWS_REGION $EKS_ROLE_ARN
       ./install_cluster_components.sh $CLUSTER $CLUSTER_AUTOSCALAR_IMAGE_VERSION $AWS_REGION
     else
       echo "EKS Cluster ${CLUSTER} already exist. Skipping creation of cluster"

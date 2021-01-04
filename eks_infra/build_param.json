@@ -1,8 +1,9 @@
 {
     "operation": "create",
     "eks_clusters":[
-        "pytorch"
+        "pt1",
+        "tensorflow"
     ],
-    "eks_version": "1.17",
-    "cluster_autoscalar_image_version": "v1.17.3"
+    "eks_version": "1.18",
+    "cluster_autoscalar_image_version": "v1.18.3"
 }
