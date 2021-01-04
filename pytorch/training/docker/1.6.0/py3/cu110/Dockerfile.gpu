@@ -119,6 +119,19 @@ RUN conda install -c pytorch magma-cuda110==2.5.2 \
 
 WORKDIR /opt/pytorch
 
+# Configure OpenSSH so that nodes can communicate with each other
+RUN mkdir -p /var/run/sshd && \
+  sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+RUN rm -rf /root/.ssh/ && \
+ mkdir -p /root/.ssh/ && \
+ ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
+ cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+ && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
+
+# Comment out line in MPI config to prevent mutually exclusive MCA settings
+RUN sed -i '62,62 s/^/#/' /home/.openmpi/etc/openmpi-mca-params.conf
+
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
@@ -142,6 +155,7 @@ RUN pip install \
     scipy \
     click \
     "cryptography>3.2" \
+    mpi4py==3.0.3 \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
