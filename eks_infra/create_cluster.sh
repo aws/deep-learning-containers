@@ -1,11 +1,12 @@
 #!/bin/bash
 set -e
 
-create_ec2_key_pair() {
+function create_ec2_key_pair() {
     aws ec2 create-key-pair --key-name "${1}-KeyPair" --query 'KeyMaterial' --output text > ./${1}-KeyPair.pem
 }
 
-create_eks_cluster() {
+function create_eks_cluster() {
+    
     eksctl create cluster \
     --name ${1} \
     --version ${2} \
@@ -13,10 +14,10 @@ create_eks_cluster() {
     --without-nodegroup
 }
 
-create_node_group(){
+function create_node_group(){
     #static nodegroup
     eksctl create nodegroup \
-    --name static-nodegroup-${2} \
+    --name static-nodegroup-${2/./-} \
     --cluster ${1} \
     --node-type m5.large \
     --nodes 1 \
@@ -28,7 +29,7 @@ create_node_group(){
 
     #gpu nodegroup
     eksctl create nodegroup \
-    --name gpu-nodegroup-${2} \
+    --name gpu-nodegroup-${2/./-} \
     --cluster ${1} \
     --node-type p3.16xlarge \
     --nodes-min 0 \
@@ -44,7 +45,7 @@ create_node_group(){
 }
 
 function update_kubeconfig(){
-    eksctl utils write-kubeconfig --name ${1} --region ${2}
+    eksctl utils write-kubeconfig --cluster ${1} --region ${2}
     kubectl config get-contexts
 }
 

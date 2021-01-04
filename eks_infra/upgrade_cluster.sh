@@ -8,18 +8,15 @@ set -e
 #upgrade cluster autoscalar to the version matching the upgrade https://github.com/kubernetes/autoscaler/releases
 
 function update_kubeconfig(){
-    eksctl utils write-kubeconfig 
-    --name ${1} \
+    eksctl utils write-kubeconfig \
+    --cluster ${1} \
     --region ${2}
     kubectl config get-contexts
 }
 
 function upgrade_eks_control_plane(){
-    eksctl upgrade cluster \
-    --name=${1} \
-    --version ${2}
 
-    eksctl upgrade cluster 
+    eksctl upgrade cluster \
     --name=${1} \
     --version ${2} \
     --approve
@@ -33,17 +30,58 @@ function upgrade_autoscalar_image(){
     kubectl -n kube-system set image deployment.apps/cluster-autoscaler cluster-autoscaler=k8s.gcr.io/autoscaling/cluster-autoscaler:$1
 }
 
+function create_node_group(){
+    #static nodegroup
+    eksctl create nodegroup \
+    --name static-nodegroup-${2/./-} \
+    --cluster ${1} \
+    --node-type m5.large \
+    --nodes 1 \
+    --node-labels "static=true" \
+    --tags "k8s.io/cluster-autoscaler/node-template/label/static=true" \
+    --asg-access \
+    --ssh-access \
+    --ssh-public-key "${1}-KeyPair"
+
+    #gpu nodegroup
+    eksctl create nodegroup \
+    --name gpu-nodegroup-${2/./-} \
+    --cluster ${1} \
+    --node-type p3.16xlarge \
+    --nodes-min 0 \
+    --nodes-max 100 \
+    --node-volume-size 80 \
+    --node-labels "test_type=gpu" \
+    --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=gpu" \
+    --asg-access \
+    --ssh-access \
+    --ssh-public-key "${1}-KeyPair"
+
+    #TODO: inf nodegroup
+}
+
+function delete_nodegroups(){
+
+    LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster eks-cluster -o json | jq -r '.[].StackName')
+
+    for NODEGROUP in $LIST_NODE_GROUPS; do
+      eksctl delete nodegroup --name $NODEGROUP --cluster ${1} --region ${2} --wait
+    done
+}
+
 #upgrade control plane
 
 function upgrade_nodegroups(){
     #create new nodegroups
-    source ./eks_infra/create_cluster.sh 
+    #. create_cluster.sh && create_node_group ${1} ${2}
     create_node_group ${1} ${2}
 
     #delete old nodegroups
-    source ./eks_infra/delete_cluster.sh 
-    delete_nodegroups ${1} ${3}
+    #. ./delete_cluster.sh && delete_nodegroups ${1} ${3}
+
+    delete_nodegroups ${1} ${4}
 }
+
 
 #Updating default add-ons
 function update_eksctl_utils(){

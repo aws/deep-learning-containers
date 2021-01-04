@@ -4,8 +4,7 @@ set -e
 function delete_cluster(){
     eksctl delete cluster \
     --name ${1} \
-    --region ${2} \
-    --wait
+    --region ${2}
 }
 
 function delete_nodegroups(){
