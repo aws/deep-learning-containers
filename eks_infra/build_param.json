@@ -1,8 +1,8 @@
 {
-    "operation": "delete",
+    "operation": "create",
     "eks_clusters":[
-        "pt"
+        "tensorflow"
     ],
-    "eks_version": "v1.18",
+    "eks_version": "1.18",
     "cluster_autoscalar_image_version": "v1.18.3"
 }

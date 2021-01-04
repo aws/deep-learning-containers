@@ -7,6 +7,10 @@ function delete_cluster(){
     --region ${2}
 }
 
+function delete_ec2_key_pair() {
+    aws ec2 delete-key-pair --key-name "${1}-KeyPair" --region ${2}
+}
+
 function delete_nodegroups(){
 
     LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster eks-cluster -o json | jq -r '.[].StackName')
@@ -24,4 +28,5 @@ fi
 CLUSTER=$1
 REGION=$2
 
+delete_ec2_key_pair $CLUSTER
 delete_cluster $CLUSTER $REGION
