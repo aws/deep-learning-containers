@@ -65,7 +65,7 @@ function create_nodegroups(){
 
 function delete_nodegroups(){
 
-    LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${1} -o json | jq -r '.[].StackName')
+    LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${1} -o json | jq -r '.[].Name')
     echo $LIST_NODE_GROUPS
     for NODEGROUP in $LIST_NODE_GROUPS; do
       echo $NODEGROUP
