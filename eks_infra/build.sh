@@ -33,7 +33,7 @@ function upgrade_cluster(){
 
   for CLUSTER in "${EKS_CLUSTERS[@]}"; do
     if [[ " ${LIST_CLUSTER[@]} " =~ " ${CLUSTER} " ]]; then
-      ./upgrade_cluster.sh $CLUSTER $EKS_VERSION $CLUSTER_AUTOSCALAR_IMAGE_VERSION $AWS_REGION
+      ./upgrade_cluster.sh $CLUSTER $EKS_VERSION $CLUSTER_AUTOSCALAR_IMAGE_VERSION $EKS_ROLE_ARN $AWS_REGION
     else
       echo "EKS Cluster ${CLUSTER} does not exist"
     fi
@@ -47,7 +47,7 @@ function delete_cluster(){
   for CLUSTER in "${EKS_CLUSTERS[@]}"; do
    echo $CLUSTER
     if [[ " ${LIST_CLUSTER[@]} " =~ " ${CLUSTER} " ]]; then
-      ./delete_cluster.sh $CLUSTER $AWS_REGION
+      ./delete_cluster.sh $CLUSTER $EKS_ROLE_ARN $AWS_REGION
     else
       echo "EKS Cluster ${CLUSTER} does not exist"
     fi

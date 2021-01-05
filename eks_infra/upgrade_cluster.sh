@@ -10,7 +10,9 @@ set -e
 function update_kubeconfig(){
     eksctl utils write-kubeconfig \
     --cluster ${1} \
-    --region ${2}
+    --authenticator-role-arn ${2} \
+    --region ${3}
+    
     kubectl config get-contexts
 }
 
@@ -92,9 +94,10 @@ fi
 CLUSTER=$1
 EKS_VERSION=$2
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=$3
-REGION=$4
+EKS_ROLE_ARN=$4
+REGION=$5
 
-update_kubeconfig $CLUSTER $REGION
+update_kubeconfig $CLUSTER $EKS_ROLE_ARN $REGION
 
 #scale to 0 to avoid unwanted scaling
 scale_cluster_autoscalar 0
