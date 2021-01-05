@@ -66,8 +66,9 @@ function create_nodegroups(){
 function delete_nodegroups(){
 
     LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${1} -o json | jq -r '.[].StackName')
-
+    echo $LIST_NODE_GROUPS
     for NODEGROUP in $LIST_NODE_GROUPS; do
+      echo $NODEGROUP
       eksctl delete nodegroup --name $NODEGROUP --cluster ${1} --region ${2} --wait
     done
 }
@@ -75,8 +76,9 @@ function delete_nodegroups(){
 #upgrade control plane
 
 function upgrade_nodegroups(){
+    delete_nodegroups ${1} ${4}
     #create_nodegroups ${1} ${2}
-    delete_nodegroups ${1} ${3}
+    
 }
 
 
