@@ -16,14 +16,14 @@ function update_kubeconfig(){
     --cluster ${1} \
     --authenticator-role-arn ${2} \
     --region ${3}
-    
+
     kubectl config get-contexts
 
     #aws eks update-kubeconfig --name {1} --region {2} --role-arn {eks_role}
 }
 
-if [ $# -ne 2 ]; then
-    echo $0: usage: ./delete_cluster.sh cluster_name aws_region
+if [ $# -ne 3 ]; then
+    echo $0: usage: ./delete_cluster.sh cluster_name role_arn aws_region
     exit 1
 fi
 
