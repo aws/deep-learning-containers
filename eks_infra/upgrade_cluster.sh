@@ -12,8 +12,9 @@ function update_kubeconfig(){
     --cluster ${1} \
     --authenticator-role-arn ${2} \
     --region ${3}
-    
+
     kubectl config get-contexts
+    cat /root/.kube/config
 }
 
 function upgrade_eks_control_plane(){
@@ -86,8 +87,8 @@ function update_eksctl_utils(){
     eksctl utils update-coredns
 }
 
-if [ $# -ne 4 ]; then
-    echo $0: usage: ./upgrade_cluster.sh cluster_name eks_version cluster_autoscalar_image_version aws_region
+if [ $# -ne 5 ]; then
+    echo $0: usage: ./upgrade_cluster.sh cluster_name eks_version cluster_autoscalar_image_version iam_role aws_region
     exit 1
 fi
 
