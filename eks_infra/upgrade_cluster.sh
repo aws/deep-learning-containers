@@ -76,7 +76,7 @@ function delete_nodegroups(){
 #upgrade control plane
 
 function upgrade_nodegroups(){
-    delete_nodegroups ${1} ${4}
+    delete_nodegroups ${1} ${3}
     #create_nodegroups ${1} ${2}
     
 }
