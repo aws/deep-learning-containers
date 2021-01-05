@@ -18,6 +18,7 @@ function update_kubeconfig(){
     --cluster ${1} \
     --authenticator-role-arn ${2} \
     --region ${3}
+}
 
 if [ $# -lt 2 ]; then
     echo $0: usage: ./delete_cluster.sh cluster_name aws_region role_arn
