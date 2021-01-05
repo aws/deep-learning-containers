@@ -10,7 +10,7 @@ LIST_CLUSTER=($(eksctl get cluster -o json | jq -r '.[].metadata.name'))
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=$(jq -r '.cluster_autoscalar_image_version' eks_infra/build_param.json)
 
 #Modify the name
-EKS_ROLE="admin"
+EKS_ROLE="eks_cluster_role"
 EKS_ROLE_ARN=$(aws iam get-role --role-name $EKS_ROLE --query Role.Arn --output text)
 
 function create_cluster(){
