@@ -66,9 +66,7 @@ function create_nodegroups(){
 function delete_nodegroups(){
 
     LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${1} -o json | jq -r '.[].Name')
-    echo $LIST_NODE_GROUPS
     for NODEGROUP in $LIST_NODE_GROUPS; do
-      echo $NODEGROUP
       eksctl delete nodegroup --name $NODEGROUP --cluster ${1} --region ${2} --wait
     done
 }
@@ -77,16 +75,15 @@ function delete_nodegroups(){
 
 function upgrade_nodegroups(){
     delete_nodegroups ${1} ${3}
-    #create_nodegroups ${1} ${2}
+    create_nodegroups ${1} ${2}
     
 }
 
-
 #Updating default add-ons
 function update_eksctl_utils(){
-    eksctl utils update-kube-proxy
-    eksctl utils update-aws-node
-    eksctl utils update-coredns
+    eksctl utils update-kube-proxy --cluster ${1} --region ${2}
+    eksctl utils update-aws-node --cluster ${1} --region ${2}
+    eksctl utils update-coredns --cluster ${1} --region ${2}
 }
 
 if [ $# -lt 4 ]; then
@@ -108,7 +105,7 @@ scale_cluster_autoscalar 0
 #upgrade_autoscalar_image $EKS_VERSION
 #upgrade_eks_control_plane $CLUSTER $EKS_VERSION
 upgrade_nodegroups $CLUSTER $EKS_VERSION $REGION
-update_eksctl_utils
+update_eksctl_utils $CLUSTER $REGION
 
 #scale back to 1
 scale_cluster_autoscalar 1
