@@ -49,7 +49,7 @@
     BuildTensorflowGPUInferencePy3DockerImage:
       <<: *INFERENCE_REPOSITORY
       build: &TENSORFLOW_GPU_INFERENCE_PY3 false
-      image_size_baseline: 4899
+      image_size_baseline: 7738
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
       tag_python_version: &TAG_PYTHON_VERSION py37
