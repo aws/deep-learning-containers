@@ -33,7 +33,7 @@ function upgrade_autoscalar_image(){
     kubectl -n kube-system set image deployment.apps/cluster-autoscaler cluster-autoscaler=k8s.gcr.io/autoscaling/cluster-autoscaler:$1
 }
 
-function create_node_group(){
+function create_nodegroups(){
     #static nodegroup
     eksctl create nodegroup \
     --name static-nodegroup-${2/./-} \
@@ -75,8 +75,8 @@ function delete_nodegroups(){
 #upgrade control plane
 
 function upgrade_nodegroups(){
-    create_node_group ${1} ${2}
-    delete_nodegroups ${1} ${4}
+    #create_nodegroups ${1} ${2}
+    delete_nodegroups ${1} ${3}
 }
 
 
@@ -87,24 +87,24 @@ function update_eksctl_utils(){
     eksctl utils update-coredns
 }
 
-if [ $# -ne 5 ]; then
-    echo $0: usage: ./upgrade_cluster.sh cluster_name eks_version cluster_autoscalar_image_version iam_role aws_region
+if [ $# -lt 4 ]; then
+    echo $0: usage: ./upgrade_cluster.sh cluster_name eks_version cluster_autoscalar_image_version aws_region iam_role
     exit 1
 fi
 
 CLUSTER=$1
 EKS_VERSION=$2
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=$3
-EKS_ROLE_ARN=$4
-REGION=$5
+REGION=$4
+EKS_ROLE_ARN=$5
 
 update_kubeconfig $CLUSTER $EKS_ROLE_ARN $REGION
 
 #scale to 0 to avoid unwanted scaling
 scale_cluster_autoscalar 0
 
-upgrade_autoscalar_image $EKS_VERSION
-upgrade_eks_control_plane $CLUSTER $EKS_VERSION
+#upgrade_autoscalar_image $EKS_VERSION
+#upgrade_eks_control_plane $CLUSTER $EKS_VERSION
 upgrade_nodegroups $CLUSTER $EKS_VERSION $REGION
 update_eksctl_utils
 

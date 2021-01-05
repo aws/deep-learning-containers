@@ -49,12 +49,7 @@ function add_iam_identity(){
     eksctl get iamidentitymapping --cluster ${1}
 }
 
-function update_kubeconfig(){
-    eksctl utils write-kubeconfig --cluster ${1} --region ${2}
-    kubectl config get-contexts
-}
-
-if [ $# -ne 4 ]; then
+if [ $# -lt 3 ]; then
     echo ${0}: usage: ./create_cluster.sh cluster_name eks_version aws_region iam_role
     exit 1
 fi
@@ -74,5 +69,4 @@ else
   echo "No IAM role specified for identity mapping"
 fi
 
-update_kubeconfig $CLUSTER $REGION
 create_node_group $CLUSTER $EKS_VERSION

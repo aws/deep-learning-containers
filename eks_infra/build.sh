@@ -3,7 +3,6 @@ set -e
 
 #parse parameters from build_param.json
 OPERATION=$(jq -r '.operation' eks_infra/build_param.json)
-
 EKS_CLUSTERS=($(jq -r '.eks_clusters[]' eks_infra/build_param.json))
 EKS_VERSION=$(jq -r '.eks_version' eks_infra/build_param.json)
 LIST_CLUSTER=($(eksctl get cluster -o json | jq -r '.[].metadata.name'))
@@ -17,7 +16,7 @@ function create_cluster(){
   cd eks_infra
   
   for CLUSTER in "${EKS_CLUSTERS[@]}"; do
-    echo $CLUSTER
+
     if [[ ! " ${LIST_CLUSTER[@]} " =~ " ${CLUSTER} " ]]; then
       ./create_cluster.sh $CLUSTER $EKS_VERSION $AWS_REGION $EKS_ROLE_ARN
       ./install_cluster_components.sh $CLUSTER $CLUSTER_AUTOSCALAR_IMAGE_VERSION $AWS_REGION
@@ -45,7 +44,7 @@ function delete_cluster(){
 
   cd eks_infra
   for CLUSTER in "${EKS_CLUSTERS[@]}"; do
-   echo $CLUSTER
+
     if [[ " ${LIST_CLUSTER[@]} " =~ " ${CLUSTER} " ]]; then
       ./delete_cluster.sh $CLUSTER $EKS_ROLE_ARN $AWS_REGION
     else
@@ -69,6 +68,6 @@ case $OPERATION in
     delete_cluster
   ;;
   *)
-    echo "Invalid operation"
+    echo "Specify valid operation"
   ;;
 esac 
