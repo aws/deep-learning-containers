@@ -28,26 +28,13 @@ def check_tensorflow():
 
         with sess:
             tf_version = tf.__version__
-            version_check = r"2.[0-3]+"
-            device_tag = ''
-            if(re.search(version_check, tf_version)):
-                device_tag = 'XLA_'
-            if is_gpu:
-                # Use GPU device 0
-                with tf.device('/job:localhost/replica:0/task:0/device:{}GPU:0'.format(device_tag)):
-                    x_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[2, 3], name='x_mat')
-                    y_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[3, 2], name='y_mat')
-                    z_mat = tf.matmul(x_mat, y_mat)
-
-                assert sess.run(z_mat).any(), "Error: GPU sanity test for TensorFlow failed."
-            else:
-                # Use CPU device 0
-                with tf.device('/job:localhost/replica:0/task:0/device:{}CPU:0'.format(device_tag)):
-                    x_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[2, 3], name='x_mat')
-                    y_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[3, 2], name='y_mat')
-                    z_mat = tf.matmul(x_mat, y_mat)
-
-                assert sess.run(z_mat).any(), "Error: CPU sanity test for TensorFlow failed."
+            version_check = r"2\.[0-3](\.\d+)?"
+            device_tag = ("XLA_" if re.match(version_check, tf_version) else "") + ("GPU" if is_gpu else "CPU")
+            with tf.device(f"/job:localhost/replica:0/task:0/device:{device_tag}:0"):
+                x_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[2, 3], name='x_mat')
+                y_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[3, 2], name='y_mat')
+                z_mat = tf.matmul(x_mat, y_mat)
+                assert sess.run(z_mat).any(), f"Error: {device_tag} sanity test for TensorFlow failed."
 
     except Exception as excp:
         LOGGER.debug("Error: check_tensorflow test failed.")
