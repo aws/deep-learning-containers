@@ -8,7 +8,9 @@ function delete_cluster(){
 }
 
 function delete_ec2_key_pair() {
-    aws ec2 delete-key-pair --key-name "${1}-KeyPair" --region ${2}
+    aws ec2 delete-key-pair \
+    --key-name "${1}-KeyPair" \
+    --region ${2}
 }
 
 function update_kubeconfig(){

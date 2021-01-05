@@ -26,11 +26,14 @@ function upgrade_eks_control_plane(){
 }
 
 function scale_cluster_autoscalar(){
-    kubectl scale deployments/cluster-autoscaler --replicas=${1} -n kube-system
+    kubectl scale deployments/cluster-autoscaler \
+    --replicas=${1} \
+    -n kube-system
 }
 
 function upgrade_autoscalar_image(){
-    kubectl -n kube-system set image deployment.apps/cluster-autoscaler cluster-autoscaler=k8s.gcr.io/autoscaling/cluster-autoscaler:$1
+    kubectl -n kube-system \
+    set image deployment.apps/cluster-autoscaler cluster-autoscaler=k8s.gcr.io/autoscaling/cluster-autoscaler:${1}
 }
 
 function create_nodegroups(){
@@ -68,7 +71,11 @@ function delete_nodegroups(){
     LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${1} -o json | jq -r '.[].Name')
     #TODO: add null check
     for NODEGROUP in $LIST_NODE_GROUPS; do
-      eksctl delete nodegroup --name $NODEGROUP --cluster ${1} --region ${2} --wait
+      eksctl delete nodegroup \
+      --name $NODEGROUP \
+      --cluster ${1} \
+      --region ${2} \
+      --wait
     done
 }
 
@@ -77,14 +84,24 @@ function delete_nodegroups(){
 function upgrade_nodegroups(){
     delete_nodegroups ${1} ${3}
     create_nodegroups ${1} ${2}
-    
 }
 
 #Updating default add-ons
 function update_eksctl_utils(){
-    eksctl utils update-kube-proxy --cluster ${1} --region ${2} --approve
-    eksctl utils update-aws-node --cluster ${1} --region ${2} --approve
-    eksctl utils update-coredns --cluster ${1} --region ${2} --approve
+    eksctl utils update-kube-proxy \
+    --cluster ${1} \
+    --region ${2} \
+    --approve
+
+    eksctl utils update-aws-node \
+    --cluster ${1} \
+    --region ${2} \
+    --approve
+
+    eksctl utils update-coredns \
+    --cluster ${1} \
+    --region ${2} \
+    --approve
 }
 
 if [ $# -lt 4 ]; then
@@ -103,9 +120,9 @@ update_kubeconfig $CLUSTER $EKS_ROLE_ARN $REGION
 #scale to 0 to avoid unwanted scaling
 scale_cluster_autoscalar 0
 
-#upgrade_autoscalar_image $EKS_VERSION
-#upgrade_eks_control_plane $CLUSTER $EKS_VERSION
-#upgrade_nodegroups $CLUSTER $EKS_VERSION $REGION
+upgrade_autoscalar_image $CLUSTER_AUTOSCALAR_IMAGE_VERSION
+upgrade_eks_control_plane $CLUSTER $EKS_VERSION
+upgrade_nodegroups $CLUSTER $EKS_VERSION $REGION
 update_eksctl_utils $CLUSTER $REGION
 
 #scale back to 1

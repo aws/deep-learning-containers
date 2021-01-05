@@ -1,5 +1,5 @@
 {
-    "operation": "upgrade",
+    "operation": "delete",
     "eks_clusters":[
         "tensorflow"
     ],

@@ -2,7 +2,10 @@
 set -e
 
 function create_ec2_key_pair() {
-    aws ec2 create-key-pair --key-name "${1}-KeyPair" --query 'KeyMaterial' --output text > ./${1}-KeyPair.pem
+    aws ec2 create-key-pair \
+    --key-name "${1}-KeyPair" \
+    --query 'KeyMaterial' \
+    --output text > ./${1}-KeyPair.pem
 }
 
 function create_eks_cluster() {
@@ -45,8 +48,14 @@ function create_node_group(){
 }
 
 function add_iam_identity(){ 
-    eksctl create iamidentitymapping --cluster ${1} --arn ${2} --group system:masters --username admin
-    eksctl get iamidentitymapping --cluster ${1}
+    eksctl create iamidentitymapping \
+    --cluster ${1} \
+    --arn ${2} \
+    --group system:masters \
+    --username admin
+    
+    eksctl get iamidentitymapping \
+    --cluster ${1}
 }
 
 if [ $# -lt 3 ]; then
