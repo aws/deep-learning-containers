@@ -54,7 +54,7 @@ function update_kubeconfig(){
     kubectl config get-contexts
 }
 
-if [ $# -ne 3 ]; then
+if [ $# -ne 4 ]; then
     echo ${0}: usage: ./create_cluster.sh cluster_name eks_version aws_region iam_role
     exit 1
 fi
