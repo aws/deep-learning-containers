@@ -3,7 +3,7 @@ import os
 import pytest
 
 from test import test_utils
-from test.test_utils import CONTAINER_TESTS_PREFIX
+from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag
 from test.test_utils.ec2 import get_ec2_instance_type, execute_ec2_inference_test, get_ec2_accelerator_type
 from test.dlc_tests.conftest import LOGGER
 
@@ -53,8 +53,13 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
     model_name = "pytorch-densenet"
+    if processor is "eia":
+        image_framework, image_framework_version = get_framework_and_version_from_tag(image_uri)
+        if image_framework_version == "1.3.1":
+            model_name = "pytorch-densenet-v1-3-1"
     if processor is "neuron":
         model_name = "pytorch-resnet-neuron"
+        
     inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
 
