@@ -322,7 +322,8 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
     if processor == "eia":
         multi_model_location = {
             "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar",
-            "pytorch-densenet": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia.mar",
+            "pytorch-densenet": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia_v1_5_1.mar",
+            "pytorch-densenet-v1-3-1": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia_v1_3_1.mar",
         }
     elif server_type == "ts":
         multi_model_location = {
@@ -351,7 +352,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
     else:
         server_cmd = "multi-model-server"
 
-    if processor is not neuron:
+    if processor != "neuron":
         mms_command = (
             f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
             + " ".join(parameters)
