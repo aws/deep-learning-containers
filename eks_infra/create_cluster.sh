@@ -2,6 +2,7 @@
 set -e
 
 function create_ec2_key_pair() {
+    #upload keypair to s3 or create it using cdk
     aws ec2 create-key-pair \
     --key-name "${1}-KeyPair" \
     --query 'KeyMaterial' \
@@ -28,7 +29,7 @@ function create_node_group(){
     --tags "k8s.io/cluster-autoscaler/node-template/label/static=true" \
     --asg-access \
     --ssh-access \
-    --ssh-public-key "${1}-KeyPair"
+    --ssh-public-key "pytorch-KeyPair"
 
     #gpu nodegroup
     eksctl create nodegroup \
@@ -42,7 +43,7 @@ function create_node_group(){
     --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=gpu" \
     --asg-access \
     --ssh-access \
-    --ssh-public-key "${1}-KeyPair"
+    --ssh-public-key "pytorch-KeyPair"
 
     #TODO: inf nodegroup
 }
@@ -69,7 +70,7 @@ REGION=$3
 EKS_ROLE_ARN=$4
 
 
-create_ec2_key_pair $CLUSTER
+#create_ec2_key_pair $CLUSTER
 create_eks_cluster $CLUSTER $EKS_VERSION $REGION
 
 if [ -n "$4" ]; then
