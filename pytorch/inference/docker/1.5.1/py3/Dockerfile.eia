@@ -82,7 +82,7 @@ RUN conda install -c \
  && pip install multi-model-server==$MMS_VERSION \
  && pip install pillow==7.2.0 \
  # pyOpenSSL requires cryptography>=2.3, but all versions <3.3 have vulnerabilities
- && pip install -U cryptography>=3.3
+ && pip install -U "cryptography>=3.3"
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
