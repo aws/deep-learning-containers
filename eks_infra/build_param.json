@@ -1,7 +1,7 @@
 {
-    "operation": "delete",
+    "operation": "create",
     "eks_clusters":[
-        "mxnet"
+        "mpi"
     ],
     "eks_version": "1.18",
     "cluster_autoscalar_image_version": "v1.18.3"
