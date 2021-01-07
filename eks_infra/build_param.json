@@ -1,7 +1,7 @@
 {
-    "operation": "create",
+    "operation": "delete",
     "eks_clusters":[
-        "mpi"
+        "pytorch"
     ],
     "eks_version": "1.18",
     "cluster_autoscalar_image_version": "v1.18.3"
