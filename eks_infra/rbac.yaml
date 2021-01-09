@@ -1,0 +1,136 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: default-role
+  namespace: default
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/portforward
+  verbs:
+  - get
+  - create
+  - delete
+- apiGroups:
+  - "apps"
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - create
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: default-role-binding
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: default-role
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: test-role
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pytorch-role
+  namespace: pytorch
+rules:
+- apiGroups:
+  - "kubeflow.org"
+  resources:
+  - mxjobs
+  - pytorchjobs
+  - tfjobs
+  - mpijobs
+  verbs:
+  - get
+  - create
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/logs
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pytorch-role-binding
+  namespace: pytorch
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pytorch-role
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: test-role
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: kube-system
+  name: kube-system-role
+rules:
+- apiGroups: 
+  - "apps"
+  resources: 
+  - daemonsets
+  verbs: 
+  - create
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kube-system-role-binding
+  namespace: kube-system
+subjects:
+- kind: User
+  name: test-role
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: kube-system-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: eks-cluster-role
+rules:
+- apiGroups: 
+  - ""
+  resources: 
+  - namespaces
+  verbs: 
+  - list
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: eks-cluster-role-binding
+subjects:
+- kind: User
+  name: test-role
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: eks-cluster-role
+  apiGroup: rbac.authorization.k8s.io

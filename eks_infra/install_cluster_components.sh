@@ -1,14 +1,18 @@
 #!/bin/bash
 set -e
 
-if [ $# -ne 3 ]; then
-    echo $0: usage: ./install_cluster_components.sh cluster_name cluster_autoscalar_image_version aws_region
+if [ $# -ne 2 ]; then
+    echo $0: usage: ./install_cluster_components.sh cluster_name cluster_autoscalar_image_version
     exit 1
 fi
 
+if [ -z "$AWS_REGION" ]; then
+  echo "AWS region not configured"
+  exit 1
+
 CLUSTER_NAME=$1
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=$2
-REGION=$3
+REGION=$AWS_REGION
 
 #install cluster autoscalar
 kubectl apply -f cluster-autoscalar-autodiscover.yaml

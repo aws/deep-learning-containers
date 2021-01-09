@@ -47,7 +47,7 @@ function create_nodegroups(){
     --tags "k8s.io/cluster-autoscaler/node-template/label/static=true" \
     --asg-access \
     --ssh-access \
-    --ssh-public-key "${1}-KeyPair"
+    --ssh-public-key "${4}"
 
     #gpu nodegroup
     eksctl create nodegroup \
@@ -61,7 +61,7 @@ function create_nodegroups(){
     --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=gpu" \
     --asg-access \
     --ssh-access \
-    --ssh-public-key "${1}-KeyPair"
+    --ssh-public-key "${4}"
 
     #TODO: inf nodegroup
 }
@@ -83,7 +83,7 @@ function delete_nodegroups(){
 
 function upgrade_nodegroups(){
     delete_nodegroups ${1} ${3}
-    create_nodegroups ${1} ${2}
+    create_nodegroups ${1} ${2} ${4}
 }
 
 #Updating default add-ons
@@ -104,16 +104,33 @@ function update_eksctl_utils(){
     --approve
 }
 
-if [ $# -lt 4 ]; then
-    echo $0: usage: ./upgrade_cluster.sh cluster_name eks_version cluster_autoscalar_image_version aws_region iam_role
+if [ $# -ne 3 ]; then
+    echo $0: usage: ./upgrade_cluster.sh cluster_name eks_version cluster_autoscalar_image_version
     exit 1
 fi
+
+if [ -z "$AWS_REGION" ]; then
+  echo "AWS region not configured"
+  exit 1
+
+if [ -z "$EKS_CLUSTER_MANAGEMENT_ROLE" ]; then
+  echo "EKS cluster management role not set"
+  exit 1
+
+if [ -n "$EC2_KEY_PAIR_NAME" ]; then
+  echo "No EC2 key pair name configured. Creating one"
+  KEY_NAME=${CLUSTER}-KeyPair
+  create_ec2_key_pair $KEY_NAME
+  EC2_KEY_PAIR_NAME=$KEY_NAME
+else:
+  EC2_KEY_PAIR_NAME=$EC2_KEY_PAIR_NAME
+
 
 CLUSTER=$1
 EKS_VERSION=$2
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=$3
-REGION=$4
-EKS_ROLE_ARN=$5
+REGION=$AWS_REGION
+EKS_ROLE_ARN=$EKS_CLUSTER_MANAGEMENT_ROLE
 
 update_kubeconfig $CLUSTER $EKS_ROLE_ARN $REGION
 
@@ -122,7 +139,7 @@ scale_cluster_autoscalar 0
 
 upgrade_autoscalar_image $CLUSTER_AUTOSCALAR_IMAGE_VERSION
 upgrade_eks_control_plane $CLUSTER $EKS_VERSION
-upgrade_nodegroups $CLUSTER $EKS_VERSION $REGION
+upgrade_nodegroups $CLUSTER $EKS_VERSION $REGION $EC2_KEY_PAIR_NAME
 update_eksctl_utils $CLUSTER $REGION
 
 #scale back to 1

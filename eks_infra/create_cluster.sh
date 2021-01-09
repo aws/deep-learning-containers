@@ -2,7 +2,6 @@
 set -e
 
 function create_ec2_key_pair() {
-    #upload keypair to s3 or create it using cdk
     aws ec2 create-key-pair \
     --key-name "${1}-KeyPair" \
     --query 'KeyMaterial' \
@@ -29,7 +28,7 @@ function create_node_group(){
     --tags "k8s.io/cluster-autoscaler/node-template/label/static=true" \
     --asg-access \
     --ssh-access \
-    --ssh-public-key "pytorch-KeyPair"
+    --ssh-public-key "${3}"
 
     #gpu nodegroup
     eksctl create nodegroup \
@@ -43,40 +42,38 @@ function create_node_group(){
     --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=gpu" \
     --asg-access \
     --ssh-access \
-    --ssh-public-key "pytorch-KeyPair"
+    --ssh-public-key "${3}"
 
     #TODO: inf nodegroup
 }
 
-function add_iam_identity(){ 
-    eksctl create iamidentitymapping \
-    --cluster ${1} \
-    --arn ${2} \
-    --group system:masters \
-    --username admin
-    
-    eksctl get iamidentitymapping \
-    --cluster ${1}
+function create_namespaces(){
+  kubectl create -f namespace.yaml
 }
 
-if [ $# -lt 3 ]; then
-    echo ${0}: usage: ./create_cluster.sh cluster_name eks_version aws_region iam_role
+if [ $# -ne 2]; then
+    echo ${0}: usage: ./create_cluster.sh cluster_name eks_version
     exit 1
 fi
 
+if [ -z "$AWS_REGION" ]; then
+  echo "AWS region not configured"
+  exit 1
+
+if [ -n "$EC2_KEY_PAIR_NAME" ]; then
+  echo "No EC2 key pair name configured. Creating one"
+  KEY_NAME=${CLUSTER}-KeyPair
+  create_ec2_key_pair $KEY_NAME
+  EC2_KEY_PAIR_NAME=$KEY_NAME
+else:
+  EC2_KEY_PAIR_NAME=$EC2_KEY_PAIR_NAME
+
+
+
 CLUSTER=$1
 EKS_VERSION=$2
-REGION=$3
-EKS_ROLE_ARN=$4
+REGION=$AWS_REGION
 
-
-#create_ec2_key_pair $CLUSTER
 create_eks_cluster $CLUSTER $EKS_VERSION $REGION
-
-if [ -n "$4" ]; then
-  add_iam_identity $CLUSTER $EKS_ROLE_ARN
-else
-  echo "No IAM role specified for identity mapping"
-fi
-
-create_node_group $CLUSTER $EKS_VERSION
+create_node_group $CLUSTER $EKS_VERSION $EC2_KEY_PAIR_NAME
+create_namespaces

@@ -7,12 +7,6 @@ function delete_cluster(){
     --region ${2}
 }
 
-function delete_ec2_key_pair() {
-    aws ec2 delete-key-pair \
-    --key-name "${1}-KeyPair" \
-    --region ${2}
-}
-
 function update_kubeconfig(){
     eksctl utils write-kubeconfig \
     --cluster ${1} \
@@ -20,15 +14,22 @@ function update_kubeconfig(){
     --region ${3}
 }
 
-if [ $# -lt 2 ]; then
-    echo $0: usage: ./delete_cluster.sh cluster_name aws_region role_arn
+if [ $# -ne 1 ]; then
+    echo $0: usage: ./delete_cluster.sh cluster_name
     exit 1
 fi
 
+if [ -z "$AWS_REGION" ]; then
+  echo "AWS region not configured"
+  exit 1
+
+if [ -z "$EKS_CLUSTER_MANAGEMENT_ROLE" ]; then
+  echo "EKS cluster management role not set"
+  exit 1
+
 CLUSTER=$1
-REGION=$2
-EKS_ROLE_ARN=$3
+REGION=$AWS_REGION
+EKS_ROLE_ARN=$EKS_CLUSTER_MANAGEMENT_ROLE
 
 update_kubeconfig $CLUSTER $EKS_ROLE_ARN $REGION
-delete_ec2_key_pair $CLUSTER $REGION
 delete_cluster $CLUSTER $REGION
