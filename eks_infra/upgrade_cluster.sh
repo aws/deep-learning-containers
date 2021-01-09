@@ -119,7 +119,13 @@ if [ -z "$EKS_CLUSTER_MANAGEMENT_ROLE" ]; then
   exit 1
 fi
 
-if [ -n "$EC2_KEY_PAIR_NAME" ]; then
+CLUSTER=$1
+EKS_VERSION=$2
+CLUSTER_AUTOSCALAR_IMAGE_VERSION=$3
+REGION=$AWS_REGION
+EKS_ROLE_ARN=$EKS_CLUSTER_MANAGEMENT_ROLE
+
+if [ -z "$EC2_KEY_PAIR_NAME" ]; then
   echo "No EC2 key pair name configured. Creating one"
   KEY_NAME=${CLUSTER}-KeyPair
   create_ec2_key_pair $KEY_NAME
@@ -128,11 +134,7 @@ else
   EC2_KEY_PAIR_NAME=$EC2_KEY_PAIR_NAME
 fi
 
-CLUSTER=$1
-EKS_VERSION=$2
-CLUSTER_AUTOSCALAR_IMAGE_VERSION=$3
-REGION=$AWS_REGION
-EKS_ROLE_ARN=$EKS_CLUSTER_MANAGEMENT_ROLE
+
 
 update_kubeconfig $CLUSTER $EKS_ROLE_ARN $REGION
 
@@ -145,4 +147,4 @@ upgrade_nodegroups $CLUSTER $EKS_VERSION $REGION $EC2_KEY_PAIR_NAME
 update_eksctl_utils $CLUSTER $REGION
 
 #scale back to 1
-#scale_cluster_autoscalar 1
+scale_cluster_autoscalar 1
