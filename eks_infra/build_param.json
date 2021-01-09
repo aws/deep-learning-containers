@@ -4,7 +4,7 @@
         "PR"
     ],
     "eks_clusters":[
-        "tensorflow1"
+        "tensorflow2"
     ],
     "eks_version": "1.18",
     "cluster_autoscalar_image_version": "v1.18.3"

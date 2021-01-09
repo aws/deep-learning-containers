@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+#env check
+echo $EKS_CLUSTER_MANAGEMENT_ROLE	
+echo $EKS_TEST_BUILD_ROLE
+echo $EC2_KEY_PAIR_NAME
+
 #aws caller
 aws sts get-caller-identity
 

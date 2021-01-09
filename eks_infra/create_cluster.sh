@@ -3,7 +3,7 @@ set -e
 
 function create_ec2_key_pair() {
     aws ec2 create-key-pair \
-    --key-name "${1}-KeyPair" \
+    --key-name ${1} \
     --query 'KeyMaterial' \
     --output text > ./${1}-KeyPair.pem
 }
@@ -75,6 +75,7 @@ CLUSTER=$1
 EKS_VERSION=$2
 REGION=$AWS_REGION
 
-create_eks_cluster $CLUSTER $EKS_VERSION $REGION
-create_node_group $CLUSTER $EKS_VERSION $EC2_KEY_PAIR_NAME
-create_namespaces
+echo $EC2_KEY_PAIR_NAME
+#create_eks_cluster $CLUSTER $EKS_VERSION $REGION
+#create_node_group $CLUSTER $EKS_VERSION $EC2_KEY_PAIR_NAME
+#create_namespaces
