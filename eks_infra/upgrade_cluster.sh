@@ -112,19 +112,21 @@ fi
 if [ -z "$AWS_REGION" ]; then
   echo "AWS region not configured"
   exit 1
+fi
 
 if [ -z "$EKS_CLUSTER_MANAGEMENT_ROLE" ]; then
   echo "EKS cluster management role not set"
   exit 1
+fi
 
 if [ -n "$EC2_KEY_PAIR_NAME" ]; then
   echo "No EC2 key pair name configured. Creating one"
   KEY_NAME=${CLUSTER}-KeyPair
   create_ec2_key_pair $KEY_NAME
   EC2_KEY_PAIR_NAME=$KEY_NAME
-else:
+else
   EC2_KEY_PAIR_NAME=$EC2_KEY_PAIR_NAME
-
+fi
 
 CLUSTER=$1
 EKS_VERSION=$2
@@ -143,4 +145,4 @@ upgrade_nodegroups $CLUSTER $EKS_VERSION $REGION $EC2_KEY_PAIR_NAME
 update_eksctl_utils $CLUSTER $REGION
 
 #scale back to 1
-scale_cluster_autoscalar 1
+#scale_cluster_autoscalar 1

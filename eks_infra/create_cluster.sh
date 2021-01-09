@@ -51,7 +51,7 @@ function create_namespaces(){
   kubectl create -f namespace.yaml
 }
 
-if [ $# -ne 2]; then
+if [ $# -ne 2 ]; then
     echo ${0}: usage: ./create_cluster.sh cluster_name eks_version
     exit 1
 fi
@@ -59,15 +59,16 @@ fi
 if [ -z "$AWS_REGION" ]; then
   echo "AWS region not configured"
   exit 1
+fi
 
 if [ -n "$EC2_KEY_PAIR_NAME" ]; then
   echo "No EC2 key pair name configured. Creating one"
   KEY_NAME=${CLUSTER}-KeyPair
   create_ec2_key_pair $KEY_NAME
   EC2_KEY_PAIR_NAME=$KEY_NAME
-else:
+else
   EC2_KEY_PAIR_NAME=$EC2_KEY_PAIR_NAME
-
+fi
 
 
 CLUSTER=$1

@@ -22,10 +22,12 @@ fi
 if [ -z "$AWS_REGION" ]; then
   echo "AWS region not configured"
   exit 1
+fi
 
 if [ -z "$EKS_CLUSTER_MANAGEMENT_ROLE" ]; then
   echo "EKS cluster management role not set"
   exit 1
+fi
 
 CLUSTER=$1
 REGION=$AWS_REGION
