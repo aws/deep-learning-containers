@@ -9,6 +9,7 @@ fi
 if [ -z "$AWS_REGION" ]; then
   echo "AWS region not configured"
   exit 1
+fi
 
 CLUSTER_NAME=$1
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=$2
