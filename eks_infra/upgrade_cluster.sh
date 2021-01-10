@@ -141,10 +141,10 @@ fi
 update_kubeconfig $CLUSTER $EKS_ROLE $REGION
 
 #scale to 0 to avoid unwanted scaling
-#scale_cluster_autoscalar 0
+scale_cluster_autoscalar 0
 
-#upgrade_autoscalar_image $CLUSTER_AUTOSCALAR_IMAGE_VERSION
-#upgrade_eks_control_plane $CLUSTER $EKS_VERSION
+upgrade_autoscalar_image $CLUSTER_AUTOSCALAR_IMAGE_VERSION
+upgrade_eks_control_plane $CLUSTER $EKS_VERSION
 upgrade_nodegroups $CLUSTER $EKS_VERSION $REGION $EC2_KEY_PAIR_NAME
 update_eksctl_utils $CLUSTER $REGION
 
