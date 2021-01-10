@@ -18,7 +18,7 @@ function create_cluster(){
 
       if [[ ! " ${LIST_CLUSTER[@]} " =~ " ${CLUSTER_NAME} " ]]; then
         ./create_cluster.sh $CLUSTER_NAME $EKS_VERSION
-        ./add_iam_identity $CLUSTER
+        ./add_iam_identity.sh $CLUSTER
         ./install_cluster_components.sh $CLUSTER_NAME $CLUSTER_AUTOSCALAR_IMAGE_VERSION
       else
         echo "EKS Cluster ${CLUSTER_NAME} already exist. Skipping creation of cluster"
