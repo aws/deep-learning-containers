@@ -9,9 +9,10 @@ rules:
   resources:
   - pods
   - pods/portforward
-  - pods/logs
+  - pods/log
   verbs:
   - get
+  - list
   - create
   - delete
 - apiGroups:
@@ -21,6 +22,7 @@ rules:
   verbs:
   - create
   - delete
+  - get
 - apiGroups:
   - ""
   resources:
@@ -28,6 +30,7 @@ rules:
   verbs:
   - create
   - delete
+  - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -64,7 +67,7 @@ rules:
   - ""
   resources:
   - pods
-  - pods/logs
+  - pods/log
   verbs:
   - get
 ---
@@ -77,6 +80,86 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: pytorch-role
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: test-role
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tensorflow1-role
+  namespace: tensorflow1
+rules:
+- apiGroups:
+  - "kubeflow.org"
+  resources:
+  - mxjobs
+  - pytorchjobs
+  - tfjobs
+  - mpijobs
+  verbs:
+  - get
+  - create
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tensorflow1-role-binding
+  namespace: tensorflow1
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tensorflow1-role
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: test-role
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: mxnet-role
+  namespace: mxnet
+rules:
+- apiGroups:
+  - "kubeflow.org"
+  resources:
+  - mxjobs
+  - pytorchjobs
+  - tfjobs
+  - mpijobs
+  verbs:
+  - get
+  - create
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mxnet-role-binding
+  namespace: mxnet
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: mxnet-role
 subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: User
