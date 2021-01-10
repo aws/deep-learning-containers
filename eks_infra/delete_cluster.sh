@@ -8,9 +8,10 @@ function delete_cluster(){
 }
 
 function update_kubeconfig(){
+    IAM_ROLE=$(aws iam get-role --role-name ${2} --query Role.Arn --output text)
     eksctl utils write-kubeconfig \
     --cluster ${1} \
-    --authenticator-role-arn ${2} \
+    --authenticator-role-arn ${IAM_ROLE} \
     --region ${3}
 }
 
@@ -31,7 +32,7 @@ fi
 
 CLUSTER=$1
 REGION=$AWS_REGION
-EKS_ROLE_ARN=$EKS_CLUSTER_MANAGEMENT_ROLE
+EKS_ROLE=$EKS_CLUSTER_MANAGEMENT_ROLE
 
-update_kubeconfig $CLUSTER $EKS_ROLE_ARN $REGION
+update_kubeconfig $CLUSTER $EKS_ROLE $REGION
 delete_cluster $CLUSTER $REGION

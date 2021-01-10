@@ -8,9 +8,11 @@ set -e
 #upgrade cluster autoscalar to the version matching the upgrade https://github.com/kubernetes/autoscaler/releases
 
 function update_kubeconfig(){
+    IAM_ROLE=$(aws iam get-role --role-name ${2} --query Role.Arn --output text)
+
     eksctl utils write-kubeconfig \
     --cluster ${1} \
-    --authenticator-role-arn ${2} \
+    --authenticator-role-arn ${IAM_ROLE} \
     --region ${3}
 
     kubectl config get-contexts
@@ -123,7 +125,7 @@ CLUSTER=$1
 EKS_VERSION=$2
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=$3
 REGION=$AWS_REGION
-EKS_ROLE_ARN=$EKS_CLUSTER_MANAGEMENT_ROLE
+EKS_ROLE=$EKS_CLUSTER_MANAGEMENT_ROLE
 
 if [ -z "$EC2_KEY_PAIR_NAME" ]; then
   echo "No EC2 key pair name configured. Creating one"
@@ -136,7 +138,7 @@ fi
 
 
 
-update_kubeconfig $CLUSTER $EKS_ROLE_ARN $REGION
+update_kubeconfig $CLUSTER $EKS_ROLE $REGION
 
 #scale to 0 to avoid unwanted scaling
 scale_cluster_autoscalar 0
