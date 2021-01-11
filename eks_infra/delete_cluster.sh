@@ -47,5 +47,5 @@ CLUSTER=${1}
 REGION=${AWS_REGION}
 EKS_ROLE=${EKS_CLUSTER_MANAGEMENT_ROLE}
 
-update_kubeconfig ${CLUSTER} ${EKS_ROLE $REGION}
+update_kubeconfig ${CLUSTER} ${EKS_ROLE} ${REGION}
 delete_cluster ${CLUSTER} ${REGION}

@@ -17,13 +17,20 @@ function create_ec2_key_pair() {
     --output text > ./${1}-KeyPair.pem
 }
 
-# Function to create EKS cluster using eksctl
+# Function to create EKS cluster using eksctl. 
+# The cluster name follows the {framework}-{build_context} convention
 function create_eks_cluster() {
+
+    if [ "${3}" = "us-east-1" ]; then
+      ZONE_LIST=(a b d)
+    else
+      ZONE_LIST=(a b c)
+    fi
     
     eksctl create cluster \
     --name ${1} \
     --version ${2} \
-    --zones=${3}a,${3}b,${3}c \
+    --zones=${3}${ZONE_LIST[0]},${3}${ZONE_LIST[1]},${3}${ZONE_LIST[2]} \
     --without-nodegroup
 }
 
@@ -56,7 +63,7 @@ function create_node_group(){
     --ssh-public-key "${3}"
 
     # dynamic inf nodegroup
-
+    : '
     eksctl create nodegroup \
     --name inf-nodegroup-${2/./-} \
     --cluster ${1} \
@@ -70,6 +77,7 @@ function create_node_group(){
     --asg-access \
     --ssh-access \
     --ssh-public-key "${3}"
+    '
 }
 
 # Function to create namespaces in EKS cluster

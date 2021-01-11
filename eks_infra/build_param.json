@@ -1,10 +1,11 @@
 {
-    "operation": "delete",
+    "operation": "upgrade",
     "contexts":[
-        "PR"
+        "PR",
+        "MAINLINE"
     ],
     "eks_clusters":[
-        "mxnet"
+        "tensorflow"
     ],
     "eks_version": "1.18",
     "cluster_autoscalar_image_version": "v1.18.3"
