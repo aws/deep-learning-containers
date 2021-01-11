@@ -6,6 +6,9 @@ set -e
 # aws caller identity
 aws sts get-caller-identity
 
+#aws-iam-authenticator version
+aws-iam-authenticator version
+
 #install kubectl
 curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.9/2020-11-02/bin/linux/amd64/kubectl
 chmod +x ./kubectl
