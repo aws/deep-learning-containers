@@ -11,7 +11,6 @@ RED='\033[0;31m'
 
 # Function to install cluster autoscalar
 function install_cluster_autoscalar(){
-  #TODO: check for multiple clusters
   kubectl apply -f cluster-autoscalar-autodiscover.yaml
   kubectl -n kube-system annotate deployment.apps/cluster-autoscaler cluster-autoscaler.kubernetes.io/safe-to-evict="false"
   sed -e 's/<CLUSTER_NAME>/'"${1}"'/g;s/<VERSION>/'"${2}"'/g' cluster-autoscalar-autodiscover.yaml > /tmp/cluster-autoscalar-autodiscover-${1}.yaml &&

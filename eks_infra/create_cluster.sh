@@ -55,7 +55,21 @@ function create_node_group(){
     --ssh-access \
     --ssh-public-key "${3}"
 
-    #TODO: inf nodegroup
+    # dynamic inf nodegroup
+
+    eksctl create nodegroup \
+    --name inf-nodegroup-${2/./-} \
+    --cluster ${1} \
+    --node-type inf1.xlarge \
+    --nodes-min 0 \
+    --nodes-max 100 \
+    --node-volume-size 500 \
+    --node-ami "ami-092059396c7e51f52" \
+    --node-labels "test_type=inf" \
+    --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=inf" \
+    --asg-access \
+    --ssh-access \
+    --ssh-public-key "${3}"
 }
 
 # Function to create namespaces in EKS cluster

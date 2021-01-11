@@ -71,21 +71,40 @@ function create_nodegroups(){
     --ssh-access \
     --ssh-public-key "${3}"
 
-    #TODO: inf nodegroup
+    # dynamic inf nodegroup
+
+    eksctl create nodegroup \
+    --name inf-nodegroup-${2/./-} \
+    --cluster ${1} \
+    --node-type inf1.xlarge \
+    --nodes-min 0 \
+    --nodes-max 100 \
+    --node-volume-size 500 \
+    --node-ami "ami-092059396c7e51f52" \
+    --node-labels "test_type=inf" \
+    --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=inf" \
+    --asg-access \
+    --ssh-access \
+    --ssh-public-key "${3}"
 }
 
 # Function to delete all nodegroups in EKS cluster
 function delete_nodegroups(){
 
     LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${1} -o json | jq -r '.[].Name')
-    #TODO: add null check
-    for NODEGROUP in $LIST_NODE_GROUPS; do
-      eksctl delete nodegroup \
-      --name $NODEGROUP \
-      --cluster ${1} \
-      --region ${2} \
-      --wait
-    done
+
+    if [ -n "${LIST_NODE_GROUPS}" ]; then
+    
+      for NODEGROUP in $LIST_NODE_GROUPS; do
+        eksctl delete nodegroup \
+        --name $NODEGROUP \
+        --cluster ${1} \
+        --region ${2} \
+        --wait
+      done
+    else
+      echo "No Nodegroups present in the EKS cluster ${1}"
+    fi
 }
 
 # Function to upgrade nodegroups
