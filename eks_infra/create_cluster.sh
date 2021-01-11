@@ -1,6 +1,15 @@
 #!/bin/bash
+#/ Usage: 
+#/ export AWS_REGION=<AWS-Region>
+#/ export EC2_KEY_PAIR_NAME=<EC2-Key-Pair-Name>
+#/ ./create_cluster.sh eks_cluster_name eks_version
+
 set -e
 
+# Log color
+RED='\033[0;31m'
+
+# Function to create EC2 key pair
 function create_ec2_key_pair() {
     aws ec2 create-key-pair \
     --key-name ${1} \
@@ -8,6 +17,7 @@ function create_ec2_key_pair() {
     --output text > ./${1}-KeyPair.pem
 }
 
+# Function to create EKS cluster using eksctl
 function create_eks_cluster() {
     
     eksctl create cluster \
@@ -17,8 +27,9 @@ function create_eks_cluster() {
     --without-nodegroup
 }
 
+# Function to create static and dynamic nodegroups in EKS cluster
 function create_node_group(){
-    #static nodegroup
+    # static nodegroup
     eksctl create nodegroup \
     --name static-nodegroup-${2/./-} \
     --cluster ${1} \
@@ -30,7 +41,7 @@ function create_node_group(){
     --ssh-access \
     --ssh-public-key "${3}"
 
-    #gpu nodegroup
+    # dynamic gpu nodegroup
     eksctl create nodegroup \
     --name gpu-nodegroup-${2/./-} \
     --cluster ${1} \
@@ -47,33 +58,37 @@ function create_node_group(){
     #TODO: inf nodegroup
 }
 
+# Function to create namespaces in EKS cluster
 function create_namespaces(){
   kubectl create -f namespace.yaml
 }
 
+# Check for input arguments
 if [ $# -ne 2 ]; then
-    echo ${0}: usage: ./create_cluster.sh cluster_name eks_version
+    echo "${RED}${0}: usage: ./create_cluster.sh eks_cluster_name eks_version"
     exit 1
 fi
 
-if [ -z "$AWS_REGION" ]; then
-  echo "AWS region not configured"
+# Check for IAM role environment variables
+if [ -z "${AWS_REGION}" ]; then
+  echo "${RED}AWS region not configured"
   exit 1
 fi
 
-CLUSTER=$1
-EKS_VERSION=$2
-REGION=$AWS_REGION
+CLUSTER=${1}
+EKS_VERSION=${2}
+REGION=${AWS_REGION}
 
-if [ -z "$EC2_KEY_PAIR_NAME" ]; then
-  echo "No EC2 key pair name configured. Creating one"
+# Check for EC2 keypair environment variable. If empty, create a new key pair. 
+if [ -z "${EC2_KEY_PAIR_NAME}" ]; then
   KEY_NAME=${CLUSTER}-KeyPair
-  create_ec2_key_pair $KEY_NAME
-  EC2_KEY_PAIR_NAME=$KEY_NAME
+  echo "${RED}No EC2 key pair name configured. Creating keypair ${KEY_NAME}"
+  create_ec2_key_pair ${KEY_NAME}
+  EC2_KEY_PAIR_NAME=${KEY_NAME}
 else
-  EC2_KEY_PAIR_NAME=$EC2_KEY_PAIR_NAME
+  EC2_KEY_PAIR_NAME=${EC2_KEY_PAIR_NAME}
 fi
 
-create_eks_cluster $CLUSTER $EKS_VERSION $REGION
-create_node_group $CLUSTER $EKS_VERSION $EC2_KEY_PAIR_NAME
+create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${REGION}
+create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
 create_namespaces

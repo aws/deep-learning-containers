@@ -88,8 +88,8 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: tensorflow1-role
-  namespace: tensorflow1
+  name: tensorflow-role
+  namespace: tensorflow
 rules:
 - apiGroups:
   - "kubeflow.org"
@@ -114,12 +114,12 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: tensorflow1-role-binding
-  namespace: tensorflow1
+  name: tensorflow-role-binding
+  namespace: tensorflow
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: tensorflow1-role
+  name: tensorflow-role
 subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: User

@@ -8,11 +8,7 @@ items:
 - apiVersion: v1
   kind: Namespace
   metadata:
-      name: tensorflow1
-- apiVersion: v1
-  kind: Namespace
-  metadata:
-      name: tensorflow2
+      name: tensorflow
 - apiVersion: v1
   kind: Namespace
   metadata:
