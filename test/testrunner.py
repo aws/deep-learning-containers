@@ -25,6 +25,7 @@ from test_utils import (
     setup_sm_benchmark_tf_train_env,
     setup_sm_benchmark_mx_train_env,
     get_framework_and_version_from_tag,
+    get_build_context
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 
@@ -187,31 +188,6 @@ def pull_dlc_images(images):
     for image in images:
         run(f"docker pull {image}", hide="out")
 
-
-def setup_eks_cluster(framework_name, is_neuron):
-    frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
-    long_name = framework_name
-    short_name = frameworks[long_name]
-    codebuild_version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")[0:7]
-    num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
-    cluster_name = f"dlc-{short_name}-cluster-{codebuild_version}-{random.randint(1, 10000)}"
-    # default volume size
-    volume_size = 80
-    try:
-        eks_utils.eks_setup()
-        if is_neuron:
-            #TODO the eks AMI used for neuron has a snapshot size of 500GB, if we pass the default 80GB the cluster 
-            #creation will fail. Once official EKS AMI for neuron 1.1 is released, revert this change.
-            volume_size = 500
-            eks_utils.create_eks_cluster(cluster_name, "neuron", num_nodes, volume_size, "inf1.xlarge", "pytest.pem")
-        else:
-            eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, volume_size, "p3.16xlarge", "pytest.pem")
-    except Exception:
-        eks_utils.delete_eks_cluster(cluster_name)
-        raise
-    return cluster_name
-
-
 def setup_sm_benchmark_env(dlc_images, test_path):
     # The plan is to have a separate if/elif-condition for each type of image
     if "tensorflow-training" in dlc_images:
@@ -293,12 +269,15 @@ def main():
                 )
             framework = frameworks_in_images[0]
             is_neuron = "neuron" in dlc_images
-            eks_cluster_name = setup_eks_cluster(framework, is_neuron)
-
-            if not is_neuron:
-                # setup kubeflow
-                eks_utils.setup_kubeflow(eks_cluster_name)
-
+            build_context = get_build_context()
+            eks_cluster_name = f"{framework}-{build_context}"
+            
+            if eks_utils.is_eks_cluster_active(eks_cluster_name):
+                eks_utils.eks_write_kubeconfig(eks_cluster_name)
+            else:
+                print(f"EKS cluster {eks_cluster_name} is not in active state")
+                sys.exit(1)
+            
             # Change 1: Split training and inference, and run one after the other, to prevent scheduling issues
             # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in
             # pods timing-out while they were in the Pending state. Scheduling 4 tests (and hence, 4 pods) at once
@@ -361,16 +340,8 @@ def main():
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
             if all([status == 0 for status in cmd_exit_statuses]):
                 sys.exit(0)
-            else:
-                raise RuntimeError(pytest_cmds)
-        finally:
-            if specific_test_type == "eks" and eks_cluster_name:
-                eks_utils.delete_eks_cluster(eks_cluster_name)
-
-            # Delete dangling EC2 KeyPairs
-            if os.path.exists(KEYS_TO_DESTROY_FILE):
-                delete_key_pairs(KEYS_TO_DESTROY_FILE)
-
+        except:
+            raise RuntimeError(pytest_cmds)
     elif specific_test_type == "sagemaker":
         if "neuron" in dlc_images:
             LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")

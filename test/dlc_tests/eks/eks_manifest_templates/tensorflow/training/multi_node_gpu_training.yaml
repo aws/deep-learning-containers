@@ -41,6 +41,8 @@ spec:
               - python
               - <SCRIPT_NAME>
              args: <ARGS>
+           nodeSelector:
+             test_type: gpu
     Worker:
       replicas: <NUM_WORKERS>
       template:
@@ -51,3 +53,5 @@ spec:
             resources:
               limits:
                 nvidia.com/gpu: <GPUS>
+          nodeSelector:
+            test_type: gpu

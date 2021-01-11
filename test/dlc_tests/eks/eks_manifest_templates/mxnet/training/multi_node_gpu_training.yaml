@@ -13,6 +13,8 @@ spec:
           containers:
             - name: mxnet
               image: <CONTAINER_IMAGE>
+          nodeSelector:
+            test_type: gpu
     Server:
       replicas: <NUM_SERVERS>
       restartPolicy: Never
@@ -21,6 +23,8 @@ spec:
           containers:
             - name: mxnet
               image: <CONTAINER_IMAGE>
+          nodeSelector:
+            test_type: gpu
     Worker:
       replicas: <NUM_WORKERS>
       restartPolicy: Never
@@ -44,3 +48,5 @@ spec:
               resources:
                 limits:
                   nvidia.com/gpu: <GPU_LIMIT>
+          nodeSelector:
+            test_type: gpu
