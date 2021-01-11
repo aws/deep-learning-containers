@@ -104,7 +104,6 @@ function delete_nodegroups(){
         --name $NODEGROUP \
         --cluster ${1} \
         --region ${2} \
-        --wait \
         -v 100
       done
     else
