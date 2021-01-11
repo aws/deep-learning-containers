@@ -56,8 +56,7 @@ function create_nodegroups(){
     --tags "k8s.io/cluster-autoscaler/node-template/label/static=true" \
     --asg-access \
     --ssh-access \
-    --ssh-public-key "${3}" \
-    -v 100
+    --ssh-public-key "${3}"
 
     #dynamic gpu nodegroup
     eksctl create nodegroup \
@@ -71,8 +70,7 @@ function create_nodegroups(){
     --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=gpu" \
     --asg-access \
     --ssh-access \
-    --ssh-public-key "${3}" \
-    -v 100
+    --ssh-public-key "${3}"
 
     # dynamic inf nodegroup
     : '

@@ -1,6 +1,7 @@
 {
-    "operation": "upgrade",
+    "operation": "delete",
     "contexts":[
+        "PR",
         "MAINLINE"
     ],
     "eks_clusters":[
