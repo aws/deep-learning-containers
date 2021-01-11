@@ -24,6 +24,8 @@ function update_kubeconfig(){
     --cluster ${1} \
     --authenticator-role-arn ${2} \
     --region ${3}
+    kubectl config get-contexts
+    cat /root/.kube/config
 }
 
 # Check for input arguments
