@@ -5,9 +5,6 @@
 
 set -e
 
-# Log color
-RED='\033[0;31m'
-
 # Function to install kfctl cli
 install_kfctl(){
 

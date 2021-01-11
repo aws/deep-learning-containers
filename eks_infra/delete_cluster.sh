@@ -7,9 +7,6 @@
 
 set -e
 
-# Log color
-RED='\033[0;31m'
-
 # Function to delete EKS cluster
 function delete_cluster(){
     eksctl delete cluster \
@@ -30,18 +27,18 @@ function update_kubeconfig(){
 
 # Check for input arguments
 if [ $# -ne 1 ]; then
-    echo "${RED}$0: usage: ./delete_cluster.sh eks_cluster_name"
+    echo "${0}: usage: ./delete_cluster.sh eks_cluster_name"
     exit 1
 fi
 
 # Check for environment variables
 if [ -z "${AWS_REGION}" ]; then
-  echo "${RED}AWS region not configured"
+  echo "AWS region not configured"
   exit 1
 fi
 
 if [ -z "${EKS_CLUSTER_MANAGEMENT_ROLE}" ]; then
-  echo "${RED}EKS cluster management role not set"
+  echo "EKS cluster management role not set"
   exit 1
 fi
 

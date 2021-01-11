@@ -7,9 +7,6 @@
 
 set -e
 
-# Log color
-RED='\033[0;31m'
-
 # Function to add cluster manager IAM role to EKS cluster
 function add_cluster_manager_identity(){ 
 
@@ -42,13 +39,13 @@ function create_rbac_rules(){
 
 # Check for input arguments
 if [ $# -lt 1 ]; then
-    echo "${RED}${0}: usage: ./add_iam_identity.sh eks_cluster_name"
+    echo "${0}: usage: ./add_iam_identity.sh eks_cluster_name"
     exit 1
 fi
 
 # Check for IAM role environment variables
 if [ -z "${EKS_CLUSTER_MANAGEMENT_ROLE}" ] || [ -z "${EKS_TEST_BUILD_ROLE}" ]; then
-  echo "${RED}One or more IAM role is not set"
+  echo "One or more IAM role is not set"
   exit 1
 fi
 

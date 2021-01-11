@@ -6,9 +6,6 @@
 
 set -e
 
-# Log color
-RED='\033[0;31m'
-
 # Function to install cluster autoscalar
 function install_cluster_autoscalar(){
   kubectl apply -f cluster-autoscalar-autodiscover.yaml
@@ -20,7 +17,7 @@ function install_cluster_autoscalar(){
 
 # Check for input arguments
 if [ $# -ne 2 ]; then
-    echo "${RED}$0: usage: ./install_cluster_components.sh eks_cluster_name cluster_autoscalar_image_version"
+    echo "${0}: usage: ./install_cluster_components.sh eks_cluster_name cluster_autoscalar_image_version"
     exit 1
 fi
 

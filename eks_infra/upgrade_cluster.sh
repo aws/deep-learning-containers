@@ -6,9 +6,6 @@
 #/ ./upgrade.sh eks_cluster_name eks_version cluster_autoscalar_image_version
 set -e
 
-# Log color
-RED='\033[0;31m'
-
 # Function to update kubeconfig at ~/.kube/config
 function update_kubeconfig(){
 
@@ -134,7 +131,7 @@ function update_eksctl_utils(){
 }
 
 if [ $# -ne 3 ]; then
-    echo "${RED}$0: usage: ./upgrade_cluster.sh eks_cluster_name eks_version cluster_autoscalar_image_version"
+    echo "${0}: usage: ./upgrade_cluster.sh eks_cluster_name eks_version cluster_autoscalar_image_version"
     exit 1
 fi
 

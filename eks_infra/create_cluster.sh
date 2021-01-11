@@ -6,9 +6,6 @@
 
 set -e
 
-# Log color
-RED='\033[0;31m'
-
 # Function to create EC2 key pair
 function create_ec2_key_pair() {
     aws ec2 create-key-pair \
@@ -87,13 +84,13 @@ function create_namespaces(){
 
 # Check for input arguments
 if [ $# -ne 2 ]; then
-    echo "${RED}${0}: usage: ./create_cluster.sh eks_cluster_name eks_version"
+    echo "${0}: usage: ./create_cluster.sh eks_cluster_name eks_version"
     exit 1
 fi
 
 # Check for IAM role environment variables
 if [ -z "${AWS_REGION}" ]; then
-  echo "${RED}AWS region not configured"
+  echo "AWS region not configured"
   exit 1
 fi
 
@@ -104,7 +101,7 @@ REGION=${AWS_REGION}
 # Check for EC2 keypair environment variable. If empty, create a new key pair. 
 if [ -z "${EC2_KEY_PAIR_NAME}" ]; then
   KEY_NAME=${CLUSTER}-KeyPair
-  echo "${RED}No EC2 key pair name configured. Creating keypair ${KEY_NAME}"
+  echo "No EC2 key pair name configured. Creating keypair ${KEY_NAME}"
   create_ec2_key_pair ${KEY_NAME}
   EC2_KEY_PAIR_NAME=${KEY_NAME}
 else

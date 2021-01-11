@@ -1,5 +1,5 @@
 {
-    "operation": "delete",
+    "operation": "create",
     "contexts":[
         "PR",
         "MAINLINE"
