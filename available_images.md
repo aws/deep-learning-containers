@@ -128,7 +128,7 @@ Neuron Inference Containers
 |-------------------------------------------|------------|--------------------------|-----------------------------------------------------------------------------------------------------------|
 |TensorFlow 1.15 with Neuron Inference      |inference 	 |3.7 (py37) 	            |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-neuron:1.15.4-neuron-py37-ubuntu18.04    |
 
-Prior Versions
+Prior General Framework Container Versions
 ==============
 
 | Framework 			                      |Job Type 			   |Horovod Options 			     |CPU/GPU 	  |Python Version Options 			      |Example URL 			                                                                               |
