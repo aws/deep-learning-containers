@@ -18,7 +18,7 @@ function update_kubeconfig(){
     --region ${3}
 
     kubectl config get-contexts
-    cat /root/.kube/config
+    #cat /root/.kube/config
 }
 
 # Function to upgrade eks control plane
@@ -27,7 +27,8 @@ function upgrade_eks_control_plane(){
     eksctl upgrade cluster \
     --name=${1} \
     --version ${2} \
-    --approve
+    --approve \
+    -v 100
 }
 
 # Function to control scaling of cluster autoscalar
