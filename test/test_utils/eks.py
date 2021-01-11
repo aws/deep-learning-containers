@@ -14,8 +14,7 @@ import boto3
 from botocore.exceptions import ClientError
 from retrying import retry
 from invoke import run, Context
-
-from test_utils import get_eks_role
+from . import get_eks_role
 
 DEFAULT_REGION = "us-west-2"
 
