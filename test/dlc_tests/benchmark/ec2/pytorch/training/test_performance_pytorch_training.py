@@ -42,6 +42,7 @@ def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu
     )
 
 
+@pytest.mark.skip(reason="Current infrastructure issues are causing this to timeout.")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_IMAGENET_INSTANCE_TYPE], indirect=True)
