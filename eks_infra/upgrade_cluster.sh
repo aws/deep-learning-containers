@@ -2,7 +2,7 @@
 #/ Usage: 
 #/ export AWS_REGION=<AWS-Region>
 #/ export EC2_KEY_PAIR_NAME=<EC2-Key-Pair-Name>
-#/ export EKS_CLUSTER_MANAGEMENT_ROLE=<ARN-of-IAM-role>
+#/ export EKS_CLUSTER_MANAGER_ROLE=<ARN-of-IAM-role>
 #/ ./upgrade.sh eks_cluster_name eks_version cluster_autoscalar_image_version
 set -e
 
@@ -138,7 +138,7 @@ if [ -z "${AWS_REGION}" ]; then
   exit 1
 fi
 
-if [ -z "${EKS_CLUSTER_MANAGEMENT_ROLE}" ]; then
+if [ -z "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
   echo "EKS cluster management role not set"
   exit 1
 fi
@@ -147,7 +147,7 @@ CLUSTER=${1}
 EKS_VERSION=${2}
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=${3}
 REGION=${AWS_REGION}
-EKS_ROLE=${EKS_CLUSTER_MANAGEMENT_ROLE}
+EKS_ROLE=${EKS_CLUSTER_MANAGER_ROLE}
 
 if [ -z "${EC2_KEY_PAIR_NAME}" ]; then
   KEY_NAME=${CLUSTER}-KeyPair

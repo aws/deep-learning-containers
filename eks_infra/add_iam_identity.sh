@@ -1,8 +1,8 @@
 #!/bin/bash
 #/ Usage: 
 #/ export AWS_REGION=<AWS-Region>
-#/ export EKS_CLUSTER_MANAGEMENT_ROLE=<ARN-of-IAM-role>
-#/ export EKS_TEST_BUILD_ROLE=<ARN-of-IAM-role>
+#/ export EKS_CLUSTER_MANAGER_ROLE=<ARN-of-IAM-role>
+#/ export EKS_TEST_ROLE=<ARN-of-IAM-role>
 #/ ./add_iam_identity.sh eks_cluster_name
 
 set -e
@@ -44,13 +44,13 @@ if [ $# -lt 1 ]; then
 fi
 
 # Check for IAM role environment variables
-if [ -z "${EKS_CLUSTER_MANAGEMENT_ROLE}" ] || [ -z "${EKS_TEST_BUILD_ROLE}" ]; then
+if [ -z "${EKS_CLUSTER_MANAGER_ROLE}" ] || [ -z "${EKS_TEST_ROLE}" ]; then
   echo "One or more IAM role is not set"
   exit 1
 fi
 
 CLUSTER=${1}
 
-add_cluster_manager_identity ${CLUSTER} ${EKS_CLUSTER_MANAGEMENT_ROLE}
+add_cluster_manager_identity ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE}
 create_rbac_rules
-add_test_build_role ${CLUSTER} ${EKS_TEST_BUILD_ROLE}
+add_test_build_role ${CLUSTER} ${EKS_TEST_ROLE}

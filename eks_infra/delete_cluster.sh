@@ -2,7 +2,7 @@
 
 #/ Usage: 
 #/ export AWS_REGION=<AWS-Region>
-#/ export EKS_CLUSTER_MANAGEMENT_ROLE=<ARN-of-IAM-role>
+#/ export EKS_CLUSTER_MANAGER_ROLE=<ARN-of-IAM-role>
 #/ ./delete.sh eks_cluster_name
 
 set -e
@@ -37,14 +37,14 @@ if [ -z "${AWS_REGION}" ]; then
   exit 1
 fi
 
-if [ -z "${EKS_CLUSTER_MANAGEMENT_ROLE}" ]; then
+if [ -z "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
   echo "EKS cluster management role not set"
   exit 1
 fi
 
 CLUSTER=${1}
 REGION=${AWS_REGION}
-EKS_ROLE=${EKS_CLUSTER_MANAGEMENT_ROLE}
+EKS_ROLE=${EKS_CLUSTER_MANAGER_ROLE}
 
 update_kubeconfig ${CLUSTER} ${EKS_ROLE} ${REGION}
 delete_cluster ${CLUSTER} ${REGION}
