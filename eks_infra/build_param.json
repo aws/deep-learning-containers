@@ -1,5 +1,5 @@
 {
-    "operation": "upgrade",
+    "operation": "create",
     "contexts":[
         "PR"
     ],
