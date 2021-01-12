@@ -3,6 +3,7 @@ import os
 import logging
 import random
 import sys
+import re
 
 import boto3
 from botocore.exceptions import ClientError
@@ -17,7 +18,7 @@ import test.test_utils.ec2 as ec2_utils
 from test import test_utils
 from test.test_utils import (
     is_benchmark_dev_context, get_framework_and_version_from_tag, get_job_type_from_image, is_tf_version, is_below_tf_version,
-    DEFAULT_REGION, P3DN_REGION, UBUNTU_16_BASE_DLAMI_US_EAST_1, UBUNTU_16_BASE_DLAMI_US_WEST_2,
+    DEFAULT_REGION, P3DN_REGION, UBUNTU_18_BASE_DLAMI_US_EAST_1, UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, KEYS_TO_DESTROY_FILE
 )
 from test.test_utils.test_reporting import TestReportGenerator
@@ -39,9 +40,12 @@ FRAMEWORK_FIXTURES = (
     "gpu",
     "cpu",
     "eia",
+    "neuron",
     "pytorch_inference_eia",
     "mxnet_inference_eia",
-    "tensorflow_inference_eia"
+    "tensorflow_inference_eia",
+    "tensorflow_inference_neuron",
+    "pytorch_inference_neuron"
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -88,6 +92,11 @@ def docker_client(region):
 
 
 @pytest.fixture(scope="session")
+def ecr_client(region):
+    return boto3.client("ecr", region_name=region)
+
+
+@pytest.fixture(scope="session")
 def ec2_client(region):
     return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
@@ -109,7 +118,7 @@ def ec2_instance_role_name(request):
 
 @pytest.fixture(scope="function")
 def ec2_instance_ami(request):
-    return request.param if hasattr(request, "param") else UBUNTU_16_BASE_DLAMI_US_WEST_2
+    return request.param if hasattr(request, "param") else UBUNTU_18_BASE_DLAMI_US_WEST_2
 
 
 @pytest.fixture(scope="function")
@@ -128,7 +137,7 @@ def ec2_instance(
         ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
-            ec2_instance_ami = UBUNTU_16_BASE_DLAMI_US_EAST_1
+            ec2_instance_ami = UBUNTU_18_BASE_DLAMI_US_EAST_1
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
@@ -278,6 +287,11 @@ def eia_only():
 
 
 @pytest.fixture(scope="session")
+def neuron_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def py3_only():
     pass
 
@@ -293,7 +307,7 @@ def tf2_only():
 
 
 @pytest.fixture(scope="session")
-def tf23_and_above_only():
+def tf24_and_above_only():
     pass
 
 
@@ -311,9 +325,9 @@ def tf_version_within_limit(metafunc_obj, image):
     :return: True if all validation succeeds, else False
     """
     tf2_requirement_failed = "tf2_only" in metafunc_obj.fixturenames and not is_tf_version("2", image)
-    tf23_requirement_failed = "tf23_and_above_only" in metafunc_obj.fixturenames and is_below_tf_version("2.3", image)
+    tf24_requirement_failed = "tf24_and_above_only" in metafunc_obj.fixturenames and is_below_tf_version("2.4", image)
     tf21_requirement_failed = "tf21_and_above_only" in metafunc_obj.fixturenames and is_below_tf_version("2.1", image)
-    if tf2_requirement_failed or tf21_requirement_failed or tf23_requirement_failed:
+    if tf2_requirement_failed or tf21_requirement_failed or tf24_requirement_failed:
         return False
     return True
 
@@ -366,7 +380,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                 for index, image in enumerate(images_to_parametrize):
 
                     # Tag fixtures with EC2 instance types if env variable is present
-                    allowed_processors = ("gpu", "cpu", "eia")
+                    allowed_processors = ("gpu", "cpu", "eia", "neuron")
                     instance_tag = ""
                     for processor in allowed_processors:
                         if processor in image:
@@ -416,6 +430,9 @@ def pytest_generate_tests(metafunc):
                         elif ("cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames
                               and "eia_only" not in metafunc.fixturenames):
                             images_to_parametrize.append(image)
+                        elif "neuron_only" in metafunc.fixturenames and "neuron" in image:
+                            images_to_parametrize.append(image)
+
             # Remove all images tagged as "py2" if py3_only is a fixture
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
                 images_to_parametrize = [py3_image for py3_image in images_to_parametrize if "py2" not in py3_image]

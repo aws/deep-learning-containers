@@ -41,7 +41,7 @@ def test_batch_transform(sagemaker_session, ecr_image, instance_type, framework_
     model = MXNetModel(model_data,
                        'SageMakerRole',
                        SCRIPT_PATH,
-                       image=ecr_image,
+                       image_uri=ecr_image,
                        framework_version=framework_version,
                        sagemaker_session=sagemaker_session)
 

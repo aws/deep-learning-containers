@@ -28,10 +28,10 @@ DEFAULT_REGION = "us-west-2"
 P3DN_REGION = "us-east-1"
 
 # Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
-UBUNTU_16_BASE_DLAMI_US_WEST_2 = "ami-0e5a388144f62e4f5"
-UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0da7f2daf5e92c6f2"
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-016cebe2c5b2257db"
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-0e03b889434a51f52"
+UBUNTU_16_BASE_DLAMI_US_WEST_2 = "ami-09b49a82b7f258d03"
+UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0743d56bc1f9aa072"
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-032a07adeddce2db8"
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-063f381b07ea97834"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 UL_AMI_LIST = [
@@ -44,6 +44,7 @@ UL_AMI_LIST = [
 ]
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
+NEURON_AL2_DLAMI = "ami-092059396c7e51f52"
 
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
@@ -106,6 +107,8 @@ def get_repository_local_path():
 def get_inference_server_type(image_uri):
     if "pytorch" not in image_uri:
         return "mms"
+    if "neuron" in image_uri:
+        return "ts"
     image_tag = image_uri.split(":")[1]
     pytorch_ver = parse(image_tag.split("-")[0])
     if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"):
@@ -304,7 +307,7 @@ def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", 
     :return:
     """
     conn_run = connection.run if connection is not None else run
-    conn_run(f"python {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
+    conn_run(f"python3 {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
 def get_inference_run_command(image_uri, model_names, processor="cpu"):
@@ -319,12 +322,14 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
     if processor == "eia":
         multi_model_location = {
             "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar",
-            "pytorch-densenet": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia.mar",
+            "pytorch-densenet": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia_v1_5_1.mar",
+            "pytorch-densenet-v1-3-1": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia_v1_3_1.mar",
         }
     elif server_type == "ts":
         multi_model_location = {
             "squeezenet": "https://torchserve.s3.amazonaws.com/mar_files/squeezenet1_1.mar",
             "pytorch-densenet": "https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar",
+            "pytorch-resnet-neuron": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar",
         }
     else:
         multi_model_location = {
@@ -347,10 +352,16 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
     else:
         server_cmd = "multi-model-server"
 
-    mms_command = (
-        f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
-        + " ".join(parameters)
-    )
+    if processor != "neuron":
+        mms_command = (
+            f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
+            + " ".join(parameters)
+        )
+    else:
+        mms_command = (
+            f"/usr/local/bin/entrypoint.sh -m {parameters} -t /home/model-server/config.properties"
+        )
+
     return mms_command
 
 
@@ -638,7 +649,7 @@ def setup_sm_benchmark_mx_train_env(resources_location):
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install -U 'sagemaker<2' awscli boto3 botocore")
+            ctx.run("pip install -U sagemaker awscli boto3 botocore")
     return venv_dir
 
 
@@ -661,7 +672,7 @@ def get_framework_and_version_from_tag(image_uri):
             f"Cannot find framework in image uri {image_uri} " f"from allowed frameworks {allowed_frameworks}"
         )
 
-    tag_framework_version = re.search(r"(\d+(\.\d+){2})", image_uri).groups()[0]
+    tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]
 
     return tested_framework, tag_framework_version
 
@@ -727,7 +738,7 @@ def get_processor_from_image_uri(image_uri):
     :param image_uri: ECR image URI
     :return: cpu, gpu, or eia
     """
-    allowed_processors = ("cpu", "gpu", "eia")
+    allowed_processors = ("cpu", "gpu", "eia", "neuron")
 
     for processor in allowed_processors:
         match = re.search(rf"-({processor})", image_uri)

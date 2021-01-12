@@ -5,14 +5,16 @@ import numpy as np
 flags = tf.compat.v1.app.flags
 
 flags.DEFINE_bool("local", False, "Run data service in process")
+flags.DEFINE_bool("distribute", False, "Run data service in distributed_epoch mode")
 FLAGS = flags.FLAGS
 
 
 def local_service():
     print("Starting Local Service")
-    dispatcher = tf.data.experimental.service.DispatchServer(port=50050)
+    dispatcher = tf.data.experimental.service.DispatchServer(tf.data.experimental.service.DispatcherConfig(port=50050))
     dispatcher_address = dispatcher.target.split("://")[1]
-    worker = tf.data.experimental.service.WorkerServer(port=0, dispatcher_address=dispatcher_address)
+    worker = tf.data.experimental.service.WorkerServer(tf.data.experimental.service.WorkerConfig(
+        dispatcher_address=dispatcher_address))
     print("Dispatcher target is ", dispatcher.target)
     return dispatcher, worker, dispatcher.target
 
@@ -46,10 +48,15 @@ else:
     dispatcher_address = "localhost"
     dispatcher_port = "50050"
     service = "grpc://{}:{}".format(dispatcher_address, dispatcher_port)
+if FLAGS.distribute:
+    processing_mode = "distributed_epoch"
+else:
+    processing_mode = "parallel_epochs"
+
 # This will register the dataset with the tf.data service cluster so that
 # tf.data workers can run the dataset to produce elements. The dataset returned
 # from applying `distribute` will fetch elements produced by tf.data workers.
-dataset = dataset.apply(tf.data.experimental.service.distribute(processing_mode="parallel_epochs", service=service))
+dataset = dataset.apply(tf.data.experimental.service.distribute(processing_mode=processing_mode, service=service))
 
 for (x1, y1), (x2, y2) in zip(dataset, ds_train):
     np.allclose(x1, x2)

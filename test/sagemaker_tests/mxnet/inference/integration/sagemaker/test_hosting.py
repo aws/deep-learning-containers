@@ -35,8 +35,8 @@ def test_hosting(sagemaker_session, ecr_image, instance_type, framework_version)
     model = MXNetModel(model_data,
                        'SageMakerRole',
                        SCRIPT_PATH,
-                       image=ecr_image,
                        framework_version=framework_version,
+                       image_uri=ecr_image,
                        sagemaker_session=sagemaker_session)
 
     endpoint_name = utils.unique_name_from_base('test-mxnet-serving')
