@@ -70,19 +70,17 @@ def _run_distributed_training_horovod_basic(
 ):
     output_path = "file://%s" % tmpdir
     estimator = TensorFlow(
+        hyperparameters={
+            "sagemaker_mpi_enabled": True, "sagemaker_network_interface_name": "eth0", "sagemaker_mpi_num_of_processes_per_host": processes},
+        model_dir=False,
         entry_point=os.path.join(RESOURCE_PATH, "hvdbasic", "train_hvd_basic.py"),
         role="SageMakerRole",
-        train_instance_type="local",
+        instance_type="local",
         sagemaker_session=sagemaker_local_session,
-        train_instance_count=instances,
-        image_name=docker_image,
+        instance_count=instances,
+        image_uri=docker_image,
         output_path=output_path,
         framework_version=framework_version,
-        hyperparameters={
-            "sagemaker_mpi_enabled": True,
-            "sagemaker_network_interface_name": "eth0",
-            "sagemaker_mpi_num_of_processes_per_host": processes,
-        },
     )
 
     estimator.fit("file://{}".format(os.path.join(RESOURCE_PATH, "mnist", "data-distributed")))

@@ -32,6 +32,7 @@ DATA_PATH = os.path.join(RESOURCE_PATH, "mnist")
 SCRIPT_PATH = os.path.join(DATA_PATH, "mnist_gluon_basic_hook_demo.py")
 
 
+@pytest.mark.skip(reason="Skipping sm experiments tests until a fix is implemented")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_py2_containers
@@ -62,14 +63,14 @@ def test_training(sagemaker_session, ecr_image, instance_type, framework_version
         resource_path = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
         script = os.path.join(resource_path, "mnist", "mnist.py")
         estimator = TensorFlow(
+            model_dir=False,
             entry_point=script,
             role="SageMakerRole",
-            train_instance_type=instance_type,
-            train_instance_count=1,
+            instance_type=instance_type,
+            instance_count=1,
             sagemaker_session=sagemaker_session,
-            image_name=ecr_image,
+            image_uri=ecr_image,
             framework_version=framework_version,
-            script_mode=True,
         )
         inputs = estimator.sagemaker_session.upload_data(
             path=os.path.join(resource_path, "mnist", "data"), key_prefix="scriptmode/mnist"
