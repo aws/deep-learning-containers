@@ -1,11 +1,11 @@
 {
-    "operation": "delete",
+    "operation": "create",
     "contexts":[
         "PR"
     ],
     "eks_clusters":[
         "pytorch"
     ],
-    "eks_version": "1.18",
-    "cluster_autoscalar_image_version": "v1.18.3"
+    "eks_version": "1.17",
+    "cluster_autoscalar_image_version": "v1.17.3"
 }
