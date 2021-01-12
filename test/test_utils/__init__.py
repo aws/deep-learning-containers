@@ -119,7 +119,7 @@ def get_build_context():
     return os.getenv("BUILD_CONTEXT")
 
 def get_eks_role():
-    return os.getenv("EKS_TEST_BUILD_ROLE")
+    return os.getenv("EKS_TEST_ROLE")
 
 def is_pr_context():
     return os.getenv("BUILD_CONTEXT") == "PR"
