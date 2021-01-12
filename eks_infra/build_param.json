@@ -1,7 +1,7 @@
 {
     "operation": "create",
     "contexts":[
-        "PR"
+        "MAINLINE"
     ],
     "eks_clusters":[
         "pytorch"
