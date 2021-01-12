@@ -25,7 +25,6 @@ function upgrade_eks_control_plane(){
     --name=${1} \
     --version ${2} \
     --approve \
-    -v 100
 }
 
 # Function to control scaling of cluster autoscalar
@@ -99,7 +98,6 @@ function delete_nodegroups(){
         --name $NODEGROUP \
         --cluster ${1} \
         --region ${2} \
-        -v 100
       done
     else
       echo "No Nodegroups present in the EKS cluster ${1}"
