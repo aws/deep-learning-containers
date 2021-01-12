@@ -83,6 +83,17 @@ function create_namespaces(){
   kubectl create -f namespace.yaml
 }
 
+# Function to update kubeconfig at ~/.kube/config
+function update_kubeconfig(){
+
+    eksctl utils write-kubeconfig \
+    --cluster ${1} \
+    --authenticator-role-arn ${2} \
+    --region ${3}
+    kubectl config get-contexts
+    cat /root/.kube/config
+}
+
 # Check for input arguments
 if [ $# -ne 2 ]; then
     echo "${0}: usage: ./create_cluster.sh eks_cluster_name eks_version"
@@ -109,6 +120,8 @@ else
   EC2_KEY_PAIR_NAME=${EC2_KEY_PAIR_NAME}
 fi
 
-create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${REGION}
+EKS_ROLE=${EKS_CLUSTER_MANAGER_ROLE}
+update_kubeconfig ${CLUSTER} ${EKS_ROLE} ${REGION}
+#create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${REGION}
 create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
 create_namespaces
