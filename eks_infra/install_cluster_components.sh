@@ -27,24 +27,11 @@ if [ -z "$AWS_REGION" ]; then
   exit 1
 fi
 
-function update_kubeconfig(){
-
-    eksctl utils write-kubeconfig \
-    --cluster ${1} \
-    --authenticator-role-arn ${2} \
-    --region ${3}
-
-    kubectl config get-contexts
-    cat /root/.kube/config
-}
-
 CLUSTER_NAME=${1}
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=${2}
 REGION=${AWS_REGION}
-EKS_ROLE=${EKS_CLUSTER_MANAGER_ROLE}
 
-update_kubeconfig ${CLUSTER} ${EKS_ROLE} ${REGION}
-#install_cluster_autoscalar ${CLUSTER_NAME} ${CLUSTER_AUTOSCALAR_IMAGE_VERSION}
+install_cluster_autoscalar ${CLUSTER_NAME} ${CLUSTER_AUTOSCALAR_IMAGE_VERSION}
 
 # install kubeflow
 ./install_kubeflow_custom_kfctl.sh ${CLUSTER_NAME} ${REGION}
