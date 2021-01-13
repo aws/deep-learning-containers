@@ -40,7 +40,7 @@ def _run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, cl
     major_version = framework_version.split(".")[0]
     random.seed(f"{example_image_uri}-{datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_tag = f"{user}-{random.randint(1, 10000)}"
-    namespace = f"tf{major_version}-multi-node-train-{'py2' if 'py2' in example_image_uri else 'py3'}-{unique_tag}"
+    namespace = "tensorflow"
     job_name = f"tf-resnet50-horovod-job-{unique_tag}"
 
     script_name = ("/deep-learning-models/models/resnet/tensorflow2/train_tf2_resnet.py" if major_version == "2" else
@@ -82,7 +82,11 @@ def _run_eks_tensorflow_multi_node_training_mpijob(namespace, job_name, remote_y
     :return: None
     """
     pod_name = None
-    run(f"kubectl create namespace {namespace}")
+
+    does_namespace_exist = run(f"kubectl get namespace | grep {namespace}", warn=True)
+
+    if not does_namespace_exist:
+        run(f"kubectl create namespace {namespace}")
 
     try:
         training_job_start = run(f"kubectl create -f {remote_yaml_file_path} -n {namespace}", warn=True)

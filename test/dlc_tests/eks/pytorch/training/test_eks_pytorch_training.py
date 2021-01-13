@@ -146,8 +146,7 @@ def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     random.seed(f"{pytorch_training}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 6000)
 
-    namespace = f"pytorch-multi-node-training-{unique_id}"
-    app_name = f"eks-pytorch-mnist-app-{unique_id}"
+    namespace = "pytorch"
     job_name = f"kubeflow-pytorch-gpu-dist-job-{unique_id}"
     num_masters = "1"
     num_workers = "3"
@@ -183,8 +182,7 @@ def run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_file_pa
     """
 
     # Namespaces will allow parallel runs on the same cluster. Create namespace if it doesnt exist.
-    does_namespace_exist = run(f"kubectl get namespace | grep {namespace}",
-                               warn=True)
+    does_namespace_exist = run(f"kubectl get namespace | grep {namespace}", warn=True)
     if not does_namespace_exist:
         run(f"kubectl create namespace {namespace}")
     

@@ -42,7 +42,7 @@ def _run_eks_mxnet_multinode_training_horovod_mpijob(example_image_uri, cluster_
     random.seed(f"{example_image_uri}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_tag = f"{user}-{random.randint(1, 10000)}"
 
-    namespace = f"mx-multi-node-train-{'py2' if 'py2' in example_image_uri else 'py3'}-{unique_tag}"
+    namespace = "mxnet"
     job_name = f"mxnet-mnist-horovod-job-{unique_tag}"
 
     LOGGER.debug(f"Namespace: {namespace}")
@@ -205,7 +205,10 @@ def _run_eks_multi_node_training_mpijob(namespace, job_name, remote_yaml_file_pa
     Function to run eks multinode training MPI job
     """
 
-    run(f"kubectl create namespace {namespace}")
+    does_namespace_exist = run(f"kubectl get namespace | grep {namespace}", warn=True)
+    
+    if not does_namespace_exist:
+        run(f"kubectl create namespace {namespace}")
 
     try:
         training_job_start = run(f"kubectl create -f {remote_yaml_file_path} -n {namespace}", warn=True)
