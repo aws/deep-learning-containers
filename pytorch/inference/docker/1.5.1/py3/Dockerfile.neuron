@@ -106,8 +106,8 @@ RUN pip install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neuron
  && pip install torchserve --no-deps \
  && pip install --no-deps --no-cache-dir -U \
     https://torchvision-build.s3.amazonaws.com/1.5.0/gpu/torchvision-0.6.0-cp36-cp36m-manylinux1_x86_64.whl \
- # Install TF 1.15.4 to override neuron-cc[tensorflow]'s installation of tensorflow==1.15.0
- && pip install -U tensorflow==1.15.4 \
+ # Install TF 1.15.5 to override neuron-cc[tensorflow]'s installation of tensorflow==1.15.0
+ && pip install -U tensorflow==1.15.5 \
  && pip install torch-model-archiver
 
 RUN useradd -m model-server \
