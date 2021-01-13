@@ -22,6 +22,7 @@ function update_kubeconfig(){
     --authenticator-role-arn ${2} \
     --region ${3}
     kubectl config get-contexts
+    
     cat /root/.kube/config
 }
 
