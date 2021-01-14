@@ -10,7 +10,5 @@ phases:
   build:
     commands:
       - bash eks_infra/build.sh
-  post_build:
-    commands:
-      - echo "build suceeded"
+      - echo "build succeeded"
 

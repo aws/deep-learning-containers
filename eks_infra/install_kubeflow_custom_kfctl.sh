@@ -3,7 +3,7 @@
 #/ export AWS_REGION=<AWS-Region>
 #/ ./install_cluster_components.sh eks_cluster_name cluster_autoscalar_image_version
 
-set -e
+set -ex
 
 # Function to install kfctl cli
 install_kfctl(){
@@ -60,21 +60,21 @@ create_dir(){
 
 # Check for input arguments
 if [ $# -ne 2 ]; then
-    echo $0: usage: ./install_kubeflow eks_cluster_name region_name
+    echo "usage: ./${0} eks_cluster_name region_name"
     exit 1
 fi
 
-eks_cluster_name=${1}
-region_name=${2}
+EKS_CLUSTER_NAME=${1}
+REGION_NAME=${2}
 
 echo "> Setup installation directory"
-create_dir ${eks_cluster_name}
+create_dir ${EKS_CLUSTER_NAME}
 
 echo "> Installing kfctl"
 install_kfctl 
 
 echo "> Setting up kubeflow"
-setup_kubeflow ${region_name}
+setup_kubeflow ${REGION_NAME}
 
 echo "> Installing mxnet operator"
 install_mxnet_operator

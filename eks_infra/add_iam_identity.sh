@@ -5,7 +5,7 @@
 #/ export EKS_TEST_ROLE=<ARN-of-IAM-role>
 #/ ./add_iam_identity.sh eks_cluster_name
 
-set -e
+set -ex
 
 # Function to add cluster manager IAM role to EKS cluster
 function add_cluster_manager_identity(){ 
@@ -39,7 +39,7 @@ function create_rbac_rules(){
 
 # Check for input arguments
 if [ $# -lt 1 ]; then
-    echo "${0}: usage: ./add_iam_identity.sh eks_cluster_name"
+    echo "usage: ./${0} eks_cluster_name"
     exit 1
 fi
 

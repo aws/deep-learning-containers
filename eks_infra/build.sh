@@ -1,7 +1,7 @@
 #!/bin/bash
 #/ Usage: ./build.sh 
 
-set -e
+set -ex
 
 # Parse parameters from build_param.json config file
 OPERATION=$(jq -r '.operation' eks_infra/build_param.json)
@@ -29,7 +29,7 @@ function create_cluster(){
         ./add_iam_identity.sh $CLUSTER_NAME
         ./install_cluster_components.sh $CLUSTER_NAME $CLUSTER_AUTOSCALAR_IMAGE_VERSION
       else
-        echo "EKS Cluster :: ${CLUSTER_NAME} :: already exist. Skipping create operation."
+        echo "EKS Cluster :: ${CLUSTER_NAME} :: already exists. Skipping create operation."
       fi
     done
   done
@@ -56,7 +56,7 @@ function upgrade_cluster(){
       if [[ " ${LIST_CLUSTER[@]} " =~ " ${CLUSTER_NAME} " ]]; then
         ./upgrade_cluster.sh $CLUSTER_NAME $EKS_VERSION $CLUSTER_AUTOSCALAR_IMAGE_VERSION
       else
-        echo "EKS Cluster :: ${CLUSTER_NAME} :: does not exist. Skipping upgrade operation."
+        echo "EKS Cluster :: ${CLUSTER_NAME} :: does not exists. Skipping upgrade operation."
       fi
     done
   done
@@ -75,7 +75,7 @@ function delete_cluster(){
       if [[ " ${LIST_CLUSTER[@]} " =~ " ${CLUSTER_NAME} " ]]; then
         ./delete_cluster.sh $CLUSTER_NAME
       else
-        echo "EKS Cluster :: ${CLUSTER_NAME} :: does not exist. Skipping delete operation."
+        echo "EKS Cluster :: ${CLUSTER_NAME} :: does not exists. Skipping delete operation."
       fi
     done
   done

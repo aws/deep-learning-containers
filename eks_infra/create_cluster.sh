@@ -4,7 +4,7 @@
 #/ export EC2_KEY_PAIR_NAME=<EC2-Key-Pair-Name>
 #/ ./create_cluster.sh eks_cluster_name eks_version
 
-set -e
+set -ex
 
 # Function to create EC2 key pair
 function create_ec2_key_pair() {
@@ -33,11 +33,16 @@ function create_eks_cluster() {
 
 # Function to create static and dynamic nodegroups in EKS cluster
 function create_node_group(){
+
+    STATIC_NODEGROUP_INSTANCE_TYPE="m5.large"
+    GPU_NODEGROUP_INSTANCE_TYPE="p3.16xlarge"
+    INF_NODEGROUP_INSTANCE_TYPE="inf1.xlarge"
+    
     # static nodegroup
     eksctl create nodegroup \
     --name static-nodegroup-${2/./-} \
     --cluster ${1} \
-    --node-type m5.large \
+    --node-type ${STATIC_NODEGROUP_INSTANCE_TYPE} \
     --nodes 1 \
     --node-labels "static=true" \
     --tags "k8s.io/cluster-autoscaler/node-template/label/static=true" \
@@ -49,7 +54,7 @@ function create_node_group(){
     eksctl create nodegroup \
     --name gpu-nodegroup-${2/./-} \
     --cluster ${1} \
-    --node-type p3.16xlarge \
+    --node-type ${GPU_NODEGROUP_INSTANCE_TYPE} \
     --nodes-min 0 \
     --nodes-max 100 \
     --node-volume-size 80 \
@@ -60,11 +65,10 @@ function create_node_group(){
     --ssh-public-key "${3}"
 
     # dynamic inf nodegroup
-
     eksctl create nodegroup \
     --name inf-nodegroup-${2/./-} \
     --cluster ${1} \
-    --node-type inf1.xlarge \
+    --node-type ${INF_NODEGROUP_INSTANCE_TYPE} \
     --nodes-min 0 \
     --nodes-max 100 \
     --node-volume-size 500 \
@@ -74,8 +78,7 @@ function create_node_group(){
     --asg-access \
     --ssh-access \
     --ssh-public-key "${3}"
-  
-  
+
 }
 
 # Function to create namespaces in EKS cluster
@@ -85,7 +88,7 @@ function create_namespaces(){
 
 # Check for input arguments
 if [ $# -ne 2 ]; then
-    echo "${0}: usage: ./create_cluster.sh eks_cluster_name eks_version"
+    echo "usage: ./${0} eks_cluster_name eks_version"
     exit 1
 fi
 
@@ -97,7 +100,6 @@ fi
 
 CLUSTER=${1}
 EKS_VERSION=${2}
-REGION=${AWS_REGION}
 
 # Check for EC2 keypair environment variable. If empty, create a new key pair. 
 if [ -z "${EC2_KEY_PAIR_NAME}" ]; then
@@ -105,10 +107,8 @@ if [ -z "${EC2_KEY_PAIR_NAME}" ]; then
   echo "No EC2 key pair name configured. Creating keypair ${KEY_NAME}"
   create_ec2_key_pair ${KEY_NAME}
   EC2_KEY_PAIR_NAME=${KEY_NAME}
-else
-  EC2_KEY_PAIR_NAME=${EC2_KEY_PAIR_NAME}
 fi
 
-create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${REGION}
+create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
 create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
 create_namespaces

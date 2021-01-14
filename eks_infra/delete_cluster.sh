@@ -5,7 +5,7 @@
 #/ export EKS_CLUSTER_MANAGER_ROLE=<ARN-of-IAM-role>
 #/ ./delete.sh eks_cluster_name
 
-set -e
+set -ex
 
 # Function to delete EKS cluster
 function delete_cluster(){
@@ -28,7 +28,7 @@ function update_kubeconfig(){
 
 # Check for input arguments
 if [ $# -ne 1 ]; then
-    echo "${0}: usage: ./delete_cluster.sh eks_cluster_name"
+    echo "usage: ./${0} eks_cluster_name"
     exit 1
 fi
 
@@ -44,8 +44,6 @@ if [ -z "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
 fi
 
 CLUSTER=${1}
-REGION=${AWS_REGION}
-EKS_ROLE=${EKS_CLUSTER_MANAGER_ROLE}
 
-update_kubeconfig ${CLUSTER} ${EKS_ROLE} ${REGION}
-delete_cluster ${CLUSTER} ${REGION}
+update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
+delete_cluster ${CLUSTER} ${AWS_REGION}

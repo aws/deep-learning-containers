@@ -4,7 +4,7 @@
 #/ export AWS_REGION=<AWS-Region>
 #/ ./install_cluster_components.sh eks_cluster_name cluster_autoscalar_image_version
 
-set -e
+set -ex
 
 # Function to install cluster autoscalar
 function install_cluster_autoscalar(){
@@ -17,7 +17,7 @@ function install_cluster_autoscalar(){
 
 # Check for input arguments
 if [ $# -ne 2 ]; then
-    echo "${0}: usage: ./install_cluster_components.sh eks_cluster_name cluster_autoscalar_image_version"
+    echo "usage: ./${0} eks_cluster_name cluster_autoscalar_image_version"
     exit 1
 fi
 
@@ -29,9 +29,8 @@ fi
 
 CLUSTER_NAME=${1}
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=${2}
-REGION=${AWS_REGION}
 
 install_cluster_autoscalar ${CLUSTER_NAME} ${CLUSTER_AUTOSCALAR_IMAGE_VERSION}
 
 # install kubeflow
-./install_kubeflow_custom_kfctl.sh ${CLUSTER_NAME} ${REGION}
+./install_kubeflow_custom_kfctl.sh ${CLUSTER_NAME} ${AWS_REGION}

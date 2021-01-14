@@ -1,7 +1,7 @@
 #!/bin/bash
 #/ Usage: ./env_setup.sh 
 
-set -e
+set -ex
 
 # aws caller identity
 aws sts get-caller-identity
@@ -17,13 +17,10 @@ kubectl version --short --client
 
 # install eksctl
 
-# rolling the eksctl version to 0.34.0 due to a bug https://github.com/weaveworks/eksctl/issues/3005 causing the nodes not joining cluster
+# TODO: rolling the eksctl version to 0.34.0 due to a bug https://github.com/weaveworks/eksctl/issues/3005 causing the nodes not joining cluster
 # as kubelet service on worker node fails. Fix included in v0.36.0 which is in pre-release state
 # "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz"
 
 curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/0.34.0/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
 mv /tmp/eksctl /usr/local/bin
 eksctl version
-
-
-

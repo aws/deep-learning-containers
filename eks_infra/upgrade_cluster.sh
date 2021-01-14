@@ -4,7 +4,7 @@
 #/ export EC2_KEY_PAIR_NAME=<EC2-Key-Pair-Name>
 #/ export EKS_CLUSTER_MANAGER_ROLE=<ARN-of-IAM-role>
 #/ ./upgrade.sh eks_cluster_name eks_version cluster_autoscalar_image_version
-set -e
+set -ex
 
 # Function to update kubeconfig at ~/.kube/config
 function update_kubeconfig(){
@@ -42,11 +42,16 @@ function upgrade_autoscalar_image(){
 
 # Function to create static and dynamic nodegroups in EKS cluster
 function create_nodegroups(){
-    #static nodegroup
+
+    STATIC_NODEGROUP_INSTANCE_TYPE="m5.large"
+    GPU_NODEGROUP_INSTANCE_TYPE="p3.16xlarge"
+    INF_NODEGROUP_INSTANCE_TYPE="inf1.xlarge"
+    
+    # static nodegroup
     eksctl create nodegroup \
     --name static-nodegroup-${2/./-} \
     --cluster ${1} \
-    --node-type m5.large \
+    --node-type ${STATIC_NODEGROUP_INSTANCE_TYPE} \
     --nodes 1 \
     --node-labels "static=true" \
     --tags "k8s.io/cluster-autoscaler/node-template/label/static=true" \
@@ -54,11 +59,11 @@ function create_nodegroups(){
     --ssh-access \
     --ssh-public-key "${3}"
 
-    #dynamic gpu nodegroup
+    # dynamic gpu nodegroup
     eksctl create nodegroup \
     --name gpu-nodegroup-${2/./-} \
     --cluster ${1} \
-    --node-type p3.16xlarge \
+    --node-type ${GPU_NODEGROUP_INSTANCE_TYPE} \
     --nodes-min 0 \
     --nodes-max 100 \
     --node-volume-size 80 \
@@ -69,11 +74,10 @@ function create_nodegroups(){
     --ssh-public-key "${3}"
 
     # dynamic inf nodegroup
-  
     eksctl create nodegroup \
     --name inf-nodegroup-${2/./-} \
     --cluster ${1} \
-    --node-type inf1.xlarge \
+    --node-type ${INF_NODEGROUP_INSTANCE_TYPE} \
     --nodes-min 0 \
     --nodes-max 100 \
     --node-volume-size 500 \
@@ -83,7 +87,6 @@ function create_nodegroups(){
     --asg-access \
     --ssh-access \
     --ssh-public-key "${3}"
-  
 }
 
 # Function to delete all nodegroups in EKS cluster
@@ -129,7 +132,7 @@ function update_eksctl_utils(){
 }
 
 if [ $# -ne 3 ]; then
-    echo "${0}: usage: ./upgrade_cluster.sh eks_cluster_name eks_version cluster_autoscalar_image_version"
+    echo "usage: ./${0} eks_cluster_name eks_version cluster_autoscalar_image_version"
     exit 1
 fi
 
@@ -146,28 +149,24 @@ fi
 CLUSTER=${1}
 EKS_VERSION=${2}
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=${3}
-REGION=${AWS_REGION}
-EKS_ROLE=${EKS_CLUSTER_MANAGER_ROLE}
 
 if [ -z "${EC2_KEY_PAIR_NAME}" ]; then
   KEY_NAME=${CLUSTER}-KeyPair
   echo "No EC2 key pair name configured. Creating KeyPair ${KEY_NAME}"
   create_ec2_key_pair ${KEY_NAME}
   EC2_KEY_PAIR_NAME=${KEY_NAME}
-else
-  EC2_KEY_PAIR_NAME=$EC2_KEY_PAIR_NAME
 fi
 
 
-update_kubeconfig ${CLUSTER} ${EKS_ROLE} ${REGION}
+update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
 
 #scale to 0 to avoid unwanted scaling
 scale_cluster_autoscalar 0
 
 upgrade_autoscalar_image ${CLUSTER_AUTOSCALAR_IMAGE_VERSION}
 upgrade_eks_control_plane ${CLUSTER} ${EKS_VERSION}
-upgrade_nodegroups ${CLUSTER} ${EKS_VERSION} ${REGION} ${EC2_KEY_PAIR_NAME}
-update_eksctl_utils ${CLUSTER} ${REGION}
+upgrade_nodegroups ${CLUSTER} ${EKS_VERSION} ${AWS_REGION} ${EC2_KEY_PAIR_NAME}
+update_eksctl_utils ${CLUSTER} ${AWS_REGION}
 
 #scale back to 1
 scale_cluster_autoscalar 1
