@@ -275,8 +275,7 @@ def main():
             if eks_utils.is_eks_cluster_active(eks_cluster_name):
                 eks_utils.eks_write_kubeconfig(eks_cluster_name)
             else:
-                print(f"EKS cluster {eks_cluster_name} is not in active state")
-                sys.exit(1)
+                raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
             
             # Change 1: Split training and inference, and run one after the other, to prevent scheduling issues
             # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in

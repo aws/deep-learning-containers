@@ -14,7 +14,6 @@ import boto3
 from botocore.exceptions import ClientError
 from retrying import retry
 from invoke import run, Context
-from . import get_eks_role
 
 DEFAULT_REGION = "us-west-2"
 
@@ -199,6 +198,9 @@ def is_eks_cluster_active(eks_cluster_name):
 
     return if_active
 
+
+def get_eks_role():
+    return os.getenv("EKS_TEST_ROLE")
 
 def eks_write_kubeconfig(eks_cluster_name, region="us-west-2"):
     """Function that writes the aws eks configuration for the specified cluster in the file ~/.kube/config
