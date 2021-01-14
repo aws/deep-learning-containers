@@ -86,6 +86,7 @@ def _get_latest_package_version(package):
     """
     Get the latest package version available on pypi for a package.
     It is retried multiple times in case there are transient failures in executing the command.
+
     :param package: str Name of the package whose latest version must be retrieved
     :return: tuple(command_success: bool, latest_version_value: str)
     """
