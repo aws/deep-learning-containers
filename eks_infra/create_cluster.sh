@@ -37,6 +37,7 @@ function create_node_group(){
     STATIC_NODEGROUP_INSTANCE_TYPE="m5.large"
     GPU_NODEGROUP_INSTANCE_TYPE="p3.16xlarge"
     INF_NODEGROUP_INSTANCE_TYPE="inf1.xlarge"
+    INF_NODEGROUP_AMI="ami-092059396c7e51f52"
     
     # static nodegroup
     eksctl create nodegroup \
@@ -72,7 +73,7 @@ function create_node_group(){
     --nodes-min 0 \
     --nodes-max 100 \
     --node-volume-size 500 \
-    --node-ami "ami-092059396c7e51f52" \
+    --node-ami ${INF_NODEGROUP_AMI} \
     --node-labels "test_type=inf" \
     --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=inf" \
     --asg-access \
