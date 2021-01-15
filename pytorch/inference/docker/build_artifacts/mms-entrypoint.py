@@ -15,14 +15,17 @@ from __future__ import absolute_import
 import shlex
 import subprocess
 import sys
+import os
+import multiprocessing
 
+os.environ["SAGEMAKER_MODEL_SERVER_WORKERS"] = str(multiprocessing.cpu_count())
 
-if sys.argv[1] == 'serve':
+if sys.argv[1] == "serve":
     from sagemaker_pytorch_serving_container import serving
+
     serving.main()
 else:
-    subprocess.check_call(shlex.split(' '.join(sys.argv[1:])))
+    subprocess.check_call(shlex.split(" ".join(sys.argv[1:])))
 
 # prevent docker exit
-subprocess.call(['tail', '-f', '/dev/null'])
-
+subprocess.call(["tail", "-f", "/dev/null"])
