@@ -56,6 +56,7 @@ NO_P3_REGIONS = [
 
 def pytest_addoption(parser):
     parser.addoption('--region', default='us-west-2')
+    parser.addoption('--framework-version', default='')
     parser.addoption('--registry')
     parser.addoption('--repo')
     parser.addoption('--versions')
