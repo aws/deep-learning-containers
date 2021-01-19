@@ -31,67 +31,67 @@
 
   images:
     BuildMXNetCPUTrainPy37DockerImage:
-      <<: *TRAINING_REPOSITORY
+      '<<': *TRAINING_REPOSITORY
       build: '&MXNET_CPU_TRAINING_PY3 false'
       image_size_baseline: 1000
       device_type: '&DEVICE_TYPE cpu'
-      python_version: '&PYTHON_VERSION py3'
+      python_version: '&DOCKER_PYTHON_VERSION py3'
       tag_python_version: '&TAG_PYTHON_VERSION py37'
       os_version: '&OS_VERSION ubuntu16.04'
       tag: '!join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]'
-      docker_file: '!join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]'
+      docker_file: '!join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]'
       context:
         <<: *TRAINING_CONTEXT
     BuildMXNetGPUTrainCu110Py37DockerImage:
-      <<: *TRAINING_REPOSITORY
+      '<<': *TRAINING_REPOSITORY
       build: '&MXNET_GPU_TRAINING_PY3 false'
       image_size_baseline: 1000
       device_type: '&DEVICE_TYPE gpu'
-      python_version: '&PYTHON_VERSION py3'
+      python_version: '&DOCKER_PYTHON_VERSION py3'
       tag_python_version: '&TAG_PYTHON_VERSION py37'
       cuda_version: '&CUDA_VERSION cu110'
       os_version: '&OS_VERSION ubuntu16.04'
       tag: '!join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]'
-      docker_file: '!join [ docker/, *VERSION, /, *PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]'
+      docker_file: '!join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]'
       context:
         <<: *TRAINING_CONTEXT
     BuildMXNetExampleGPUTrainCu110Py37DockerImage:
-      <<: *TRAINING_REPOSITORY
+      '<<': *TRAINING_REPOSITORY
       build: '&MXNET_GPU_TRAINING_PY3 false'
       image_size_baseline: 1000
       base_image_name: BuildMXNetGPUTrainCu110Py37DockerImage
       device_type: '&DEVICE_TYPE gpu'
-      python_version: '&PYTHON_VERSION py3'
+      python_version: '&DOCKER_PYTHON_VERSION py3'
       tag_python_version: '&TAG_PYTHON_VERSION py37'
       cuda_version: '&CUDA_VERSION cu110'
       os_version: '&OS_VERSION ubuntu16.04'
       tag: '!join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
                          "-example" ]'
-      docker_file: '!join [ docker/, *VERSION, /, *PYTHON_VERSION, /example, /Dockerfile., *DEVICE_TYPE ]'
+      docker_file: '!join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /example, /Dockerfile., *DEVICE_TYPE ]'
       context:
         <<: *TRAINING_CONTEXT
     BuildMXNetCPUInferencePy37DockerImage:
-      <<: *INFERENCE_REPOSITORY
+      '<<': *INFERENCE_REPOSITORY
       build: '&MXNET_CPU_INFERENCE_PY3 false'
       image_size_baseline: 1000
       device_type: '&DEVICE_TYPE cpu'
-      python_version: '&PYTHON_VERSION py3'
+      python_version: '&DOCKER_PYTHON_VERSION py3'
       tag_python_version: '&TAG_PYTHON_VERSION py37'
       os_version: '&OS_VERSION ubuntu16.04'
       tag: '!join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]'
-      docker_file: '!join [ docker/, *VERSION, /, *PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]'
+      docker_file: '!join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]'
       context:
         <<: *INFERENCE_CONTEXT
     BuildMXNetGPUInferenceCu110Py37DockerImage:
-      << : *INFERENCE_REPOSITORY
+      '<<': *INFERENCE_REPOSITORY
       build: '&MXNET_GPU_INFERENCE_PY3 false'
       image_size_baseline: 1000
       device_type: '&DEVICE_TYPE gpu'
-      python_version: '&PYTHON_VERSION py3'
+      python_version: '&DOCKER_PYTHON_VERSION py3'
       tag_python_version: '&TAG_PYTHON_VERSION py37'
       cuda_version: '&CUDA_VERSION cu110'
       os_version: '&OS_VERSION ubuntu16.04'
       tag: '!join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]'
-      docker_file: '!join [ docker/, *VERSION, /, *PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]'
+      docker_file: '!join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]'
       context:
         <<: *INFERENCE_CONTEXT
