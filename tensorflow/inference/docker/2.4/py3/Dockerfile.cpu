@@ -80,6 +80,10 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
+# Install openssl and libssl to resolve https://ubuntu.com/security/CVE-2020-1971
+RUN apt-get install openssl
+RUN apt-get install libssl1.1
+
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir \
     "awscli<2" \
