@@ -43,6 +43,8 @@ RUN apt-get update \
     libffi-dev \
     build-essential \
     zlib1g-dev \
+    openssl \
+    libssl1.1 \
  && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \ 
  && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
  && apt-get update \
@@ -79,10 +81,6 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
-
-# Install openssl and libssl to resolve https://ubuntu.com/security/CVE-2020-1971
-RUN apt-get install openssl
-RUN apt-get install libssl1.1
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir \
