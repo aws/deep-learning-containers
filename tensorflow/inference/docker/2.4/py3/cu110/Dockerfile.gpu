@@ -60,6 +60,8 @@ RUN apt-get update \
     vim \
     build-essential \
     zlib1g-dev \
+    openssl \
+    libssl1.1 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
