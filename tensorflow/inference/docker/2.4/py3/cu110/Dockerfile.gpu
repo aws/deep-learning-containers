@@ -13,7 +13,7 @@ ARG PYTHON_VERSION=3.7.7
 ARG OPENSSL_VERSION=1.1.1g
 
 ARG TFS_SHORT_VERSION=2.4
-ARG TFS_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/serving/r2.4_aws/20210105-130525/gpu/py37/tensorflow_model_server
+ARG TFS_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/serving/r2.4_aws/20210119-200207/gpu/py37/tensorflow_model_server
 
 ENV NCCL_VERSION=2.7.6-1+cuda11.0
 ENV CUDNN_VERSION=8.0.4.30-1+cuda11.0
@@ -131,13 +131,13 @@ RUN apt-get install libssl1.1
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install -U --no-cache-dir \
     "awscli<2" \
-    cython==0.29.14 \
+    cython==0.29.21 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
-    gevent==20.9.0 \
-    requests==2.22.0 \
-    grpcio==1.34.0  \
-    protobuf==3.11.1 \
+    gevent==21.1.1 \
+    requests==2.25.1 \
+    grpcio==1.34.1 \
+    protobuf==3.14.0 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
     tensorflow-serving-api-gpu==2.4.0
