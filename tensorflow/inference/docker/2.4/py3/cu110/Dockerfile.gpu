@@ -37,6 +37,8 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades\
     ca-certificates \
     cuda-command-line-tools-11-0 \
+    cuda-nvrtc-11-0 \
+    cuda-nvrtc-dev-11-0 \
     cuda-cudart-dev-11-0 \
     libcufft-dev-11-0 \
     libcurand-dev-11-0 \
