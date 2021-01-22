@@ -274,14 +274,14 @@ Example:
        ```shell script
        pytest integration/sagemaker/test_mnist.py \
        --region us-west-2 --docker-base-name mxnet-training \
-       --tag training-gpu-py3-1.6.0 --aws-id {aws_id} \
+       --tag training-gpu-py3-1.6.0 --framework-version 1.6.0 --aws-id {aws_id} \
        --instance-type ml.p3.8xlarge
        ```
    * For tensorflow_inference py3 images run the below command
       ```shell script
       python3 -m pytest test/integration/sagemaker/test_tfs. --registry {aws_account_id} \
       --region us-west-2  --repo tensorflow-inference --instance-types ml.c5.18xlarge \
-      --tag 1.15.2-py3-cpu-build
+      --tag 1.15.2-py3-cpu-build --framework-version 1.15.2
       ```
 9. To run SageMaker benchmark tests on your account please perform the following steps:
     * Create a file named `sm_benchmark_env_settings.config` in the deep-learning-containers/ folder
