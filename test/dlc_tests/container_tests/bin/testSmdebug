@@ -12,6 +12,10 @@ FRAMEWORK=$1
 # Not using master because there could be breaking changes in tests between versions.
 SMDEBUG_RELEASE_TAG=$(python -c "import smdebug; print(smdebug.__version__)")
 
+# For reinvent release download the pytests from the latest release of smdebug repository.
+if [[ $FRAMEWORK == "tensorflow2" || $FRAMEWORK == "pytorch" ]]; then
+  SMDEBUG_RELEASE_TAG=0.9.5
+fi
 # declare -A only works with bash 4 and above, and creates an "associate array" in bash
 if [ "$(printf '%s\n' "0.8.0" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.8.0" ]; then
     declare -A ZCC_TEST_NAME=( ["mxnet"]="test_mxnet_gluon_integration.py" \
@@ -81,7 +85,7 @@ else
             TENSORFLOW_DATASETS_VERSION="3.2.1"
         fi
     fi
-    pip install tensorflow-datasets==${TENSORFLOW_DATASETS_VERSION}
+    pip install tensorflow-datasets==${TENSORFLOW_DATASETS_VERSION} "absl-py>=0.9,<0.11"
     for test_file in mock/tests/${FRAMEWORK}/*
     do
         pytest $test_file

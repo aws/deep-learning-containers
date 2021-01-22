@@ -25,15 +25,16 @@ ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.7
-ARG OPENSSL_VERSION=1.1.1g
+ARG OPENSSL_VERSION=1.1.1i
+ARG OPEN_MPI_PATH=/usr/local
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.3_aws/20201002-134350/gpu/py37/tensorflow_gpu-2.3.1-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.3_aws/20201211-182958/gpu/py37/tensorflow_gpu-2.3.1-cp37-cp37m-manylinux2010_x86_64.whl
 
-ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.3_aws/20201002-134350/tensorflow_estimator-2.3.0-py2.py3-none-any.whl
+ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.3_aws/20201211-182958/tensorflow_estimator-2.3.0-py2.py3-none-any.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.9.4
+ARG SMDEBUG_VERSION=1.0.0
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
@@ -45,6 +46,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     cuda-cusparse-dev-10-2 \
     curl \
     emacs \
+    libboost-all-dev \
     libcudnn7=7.6.5.32-1+cuda10.2 \
     # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
     libnccl2=2.7.6-1+cuda10.2 \
@@ -104,22 +106,24 @@ RUN mkdir /tmp/openmpi \
  && rm -rf /tmp/openmpi
 
 # Create a wrapper for OpenMPI to allow running as root by default
-RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real \
- && echo '#!/bin/bash' > /usr/local/bin/mpirun \
- && echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun \
- && chmod a+x /usr/local/bin/mpirun
+RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
+ && echo '#!/bin/bash' > $OPEN_MPI_PATH/bin/mpirun \
+ && echo 'mpirun.real --allow-run-as-root "$@"' >> $OPEN_MPI_PATH/bin/mpirun \
+ && chmod a+x $OPEN_MPI_PATH/bin/mpirun
 
 # Configure OpenMPI to run good defaults:
 #   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0
-RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf \
- && echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
+RUN echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf
 
 # Set default NCCL parameters
 RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
 
-ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
-ENV PATH /usr/local/openmpi/bin/:$PATH
-ENV PATH=/usr/local/nvidia/bin:$PATH
+ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/openmpi/lib:$LD_LIBRARY_PATH
+# /usr/local/lib/libpython* needs to be accessible for dynamic linking
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+ENV PATH=$OPEN_MPI_PATH/openmpi/bin/:$PATH
+ENV PATH=$OPEN_MPI_PATH/nvidia/bin:$PATH
 
 # SSH login fix. Otherwise user is kicked off after login
 RUN mkdir -p /var/run/sshd \
@@ -150,8 +154,8 @@ RUN apt-get update \
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
- && ./configure && make && make install \
- && make && make install && rm -rf ../Python-$PYTHON_VERSION*
+ && ./configure --enable-shared && make && make install \
+ && rm -rf ../Python-$PYTHON_VERSION*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
@@ -181,6 +185,7 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
+    cmake==3.18.2.post1 \
     numpy==1.19.1 \
     scipy==1.5.2 \
     scikit-learn==0.23 \
@@ -204,7 +209,8 @@ RUN ${PIP} install --no-cache-dir -U \
     h5py==2.10.0 \
     "absl-py>=0.9,<0.11" \
     werkzeug==1.0.1 \
-    smdebug==${SMDEBUG_VERSION}
+    smdebug==${SMDEBUG_VERSION} \
+    smclarify
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \

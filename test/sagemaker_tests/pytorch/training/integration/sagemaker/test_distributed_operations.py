@@ -18,8 +18,11 @@ import boto3
 import pytest
 from sagemaker.pytorch import PyTorch
 from six.moves.urllib.parse import urlparse
+from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
+from packaging.version import Version
 
-from ...integration import (data_dir, dist_operations_path, fastai_path, mnist_script, DEFAULT_TIMEOUT)
+from ...integration import (data_dir, dist_operations_path, fastai_path, mnist_script,
+                              DEFAULT_TIMEOUT, mnist_path)
 from ...integration.sagemaker.timeout import timeout
 
 MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
@@ -110,20 +113,156 @@ def test_mnist_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_bac
         pytorch.fit({'training': training_input})
 
 
+@pytest.mark.integration("smmodelparallel")
+@pytest.mark.model("mnist")
+@pytest.mark.processor("gpu")
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+def test_smmodelparallel_mnist_multigpu(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
+    """
+    Tests pt mnist command via script mode
+    """
+    instance_type = "ml.p3.16xlarge"
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    if Version(image_framework_version) != Version("1.6") or image_cuda_version != "cu110":
+        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6")
+
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        pytorch = PyTorch(entry_point='smmodelparallel_pt_mnist.sh',
+                          role='SageMakerRole',
+                          image_uri=ecr_image,
+                          source_dir=mnist_path,
+                          instance_count=1,
+                          instance_type=instance_type,
+                          sagemaker_session=sagemaker_session)
+
+        pytorch.fit()
+
+
+@pytest.mark.integration("smmodelparallel")
+@pytest.mark.model("mnist")
+@pytest.mark.processor("gpu")
+@pytest.mark.multinode(2)
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
+    """
+    Tests pt mnist command via script mode
+    """
+    instance_type = "ml.p3.16xlarge"
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    if Version(image_framework_version) != Version("1.6") or image_cuda_version != "cu110":
+        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6")
+
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        pytorch = PyTorch(entry_point='smmodelparallel_pt_mnist_multinode.sh',
+                          role='SageMakerRole',
+                          image_uri=ecr_image,
+                          source_dir=mnist_path,
+                          instance_count=2,
+                          instance_type=instance_type,
+                          sagemaker_session=sagemaker_session)
+
+        pytorch.fit()
+
+
+@pytest.mark.integration("smdataparallel")
+@pytest.mark.model("mnist")
+@pytest.mark.processor("gpu")
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip(reason="Skipping test because it is flaky on mainline pipeline.")
+def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
+    """
+    Tests SM Distributed DataParallel single-node via script mode
+    """
+    instance_type = "ml.p3.16xlarge"
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        pytorch = PyTorch(entry_point='smdataparallel_mnist_script_mode.sh',
+                          role='SageMakerRole',
+                          image_uri=ecr_image,
+                          source_dir=mnist_path,
+                          instance_count=1,
+                          instance_type=instance_type,
+                          sagemaker_session=sagemaker_session)
+
+        pytorch.fit()
+
+
+@pytest.mark.processor("gpu")
+@pytest.mark.skip_cpu
+@pytest.mark.multinode(2)
+@pytest.mark.integration("smdataparallel")
+@pytest.mark.model("mnist")
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip(reason="Skipping test because it is flaky on mainline pipeline.")
+@pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p3dn.24xlarge"])
+def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_session, tmpdir):
+    """
+    Tests smddprun command via Estimator API distribution parameter
+    """
+    distribution = {"smdistributed":{"dataparallel":{"enabled":True}}}
+    estimator = PyTorch(entry_point='smdataparallel_mnist.py',
+                        role='SageMakerRole',
+                        image_uri=ecr_image,
+                        source_dir=mnist_path,
+                        instance_count=2,
+                        instance_type=instance_types,
+                        sagemaker_session=sagemaker_session,
+                        debugger_hook_config=False,
+                        distribution=distribution)
+
+    estimator.fit()
+
+
+@pytest.mark.processor("gpu")
+@pytest.mark.skip_cpu
+@pytest.mark.integration("smdataparallel_smmodelparallel")
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge"])
+def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_session, tmpdir):
+    """
+    Tests SM Distributed DataParallel and ModelParallel single-node via script mode
+    This test has been added for SM DataParallelism and ModelParallelism tests for re:invent.
+    TODO: Consider reworking these tests after re:Invent releases are done
+    """
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    if Version(image_framework_version) != Version("1.6") or image_cuda_version != "cu110":
+        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6")
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        pytorch = PyTorch(entry_point='smdataparallel_smmodelparallel_mnist_script_mode.sh',
+                          role='SageMakerRole',
+                          image_uri=ecr_image,
+                          source_dir=mnist_path,
+                          instance_count=1,
+                          instance_type=instance_types,
+                          sagemaker_session=sagemaker_session)
+
+        pytorch = _disable_sm_profiler(sagemaker_session.boto_region_name, pytorch)
+
+        pytorch.fit()
+
+
 def _test_dist_operations(
-        sagemaker_session, framework_version, ecr_image, instance_type, dist_backend, train_instance_count=3
+        sagemaker_session, framework_version, ecr_image, instance_type, dist_backend, instance_count=3
 ):
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(
             entry_point=dist_operations_path,
             role='SageMakerRole',
-            instance_count=train_instance_count,
+            instance_count=instance_count,
             instance_type=instance_type,
             sagemaker_session=sagemaker_session,
             image_uri=ecr_image,
             framework_version=framework_version,
             hyperparameters={'backend': dist_backend},
         )
+
+        pytorch = _disable_sm_profiler(sagemaker_session.boto_region_name, pytorch)
+        
         pytorch.sagemaker_session.default_bucket()
         fake_input = pytorch.sagemaker_session.upload_data(
             path=dist_operations_path, key_prefix='pytorch/distributed_operations'
@@ -135,3 +274,11 @@ def _assert_s3_file_exists(region, s3_url):
     parsed_url = urlparse(s3_url)
     s3 = boto3.resource('s3', region_name=region)
     s3.Object(parsed_url.netloc, parsed_url.path.lstrip('/')).load()
+
+def _disable_sm_profiler(region, estimator):
+    """Disable SMProfiler feature for China regions
+    """
+
+    if region in ('cn-north-1', 'cn-northwest-1'):
+        estimator.disable_profiler = True
+    return estimator

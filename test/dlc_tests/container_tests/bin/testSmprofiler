@@ -1,0 +1,121 @@
+#!/bin/bash
+echo "Running the sanity check for the profiler enabled smdebug binary."
+echo "*** This file is only for reInvent release***"
+if [ $# -lt 1 ]; then
+    echo $0
+    echo "Not enough args"
+    echo "Use as: $0 <framework>, where framework is one of (mxnet, pytorch, tensorflow)"
+    exit 1
+fi
+
+FRAMEWORK=$1
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+SMPROFILER_TESTS=s3://smprofiler-nightly-binaries/reInvent_release_candidate/pytest_for_dlcpipeline.tar.gz
+echo "Verify whether smdebug with profiler is installed correctly."
+echo "Copying the tarball from  $SMPROFILER_TESTS"
+mkdir -p mock
+aws s3 cp $SMPROFILER_TESTS mock/pytest_for_dlcpipeline.tar.gz
+
+echo "Extracting the tests"
+cd mock
+tar -zxf pytest_for_dlcpipeline.tar.gz
+
+echo "Installing pre-requisites."
+pip install pytest
+
+echo "Running framework tests."
+cd pytest_for_dlcpipeline
+
+if [[ $FRAMEWORK == "tensorflow2" ]]; then
+    TENSORFLOW_DATASETS_VERSION="4.0.1"
+    tf_version=$(python -c "import tensorflow as tf; print(tf.__version__)")
+    if [[ "$tf_version" == *"2.0."* ]]; then
+         TENSORFLOW_DATASETS_VERSION="3.2.1"
+    fi
+    pip install tensorflow-datasets==${TENSORFLOW_DATASETS_VERSION}
+    pytest tests/profiler/${FRAMEWORK}
+    exit_code=$?
+    if [ "$exit_code" -eq "0" ]
+    then
+        echo "SMprofiler tests succeeded for $FRAMEWORK"
+    else
+        echo "SMprofiler tests failed for $FRAMEWORK"
+        exit $exit_code
+    fi
+    pytest tests/profiler/core
+    exit_code=$?
+    if [ "$exit_code" -eq "0" ]
+    then
+        echo "SMprofiler core tests succeeded for $FRAMEWORK"
+    else
+        echo "SMprofiler core tests failed for $FRAMEWORK"
+        exit $exit_code
+    fi
+
+elif [[ $FRAMEWORK == "pytorch" ]]; then
+    pytest tests/profiler/${FRAMEWORK}
+    exit_code=$?
+    if [ "$exit_code" -eq "0" ]
+    then
+        echo "SMprofiler tests succeeded for $FRAMEWORK"
+    else
+        echo "SMprofiler tests failed for $FRAMEWORK"
+        exit $exit_code
+    fi
+    pytest tests/profiler/core
+    exit_code=$?
+    if [ "$exit_code" -eq "0" ]
+    then
+        echo "SMprofiler core tests succeeded for $FRAMEWORK"
+    else
+        echo "SMprofiler core tests failed for $FRAMEWORK"
+        exit $exit_code
+    fi
+else
+    echo "SMProfiler is current not supported for this $FRAMEWORK"
+    exit_code=$?
+fi
+
+echo "Running ZCC tests."
+
+echo "Setting up SMDebug and SMProfiler environment."
+echo "{\"LocalPath\": \"newlogsRunTest1/test_hook_from_json_config\"}" | tee /tmp/test_hook_from_json_config.json
+export SMDEBUG_CONFIG_FILE_PATH=/tmp/test_hook_from_json_config.json
+export PYTHONPATH=$(pwd)/mock
+
+if [[ ${FRAMEWORK} == "tensorflow2" ]]; then
+    export SMPROFILER_CONFIG_PATH=tests/core/json_configs/test_tf2_profiler_config_parser_by_time.json
+    echo "Setting the SMPROFILER_CONFIG_PATH to $SMPROFILER_CONFIG_PATH"
+    echo "Running Gradtape test"
+    pytest tests/zero_code_change/test_${FRAMEWORK}_gradtape_integration.py
+    exit_code=$?
+    if [ "$exit_code" -eq "0" ]
+    then
+        echo "SMprofiler gradtape integration test succeeded"
+    else
+        echo "SMprofiler gradtape integration test failed"
+        exit $exit_code
+    fi
+fi
+
+if [[ ${FRAMEWORK} == "pytorch" ]]; then
+    export SMPROFILER_CONFIG_PATH=tests/core/json_configs/test_pytorch_profiler_config_parser.json
+    echo "Setting the SMPROFILER_CONFIG_PATH to $SMPROFILER_CONFIG_PATH"
+    echo "Running pytorch zcc integration test"
+    pytest "tests/zero_code_change/test_pytorch_integration.py::test_pytorch[True-False]"
+    pytest "tests/zero_code_change/test_pytorch_integration.py::test_pytorch[False-False]"
+    exit_code=$?
+    if [ "$exit_code" -eq "0" ]
+    then
+        echo "SMProfiler pytorch zcc integration test succeeded"
+    else
+        echo "SMProfiler pytorch zcc integration test failed"
+        exit $exit_code
+    fi
+fi
+
+
+echo "All SMprofiler tests succeeded!"
+exit 0

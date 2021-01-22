@@ -8,6 +8,7 @@ import requests
 
 from invoke.context import Context
 
+from src.buildspec import Buildspec
 from test.test_utils import (
     LOGGER,
     CONTAINER_TESTS_PREFIX,
@@ -191,7 +192,10 @@ class DependencyCheckFailure(Exception):
 
 def _run_dependency_check_test(image, ec2_connection, processor):
     # Record any whitelisted medium/low severity CVEs; I.E. allowed_vulnerabilities = {CVE-1000-5555, CVE-9999-9999}
-    allowed_vulnerabilities = set()
+    allowed_vulnerabilities = {
+        # Those vulnerabilities are fixed. Current openssl version is 1.1.1g. These are false positive
+        'CVE-2016-2109', 'CVE-2016-2177', 'CVE-2016-6303', 'CVE-2016-2182'
+    }
 
     container_name = f"dep_check_{processor}"
     report_addon = _get_container_name("depcheck-report", image)
@@ -265,15 +269,21 @@ def test_pip_check(image):
 
     # TF inference containers do not have core tensorflow installed by design. Allowing for this pip check error
     # to occur in order to catch other pip check issues that may be associated with TF inference
-    allowed_exception = re.compile(
+    # smclarify binaries have s3fs->aiobotocore dependency which uses older version of botocore. temporarily
+    # allowing this to catch other issues
+    allowed_tf_exception = re.compile(
         rf"^tensorflow-serving-api{gpu_suffix} \d\.\d+\.\d+ requires "
         rf"tensorflow{gpu_suffix}, which is not installed.$"
+    )
+    allowed_smclarify_exception = re.compile(
+        r"^aiobotocore \d+(\.\d+)* has requirement botocore<\d+(\.\d+)*,>=\d+(\.\d+)*, "
+        r"but you have botocore \d+(\.\d+)*\.$"
     )
 
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not allowed_exception.match(output.stdout):
+        if not (allowed_tf_exception.match(output.stdout) or allowed_smclarify_exception.match(output.stdout)) :
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
@@ -352,7 +362,9 @@ def test_sm_pysdk_2(training):
 @pytest.mark.model("N/A")
 def test_cuda_paths(gpu):
     """
-    Test to ensure directory structure for GPU Dockerfiles has cuda version in it
+    Test to ensure that:
+    a. buildspec contains an entry to create the same image as the image URI
+    b. directory structure for GPU Dockerfiles has framework version, python version, and cuda version in it
 
     :param gpu: gpu image uris
     """
@@ -374,8 +386,13 @@ def test_cuda_paths(gpu):
 
     # Get cuda, framework version, python version through regex
     cuda_version = re.search(r"-(cu\d+)-", image).group(1)
-    framework_version = re.search(r":(\d+(.\d+){2})", image).group(1)
+    framework_version = re.search(r":(\d+(\.\d+){2})", image).group(1)
+    framework_short_version = None
     python_version = re.search(r"(py\d+)", image).group(1)
+    short_python_version = None
+    image_tag = re.search(
+        r":(\d+(\.\d+){2}-(cpu|gpu|neuron)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)(-example)?)", image
+    ).group(1)
 
     framework_version_path = os.path.join(dlc_path, framework, job_type, "docker", framework_version)
     if not os.path.exists(framework_version_path):
@@ -383,7 +400,7 @@ def test_cuda_paths(gpu):
         framework_version_path = os.path.join(dlc_path, framework, job_type, "docker", framework_short_version)
     if not os.path.exists(os.path.join(framework_version_path, python_version)):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
-        python_version = python_version[:3]
+        short_python_version = python_version[:3]
 
     # Check buildspec for cuda version
     buildspec = "buildspec.yml"
@@ -391,13 +408,19 @@ def test_cuda_paths(gpu):
         buildspec = "buildspec-tf1.yml"
 
     cuda_in_buildspec = False
+    dockerfile_spec_abs_path = None
     cuda_in_buildspec_ref = f"CUDA_VERSION {cuda_version}"
     buildspec_path = os.path.join(dlc_path, framework, buildspec)
-    with open(buildspec_path, "r") as bf:
-        for line in bf:
-            if cuda_in_buildspec_ref in line:
-                cuda_in_buildspec = True
-                break
+    buildspec_def = Buildspec()
+    buildspec_def.load(buildspec_path)
+
+    for name, image_spec in buildspec_def["images"].items():
+        if image_spec["device_type"] == "gpu" and image_spec["tag"] == image_tag:
+            cuda_in_buildspec = True
+            dockerfile_spec_abs_path = os.path.join(
+                os.path.dirname(framework_version_path), image_spec["docker_file"].lstrip("docker/")
+            )
+            break
 
     try:
         assert cuda_in_buildspec, f"Can't find {cuda_in_buildspec_ref} in {buildspec_path}"
@@ -407,10 +430,15 @@ def test_cuda_paths(gpu):
         else:
             raise
 
-    # Check that a Dockerfile exists in the right directory
-    dockerfile_path = os.path.join(framework_version_path, python_version, cuda_version, "Dockerfile.gpu")
+    image_properties_expected_in_dockerfile_path = [
+        framework_short_version or framework_version, short_python_version or python_version, cuda_version
+    ]
+    assert all(prop in dockerfile_spec_abs_path for prop in image_properties_expected_in_dockerfile_path), (
+        f"Dockerfile location {dockerfile_spec_abs_path} does not contain all the image properties in "
+        f"{image_properties_expected_in_dockerfile_path}"
+    )
 
-    assert os.path.exists(dockerfile_path), f"Cannot find dockerfile for image {image} in {dockerfile_path}"
+    assert os.path.exists(dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
 
 
 def _get_container_name(prefix, image_uri):
