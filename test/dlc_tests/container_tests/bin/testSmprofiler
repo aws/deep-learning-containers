@@ -12,21 +12,23 @@ FRAMEWORK=$1
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
-SMPROFILER_TESTS=s3://smprofiler-nightly-binaries/reInvent_release_candidate/pytest_for_dlcpipeline.tar.gz
-echo "Verify whether smdebug with profiler is installed correctly."
-echo "Copying the tarball from  $SMPROFILER_TESTS"
-mkdir -p mock
-aws s3 cp $SMPROFILER_TESTS mock/pytest_for_dlcpipeline.tar.gz
 
-echo "Extracting the tests"
-cd mock
-tar -zxf pytest_for_dlcpipeline.tar.gz
+echo "Verify whether smdebug with profiler is installed correctly."
+SMDEBUG_RELEASE_TAG=$(python -c "import smdebug; print(smdebug.__version__)")
+echo "Cloning git repo for release tag $SMDEBUG_RELEASE_TAG"
+git clone -b ${SMDEBUG_RELEASE_TAG} https://github.com/awslabs/sagemaker-debugger.git sagemaker-debugger || exit 1
+cd sagemaker-debugger
+mkdir -p mock
+
+echo "Changing to sagemaker-debugger."
+cd sagemaker-debugger
+
+git pull
 
 echo "Installing pre-requisites."
 pip install pytest
 
 echo "Running framework tests."
-cd pytest_for_dlcpipeline
 
 if [[ $FRAMEWORK == "tensorflow2" ]]; then
     TENSORFLOW_DATASETS_VERSION="4.0.1"
