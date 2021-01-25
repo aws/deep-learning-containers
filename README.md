@@ -214,10 +214,6 @@ Example:
     pytest -s -rA ec2/ -n=auto
     # ECS
     pytest -s -rA ecs/ -n=auto
-    
-    #EKS
-    export TEST_TYPE=eks
-    python test/testrunner.py
     ```
     Remove `-n=auto` to run the tests sequentially.
 5. To run a specific test file, provide the full path to the test file
@@ -228,8 +224,38 @@ Example:
     ```shell script
     pytest -s ecs/mxnet/training/test_ecs_mxnet_training.py::test_ecs_mxnet_training_dgl_cpu
     ```
+7. To run EKS test locally please perform the following steps:
 
-7. To run SageMaker local mode tests, launch a cpu or gpu EC2 instance with latest Deep Learning AMI.
+   * Configure environment variables in the shell:
+   ```
+   export DLC_IMAGES="<image_uri>"
+   export BUILD_CONTEXT=PR     
+   export CODEBUILD_RESOLVED_SOURCE_VERSION=$USER
+   export AWS_REGION=<aws-region>
+   export TEST_TYPE=eks
+   # Optional
+   export EC2_KEY_PAIR_NAME=<EC2-Key-Pair-Name>
+   ```
+   * Create EKS cluster and nodegroups using the commands:
+
+     ```shell script
+     ./eks_infra/create_cluster <eks_cluster_name> <eks_version>
+     ```
+    eks_cluster_name parameter should be in the format <framework>-<BUILD_CONTEXT> where the framework name is one of tensorflow/pytorch/mxnet depending on the DLC image in consideration.
+    
+   * Install kubernetes cluster components:
+   ```shell script
+   ./eks_infra/install_cluster_components.sh <eks_cluster_name> <cluster_autoscalar_image_version>
+   ```
+    Cluster autoscalar version for EKS 1.18 is `v1.18.3`. Other compatible versions can be found at https://github.com/kubernetes/autoscaler/releases
+
+   * Run EKS test:
+
+   ```shell script
+    python test/testrunner.py
+   ```
+
+8. To run SageMaker local mode tests, launch a cpu or gpu EC2 instance with latest Deep Learning AMI.
    * Clone your github branch with changes and run the following commands
        ```shell script
        git clone https://github.com/{github_account_id}/deep-learning-containers/
@@ -258,7 +284,7 @@ Example:
      --docker-base-name {aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference \
      --tag 1.15.2-cpu-py36-ubuntu16.04 --framework-version 1.15.2 --processor cpu
      ```
-8. To run SageMaker remote tests on your account please setup following pre-requisites
+9. To run SageMaker remote tests on your account please setup following pre-requisites
 
     * Create an IAM role with name “SageMakerRole” in the above account and add the below AWS Manged policies
        ```
@@ -283,7 +309,7 @@ Example:
       --region us-west-2  --repo tensorflow-inference --instance-types ml.c5.18xlarge \
       --tag 1.15.2-py3-cpu-build
       ```
-9. To run SageMaker benchmark tests on your account please perform the following steps:
+10. To run SageMaker benchmark tests on your account please perform the following steps:
     * Create a file named `sm_benchmark_env_settings.config` in the deep-learning-containers/ folder
     * Add the following to the file (commented lines are optional):
         ```shell script
