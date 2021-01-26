@@ -238,13 +238,13 @@ Example:
      ```
    * Create EKS cluster and nodegroups using the commands:
      ```shell script
-     ./eks_infra/create_cluster <eks_cluster_name> <eks_version>
+     cd eks_infra && ./create_cluster.sh <eks_cluster_name> <eks_version>
      ```
      `eks_cluster_name` parameter should be in the format `<framework>-<BUILD_CONTEXT>` where the framework name is one of `tensorflow/pytorch/mxnet` depending on the DLC image in consideration.
     
    * Install kubernetes cluster components:
      ```shell script
-     ./eks_infra/install_cluster_components.sh <eks_cluster_name> <cluster_autoscalar_image_version>
+     cd eks_infra && ./install_cluster_components.sh <eks_cluster_name> <cluster_autoscalar_image_version>
      ```
      Cluster autoscalar version for EKS 1.18 is `v1.18.3`. Other compatible versions can be found at https://github.com/kubernetes/autoscaler/releases
 
