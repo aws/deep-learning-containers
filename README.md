@@ -227,33 +227,31 @@ Example:
 7. To run EKS test locally please perform the following steps:
 
    * Configure environment variables in the shell:
-   ```
-   export DLC_IMAGES="<image_uri>"
-   export BUILD_CONTEXT=PR     
-   export CODEBUILD_RESOLVED_SOURCE_VERSION=$USER
-   export AWS_REGION=<aws-region>
-   export TEST_TYPE=eks
-   # Optional
-   export EC2_KEY_PAIR_NAME=<EC2-Key-Pair-Name>
-   ```
+     ```
+     export DLC_IMAGES="<image_uri>"
+     export BUILD_CONTEXT=PR     
+     export CODEBUILD_RESOLVED_SOURCE_VERSION=$USER
+     export AWS_REGION=<aws-region>
+     export TEST_TYPE=eks
+     # Optional
+     export EC2_KEY_PAIR_NAME=<EC2-Key-Pair-Name>
+     ```
    * Create EKS cluster and nodegroups using the commands:
-
      ```shell script
      ./eks_infra/create_cluster <eks_cluster_name> <eks_version>
      ```
-    eks_cluster_name parameter should be in the format <framework>-<BUILD_CONTEXT> where the framework name is one of tensorflow/pytorch/mxnet depending on the DLC image in consideration.
+     `eks_cluster_name` parameter should be in the format `<framework>-<BUILD_CONTEXT>` where the framework name is one of `tensorflow/pytorch/mxnet` depending on the DLC image in consideration.
     
    * Install kubernetes cluster components:
-   ```shell script
-   ./eks_infra/install_cluster_components.sh <eks_cluster_name> <cluster_autoscalar_image_version>
-   ```
-    Cluster autoscalar version for EKS 1.18 is `v1.18.3`. Other compatible versions can be found at https://github.com/kubernetes/autoscaler/releases
+     ```shell script
+     ./eks_infra/install_cluster_components.sh <eks_cluster_name> <cluster_autoscalar_image_version>
+     ```
+     Cluster autoscalar version for EKS 1.18 is `v1.18.3`. Other compatible versions can be found at https://github.com/kubernetes/autoscaler/releases
 
    * Run EKS test:
-
-   ```shell script
-    python test/testrunner.py
-   ```
+     ```shell script
+     python test/testrunner.py
+     ```
 
 8. To run SageMaker local mode tests, launch a cpu or gpu EC2 instance with latest Deep Learning AMI.
    * Clone your github branch with changes and run the following commands
