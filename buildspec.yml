@@ -31,7 +31,8 @@ phases:
           fi
         else
           if expr "${CODEBUILD_BUILD_ARN}" : ".*tensorflow-1" >/dev/null; then
-            python src/main.py --buildspec $FRAMEWORK/buildspec-tf1.yml --framework $FRAMEWORK
+#            python src/main.py --buildspec $FRAMEWORK/buildspec-tf1.yml --framework $FRAMEWORK
+            echo "Skipping tensorflow-1 builds on PR"
           else
             python src/main.py --buildspec $FRAMEWORK/buildspec.yml --framework $FRAMEWORK
           fi
