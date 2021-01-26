@@ -41,6 +41,7 @@ git pull
 echo "Creating mock test folder."
 mkdir -p mock
 cp -r tests mock/
+cp -r examples mock/
 cd mock/
 
 echo "Installing pre-requisites."
