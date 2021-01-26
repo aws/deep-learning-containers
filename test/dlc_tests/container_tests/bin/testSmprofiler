@@ -21,15 +21,11 @@ git clone -b ${SMDEBUG_RELEASE_TAG} https://github.com/awslabs/sagemaker-debugge
 echo "Changing to sagemaker-debugger."
 cd sagemaker-debugger
 
-# Download and install protoc
-PROTOC_ZIP=protoc-3.7.1-linux-x86_64.zip
-apt-get update && apt-get install unzip
-curl -OL https://github.com/google/protobuf/releases/download/v3.7.1/$PROTOC_ZIP
-unzip -o $PROTOC_ZIP -d /usr/local bin/protoc
-unzip -o $PROTOC_ZIP -d /usr/local include/*
-rm -f $PROTOC_ZIP
-
 git pull
+
+mkdir -p mock/
+cp -r tests mock/
+cd mock
 
 echo "Installing pre-requisites."
 pip install pytest
@@ -89,7 +85,6 @@ echo "Running ZCC tests."
 echo "Setting up SMDebug and SMProfiler environment."
 echo "{\"LocalPath\": \"newlogsRunTest1/test_hook_from_json_config\"}" | tee /tmp/test_hook_from_json_config.json
 export SMDEBUG_CONFIG_FILE_PATH=/tmp/test_hook_from_json_config.json
-export PYTHONPATH=$(pwd)/mock
 
 if [[ ${FRAMEWORK} == "tensorflow2" ]]; then
     export SMPROFILER_CONFIG_PATH=tests/core/json_configs/test_tf2_profiler_config_parser_by_time.json
