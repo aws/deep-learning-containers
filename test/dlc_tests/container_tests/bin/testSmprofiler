@@ -1,6 +1,6 @@
 #!/bin/bash
+
 echo "Running the sanity check for the profiler enabled smdebug binary."
-echo "*** This file is only for reInvent release***"
 if [ $# -lt 1 ]; then
     echo $0
     echo "Not enough args"
@@ -17,11 +17,17 @@ echo "Verify whether smdebug with profiler is installed correctly."
 SMDEBUG_RELEASE_TAG=$(python -c "import smdebug; print(smdebug.__version__)")
 echo "Cloning git repo for release tag $SMDEBUG_RELEASE_TAG"
 git clone -b ${SMDEBUG_RELEASE_TAG} https://github.com/awslabs/sagemaker-debugger.git sagemaker-debugger || exit 1
-cd sagemaker-debugger
-mkdir -p mock
 
 echo "Changing to sagemaker-debugger."
 cd sagemaker-debugger
+
+# Download and install protoc
+PROTOC_ZIP=protoc-3.7.1-linux-x86_64.zip
+apt-get update && apt-get install unzip
+curl -OL https://github.com/google/protobuf/releases/download/v3.7.1/$PROTOC_ZIP
+unzip -o $PROTOC_ZIP -d /usr/local bin/protoc
+unzip -o $PROTOC_ZIP -d /usr/local include/*
+rm -f $PROTOC_ZIP
 
 git pull
 
@@ -37,47 +43,45 @@ if [[ $FRAMEWORK == "tensorflow2" ]]; then
          TENSORFLOW_DATASETS_VERSION="3.2.1"
     fi
     pip install tensorflow-datasets==${TENSORFLOW_DATASETS_VERSION}
-    pytest tests/profiler/${FRAMEWORK}
-    exit_code=$?
-    if [ "$exit_code" -eq "0" ]
-    then
-        echo "SMprofiler tests succeeded for $FRAMEWORK"
-    else
-        echo "SMprofiler tests failed for $FRAMEWORK"
-        exit $exit_code
-    fi
-    pytest tests/profiler/core
-    exit_code=$?
-    if [ "$exit_code" -eq "0" ]
-    then
-        echo "SMprofiler core tests succeeded for $FRAMEWORK"
-    else
-        echo "SMprofiler core tests failed for $FRAMEWORK"
-        exit $exit_code
-    fi
-
-elif [[ $FRAMEWORK == "pytorch" ]]; then
-    pytest tests/profiler/${FRAMEWORK}
-    exit_code=$?
-    if [ "$exit_code" -eq "0" ]
-    then
-        echo "SMprofiler tests succeeded for $FRAMEWORK"
-    else
-        echo "SMprofiler tests failed for $FRAMEWORK"
-        exit $exit_code
-    fi
-    pytest tests/profiler/core
-    exit_code=$?
-    if [ "$exit_code" -eq "0" ]
-    then
-        echo "SMprofiler core tests succeeded for $FRAMEWORK"
-    else
-        echo "SMprofiler core tests failed for $FRAMEWORK"
-        exit $exit_code
-    fi
+fi
+if [[ $FRAMEWORK == "tensorflow2" ]] || [[ $FRAMEWORK == "pytorch" ]]; then
+    for test_file in tests/profiler/${FRAMEWORK}/*
+    do
+        pytest $test_file
+        exit_code=$?
+        if [ "$exit_code" -eq "0" ]
+        then
+            echo "SMProfiler test succeeded: $test_file"
+        elif [ "$exit_code" -eq "5" ]
+        then
+            # pytest enum ExitCode.NO_TESTS_COLLECTED = 5
+            # See: https://github.com/pytest-dev/pytest/blob/050c2df737f7c6c3b1de7a6f375de107edcb6873/src/_pytest/config/__init__.py#L98
+            echo "SMProfiler no tests collected: $test_file"
+        else
+            echo "SMProfiler test failed: $test_file"
+            exit $exit_code
+        fi
+    done
+    for test_file in  tests/profiler/core/*
+    do
+        pytest $test_file
+        exit_code=$?
+        if [ "$exit_code" -eq "0" ]
+        then
+            echo "SMProfiler core test succeeded: $test_file"
+        elif [ "$exit_code" -eq "5" ]
+        then
+            # pytest enum ExitCode.NO_TESTS_COLLECTED = 5
+            # See: https://github.com/pytest-dev/pytest/blob/050c2df737f7c6c3b1de7a6f375de107edcb6873/src/_pytest/config/__init__.py#L98
+            echo "SMProfiler core no tests collected: $test_file"
+        else
+            echo "SMProfiler core test failed: $test_file"
+            exit $exit_code
+        fi
+    done
 else
     echo "SMProfiler is current not supported for this $FRAMEWORK"
-    exit_code=$?
+    exit 0
 fi
 
 echo "Running ZCC tests."
@@ -95,9 +99,9 @@ if [[ ${FRAMEWORK} == "tensorflow2" ]]; then
     exit_code=$?
     if [ "$exit_code" -eq "0" ]
     then
-        echo "SMprofiler gradtape integration test succeeded"
+        echo "SMProfiler gradtape integration test succeeded"
     else
-        echo "SMprofiler gradtape integration test failed"
+        echo "SMProfiler gradtape integration test failed"
         exit $exit_code
     fi
 fi
@@ -107,13 +111,21 @@ if [[ ${FRAMEWORK} == "pytorch" ]]; then
     echo "Setting the SMPROFILER_CONFIG_PATH to $SMPROFILER_CONFIG_PATH"
     echo "Running pytorch zcc integration test"
     pytest "tests/zero_code_change/test_pytorch_integration.py::test_pytorch[True-False]"
+    exit_code=$?
+    if [ "$exit_code" -eq "0" ]
+    then
+        echo "SMProfiler pytorch [True-False] zcc integration test succeeded"
+    else
+        echo "SMProfiler pytorch [True-False] zcc integration test failed"
+        exit $exit_code
+    fi
     pytest "tests/zero_code_change/test_pytorch_integration.py::test_pytorch[False-False]"
     exit_code=$?
     if [ "$exit_code" -eq "0" ]
     then
-        echo "SMProfiler pytorch zcc integration test succeeded"
+        echo "SMProfiler pytorch [False-False] zcc integration test succeeded"
     else
-        echo "SMProfiler pytorch zcc integration test failed"
+        echo "SMProfiler pytorch [False-False] zcc integration test failed"
         exit $exit_code
     fi
 fi
