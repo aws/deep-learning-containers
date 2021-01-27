@@ -479,6 +479,9 @@ def get_canary_default_tag_py3_version(framework, version):
     """
     if framework == "tensorflow2":
         return "py37" if Version(version) >= Version("2.2") else "py3"
+    
+    if framework == "mxnet":
+        return "py37" if Version(version) >= Version("1.8") else "py3"
 
     return "py3"
 
@@ -624,7 +627,7 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install -U 'sagemaker<2' awscli boto3 botocore six==1.11")
+            ctx.run("pip install 'sagemaker>=2,<3' awscli boto3 botocore six==1.11")
 
             # SageMaker TF estimator is coded to only accept framework versions up to 2.1.0 as py2 compatible.
             # Fixing this through the following changes:
@@ -649,7 +652,7 @@ def setup_sm_benchmark_mx_train_env(resources_location):
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install -U sagemaker awscli boto3 botocore")
+            ctx.run("pip install sagemaker awscli boto3 botocore")
     return venv_dir
 
 
