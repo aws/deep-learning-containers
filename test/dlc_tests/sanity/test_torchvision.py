@@ -17,7 +17,7 @@ def test_torchvision_nms_training(pytorch_training):
     """
     image = pytorch_training
     ctx = Context()
-    container_name = get_container_name("framework-version", image)
+    container_name = get_container_name("torchvision-nms", image)
     start_container(container_name, image, ctx)
     output = run_cmd_on_container(
         container_name, ctx, f"import torch; import torchvision; print(torch.ops.torchvision.nms)", executable="python"
@@ -33,7 +33,7 @@ def test_torchvision_nms_inference(pytorch_inference):
     """
     image = pytorch_inference
     ctx = Context()
-    container_name = get_container_name("framework-version", image)
+    container_name = get_container_name("torchvision-nms", image)
     start_container(container_name, image, ctx)
     output = run_cmd_on_container(
         container_name, ctx, f"import torch; import torchvision; print(torch.ops.torchvision.nms)", executable="python"
