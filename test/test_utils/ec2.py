@@ -9,7 +9,7 @@ from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
-from test.test_utils import is_pr_context
+from test.test_utils import is_pr_context, is_mainline_context
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
@@ -18,35 +18,35 @@ EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 ICE_SKIP_INSTANCE_LIST = ["p3dn.24xlarge"]
 
 
-def get_ec2_instance_type(default, processor, disable_p3dn=False):
+def get_ec2_instance_type(default, processor, disable_large_type=True):
     """
     Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
     for contexts where the variable is not present (i.e. PR, Nightly, local testing)
 
     :param default: Default instance type to use - Should never be p3dn
     :param processor: "cpu" or "gpu"
-    :param disable_p3dn: Boolean to determine whether or not to run tests on p3dn. If set to true, default
+    :param disable_large_type: Boolean to determine whether or not to run tests on p3dn. If set to true, default
     gpu instance type will be used.
 
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
     a list.
     """
     allowed_processors = ("cpu", "gpu")
+    p4d = "p4d.24xlarge"
     p3dn = "p3dn.24xlarge"
-    p28x = "p2.8xlarge"
     if processor not in allowed_processors:
         raise RuntimeError(
             f"Aborting EC2 test run. Unrecognized processor type {processor}. "
             f"Please choose from {allowed_processors}"
         )
-    if default == p3dn:
-        raise RuntimeError("Default instance type should never be p3dn.24xlarge")
-    instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
-
-    # TODO: Re-enable p28x once capacity issues have been resolved
-    if instance_type == p28x:
+    if default in [p3dn, p4d]:
+        raise RuntimeError("Default instance type should never be p3dn.24xlarge or p4d.24xlarge")
+    instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE")
+    if not instance_type and is_mainline_context():
         return []
-    if instance_type == p3dn and disable_p3dn:
+    instance_type = default
+
+    if disable_large_type and instance_type in [p3dn, p4d]:
         instance_type = default
     return [instance_type]
 

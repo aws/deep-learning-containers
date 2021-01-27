@@ -36,7 +36,7 @@ def pytest_addoption(parser):
     parser.addoption('--docker-base-name', default='preprod-mxnet-serving')
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
-    parser.addoption('--py-version', default='3', choices=['2', '3', '2,3'])
+    parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37'])
     parser.addoption('--processor', default='cpu', choices=['gpu', 'cpu', 'cpu,gpu', 'eia'])
     parser.addoption('--aws-id', default=None)
     parser.addoption('--instance-type', default=None)

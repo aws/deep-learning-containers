@@ -121,30 +121,33 @@ def run_sm_perf_test(image_uri, num_nodes, region):
 
 
 def _print_results_of_test(file_path, processor):
-    last_100_lines = Context().run(f"tail -100 {file_path}").stdout.split("\n")
     result = ""
     throughput = 0
     if processor == "cpu":
-        for line in last_100_lines:
-            if "Total img/sec on " in line:
-                result = line + "\n"
-                throughput = float(
-                    re.search(r"(CPU\(s\):[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
-                )
-                break
+        with open(file_path, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                if "Total img/sec on " in line:
+                    result = line + "\n"
+                    throughput += float(
+                        re.search(r"(CPU\(s\):[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
+                    )
     elif processor == "gpu":
         """calculate average throughput"""
-        counter = 0
-        result_dict = dict()
-        for line in last_100_lines:
-            if "images/sec: " in line:
-                counter += 1
-                key = line.split("<stdout>")[0]
-                result_dict[key] = line.strip("\n")
-                throughput += float(
-                    re.search(r"(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
-                )
-        result = "\n".join(result_dict.values()) + "\n"
-        throughput = throughput/counter
+        result_list, throughput_list = [], []
+        with open(file_path, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                if "images/sec: " in line:
+                    result_list.append(line.strip("\n"))
+                    throughput = float(
+                        re.search(r"(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
+                    )
+                    throughput_list.append(throughput)
+        result = "\n".join(result_list[-100:])+ "\n"
+        if len(throughput_list) == 0:
+            raise Exception("Cannot find throughput lines. Looks like SageMaker job was not run successfully. Please check")
+        # Take average of last 100 throughput lines
+        throughput = sum(throughput_list[-100:])/len(throughput_list[-100:])
     LOGGER.info(result)
     return result, throughput

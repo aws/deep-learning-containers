@@ -109,6 +109,7 @@ def main(args):
     norm = torch.pow(degs, -0.5)
     norm[torch.isinf(norm)] = 0
     if cuda:
+        g = g.to(args.gpu)
         norm = norm.cuda()
     g.ndata['norm'] = norm.unsqueeze(1)
 
