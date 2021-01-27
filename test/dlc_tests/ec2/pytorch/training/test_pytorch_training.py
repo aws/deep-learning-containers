@@ -15,10 +15,12 @@ PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 PT_APEX_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNVApex")
 PT_AMP_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchAMP")
 PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test")
+PT_NMS_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNms")
 
 
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
+
 
 @pytest.mark.integration("pytorch_sanity_test")
 @pytest.mark.model("N/A")
@@ -147,3 +149,17 @@ def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only):
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)
+
+
+@pytest.mark.integration("torchvision")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
+def test_pytorch_nms_gpu(pytorch_training, ec2_connection, gpu_only):
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_NMS_CMD)
+
+
+@pytest.mark.integration("torchvision")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+def test_pytorch_nms_cpu(pytorch_training, ec2_connection, cpu_only):
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_NMS_CMD)

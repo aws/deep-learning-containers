@@ -1,0 +1,10 @@
+#!/bin/bash
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+
+echo "Testing PyTorch ops torchvision nms module"
+
+python -c "import torch; import torchvision; print(torch.ops.torchvision.nms)"
+
+exit 0
