@@ -12,7 +12,6 @@ PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 PT_EC2_EIA_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="eia1.large", processor="eia")
 PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test")
-PT_NMS_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNms")
 PT_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="inf1.xlarge", processor="neuron")
 
 
@@ -107,17 +106,3 @@ def test_pytorch_inference_telemetry_gpu(pytorch_inference, ec2_connection, gpu_
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 def test_pytorch_inference_telemetry_cpu(pytorch_inference, ec2_connection, cpu_only):
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TELEMETRY_CMD)
-
-
-@pytest.mark.integration("torchvision")
-@pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
-def test_pytorch_inference_torchvision_gpu(pytorch_inference, ec2_connection, gpu_only):
-    execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_NMS_CMD)
-
-
-@pytest.mark.integration("torchvision")
-@pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-def test_pytorch_inference_torchvision_cpu(pytorch_inference, ec2_connection, cpu_only):
-    execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_NMS_CMD)
