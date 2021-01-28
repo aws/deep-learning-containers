@@ -19,10 +19,9 @@ def test_torchvision_nms_training(pytorch_training):
     ctx = Context()
     container_name = get_container_name("torchvision-nms", image)
     start_container(container_name, image, ctx)
-    output = run_cmd_on_container(
+    run_cmd_on_container(
         container_name, ctx, f"import torch; import torchvision; print(torch.ops.torchvision.nms)", executable="python"
     )
-    assert "RuntimeError" not in output.stdout.strip()
 
 
 @pytest.mark.model("N/A")
@@ -35,7 +34,6 @@ def test_torchvision_nms_inference(pytorch_inference):
     ctx = Context()
     container_name = get_container_name("torchvision-nms", image)
     start_container(container_name, image, ctx)
-    output = run_cmd_on_container(
+    run_cmd_on_container(
         container_name, ctx, f"import torch; import torchvision; print(torch.ops.torchvision.nms)", executable="python"
     )
-    assert "RuntimeError" not in output.stdout.strip()
