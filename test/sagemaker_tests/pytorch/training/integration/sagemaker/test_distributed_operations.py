@@ -126,7 +126,7 @@ def test_smmodelparallel_mnist_multigpu(ecr_image, instance_type, py_version, sa
     instance_type = "ml.p3.16xlarge"
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if not(Version(image_framework_version) in SpecifierSet(">=1.6<1.8")) or image_cuda_version != "cu110":
+    if not(Version(image_framework_version) in SpecifierSet(">=1.6,<1.8")) or image_cuda_version != "cu110":
         pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6 and PyTorch 1.7")
 
     with timeout(minutes=DEFAULT_TIMEOUT):
@@ -154,7 +154,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_v
     instance_type = "ml.p3.16xlarge"
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if not(Version(image_framework_version) in SpecifierSet(">=1.6<1.8")) or image_cuda_version != "cu110":
+    if not(Version(image_framework_version) in SpecifierSet(">=1.6,<1.8")) or image_cuda_version != "cu110":
         pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6 and PyTorch 1.7")
 
     with timeout(minutes=DEFAULT_TIMEOUT):
@@ -231,8 +231,8 @@ def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, py_vers
     """
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if Version(image_framework_version) != Version("1.6") or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6")
+    if not (Version(image_framework_version) in SpecifierSet(">=1.6,<1.8")) or image_cuda_version != "cu110":
+        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6 and PyTorch 1.7")
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smdataparallel_smmodelparallel_mnist_script_mode.sh',
                           role='SageMakerRole',
