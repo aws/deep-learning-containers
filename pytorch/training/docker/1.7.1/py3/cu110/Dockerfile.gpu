@@ -37,7 +37,7 @@ ENV MANUAL_BUILD=0
 ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.1_aws/20210107-213753/df8e57a23cbc00d4fff51f4ea7f2ce052d1384e9/gpu/torch-1.7.1-cp36-cp36m-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.7.1/py36/cuda110/torchvision-0.8.2%2Bcu110-cp36-cp36m-linux_x86_64.whl
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.amazonaws.com/pytorch-1.6/build-artifacts/2020-12-18-03-43/smdistributed_modelparallel-1.1.0-cp36-cp36m-linux_x86_64.whl
-ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.6.0/cu110/2021-01-14/smdistributed_dataparallel-1.0.0-cp36-cp36m-linux_x86_64.whl
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.7.1/cu110/2021-01-26/smdistributed_dataparallel-1.0.0-cp36-cp36m-linux_x86_64.whl
 
 RUN apt-get update \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
@@ -230,6 +230,8 @@ RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
 
 # Install SM Distributed DataParallel binary
 RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
+
+ENV LD_LIBRARY_PATH="/opt/conda/lib/python3.6/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"}
 
 WORKDIR /
 
