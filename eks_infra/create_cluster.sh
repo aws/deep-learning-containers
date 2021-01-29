@@ -75,7 +75,7 @@ function create_node_group(){
     --node-volume-size 500 \
     --node-ami ${INF_NODEGROUP_AMI} \
     --node-labels "test_type=inf" \
-    --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=inf" \
+    --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=inf,k8s.io/cluster-autoscaler/node-template/resources/aws.amazon.com/neuron=1" \
     --asg-access \
     --ssh-access \
     --ssh-public-key "${3}"
