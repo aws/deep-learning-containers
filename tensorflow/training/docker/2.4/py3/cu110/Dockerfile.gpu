@@ -230,8 +230,7 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
 
-RUN SMDATAPARALLEL_TF=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY} \
- && rm -rf ${SMDATAPARALLEL_BINARY}
+RUN SMDATAPARALLEL_TF=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
 ENV LD_LIBRARY_PATH="/usr/local/lib/python3.7/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
