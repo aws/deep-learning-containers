@@ -13,11 +13,14 @@ from test.test_utils import (
     LOGGER,
     CONTAINER_TESTS_PREFIX,
     ec2,
+    get_container_name,
     get_framework_and_version_from_tag,
     is_canary_context,
     is_tf_version,
     is_dlc_cicd_context,
     is_pr_context,
+    run_cmd_on_container,
+    start_container,
 )
 
 
@@ -30,8 +33,8 @@ def test_stray_files(image):
     :param image: ECR image URI
     """
     ctx = Context()
-    container_name = _get_container_name("test_tmp_dirs", image)
-    _start_container(container_name, image, ctx)
+    container_name = get_container_name("test_tmp_dirs", image)
+    start_container(container_name, image, ctx)
 
     # Running list of artifacts/artifact regular expressions we do not want in any of the directories
     stray_artifacts = [r"\.py"]
@@ -40,7 +43,7 @@ def test_stray_files(image):
     allowed_tmp_files = ["hsperfdata_root"]
 
     # Ensure stray artifacts are not in the tmp directory
-    tmp = _run_cmd_on_container(container_name, ctx, "ls -A /tmp")
+    tmp = run_cmd_on_container(container_name, ctx, "ls -A /tmp")
     _assert_artifact_free(tmp, stray_artifacts)
 
     # Ensure tmp dir is empty except for whitelisted files
@@ -51,15 +54,15 @@ def test_stray_files(image):
         ), f"Found unexpected file in tmp dir: {tmp_file}. Allowed tmp files: {allowed_tmp_files}"
 
     # We always expect /var/tmp to be empty
-    var_tmp = _run_cmd_on_container(container_name, ctx, "ls -A /var/tmp")
+    var_tmp = run_cmd_on_container(container_name, ctx, "ls -A /var/tmp")
     _assert_artifact_free(var_tmp, stray_artifacts)
     assert var_tmp.stdout.strip() == ""
 
     # Additional check of home and root directories to ensure that stray artifacts are not present
-    home = _run_cmd_on_container(container_name, ctx, "ls -A ~")
+    home = run_cmd_on_container(container_name, ctx, "ls -A ~")
     _assert_artifact_free(home, stray_artifacts)
 
-    root = _run_cmd_on_container(container_name, ctx, "ls -A /")
+    root = run_cmd_on_container(container_name, ctx, "ls -A /")
     _assert_artifact_free(root, stray_artifacts)
 
 
@@ -72,7 +75,7 @@ def test_python_version(image):
     :param image: ECR image URI
     """
     ctx = Context()
-    container_name = _get_container_name("py-version", image)
+    container_name = get_container_name("py-version", image)
 
     py_version = ""
     for tag_split in image.split("-"):
@@ -81,8 +84,8 @@ def test_python_version(image):
                 py_version = f"Python {tag_split[2]}.{tag_split[3]}"
             else:
                 py_version = f"Python {tag_split[2]}"
-    _start_container(container_name, image, ctx)
-    output = _run_cmd_on_container(container_name, ctx, "python --version")
+    start_container(container_name, image, ctx)
+    output = run_cmd_on_container(container_name, ctx, "python --version")
 
     container_py_version = output.stdout
     # Due to py2 deprecation, Python2 version gets streamed to stderr. Python installed via Conda also appears to
@@ -101,15 +104,15 @@ def test_ubuntu_version(image):
     :param image: ECR image URI
     """
     ctx = Context()
-    container_name = _get_container_name("ubuntu-version", image)
+    container_name = get_container_name("ubuntu-version", image)
 
     ubuntu_version = ""
     for tag_split in image.split("-"):
         if tag_split.startswith("ubuntu"):
             ubuntu_version = tag_split.split("ubuntu")[-1]
 
-    _start_container(container_name, image, ctx)
-    output = _run_cmd_on_container(container_name, ctx, "cat /etc/os-release")
+    start_container(container_name, image, ctx)
+    output = run_cmd_on_container(container_name, ctx, "cat /etc/os-release")
     container_ubuntu_version = output.stdout
 
     assert "Ubuntu" in container_ubuntu_version
@@ -134,9 +137,9 @@ def test_framework_version_cpu(cpu):
     if tested_framework == "pytorch":
         tested_framework = "torch"
     ctx = Context()
-    container_name = _get_container_name("framework-version", image)
-    _start_container(container_name, image, ctx)
-    output = _run_cmd_on_container(
+    container_name = get_container_name("framework-version", image)
+    start_container(container_name, image, ctx)
+    output = run_cmd_on_container(
         container_name, ctx, f"import {tested_framework}; print({tested_framework}.__version__)", executable="python"
     )
     if is_canary_context():
@@ -198,7 +201,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     }
 
     container_name = f"dep_check_{processor}"
-    report_addon = _get_container_name("depcheck-report", image)
+    report_addon = get_container_name("depcheck-report", image)
     dependency_check_report = f"{report_addon}.html"
     html_file = f"{container_name}:/build/dependency-check-report.html"
     test_script = os.path.join(CONTAINER_TESTS_PREFIX, "testDependencyCheck")
@@ -299,20 +302,20 @@ def test_pandas(image):
     :param image: ECR image URI
     """
     ctx = Context()
-    container_name = _get_container_name("pandas", image)
-    _start_container(container_name, image, ctx)
+    container_name = get_container_name("pandas", image)
+    start_container(container_name, image, ctx)
 
     # Make sure we can install pandas, do not fail right away if there are pip check issues
-    _run_cmd_on_container(container_name, ctx, "pip install pandas", warn=True)
+    run_cmd_on_container(container_name, ctx, "pip install pandas", warn=True)
 
-    pandas_import_output = _run_cmd_on_container(container_name, ctx, "import pandas", executable="python")
+    pandas_import_output = run_cmd_on_container(container_name, ctx, "import pandas", executable="python")
 
     assert (
         not pandas_import_output.stdout.strip()
     ), f"Expected no output when importing pandas, but got  {pandas_import_output.stdout}"
 
     # Simple import test to ensure we do not get a bz2 module import failure
-    _run_cmd_on_container(container_name, ctx, "import pandas; print(pandas.__version__)", executable="python")
+    run_cmd_on_container(container_name, ctx, "import pandas; print(pandas.__version__)", executable="python")
 
 
 @pytest.mark.model("N/A")
@@ -324,12 +327,12 @@ def test_emacs(image):
     :param image: ECR image URI
     """
     ctx = Context()
-    container_name = _get_container_name("emacs", image)
-    _start_container(container_name, image, ctx)
+    container_name = get_container_name("emacs", image)
+    start_container(container_name, image, ctx)
 
     # Make sure the following emacs sanity tests exit with code 0
-    _run_cmd_on_container(container_name, ctx, "which emacs")
-    _run_cmd_on_container(container_name, ctx, "emacs -version")
+    run_cmd_on_container(container_name, ctx, "which emacs")
+    run_cmd_on_container(container_name, ctx, "emacs -version")
 
 
 @pytest.mark.model("N/A")
@@ -349,10 +352,10 @@ def test_sm_pysdk_2(training):
 
     # Ensure that sm py sdk 2 is on the container
     ctx = Context()
-    container_name = _get_container_name("sm_pysdk", training)
-    _start_container(container_name, training, ctx)
+    container_name = get_container_name("sm_pysdk", training)
+    start_container(container_name, training, ctx)
 
-    sm_version = _run_cmd_on_container(
+    sm_version = run_cmd_on_container(
         container_name, ctx, "import sagemaker; print(sagemaker.__version__)", executable="python"
     ).stdout.strip()
 
@@ -439,48 +442,6 @@ def test_cuda_paths(gpu):
     )
 
     assert os.path.exists(dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
-
-
-def _get_container_name(prefix, image_uri):
-    """
-    Create a unique container name based off of a test related prefix and the image uri
-
-    :param prefix: test related prefix, like "emacs" or "pip-check"
-    :param image_uri: ECR image URI
-    :return: container name
-    """
-    return f"{prefix}-{image_uri.split('/')[-1].replace('.', '-').replace(':', '-')}"
-
-
-def _start_container(container_name, image_uri, context):
-    """
-    Helper function to start a container locally
-
-    :param container_name: Name of the docker container
-    :param image_uri: ECR image URI
-    :param context: Invoke context object
-    """
-    context.run(
-        f"docker run --entrypoint='/bin/bash' --name {container_name} -itd {image_uri}", hide=True,
-    )
-
-
-def _run_cmd_on_container(container_name, context, cmd, executable="bash", warn=False):
-    """
-    Helper function to run commands on a locally running container
-
-    :param container_name: Name of the docker container
-    :param context: ECR image URI
-    :param cmd: Command to run on the container
-    :param executable: Executable to run on the container (bash or python)
-    :param warn: Whether to only warn as opposed to exit if command fails
-    :return: invoke output, can be used to parse stdout, etc
-    """
-    if executable not in ("bash", "python"):
-        LOGGER.warn(f"Unrecognized executable {executable}. It will be run as {executable} -c '{cmd}'")
-    return context.run(
-        f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
-    )
 
 
 def _assert_artifact_free(output, stray_artifacts):
