@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite errors="0" failures="1" hostname="3c22fbe19d22.ant.amazon.com" name="pytest" skipped="2" tests="3" time="228.279" timestamp="2021-02-02T13:16:27.052763"><testcase classname="eks.tensorflow.inference.test_eks_tensorflow_inference" file="eks/tensorflow/inference/test_eks_tensorflow_inference.py" line="104" name="test_eks_tensorflow_albert[763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-neuron:1.15.4-neuron-py37-ubuntu18.04]" time="0.000"><skipped message="Running additional model in nightly context only" type="pytest.skip">eks/tensorflow/inference/test_eks_tensorflow_inference.py:105: Running additional model in nightly context only</skipped></testcase><testcase classname="eks.tensorflow.inference.test_eks_tensorflow_inference" file="eks/tensorflow/inference/test_eks_tensorflow_inference.py" line="58" name="test_eks_tensorflow_half_plus_two_inference[763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-neuron:1.15.4-neuron-py37-ubuntu18.04]" time="0.001"><skipped message="Skipping EKS Test for EIA and neuron Images" type="pytest.skip">/Users/chumbalk/git-repos/deep-learning-containers/test/dlc_tests/eks/tensorflow/inference/test_eks_tensorflow_inference.py:62: Skipping EKS Test for EIA and neuron Images</skipped></testcase><testcase classname="eks.tensorflow.inference.test_eks_tensorflow_inference" file="eks/tensorflow/inference/test_eks_tensorflow_inference.py" line="10" name="test_eks_tensorflow_neuron_inference[763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-neuron:1.15.4-neuron-py37-ubuntu18.04]" time="226.972"><failure message="retrying.RetryError: RetryError[Attempts: 20, Value: False]">tensorflow_inference = &apos;763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-neuron:1.15.4-neuron-py37-ubuntu18.04&apos;, neuron_only = None
+
+    @pytest.mark.model(&quot;mnist&quot;)
+    def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
+        if &quot;eia&quot; in tensorflow_inference or &quot;neuron&quot; not in tensorflow_inference:
+            pytest.skip(&quot;Skipping EKS Neuron Test for EIA and Non Neuron Images&quot;)
+        num_replicas = &quot;1&quot;
+    
+        rand_int = random.randint(4001, 6000)
+    
+        processor = &quot;neuron&quot;
+    
+        model_name = &quot;saved_model.pb&quot;
+        yaml_path = os.path.join(os.sep, &quot;tmp&quot;, f&quot;tensorflow_single_node_{processor}_inference_{rand_int}.yaml&quot;)
+        inference_service_name = selector_name = f&quot;mnist-{processor}-{rand_int}&quot;
+    
+        search_replace_dict = {
+            &quot;&lt;MODEL_NAME&gt;&quot;: model_name,
+            &quot;&lt;MODEL_BASE_PATH&gt;&quot;: f&quot;s3://aws-dlc-sample-models/mnist_neuron/1&quot;,
+            &quot;&lt;NUM_REPLICAS&gt;&quot;: num_replicas,
+            &quot;&lt;SELECTOR_NAME&gt;&quot;: selector_name,
+            &quot;&lt;INFERENCE_SERVICE_NAME&gt;&quot;: inference_service_name,
+            &quot;&lt;DOCKER_IMAGE_BUILD_ID&gt;&quot;: tensorflow_inference
+        }
+    
+        search_replace_dict[&quot;&lt;NUM_INF1S&gt;&quot;] = &quot;1&quot;
+    
+        eks_utils.write_eks_yaml_file_from_template(
+            eks_utils.get_single_node_inference_template_path(&quot;tensorflow&quot;, processor), yaml_path, search_replace_dict
+        )
+    
+        secret_yml_path = eks_utils.get_aws_secret_yml_path()
+    
+        try:
+            run(&quot;kubectl apply -f {}&quot;.format(yaml_path))
+    
+            port_to_forward = random.randint(49152, 65535)
+    
+            if eks_utils.is_service_running(selector_name):
+                eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, &quot;8500&quot;)
+    
+&gt;           assert test_utils.request_tensorflow_inference(model_name=model_name, port=port_to_forward)
+
+eks/tensorflow/inference/test_eks_tensorflow_inference.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+../../env/lib/python3.8/site-packages/retrying.py:49: in wrapped_f
+    return Retrying(*dargs, **dkw).call(f, *args, **kw)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;retrying.Retrying object at 0x107473760&gt;, fn = &lt;function request_tensorflow_inference at 0x10736e670&gt;, args = ()
+kwargs = {&apos;model_name&apos;: &apos;saved_model.pb&apos;, &apos;port&apos;: 54461}, start_time = 1612300619857, attempt_number = 20, attempt = Attempts: 20, Value: False
+delay_since_first_attempt_ms = 192378, sleep = 10000
+
+    def call(self, fn, *args, **kwargs):
+        start_time = int(round(time.time() * 1000))
+        attempt_number = 1
+        while True:
+            try:
+                attempt = Attempt(fn(*args, **kwargs), attempt_number, False)
+            except:
+                tb = sys.exc_info()
+                attempt = Attempt(tb, attempt_number, True)
+    
+            if not self.should_reject(attempt):
+                return attempt.get(self._wrap_exception)
+    
+            delay_since_first_attempt_ms = int(round(time.time() * 1000)) - start_time
+            if self.stop(attempt_number, delay_since_first_attempt_ms):
+                if not self._wrap_exception and attempt.has_exception:
+                    # get() on an attempt with an exception should cause it to be raised, but raise just in case
+                    raise attempt.get()
+                else:
+&gt;                   raise RetryError(attempt)
+E                   retrying.RetryError: RetryError[Attempts: 20, Value: False]
+
+../../env/lib/python3.8/site-packages/retrying.py:214: RetryError</failure></testcase></testsuite></testsuites>
