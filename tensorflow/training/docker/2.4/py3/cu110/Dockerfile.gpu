@@ -35,6 +35,8 @@ ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/est
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=1.0.2
 
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.4.1/cu110/2021-01-28/smdistributed_dataparallel-1.0.0-cp37-cp37m-linux_x86_64.whl
+
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
     cuda-command-line-tools-11-0 \
@@ -58,6 +60,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     libzmq3-dev \
     git \
     wget \
+    libtool \
     vim \
     build-essential \
     openssh-client \
@@ -83,6 +86,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     libnvinfer7=7.1.3-1+cuda11.0 \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/run/sshd
+
+RUN wget --quiet https://dl.bintray.com/boostorg/release/1.73.0/source/boost_1_73_0.tar.gz \
+ && tar -xzf boost_1_73_0.tar.gz \
+ && cd boost_1_73_0 \
+ && ./bootstrap.sh \
+ && ./b2 threading=multi --prefix=/usr -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
+ && cd .. \
+ && rm -rf boost_1_73_0.tar.gz \
+ && rm -rf boost_1_73_0
 
 ###########################################################################
 # Horovod & its dependencies
@@ -147,8 +159,8 @@ RUN apt-get update \
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
- && ./configure && make && make install \
- && make && make install && rm -rf ../Python-$PYTHON_VERSION*
+ && ./configure --enable-shared && make && make install \
+ && rm -rf ../Python-$PYTHON_VERSION*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
@@ -217,6 +229,10 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
+
+RUN SMDATAPARALLEL_TF=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
+
+ENV LD_LIBRARY_PATH="/usr/local/lib/python3.7/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
