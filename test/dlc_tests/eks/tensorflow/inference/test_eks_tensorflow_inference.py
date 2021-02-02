@@ -18,13 +18,13 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
         
     processor = "neuron"
 
-    model_name = "saved_model.pb"
+    model_name = "mnist_neuron"
     yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_{processor}_inference_{rand_int}.yaml")
     inference_service_name = selector_name = f"mnist-{processor}-{rand_int}"
 
     search_replace_dict = {
         "<MODEL_NAME>": model_name,
-        "<MODEL_BASE_PATH>": f"s3://aws-dlc-sample-models/mnist_neuron/1",
+        "<MODEL_BASE_PATH>": f"https://aws-dlc-sample-models.s3.amazonaws.com",
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
