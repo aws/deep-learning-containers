@@ -19,10 +19,10 @@ ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends software-properties-common \
-    && add-apt-repository ppa:openjdk-r/ppa \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
+ && apt-get install -y --no-install-recommends software-properties-common \
+ && add-apt-repository ppa:openjdk-r/ppa \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
     cmake \
@@ -40,7 +40,6 @@ RUN apt-get update \
     vim \
     wget \
     zlib1g-dev
-
 
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
@@ -105,7 +104,7 @@ RUN conda install -y -c conda-forge pyyaml==5.3.1
 RUN pip install pillow==7.2.0 "awscli<2"
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
-RUN pip uninstall -y model-archiver mutli-model-server \
+RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
  && pip install torchserve==$TS_VERSION \
  && pip install torch-model-archiver==$TS_VERSION

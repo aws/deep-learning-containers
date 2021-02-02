@@ -106,7 +106,6 @@ RUN conda install -c \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
- && pip install captum
 
 # Uninstall and re-install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
@@ -119,7 +118,7 @@ RUN pip install pillow==7.2.0 "awscli<2"
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
-RUN pip uninstall -y model-archiver mutli-model-server \
+RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
  && pip install torchserve==$TS_VERSION \
  && pip install torch-model-archiver==$TS_VERSION
