@@ -15,11 +15,13 @@ from __future__ import absolute_import
 import os
 
 import pytest
-
 import sagemaker
+
+from packaging.version import Version
 from sagemaker.tensorflow import TensorFlow
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
+from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 MNIST_PATH = os.path.join(RESOURCE_PATH, 'mnist')
@@ -38,6 +40,10 @@ def test_distributed_training_smdataparallel_script_mode(
 
     TODO: Enable debugger_hook_config post smdebug support for smdataparallel
     """
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    if Version(image_framework_version) != Version("2.3.1") or image_cuda_version != "cu110":
+        pytest.skip("Model Parallelism only supports CUDA 11 on TensorFlow 2.3")
     instance_type = "ml.p3.16xlarge"
     estimator = TensorFlow(
         entry_point='smdataparallel_mnist_script_mode.sh',
@@ -65,6 +71,10 @@ def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_s
     """
     Tests smddprun command via Estimator API distribution parameter
     """
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    if Version(image_framework_version) != Version("2.3.1") or image_cuda_version != "cu110":
+        pytest.skip("Model Parallelism only supports CUDA 11 on TensorFlow 2.3")
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
     estimator = TensorFlow(entry_point='smdataparallel_mnist.py',
                            role='SageMakerRole',
