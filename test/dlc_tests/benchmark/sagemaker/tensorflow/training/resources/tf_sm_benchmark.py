@@ -24,31 +24,57 @@ kwargs = {"train_volume_size": 200} if processor == "gpu" else {}
 
 sagemaker_session = sagemaker.Session(boto_session=boto3.Session(region_name=args.region))
 
-tf_estimator = TensorFlow(
-    sagemaker_session=sagemaker_session,
-    script_mode=True,
-    entry_point=entrypoint_script,
-    source_dir=source_dir,
-    role="SageMakerRole",
-    train_instance_count=args.node_count,
-    train_instance_type=args.instance_type,
-    image_name=args.image_uri,
-    py_version=args.python,
-    framework_version=args.framework_version,
-    distributions={
-        "mpi": {
-          "enabled": True,
-          "processes_per_host": processes_per_host,
-          "custom_mpi_options": (
-              "-x HOROVOD_HIERARCHICAL_ALLREDUCE=1 "
-              "-x HOROVOD_FUSION_THRESHOLD=16777216 "
-              "-x TF_CPP_MIN_LOG_LEVEL=0"
-          ),
-        }
-    },
-    output_path=f"s3://dlc-bai-results-sagemaker-{args.region}",
-    **kwargs
-)
+if str(sagemaker.__version__).startswith('2'):
+    tf_estimator = TensorFlow(
+        sagemaker_session=sagemaker_session,
+        entry_point=entrypoint_script,
+        source_dir=source_dir,
+        role="SageMakerRole",
+        instance_count=args.node_count,
+        instance_type=args.instance_type,
+        image_uri=args.image_uri,
+        py_version=args.python,
+        framework_version=args.framework_version,
+        distribution={
+            "mpi": {
+              "enabled": True,
+              "processes_per_host": processes_per_host,
+              "custom_mpi_options": (
+                  "-x HOROVOD_HIERARCHICAL_ALLREDUCE=1 "
+                  "-x HOROVOD_FUSION_THRESHOLD=16777216 "
+                  "-x TF_CPP_MIN_LOG_LEVEL=3"
+              ),
+            }
+        },
+        output_path=f"s3://dlc-bai-results-sagemaker-{args.region}",
+        **kwargs
+    )
+else:
+    tf_estimator = TensorFlow(
+        sagemaker_session=sagemaker_session,
+        script_mode=True,
+        entry_point=entrypoint_script,
+        source_dir=source_dir,
+        role="SageMakerRole",
+        train_instance_count=args.node_count,
+        train_instance_type=args.instance_type,
+        image_name=args.image_uri,
+        py_version=args.python,
+        framework_version=args.framework_version,
+        distributions={
+            "mpi": {
+                "enabled": True,
+                "processes_per_host": processes_per_host,
+                "custom_mpi_options": (
+                    "-x HOROVOD_HIERARCHICAL_ALLREDUCE=1 "
+                    "-x HOROVOD_FUSION_THRESHOLD=16777216 "
+                    "-x TF_CPP_MIN_LOG_LEVEL=3"
+                ),
+            }
+        },
+        output_path=f"s3://dlc-bai-results-sagemaker-{args.region}",
+        **kwargs
+    )
 
 data = {
     "train": f"s3://dlc-data-sagemaker-{args.region}/imagenet/raw/train-480px",

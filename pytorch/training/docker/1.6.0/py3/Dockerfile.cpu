@@ -9,7 +9,7 @@ ARG OPEN_MPI_VERSION=4.0.1
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.9.3
+ARG SMDEBUG_VERSION=1.0.0
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -24,7 +24,9 @@ ENV PATH=/opt/conda/bin:$PATH
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV DGLBACKEND=pytorch
 
-ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_aws/20200727-215603/a40b1c195ba679596118514fcbeae1f422591426/cpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
+ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_cuda/20201205-063316/cddb1a49fc68ff0c6b06af06cb08e18cfd7dc0a2/cpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://torchvision-build.s3.amazonaws.com/1.6.0/cpu/torchvision-0.7.0-cp36-cp36m-linux_x86_64.whl
+
 WORKDIR /
 
 RUN apt-get update \
@@ -97,11 +99,12 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
     "awscli<2" \
-    fastai==1.0.59 \
+    fastai==1.0.61 \
     scipy==1.2.2 \
     click \
     "cryptography>3.2" \
     smdebug==${SMDEBUG_VERSION} \
+    smclarify \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-pytorch-training<3" \
@@ -109,8 +112,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     Pillow==7.1.0 \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U \
-    https://torchvision-build.s3.amazonaws.com/1.6.0/cpu/torchvision-0.7.0-cp36-cp36m-linux_x86_64.whl
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

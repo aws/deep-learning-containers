@@ -693,8 +693,7 @@ def build_ecs_training_command(s3_test_location, test_string):
     :return: <list> command to send to the container
     """
     return [
-        f"pip install -U awscli && mkdir -p /test/logs && aws s3 cp {s3_test_location}/ /test/ --recursive "
-        f"&& chmod +x -R /test/ && {test_string}"
+        f"mkdir -p /test/logs && aws s3 cp {s3_test_location}/ /test/ --recursive && chmod +x -R /test/ && {test_string}"
     ]
 
 
