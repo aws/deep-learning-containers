@@ -10,7 +10,11 @@ install_kfctl(){
     then
         wget -O /tmp/kfctl_${KFCTL_VERSION}_linux.tar.gz ${S3_URL}
         tar -xvf /tmp/kfctl_${KFCTL_VERSION}_linux.tar.gz -C /tmp --strip-components=1
-        sudo mv /tmp/kfctl /usr/local/bin
+        if ! [ -x "$(command -v sudo)" ]; then
+            mv /tmp/kfctl /usr/local/bin
+        else
+            sudo mv /tmp/kfctl /usr/local/bin
+        fi
     fi
 }
 
