@@ -98,9 +98,9 @@ def _get_latest_package_version(package):
 
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
-# @pytest.mark.skipif(not is_mainline_context(),
-#                     reason="Skipping the test to decrease the number of calls to the Safety Check DB. "
-#                            "Test will be executed in the 'mainline' pipeline only")
+@pytest.mark.skipif(not is_mainline_context(),
+                    reason="Skipping the test to decrease the number of calls to the Safety Check DB. "
+                           "Test will be executed in the 'mainline' pipeline only")
 def test_safety(image):
     """
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
@@ -127,8 +127,7 @@ def test_safety(image):
         run(f"{docker_exec_cmd} pip install safety yolk3k ", hide=True)
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
         safety_result = json.loads(json_str_safety_result)
-        for vulnerability in safety_result:
-            package, affected_versions, curr_version, _, vulnerability_id = vulnerability[:5]
+        for package, affected_versions, curr_version, _, vulnerability_id in safety_result:
             # Get the latest version of the package with vulnerability
             latest_version = _get_latest_package_version(package)
             # If the latest version of the package is also affected, ignore this vulnerability
