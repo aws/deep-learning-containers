@@ -170,7 +170,8 @@ RUN ${PIP} install --no-cache --upgrade \
     ${MX_URL} \
     smdebug==${SMDEBUG_VERSION} \
     sagemaker \
-    awscli
+    awscli \
+    smclarify
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.0/targets/x86_64-linux/lib/stubs \

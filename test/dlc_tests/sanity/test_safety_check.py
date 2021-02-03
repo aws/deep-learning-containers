@@ -127,7 +127,8 @@ def test_safety(image):
         run(f"{docker_exec_cmd} pip install safety yolk3k ", hide=True)
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
         safety_result = json.loads(json_str_safety_result)
-        for package, affected_versions, curr_version, _, vulnerability_id in safety_result:
+        for vulnerability in safety_result:
+            package, affected_versions, curr_version, _, vulnerability_id = vulnerability[:5]
             # Get the latest version of the package with vulnerability
             latest_version = _get_latest_package_version(package)
             # If the latest version of the package is also affected, ignore this vulnerability
