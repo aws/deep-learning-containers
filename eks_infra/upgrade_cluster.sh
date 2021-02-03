@@ -90,6 +90,30 @@ function create_nodegroups(){
     --ssh-public-key "${3}"
 }
 
+# Add or remove S3 access for GPU nodegroup worker nodes
+function manage_s3_access_for_gpu_nodes(){
+  NODE_GROUP_NAME="gpu-nodegroup-${2/./-}"
+
+  INSTANCE_PROFILE_PREFIX=$(aws cloudformation describe-stacks | jq -r '.Stacks[].StackName' | grep ${NODE_GROUP_NAME})
+
+  if [ -n "${INSTANCE_PROFILE_PREFIX}" ]; then
+    INSTANCE_PROFILE_NAME=$(aws iam list-instance-profiles | jq -r '.InstanceProfiles[].InstanceProfileName' | grep $INSTANCE_PROFILE_PREFIX)
+    if [ -n "${INSTANCE_PROFILE_NAME}" ]; then
+      S3_POLICY_ARN="arn:aws:iam::aws:policy/AmazonS3FullAccess"
+      ROLE_NAME=$(aws iam get-instance-profile --instance-profile-name $INSTANCE_PROFILE_NAME | jq -r '.InstanceProfile.Roles[] | .RoleName')
+      
+      if [ "$1" = "attach" ]; then
+        aws iam attach-role-policy --role-name $ROLE_NAME --policy-arn $S3_POLICY_ARN
+      elif [ "$1" = "detach" ]
+        aws iam detach-role-policy --role-name $ROLE_NAME --policy-arn $S3_POLICY_ARN
+    else  
+      echo "Instance Profile $INSTANCE_PROFILE_NAME does not exist for the $NODE_GROUP_NAME nodegroup"
+    fi
+  else
+    echo "CloudFormation stack for $NODE_GROUP_NAME nodegroup does not exist"
+  fi
+}
+
 # Function to delete all nodegroups in EKS cluster
 function delete_nodegroups(){
 
@@ -110,11 +134,13 @@ function delete_nodegroups(){
 
 # Function to upgrade nodegroups
 function upgrade_nodegroups(){
+    manage_s3_access_for_gpu_nodes "detach" ${2}
     delete_nodegroups ${1} ${3}
     create_nodegroups ${1} ${2} ${4}
+    manage_s3_access_for_gpu_nodes "attach" ${2}
 }
 
-#Function ton upgrade core k8s components
+#Function to upgrade core k8s components
 function update_eksctl_utils(){
     eksctl utils update-kube-proxy \
     --cluster ${1} \

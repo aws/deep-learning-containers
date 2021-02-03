@@ -82,6 +82,26 @@ function create_node_group(){
 
 }
 
+# Provide S3 access for GPU nodegroup worker nodes
+function add_s3_access_for_gpu_nodes(){
+  NODE_GROUP_NAME="gpu-nodegroup-${1/./-}"
+
+  INSTANCE_PROFILE_PREFIX=$(aws cloudformation describe-stacks | jq -r '.Stacks[].StackName' | grep ${NODE_GROUP_NAME})
+
+  if [ -n "${INSTANCE_PROFILE_PREFIX}" ]; then
+    INSTANCE_PROFILE_NAME=$(aws iam list-instance-profiles | jq -r '.InstanceProfiles[].InstanceProfileName' | grep $INSTANCE_PROFILE_PREFIX)
+    if [ -n "${INSTANCE_PROFILE_NAME}" ]; then
+      S3_POLICY_ARN="arn:aws:iam::aws:policy/AmazonS3FullAccess"
+      ROLE_NAME=$(aws iam get-instance-profile --instance-profile-name $INSTANCE_PROFILE_NAME | jq -r '.InstanceProfile.Roles[] | .RoleName')
+      aws iam attach-role-policy --role-name $ROLE_NAME --policy-arn $S3_POLICY_ARN
+    else  
+      echo "Instance Profile $INSTANCE_PROFILE_NAME does not exist for the $NODE_GROUP_NAME nodegroup"
+    fi
+  else
+    echo "CloudFormation stack for $NODE_GROUP_NAME nodegroup does not exist"
+  fi
+}
+
 # Function to create namespaces in EKS cluster
 function create_namespaces(){
   kubectl create -f namespace.yaml
@@ -118,4 +138,5 @@ fi
 
 create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
 create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
+add_s3_access_for_gpu_nodes ${EKS_VERSION}
 create_namespaces
