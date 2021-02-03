@@ -69,9 +69,9 @@ def test_dlc_major_version_dockerfiles(image):
 
     # Skip older FW versions that did not use this versioning scheme
     references = {"tensorflow2": "2.2.0", "tensorflow1": "1.16.0", "mxnet": "1.7.0", "pytorch": "1.5.0"}
-    if test_utils.is_tf1(image):
+    if test_utils.is_tf_version("1", image):
         reference_fw = "tensorflow1"
-    elif test_utils.is_tf2(image):
+    elif test_utils.is_tf_version("2", image):
         reference_fw = "tensorflow2"
     else:
         reference_fw = framework
@@ -130,6 +130,21 @@ def test_dlc_major_version_dockerfiles(image):
         expected_versions = [v + 1 for v in expected_versions]
         assert 1 not in actual_versions, (
             f"DLC v1.0 is deprecated in TF2.3 gpu containers, but found major version 1 "
+            f"in one of the Dockerfiles. Please inspect {versions}"
+        )
+
+    # Test case explicitly for PyTorch 1.6.0 training gpu, since v2.0 is banned
+    if (framework, fw_version_major_minor, processor, python_major_minor_version, job_type) == (
+        "pytorch",
+        "1.6",
+        "gpu",
+        "36",
+        "training",
+    ):
+        expected_versions = [v + 1 for v in expected_versions]
+        expected_versions[0] = 1
+        assert 2 not in actual_versions, (
+            f"DLC v2.0 is deprecated in PyTorch 1.6.0 gpu containers, but found major version 2 "
             f"in one of the Dockerfiles. Please inspect {versions}"
         )
 

@@ -155,49 +155,15 @@ def is_mxnet_eks_multinode_training_complete(job_name, namespace):
         job_info = json.loads(run_out.stdout)
         LOGGER.debug(f"Job info: {job_info}")
 
-    if 'status' not in job_info:
-        raise ValueError("Waiting for job to launch...")
-    job_status = job_info['status']
-    if 'conditions' not in job_status:
-        raise ValueError("Waiting for job to launch...")
-    job_conditions = job_status['conditions']
-    if len(job_conditions) == 0:
+    if 'status' not in job_info or 'conditions' not in job_info["status"] or len(job_info["status"]["conditions"]) == 0:
         raise ValueError("Waiting for job to launch...")
     else:
-        # job_conditions at least with length 1
-        if 'status' in job_conditions[0]:
-            job_created = job_conditions[0]['status']
-            if 'message' in job_conditions[0] and len(job_conditions) == 1:
-                LOGGER.info(job_conditions[0]['message'])
-            if not job_created:
-                raise ValueError("Waiting for job to be created...")
-            if len(job_conditions) == 1:
-                raise ValueError("Waiting for job to run...")
-            # job_conditions at least with length 2
-            if 'status' in job_conditions[1]:
-                job_running = job_conditions[1]['status']
-                if 'message' in job_conditions[1] and len(job_conditions) == 2:
-                    LOGGER.info(job_conditions[1]['message'])
-                if not job_running:
-                    raise ValueError("Waiting for job to run...")
-                if len(job_conditions) == 2:
-                    raise ValueError("Waiting for job to complete...")
-                # job_conditions at least with length 3
-                if 'status' in job_conditions[2]:
-                    job_succeed = job_conditions[2]['status']
-                    if 'message' in job_conditions[2]:
-                        LOGGER.info(job_conditions[2]['message'])
-                    if not job_succeed:
-                        if job_running:
-                            raise ValueError("Waiting for job to complete...")
-                        else:
-                            return False
-                    return True
-            else:
-                raise ValueError("Waiting for job to run...")
+        job_conditions = job_info["status"]["conditions"]
+        job_condition_succeed = ["type" in c and c["type"] == "Succeeded" for c in job_conditions]
+        if any(job_condition_succeed):
+            return True
         else:
-            raise ValueError("Waiting for job to launch...")
-    return False
+            raise ValueError("Waiting for job to be complete...")
 
 
 def _run_eks_multi_node_training_mpijob(namespace, job_name, remote_yaml_file_path):

@@ -10,7 +10,7 @@ ARG CUBLAS_VERSION=10.2.1.243-1_amd64
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.9.2
+ARG SMDEBUG_VERSION=0.9.4
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -126,7 +126,7 @@ RUN /opt/conda/bin/conda config --set ssl_verify False \
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install \
     --no-cache-dir smdebug==${SMDEBUG_VERSION} \
-    "sagemaker<2" \
+    "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     --no-cache-dir fastai==1.0.59 \
     "awscli<2" \
@@ -134,7 +134,7 @@ RUN pip install \
  && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.1/py3/gpu/torch-1.5.1-cp36-cp36m-manylinux1_x86_64.whl \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U \
-     https://torchvision-build.s3.amazonaws.com/1.5.1/gpu/torchvision-0.6.0-cp36-cp36m-linux_x86_64.whl
+     https://torchvision-build.s3.amazonaws.com/1.5.1/gpu/torchvision-0.6.1-cp36-cp36m-linux_x86_64.whl
 
 # Install Horovod
 RUN pip uninstall -y horovod \
@@ -168,7 +168,10 @@ RUN apt-get install -y --no-install-recommends openssh-client openssh-server \
 
 WORKDIR /
 
-RUN pip install --no-cache-dir "sagemaker-pytorch-training<3"
+RUN pip install --no-cache-dir \
+    "sagemaker-pytorch-training<3" \
+    # cryptography required by pyopenssl and paramiko, <=3.2 has safety vulnerabilities
+    "cryptography>3.2"
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 

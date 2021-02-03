@@ -28,17 +28,20 @@ SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist.py')
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_test_in_region
-def test_training(sagemaker_session, ecr_image, instance_type, instance_count):
+def test_training(sagemaker_session, ecr_image, instance_type, instance_count, framework_version):
     hyperparameters = {'sagemaker_parameter_server_enabled': True} if instance_count > 1 else {}
     hyperparameters['epochs'] = 1
 
     mx = MXNet(entry_point=SCRIPT_PATH,
                role='SageMakerRole',
-               train_instance_count=instance_count,
-               train_instance_type=instance_type,
+               instance_count=instance_count,
+               instance_type=instance_type,
                sagemaker_session=sagemaker_session,
-               image_name=ecr_image,
+               image_uri=ecr_image,
+               framework_version=framework_version,
                hyperparameters=hyperparameters)
+    
+    mx = _disable_sm_profiler(sagemaker_session.boto_region_name, mx)
 
     with timeout(minutes=15):
         prefix = 'mxnet_mnist/{}'.format(utils.sagemaker_timestamp())
@@ -49,3 +52,11 @@ def test_training(sagemaker_session, ecr_image, instance_type, instance_count):
 
         job_name = utils.unique_name_from_base('test-mxnet-image')
         mx.fit({'train': train_input, 'test': test_input}, job_name=job_name)
+
+def _disable_sm_profiler(region, estimator):
+    """Disable SMProfiler feature for China regions
+    """
+    
+    if region in ('cn-north-1', 'cn-northwest-1'):
+        estimator.disable_profiler = True
+    return estimator

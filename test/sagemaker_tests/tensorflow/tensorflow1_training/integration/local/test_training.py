@@ -73,6 +73,7 @@ def test_mnist_cpu(sagemaker_local_session, docker_image, tmpdir, framework_vers
     _assert_files_exist_in_tar(output_path, ['my_model.h5'])
 
 
+@pytest.mark.skip(reason="Skipping a test until a fix is implemented")
 @pytest.mark.processor("gpu")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
@@ -146,10 +147,10 @@ def run_tf_training(script,
 
     estimator = TensorFlow(entry_point=script,
                            role='SageMakerRole',
-                           train_instance_count=instance_count,
-                           train_instance_type=instance_type,
+                           instance_count=instance_count,
+                           instance_type=instance_type,
                            sagemaker_session=sagemaker_local_session,
-                           image_name=docker_image,
+                           image_uri=docker_image,
                            model_dir='/opt/ml/model',
                            output_path=output_path,
                            hyperparameters=hyperparameters,

@@ -7,15 +7,15 @@ from pkg_resources._vendor.packaging.specifiers import SpecifierSet
 from pkg_resources._vendor.packaging.version import Version
 
 import pytest
+import requests
 
 from invoke import run
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_dlc_cicd_context, is_canary_context
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_dlc_cicd_context, is_canary_context, is_mainline_context
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
-
 
 # List of safety check vulnerability IDs to ignore. To get the ID, run safety check on the container,
 # and copy paste the ID given by the safety check for a package.
@@ -79,40 +79,28 @@ def _get_safety_ignore_list(image_uri):
     job_type = "training" if "training" in image_uri else "inference-eia" if "eia" in image_uri else "inference"
     python_version = "py2" if "py2" in image_uri else "py3"
 
-    # TODO: Remove each if condition on each subsequent release
-    additional_skips = []
-    if is_canary_context():
-        if (framework == "tensorflow" and "2.1" in image_uri) or \
-                (framework == "pytorch" and "1.4" in image_uri) or \
-                (framework == "pytorch" and job_type == "training" and "1.5" in image_uri):
-            additional_skips.append('38414')
-
-    return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, []) + additional_skips
+    return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, [])
 
 
-def _get_latest_package_version(docker_exec_cmd, package, num_tries=3):
+def _get_latest_package_version(package):
     """
     Get the latest package version available on pypi for a package.
     It is retried multiple times in case there are transient failures in executing the command.
 
-    :param docker_exec_cmd: str "docker exec" command containing the name of the container to be tested
     :param package: str Name of the package whose latest version must be retrieved
-    :param num_tries: int Number of times the docker exec command can be tried before giving up
     :return: tuple(command_success: bool, latest_version_value: str)
     """
-    get_latest_version_command = f"{docker_exec_cmd} yolk -M {package} -f version "
-    for attempt in range(num_tries):
-        run_out = run(get_latest_version_command, warn=True, hide=True)
-        if run_out.failed or run_out.stdout:
-            break
-        LOGGER.info(f"Failed {attempt}: '{get_latest_version_command}' returned '{run_out.stdout}'")
-    assert run_out.failed or run_out.stdout, f"'{get_latest_version_command}' returned '{run_out.stdout}'"
-    return run_out.ok, run_out.stdout.strip("\n")
+    pypi_package_info = requests.get(f"https://pypi.org/pypi/{package}/json")
+    data = json.loads(pypi_package_info.text)
+    versions = data["releases"].keys()
+    return str(max(Version(v) for v in versions))
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run safety tests regularly on production images")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
+@pytest.mark.skipif(not is_mainline_context(),
+                    reason="Skipping the test to decrease the number of calls to the Safety Check DB. "
+                           "Test will be executed in the 'mainline' pipeline only")
 def test_safety(image):
     """
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
@@ -139,11 +127,10 @@ def test_safety(image):
         run(f"{docker_exec_cmd} pip install safety yolk3k ", hide=True)
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
         safety_result = json.loads(json_str_safety_result)
-        for package, affected_versions, curr_version, _, vulnerability_id in safety_result:
+        for vulnerability in safety_result:
+            package, affected_versions, curr_version, _, vulnerability_id = vulnerability[:5]
             # Get the latest version of the package with vulnerability
-            command_success, latest_version = _get_latest_package_version(docker_exec_cmd, package)
-            if not command_success:
-                continue
+            latest_version = _get_latest_package_version(package)
             # If the latest version of the package is also affected, ignore this vulnerability
             if Version(latest_version) in SpecifierSet(affected_versions):
                 # Version(x) gives an object that can be easily compared with another version, or with a SpecifierSet.

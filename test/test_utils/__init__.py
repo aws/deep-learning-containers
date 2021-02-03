@@ -13,6 +13,7 @@ from botocore.exceptions import ClientError
 from invoke import run
 from invoke.context import Context
 from packaging.version import LegacyVersion, Version, parse
+from packaging.specifiers import SpecifierSet
 from retrying import retry
 
 from src.config.test_config import ENABLE_BENCHMARK_DEV_MODE
@@ -27,18 +28,23 @@ DEFAULT_REGION = "us-west-2"
 P3DN_REGION = "us-east-1"
 
 # Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
-UBUNTU_16_BASE_DLAMI_US_WEST_2 = "ami-0e5a388144f62e4f5"
-UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0da7f2daf5e92c6f2"
+UBUNTU_16_BASE_DLAMI_US_WEST_2 = "ami-09b49a82b7f258d03"
+UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0743d56bc1f9aa072"
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-032a07adeddce2db8"
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-063f381b07ea97834"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 UL_AMI_LIST = [
     UBUNTU_16_BASE_DLAMI_US_WEST_2,
     UBUNTU_16_BASE_DLAMI_US_EAST_1,
+    UBUNTU_18_BASE_DLAMI_US_EAST_1,
+    UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
 ]
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
+NEURON_AL2_DLAMI = "ami-092059396c7e51f52"
 
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
@@ -67,28 +73,30 @@ SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 PUBLIC_DLC_REGISTRY = "763104351884"
 
 
-def is_tf1(image_uri):
-    if "tensorflow" not in image_uri:
-        return False
-    return bool(re.search(r"1\.\d+\.\d+", image_uri))
+def is_tf_version(required_version, image_uri):
+    """
+    Validate that image_uri has framework version equal to required_version
+
+    :param required_version: str Framework version which is required from the image_uri
+    :param image_uri: str ECR Image URI for the image to be validated
+    :return: bool True if image_uri has same framework version as required_version, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    required_version_specifier_set = SpecifierSet(f"=={required_version}.*")
+    return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
 
 
-def is_tf2(image_uri):
-    if "tensorflow" not in image_uri:
-        return False
-    return bool(re.search(r"2\.\d+\.\d+", image_uri))
+def is_below_tf_version(version_upper_bound, image_uri):
+    """
+    Validate that image_uri has framework version strictly less than version_upper_bound
 
-
-def is_tf20(image_uri):
-    if "tensorflow" not in image_uri:
-        return False
-    return bool(re.search(r"2\.0\.\d+", image_uri))
-
-
-def below_tf23(image_uri):
-    if "tensorflow" not in image_uri:
-        return False
-    return bool(re.search(r"2\.[0-2]\.\d+", image_uri))
+    :param version_upper_bound: str Framework version that image_uri is required to be below
+    :param image_uri: str ECR Image URI for the image to be validated
+    :return: bool True if image_uri has framework version less than version_upper_bound, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
+    return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
 
 
 def get_repository_local_path():
@@ -99,6 +107,8 @@ def get_repository_local_path():
 def get_inference_server_type(image_uri):
     if "pytorch" not in image_uri:
         return "mms"
+    if "neuron" in image_uri:
+        return "ts"
     image_tag = image_uri.split(":")[1]
     pytorch_ver = parse(image_tag.split("-")[0])
     if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"):
@@ -116,6 +126,10 @@ def is_canary_context():
 
 def is_mainline_context():
     return os.getenv("BUILD_CONTEXT") == "MAINLINE"
+
+
+def is_nightly_context():
+    return os.getenv("BUILD_CONTEXT") == "NIGHTLY"
 
 
 def is_empty_build_context():
@@ -261,6 +275,27 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
 
     return True
 
+@retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
+def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8501"):
+    """
+    Method to run tensorflow inference on half_plus_two model using CURL command
+    :param model_name:
+    :param ip_address:
+    :param port:
+    :connection: ec2_connection object to run the commands remotely over ssh
+    :return:
+    """
+    inference_string = "'{\"instances\": [[2,1952,25,10901,3]]}'"
+    run_out = run(
+        f"curl -d {inference_string} -X POST http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
+    )
+
+    # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
+    # is 404. Hence the extra check.
+    if run_out.return_code != 0 or 'predictions' not in run_out.stdout:
+        return False
+
+    return True
 
 def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None):
     """
@@ -272,7 +307,7 @@ def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", 
     :return:
     """
     conn_run = connection.run if connection is not None else run
-    conn_run(f"python {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
+    conn_run(f"python3 {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
 def get_inference_run_command(image_uri, model_names, processor="cpu"):
@@ -287,12 +322,14 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
     if processor == "eia":
         multi_model_location = {
             "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar",
-            "pytorch-densenet": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia.mar",
+            "pytorch-densenet": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia_v1_5_1.mar",
+            "pytorch-densenet-v1-3-1": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia_v1_3_1.mar",
         }
     elif server_type == "ts":
         multi_model_location = {
             "squeezenet": "https://torchserve.s3.amazonaws.com/mar_files/squeezenet1_1.mar",
             "pytorch-densenet": "https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar",
+            "pytorch-resnet-neuron": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar",
         }
     else:
         multi_model_location = {
@@ -315,10 +352,16 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
     else:
         server_cmd = "multi-model-server"
 
-    mms_command = (
-        f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
-        + " ".join(parameters)
-    )
+    if processor != "neuron":
+        mms_command = (
+            f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
+            + " ".join(parameters)
+        )
+    else:
+        mms_command = (
+            f"/usr/local/bin/entrypoint.sh -m {parameters} -t /home/model-server/config.properties"
+        )
+
     return mms_command
 
 
@@ -334,6 +377,11 @@ def get_tensorflow_model_name(processor, model_name):
             "cpu": "saved_model_half_plus_two_cpu",
             "gpu": "saved_model_half_plus_two_gpu",
             "eia": "saved_model_half_plus_two",
+        },
+        "albert": {
+            "cpu": "albert",
+            "gpu": "albert",
+            "eia": "albert",
         },
         "saved_model_half_plus_three": {"eia": "saved_model_half_plus_three"},
     }
@@ -431,6 +479,9 @@ def get_canary_default_tag_py3_version(framework, version):
     """
     if framework == "tensorflow2":
         return "py37" if Version(version) >= Version("2.2") else "py3"
+    
+    if framework == "mxnet":
+        return "py37" if Version(version) >= Version("1.8") else "py3"
 
     return "py3"
 
@@ -507,7 +558,7 @@ def parse_canary_images(framework, region):
                 "py2": [],
                 "py3": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
                 ],
@@ -576,7 +627,7 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install -U 'sagemaker<2' awscli boto3 botocore six==1.11")
+            ctx.run("pip install 'sagemaker>=2,<3' awscli boto3 botocore six==1.11")
 
             # SageMaker TF estimator is coded to only accept framework versions up to 2.1.0 as py2 compatible.
             # Fixing this through the following changes:
@@ -601,7 +652,7 @@ def setup_sm_benchmark_mx_train_env(resources_location):
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install -U 'sagemaker<2' awscli boto3 botocore")
+            ctx.run("pip install sagemaker awscli boto3 botocore")
     return venv_dir
 
 
@@ -624,9 +675,24 @@ def get_framework_and_version_from_tag(image_uri):
             f"Cannot find framework in image uri {image_uri} " f"from allowed frameworks {allowed_frameworks}"
         )
 
-    tag_framework_version = image_uri.split(":")[-1].split("-")[0]
+    tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]
 
     return tested_framework, tag_framework_version
+
+
+def get_cuda_version_from_tag(image_uri):
+    """
+    Return the cuda version from the image tag.
+    :param image_uri: ECR image URI
+    :return: cuda version
+    """
+    cuda_framework_version = None
+
+    cuda_str = ["cu", "gpu"]
+    if all(keyword in image_uri for keyword in cuda_str):
+        cuda_framework_version = re.search(r"(cu\d+)-", image_uri).groups()[0]
+
+    return cuda_framework_version
 
 
 def get_job_type_from_image(image_uri):
@@ -675,10 +741,49 @@ def get_processor_from_image_uri(image_uri):
     :param image_uri: ECR image URI
     :return: cpu, gpu, or eia
     """
-    allowed_processors = ("cpu", "gpu", "eia")
+    allowed_processors = ("cpu", "gpu", "eia", "neuron")
 
     for processor in allowed_processors:
         match = re.search(rf"-({processor})", image_uri)
         if match:
             return match.group(1)
     raise RuntimeError("Cannot find processor")
+
+
+def get_container_name(prefix, image_uri):
+    """
+    Create a unique container name based off of a test related prefix and the image uri
+    :param prefix: test related prefix, like "emacs" or "pip-check"
+    :param image_uri: ECR image URI
+    :return: container name
+    """
+    return f"{prefix}-{image_uri.split('/')[-1].replace('.', '-').replace(':', '-')}"
+
+
+def start_container(container_name, image_uri, context):
+    """
+    Helper function to start a container locally
+    :param container_name: Name of the docker container
+    :param image_uri: ECR image URI
+    :param context: Invoke context object
+    """
+    context.run(
+        f"docker run --entrypoint='/bin/bash' --name {container_name} -itd {image_uri}", hide=True,
+    )
+
+
+def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=False):
+    """
+    Helper function to run commands on a locally running container
+    :param container_name: Name of the docker container
+    :param context: ECR image URI
+    :param cmd: Command to run on the container
+    :param executable: Executable to run on the container (bash or python)
+    :param warn: Whether to only warn as opposed to exit if command fails
+    :return: invoke output, can be used to parse stdout, etc
+    """
+    if executable not in ("bash", "python"):
+        LOGGER.warn(f"Unrecognized executable {executable}. It will be run as {executable} -c '{cmd}'")
+    return context.run(
+        f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
+    )
