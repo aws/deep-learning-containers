@@ -628,7 +628,7 @@ def get_dgl_branch(ctx, image_uri):
 
     :param ctx: Invoke context
     :param image_uri: docker image URI, used to uniqify repo name to avoid asynchronous git pulls
-    :return: latest dgl branch, i.e. 0.4.x
+    :return: latest dgl branch, i.e. 0.5.x
     """
     image_addition = image_uri.split('/')[-1].replace(':', '-')
     dgl_local_repo = f'.dgl_branch-{image_addition}'
