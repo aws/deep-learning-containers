@@ -37,7 +37,6 @@ spec:
         app: <SELECTOR_NAME>
         role: master
     spec:
-      serviceAccountName: dlc-serviceaccount
       containers:
       - name: tfs-service
         image: <DOCKER_IMAGE_BUILD_ID>
