@@ -127,7 +127,8 @@ RUN ${PIP} install --no-cache --upgrade \
     ${MX_URL} \
     smdebug==${SMDEBUG_VERSION} \
     sagemaker \
-    awscli
+    awscli \
+    smclarify
 
 # Install Horovod
 RUN ${PIP} install --no-cache-dir horovod==0.19.5
