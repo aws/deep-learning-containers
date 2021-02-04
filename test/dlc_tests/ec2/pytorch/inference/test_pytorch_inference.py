@@ -66,6 +66,7 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
 
     if processor is "neuron":
+        ec2_connection.run("sudo systemctl stop neuron-rtd")  # Stop neuron-rtd in host env for DLC to start it
         docker_run_cmd = (
             f"{docker_cmd} run -itd --name {container_name}"
             f" -p 80:8080 -p 8081:8081"
