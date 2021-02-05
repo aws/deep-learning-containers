@@ -72,7 +72,7 @@ function delete_cluster(){
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
       CLUSTER_NAME=${CLUSTER}-${CONTEXT}
       if check_cluster_status $CLUSTER_NAME; then
-        ./delete_cluster.sh $CLUSTER_NAME $EKS_VERSION
+        ./delete_cluster.sh $CLUSTER_NAME
       else
         echo "EKS Cluster :: ${CLUSTER_NAME} :: does not exists. Skipping delete operation."
       fi

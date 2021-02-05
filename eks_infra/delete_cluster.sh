@@ -3,7 +3,7 @@
 #/ Usage: 
 #/ export AWS_REGION=<AWS-Region>
 #/ export EKS_CLUSTER_MANAGER_ROLE=<ARN-of-IAM-role>
-#/ ./delete.sh eks_cluster_name eks_version
+#/ ./delete.sh eks_cluster_name
 
 set -ex
 
@@ -26,11 +26,9 @@ function update_kubeconfig(){
     cat /root/.kube/config
 }
 
-# Detach S3 role policy from the IAM role of GPU nodegroup worker nodes
-function detach_s3_policy_for_gpu_nodes(){
-
-  NODE_GROUP_NAME="gpu-nodegroup-${1/./-}"
-
+# Detach S3 policy from nodegroup IAM role
+function remove_s3_access_policy(){
+  NODE_GROUP_NAME=${1}
   INSTANCE_PROFILE_PREFIX=$(aws cloudformation describe-stacks | jq -r '.Stacks[].StackName' | grep ${NODE_GROUP_NAME})
 
   if [ -n "${INSTANCE_PROFILE_PREFIX}" ]; then
@@ -48,9 +46,22 @@ function detach_s3_policy_for_gpu_nodes(){
 
 }
 
+function remove_iam_permissions_nodegroup(){
+  CLUSTER_NAME=${1}
+  LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${CLUSTER_NAME} -o json | jq -r '.[].Name')
+
+  if [ -n "${LIST_NODE_GROUPS}" ]; then
+    for NODEGROUP in ${LIST_NODE_GROUPS}; do
+      remove_s3_access_policy ${NODEGROUP}
+    done
+  else
+    echo "No Nodegroups present in the EKS cluster ${CLUSTER_NAME}"
+  fi
+}
+
 # Check for input arguments
-if [ $# -ne 2 ]; then
-    echo "usage: ./${0} eks_cluster_name eks_version"
+if [ $# -ne 1 ]; then
+    echo "usage: ./${0} eks_cluster_name"
     exit 1
 fi
 
@@ -66,8 +77,7 @@ if [ -z "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
 fi
 
 CLUSTER=${1}
-EKS_VERSION=${2}
 
 update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
-detach_s3_policy_for_gpu_nodes ${EKS_VERSION}
+remove_iam_permissions_nodegroup ${CLUSTER}
 delete_cluster ${CLUSTER} ${AWS_REGION}

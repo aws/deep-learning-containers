@@ -82,10 +82,9 @@ function create_node_group(){
 
 }
 
-# Provide S3 access for GPU nodegroup worker nodes
-function add_s3_access_for_gpu_nodes(){
-  NODE_GROUP_NAME="gpu-nodegroup-${1/./-}"
-
+# Attach S3 policy to nodegroup IAM role
+function add_s3_access_policy(){
+  NODE_GROUP_NAME=${1}
   INSTANCE_PROFILE_PREFIX=$(aws cloudformation describe-stacks | jq -r '.Stacks[].StackName' | grep ${NODE_GROUP_NAME})
 
   if [ -n "${INSTANCE_PROFILE_PREFIX}" ]; then
@@ -99,6 +98,19 @@ function add_s3_access_for_gpu_nodes(){
     fi
   else
     echo "CloudFormation stack for $NODE_GROUP_NAME nodegroup does not exist"
+  fi
+}
+
+function add_iam_permissions_nodegroup(){
+  CLUSTER_NAME=${1}
+  LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${CLUSTER_NAME} -o json | jq -r '.[].Name')
+
+  if [ -n "${LIST_NODE_GROUPS}" ]; then
+    for NODEGROUP in ${LIST_NODE_GROUPS}; do
+      add_s3_access_policy ${NODEGROUP}
+    done
+  else
+    echo "No Nodegroups present in the EKS cluster ${CLUSTER_NAME}"
   fi
 }
 
@@ -138,5 +150,5 @@ fi
 
 create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
 create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
-add_s3_access_for_gpu_nodes ${EKS_VERSION}
+add_iam_permissions_nodegroup ${CLUSTER}
 create_namespaces

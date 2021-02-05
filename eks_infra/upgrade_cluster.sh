@@ -91,9 +91,9 @@ function create_nodegroups(){
 }
 
 # Add or remove S3 access for GPU nodegroup worker nodes
-function manage_s3_access_for_gpu_nodes(){
-  OPERATION=${1}
-  NODE_GROUP_NAME=${2}
+function manage_s3_access_policy(){
+  NODE_GROUP_NAME=${1}
+  OPERATION=${2}
 
   INSTANCE_PROFILE_PREFIX=$(aws cloudformation describe-stacks | jq -r '.Stacks[].StackName' | grep ${NODE_GROUP_NAME})
 
@@ -123,9 +123,9 @@ function delete_nodegroups(){
 
     if [ -n "${LIST_NODE_GROUPS}" ]; then
     
-      for NODEGROUP in $LIST_NODE_GROUPS; do
+      for NODEGROUP in ${LIST_NODE_GROUPS}; do
         eksctl delete nodegroup \
-        --name $NODEGROUP \
+        --name ${NODEGROUP} \
         --cluster ${1} \
         --region ${2}
       done
@@ -134,21 +134,27 @@ function delete_nodegroups(){
     fi
 }
 
-# Function to retrive GPU nodegroup name
-function retrive_gpu_nodegroup_name(){
-  GPU_NODEGROUP_PREFIX="gpu-nodegroup"
-  GPU_NODEGROUP_NAME=$(eksctl get nodegroup --cluster ${1} -o json | jq -r '.[].Name' | grep ${GPU_NODEGROUP_PREFIX})
-  echo ${GPU_NODEGROUP_NAME}
+function manage_iam_permissions_nodegroup(){
+  CLUSTER_NAME=${1}
+  OPERATION=${2}
+
+  LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${CLUSTER_NAME} -o json | jq -r '.[].Name')
+
+  if [ -n "${LIST_NODE_GROUPS}" ]; then
+    for NODEGROUP in ${LIST_NODE_GROUPS}; do
+      manage_s3_access_policy ${NODEGROUP} ${OPERATION}
+    done
+  else
+    echo "No Nodegroups present in the EKS cluster ${CLUSTER_NAME}"
+  fi
 }
 
 # Function to upgrade nodegroups
 function upgrade_nodegroups(){
-    OLD_NODEGROUP_NAME=$(retrive_gpu_nodegroup_name ${1})
-    manage_s3_access_for_gpu_nodes "detach" ${OLD_NODEGROUP_NAME}
+    manage_iam_permissions_nodegroup ${1} "detach"
     delete_nodegroups ${1} ${3}
     create_nodegroups ${1} ${2} ${4}
-    NEW_NODEGROUP_NAME=$(retrive_gpu_nodegroup_name ${1})
-    manage_s3_access_for_gpu_nodes "attach" ${NEW_NODEGROUP_NAME}
+    manage_iam_permissions_nodegroup ${1} "attach"
 }
 
 #Function to upgrade core k8s components
