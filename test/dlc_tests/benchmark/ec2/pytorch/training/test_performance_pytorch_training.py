@@ -3,11 +3,14 @@ import time
 import pytest
 import re
 
+from packaging.version import Version
+
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     DEFAULT_REGION,
-    is_pr_context
+    is_pr_context,
+    get_framework_and_version_from_tag,
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_performance_test,
@@ -42,7 +45,6 @@ def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu
     )
 
 
-@pytest.mark.skip(reason="Current infrastructure issues are causing this to timeout.")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_IMAGENET_INSTANCE_TYPE], indirect=True)
@@ -66,6 +68,12 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
     log_name = f"imagenet_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
+
+    # For PyTorch 1.7 images, update PyTorch Examples to latest version
+    _, framework_version = get_framework_and_version_from_tag(ecr_uri)
+    if Version(framework_version) >= Version("1.7"):
+        connection.run("cd /home/ubuntu/examples && git stash && git pull && git stash pop")
+
     # Run training command, display benchmark results to console
     try:
         connection.run(
