@@ -29,8 +29,8 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.parametrize("test_script", [("smmodelparallel_hvd2_conv.sh"), ("smmodelparallel_tf2conv.sh"), ("send_receive_checkpoint.sh"), ("tf2_checkpoint_test.sh")])
-def test_smmodelparallel(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version, test_script):
+@pytest.mark.parametrize("test_script, num_processes", [("tf2_conv.py", 2), ("smmodelparallel_hvd2_conv.py", 4), ("send_receive_checkpoint.py", 2), ("tf2_checkpoint_test.py", 2)])
+def test_smmodelparallel(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version, test_script, num_processes):
     """
     Tests SM Modelparallel in sagemaker
     """
@@ -48,7 +48,7 @@ def test_smmodelparallel(sagemaker_session, instance_type, ecr_image, tmpdir, fr
                            distributions={
                                "mpi": {
                                    "enabled": True,
-                                   "processes_per_host": 2,
+                                   "processes_per_host": num_processes,
                                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0",
                                 }
                            },
@@ -67,8 +67,8 @@ def test_smmodelparallel(sagemaker_session, instance_type, ecr_image, tmpdir, fr
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.parametrize("test_script", [("smmodelparallel_tf2conv.sh")])
-def test_smmodelparallel_multinode(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version, test_script):
+@pytest.mark.parametrize("test_script, num_processes", [("tf2_conv.py", 2)])
+def test_smmodelparallel_multinode(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version, test_script, num_processes):
     """
     Tests SM Modelparallel in sagemaker
     """
@@ -86,7 +86,7 @@ def test_smmodelparallel_multinode(sagemaker_session, instance_type, ecr_image, 
                            distributions={
                                "mpi": {
                                    "enabled": True,
-                                   "processes_per_host": 2,
+                                   "processes_per_host": num_processes,
                                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0",
                                 }
                            },
