@@ -7,6 +7,8 @@ LABEL dlc_major_version="1"
 ARG PYTHON_VERSION=3.6.10
 ARG OPEN_MPI_VERSION=4.0.1
 ARG CUBLAS_VERSION=10.2.1.243-1_amd64
+ARG OPEN_MPI_PATH=/home/.openmpi
+ARG CUDA_HOME=/usr/local/cuda
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
@@ -16,8 +18,8 @@ ARG SMDEBUG_VERSION=0.9.3
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
+ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
 ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
@@ -45,6 +47,7 @@ RUN apt-get update \
     emacs \
     git \
     jq \
+    libboost-all-dev \
     libglib2.0-0 \
     libgl1-mesa-glx \
     libsm6 \
@@ -71,17 +74,28 @@ RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86
  && apt-get install -f -y \
  && rm libcublas10_${CUBLAS_VERSION}.deb
 
+# Upgrade NCCL from 2.4.8 to 2.7.8
+RUN rm -rf  /usr/lib/x86_64-linux-gnu/libnccl* \
+ && cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v2.7.8-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local CUDA_HOME=${CUDA_HOME} NVCC_GENCODE="-gencode=arch=compute_70,code=sm_70" \
+ && rm -rf /tmp/nccl
+
+# Set the Env Paths to reflect new NCCL
+ENV LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
+
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
  && cd openmpi-$OPEN_MPI_VERSION \
- && ./configure --prefix=/home/.openmpi \
+ && ./configure --prefix=$OPEN_MPI_PATH \
  && make all install \
  && cd .. \
  && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
  && rm -rf openmpi-$OPEN_MPI_VERSION
 
-ENV PATH="$PATH:/home/.openmpi/bin"
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
+ENV LD_LIBRARY_PATH="$OPEN_MPI_PATH/lib/:$LD_LIBRARY_PATH"
 
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
@@ -135,6 +149,8 @@ RUN pip install \
     Pillow \
     scipy \
     click \
+    mpi4py==3.0.3 \
+    cmake==3.18.2.post1 \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U \
@@ -152,13 +168,13 @@ RUN git clone https://github.com/NVIDIA/apex.git \
  && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
 # Configure Open MPI and configure NCCL parameters
-RUN mv /home/.openmpi/bin/mpirun /home/.openmpi/bin/mpirun.real \
- && echo '#!/bin/bash' > /home/.openmpi/bin/mpirun \
- && echo 'mpirun.real --allow-run-as-root "$@"' >> /home/.openmpi/bin/mpirun \
- && chmod a+x /home/.openmpi/bin/mpirun \
- && echo "hwloc_base_binding_policy = none" >> /home/.openmpi/etc/openmpi-mca-params.conf \
- && echo "rmaps_base_mapping_policy = slot" >> /home/.openmpi/etc/openmpi-mca-params.conf \
- && echo "btl_tcp_if_exclude = lo,docker0" >> /home/.openmpi/etc/openmpi-mca-params.conf \
+RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
+ && echo '#!/bin/bash' > $OPEN_MPI_PATH/bin/mpirun \
+ && echo 'mpirun.real --allow-run-as-root "$@"' >> $OPEN_MPI_PATH/bin/mpirun \
+ && chmod a+x $OPEN_MPI_PATH/bin/mpirun \
+ && echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo "btl_tcp_if_exclude = lo,docker0" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
 

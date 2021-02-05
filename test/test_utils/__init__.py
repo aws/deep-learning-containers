@@ -481,6 +481,9 @@ def get_canary_default_tag_py3_version(framework, version):
     """
     if framework == "tensorflow2":
         return "py37" if Version(version) >= Version("2.2") else "py3"
+    
+    if framework == "mxnet":
+        return "py37" if Version(version) >= Version("1.8") else "py3"
 
     return "py3"
 
@@ -626,7 +629,7 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install -U 'sagemaker<2' awscli boto3 botocore six==1.11")
+            ctx.run("pip install 'sagemaker>=2,<3' awscli boto3 botocore six==1.11")
 
             # SageMaker TF estimator is coded to only accept framework versions up to 2.1.0 as py2 compatible.
             # Fixing this through the following changes:
@@ -651,7 +654,7 @@ def setup_sm_benchmark_mx_train_env(resources_location):
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install -U sagemaker awscli boto3 botocore")
+            ctx.run("pip install sagemaker awscli boto3 botocore")
     return venv_dir
 
 
@@ -747,3 +750,42 @@ def get_processor_from_image_uri(image_uri):
         if match:
             return match.group(1)
     raise RuntimeError("Cannot find processor")
+
+
+def get_container_name(prefix, image_uri):
+    """
+    Create a unique container name based off of a test related prefix and the image uri
+    :param prefix: test related prefix, like "emacs" or "pip-check"
+    :param image_uri: ECR image URI
+    :return: container name
+    """
+    return f"{prefix}-{image_uri.split('/')[-1].replace('.', '-').replace(':', '-')}"
+
+
+def start_container(container_name, image_uri, context):
+    """
+    Helper function to start a container locally
+    :param container_name: Name of the docker container
+    :param image_uri: ECR image URI
+    :param context: Invoke context object
+    """
+    context.run(
+        f"docker run --entrypoint='/bin/bash' --name {container_name} -itd {image_uri}", hide=True,
+    )
+
+
+def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=False):
+    """
+    Helper function to run commands on a locally running container
+    :param container_name: Name of the docker container
+    :param context: ECR image URI
+    :param cmd: Command to run on the container
+    :param executable: Executable to run on the container (bash or python)
+    :param warn: Whether to only warn as opposed to exit if command fails
+    :return: invoke output, can be used to parse stdout, etc
+    """
+    if executable not in ("bash", "python"):
+        LOGGER.warn(f"Unrecognized executable {executable}. It will be run as {executable} -c '{cmd}'")
+    return context.run(
+        f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
+    )
