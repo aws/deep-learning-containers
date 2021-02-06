@@ -29,7 +29,7 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.parametrize("test_script, num_processes", [("tf2_conv.py", 2), ("smmodelparallel_hvd2_conv.py", 4), ("send_receive_checkpoint.py", 2), ("tf2_checkpoint_test.py", 2)])
+@pytest.mark.parametrize("test_script, num_processes", [("tf2_conv.py", 2), ("tf2_conv_xla.py", 2), ("smmodelparallel_hvd2_conv.py", 4), ("send_receive_checkpoint.py", 2), ("tf2_checkpoint_test.py", 2)])
 def test_smmodelparallel(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version, test_script, num_processes):
     """
     Tests SM Modelparallel in sagemaker
@@ -55,7 +55,8 @@ def test_smmodelparallel(sagemaker_session, instance_type, ecr_image, tmpdir, fr
                            sagemaker_session=sagemaker_session,
                            image_uri=ecr_image,
                            framework_version=framework_version,
-                           py_version='py3')
+                           py_version='py3',
+                           base_job_name='smp-test1')
     estimator.fit()
 
 
@@ -67,7 +68,7 @@ def test_smmodelparallel(sagemaker_session, instance_type, ecr_image, tmpdir, fr
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.parametrize("test_script, num_processes", [("tf2_conv.py", 2)])
+@pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_hvd2_conv_multinode.py", 2)])
 def test_smmodelparallel_multinode(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version, test_script, num_processes):
     """
     Tests SM Modelparallel in sagemaker
@@ -93,5 +94,6 @@ def test_smmodelparallel_multinode(sagemaker_session, instance_type, ecr_image, 
                            sagemaker_session=sagemaker_session,
                            image_uri=ecr_image,
                            framework_version=framework_version,
-                           py_version='py3')
+                           py_version='py3',
+                           base_job_name='smp-test2')
     estimator.fit()
