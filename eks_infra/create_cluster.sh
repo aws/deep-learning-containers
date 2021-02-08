@@ -28,8 +28,7 @@ function create_eks_cluster() {
     --name ${1} \
     --version ${2} \
     --zones=${3}${ZONE_LIST[0]},${3}${ZONE_LIST[1]},${3}${ZONE_LIST[2]} \
-    --without-nodegroup \
-    --install-neuron-plugin=false
+    --without-nodegroup
 }
 
 # Function to create static and dynamic nodegroups in EKS cluster
@@ -77,7 +76,8 @@ function create_node_group(){
     --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=inf,k8s.io/cluster-autoscaler/node-template/resources/aws.amazon.com/neuron=1" \
     --asg-access \
     --ssh-access \
-    --ssh-public-key "${3}"
+    --ssh-public-key "${3}" \
+    --install-neuron-plugin=false
 
 }
 
