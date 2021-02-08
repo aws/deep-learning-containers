@@ -23,7 +23,6 @@ def test_smclarify_metrics_cpu(training, ec2_connection, region, ec2_instance_ty
 @pytest.mark.integration("smclarify_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", SMCLARIFY_EC2_GPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.skip(reason="Skipping test because it is flaky on mainline pipeline.")
 def test_smclarify_metrics_gpu(training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only):
     image_cuda_version = get_cuda_version_from_tag(training)
     if image_cuda_version != "cu110":
