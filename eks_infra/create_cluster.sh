@@ -28,7 +28,8 @@ function create_eks_cluster() {
     --name ${1} \
     --version ${2} \
     --zones=${3}${ZONE_LIST[0]},${3}${ZONE_LIST[1]},${3}${ZONE_LIST[2]} \
-    --without-nodegroup
+    --without-nodegroup \
+    --install-neuron-plugin=false
 }
 
 # Function to create static and dynamic nodegroups in EKS cluster
