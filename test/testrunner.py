@@ -372,6 +372,13 @@ def main():
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
 
     elif specific_test_type == "sagemaker":
+        # Skipping flaky TF 2.3.1 cu11 tests. Should be reverted.
+        if "2.3.1-gpu-py37-cu110" in dlc_images:
+            LOGGER.info(f"Skipping sagemaker TF2.3.1 cu11 tests. Images: {dlc_images}")
+            # Creating an empty file for because codebuild job fails without it
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report, test_type, "2.3.1-gpu-py37-cu110")
+            return
         if "neuron" in dlc_images:
             LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
             # Creating an empty file for because codebuild job fails without it
