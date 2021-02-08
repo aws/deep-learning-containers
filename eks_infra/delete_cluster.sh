@@ -23,7 +23,6 @@ function update_kubeconfig(){
     --region ${3}
     kubectl config get-contexts
     
-    cat /root/.kube/config
 }
 
 # Detach S3 policy from nodegroup IAM role

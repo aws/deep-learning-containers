@@ -15,7 +15,7 @@ function update_kubeconfig(){
     --region ${3}
 
     kubectl config get-contexts
-    cat /root/.kube/config
+
 }
 
 # Function to upgrade eks control plane
