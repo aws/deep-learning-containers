@@ -84,14 +84,16 @@ function create_node_group(){
 # Attach S3 policy to nodegroup IAM role
 function add_s3_access_policy(){
   NODE_GROUP_NAME=${1}
-  INSTANCE_PROFILE_PREFIX=$(aws cloudformation describe-stacks | jq -r '.Stacks[].StackName' | grep ${NODE_GROUP_NAME})
+  REGION=${2}
+
+  INSTANCE_PROFILE_PREFIX=$(aws cloudformation describe-stacks --region ${REGION} | jq -r '.Stacks[].StackName' | grep ${NODE_GROUP_NAME})
 
   if [ -n "${INSTANCE_PROFILE_PREFIX}" ]; then
-    INSTANCE_PROFILE_NAME=$(aws iam list-instance-profiles | jq -r '.InstanceProfiles[].InstanceProfileName' | grep $INSTANCE_PROFILE_PREFIX)
+    INSTANCE_PROFILE_NAME=$(aws iam list-instance-profiles --region ${REGION} | jq -r '.InstanceProfiles[].InstanceProfileName' | grep $INSTANCE_PROFILE_PREFIX)
     if [ -n "${INSTANCE_PROFILE_NAME}" ]; then
       S3_POLICY_ARN="arn:aws:iam::aws:policy/AmazonS3FullAccess"
-      ROLE_NAME=$(aws iam get-instance-profile --instance-profile-name $INSTANCE_PROFILE_NAME | jq -r '.InstanceProfile.Roles[] | .RoleName')
-      aws iam attach-role-policy --role-name $ROLE_NAME --policy-arn $S3_POLICY_ARN
+      ROLE_NAME=$(aws iam get-instance-profile --instance-profile-name $INSTANCE_PROFILE_NAME --region ${REGION} | jq -r '.InstanceProfile.Roles[] | .RoleName')
+      aws iam attach-role-policy --role-name $ROLE_NAME --policy-arn $S3_POLICY_ARN --region ${REGION}
     else  
       echo "Instance Profile $INSTANCE_PROFILE_NAME does not exist for the $NODE_GROUP_NAME nodegroup"
     fi
@@ -102,11 +104,12 @@ function add_s3_access_policy(){
 
 function add_iam_permissions_nodegroup(){
   CLUSTER_NAME=${1}
-  LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${CLUSTER_NAME} -o json | jq -r '.[].Name')
+  REGION=${2}
+  LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${CLUSTER_NAME} --region ${REGION} -o json | jq -r '.[].Name')
 
   if [ -n "${LIST_NODE_GROUPS}" ]; then
     for NODEGROUP in ${LIST_NODE_GROUPS}; do
-      add_s3_access_policy ${NODEGROUP}
+      add_s3_access_policy ${NODEGROUP} ${REGION}
     done
   else
     echo "No Nodegroups present in the EKS cluster ${CLUSTER_NAME}"
@@ -149,5 +152,5 @@ fi
 
 create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
 create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
-add_iam_permissions_nodegroup ${CLUSTER}
+add_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}
 create_namespaces
