@@ -30,7 +30,7 @@ def repo(request):
     return request.config.getoption('--repo') or 'sagemaker-tensorflow-serving'
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture
 def processor(request, instance_type):
     return request.config.getoption('--processor') or (
         'gpu'
