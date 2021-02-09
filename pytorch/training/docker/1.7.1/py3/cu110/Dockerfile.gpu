@@ -74,6 +74,7 @@ RUN apt-get update \
     libssl1.1 \
     libtool \
     openssl \
+    python3-dev \
     vim \
     wget \
     zlib1g-dev \
