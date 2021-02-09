@@ -180,7 +180,7 @@ release_images:
       cuda_version: "cu110"
       example: False
       disable_sm_tag: True
-      force_release: False
+      force_release: True
   14:
     framework: "tensorflow"
     version: "1.15.4"
