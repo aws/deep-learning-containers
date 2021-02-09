@@ -24,7 +24,7 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
 
     search_replace_dict = {
         "<MODEL_NAME>": model_name,
-        "<MODEL_BASE_PATH>": f"https://aws-dlc-sample-models.s3.amazonaws.com",
+        "<MODEL_BASE_PATH>": f"s3://aws-dlc-sample-models",
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
@@ -45,7 +45,7 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
         port_to_forward = random.randint(49152, 65535)
 
         if eks_utils.is_service_running(selector_name):
-            eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8500")
+            eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8501")
 
         assert test_utils.request_tensorflow_inference(model_name=model_name, port=port_to_forward)
     except ValueError as excp:
@@ -139,7 +139,7 @@ def test_eks_tensorflow_albert(tensorflow_inference):
         port_to_forward = random.randint(49152, 65535)
 
         if eks_utils.is_service_running(selector_name):
-            eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8500")
+            eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8501")
 
         assert test_utils.request_tensorflow_inference_nlp(model_name=model_name, port=port_to_forward)
     except ValueError as excp:

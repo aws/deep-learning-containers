@@ -38,15 +38,8 @@ def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
     eks_utils.write_eks_yaml_file_from_template(
         eks_utils.get_single_node_inference_template_path("pytorch", processor), yaml_path, search_replace_dict
     )
-    device_plugin_path = eks_utils.get_device_plugin_path("pytorch", processor)
 
     try:
-        # TODO - once eksctl gets the latest neuron device plugin this can be removed
-        run("kubectl delete -f {}".format(device_plugin_path))
-        sleep(60)
-        run("kubectl apply -f {}".format(device_plugin_path))
-        sleep(10)
-
         run("kubectl apply -f {}".format(yaml_path))
 
         port_to_forward = random.randint(49152, 65535)
