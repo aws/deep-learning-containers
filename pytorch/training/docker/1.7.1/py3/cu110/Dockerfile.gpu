@@ -52,6 +52,7 @@ RUN apt-get update \
     emacs \
     git \
     jq \
+    libcublas-11-0=11.2.0.252-1 \
     libcudnn8=$CUDNN_VERSION-1+cuda11.0 \
     libcufft-dev-11-0 \
     libcurand-dev-11-0 \
