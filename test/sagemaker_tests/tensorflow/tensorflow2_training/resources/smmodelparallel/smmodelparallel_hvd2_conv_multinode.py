@@ -162,7 +162,7 @@ t1 = time.time()
 log_result("Time-to-train", t1 - t0)
 assert t1 - t0 < 220.0
 
-save_path = "./hvd2_conv_saved_model"
+save_path = "./hvd2_conv_saved_model_multinode"
 model.save_model(save_path)
 
 if smp.mp_rank() == 1:
