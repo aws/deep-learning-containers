@@ -49,7 +49,7 @@ function create_nodegroups(){
     
     # static nodegroup
     eksctl create nodegroup \
-    --name static-nodegroup-${2/./-} \
+    --name ${1}-static-nodegroup-${2/./-} \
     --cluster ${1} \
     --node-type ${STATIC_NODEGROUP_INSTANCE_TYPE} \
     --nodes 1 \
@@ -61,7 +61,7 @@ function create_nodegroups(){
 
     # dynamic gpu nodegroup
     eksctl create nodegroup \
-    --name gpu-nodegroup-${2/./-} \
+    --name ${1}-gpu-nodegroup-${2/./-} \
     --cluster ${1} \
     --node-type ${GPU_NODEGROUP_INSTANCE_TYPE} \
     --nodes-min 0 \
@@ -75,7 +75,7 @@ function create_nodegroups(){
 
     # dynamic inf nodegroup
     eksctl create nodegroup \
-    --name inf-nodegroup-${2/./-} \
+    --name ${1}-inf-nodegroup-${2/./-} \
     --cluster ${1} \
     --node-type ${INF_NODEGROUP_INSTANCE_TYPE} \
     --nodes-min 0 \
