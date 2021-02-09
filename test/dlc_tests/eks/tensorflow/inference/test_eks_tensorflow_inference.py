@@ -9,6 +9,7 @@ import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
 @pytest.mark.model("mnist")
+@pytest.mark.skip("Skipping test due to S3 permission issues. https://github.com/aws/deep-learning-containers/issues/818")
 def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
     if "eia" in tensorflow_inference or "neuron" not in tensorflow_inference:
         pytest.skip("Skipping EKS Neuron Test for EIA and Non Neuron Images")
@@ -57,6 +58,7 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
 
 
 @pytest.mark.model("half_plus_two")
+@pytest.mark.skip("Skipping test due to S3 permission issues. https://github.com/aws/deep-learning-containers/issues/818")
 def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
     if "eia" in tensorflow_inference or "neuron" in tensorflow_inference:
         pytest.skip("Skipping EKS Test for EIA and neuron Images")
@@ -103,6 +105,7 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
 
 
 @pytest.mark.skipif(not test_utils.is_nightly_context(), reason="Running additional model in nightly context only")
+@pytest.mark.skip("Skipping test due to S3 permission issues. https://github.com/aws/deep-learning-containers/issues/818")
 @pytest.mark.model("albert")
 def test_eks_tensorflow_albert(tensorflow_inference):
     if "eia" in tensorflow_inference or "neuron" in tensorflow_inference:
