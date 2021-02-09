@@ -37,6 +37,8 @@ ARG SMDEBUG_VERSION=1.0.2
 
 ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.4.1/cu110/2021-01-28/smdistributed_dataparallel-1.0.0-cp37-cp37m-linux_x86_64.whl
 
+ARG SMMODELPARALLEL_BINARY=https://sagemaker-distributed-model-parallel.s3.amazonaws.com/tensorflow-2.4/build-artifacts/2021-02-05-21-44/smdistributed_modelparallel-1.2.0-cp37-cp37m-linux_x86_64.whl
+
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
     cuda-command-line-tools-11-0 \
@@ -230,6 +232,7 @@ RUN wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
   && apt-get install -y cmake \
   && make config shared=1 \
   && make install \
+  && cd .. \
   && rm -rf ${METIS}.tar* \
   && rm -rf ${METIS} \
   && rm -rf /var/lib/apt/lists/* \
@@ -241,6 +244,7 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
   && tar -xvf v${RMM_VERSION}.tar.gz \
   && cd rmm-${RMM_VERSION} \
   && INSTALL_PREFIX=/usr/local ./build.sh librmm \
+  && cd .. \
   && rm -rf v${RMM_VERSION}.tar* \
   && rm -rf rmm-${RMM_VERSION}
 
@@ -262,8 +266,9 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 ENV TF_AUTOTUNE_THRESHOLD=2
 
 # Install SMD MP binary
-RUN pip install --no-cache-dir -U s3://sagemaker-distributed-model-parallel/tensorflow-2.4/build-artifacts/2021-02-05-21-44/smdistributed_modelparallel-1.2.0-cp37-cp37m-linux_x86_64.whl
+RUN pip install --no-cache-dir -U ${SMMODELPARALLEL_BINARY}
 
+# Install SMD DP binary
 RUN SMDATAPARALLEL_TF=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
 ENV LD_LIBRARY_PATH="/usr/local/lib/python3.7/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
