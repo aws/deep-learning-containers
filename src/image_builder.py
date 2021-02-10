@@ -53,11 +53,8 @@ def image_builder(buildspec):
     BUILDSPEC.load(buildspec)
     IMAGES = []
 
-    for image in BUILDSPEC["images"].items():
+    for image_name, image_config in BUILDSPEC["images"].items():
         ARTIFACTS = deepcopy(BUILDSPEC["context"])
-
-        image_name = image[0]
-        image_config = image[1]
 
         extra_build_args = {}
         labels = {}

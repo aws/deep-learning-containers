@@ -15,7 +15,11 @@ install_kfctl(){
         KFCTL_URL=https://github.com/kubeflow/kfctl/releases/download/${KFCTL_VERSION}/kfctl_${KFCTL_VERSION}-0-ga476281_linux.tar.gz
         curl --silent --location ${KFCTL_URL} -o /tmp/kfctl_${KFCTL_VERSION}_linux.tar.gz
         tar -xvf /tmp/kfctl_${KFCTL_VERSION}_linux.tar.gz -C /tmp --strip-components=1
-        mv /tmp/kfctl /usr/local/bin
+        if ! [ -x "$(command -v sudo)" ]; then
+            mv /tmp/kfctl /usr/local/bin
+        else
+            sudo mv /tmp/kfctl /usr/local/bin
+        fi
     fi
 }
 
@@ -66,6 +70,9 @@ fi
 
 EKS_CLUSTER_NAME=${1}
 REGION_NAME=${2}
+
+echo "> Set AWS region"
+export AWS_REGION=$2
 
 echo "> Setup installation directory"
 create_dir ${EKS_CLUSTER_NAME}
