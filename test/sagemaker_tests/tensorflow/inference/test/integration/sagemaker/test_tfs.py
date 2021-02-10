@@ -31,12 +31,19 @@ def repo(request):
 
 
 @pytest.fixture
-def tag(request, version, instance_type):
+def processor(request, instance_type):
+    return request.config.getoption('--processor') or (
+        'gpu'
+        if instance_type.startswith('ml.p') or instance_type.startswith('ml.g')
+        else 'cpu'
+    )
+
+
+@pytest.fixture
+def tag(request, version, instance_type, processor):
     if request.config.getoption('--tag'):
         return request.config.getoption('--tag')
-
-    arch = 'gpu' if instance_type.startswith('ml.p') else 'cpu'
-    return f'{version}-{arch}'
+    return f'{version}-{processor}'
 
 
 @pytest.fixture
