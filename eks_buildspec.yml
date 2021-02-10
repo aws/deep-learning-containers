@@ -10,5 +10,3 @@ phases:
   build:
     commands:
       - bash eks_infra/build.sh
-      - echo "build succeeded"
-
