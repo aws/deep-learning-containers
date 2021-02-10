@@ -55,10 +55,7 @@ rules:
 - apiGroups:
   - "kubeflow.org"
   resources:
-  - mxjobs
   - pytorchjobs
-  - tfjobs
-  - mpijobs
   verbs:
   - get
   - create
@@ -94,9 +91,6 @@ rules:
 - apiGroups:
   - "kubeflow.org"
   resources:
-  - mxjobs
-  - pytorchjobs
-  - tfjobs
   - mpijobs
   verbs:
   - get
@@ -135,8 +129,6 @@ rules:
   - "kubeflow.org"
   resources:
   - mxjobs
-  - pytorchjobs
-  - tfjobs
   - mpijobs
   verbs:
   - get
@@ -164,34 +156,6 @@ subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: User
   name: test-role
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  namespace: kube-system
-  name: kube-system-role
-rules:
-- apiGroups: 
-  - "apps"
-  resources: 
-  - daemonsets
-  verbs: 
-  - create
-  - delete
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: kube-system-role-binding
-  namespace: kube-system
-subjects:
-- kind: User
-  name: test-role
-  apiGroup: rbac.authorization.k8s.io
-roleRef:
-  kind: Role
-  name: kube-system-role
-  apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
