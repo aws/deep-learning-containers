@@ -93,7 +93,11 @@ function add_s3_access_policy(){
     if [ -n "${INSTANCE_PROFILE_NAME}" ]; then
       S3_POLICY_ARN="arn:aws:iam::aws:policy/AmazonS3FullAccess"
       ROLE_NAME=$(aws iam get-instance-profile --instance-profile-name $INSTANCE_PROFILE_NAME --region ${REGION} | jq -r '.InstanceProfile.Roles[] | .RoleName')
-      aws iam attach-role-policy --role-name $ROLE_NAME --policy-arn $S3_POLICY_ARN --region ${REGION}
+      
+      aws iam attach-role-policy \
+      --role-name $ROLE_NAME \
+      --policy-arn $S3_POLICY_ARN \
+      --region ${REGION}
     else  
       echo "Instance Profile $INSTANCE_PROFILE_NAME does not exist for the $NODE_GROUP_NAME nodegroup"
     fi

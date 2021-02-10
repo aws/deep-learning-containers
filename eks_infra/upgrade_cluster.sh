@@ -15,7 +15,6 @@ function update_kubeconfig(){
     --region ${3}
 
     kubectl config get-contexts
-
 }
 
 # Function to upgrade eks control plane
@@ -104,9 +103,15 @@ function manage_s3_access_policy(){
       ROLE_NAME=$(aws iam get-instance-profile --instance-profile-name $INSTANCE_PROFILE_NAME --region ${REGION} | jq -r '.InstanceProfile.Roles[] | .RoleName')
       
       if [ "${OPERATION}" = "attach" ]; then
-        aws iam attach-role-policy --role-name $ROLE_NAME --policy-arn $S3_POLICY_ARN --region ${REGION}
+        aws iam attach-role-policy \
+        --role-name $ROLE_NAME \
+        --policy-arn $S3_POLICY_ARN \
+        --region ${REGION}
       elif [ "${OPERATION}" = "detach" ]; then
-        aws iam detach-role-policy --role-name $ROLE_NAME --policy-arn $S3_POLICY_ARN --region ${REGION}
+        aws iam detach-role-policy \
+        --role-name $ROLE_NAME \
+        --policy-arn $S3_POLICY_ARN \
+        --region ${REGION}
       fi
     else  
       echo "Instance Profile $INSTANCE_PROFILE_NAME does not exist for the $NODE_GROUP_NAME nodegroup"
