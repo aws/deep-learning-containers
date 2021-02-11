@@ -53,9 +53,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Open MPI
-RUN mkdir /tmp/openmpi && \
-    cd /tmp/openmpi && \
-    curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz \
+RUN mkdir /tmp/openmpi \
+ && cd /tmp/openmpi \
+ && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz \
  && tar zxf openmpi-4.0.4.tar.gz \
  && cd openmpi-4.0.4 \
  && ./configure --enable-orterun-prefix-by-default \
@@ -107,7 +107,7 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
  && ./configure && make && make install \
- && make && make install && rm -rf ../Python-$PYTHON_VERSION*
+ && rm -rf ../Python-$PYTHON_VERSION*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
@@ -136,8 +136,8 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 
 RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
-# install PyYAML==5.1.2 to avoid conflict with latest awscli
-# # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
+# install PyYAML==5.3.1 to avoid conflict with latest awscli
+# # python-dateutil==2.8.1 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
     numpy==1.19.1 \
     scipy==1.5.2 \

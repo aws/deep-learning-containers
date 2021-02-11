@@ -42,8 +42,8 @@ def test_distributed_training_smdataparallel_script_mode(
     """
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if Version(image_framework_version) != Version("2.3.1") or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on TensorFlow 2.3")
+    if Version(image_framework_version) < Version("2.3.1") or image_cuda_version != "cu110":
+        pytest.skip("Data Parallelism is only supported on CUDA 11, and on TensorFlow 2.3.1 or higher")
     instance_type = "ml.p3.16xlarge"
     estimator = TensorFlow(
         entry_point='smdataparallel_mnist_script_mode.sh',
@@ -73,8 +73,8 @@ def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_s
     """
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if Version(image_framework_version) != Version("2.3.1") or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on TensorFlow 2.3")
+    if Version(image_framework_version) < Version("2.3.1") or image_cuda_version != "cu110":
+        pytest.skip("Data Parallelism is only supported on CUDA 11, and on TensorFlow 2.3.1 or higher")
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
     estimator = TensorFlow(entry_point='smdataparallel_mnist.py',
                            role='SageMakerRole',
