@@ -3,9 +3,9 @@ release_images:
   1:
     framework: "pytorch"
     version: "1.7.1"
-    training:
+    inference:
       device_types: ["cpu", "gpu"]
-      python_versions: [ "py36" ]
+      python_versions: ["py36"]
       os_version: "ubuntu18.04"
       cuda_version: "cu110"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
