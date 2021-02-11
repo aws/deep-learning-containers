@@ -79,7 +79,7 @@ def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     """
     random.seed(f"{mxnet_training}-{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 6000)
-    namespace = f"mxnet-multi-node-training-{unique_id}"
+    namespace = "mxnet"
     job_name = f"kubeflow-mxnet-gpu-dist-job-{unique_id}"
 
     # TODO: This should either be dynamic or at least global variables
