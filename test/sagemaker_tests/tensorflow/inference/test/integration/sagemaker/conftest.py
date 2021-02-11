@@ -60,6 +60,7 @@ def pytest_addoption(parser):
     parser.addoption('--repo')
     parser.addoption('--versions')
     parser.addoption('--instance-types')
+    parser.addoption('--processor')
     parser.addoption('--accelerator-type')
     parser.addoption('--tag')
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
@@ -146,7 +147,7 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
 
 @pytest.fixture(autouse=True)
 def skip_by_device_type(request, instance_type):
-    is_gpu = instance_type[3] in ['g', 'p']
+    is_gpu = instance_type.lstrip("ml.")[0] in ['g', 'p']
     if (request.node.get_closest_marker('skip_gpu') and is_gpu) or \
             (request.node.get_closest_marker('skip_cpu') and not is_gpu):
         pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
