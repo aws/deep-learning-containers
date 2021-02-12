@@ -2,6 +2,7 @@ import pytest
 
 import test.test_utils.ecs as ecs_utils
 import test.test_utils.ec2 as ec2_utils
+from test.test_utils import get_framework_and_version_from_tag
 from test.test_utils import request_mxnet_inference, request_mxnet_inference_gluonnlp
 from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2
 
