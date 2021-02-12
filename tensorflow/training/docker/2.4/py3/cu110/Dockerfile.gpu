@@ -20,6 +20,7 @@ ENV LC_ALL=C.UTF-8
 ENV KMP_AFFINITY=granularity=fine,compact,1,0
 ENV KMP_BLOCKTIME=1
 ENV KMP_SETTINGS=0
+ENV MANUAL_BUILD=0
 
 ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
@@ -37,6 +38,8 @@ ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/est
 ARG SMDEBUG_VERSION=1.0.2
 
 ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.4.1/cu110/2021-01-28/smdistributed_dataparallel-1.0.0-cp37-cp37m-linux_x86_64.whl
+
+ARG SMMODELPARALLEL_BINARY=https://sagemaker-distributed-model-parallel.s3.amazonaws.com/tensorflow-2.4/build-artifacts/2021-02-12-04-00/smdistributed_modelparallel-1.2.0-cp37-cp37m-linux_x86_64.whl
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
@@ -193,6 +196,8 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 # install PyYAML==5.3.1 to avoid conflict with latest awscli
 # # python-dateutil==2.8.1 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
+    pybind11 \
+    cmake==3.18.2.post1 \
     numpy==1.19.1 \
     scipy==1.5.2 \
     scikit-learn==0.23 \
@@ -219,6 +224,37 @@ RUN ${PIP} install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
     smclarify
 
+ARG METIS=metis-5.1.0
+ARG RMM_VERSION=0.15.0
+
+# install metis
+RUN wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
+  && gunzip -f ${METIS}.tar.gz \
+  && tar -xvf ${METIS}.tar \
+  && cd ${METIS} \
+  && apt-get update \
+  && apt-get install -y build-essential \
+  && apt-get install -y cmake \
+  && make config shared=1 \
+  && make install \
+  && cd .. \
+  && rm -rf ${METIS}.tar* \
+  && rm -rf ${METIS} \
+  && rm -rf /var/lib/apt/lists/* \
+  && apt-get clean
+
+# Install RAPIDSMemoryManager.
+# Requires cmake>=3.14.
+RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
+  && tar -xvf v${RMM_VERSION}.tar.gz \
+  && cd rmm-${RMM_VERSION} \
+  && INSTALL_PREFIX=/usr/local ./build.sh librmm \
+  && cd .. \
+  && rm -rf v${RMM_VERSION}.tar* \
+  && rm -rf rmm-${RMM_VERSION}
+
+ENV CPATH="/usr/local/lib/python3.7/dist-packages/pybind11/include/"
+
 RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
 # Install Horovod, temporarily using CUDA stubs
@@ -234,6 +270,10 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
 
+# Install SMD MP binary
+RUN pip install --no-cache-dir -U ${SMMODELPARALLEL_BINARY}
+
+# Install SMD DP binary
 RUN SMDATAPARALLEL_TF=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
 ENV LD_LIBRARY_PATH="/usr/local/lib/python3.7/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
