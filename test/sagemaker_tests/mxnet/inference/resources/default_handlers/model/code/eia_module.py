@@ -13,6 +13,7 @@
 
 import mxnet as mx
 import eimx
+import os
 
 def model_fn(model_dir):
     logging.info('Invoking user-defined model_fn')
