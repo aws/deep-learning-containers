@@ -20,7 +20,7 @@ import os
 def model_fn(model_dir):
     logging.info('Invoking user-defined model_fn')
     # The compiled model artifacts are saved with the prefix 'compiled'
-    sym, arg_params, aux_params = mx.model.load_checkpoint(os.path.join(model_dir, 'compiled'), 0)
+    sym, arg_params, aux_params = mx.model.load_checkpoint(os.path.join(model_dir, 'model'), 0)
     sym = sym.optimize_for('EIA')
     mod = mx.mod.Module(symbol=sym, context=mx.cpu(), label_names=None)
     exe = mod.bind(for_training=False,
