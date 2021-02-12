@@ -25,7 +25,7 @@ def model_fn(model_dir):
     mod = mx.mod.Module(symbol=sym, context=mx.cpu(), label_names=None)
     exe = mod.bind(for_training=False,
                data_shapes=[('data', (1,2))],
-               label_shapes=None)
+               label_shapes=mod._label_shapes)
     mod.set_params(arg_params, aux_params, allow_missing=True)
 
     return mod
