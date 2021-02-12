@@ -24,6 +24,7 @@ from ...integration.utils import processor, py_version, unique_name_from_base  #
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
+
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.processor("gpu")
 @pytest.mark.model("mnist")
@@ -37,8 +38,8 @@ def test_smmodelparallel(sagemaker_session, instance_type, ecr_image, tmpdir, fr
     instance_type = "ml.p3.16xlarge"
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if Version(image_framework_version) != Version("2.3.1") or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on TensorFlow 2.3")
+    if Version(image_framework_version) < Version("2.3.1") or image_cuda_version != "cu110":
+        pytest.skip("Model Parallelism only supports CUDA 11, and on TensorFlow 2.3.1 or higher")
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
                            role='SageMakerRole',
@@ -60,8 +61,6 @@ def test_smmodelparallel(sagemaker_session, instance_type, ecr_image, tmpdir, fr
     estimator.fit()
 
 
-
-
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.processor("gpu")
 @pytest.mark.model("mnist")
@@ -76,8 +75,8 @@ def test_smmodelparallel_multinode(sagemaker_session, instance_type, ecr_image, 
     instance_type = "ml.p3.16xlarge"
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if Version(image_framework_version) != Version("2.3.1") or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on TensorFlow 2.3")
+    if Version(image_framework_version) < Version("2.3.1") or image_cuda_version != "cu110":
+        pytest.skip("Model Parallelism only supports CUDA 11, and on TensorFlow 2.3.1 or higher")
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
                            role='SageMakerRole',
