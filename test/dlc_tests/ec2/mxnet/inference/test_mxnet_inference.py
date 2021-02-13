@@ -44,7 +44,7 @@ def test_ec2_mxnet_squeezenet_inference_cpu(mxnet_inference, ec2_connection, reg
 def test_ec2_mxnet_resnet_inference_eia_cpu(mxnet_inference_eia, ec2_connection, region, eia_only):
     image_framework, image_framework_version = get_framework_and_version_from_tag(mxnet_inference_eia)
     if image_framework_version == "1.5.1":
-        REANET_EIA_MODEL = "resnet-152-eia-1-5-1"
+        RESNET_EIA_MODEL = "resnet-152-eia-1-5-1"
     run_ec2_mxnet_inference(mxnet_inference_eia, RESNET_EIA_MODEL, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
 
 
@@ -56,7 +56,7 @@ def test_ec2_mxnet_resnet_inference_eia_cpu(mxnet_inference_eia, ec2_connection,
 def test_ec2_mxnet_resnet_inferencei_eia_gpu(mxnet_inference_eia, ec2_connection, region, eia_only):
     image_framework, image_framework_version = get_framework_and_version_from_tag(mxnet_inference_eia)
     if image_framework_version == "1.5.1":
-        REANET_EIA_MODEL = "resnet-152-eia-1-5-1"
+        RESNET_EIA_MODEL = "resnet-152-eia-1-5-1"
     run_ec2_mxnet_inference(mxnet_inference_eia, RESNET_EIA_MODEL, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
 
 
