@@ -9,7 +9,7 @@ from test.dlc_tests.conftest import LOGGER
 
 SQUEEZENET_MODEL = "squeezenet"
 BERT_MODEL = "bert_sst"
-DEFAULT_RESNET_EIA_MODEL = "resnet-152-eia"
+RESNET_EIA_MODEL = "resnet-152-eia"
 
 
 MX_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
@@ -38,20 +38,26 @@ def test_ec2_mxnet_squeezenet_inference_cpu(mxnet_inference, ec2_connection, reg
 
 
 @pytest.mark.integration("elastic_inference")
-@pytest.mark.model(DEFAULT_RESNET_EIA_MODEL)
+@pytest.mark.model(RESNET_EIA_MODEL)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", MX_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
 def test_ec2_mxnet_resnet_inference_eia_cpu(mxnet_inference_eia, ec2_connection, region, eia_only):
-    run_ec2_mxnet_inference(mxnet_inference_eia, DEFAULT_RESNET_EIA_MODEL, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
+    image_framework, image_framework_version = get_framework_and_version_from_tag(mxnet_inference_eia)
+    if image_framework_version == "1.5.1":
+        REANET_EIA_MODEL = "resnet-152-eia-1-5-1"
+    run_ec2_mxnet_inference(mxnet_inference_eia, RESNET_EIA_MODEL, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
 
 
 @pytest.mark.integration("elastic_inference")
-@pytest.mark.model(DEFAULT_RESNET_EIA_MODEL)
+@pytest.mark.model(RESNET_EIA_MODEL)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", MX_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
 @pytest.mark.skipif(MX_EC2_GPU_INSTANCE_TYPE == ["p3dn.24xlarge"], reason="Skipping EIA test on p3dn instances")
-def test_ec2_mxnet_resnet_inference_eia_gpu(mxnet_inference_eia, ec2_connection, region, eia_only):
-    run_ec2_mxnet_inference(mxnet_inference_eia, DEFAULT_RESNET_EIA_MODEL, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
+def test_ec2_mxnet_resnet_inferencei_eia_gpu(mxnet_inference_eia, ec2_connection, region, eia_only):
+    image_framework, image_framework_version = get_framework_and_version_from_tag(mxnet_inference_eia)
+    if image_framework_version == "1.5.1":
+        REANET_EIA_MODEL = "resnet-152-eia-1-5-1"
+    run_ec2_mxnet_inference(mxnet_inference_eia, RESNET_EIA_MODEL, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
 
 
 @pytest.mark.integration("gluonnlp")
@@ -85,13 +91,9 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
             inference_result = test_utils.request_mxnet_inference_gluonnlp(
                 port=target_port, connection=ec2_connection
             )
-        elif model_name == DEFAULT_RESNET_EIA_MODEL:
-            model = model_name
-            image_framework, image_framework_version = get_framework_and_version_from_tag(image_uri)
-            if image_framework_version == "1.5.1":
-                model = "resnet-152-eia-1-5-1"
+        elif model_name == RESNET_EIA_MODEL:
             inference_result = test_utils.request_mxnet_inference(
-                port=target_port, connection=ec2_connection, model=model
+                port=target_port, connection=ec2_connection, model=model_name
             )
         assert (
             inference_result
