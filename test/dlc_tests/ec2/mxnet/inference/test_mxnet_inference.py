@@ -42,10 +42,11 @@ def test_ec2_mxnet_squeezenet_inference_cpu(mxnet_inference, ec2_connection, reg
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", MX_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
 def test_ec2_mxnet_resnet_inference_eia_cpu(mxnet_inference_eia, ec2_connection, region, eia_only):
+    model_name = RESNET_EIA_MODEL
     image_framework, image_framework_version = get_framework_and_version_from_tag(mxnet_inference_eia)
     if image_framework_version == "1.5.1":
         RESNET_EIA_MODEL = "resnet-152-eia-1-5-1"
-    run_ec2_mxnet_inference(mxnet_inference_eia, RESNET_EIA_MODEL, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
+    run_ec2_mxnet_inference(mxnet_inference_eia, model_name, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
 
 
 @pytest.mark.integration("elastic_inference")
@@ -54,10 +55,11 @@ def test_ec2_mxnet_resnet_inference_eia_cpu(mxnet_inference_eia, ec2_connection,
 @pytest.mark.parametrize("ei_accelerator_type", MX_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
 @pytest.mark.skipif(MX_EC2_GPU_INSTANCE_TYPE == ["p3dn.24xlarge"], reason="Skipping EIA test on p3dn instances")
 def test_ec2_mxnet_resnet_inferencei_eia_gpu(mxnet_inference_eia, ec2_connection, region, eia_only):
+    model_name = RESNET_EIA_MODEL
     image_framework, image_framework_version = get_framework_and_version_from_tag(mxnet_inference_eia)
     if image_framework_version == "1.5.1":
         RESNET_EIA_MODEL = "resnet-152-eia-1-5-1"
-    run_ec2_mxnet_inference(mxnet_inference_eia, RESNET_EIA_MODEL, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
+    run_ec2_mxnet_inference(mxnet_inference_eia, model_name, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
 
 
 @pytest.mark.integration("gluonnlp")
