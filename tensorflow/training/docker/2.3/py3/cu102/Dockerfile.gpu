@@ -182,6 +182,7 @@ RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
+# install PyYAML==5.1.2 to avoid conflict with latest awscli	
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
     cmake==3.18.2.post1 \

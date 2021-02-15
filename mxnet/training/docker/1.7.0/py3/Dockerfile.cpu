@@ -117,6 +117,7 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 
 WORKDIR /
 
+# install PyYAML==5.1.2 to avoid conflict with latest awscli
 # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache --upgrade \
     keras-mxnet==2.2.4.2 \
