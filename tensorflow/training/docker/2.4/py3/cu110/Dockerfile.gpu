@@ -203,6 +203,7 @@ RUN ${PIP} install --no-cache-dir -U \
     pandas==1.1 \
     Pillow==7.2.0 \
     python-dateutil==2.8.1 \
+    # install PyYAML==5.4.1 to avoid conflict with latest awscli
     pyYAML==5.4.1 \
     requests==2.24.0 \
     "awscli<2" \
