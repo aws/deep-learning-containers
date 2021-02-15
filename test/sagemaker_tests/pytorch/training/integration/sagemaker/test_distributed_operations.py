@@ -126,8 +126,8 @@ def test_smmodelparallel_mnist_multigpu(ecr_image, instance_type, py_version, sa
     instance_type = "ml.p3.16xlarge"
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if not(Version(image_framework_version) in SpecifierSet(">=1.6,<1.8")) or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6 and PyTorch 1.7")
+    if Version(image_framework_version) < Version("1.6") or image_cuda_version != "cu110":
+        pytest.skip("Model Parallelism only supported on CUDA 11 on PyTorch 1.6 and above")
 
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smmodelparallel_pt_mnist.sh',
@@ -154,8 +154,8 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_v
     instance_type = "ml.p3.16xlarge"
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if not(Version(image_framework_version) in SpecifierSet(">=1.6,<1.8")) or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6 and PyTorch 1.7")
+    if Version(image_framework_version) < Version("1.6") or image_cuda_version != "cu110":
+        pytest.skip("Model Parallelism only supported on CUDA 11 on PyTorch 1.6 and above")
 
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smmodelparallel_pt_mnist_multinode.sh',
@@ -179,6 +179,10 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    if Version(image_framework_version) < Version("1.6") or image_cuda_version != "cu110":
+        pytest.skip("Data Parallelism only supported on CUDA 11 on PyTorch 1.6 and above")
     instance_type = "ml.p3.16xlarge"
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smdataparallel_mnist_script_mode.sh',
@@ -204,6 +208,10 @@ def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_s
     """
     Tests smddprun command via Estimator API distribution parameter
     """
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    if Version(image_framework_version) < Version("1.6") or image_cuda_version != "cu110":
+        pytest.skip("Data Parallelism only supported on CUDA 11 on PyTorch 1.6 and above")
     distribution = {"smdistributed":{"dataparallel":{"enabled":True}}}
     estimator = PyTorch(entry_point='smdataparallel_mnist.py',
                         role='SageMakerRole',
@@ -231,8 +239,8 @@ def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, py_vers
     """
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if not (Version(image_framework_version) in SpecifierSet(">=1.6,<1.8")) or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6 and PyTorch 1.7")
+    if Version(image_framework_version) < Version("1.6") or image_cuda_version != "cu110":
+        pytest.skip("Data/Model Parallelism only supported on CUDA 11 on PyTorch 1.6 and above")
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smdataparallel_smmodelparallel_mnist_script_mode.sh',
                           role='SageMakerRole',
