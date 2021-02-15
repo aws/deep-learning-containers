@@ -110,6 +110,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     docker_base_arg = "--docker-base-name"
     instance_type_arg = "--instance-type"
     accelerator_type_arg = "--accelerator-type"
+    framework_version_arg = "--framework-version"
     eia_arg = "ml.eia1.large"
     processor = "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
     py_version = re.search(r"py\d+", tag).group()
@@ -126,6 +127,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             aws_id_arg = "--registry"
             docker_base_arg = "--repo"
             instance_type_arg = "--instance-types"
+            framework_version_arg = "--versions"
             integration_path = os.path.join(integration_path, "test_tfs.py") if processor != "eia" else os.path.join(integration_path, "test_ei.py")
 
     if framework == "tensorflow" and job_type == "training":
@@ -137,7 +139,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
-        f"{sm_remote_docker_base_name} --tag {tag} --framework-version {framework_version} "
+        f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
         f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} --junitxml {test_report}"
     )
 
