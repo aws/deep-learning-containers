@@ -175,7 +175,6 @@ RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
-# install PyYAML==5.3.1 to avoid conflict with latest awscli
 # # python-dateutil==2.8 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
     numpy==1.19.1 \
@@ -184,7 +183,7 @@ RUN ${PIP} install --no-cache-dir -U \
     pandas==1.1 \
     Pillow==7.2.0 \
     python-dateutil==2.8.1 \
-    pyYAML==5.3.1 \
+    pyYAML==5.4.1 \
     requests==2.24.0 \
     "awscli<2" \
     mpi4py==3.0.3 \

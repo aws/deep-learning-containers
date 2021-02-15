@@ -113,7 +113,6 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
-# install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
     numpy==1.18.5 \
@@ -125,7 +124,7 @@ RUN ${PIP} install --no-cache-dir -U \
     keras_preprocessing==1.1.0 \
     keras==2.3.1 \
     python-dateutil==2.8.1 \
-    PyYAML==5.3.1 \
+    PyYAML==5.4.1 \
     requests==2.22.0 \
     "awscli<2" \
     mpi4py==3.0.3 \

@@ -141,7 +141,6 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python
 
-# install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
     numpy==1.16.5 \
@@ -155,7 +154,7 @@ RUN ${PIP} install --no-cache-dir -U \
     requests==2.22.0 \
     keras==2.3.1 \
     python-dateutil==2.8.0 \
-    PyYAML==5.3.1 \
+    PyYAML==5.4.1 \
     "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.2.0.32 \
