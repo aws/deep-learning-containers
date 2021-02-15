@@ -125,7 +125,7 @@ RUN ${PIP} install -U --no-cache-dir \
     gevent==20.9.0 \
     requests==2.22.0 \
     grpcio==1.31.0  \
-    PyYAML==5.4.1 \
+    PyYAML==5.3.1 \
     protobuf==3.11.1 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
