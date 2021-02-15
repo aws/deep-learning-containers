@@ -72,7 +72,7 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     # For PyTorch 1.7 images, update PyTorch Examples to latest version
     _, framework_version = get_framework_and_version_from_tag(ecr_uri)
     if Version(framework_version) >= Version("1.7"):
-        connection.run("cd /home/ubuntu/examples && git stash && git pull && git stash pop")
+        connection.run("cd /home/ubuntu/examples && sudo git stash && sudo git pull && sudo git stash pop")
 
     # Run training command, display benchmark results to console
     try:
