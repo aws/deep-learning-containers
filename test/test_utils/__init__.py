@@ -249,7 +249,7 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
     if run_out.return_code != 0:
-        LOGGER.error("run_out.return_code = 0")
+        LOGGER.error("run_out.return_code != 0")
         return False
     elif "pot" not in run_out.stdout:
         LOGGER.error("run_out.stdout doesn't contain 'pot'")
