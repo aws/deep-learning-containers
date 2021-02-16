@@ -1,7 +1,7 @@
 FROM nvidia/cuda:11.0-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="3"
+LABEL dlc_major_version="1"
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -29,12 +29,17 @@ ARG PYTHON_VERSION=3.7.7
 ARG OPENSSL_VERSION=1.1.1i
 ARG OPEN_MPI_PATH=/usr/local
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.3_aws_profiler/20201115-214803/gpu/py37/tensorflow_gpu-2.3.1-cp37-cp37m-manylinux2010_x86_64.whl
-ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.3_aws/20201113-213326/tensorflow_estimator-2.3.0-py2.py3-none-any.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.4_aws/20210127-150238/gpu/py37/cu110/tensorflow_gpu-2.4.1-cp37-cp37m-manylinux2010_x86_64.whl
+
+ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.4_aws/20210127-150238/tensorflow_estimator-2.4.0-py2.py3-none-any.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.3
+ARG SMDEBUG_VERSION=1.0.2
+
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.4.1/cu110/2021-01-28/smdistributed_dataparallel-1.0.0-cp37-cp37m-linux_x86_64.whl
+
+ARG SMMODELPARALLEL_BINARY=https://sagemaker-distributed-model-parallel.s3.amazonaws.com/tensorflow-2.4/build-artifacts/2021-02-12-04-00/smdistributed_modelparallel-1.2.0-cp37-cp37m-linux_x86_64.whl
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
@@ -67,8 +72,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     zlib1g-dev \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends --allow-unauthenticated \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends --allow-unauthenticated \
     libcublas-11-0=11.2.0.252-1 \
     libcublas-dev-11-0=11.2.0.252-1 \
     # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0
@@ -188,8 +193,8 @@ RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
-# install PyYAML==5.1.2 to avoid conflict with latest awscli
-# # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
+# install PyYAML==5.3.1 to avoid conflict with latest awscli
+# # python-dateutil==2.8.1 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
     pybind11 \
     cmake==3.18.2.post1 \
@@ -206,9 +211,8 @@ RUN ${PIP} install --no-cache-dir -U \
     opencv-python==4.3.0.36 \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
-    "sagemaker-tensorflow>=2.3,<2.4" \
+    "sagemaker-tensorflow>=2.4,<2.5" \
     "sagemaker-tensorflow-training>=20" \
-
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
@@ -233,6 +237,7 @@ RUN wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
   && apt-get install -y cmake \
   && make config shared=1 \
   && make install \
+  && cd .. \
   && rm -rf ${METIS}.tar* \
   && rm -rf ${METIS} \
   && rm -rf /var/lib/apt/lists/* \
@@ -244,14 +249,17 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
   && tar -xvf v${RMM_VERSION}.tar.gz \
   && cd rmm-${RMM_VERSION} \
   && INSTALL_PREFIX=/usr/local ./build.sh librmm \
+  && cd .. \
   && rm -rf v${RMM_VERSION}.tar* \
   && rm -rf rmm-${RMM_VERSION}
 
 ENV CPATH="/usr/local/lib/python3.7/dist-packages/pybind11/include/"
 
+RUN apt-get update && apt-get -y install cmake protobuf-compiler
+
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.0/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.20.3 \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.21.0 \
  && ldconfig
 
 # Allow OpenSSH to talk to containers without asking for confirmation
@@ -263,11 +271,9 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 ENV TF_AUTOTUNE_THRESHOLD=2
 
 # Install SMD MP binary
-RUN pip install --no-cache-dir -U https://sagemaker-distributed-model-parallel.s3.amazonaws.com/tensorflow-2.3/build-artifacts/2020-12-06/smdistributed_modelparallel-1.0.0-cp37-cp37m-linux_x86_64.whl
+RUN pip install --no-cache-dir -U ${SMMODELPARALLEL_BINARY}
 
-# Install SM Distributed DataParallel binary
-ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.3.1/cu110/2021-01-14/smdistributed_dataparallel-1.0.0-cp37-cp37m-linux_x86_64.whl
-
+# Install SMD DP binary
 RUN SMDATAPARALLEL_TF=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
 ENV LD_LIBRARY_PATH="/usr/local/lib/python3.7/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
@@ -276,6 +282,6 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.3/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.4/license.txt -o /license.txt
 
 CMD ["bin/bash"]
