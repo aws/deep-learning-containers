@@ -251,9 +251,13 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
     if run_out.return_code != 0:
         LOGGER.error("run_out.return_code != 0")
         return False
-    elif "pot" not in run_out.stdout:
-        LOGGER.error("run_out.stdout doesn't contain 'pot'")
-        return False
+    else:
+        inference_output = json.loads(run_out.stdout.strip("\n"))
+        if not (
+                ("neuron" in model_name and isinstance(inference_output, list) and len(inference_output) == 3)
+                or (isinstance(inference_output, dict) and len(inference_output) == 5)
+        ):
+            return False
 
     return True
 
@@ -365,7 +369,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         )
     else:
         mms_command = (
-            f"/usr/local/bin/entrypoint.sh -m {parameters} -t /home/model-server/config.properties"
+            f"/usr/local/bin/entrypoint.sh -t /home/model-server/config.properties -m " + " ".join(parameters)
         )
 
     return mms_command
