@@ -258,6 +258,7 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
                 or (isinstance(inference_output, dict) and len(inference_output) == 5)
         ):
             return False
+        LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
 
     return True
 
