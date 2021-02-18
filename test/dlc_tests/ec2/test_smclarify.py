@@ -16,7 +16,7 @@ SMCLARIFY_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.2xlarge", pr
 @pytest.mark.integration("smclarify_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", SMCLARIFY_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_smclarify_metrics_cpu(training, ec2_connection, region, ec2_instance_type, cpu_only, py3_only):
+def test_smclarify_metrics_cpu(training, ec2_connection, region, ec2_instance_type, cpu_only, py3_only, tf231_and_above_only):
     run_smclarify_bias_metrics(training, ec2_connection, region, ec2_instance_type)
 
 
