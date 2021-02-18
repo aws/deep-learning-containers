@@ -85,13 +85,14 @@ COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN pip install --no-cache-dir -U \
+    "pyopenssl>=17.5.0" \
+ && pip install --no-cache-dir -U \
     numpy \
     ipython \
     mkl \
     mkl-include \
     cython \
     typing \
-    "pyopenssl>=17.5.0" \
     opencv \
     scikit-learn \
     pandas \
