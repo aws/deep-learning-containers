@@ -23,7 +23,7 @@ def test_smclarify_metrics_cpu(training, ec2_connection, region, ec2_instance_ty
 @pytest.mark.integration("smclarify_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", SMCLARIFY_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_smclarify_metrics_gpu(training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only, tf231_and_above_only):
+def test_smclarify_metrics_gpu(training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only, tf23_and_above_only):
     image_cuda_version = get_cuda_version_from_tag(training)
     if image_cuda_version != "cu110":
         pytest.skip("SmClarify is currently installed in cuda 11 gpu images")
