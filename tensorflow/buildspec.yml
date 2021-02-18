@@ -62,7 +62,7 @@
         /Dockerfile., *DEVICE_TYPE ]
       context:
         <<: *TRAINING_CONTEXT
-    BuildTensorflowExampleGpuPy37Cu110TrainingDockerImage:
+    BuildTensorflowExampleGpuPy37Cu102TrainingDockerImage:
       <<: *TRAINING_REPOSITORY
       build: &TENSORFLOW_GPU_TRAINING_PY3 false
       image_size_baseline: &IMAGE_SIZE_BASELINE 7738
