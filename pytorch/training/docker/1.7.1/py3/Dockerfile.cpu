@@ -24,6 +24,8 @@ ENV LC_ALL=C.UTF-8
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV DGLBACKEND=pytorch
+# To prevent user interaction when installing time zone data package
+ENV DEBIAN_FRONTEND=noninteractive
 
 ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.1_aws/20210107-213753/df8e57a23cbc00d4fff51f4ea7f2ce052d1384e9/cpu/torch-1.7.1-cp36-cp36m-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.7.1/cpu/torchvision-0.8.2-cp36-cp36m-linux_x86_64.whl
@@ -42,8 +44,10 @@ RUN apt-get update \
     libglib2.0-0 \
     libgl1-mesa-glx \
     libsm6 \
+    libssl1.1 \
     libxext6 \
     libxrender-dev \
+    openssl \
     software-properties-common \
     wget \
     vim \
