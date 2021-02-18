@@ -5,7 +5,7 @@ LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
-ARG PYTHON_VERSION=3.6.13
+ARG PYTHON_VERSION=3.6.10
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.3.0
 ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.1_inference/20210112-183245/c1130f2829b03c0997b9813211a7c0f600fc569a/cpu/torch-1.7.1-cp36-cp36m-manylinux1_x86_64.whl
