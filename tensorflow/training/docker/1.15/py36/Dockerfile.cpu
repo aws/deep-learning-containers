@@ -38,7 +38,6 @@ ARG OPENSSL_VERSION=1.1.1g
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-    software-properties-common \
     build-essential \
     openssh-client \
     openssh-server \
@@ -50,20 +49,6 @@ RUN apt-get update \
     vim \
     zlib1g-dev \
  && rm -rf /var/lib/apt/lists/*
-
-RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
- && tar -xvf Python-$PYTHON_VERSION.tgz \
- && cd Python-$PYTHON_VERSION \
- && ./configure && make && make install \
- && rm -rf ../Python-$PYTHON_VERSION*
-
-RUN ${PIP} --no-cache-dir install --upgrade \
-    pip \
-    setuptools
-
-# Some TF tools expect a "python" binary
-RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
- && ln -s $(which ${PIP}) /usr/bin/pip
 
 RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
  && apt-get update \
@@ -117,6 +102,35 @@ RUN mkdir -p /root/.ssh/ \
  && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 WORKDIR /
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    libbz2-dev \
+    libc6-dev \
+    libffi-dev \
+    libgdbm-dev \
+    libncursesw5-dev \
+    liblzma-dev \
+    libreadline-gplv2-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    tk-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xvf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure && make && make install \
+ && rm -rf ../Python-$PYTHON_VERSION*
+
+RUN ${PIP} --no-cache-dir install --upgrade \
+    pip \
+    setuptools
+
+# Some TF tools expect a "python" binary
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
+ && ln -s $(which ${PIP}) /usr/bin/pip
 
 RUN pip install --no-cache-dir -U \
     numpy==1.18.5 \
