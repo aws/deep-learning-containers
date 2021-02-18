@@ -85,7 +85,6 @@ COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN pip install --no-cache-dir -U \
-    python=$PYTHON_VERSION \
     numpy \
     ipython \
     mkl \
