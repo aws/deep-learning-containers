@@ -36,7 +36,7 @@
       image_size_baseline: 1786
       device_type: &DEVICE_TYPE cpu
       python_version: &DOCKER_PYTHON_VERSION py3
-      tag_python_version: &TAG_PYTHON_VERSION py37
+      tag_python_version: &TAG_PYTHON_VERSION py36
       os_version: &OS_VERSION ubuntu16.04
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
@@ -48,7 +48,7 @@
       image_size_baseline: 6581
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
-      tag_python_version: &TAG_PYTHON_VERSION py37
+      tag_python_version: &TAG_PYTHON_VERSION py36
       cuda_version: &CUDA_VERSION cu101
       os_version: &OS_VERSION ubuntu16.04
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
@@ -61,7 +61,7 @@
       image_size_baseline: 1687
       device_type: &DEVICE_TYPE cpu
       python_version: &DOCKER_PYTHON_VERSION py3
-      tag_python_version: &TAG_PYTHON_VERSION py37
+      tag_python_version: &TAG_PYTHON_VERSION py36
       os_version: &OS_VERSION ubuntu16.04
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
@@ -73,7 +73,7 @@
       image_size_baseline: 5578
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
-      tag_python_version: &TAG_PYTHON_VERSION py37
+      tag_python_version: &TAG_PYTHON_VERSION py36
       cuda_version: &CUDA_VERSION cu101
       os_version: &OS_VERSION ubuntu16.04
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
@@ -87,7 +87,7 @@
       base_image_name: BuildMXNetGPUTrainPy3DockerImage
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
-      tag_python_version: &TAG_PYTHON_VERSION py37
+      tag_python_version: &TAG_PYTHON_VERSION py36
       cuda_version: &CUDA_VERSION cu101
       os_version: &OS_VERSION ubuntu16.04
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
