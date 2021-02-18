@@ -17,7 +17,8 @@ import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
 from test.test_utils import (
-    is_benchmark_dev_context, get_framework_and_version_from_tag, get_job_type_from_image, is_tf_version, is_below_tf_version,
+    is_benchmark_dev_context, get_framework_and_version_from_tag, get_job_type_from_image, is_tf_version, 
+    is_below_tf_version, is_below_mxnet_version, 
     DEFAULT_REGION, P3DN_REGION, UBUNTU_18_BASE_DLAMI_US_EAST_1, UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, KEYS_TO_DESTROY_FILE
 )
@@ -321,6 +322,11 @@ def tf21_and_above_only():
     pass
 
 
+@pytest.fixture(scope="session")
+def mx18_and_above_only():
+    pass
+
+
 def tf_version_within_limit(metafunc_obj, image):
     """
     Test all pytest fixtures for TensorFlow version limits, and return True if all requirements are satisfied
@@ -334,6 +340,20 @@ def tf_version_within_limit(metafunc_obj, image):
     tf23_requirement_failed = "tf23_and_above_only" in metafunc_obj.fixturenames and is_below_tf_version("2.3", image)
     tf21_requirement_failed = "tf21_and_above_only" in metafunc_obj.fixturenames and is_below_tf_version("2.1", image)
     if tf2_requirement_failed or tf21_requirement_failed or tf24_requirement_failed or tf23_requirement_failed:
+        return False
+    return True
+
+
+def mx_version_within_limit(metafunc_obj, image):
+    """
+    Test all pytest fixtures for TensorFlow version limits, and return True if all requirements are satisfied
+
+    :param metafunc_obj: pytest metafunc object from which fixture names used by test function will be obtained
+    :param image: Image URI for which the validation must be performed
+    :return: True if all validation succeeds, else False
+    """
+    mx18_requirement_failed = "mx18_and_above_only" in metafunc_obj.fixturenames and is_below_mxnet_version("1.8", image)
+    if mx18_requirement_failed:
         return False
     return True
 
@@ -424,7 +444,7 @@ def pytest_generate_tests(metafunc):
                 if lookup in image:
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
-                    if not tf_version_within_limit(metafunc, image):
+                    if not tf_version_within_limit(metafunc, image) or not mx_version_within_limit(metafunc, image):
                         continue
                     if is_example_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
