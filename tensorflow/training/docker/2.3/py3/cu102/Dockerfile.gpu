@@ -28,7 +28,7 @@ ARG PYTHON_VERSION=3.7.10
 ARG OPENSSL_VERSION=1.1.1i
 ARG OPEN_MPI_PATH=/usr/local
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/chehaoha-23/20210216-144633/gpu/cu102/py37/tensorflow_gpu-2.3.2-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.3_aws/20210217-160609/gpu/cu102/py37/tensorflow_gpu-2.3.2-cp37-cp37m-manylinux2010_x86_64.whl
 
 ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.3_aws/20201211-182958/tensorflow_estimator-2.3.0-py2.py3-none-any.whl
 
