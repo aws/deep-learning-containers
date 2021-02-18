@@ -27,15 +27,25 @@ IGNORE_SAFETY_IDS = {
         "training": {
             # 38449, 38450, 38451, 38452: for shipping pillow<=6.2.2 - the last available version for py2
             # 35015: for shipping pycrypto<=2.6.1 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452', '35015']
+            "py2": ['38449', '38450', '38451', '38452', '35015'],
+            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
+            "py3": ['39611']
         },
         "inference": {
             # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452']
+            "py2": ['38449', '38450', '38451', '38452'],
+            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
+            "py3": ['39611']
         },
         "inference-eia": {
             # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452']
+            "py2": ['38449', '38450', '38451', '38452'],
+            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
+            "py3": ['39611']
+        },
+        "inference-neuron":{
+            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
+            "py3": ['39611']
         }
     },
     "mxnet": {
@@ -44,15 +54,24 @@ IGNORE_SAFETY_IDS = {
             "py2": ['36810',
                     # for shipping pillow<=6.2.2 - the last available version for py2
                     '38449', '38450', '38451', '38452'],
-            "py3": ['36810']
+            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
+            "py3": ['39611']
         },
         "inference": {
             # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452']
+            "py2": ['38449', '38450', '38451', '38452'],
+            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
+            "py3": ['39611']
         },
         "training": {
             # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452']
+            "py2": ['38449', '38450', '38451', '38452'],
+            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
+            "py3": ['39611']
+        },
+        "inference-neuron":{
+            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
+            "py3": ['39611']
         }
     },
     "pytorch": {
@@ -61,7 +80,20 @@ IGNORE_SAFETY_IDS = {
             "py2": ['35810',
                     # for shipping pillow<=6.2.2 - the last available version for py2
                     '38449', '38450', '38451', '38452'],
-            "py3": []
+            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
+            "py3": ['39611']
+        },
+        "inference": {
+            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
+            "py3": ['39611']
+        },
+        "inference-eia": {
+            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
+            "py3": ['39611']
+        },
+        "inference-neuron":{
+            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
+            "py3": ['39611']
         }
     }
 }
@@ -76,7 +108,10 @@ def _get_safety_ignore_list(image_uri):
     framework = ("mxnet" if "mxnet" in image_uri else
                  "pytorch" if "pytorch" in image_uri else
                  "tensorflow")
-    job_type = "training" if "training" in image_uri else "inference-eia" if "eia" in image_uri else "inference"
+    job_type = ("training" if "training" in image_uri else 
+                "inference-eia" if "eia" in image_uri else 
+                "inference-neuron" if "neuron" in image_uri else 
+                "inference")
     python_version = "py2" if "py2" in image_uri else "py3"
 
     return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, [])
