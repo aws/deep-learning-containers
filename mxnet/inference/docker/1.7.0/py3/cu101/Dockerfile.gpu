@@ -66,7 +66,7 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
  && ./configure \
- && CPPFLAGS="-D_FORTIFY_SOURCE=2" make \
+ && make \
  && make install \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
