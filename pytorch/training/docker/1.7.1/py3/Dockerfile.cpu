@@ -84,8 +84,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
-RUN pip install --no-cache-dir -U \
-    "pyopenssl>=17.5.0" \
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache-dir -U \
     numpy \
     ipython \
@@ -93,6 +92,7 @@ RUN pip install --no-cache-dir -U \
     mkl-include \
     cython \
     typing \
+    "pyopenssl>=17.5.0" \
     opencv \
     scikit-learn \
     pandas \
@@ -102,8 +102,7 @@ RUN pip install --no-cache-dir -U \
 
 # The following section uninstalls torch and torchvision before installing the
 # custom versions from an S3 bucket. This will need to be removed in the future
-RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && pip install --no-cache-dir -U \
+RUN pip install --no-cache-dir -U \
     "awscli<2" \
     fastai==1.0.61 \
     scipy==1.2.2 \
