@@ -256,3 +256,13 @@ release_images:
       example: True
       disable_sm_tag: True  # [Default: False] This option is not used by Example images
       force_release: False
+  19:
+    framework: "tensorflow"
+    version: "2.0.0"
+    inference:
+      device_types: ["eia"]
+      python_versions: ["py36"]
+      os_version: "ubuntu18.04"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
