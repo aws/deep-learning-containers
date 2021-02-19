@@ -103,8 +103,8 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p ${CONDA_PREFIX} \
  && rm ~/miniconda.sh \
+ && ${CONDA_PREFIX}/bin/conda install -c conda-forge python=$PYTHON_VERSION \
  && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
-    python=$PYTHON_VERSION \
     numpy \
     ipython \
     mkl \
