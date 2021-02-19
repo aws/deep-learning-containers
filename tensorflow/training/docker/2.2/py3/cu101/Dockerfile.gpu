@@ -24,7 +24,7 @@ ENV KMP_SETTINGS=0
 ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.7.7
+ARG PYTHON_VERSION=3.7.10
 ARG OPENSSL_VERSION=1.1.1g
 
 ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.2_aws_cu101/20200925-010934/gpu/py37/tensorflow_gpu-2.2.1-cp37-cp37m-manylinux2010_x86_64.whl
