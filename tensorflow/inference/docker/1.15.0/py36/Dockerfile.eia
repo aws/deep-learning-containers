@@ -41,6 +41,7 @@ RUN apt-get update \
     emacs \
     git \
     wget \
+    build-essential \
     vim \
  && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
  && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
