@@ -4,7 +4,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 # Add arguments to achieve the version, python and url
-ARG PYTHON_VERSION=3.6.10
+ARG PYTHON_VERSION=3.6.13
 ARG OPEN_MPI_VERSION=4.0.1
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
@@ -74,7 +74,6 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
  && /opt/conda/bin/conda install -y -c anaconda \
-    python=$PYTHON_VERSION \
     numpy \
     ipython \
     mkl \
@@ -83,6 +82,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     typing \
     "pyopenssl>=17.5.0" \
  && conda install -c conda-forge \
+    python=$PYTHON_VERSION \
     opencv \
  && conda install -y \
     scikit-learn \
@@ -98,6 +98,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
+    pyyaml>=5.4,<5.5 \
     "awscli<2" \
     fastai==1.0.61 \
     scipy==1.2.2 \
