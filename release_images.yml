@@ -66,7 +66,7 @@ release_images:
     framework: "tensorflow"
     version: "2.3.1"
     training:
-      device_types: ["cpu", "gpu"]
+      device_types: ["gpu"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
       cuda_version: "cu110"
@@ -90,12 +90,12 @@ release_images:
     framework: "tensorflow"
     version: "1.15.4"
     training:
-      device_types: ["cpu","gpu"]
+      device_types: ["gpu"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
       cuda_version: "cu110"
       example: False
-      disable_sm_tag: False
+      disable_sm_tag: True
       force_release: False
   9:
     framework: "tensorflow"
@@ -188,10 +188,10 @@ release_images:
     framework: "tensorflow"
     version: "2.2.1"
     training:
-      device_types: ["cpu"]
+      device_types: ["gpu"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu102"
+      cuda_version: "cu101"
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
@@ -202,30 +202,11 @@ release_images:
       device_types: ["gpu"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu102"
-      example: False
-      disable_sm_tag: True  # [Default: False] This option is not used by Example images
-      force_release: False
-    inference:
-      device_types: ["cpu","gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu102"
-      example: False
+      cuda_version: "cu101"
+      example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
   17:
-    framework: "tensorflow"
-    version: "2.2.1"
-    training:
-      device_types: ["gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu102"
-      example: True
-      disable_sm_tag: True  # [Default: False] This option is not used by Example images
-      force_release: False
-  18:
     framework: "tensorflow"
     version: "2.0.0"
     inference:
