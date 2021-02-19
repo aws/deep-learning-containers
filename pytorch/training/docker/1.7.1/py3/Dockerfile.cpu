@@ -43,6 +43,8 @@ RUN apt-get update \
     jq \
     libglib2.0-0 \
     libgl1-mesa-glx \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
     libsm6 \
     libssl1.1 \
     libxext6 \
@@ -110,7 +112,7 @@ RUN pip install --no-cache-dir -U \
     cython \
     typing \
     "pyopenssl>=17.5.0" \
-    opencv \
+    opencv-python \
     scikit-learn \
     pandas \
     h5py \
