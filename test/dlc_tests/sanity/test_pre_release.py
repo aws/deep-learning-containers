@@ -90,7 +90,7 @@ def test_python_version(image):
     container_py_version = output.stdout
     # Due to py2 deprecation, Python2 version gets streamed to stderr. Python installed via Conda also appears to
     # stream to stderr, hence the pytorch condition.
-    if "Python 2" in py_version or "pytorch" in image:
+    if "Python 2" in py_version:
         container_py_version = output.stderr
 
     assert py_version in container_py_version, f"Cannot find {py_version} in {container_py_version}"
