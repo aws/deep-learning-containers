@@ -77,7 +77,7 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
- && ln -s /usr/local/bin/pip3 /usr/bin/pip
+ && ln -s $(which ${PIP}) /usr/bin/pip
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir \
