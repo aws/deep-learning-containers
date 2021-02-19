@@ -224,7 +224,7 @@ release_images:
       os_version: "ubuntu18.04"
       cuda_version: "cu102"
       example: False
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      disable_sm_tag: True  # [Default: False] This option is not used by Example images
       force_release: False
     inference:
       device_types: ["cpu","gpu"]
@@ -243,5 +243,5 @@ release_images:
       os_version: "ubuntu18.04"
       cuda_version: "cu102"
       example: True
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      disable_sm_tag: True  # [Default: False] This option is not used by Example images
       force_release: False
