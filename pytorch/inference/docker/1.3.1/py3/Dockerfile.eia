@@ -53,8 +53,9 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
  && /opt/conda/bin/conda update conda \
- && /opt/conda/bin/conda install -y \
+ && conda install -c \
     python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -y \
     cython==0.29.12 \
     ipython==7.7.0 \
     numpy==1.19.1 \
