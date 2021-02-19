@@ -11,7 +11,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.7.7
+ARG PYTHON_VERSION=3.7.10
 ARG TFS_SHORT_VERSION=1.15.4
 ARG TF_S3_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com
 
@@ -183,4 +183,3 @@ COPY entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 CMD ["/usr/local/bin/entrypoint.sh"]
-
