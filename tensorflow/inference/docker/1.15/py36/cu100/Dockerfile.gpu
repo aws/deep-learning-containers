@@ -8,7 +8,9 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 # Add arguments to achieve the version, python and url
 ARG PYTHON=python3
+ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
+ARG PYTHON_VERSION=3.6.13
 ARG TFS_SHORT_VERSION=1.15.3
 ARG TF_MODEL_SERVER_SOURCE=https://tensorflow-aws.s3-us-west-2.amazonaws.com/${TFS_SHORT_VERSION}/Serving/GPU/tensorflow_model_server
 
@@ -68,14 +70,6 @@ RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
 # causing sslcertverificationerror the below steps are to fix that
 RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-    python3 \
-    python3-pip \
-    python3-setuptools \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
 # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-4.0.1-ga-cuda10.0
 # adds a new list which contains libnvinfer library, so it needs another
 # 'apt-get update' to retrieve that list before it can actually install the
@@ -95,14 +89,6 @@ RUN apt-get update \
  && rm /usr/lib/x86_64-linux-gnu/libnvcaffe_parser* \
  && rm /usr/lib/x86_64-linux-gnu/libnvparsers*
 
-RUN ${PIP} --no-cache-dir install --upgrade \
-    pip \
-    setuptools
-
-# Some TF tools expect a "python" binary
-RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
- && ln -s /usr/local/bin/pip3 /usr/bin/pip
-
 # nginx + njs
 RUN apt-get update \
  && apt-get -y install --no-install-recommends \
@@ -116,6 +102,34 @@ RUN apt-get update \
     nginx-module-njs \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    libbz2-dev \
+    libc6-dev \
+    libffi-dev \
+    libgdbm-dev \
+    libncursesw5-dev \
+    libreadline-gplv2-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    tk-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xvf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure && make && make install \
+ && rm -rf ../Python-$PYTHON_VERSION*
+
+RUN ${PIP} --no-cache-dir install --upgrade \
+    pip \
+    setuptools
+
+# Some TF tools expect a "python" binary
+RUN ln -s $(which python3) /usr/local/bin/python \
+ && ln -s $(which pip3) /usr/bin/pip
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install -U --no-cache-dir \
