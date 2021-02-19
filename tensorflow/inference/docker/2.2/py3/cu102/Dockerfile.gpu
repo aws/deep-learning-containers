@@ -9,7 +9,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.7.7
+ARG PYTHON_VERSION=3.7.10
 ARG OPENSSL_VERSION=1.1.1g
 
 ARG TFS_SHORT_VERSION=2.2
