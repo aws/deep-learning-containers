@@ -33,6 +33,7 @@ RUN apt-get update \
  && apt-get -y install --no-install-recommends \
     curl \
     gnupg2 \
+    build-essential \
     ca-certificates \
     emacs \
     git \
