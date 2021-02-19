@@ -240,12 +240,15 @@ def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connecti
 @retry(
     stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false,
 )
-def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connection=None):
+def request_pytorch_inference_densenet(
+        ip_address="127.0.0.1", port="80", connection=None, model_name="pytorch-densenet",
+):
     """
     Send request to container to test inference on flower.jpg
     :param ip_address: str
     :param port: str
     :param connection: obj
+    :param model_name: str
     :return: <bool> True/False based on result of inference
     """
     conn_run = connection.run if connection is not None else run
@@ -255,7 +258,7 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
         conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True)
 
     run_out = conn_run(
-        f"curl -X POST http://{ip_address}:{port}/predictions/pytorch-densenet -T flower.jpg", hide=True, warn=True
+        f"curl -X POST http://{ip_address}:{port}/predictions/{model_name} -T flower.jpg", hide=True, warn=True
     )
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
