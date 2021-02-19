@@ -66,7 +66,9 @@ def test_distributed_training_smdataparallel_script_mode(
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
-@pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p3dn.24xlarge"])
+@pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge"])
+# Temprarily skipping `ml.p3dn.24xlarge` instance type due to capacity issue in us-west-2
+# TODO: Revert this change asap
 def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_session, tmpdir):
     """
     Tests smddprun command via Estimator API distribution parameter
