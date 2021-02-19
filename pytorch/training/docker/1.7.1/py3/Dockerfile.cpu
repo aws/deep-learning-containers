@@ -98,7 +98,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
-    pyyaml>=5.4,<5.5 \
+    "pyyaml>=5.4,<5.5" \
     "awscli<2" \
     fastai==1.0.61 \
     scipy==1.2.2 \

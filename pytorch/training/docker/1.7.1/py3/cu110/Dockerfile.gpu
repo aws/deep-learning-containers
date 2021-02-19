@@ -95,7 +95,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p ${CONDA_PREFIX} \
  && rm ~/miniconda.sh \
- && /opt/conda/bin/conda install -c conda-forge \
+ && ${CONDA_PREFIX}/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
  && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
     numpy \
@@ -149,7 +149,7 @@ RUN pip install --no-cache-dir -U \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training \
     --no-cache-dir fastai==1.0.61 \
-    pyyaml>=5.4,<5.5 \
+    "pyyaml>=5.4,<5.5" \
     "awscli<2" \
     psutil \
     Pillow \
