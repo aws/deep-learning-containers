@@ -92,8 +92,7 @@ IGNORE_SAFETY_IDS = {
             "py3": ['39611']
         },
         "inference-eia": {
-            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
-            "py3": ['39611']
+            "py3": []
         },
         "inference-neuron":{
             # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
