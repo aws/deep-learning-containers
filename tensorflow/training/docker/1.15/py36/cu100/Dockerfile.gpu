@@ -26,6 +26,11 @@ ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=0.9.4
 
+ARG PYTHON=python3
+ARG PYTHON_PIP=python3-pip
+ARG PIP=pip3
+ARG PYTHON_VERSION=3.6.13
+
 ARG OPENSSL_VERSION=1.1.1g
 
 RUN apt-get update \
@@ -89,12 +94,6 @@ RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
 # causing sslcertverificationerror the below steps are to fix that
 RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
-RUN apt-get update \
- && apt-get install -y --no-install-recommends --allow-unauthenticated \
-    python3-dev \
-    python3-pip \
-    python3-setuptools
-
 ###########################################################################
 # Horovod & its dependencies
 ###########################################################################
@@ -145,13 +144,34 @@ RUN mkdir -p /root/.ssh/ \
 
 WORKDIR /
 
-RUN pip3 --no-cache-dir install --upgrade \
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    libbz2-dev \
+    libc6-dev \
+    libffi-dev \
+    libgdbm-dev \
+    libncursesw5-dev \
+    libreadline-gplv2-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    tk-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xvf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure && make && make install \
+ && rm -rf ../Python-$PYTHON_VERSION*
+
+RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which python3) /usr/local/bin/python \
  && ln -s $(which pip3) /usr/bin/pip
+
 
 RUN pip install --no-cache-dir -U \
     numpy==1.18.5 \
