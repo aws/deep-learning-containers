@@ -52,7 +52,8 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
  && /opt/conda/bin/conda update conda \
- && /opt/conda/bin/conda install -c conda-forge python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -c conda-forge \
+    python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y \
     cython==0.29.12 \
     ipython==7.7.0 \
@@ -124,7 +125,9 @@ RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.6.0/license.txt -o /license.txt
 
 RUN conda install -y -c conda-forge "pyyaml>5.4,<5.5"
-RUN pip install pillow==7.2.0 "awscli<2"
+RUN pip install pillow==7.2.0 \
+    "awscli<2" \
+    ruamel-yaml 
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]

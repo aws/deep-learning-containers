@@ -102,7 +102,8 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
- && /opt/conda/bin/conda install -c conda-forge python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -c conda-forge \
+    python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y -c anaconda \
     numpy \
     ipython \
@@ -149,6 +150,7 @@ RUN pip install \
     Pillow \
     scipy \
     click \
+    ruamel-yaml \
     mpi4py==3.0.3 \
     cmake==3.18.2.post1 \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
