@@ -79,7 +79,7 @@
       image_size_baseline: 7738
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
-      tag_python_version: &TAG_PYTHON_VERSION py36
+      tag_python_version: &TAG_PYTHON_VERSION py37
       cuda_version: &CUDA_VERSION cu100
       os_version: &OS_VERSION ubuntu18.04
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
@@ -90,10 +90,10 @@
       <<: *TRAINING_REPOSITORY
       build: &TENSORFLOW_GPU_TRAINING_PY3 false
       image_size_baseline: 7738
-      base_image_name: BuildTensorflowGPUCu100TrainPy36DockerImage
+      base_image_name: BuildTensorflowGPUCu100TrainPy3DockerImage
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
-      tag_python_version: &TAG_PYTHON_VERSION py36
+      tag_python_version: &TAG_PYTHON_VERSION py37
       cuda_version: &CUDA_VERSION cu100
       os_version: &OS_VERSION ubuntu18.04
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
