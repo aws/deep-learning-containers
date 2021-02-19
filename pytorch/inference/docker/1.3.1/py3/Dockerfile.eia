@@ -53,7 +53,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
  && /opt/conda/bin/conda update conda \
- && conda install -c \
+ && conda install -c conda-forge \
     python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y \
     cython==0.29.12 \
