@@ -90,29 +90,21 @@ release_images:
     framework: "tensorflow"
     version: "1.15.4"
     training:
-      device_types: ["cpu","gpu"]
-      python_versions: ["py36","py37"]
+      device_types: ["gpu"]
+      python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu100"
+      cuda_version: "cu110"
       example: False
-      disable_sm_tag: False
-      force_release: False
-    inference:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py36"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu100"
-      example: False
-      disable_sm_tag: False
+      disable_sm_tag: True
       force_release: False
   9:
     framework: "tensorflow"
     version: "1.15.4"
     training:
       device_types: ["gpu"]
-      python_versions: ["py36", "py37"]
+      python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu100"
+      cuda_version: "cu110"
       example: True        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
                             # to images being published.
@@ -196,10 +188,10 @@ release_images:
     framework: "tensorflow"
     version: "2.2.1"
     training:
-      device_types: ["cpu"]
+      device_types: ["gpu"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu102"
+      cuda_version: "cu101"
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
@@ -210,30 +202,11 @@ release_images:
       device_types: ["gpu"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu102"
-      example: False
-      disable_sm_tag: True  # [Default: False] This option is not used by Example images
-      force_release: False
-    inference:
-      device_types: ["cpu","gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu102"
-      example: False
+      cuda_version: "cu101"
+      example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
   17:
-    framework: "tensorflow"
-    version: "2.2.1"
-    training:
-      device_types: ["gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu102"
-      example: True
-      disable_sm_tag: True  # [Default: False] This option is not used by Example images
-      force_release: False
-  18:
     framework: "tensorflow"
     version: "2.0.0"
     inference:
