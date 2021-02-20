@@ -8,7 +8,7 @@ DGL_RELEASE_TAG=$(python -c "import dgl; dgl_versions = dgl.__version__.split('.
 
 # hard coded test files from 0.5.x branch. Change it back once 0.6.x is released
 # git clone -b ${DGL_RELEASE_TAG} https://github.com/dmlc/dgl.git ${HOME_DIR}/artifacts/dgl
-git clone -b 0.5.x https://github.com/dmlc/dgl.git ${HOME_DIR}/artifacts/dgl
+git clone -b 0.4.x https://github.com/dmlc/dgl.git ${HOME_DIR}/artifacts/dgl
 ${BIN_DIR}/dgl_tests/testDGLHelper python pytorch || exit 1
 
 exit 0
