@@ -28,14 +28,12 @@ IGNORE_SAFETY_IDS = {
             # 38449, 38450, 38451, 38452: for shipping pillow<=6.2.2 - the last available version for py2
             # 35015: for shipping pycrypto<=2.6.1 - the last available version for py2
             "py2": ['38449', '38450', '38451', '38452', '35015'],
-            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
-            "py3": ['39611']
+            "py3": []
         },
         "inference": {
             # for shipping pillow<=6.2.2 - the last available version for py2
             "py2": ['38449', '38450', '38451', '38452'],
-            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
-            "py3": ['39611']
+            "py3": []
         },
         "inference-eia": {
             # for shipping pillow<=6.2.2 - the last available version for py2
@@ -45,8 +43,6 @@ IGNORE_SAFETY_IDS = {
         },
         "inference-neuron": {
             "py3": [
-                # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
-                '39611',
                 # 39409, 39408, 39407, 39406: TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches
                 '39409', '39408', '39407', '39406',
             ],
@@ -64,14 +60,12 @@ IGNORE_SAFETY_IDS = {
         "inference": {
             # for shipping pillow<=6.2.2 - the last available version for py2
             "py2": ['38449', '38450', '38451', '38452'],
-            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
-            "py3": ['39611']
+            "py3": []
         },
         "training": {
             # for shipping pillow<=6.2.2 - the last available version for py2
             "py2": ['38449', '38450', '38451', '38452'],
-            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
-            "py3": ['39611']
+            "py3": []
         },
         "inference-neuron":{
             # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
