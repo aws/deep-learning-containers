@@ -353,8 +353,8 @@ def framework_version_within_limit(metafunc_obj, image):
         if mx18_requirement_failed :
             return False
     if image_framework_name == "pytorch" :
-        mx18_requirement_failed = "pt17_and_above_only" in metafunc_obj.fixturenames and is_below_pytorch_version("1.7", image)
-        if mx18_requirement_failed :
+        pt17_requirement_failed = "pt17_and_above_only" in metafunc_obj.fixturenames and is_below_pytorch_version("1.7", image)
+        if pt17_requirement_failed :
             return False
     return True
 
