@@ -89,7 +89,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
 
-    if Version(image_framework_version) == Version("1.6"):
+    if Version(image_framework_version) <= Version("1.7"):
         dgl_branch = "0.4.x"
     else:
         dgl_branch = "0.5.x"
