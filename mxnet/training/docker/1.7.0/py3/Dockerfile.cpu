@@ -11,7 +11,6 @@ ARG MX_URL=https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.7.0/aws_mx-1.7.0-py2
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=0.9.3
-ARG OPENSSL_VERSION=1.1.1g
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -33,6 +32,8 @@ RUN apt-get update \
     libopencv-dev \
     openssh-client \
     openssh-server \
+    libssl1.1 \
+    openssl \
     vim \
     wget \
     zlib1g-dev \
@@ -67,23 +68,6 @@ RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params
 ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
 ENV PATH=/usr/local/openmpi/bin/:$PATH
 
-RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt-get update \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && apt-get install -y \
-    ca-certificates \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test \
- && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-*
-
-# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
-# causing sslcertverificationerror the below steps are to fix that
-RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
-
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
@@ -117,7 +101,6 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 
 WORKDIR /
 
-# install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
 # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache --upgrade \
     keras-mxnet==2.2.4.2 \
@@ -137,6 +120,7 @@ RUN ${PIP} install --no-cache --upgrade \
     python-dateutil==2.8.0 \
     tqdm==4.39.0 \
     sagemaker-experiments==0.* \
+    # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
     "PyYAML>=5.4,<5.5" \
     mpi4py==3.0.2 \
     "sagemaker-mxnet-training<5" \
