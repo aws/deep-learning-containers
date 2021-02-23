@@ -195,10 +195,7 @@ class DependencyCheckFailure(Exception):
 
 def _run_dependency_check_test(image, ec2_connection, processor):
     # Record any whitelisted medium/low severity CVEs; I.E. allowed_vulnerabilities = {CVE-1000-5555, CVE-9999-9999}
-    allowed_vulnerabilities = {
-        # Those vulnerabilities are fixed. Current openssl version is 1.1.1g. These are false positive
-        'CVE-2016-2109', 'CVE-2016-2177', 'CVE-2016-6303', 'CVE-2016-2182'
-    }
+    allowed_vulnerabilities = set()
 
     container_name = f"dep_check_{processor}"
     report_addon = get_container_name("depcheck-report", image)
@@ -239,22 +236,22 @@ def _run_dependency_check_test(image, ec2_connection, processor):
             return
 
         raise DependencyCheckFailure(
-            f"Unrecognized CVES have been reported : {vulnerability_severity}. "
-            f"Allowed vulnerabilites are {allowed_vulnerabilities or None}. Please see "
+            f"Unrecognized CVEs have been reported : {vulnerability_severity}. "
+            f"Allowed vulnerabilities are {allowed_vulnerabilities or None}. Please see "
             f"{dependency_check_report} for more details."
         )
 
 
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+# @pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_cpu(cpu, ec2_connection):
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
 
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+# @pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_gpu(gpu, ec2_connection):
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
 
