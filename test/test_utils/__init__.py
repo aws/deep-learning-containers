@@ -99,6 +99,19 @@ def is_below_tf_version(version_upper_bound, image_uri):
     return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
 
 
+def is_below_mxnet_version(version_upper_bound, image_uri):
+    """
+    Validate that image_uri has framework version strictly less than version_upper_bound
+
+    :param version_upper_bound: str Framework version that image_uri is required to be below
+    :param image_uri: str ECR Image URI for the image to be validated
+    :return: bool True if image_uri has framework version less than version_upper_bound, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
+    return image_framework_name == "mxnet" and image_framework_version in required_version_specifier_set
+
+
 def get_repository_local_path():
     git_repo_path = os.getcwd().split("/test/")[0]
     return git_repo_path
@@ -275,6 +288,7 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
 
     return True
 
+
 @retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
 def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8501"):
     """
@@ -296,6 +310,7 @@ def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8
         return False
 
     return True
+
 
 def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None):
     """
@@ -355,8 +370,8 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
 
     if processor != "neuron":
         mms_command = (
-            f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
-            + " ".join(parameters)
+                f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
+                + " ".join(parameters)
         )
     else:
         mms_command = (
@@ -480,7 +495,7 @@ def get_canary_default_tag_py3_version(framework, version):
     """
     if framework == "tensorflow2":
         return "py37" if Version(version) >= Version("2.2") else "py3"
-    
+
     if framework == "mxnet":
         return "py37" if Version(version) >= Version("1.8") else "py3"
 
