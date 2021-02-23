@@ -21,7 +21,7 @@ ICE_SKIP_INSTANCE_LIST = ["p3dn.24xlarge"]
 HEAVY_INSTANCE_LIST = ["p3dn.24xlarge", "p4d.24xlarge"]
 
 
-def filter_not_single_gpu(instance_type_list):
+def filter_only_multi_gpu(instance_type_list):
     filtered_list = [
         instance_type for instance_type in instance_type_list if get_instance_num_gpus(instance_type=instance_type) > 1
     ]

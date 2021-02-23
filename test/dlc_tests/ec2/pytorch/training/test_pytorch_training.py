@@ -25,7 +25,7 @@ PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
 )
 PT_EC2_MULTI_GPU_INSTANCE_TYPE = get_ec2_instance_type(
-    default="g3.8xlarge", processor="gpu", filter_function=ec2_utils.filter_not_single_gpu,
+    default="g3.8xlarge", processor="gpu", filter_function=ec2_utils.filter_only_multi_gpu,
 )
 
 
