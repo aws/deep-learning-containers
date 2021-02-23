@@ -263,7 +263,7 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 ENV TF_AUTOTUNE_THRESHOLD=2
 
 # Install SMD MP binary
-RUN pip install --no-cache-dir -U https://sagemaker-distributed-model-parallel.s3.amazonaws.com/tensorflow-2.3/build-artifacts/2020-12-06/smdistributed_modelparallel-1.0.0-cp37-cp37m-linux_x86_64.whl
+RUN pip install --no-cache-dir -U https://sagemaker-distributed-model-parallel.s3.amazonaws.com/tensorflow-2.3/build-artifacts/2021-02-12-04-00/smdistributed_modelparallel-1.2.0-cp37-cp37m-linux_x86_64.whl
 
 # Install SM Distributed DataParallel binary
 ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.3.1/cu110/2021-01-14/smdistributed_dataparallel-1.0.0-cp37-cp37m-linux_x86_64.whl

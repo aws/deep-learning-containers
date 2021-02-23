@@ -53,24 +53,20 @@ IGNORE_SAFETY_IDS = {
             "py2": ['36810',
                     # for shipping pillow<=6.2.2 - the last available version for py2
                     '38449', '38450', '38451', '38452'],
-            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
-            "py3": ['39611']
+            "py3": []
         },
         "inference": {
             # for shipping pillow<=6.2.2 - the last available version for py2
             "py2": ['38449', '38450', '38451', '38452'],
-            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
-            "py3": ['39611']
+            "py3": []
         },
         "training": {
             # for shipping pillow<=6.2.2 - the last available version for py2
             "py2": ['38449', '38450', '38451', '38452'],
-            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
-            "py3": ['39611']
+            "py3": []
         },
-        "inference-neuron":{
-            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
-            "py3": ['39611']
+        "inference-neuron": {
+            "py3": []
         }
     },
     "pytorch": {
@@ -87,9 +83,8 @@ IGNORE_SAFETY_IDS = {
         "inference-eia": {
             "py3": []
         },
-        "inference-neuron":{
-            # for shipping pyyaml v5.3.1 - blocked on upgrading to v5.4.1 due to dependency on awscli
-            "py3": ['39611']
+        "inference-neuron": {
+            "py3": []
         }
     }
 }
