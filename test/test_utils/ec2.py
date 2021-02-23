@@ -68,7 +68,7 @@ def get_ec2_instance_type(default, processor, filter_function=lambda x: x):
     if not instance_type and is_mainline_context():
         return []
 
-    instance_list = filter_function([instance_type])
+    instance_list = filter_function([instance_type] if instance_type else [])
     if not instance_list:
         instance_list = [default]
     return instance_list
