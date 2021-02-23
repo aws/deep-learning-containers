@@ -11,6 +11,7 @@ ARG MX_URL=https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.8.0/aws_mx-1.8.0-py2
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=0.9.4
+ARG OPENSSL_VERSION=1.1.1g
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -32,8 +33,6 @@ RUN apt-get update \
     libopencv-dev \
     openssh-client \
     openssh-server \
-    libssl1.1 \
-    openssl \
     vim \
     wget \
     zlib1g-dev \
@@ -76,6 +75,16 @@ RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real \
 
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PATH=/usr/local/bin:$PATH
+
+# install OpenSSL
+RUN wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && tar -xzf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make -j $(nproc) && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-* \
+ && rmdir /usr/local/ssl/certs \
+ && ln -s /etc/ssl/certs /usr/local/ssl/certs
 
 # install Python
 RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
