@@ -4,7 +4,7 @@ FROM nvidia/cuda:10.1-cudnn7-devel-ubuntu16.04
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG PYTHON_VERSION=3.6.10
+ARG PYTHON_VERSION=3.6.13
 ARG OPEN_MPI_VERSION=4.0.1
 ARG CUBLAS_VERSION=10.2.1.243-1_amd64
 ARG OPEN_MPI_PATH=/home/.openmpi
@@ -102,8 +102,9 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
- && /opt/conda/bin/conda install -y -c anaconda \
+ && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -y -c anaconda \
     numpy \
     ipython \
     mkl \
@@ -149,6 +150,7 @@ RUN pip install \
     Pillow \
     scipy \
     click \
+    ruamel-yaml \
     mpi4py==3.0.3 \
     cmake==3.18.2.post1 \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
