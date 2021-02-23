@@ -2,6 +2,8 @@ import os
 
 import pytest
 
+import test.test_utils.ec2 as ec2_utils
+
 from test import test_utils
 from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag
 from test.test_utils.ec2 import get_ec2_instance_type, execute_ec2_inference_test, get_ec2_accelerator_type
@@ -10,16 +12,24 @@ from test.dlc_tests.conftest import LOGGER
 
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
+PT_EC2_GPU_EIA_INSTANCE_TYPE = get_ec2_instance_type(
+    default="g3.8xlarge", processor="gpu", filter_function=ec2_utils.filter_not_heavy_instance_types,
+)
 PT_EC2_EIA_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="eia1.large", processor="eia")
+PT_EC2_NEURON_INSTANCE_TYPE = get_ec2_instance_type(default="inf1.xlarge", processor="neuron")
+PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
+    default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
+)
+
 PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test")
-PT_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="inf1.xlarge", processor="neuron")
 
 
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_AL2_DLAMI], indirect=True)
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_ACCELERATOR_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gpu_only):
     ec2_pytorch_inference(pytorch_inference, "neuron", ec2_connection, region)
+
 
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -43,9 +53,8 @@ def test_ec2_pytorch_inference_eia_cpu(pytorch_inference_eia, ec2_connection, re
 
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.model("resnet")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_EIA_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", PT_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
-@pytest.mark.skipif(PT_EC2_GPU_INSTANCE_TYPE == ["p3dn.24xlarge"], reason="Skipping EIA test on p3dn instances")
 def test_ec2_pytorch_inference_eia_gpu(pytorch_inference_eia, ec2_connection, region, eia_only):
     ec2_pytorch_inference(pytorch_inference_eia, "eia", ec2_connection, region)
 
@@ -96,13 +105,13 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
 
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_inference_telemetry_gpu(pytorch_inference, ec2_connection, gpu_only):
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TELEMETRY_CMD)
 
 
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_inference_telemetry_cpu(pytorch_inference, ec2_connection, cpu_only):
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TELEMETRY_CMD)
