@@ -233,12 +233,6 @@ def test_dependency_check_cpu(cpu, ec2_connection):
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-def test_dependency_check_cpu(eia, ec2_connection):
-    _run_dependency_check_test(eia, ec2_connection, "eia")
-
-
-@pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 @pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_gpu(gpu, ec2_connection):
@@ -247,7 +241,7 @@ def test_dependency_check_gpu(gpu, ec2_connection):
 
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
-def test_dependency_check_gpu(neuron, ec2_connection):
+def test_dependency_check_neuron(neuron, ec2_connection):
     _run_dependency_check_test(neuron, ec2_connection, "neuron")
 
 
