@@ -3,7 +3,7 @@ FROM nvidia/cuda:11.0-cudnn8-devel-ubuntu18.04
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG PYTHON_VERSION=3.6.10
+ARG PYTHON_VERSION=3.6.13
 ARG OPEN_MPI_VERSION=4.0.1
 ARG CUBLAS_VERSION=11.2.0.252-1_amd64
 ARG OPEN_MPI_PATH=/home/.openmpi
@@ -95,8 +95,11 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p ${CONDA_PREFIX} \
  && rm ~/miniconda.sh \
- && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
+ && ${CONDA_PREFIX}/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
+ && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
+    # conda 4.9.2 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.87 \
     numpy \
     ipython \
     mkl \
@@ -122,7 +125,7 @@ RUN conda install -c pytorch magma-cuda110==2.5.2 \
     libgcc \
  && conda clean -ya
 
-# Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO]. 
+# Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO].
 RUN wget --quiet https://dl.bintray.com/boostorg/release/1.73.0/source/boost_1_73_0.tar.gz \
   && tar -xzf boost_1_73_0.tar.gz \
   && cd boost_1_73_0 \
@@ -141,13 +144,14 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 WORKDIR /root
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
-RUN pip install --no-cache-dir -U \ 
+RUN pip install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training \
     --no-cache-dir fastai==1.0.61 \
+    "pyyaml>=5.4,<5.5" \
     "awscli<2" \
     psutil \
     Pillow \
