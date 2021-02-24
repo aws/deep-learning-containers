@@ -8,6 +8,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON=python3
 ARG PIP=pip3
+ARG PYTHON_VERSION=3.6.13
 ARG TFS_SHORT_VERSION=2.1
 ARG TFS_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.1/Serving/GPU/tensorflow_model_server
 
@@ -50,9 +51,6 @@ RUN apt-get update \
     vim \
     build-essential \
     zlib1g-dev \
-    python3 \
-    python3-pip \
-    python3-setuptools \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -70,6 +68,12 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends libnvinfer6=${TF_TENSORRT_VERSION}-1+cuda10.1 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* 
+
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xvf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure && make && make install \
+ && make && make install && rm -rf ../Python-$PYTHON_VERSION*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
@@ -94,6 +98,8 @@ RUN apt-get update \
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install -U --no-cache-dir \
+    # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
+    "PyYAML>=5.4,<5.5" \
     "awscli<2" \
     cython==0.29.14 \
     falcon==2.0.0 \
