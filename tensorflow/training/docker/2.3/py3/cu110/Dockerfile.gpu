@@ -26,7 +26,6 @@ ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.10
-ARG OPENSSL_VERSION=1.1.1i
 ARG OPEN_MPI_PATH=/usr/local
 
 ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.3_aws_profiler/20201115-214803/gpu/py37/tensorflow_gpu-2.3.1-cp37-cp37m-manylinux2010_x86_64.whl
@@ -62,6 +61,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     libtool \
     vim \
     build-essential \
+    libssl1.1 \
+    openssl \
     openssh-client \
     openssh-server \
     zlib1g-dev \
@@ -166,23 +167,6 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
-
-RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt-get update \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && apt-get install -y \
-    ca-certificates \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test \
- && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-*
-
-# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
-# causing sslcertverificationerror the below steps are to fix that
-RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
