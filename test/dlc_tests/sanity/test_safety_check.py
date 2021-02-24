@@ -125,7 +125,7 @@ def _get_latest_package_version(package):
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
 @pytest.mark.skipif(not is_mainline_context(),
-                   reason="Skipping the test to decrease the number of calls to the Safety Check DB. "
+                    reason="Skipping the test to decrease the number of calls to the Safety Check DB. "
                            "Test will be executed in the 'mainline' pipeline only")
 def test_safety(image):
     """
