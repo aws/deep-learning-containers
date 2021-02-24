@@ -454,10 +454,12 @@ def pytest_generate_tests(metafunc):
                             images_to_parametrize.append(image)
                         elif "eia_only" in metafunc.fixturenames and "eia" in image:
                             images_to_parametrize.append(image)
-                        elif ("cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames
-                              and "eia_only" not in metafunc.fixturenames):
-                            images_to_parametrize.append(image)
                         elif "neuron_only" in metafunc.fixturenames and "neuron" in image:
+                            images_to_parametrize.append(image)
+                        elif ("cpu_only" not in metafunc.fixturenames and
+                              "gpu_only" not in metafunc.fixturenames and
+                              "eia_only" not in metafunc.fixturenames and
+                              "neuron_only" not in metafunc.fixturenames):
                             images_to_parametrize.append(image)
 
             # Remove all images tagged as "py2" if py3_only is a fixture

@@ -236,8 +236,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
             return
 
         raise DependencyCheckFailure(
-            f"Unrecognized CVES have been reported : {vulnerability_severity}. "
-            f"Allowed vulnerabilites are {allowed_vulnerabilities or None}. Please see "
+            f"Unrecognized CVEs have been reported : {vulnerability_severity}. "
+            f"Allowed vulnerabilities are {allowed_vulnerabilities or None}. Please see "
             f"{dependency_check_report} for more details."
         )
 
