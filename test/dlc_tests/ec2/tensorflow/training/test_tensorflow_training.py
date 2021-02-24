@@ -2,6 +2,8 @@ import re
 import os
 import pytest
 
+import test.test_utils.ec2 as ec2_utils
+
 from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER, is_tf_version
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
@@ -20,7 +22,9 @@ TF_ADDONS_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTFAddons")
 TF_DATASERVICE_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testDataservice")
 TF_DATASERVICE_DISTRIBUTE_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testDataserviceDistribute")
 
-TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu")
+TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
+    default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
+)
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.16xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="cpu")
 
@@ -198,6 +202,7 @@ def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, tf24_an
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_gpu(tensorflow_training, ec2_connection, tf24_and_above_only, gpu_only):
     run_data_service_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD)
+
 
 # Testing Data Service Distributed mode on only one CPU instance
 # Skip test for TF 2.3 and below
