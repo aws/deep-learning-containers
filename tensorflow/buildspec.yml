@@ -23,7 +23,7 @@ context:
     dockerd-entrypoint:
       source: docker/build_artifacts/dockerd-entrypoint.py
       target: dockerd-entrypoint.py
-  inference_context:
+  inference_context: &TRAINING_CONTEXT
     sagemaker_package_name:
       source: docker/build_artifacts/sagemaker
       target: sagemaker
