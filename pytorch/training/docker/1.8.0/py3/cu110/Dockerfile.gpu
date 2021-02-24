@@ -1,11 +1,11 @@
-FROM nvidia/cuda:11.0-cudnn8-devel-ubuntu18.04
+FROM nvidia/cuda:11.0-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON_VERSION=3.6.13
 ARG OPEN_MPI_VERSION=4.0.1
-ARG CUBLAS_VERSION=11.2.0.252-1_amd64
+ARG CUBLAS_VERSION=11.2.0.252
 ARG OPEN_MPI_PATH=/home/.openmpi
 ARG CUDA_HOME=/usr/local/cuda
 ARG CONDA_PREFIX=/opt/conda
@@ -26,8 +26,10 @@ ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
-ENV TORCH_CUDA_ARCH_LIST="3.5 3.7 5.2 6.0 6.1 7.0+PTX 8.0"
+ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+ENV CUDNN_VERSION=8.0.4.30
+ENV NCCL_VERSION=2.7.8
 ENV HOROVOD_VERSION=0.20.3
 ENV DGLBACKEND=pytorch
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
@@ -46,17 +48,22 @@ RUN apt-get update \
     cmake \
     cuda-command-line-tools-11-0 \
     cuda-cudart-11-0 \
+    cuda-libraries-11-0=11.0.3-1 \
     curl \
     emacs \
     git \
     jq \
+    libcublas-11-0=${CUBLAS_VERSION}-1 \
+    libcublas-dev-11-0=${CUBLAS_VERSION}-1 \
+    libcudnn8=$CUDNN_VERSION-1+cuda11.0 \
     libcufft-dev-11-0 \
     libcurand-dev-11-0 \
     libcusolver-dev-11-0 \
     libcusparse-dev-11-0 \
     libglib2.0-0 \
     libgl1-mesa-glx \
-    libnccl-dev=2.7.8-1+cuda11.0 \
+    libnccl2=${NCCL_VERSION}-1+cuda11.0 \
+    libnccl-dev=${NCCL_VERSION}-1+cuda11.0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
@@ -68,15 +75,11 @@ RUN apt-get update \
     libssl1.1 \
     libtool \
     openssl \
+    python3-dev \
     vim \
     wget \
     zlib1g-dev \
  && rm -rf /var/lib/apt/lists/*
-
-RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/libcublas-11-0_${CUBLAS_VERSION}.deb \
- && dpkg -i libcublas-11-0_${CUBLAS_VERSION}.deb \
- && apt-get install -f -y \
- && rm libcublas-11-0_${CUBLAS_VERSION}.deb
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
