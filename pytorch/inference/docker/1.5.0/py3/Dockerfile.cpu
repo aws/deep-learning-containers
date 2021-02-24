@@ -91,11 +91,10 @@ RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.0/license.txt -o /license.txt
 
-RUN conda install -y -c conda-forge pyyaml==5.3.1
+# install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
+RUN conda install -y -c conda-forge "PyYAML>=5.4,<5.5"
 RUN pip install \
     pillow==7.1.0 \
-    # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
-    "PyYAML>=5.4,<5.5" \
     "awscli<2"
 
 EXPOSE 8080 8081
