@@ -53,7 +53,7 @@ def test_ecr_scan(image, ecr_client):
     :param image: str Image URI for image to be tested
     :param ecr_client: boto3 Client for ECR
     """
-    minimum_sev_threshold = "MEDIUM"
+    minimum_sev_threshold = "HIGH"
     scan_status = None
     start_time = time()
     ecr_utils.start_ecr_image_scan(ecr_client, image)
