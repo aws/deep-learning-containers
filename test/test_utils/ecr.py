@@ -91,6 +91,6 @@ def get_ecr_image_scan_results(ecr_client, image_uri, minimum_vulnerability="HIG
     scan_findings = [
         finding
         for finding in scan_info["imageScanFindings"]["findings"]
-        if CVESeverity[finding["severity"] >= CVESeverity[minimum_vulnerability]]
+        if CVESeverity[finding["severity"]] >= CVESeverity[minimum_vulnerability]
     ]
     return scan_findings

@@ -67,7 +67,7 @@ def test_ecr_scan(image, ecr_client):
     if scan_status != "COMPLETE":
         raise TimeoutError(f"ECR Scan is still in {scan_status} state. Exiting.")
     severity_counts = ecr_utils.get_ecr_image_scan_severity_count(ecr_client, image)
-    scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_sev_threshold)
+    scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=minimum_sev_threshold)
     assert all(
         count == 0 for sev, count in severity_counts.items() if CVESeverity[sev] >= CVESeverity[minimum_sev_threshold]
     ), (
