@@ -12,7 +12,7 @@ ARG PYTHON_VERSION=3.7.10
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=0.9.4
-ARG OPENSSL_VERSION=1.1.1g
+ARG OPENSSL_VERSION=1.1.1j
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -163,8 +163,8 @@ RUN ${PIP} install --no-cache --upgrade \
     python-dateutil==2.8.0 \
     tqdm==4.39.0 \
     sagemaker-experiments==0.* \
-    # install PyYAML==5.3.1 to avoid conflict with latest awscli
-    PyYAML==5.3.1 \
+    # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
+    "PyYAML>=5.4,<5.5" \
     mpi4py==3.0.2 \
     sagemaker-mxnet-training \
     ${MX_URL} \
