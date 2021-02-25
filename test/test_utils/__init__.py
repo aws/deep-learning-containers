@@ -86,7 +86,7 @@ def is_tf_version(required_version, image_uri):
     return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
 
 
-def is_below_tf_version(version_upper_bound, image_uri):
+def is_below_framework_version(version_upper_bound, image_uri, framework):
     """
     Validate that image_uri has framework version strictly less than version_upper_bound
 
@@ -96,21 +96,7 @@ def is_below_tf_version(version_upper_bound, image_uri):
     """
     image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
     required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
-    return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
-
-
-def is_below_mxnet_version(version_upper_bound, image_uri):
-    """
-    Validate that image_uri has framework version strictly less than version_upper_bound
-
-    :param version_upper_bound: str Framework version that image_uri is required to be below
-    :param image_uri: str ECR Image URI for the image to be validated
-    :return: bool True if image_uri has framework version less than version_upper_bound, else False
-    """
-    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
-    required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
-    return image_framework_name == "mxnet" and image_framework_version in required_version_specifier_set
-
+    return image_framework_name == framework and image_framework_version in required_version_specifier_set
 
 def is_below_pytorch_version(version_upper_bound, image_uri):
     """
