@@ -101,10 +101,11 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
     "PyYAML>=5.4,<5.5" \
     "awscli<2" \
+    ruamel-yaml \
     fastai==1.0.59 \
     scipy==1.2.2 \
     smdebug==${SMDEBUG_VERSION} \
-    "sagemaker<2" \
+    "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-pytorch-training<2" \
  && pip install --no-cache-dir -U https://pytorch-aws.s3.amazonaws.com/pytorch-1.4.0/py3/cpu/torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl \
