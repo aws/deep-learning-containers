@@ -8,7 +8,7 @@ from src.benchmark_metrics import (
     TENSORFLOW1_INFERENCE_GPU_THRESHOLD,
     TENSORFLOW1_INFERENCE_CPU_THRESHOLD,
 )
-from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, is_tf_version
+from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, is_tf_version, get_framework_and_version_from_tag
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
     post_process_inference,
@@ -41,7 +41,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     tf_version = "1" if is_tf_version("1", image_uri) else "2"
-    tf_api_version = "1.15" if tf_version == "1" else "2.3.0"
+    _, tf_api_version = get_framework_and_version_from_tag(image_uri)
 
     # Make sure we are logged into ECR so we can pull the image
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
@@ -51,7 +51,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     # Run performance inference command, display benchmark results to console
     ec2_connection.run(f"pip3 install -U pip")
     ec2_connection.run(
-        f"pip3 install boto3 grpcio tensorflow-serving-api=={tf_api_version} --user --no-warn-script-location"
+        f"pip3 install boto3 grpcio 'tensorflow-serving-api<={tf_api_version}' --user --no-warn-script-location"
     )
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S")
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
