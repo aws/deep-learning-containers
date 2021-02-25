@@ -82,7 +82,6 @@ def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_s
                            instance_count=2,
                            instance_type=instance_types,
                            sagemaker_session=sagemaker_session,
-                           debugger_hook_config=False,
                            distribution=distribution)
 
-    estimator.fit()
+    estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel-multi'))
