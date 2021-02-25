@@ -120,13 +120,16 @@ def test_ubuntu_version(image):
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run framework version test regularly on production images")
-def test_framework_version(image):
+@pytest.mark.canary("Run non-gpu framework version test regularly on production images")
+def test_framework_version_cpu(image):
     """
     Check that the framework version in the image tag is the same as the one on a running container.
+    This function tests CPU, EIA, and Neuron images.
 
     :param image: ECR image URI
     """
+    if "gpu" in image:
+        pytest.skip("GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
     if "tensorflow-inference" in image:
         pytest.skip(msg="TF inference does not have core tensorflow installed")
 
@@ -150,15 +153,31 @@ def test_framework_version(image):
 # TODO: Enable as canary once resource cleaning lambda is added
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
-def test_cuda_version_gpu(gpu, ec2_connection):
+def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     """
-    Check that the cuda version in the image tag is the same as the one on a running container.
+    Check that the framework  and cuda version in the image tag is the same as the one on a running container.
 
     :param gpu: ECR image URI with "gpu" in the name
     :param ec2_connection: fixture to establish connection with an ec2 instance
     """
     image = gpu
+    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
 
+    # Framework Version Check #
+    # Skip framework version test for tensorflow-inference, since it doesn't have core TF installed
+    if "tensorflow-inference" not in image:
+        # Module name is "torch"
+        if tested_framework == "pytorch":
+            tested_framework = "torch"
+        cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
+        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
+
+        if is_canary_context():
+            assert tag_framework_version in output.stdout.strip()
+        else:
+            assert tag_framework_version == output.stdout.strip()
+
+    # CUDA Version Check #
     cuda_version = re.search(r"-cu(\d+)-", image).group(1)
 
     # MXNet inference containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
