@@ -68,7 +68,7 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && ./configure && make && make install \
  && make && make install && rm -rf ../Python-$PYTHON_VERSION*
 
-RUN ${PIP} --no-cache-dir install --upgrade \
+RUN ${PIP} --no-cache-dir install --trusted-host pypi.org --trusted-host files.pythonhosted.org --upgrade \
     pip \
     setuptools
 
