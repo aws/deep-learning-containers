@@ -6,7 +6,7 @@ LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 # Add arguments to achieve the version, python and url
-ARG PYTHON_VERSION=3.6.10
+ARG PYTHON_VERSION=3.6.13
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.3.0
 ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.1_inference/20210112-183245/c1130f2829b03c0997b9813211a7c0f600fc569a/gpu/torch-1.7.1-cp36-cp36m-manylinux1_x86_64.whl
@@ -83,8 +83,11 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
  && /opt/conda/bin/conda update conda \
- && /opt/conda/bin/conda install -y \
+ && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -y \
+    # conda 4.9.2 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.87 \
     cython==0.29.12 \
     ipython==7.7.0 \
     mkl-include==2019.4 \
@@ -118,7 +121,7 @@ RUN pip uninstall -y torch \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL
 
-RUN conda install -y -c conda-forge pyyaml==5.3.1
+RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
 RUN pip install pillow==7.2.0 "awscli<2"
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
