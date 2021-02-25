@@ -195,10 +195,7 @@ class DependencyCheckFailure(Exception):
 
 def _run_dependency_check_test(image, ec2_connection, processor):
     # Record any whitelisted medium/low severity CVEs; I.E. allowed_vulnerabilities = {CVE-1000-5555, CVE-9999-9999}
-    allowed_vulnerabilities = {
-        # Those vulnerabilities are fixed. Current openssl version is 1.1.1g. These are false positive
-        'CVE-2016-2109', 'CVE-2016-2177', 'CVE-2016-6303', 'CVE-2016-2182'
-    }
+    allowed_vulnerabilities = set()
 
     container_name = f"dep_check_{processor}"
     report_addon = get_container_name("depcheck-report", image)
@@ -239,8 +236,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
             return
 
         raise DependencyCheckFailure(
-            f"Unrecognized CVES have been reported : {vulnerability_severity}. "
-            f"Allowed vulnerabilites are {allowed_vulnerabilities or None}. Please see "
+            f"Unrecognized CVEs have been reported : {vulnerability_severity}. "
+            f"Allowed vulnerabilities are {allowed_vulnerabilities or None}. Please see "
             f"{dependency_check_report} for more details."
         )
 
