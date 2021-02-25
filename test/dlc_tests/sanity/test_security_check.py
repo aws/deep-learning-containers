@@ -3,8 +3,11 @@ from time import sleep, time
 
 import pytest
 
+from packaging.version import Version
+
 from invoke import run
 
+from test.test_utils import get_framework_and_version_from_tag
 from test.test_utils import ecr as ecr_utils
 
 
@@ -47,6 +50,11 @@ def test_ecr_scan(image, ecr_client):
     :param image: str Image URI for image to be tested
     :param ecr_client: boto3 Client for ECR
     """
+    # TODO: Unskip this test for TF 2.4.1 images
+    framework, version = get_framework_and_version_from_tag(image)
+    if framework == "tensorflow" and Version(version) == Version("2.4.1"):
+        pytest.skip("Skip ECR Scan on TF 2.4.1 DLC images")
+
     scan_status = None
     start_time = time()
     ecr_utils.start_ecr_image_scan(ecr_client, image)
