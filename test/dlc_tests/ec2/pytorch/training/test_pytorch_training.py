@@ -4,6 +4,8 @@ from packaging.version import Version
 
 import pytest
 
+import test.test_utils.ec2 as ec2_utils
+
 from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, get_cuda_version_from_tag
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
@@ -19,6 +21,12 @@ PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_p
 
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
+PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
+    default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
+)
+PT_EC2_MULTI_GPU_INSTANCE_TYPE = get_ec2_instance_type(
+    default="g3.8xlarge", processor="gpu", filter_function=ec2_utils.filter_only_multi_gpu,
+)
 
 
 @pytest.mark.integration("pytorch_sanity_test")
@@ -63,10 +71,6 @@ def test_pytorch_linear_regression_cpu(pytorch_training, ec2_connection, cpu_onl
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_train_dgl_gpu(pytorch_training, ec2_connection, gpu_only, py3_only):
-    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    image_cuda_version = get_cuda_version_from_tag(pytorch_training)
-    if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
-        pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DGL_CMD)
 
 
@@ -127,8 +131,7 @@ def test_nvapex(pytorch_training, ec2_connection, gpu_only):
 
 @pytest.mark.integration("amp")
 @pytest.mark.model("resnet50")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.skipif(PT_EC2_GPU_INSTANCE_TYPE == ["g3.4xlarge"], reason="Skipping AMP DDP test on single gpu instance")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_MULTI_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("1.6"):
@@ -138,13 +141,13 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only):
 
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)
 
 
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)
