@@ -241,6 +241,7 @@ def test_dependency_check_gpu(gpu, ec2_connection):
 
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
+@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_neuron(neuron, ec2_connection):
     _run_dependency_check_test(neuron, ec2_connection, "neuron")
 
