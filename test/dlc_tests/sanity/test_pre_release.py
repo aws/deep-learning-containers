@@ -121,7 +121,7 @@ def test_ubuntu_version(image):
 
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run framework version test regularly on production images")
-def test_framework_version_cpu(image):
+def test_framework_version(image):
     """
     Check that the framework version in the image tag is the same as the one on a running container.
 
