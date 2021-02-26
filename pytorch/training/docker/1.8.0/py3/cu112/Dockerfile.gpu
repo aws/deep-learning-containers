@@ -1,11 +1,11 @@
-FROM nvidia/cuda:11.0-base-ubuntu18.04
+FROM nvidia/cuda:11.2.1-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON_VERSION=3.6.13
 ARG OPEN_MPI_VERSION=4.0.1
-ARG CUBLAS_VERSION=11.2.0.252
+ARG CUBLAS_VERSION=11.4.1.1026
 ARG OPEN_MPI_PATH=/home/.openmpi
 ARG CUDA_HOME=/usr/local/cuda
 ARG CONDA_PREFIX=/opt/conda
@@ -28,9 +28,9 @@ ENV LC_ALL=C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
-ENV CUDNN_VERSION=8.0.4.30
-ENV NCCL_VERSION=2.7.8
-ENV HOROVOD_VERSION=0.20.3
+ENV CUDNN_VERSION=8.1.0.77
+ENV NCCL_VERSION=2.8.4
+ENV HOROVOD_VERSION=0.21.3
 ENV DGLBACKEND=pytorch
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
@@ -46,24 +46,24 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    cuda-command-line-tools-11-0 \
-    cuda-cudart-11-0 \
-    cuda-libraries-11-0=11.0.3-1 \
+    cuda-command-line-tools-11-2 \
+    cuda-cudart-11-2 \
+    cuda-libraries-11-2 \
     curl \
     emacs \
     git \
     jq \
-    libcublas-11-0=${CUBLAS_VERSION}-1 \
-    libcublas-dev-11-0=${CUBLAS_VERSION}-1 \
-    libcudnn8=$CUDNN_VERSION-1+cuda11.0 \
-    libcufft-dev-11-0 \
-    libcurand-dev-11-0 \
-    libcusolver-dev-11-0 \
-    libcusparse-dev-11-0 \
+    libcublas-11-2=${CUBLAS_VERSION}-1 \
+    libcublas-dev-11-2=${CUBLAS_VERSION}-1 \
+    libcudnn8=$CUDNN_VERSION-1+cuda11.2 \
+    libcufft-dev-11-2 \
+    libcurand-dev-11-2 \
+    libcusolver-dev-11-2 \
+    libcusparse-dev-11-2 \
     libglib2.0-0 \
     libgl1-mesa-glx \
-    libnccl2=${NCCL_VERSION}-1+cuda11.0 \
-    libnccl-dev=${NCCL_VERSION}-1+cuda11.0 \
+    libnccl2=${NCCL_VERSION}-1+cuda11.2 \
+    libnccl-dev=${NCCL_VERSION}-1+cuda11.2 \
     libsm6 \
     libxext6 \
     libxrender-dev \
@@ -111,14 +111,14 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     typing \
     future \
     "pyopenssl>=17.5.0" \
- && pip install --pre dgl-cu110 \
+ && pip install --pre dgl-cu112 \
  && ${CONDA_PREFIX}/bin/conda clean -ya
 
 RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
 
-RUN conda install -c pytorch magma-cuda110==2.5.2 \
+RUN conda install -c pytorch magma-cuda112==2.5.2 \
  && conda install -c conda-forge \
     opencv \
  && conda install -y scikit-learn \
@@ -198,8 +198,8 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
 
 # Install Horovod
 RUN pip uninstall -y horovod \
- && ldconfig /usr/local/cuda-11.0/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.0 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.2 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
 # Install Nvidia Apex
