@@ -27,7 +27,7 @@ ARG PIP=pip3
 
 ARG OPENSSL_VERSION=1.1.1g
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.0_aws/20210225-204722/cpu/py36/tensorflow_cpu-2.0.3-cp36-cp36m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.0_aws/20210226-091853/cpu/py36/tensorflow_cpu-2.0.4-cp36-cp36m-manylinux2010_x86_64.whl
 ARG SMDEBUG_VERSION=0.9.2
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
