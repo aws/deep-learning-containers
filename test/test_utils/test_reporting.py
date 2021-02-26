@@ -45,7 +45,7 @@ class TestReportGenerator:
 
     ALLOWED_SINGLE_GPU_TESTS = (
         "telemetry",
-        "test_cuda_version_gpu",
+        "test_framework_and_cuda_version_gpu",
         "test_curand_gpu",
         "test_dependency_check_gpu",
         "test_tensorflow_addons_gpu",
