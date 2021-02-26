@@ -1,6 +1,17 @@
 import json
 
+from enum import IntEnum
+
 from test.test_utils import get_repository_and_tag_from_image_uri, LOGGER
+
+
+class CVESeverity(IntEnum):
+    UNDEFINED = 0
+    INFORMATIONAL = 1
+    LOW = 2
+    MEDIUM = 3
+    HIGH = 4
+    CRITICAL = 5
 
 
 class ECRScanFailedError(Exception):
@@ -65,3 +76,21 @@ def get_ecr_image_scan_severity_count(ecr_client, image_uri):
     scan_info = ecr_client.describe_image_scan_findings(repositoryName=repository, imageId={"imageTag": tag})
     severity_counts = scan_info["imageScanFindings"]["findingSeverityCounts"]
     return severity_counts
+
+
+def get_ecr_image_scan_results(ecr_client, image_uri, minimum_vulnerability="HIGH"):
+    """
+    Get list of vulnerabilities from ECR image scan results
+    :param ecr_client:
+    :param image_uri:
+    :param minimum_vulnerability: str representing minimum vulnerability level to report in results
+    :return: list<dict> Scan results
+    """
+    repository, tag = get_repository_and_tag_from_image_uri(image_uri)
+    scan_info = ecr_client.describe_image_scan_findings(repositoryName=repository, imageId={"imageTag": tag})
+    scan_findings = [
+        finding
+        for finding in scan_info["imageScanFindings"]["findings"]
+        if CVESeverity[finding["severity"]] >= CVESeverity[minimum_vulnerability]
+    ]
+    return scan_findings
