@@ -1,3 +1,5 @@
+import json
+
 from datetime import datetime
 from time import sleep, time
 
@@ -9,6 +11,7 @@ from invoke import run
 
 from test.test_utils import get_framework_and_version_from_tag
 from test.test_utils import ecr as ecr_utils
+from test.test_utils.ecr import CVESeverity
 
 
 @pytest.mark.model("N/A")
@@ -50,11 +53,7 @@ def test_ecr_scan(image, ecr_client):
     :param image: str Image URI for image to be tested
     :param ecr_client: boto3 Client for ECR
     """
-    # TODO: Unskip this test for TF 2.4.1 images
-    framework, version = get_framework_and_version_from_tag(image)
-    if framework == "tensorflow" and Version(version) == Version("2.4.1"):
-        pytest.skip("Skip ECR Scan on TF 2.4.1 DLC images")
-
+    minimum_sev_threshold = "HIGH"
     scan_status = None
     start_time = time()
     ecr_utils.start_ecr_image_scan(ecr_client, image)
@@ -68,6 +67,10 @@ def test_ecr_scan(image, ecr_client):
     if scan_status != "COMPLETE":
         raise TimeoutError(f"ECR Scan is still in {scan_status} state. Exiting.")
     severity_counts = ecr_utils.get_ecr_image_scan_severity_count(ecr_client, image)
-    assert not (
-        severity_counts.get("HIGH", 0) or severity_counts.get("CRITICAL", 0)
-    ), f"Found vulnerabilities in image {image}: {str(severity_counts)}"
+    scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=minimum_sev_threshold)
+    assert all(
+        count == 0 for sev, count in severity_counts.items() if CVESeverity[sev] >= CVESeverity[minimum_sev_threshold]
+    ), (
+        f"Found vulnerabilities in image {image}: {str(severity_counts)}\n"
+        f"Vulnerabilities: {json.dumps(scan_results, indent=4)}"
+    )

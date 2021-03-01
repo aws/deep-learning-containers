@@ -120,14 +120,16 @@ def test_ubuntu_version(image):
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run cpu framework version test regularly on production images")
-def test_framework_version_cpu(cpu):
+@pytest.mark.canary("Run non-gpu framework version test regularly on production images")
+def test_framework_version_cpu(image):
     """
     Check that the framework version in the image tag is the same as the one on a running container.
+    This function tests CPU, EIA, and Neuron images.
 
-    :param cpu: ECR image URI with "cpu" in the name
+    :param image: ECR image URI
     """
-    image = cpu
+    if "gpu" in image:
+        pytest.skip("GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
     if "tensorflow-inference" in image:
         pytest.skip(msg="TF inference does not have core tensorflow installed")
 
@@ -195,7 +197,10 @@ class DependencyCheckFailure(Exception):
 
 def _run_dependency_check_test(image, ec2_connection, processor):
     # Record any whitelisted medium/low severity CVEs; I.E. allowed_vulnerabilities = {CVE-1000-5555, CVE-9999-9999}
-    allowed_vulnerabilities = set()
+    allowed_vulnerabilities = {
+        # Those vulnerabilities are fixed. Current openssl version is 1.1.1g. These are false positive
+        'CVE-2016-2109', 'CVE-2016-2177', 'CVE-2016-6303', 'CVE-2016-2182'
+    }
 
     container_name = f"dep_check_{processor}"
     report_addon = get_container_name("depcheck-report", image)
@@ -254,6 +259,13 @@ def test_dependency_check_cpu(cpu, ec2_connection):
 @pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_gpu(gpu, ec2_connection):
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
+@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+def test_dependency_check_neuron(neuron, ec2_connection):
+    _run_dependency_check_test(neuron, ec2_connection, "neuron")
 
 
 @pytest.mark.model("N/A")
