@@ -30,6 +30,8 @@ def test_torchvision_nms_inference(pytorch_inference):
     Check that the internally built torchvision binary is used to resolve the missing nms issue.
     :param pytorch_inference: framework fixture for pytorch inference
     """
+    if "neuron" in pytorch_inference:
+        pytest.skip("Skipping because this is not relevant to PT Neuron images")
     image = pytorch_inference
     ctx = Context()
     container_name = get_container_name("torchvision-nms", image)
