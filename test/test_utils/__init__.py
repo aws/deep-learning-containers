@@ -125,6 +125,24 @@ def is_below_pytorch_version(version_upper_bound, image_uri):
     return image_framework_name == "pytorch" and image_framework_version in required_version_specifier_set
 
 
+def is_image_compatible_with_instance_type(image_uri, ec2_instance_type):
+    """
+    Check for all compatibility issues between DLC Image Types and EC2 Instance Types.
+    Currently configured to fail on the following checks:
+        1. p4d.24xlarge instance type is used with a cuda<11.0 image
+
+    :param image_uri: ECR Image URI in valid DLC-format
+    :param ec2_instance_type: EC2 Instance Type
+    :return: bool True if there are no incompatibilities, False if there are
+    """
+    image_is_cuda10_on_incompatible_p4d_instance = (
+        get_processor_from_image_uri(image_uri) == "gpu" and
+        get_cuda_version_from_tag(image_uri).startswith("cu10") and
+        ec2_instance_type in ["p4d.24xlarge"]
+    )
+    return not image_is_cuda10_on_incompatible_p4d_instance
+
+
 def get_repository_local_path():
     git_repo_path = os.getcwd().split("/test/")[0]
     return git_repo_path
@@ -780,7 +798,7 @@ def get_processor_from_image_uri(image_uri):
     :param image_uri: ECR image URI
     :return: cpu, gpu, or eia
     """
-    allowed_processors = ("cpu", "gpu", "eia", "neuron")
+    allowed_processors = ["eia", "neuron", "cpu", "gpu"]
 
     for processor in allowed_processors:
         match = re.search(rf"-({processor})", image_uri)
