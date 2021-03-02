@@ -7,7 +7,7 @@ from src.benchmark_metrics import (
     TENSORFLOW_INFERENCE_CPU_THRESHOLD,
     get_threshold_for_image,
 )
-from test.test_utils import is_tf_version, get_framework_and_version_from_tag
+from test.test_utils import get_framework_and_version_from_tag, is_pr_context, is_tf_version
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
     post_process_inference,
@@ -36,6 +36,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     tf_version = "1" if is_tf_version("1", image_uri) else "2"
     _, tf_api_version = get_framework_and_version_from_tag(image_uri)
 
+    num_iterations = 500 if is_pr_context() else 1000
     # Make sure we are logged into ECR so we can pull the image
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
@@ -51,7 +52,8 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     log_file = f"synthetic_{commit_info}_{time_str}.log"
     ec2_connection.run(
         f"python3 {container_test_local_dir}/bin/benchmark/tf{tf_version}_serving_perf.py "
-        f"--processor {processor} --docker_image_name {image_uri} --run_all_s3 --binary /usr/bin/tensorflow_model_server --get_perf --iterations 1000 "
+        f"--processor {processor} --docker_image_name {image_uri} "
+        f"--run_all_s3 --binary /usr/bin/tensorflow_model_server --get_perf --iterations {num_iterations} "
         f"2>&1 | tee {log_file}"
     )
     ec2_performance_upload_result_to_s3_and_validate(
