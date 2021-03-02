@@ -27,16 +27,25 @@ IGNORE_SAFETY_IDS = {
         "training": {
             # 38449, 38450, 38451, 38452: for shipping pillow<=6.2.2 - the last available version for py2
             # 35015: for shipping pycrypto<=2.6.1 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452', '35015']
+            "py2": ['38449', '38450', '38451', '38452', '35015'],
+            "py3": []
         },
         "inference": {
             # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452']
+            "py2": ['38449', '38450', '38451', '38452'],
+            "py3": []
         },
         "inference-eia": {
             # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452']
-        }
+            "py2": ['38449', '38450', '38451', '38452'],
+            "py3": []
+        },
+        "inference-neuron": {
+            "py3": [
+                # 39409, 39408, 39407, 39406: TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches
+                '39409', '39408', '39407', '39406',
+            ],
+        },
     },
     "mxnet": {
         "inference-eia": {
@@ -44,15 +53,20 @@ IGNORE_SAFETY_IDS = {
             "py2": ['36810',
                     # for shipping pillow<=6.2.2 - the last available version for py2
                     '38449', '38450', '38451', '38452'],
-            "py3": ['36810']
+            "py3": []
         },
         "inference": {
             # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452']
+            "py2": ['38449', '38450', '38451', '38452'],
+            "py3": []
         },
         "training": {
             # for shipping pillow<=6.2.2 - the last available version for py2
-            "py2": ['38449', '38450', '38451', '38452']
+            "py2": ['38449', '38450', '38451', '38452'],
+            "py3": []
+        },
+        "inference-neuron": {
+            "py3": []
         }
     },
     "pytorch": {
@@ -62,6 +76,18 @@ IGNORE_SAFETY_IDS = {
                     # for shipping pillow<=6.2.2 - the last available version for py2
                     '38449', '38450', '38451', '38452'],
             "py3": []
+        },
+        "inference": {
+            "py3": []
+        },
+        "inference-eia": {
+            "py3": []
+        },
+        "inference-neuron":{
+            "py3": [
+                # 39409, 39408, 39407, 39406: TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches
+                '39409', '39408', '39407', '39406',
+            ]
         }
     }
 }
@@ -76,7 +102,10 @@ def _get_safety_ignore_list(image_uri):
     framework = ("mxnet" if "mxnet" in image_uri else
                  "pytorch" if "pytorch" in image_uri else
                  "tensorflow")
-    job_type = "training" if "training" in image_uri else "inference-eia" if "eia" in image_uri else "inference"
+    job_type = ("training" if "training" in image_uri else 
+                "inference-eia" if "eia" in image_uri else 
+                "inference-neuron" if "neuron" in image_uri else 
+                "inference")
     python_version = "py2" if "py2" in image_uri else "py3"
 
     return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, [])

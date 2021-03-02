@@ -8,6 +8,7 @@ LABEL dlc_major_version="3"
 
 # Add arguments to achieve the version, python and url
 ARG PYTHON=python3
+ARG PYTHON_VERSION=3.6.13
 ARG PIP=pip3
 ARG HEALTH_CHECK_VERSION=1.7.0
 ARG S3_TF_EI_VERSION=1-5
@@ -32,6 +33,7 @@ RUN apt-get update \
  && apt-get -y install --no-install-recommends \
     curl \
     gnupg2 \
+    build-essential \
     ca-certificates \
     emacs \
     git \
@@ -43,15 +45,33 @@ RUN apt-get update \
  && apt-get -y install --no-install-recommends \
     nginx \
     nginx-module-njs \
-    python3 \
-    python3-pip \
-    python3-setuptools \
+    libbz2-dev \
+    libc6-dev \
+    libffi-dev \
+    libgdbm-dev \
+    libncursesw5-dev \
+    libreadline-gplv2-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    tk-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xvf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure \
+ && make \
+ && make install \
+ && rm -rf ../Python-$PYTHON_VERSION*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
+
+# Some TF tools expect a "python" binary
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
+ && ln -s $(which ${PIP}) /usr/bin/pip
 
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir \
@@ -68,10 +88,6 @@ RUN ${PIP} install --no-cache-dir \
     tensorflow-serving-api==2.0.0
 
 COPY sagemaker /sagemaker
-
-# Some TF tools expect a "python" binary
-RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
- && ln -s /usr/local/bin/pip3 /usr/bin/pip
 
 # Get EI tools
 RUN wget https://amazonei-tools.s3.amazonaws.com/v${HEALTH_CHECK_VERSION}/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz -O /opt/ei_tools_${HEALTH_CHECK_VERSION}.tar.gz \
