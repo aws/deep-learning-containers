@@ -1,14 +1,13 @@
 import os
 import time
-import re
 import pytest
+
 from src.benchmark_metrics import (
-    TENSORFLOW2_INFERENCE_GPU_THRESHOLD,
-    TENSORFLOW2_INFERENCE_CPU_THRESHOLD,
-    TENSORFLOW1_INFERENCE_GPU_THRESHOLD,
-    TENSORFLOW1_INFERENCE_CPU_THRESHOLD,
+    TENSORFLOW_INFERENCE_GPU_THRESHOLD,
+    TENSORFLOW_INFERENCE_CPU_THRESHOLD,
+    get_threshold_for_image,
 )
-from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, is_tf_version, get_framework_and_version_from_tag
+from test.test_utils import is_tf_version, get_framework_and_version_from_tag
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
     post_process_inference,
@@ -18,22 +17,16 @@ from test.test_utils.ec2 import (
 @pytest.mark.model("inception, RCNN-Resnet101-kitti, resnet50_v2, mnist, SSDResnet50Coco")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.16xlarge"], indirect=True)
 def test_performance_ec2_tensorflow_inference_gpu(tensorflow_inference, ec2_connection, region, gpu_only):
-    threshold = (
-        TENSORFLOW1_INFERENCE_GPU_THRESHOLD
-        if is_tf_version("1", tensorflow_inference)
-        else TENSORFLOW2_INFERENCE_GPU_THRESHOLD
-    )
+    _, framework_version = get_framework_and_version_from_tag(tensorflow_inference)
+    threshold = get_threshold_for_image(framework_version, TENSORFLOW_INFERENCE_GPU_THRESHOLD)
     ec2_performance_tensorflow_inference(tensorflow_inference, "gpu", ec2_connection, region, threshold)
 
 
 @pytest.mark.model("inception, RCNN-Resnet101-kitti, resnet50_v2, mnist, SSDResnet50Coco")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.18xlarge"], indirect=True)
 def test_performance_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, region, cpu_only):
-    threshold = (
-        TENSORFLOW1_INFERENCE_CPU_THRESHOLD
-        if is_tf_version("1", tensorflow_inference)
-        else TENSORFLOW2_INFERENCE_CPU_THRESHOLD
-    )
+    _, framework_version = get_framework_and_version_from_tag(tensorflow_inference)
+    threshold = get_threshold_for_image(framework_version, TENSORFLOW_INFERENCE_CPU_THRESHOLD)
     ec2_performance_tensorflow_inference(tensorflow_inference, "cpu", ec2_connection, region, threshold)
 
 
