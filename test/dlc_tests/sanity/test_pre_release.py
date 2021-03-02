@@ -6,10 +6,7 @@ from packaging.version import Version
 import pytest
 import requests
 
-from requests.packages.urllib3.util import Retry
-from requests.adapters import HTTPAdapter
-from requests import Session, exceptions
-
+from urllib3.util.retry import Retry
 from invoke.context import Context
 
 from src.buildspec import Buildspec
@@ -220,24 +217,33 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     # Check for any vulnerabilities not mentioned in allowed_vulnerabilities
     html_output = ec2_connection.run(f"cat ~/{dependency_check_report}", hide=True).stdout
     cves = re.findall(r">(CVE-\d+-\d+)</a>", html_output)
+    LOGGER.info(f"cves: {cves}")
     vulnerabilities = set(cves) - allowed_vulnerabilities
+    LOGGER.info(f"vulnerabilities: {vulnerabilities}")
     if vulnerabilities:
         vulnerability_severity = {}
 
         # Check NVD for vulnerability severity to provide this useful info in error message.
         for vulnerability in vulnerabilities:
-            session = Session()
-            session.mount('https://', HTTPAdapter(max_retries=Retry(total=5)))
-            resp = session.get(f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerability}")
-            LOGGER.info(f"resp: {resp}")
-            severity = (
-                resp.json()
-                .get("result", {})
-                .get("CVE_Items", [{}])[0]
-                .get("impact", {})
-                .get("baseMetricV2", {})
-                .get("severity", "UNKNOWN")
-            )
+            try:
+                cve_url = f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerability}"
+                LOGGER.info(f"vulnerability: {vulnerability}")
+                LOGGER.info(f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerability}")
+                session = requests.Session()
+                session.mount('https://', requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[404, 504, 502])))
+                response = session.get(cve_url)
+                LOGGER.info(f"resp: {response}")
+                if response.status_code == 200:
+                    severity = (
+                        response.json()
+                        .get("result", {})
+                        .get("CVE_Items", [{}])[0]
+                        .get("impact", {})
+                        .get("baseMetricV2", {})
+                        .get("severity", "UNKNOWN"))
+            except ConnectionError:
+                LOGGER.exception(f"Failed to load nist data for cve {vulnerability}")
+
             if vulnerability_severity.get(severity):
                 vulnerability_severity[severity].append(vulnerability)
             else:
