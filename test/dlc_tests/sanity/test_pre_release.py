@@ -227,12 +227,11 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         for vulnerability in vulnerabilities:
             try:
                 cve_url = f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerability}"
-                LOGGER.info(f"vulnerability: {vulnerability}")
-                LOGGER.info(f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerability}")
+
                 session = requests.Session()
                 session.mount('https://', requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[404, 504, 502])))
                 response = session.get(cve_url)
-                LOGGER.info(f"resp: {response}")
+
                 if response.status_code == 200:
                     severity = (
                         response.json()
@@ -242,7 +241,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
                         .get("baseMetricV2", {})
                         .get("severity", "UNKNOWN"))
             except ConnectionError:
-                LOGGER.exception(f"Failed to load nist data for cve {vulnerability}")
+                LOGGER.exception(f"Failed to load NIST data for CVE {vulnerability}")
 
             if vulnerability_severity.get(severity):
                 vulnerability_severity[severity].append(vulnerability)
