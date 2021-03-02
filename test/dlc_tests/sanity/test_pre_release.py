@@ -6,6 +6,10 @@ from packaging.version import Version
 import pytest
 import requests
 
+from requests.packages.urllib3.util import Retry
+from requests.adapters import HTTPAdapter
+from requests import Session, exceptions
+
 from invoke.context import Context
 
 from src.buildspec import Buildspec
@@ -222,7 +226,10 @@ def _run_dependency_check_test(image, ec2_connection, processor):
 
         # Check NVD for vulnerability severity to provide this useful info in error message.
         for vulnerability in vulnerabilities:
-            resp = requests.get(f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerability}")
+            session = Session()
+            session.mount('https://', HTTPAdapter(max_retries=Retry(total=5)))
+            resp = session.get(f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerability}")
+            LOGGER.info(f"resp: {resp}")
             severity = (
                 resp.json()
                 .get("result", {})
