@@ -83,8 +83,11 @@ IGNORE_SAFETY_IDS = {
         "inference-eia": {
             "py3": []
         },
-        "inference-neuron": {
-            "py3": []
+        "inference-neuron":{
+            "py3": [
+                # 39409, 39408, 39407, 39406: TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches
+                '39409', '39408', '39407', '39406',
+            ]
         }
     }
 }
