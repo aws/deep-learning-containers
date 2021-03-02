@@ -68,7 +68,6 @@ def test_smmodelparallel(sagemaker_session, instance_type, ecr_image, tmpdir, fr
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_hvd2_conv_multinode.py", 2)])
-@pytest.mark.skip("Skipping the test due to known issue in TF2.3. Updated binary for SM Model Parallel: https://github.com/aws/deep-learning-containers/pull/837")
 def test_smmodelparallel_multinode(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version, test_script, num_processes):
     """
     Tests SM Modelparallel in sagemaker

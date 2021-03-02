@@ -25,7 +25,6 @@ ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.10
-ARG OPENSSL_VERSION=1.1.1g
 
 ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.2_aws/20200925-141258/gpu/py37/tensorflow_gpu-2.2.1-cp37-cp37m-manylinux2010_x86_64.whl
 
@@ -62,6 +61,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     build-essential \
     openssh-client \
     openssh-server \
+    libssl1.1 \
+    openssl \
     zlib1g-dev \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
@@ -157,28 +158,10 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
-RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt-get update \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && apt-get install -y \
-    ca-certificates \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test \
- && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-*
-
-# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
-# causing sslcertverificationerror the below steps are to fix that
-RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
-
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
-# install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
     numpy==1.19.1 \
@@ -187,7 +170,8 @@ RUN ${PIP} install --no-cache-dir -U \
     pandas==1.0.3 \
     Pillow==7.1.2 \
     python-dateutil==2.8.1 \
-    pyYAML==5.3.1 \
+    # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
+    "pyYAML>=5.4,<5.5" \
     requests==2.23.0 \
     "awscli<2" \
     mpi4py==3.0.3 \
