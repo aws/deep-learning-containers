@@ -12,7 +12,7 @@ ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.10
-ARG TFS_SHORT_VERSION=1.15.4
+ARG TFS_SHORT_VERSION=1.15.5
 ARG TF_S3_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com
 
 # Prevent docker build get stopped by requesting user interaction
@@ -39,8 +39,6 @@ ENV MODEL_BASE_PATH=/models
 # The only required piece is the model name in order to differentiate endpoints
 ENV MODEL_NAME=model
 
-ARG OPENSSL_VERSION=1.1.1g
-
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     build-essential \
@@ -49,31 +47,15 @@ RUN apt-get update \
     emacs \
     git \
     gnupg2 \
+    libssl1.1 \
     openssh-client \
     openssh-server \
+    openssl \
     vim \
     wget \
     zlib1g-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
-
-RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt-get update \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && apt-get install -y \
-    ca-certificates \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test \
- && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-*
-
- # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
-# causing sslcertverificationerror the below steps are to fix that
-RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
-
 
 # SSH login fix. Otherwise user is kicked off after login
 RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
@@ -133,7 +115,7 @@ RUN ${PIP} install --no-cache-dir -U \
     pandas==0.24.2 \
     Pillow \
     h5py==2.10.0 \
-    pyYAML==5.3.1 \
+    "pyYAML>=5.4,<5.5" \
     cython==0.29.12 \
     falcon==2.0.0 \
     gunicorn==19.9.0 \
@@ -146,11 +128,11 @@ RUN ${PIP} install --no-cache-dir -U \
 
 # pip install statements have been separated out into multiple sequentially executed statements to
 # resolve package dependencies during installation.
-RUN ${PIP} install tensorflow_serving_api==1.15.0 --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install tensorboard-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com \
+RUN ${PIP} install tensorflow_serving_api==1.15 --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install "tensorboard-neuron>=1.15,<1.16" --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install neuron-cc --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install tensorflow-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com
-    
+ && ${PIP} install "tensorflow-neuron>=1.15.5,<1.15.6" --extra-index-url https://pip.repos.neuron.amazonaws.com
+
 
 COPY ./sagemaker /sagemaker
 
