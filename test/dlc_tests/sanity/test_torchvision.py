@@ -35,6 +35,8 @@ def test_torchvision_nms_inference(pytorch_inference):
     _, framework_version = get_framework_and_version_from_tag(pytorch_inference)
     if "eia" in pytorch_inference and Version(framework_version) < Version("1.5.1"):
         pytest.skip("This test does not apply to PT EIA images for PT versions less than 1.5.1")
+    if "neuron" in pytorch_inference:
+        pytest.skip("Skipping because this is not relevant to PT Neuron images")
     image = pytorch_inference
     ctx = Context()
     container_name = get_container_name("torchvision-nms", image)

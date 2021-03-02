@@ -1,6 +1,8 @@
 import os
 import pytest
 
+import test.test_utils.ec2 as ec2_utils
+
 from test import test_utils
 from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag
 from test.test_utils.ec2 import get_ec2_instance_type, execute_ec2_inference_test, get_ec2_accelerator_type
@@ -15,6 +17,13 @@ RESNET_EIA_MODEL = "resnet-152-eia"
 MX_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
 MX_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 MX_EC2_EIA_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="eia1.large", processor="eia")
+MX_EC2_GPU_EIA_INSTANCE_TYPE = get_ec2_instance_type(
+    default="g3.8xlarge", processor="gpu", filter_function=ec2_utils.filter_not_heavy_instance_types,
+)
+MX_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
+    default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
+)
+
 MX_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_mx_dlc_telemetry_test")
 
 
@@ -51,9 +60,8 @@ def test_ec2_mxnet_resnet_inference_eia_cpu(mxnet_inference_eia, ec2_connection,
 
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.model(RESNET_EIA_MODEL)
-@pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_EIA_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", MX_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
-@pytest.mark.skipif(MX_EC2_GPU_INSTANCE_TYPE == ["p3dn.24xlarge"], reason="Skipping EIA test on p3dn instances")
 def test_ec2_mxnet_resnet_inferencei_eia_gpu(mxnet_inference_eia, ec2_connection, region, eia_only):
     model_name = RESNET_EIA_MODEL
     image_framework, image_framework_version = get_framework_and_version_from_tag(mxnet_inference_eia)
@@ -108,7 +116,7 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", MX_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_inference_telemetry_gpu(mxnet_inference, ec2_connection, gpu_only):
     execute_ec2_inference_test(ec2_connection, mxnet_inference, MX_TELEMETRY_CMD)
 
@@ -116,6 +124,6 @@ def test_mxnet_inference_telemetry_gpu(mxnet_inference, ec2_connection, gpu_only
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_inference_telemetry_cpu(mxnet_inference, ec2_connection, cpu_only):
     execute_ec2_inference_test(ec2_connection, mxnet_inference, MX_TELEMETRY_CMD)

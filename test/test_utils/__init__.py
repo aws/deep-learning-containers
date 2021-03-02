@@ -112,6 +112,19 @@ def is_below_mxnet_version(version_upper_bound, image_uri):
     return image_framework_name == "mxnet" and image_framework_version in required_version_specifier_set
 
 
+def is_below_pytorch_version(version_upper_bound, image_uri):
+    """
+    Validate that image_uri has framework version strictly less than version_upper_bound
+
+    :param version_upper_bound: str Framework version that image_uri is required to be below
+    :param image_uri: str ECR Image URI for the image to be validated
+    :return: bool True if image_uri has framework version less than version_upper_bound, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
+    return image_framework_name == "pytorch" and image_framework_version in required_version_specifier_set
+
+
 def get_repository_local_path():
     git_repo_path = os.getcwd().split("/test/")[0]
     return git_repo_path
@@ -263,8 +276,17 @@ def request_pytorch_inference_densenet(
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
-    if run_out.return_code != 0 or "pot" not in run_out.stdout:
+    if run_out.return_code != 0:
+        LOGGER.error("run_out.return_code != 0")
         return False
+    else:
+        inference_output = json.loads(run_out.stdout.strip("\n"))
+        if not (
+                ("neuron" in model_name and isinstance(inference_output, list) and len(inference_output) == 3)
+                or (isinstance(inference_output, dict) and len(inference_output) == 5)
+        ):
+            return False
+        LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
 
     return True
 
@@ -378,7 +400,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         )
     else:
         mms_command = (
-            f"/usr/local/bin/entrypoint.sh -m {parameters} -t /home/model-server/config.properties"
+            f"/usr/local/bin/entrypoint.sh -t /home/model-server/config.properties -m " + " ".join(parameters)
         )
 
     return mms_command

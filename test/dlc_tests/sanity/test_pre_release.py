@@ -87,11 +87,9 @@ def test_python_version(image):
     start_container(container_name, image, ctx)
     output = run_cmd_on_container(container_name, ctx, "python --version")
 
-    container_py_version = output.stdout
     # Due to py2 deprecation, Python2 version gets streamed to stderr. Python installed via Conda also appears to
-    # stream to stderr, hence the pytorch condition.
-    if "Python 2" in py_version:
-        container_py_version = output.stderr
+    # stream to stderr (in some cases).
+    container_py_version = output.stdout + output.stderr
 
     assert py_version in container_py_version, f"Cannot find {py_version} in {container_py_version}"
 
@@ -120,14 +118,16 @@ def test_ubuntu_version(image):
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run cpu framework version test regularly on production images")
-def test_framework_version_cpu(cpu):
+@pytest.mark.canary("Run non-gpu framework version test regularly on production images")
+def test_framework_version_cpu(image):
     """
     Check that the framework version in the image tag is the same as the one on a running container.
+    This function tests CPU, EIA, and Neuron images.
 
-    :param cpu: ECR image URI with "cpu" in the name
+    :param image: ECR image URI
     """
-    image = cpu
+    if "gpu" in image:
+        pytest.skip("GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
     if "tensorflow-inference" in image:
         pytest.skip(msg="TF inference does not have core tensorflow installed")
 
@@ -239,8 +239,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
             return
 
         raise DependencyCheckFailure(
-            f"Unrecognized CVES have been reported : {vulnerability_severity}. "
-            f"Allowed vulnerabilites are {allowed_vulnerabilities or None}. Please see "
+            f"Unrecognized CVEs have been reported : {vulnerability_severity}. "
+            f"Allowed vulnerabilities are {allowed_vulnerabilities or None}. Please see "
             f"{dependency_check_report} for more details."
         )
 
@@ -257,6 +257,13 @@ def test_dependency_check_cpu(cpu, ec2_connection):
 @pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_gpu(gpu, ec2_connection):
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
+@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+def test_dependency_check_neuron(neuron, ec2_connection):
+    _run_dependency_check_test(neuron, ec2_connection, "neuron")
 
 
 @pytest.mark.model("N/A")
