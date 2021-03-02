@@ -26,7 +26,6 @@ ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.10
-ARG OPENSSL_VERSION=1.1.1g
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated \
@@ -55,6 +54,8 @@ RUN apt-get update \
     vim \
     openssh-client \
     openssh-server \
+    libssl1.1 \
+    openssl \
     zlib1g-dev \
     # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0
     # adds a new list which contains libnvinfer library, so it needs another
@@ -71,23 +72,6 @@ RUN apt-get update \
  && rm /usr/lib/x86_64-linux-gnu/libnvparsers* \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/run/sshd
-
- RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt-get update \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && apt-get install -y \
-    ca-certificates \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test \
- && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-*
-
- # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
-# causing sslcertverificationerror the below steps are to fix that
-RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
 ###########################################################################
 # Horovod & its dependencies
@@ -188,6 +172,8 @@ RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     h5py==2.10.0 \
  && ${PIP} install --no-cache-dir -U \
+    # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
+    "pyYAML>=5.4,<5.5" \
     "awscli<2"
 
 # Install Horovod, temporarily using CUDA stubs
