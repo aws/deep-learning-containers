@@ -217,9 +217,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     # Check for any vulnerabilities not mentioned in allowed_vulnerabilities
     html_output = ec2_connection.run(f"cat ~/{dependency_check_report}", hide=True).stdout
     cves = re.findall(r">(CVE-\d+-\d+)</a>", html_output)
-    LOGGER.info(f"cves: {cves}")
     vulnerabilities = set(cves) - allowed_vulnerabilities
-    LOGGER.info(f"vulnerabilities: {vulnerabilities}")
+
     if vulnerabilities:
         vulnerability_severity = {}
 
