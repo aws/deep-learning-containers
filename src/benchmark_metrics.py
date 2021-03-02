@@ -18,7 +18,7 @@ TENSORFLOW_INFERENCE_CPU_THRESHOLD = {
     },
     # Updated thresholds for TF 2.4.1 CPU from Vanilla TF 2.4
     ">=2.4": {
-        "INCEPTION": 0.1, "RCNN-Resnet101-kitti": 2.0, "Resnet50v2": 0.35, "MNIST": 0.00045, "SSDResnet50Coco": 1.2,
+        "INCEPTION": 0.11, "RCNN-Resnet101-kitti": 2.1, "Resnet50v2": 0.35, "MNIST": 0.001, "SSDResnet50Coco": 1.2,
     },
 }
 TENSORFLOW_INFERENCE_GPU_THRESHOLD = {
