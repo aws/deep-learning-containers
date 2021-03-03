@@ -89,6 +89,8 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y -c anaconda \
+    # conda 4.9.2 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.87 \
     numpy==1.16.4 \
     ipython==7.10.1 \
     mkl==2019.4 \
@@ -128,7 +130,7 @@ RUN /opt/conda/bin/conda config --set ssl_verify False \
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install \
     --no-cache-dir smdebug==${SMDEBUG_VERSION} \
-    "sagemaker>=2,<3" \
+    "sagemaker<2" \
     sagemaker-experiments==0.* \
     --no-cache-dir fastai==1.0.59 \
     # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
@@ -137,7 +139,6 @@ RUN pip install \
     # cryptography required by pyopenssl and paramiko, <=3.2 has safety vulnerabilities
     "cryptography>3.2" \
     scipy==1.2.2 \
-    ruamel-yaml \
  && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U \

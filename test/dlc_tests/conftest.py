@@ -17,7 +17,7 @@ import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
 from test.test_utils import (
-    is_benchmark_dev_context, get_framework_and_version_from_tag, get_job_type_from_image, is_tf_version, 
+    is_benchmark_dev_context, get_framework_and_version_from_tag, get_job_type_from_image, is_tf_version,
     is_below_framework_version, 
     DEFAULT_REGION, P3DN_REGION, UBUNTU_18_BASE_DLAMI_US_EAST_1, UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, KEYS_TO_DESTROY_FILE 
@@ -326,9 +326,11 @@ def tf21_and_above_only():
 def mx18_and_above_only():
     pass
 
+
 @pytest.fixture(scope="session")
 def pt16_and_above_only():
     pass
+
 
 def framework_version_within_limit(metafunc_obj, image):
     """
