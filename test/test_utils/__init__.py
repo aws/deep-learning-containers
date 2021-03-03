@@ -125,7 +125,7 @@ def is_below_pytorch_version(version_upper_bound, image_uri):
     return image_framework_name == "pytorch" and image_framework_version in required_version_specifier_set
 
 
-def is_image_compatible_with_instance_type(image_uri, ec2_instance_type):
+def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
     """
     Check for all compatibility issues between DLC Image Types and EC2 Instance Types.
     Currently configured to fail on the following checks:
@@ -133,14 +133,14 @@ def is_image_compatible_with_instance_type(image_uri, ec2_instance_type):
 
     :param image_uri: ECR Image URI in valid DLC-format
     :param ec2_instance_type: EC2 Instance Type
-    :return: bool True if there are no incompatibilities, False if there are
+    :return: bool True if there are incompatibilities, False if there aren't
     """
     image_is_cuda10_on_incompatible_p4d_instance = (
         get_processor_from_image_uri(image_uri) == "gpu" and
         get_cuda_version_from_tag(image_uri).startswith("cu10") and
         ec2_instance_type in ["p4d.24xlarge"]
     )
-    return not image_is_cuda10_on_incompatible_p4d_instance
+    return image_is_cuda10_on_incompatible_p4d_instance
 
 
 def get_repository_local_path():

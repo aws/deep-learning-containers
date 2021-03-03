@@ -28,7 +28,7 @@ MX_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_standalone_gpu(mxnet_training, ec2_connection, gpu_only, ec2_instance_type):
-    if test_utils.is_image_compatible_with_instance_type(mxnet_training, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(mxnet_training, ec2_instance_type):
         pytest.skip(f"Image {mxnet_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_STANDALONE_CMD)
 
@@ -43,7 +43,7 @@ def test_mxnet_standalone_cpu(mxnet_training, ec2_connection, cpu_only):
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_train_mnist_gpu(mxnet_training, ec2_connection, gpu_only, ec2_instance_type):
-    if test_utils.is_image_compatible_with_instance_type(mxnet_training, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(mxnet_training, ec2_instance_type):
         pytest.skip(f"Image {mxnet_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_MNIST_CMD)
 
@@ -58,7 +58,7 @@ def test_mxnet_train_mnist_cpu(mxnet_training, ec2_connection, cpu_only):
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_keras_gpu(mxnet_training, ec2_connection, gpu_only, ec2_instance_type):
-    if test_utils.is_image_compatible_with_instance_type(mxnet_training, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(mxnet_training, ec2_instance_type):
         pytest.skip(f"Image {mxnet_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_KERAS_CMD)
 
@@ -74,7 +74,7 @@ def test_mxnet_keras_cpu(mxnet_training, ec2_connection, cpu_only):
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_train_dgl_gpu(mxnet_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
-    if test_utils.is_image_compatible_with_instance_type(mxnet_training, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(mxnet_training, ec2_instance_type):
         pytest.skip(f"Image {mxnet_training} is incompatible with instance type {ec2_instance_type}")
     if "cu110" in mxnet_training:
         pytest.skip("Skipping dgl tests on cuda 11.0 until available")
@@ -92,7 +92,7 @@ def test_mxnet_train_dgl_cpu(mxnet_training, ec2_connection, cpu_only, py3_only)
 @pytest.mark.model("textCNN")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_train_nlp_gpu(mxnet_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
-    if test_utils.is_image_compatible_with_instance_type(mxnet_training, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(mxnet_training, ec2_instance_type):
         pytest.skip(f"Image {mxnet_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_NLP_CMD)
 
@@ -108,7 +108,7 @@ def test_mxnet_train_nlp_cpu(mxnet_training, ec2_connection, cpu_only, py3_only)
 @pytest.mark.model("AlexNet")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_with_horovod_gpu(mxnet_training, ec2_connection, gpu_only, ec2_instance_type):
-    if test_utils.is_image_compatible_with_instance_type(mxnet_training, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(mxnet_training, ec2_instance_type):
         pytest.skip(f"Image {mxnet_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_HVD_CMD)
 
@@ -125,7 +125,7 @@ def test_mxnet_with_horovod_cpu(mxnet_training, ec2_connection, cpu_only):
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_telemetry_gpu(mxnet_training, ec2_connection, gpu_only, ec2_instance_type):
-    if test_utils.is_image_compatible_with_instance_type(mxnet_training, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(mxnet_training, ec2_instance_type):
         pytest.skip(f"Image {mxnet_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_TELEMETRY_CMD)
 
