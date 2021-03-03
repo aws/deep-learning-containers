@@ -30,7 +30,7 @@ MX_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_mx_dlc_telemetry_t
 @pytest.mark.model(SQUEEZENET_MODEL)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_mxnet_squeezenet_inference_gpu(mxnet_inference, ec2_connection, region, gpu_only, ec2_instance_type):
-    if test_utils.is_image_compatible_with_instance_type(mxnet_inference, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(mxnet_inference, ec2_instance_type):
         pytest.skip(f"Image {mxnet_inference} is incompatible with instance type {ec2_instance_type}")
     run_ec2_mxnet_inference(mxnet_inference, SQUEEZENET_MODEL, "squeezenet", ec2_connection, "gpu", region, 80, 8081)
 
@@ -41,7 +41,7 @@ def test_ec2_mxnet_squeezenet_inference_gpu(mxnet_inference, ec2_connection, reg
 def test_ec2_mxnet_gluonnlp_inference_gpu(
         mxnet_inference, ec2_connection, region, gpu_only, py3_only, ec2_instance_type
 ):
-    if test_utils.is_image_compatible_with_instance_type(mxnet_inference, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(mxnet_inference, ec2_instance_type):
         pytest.skip(f"Image {mxnet_inference} is incompatible with instance type {ec2_instance_type}")
     run_ec2_mxnet_inference(mxnet_inference, BERT_MODEL, "gluonnlp", ec2_connection, "gpu", region, 90, 9091)
 
@@ -124,7 +124,7 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_inference_telemetry_gpu(mxnet_inference, ec2_connection, gpu_only, ec2_instance_type):
-    if test_utils.is_image_compatible_with_instance_type(mxnet_inference, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(mxnet_inference, ec2_instance_type):
         pytest.skip(f"Image {mxnet_inference} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_inference_test(ec2_connection, mxnet_inference, MX_TELEMETRY_CMD)
 
