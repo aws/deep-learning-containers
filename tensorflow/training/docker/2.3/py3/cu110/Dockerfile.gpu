@@ -247,6 +247,58 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
   && rm -rf v${RMM_VERSION}.tar* \
   && rm -rf rmm-${RMM_VERSION}
 
+
+# Install EFA and OpenMPI
+ARG EFA_VERSION="1.11.1"
+RUN cd /tmp && \
+  curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-$EFA_VERSION.tar.gz && \
+  tar -xf aws-efa-installer-$EFA_VERSION.tar.gz && \
+  cd aws-efa-installer && \
+  ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify && \
+  cd /tmp && \
+  rm -rf aws-efa-installer
+
+
+# NCCL
+ARG BRANCH_NCCL="v2.7.8-1"
+RUN cd /tmp && \
+  git clone https://github.com/NVIDIA/nccl.git -b $BRANCH_NCCL && \
+  cd nccl && make -j64 src.build BUILDDIR=/usr/local \
+  NVCC_GENCODE="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_80,code=compute_80" \
+  && \
+  rm -rf /tmp/nccl
+
+# Intall NCCL.libfabric
+ARG BRANCH_OFI="v1.1.1"
+RUN apt-get update && apt-get install -y autoconf
+RUN cd /tmp && rm -rf aws-ofi-nccl && \
+  git clone https://github.com/aws/aws-ofi-nccl.git -b $BRANCH_OFI && \
+  cd aws-ofi-nccl && \
+  ./autogen.sh && \
+  ./configure --with-libfabric=/opt/amazon/efa \
+  --with-mpi=/opt/amazon/openmpi \
+  --with-cuda=/usr/local/cuda \
+  --with-nccl=/usr/local --prefix=/usr/local && \
+  make \
+  NVCC_GENCODE="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_80,code=compute_80" \
+  && \
+  make install && \
+  rm -rf /tmp/aws-ofi-nccl
+
+
+# Install CMake for building herring
+# RUN pip install --no-cache-dir  cmake
+# COPY ./herring /herring
+# RUN cd /herring && \
+#     SMDATAPARALLEL_EC2_ENABLED=1 \
+#     SMDATAPARALLEL_TF=1 \
+#     SMDATAPARALLEL_PT=0 \
+#     SMDATAPARALLEL_MX=0 \
+#     python setup.py clean bdist_wheel && \
+#     pip install -I dist/*.whl && \
+#     echo export PYTHONPATH="/herring" >> /root/.bashrc
+
+
 ENV CPATH="/usr/local/lib/python3.7/dist-packages/pybind11/include/"
 
 # Install Horovod, temporarily using CUDA stubs
