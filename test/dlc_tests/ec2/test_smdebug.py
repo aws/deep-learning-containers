@@ -21,7 +21,7 @@ SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", proc
 @pytest.mark.parametrize("ec2_instance_type", SMDEBUG_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.flaky(reruns=0)
 def test_smdebug_gpu(training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only):
-    if test_utils.is_image_compatible_with_instance_type(training, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(training, ec2_instance_type):
         pytest.skip(f"Image {training} is incompatible with instance type {ec2_instance_type}")
     smdebug_test_timeout = 2400
     if is_tf_version("1", training):
@@ -50,7 +50,7 @@ def test_smprofiler_gpu(
 ):
     # Running the profiler tests for pytorch and tensorflow2 frameworks only.
     # This code needs to be modified past reInvent 2020
-    if test_utils.is_image_compatible_with_instance_type(training, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(training, ec2_instance_type):
         pytest.skip(f"Image {training} is incompatible with instance type {ec2_instance_type}")
     framework = get_framework_from_image_uri(training)
     if framework not in ["pytorch", "tensorflow2"]:
