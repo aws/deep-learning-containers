@@ -210,6 +210,68 @@ RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
 
+
+# Install EFA and OpenMPI
+ARG EFA_VERSION="1.11.1"
+RUN cd /tmp && \
+  curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-$EFA_VERSION.tar.gz && \
+  tar -xf aws-efa-installer-$EFA_VERSION.tar.gz && \
+  cd aws-efa-installer && \
+  ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify && \
+  cd /tmp && \
+  rm -rf aws-efa-installer
+
+# Install NCCL. Must match version built into PyTorch
+ARG BRANCH_NCCL="v2.7.8-1"
+# -- Added CUDA NVCC flags for: -gencode=arch=compute_35,code=sm_35 -gencode=arch=compute_50,code=sm_50 -gencode=arch=compute_52,code=sm_52 -gencode=arch=compute_60,code=sm_60 -gencode=arch=compute_61,code=sm_61 -gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_80,code=compute_80
+# NVCC_GENCODE="-gencode=arch=compute_60,code=sm_60 -gencode=arch=compute_61,code=sm_61 -gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_80,code=compute_80"
+# NVCC_GENCODE="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_80,code=compute_80" && \
+RUN cd /tmp && \
+  git clone https://github.com/NVIDIA/nccl.git -b $BRANCH_NCCL && \
+  cd nccl && make -j64 src.build BUILDDIR=/usr/local \
+  NVCC_GENCODE="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_80,code=compute_80" \
+  && \
+  rm -rf /tmp/nccl
+
+
+# Intall libfabric
+# NVCC_GENCODE="-gencode=arch=compute_60,code=sm_60 -gencode=arch=compute_61,code=sm_61 -gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_80,code=compute_80" && \
+# Branches: aws (main), v1.1.0-aws (fails with latest), v1.0.1-aws (old) v1.1.1
+ARG BRANCH_OFI="v1.1.1"
+
+RUN apt-get update \
+ && apt-get install -y autoconf
+
+RUN cd /tmp && rm -rf aws-ofi-nccl && \
+  git clone https://github.com/aws/aws-ofi-nccl.git -b $BRANCH_OFI && \
+  cd aws-ofi-nccl && \
+  ./autogen.sh && \
+  ./configure --with-libfabric=/opt/amazon/efa \
+  --with-mpi=/opt/amazon/openmpi \
+  --with-cuda=/usr/local/cuda \
+  --with-nccl=/usr/local --prefix=/usr/local && \
+  make \
+  NVCC_GENCODE="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_80,code=compute_80" \
+  && \
+  make install && \
+  rm -rf /tmp/aws-ofi-nccl
+
+# Install Herring
+# COPY ./herring /herring
+# RUN pip install --no-cache-dir cmake && \
+#     cd /herring && \
+#     SMDATAPARALLEL_EC2_ENABLED=1 \
+#     SMDATAPARALLEL_TF=0 \
+#     SMDATAPARALLEL_PT=1 \
+#     SMDATAPARALLEL_MX=0 \
+#     python setup.py clean bdist_wheel && \
+#     pip install -I dist/*.whl && \
+#     echo export PYTHONPATH="/herring" >> /root/.bashrc
+
+# WORKAROUND FOR TRAINING_TOOLKIT VERSION UPDATE
+# RUN wget https://raw.githubusercontent.com/karan6181/sagemaker-training-toolkit/smdataparallel_efa/src/sagemaker_training/smdataparallel.py && \
+#     cp smdataparallel.py /opt/conda/lib/python3.6/site-packages/sagemaker_training/
+
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
  && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
