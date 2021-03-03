@@ -2,6 +2,8 @@ import os
 import time
 import pytest
 
+from packaging.version import Version
+
 from src.benchmark_metrics import (
     TENSORFLOW_INFERENCE_GPU_THRESHOLD,
     TENSORFLOW_INFERENCE_CPU_THRESHOLD,
@@ -24,8 +26,11 @@ def test_performance_ec2_tensorflow_inference_gpu(tensorflow_inference, ec2_conn
 
 @pytest.mark.model("inception, RCNN-Resnet101-kitti, resnet50_v2, mnist, SSDResnet50Coco")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.18xlarge"], indirect=True)
+# TODO: Unskip this test for TF 2.4.x Inference CPU images
 def test_performance_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, region, cpu_only):
     _, framework_version = get_framework_and_version_from_tag(tensorflow_inference)
+    if Version(framework_version) == Version("2.4.1"):
+        pytest.skip("This test times out, and needs to be run manually.")
     threshold = get_threshold_for_image(framework_version, TENSORFLOW_INFERENCE_CPU_THRESHOLD)
     ec2_performance_tensorflow_inference(tensorflow_inference, "cpu", ec2_connection, region, threshold)
 
