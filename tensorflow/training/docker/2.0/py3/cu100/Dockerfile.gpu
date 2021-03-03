@@ -21,10 +21,10 @@ ENV KMP_AFFINITY=granularity=fine,compact,1,0
 ENV KMP_BLOCKTIME=1
 ENV KMP_SETTINGS=0
 
-ARG PYTHON=python3.7
+ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.7.10
+ARG PYTHON_VERSION=3.6.13
 
 ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.0_aws/20210226-093256/gpu/cu100/py36/tensorflow_gpu-2.0.4-cp36-cp36m-manylinux2010_x86_64.whl
 ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.0_aws/20210226-093256/gpu/cu100/py36/tensorflow_gpu-2.0.4-cp36-cp36m-manylinux2010_x86_64.whl
