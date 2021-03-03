@@ -99,7 +99,7 @@ RUN pip install \
     pillow==7.1.0 \
     "awscli<2" \
     # cryptography required by pyopenssl and paramiko, <=3.2 has safety vulnerabilities
-    "cryptography>3.2" \
+    "cryptography>3.2"
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
