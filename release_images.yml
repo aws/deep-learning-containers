@@ -251,7 +251,7 @@ release_images:
   20:
     framework: "tensorflow"
     version: "1.15.5"
-    training:
+    inference:
       device_types: [ "neuron" ]
       python_versions: [ "py37" ]
       os_version: "ubuntu18.04"
