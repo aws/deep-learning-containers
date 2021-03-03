@@ -99,6 +99,32 @@ def is_below_tf_version(version_upper_bound, image_uri):
     return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
 
 
+def is_below_mxnet_version(version_upper_bound, image_uri):
+    """
+    Validate that image_uri has framework version strictly less than version_upper_bound
+
+    :param version_upper_bound: str Framework version that image_uri is required to be below
+    :param image_uri: str ECR Image URI for the image to be validated
+    :return: bool True if image_uri has framework version less than version_upper_bound, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
+    return image_framework_name == "mxnet" and image_framework_version in required_version_specifier_set
+
+
+def is_below_pytorch_version(version_upper_bound, image_uri):
+    """
+    Validate that image_uri has framework version strictly less than version_upper_bound
+
+    :param version_upper_bound: str Framework version that image_uri is required to be below
+    :param image_uri: str ECR Image URI for the image to be validated
+    :return: bool True if image_uri has framework version less than version_upper_bound, else False
+    """
+    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
+    required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
+    return image_framework_name == "pytorch" and image_framework_version in required_version_specifier_set
+
+
 def get_repository_local_path():
     git_repo_path = os.getcwd().split("/test/")[0]
     return git_repo_path
@@ -227,12 +253,13 @@ def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connecti
 @retry(
     stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false,
 )
-def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connection=None):
+def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connection=None, model_name="pytorch-densenet"):
     """
     Send request to container to test inference on flower.jpg
     :param ip_address: str
     :param port: str
     :param connection: obj
+    :param model_name: str
     :return: <bool> True/False based on result of inference
     """
     conn_run = connection.run if connection is not None else run
@@ -242,13 +269,22 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
         conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True)
 
     run_out = conn_run(
-        f"curl -X POST http://{ip_address}:{port}/predictions/pytorch-densenet -T flower.jpg", hide=True, warn=True
+        f"curl -X POST http://{ip_address}:{port}/predictions/{model_name} -T flower.jpg", hide=True, warn=True
     )
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
-    if run_out.return_code != 0 or "pot" not in run_out.stdout:
+    if run_out.return_code != 0:
+        LOGGER.error("run_out.return_code != 0")
         return False
+    else:
+        inference_output = json.loads(run_out.stdout.strip("\n"))
+        if not (
+                ("neuron" in model_name and isinstance(inference_output, list) and len(inference_output) == 3)
+                or (isinstance(inference_output, dict) and len(inference_output) == 5)
+        ):
+            return False
+        LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
 
     return True
 
@@ -275,6 +311,7 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
 
     return True
 
+
 @retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
 def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8501"):
     """
@@ -296,6 +333,7 @@ def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8
         return False
 
     return True
+
 
 def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None):
     """
@@ -321,7 +359,8 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
     server_type = get_inference_server_type(image_uri)
     if processor == "eia":
         multi_model_location = {
-            "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia.mar",
+            "resnet-152-eia": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia-1-7-0.mar",
+            "resnet-152-eia-1-5-1": "https://s3.amazonaws.com/model-server/model_archive_1.0/resnet-152-eia-1-5-1.mar",
             "pytorch-densenet": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia_v1_5_1.mar",
             "pytorch-densenet-v1-3-1": "https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/densenet_eia/densenet_eia_v1_3_1.mar",
         }
@@ -354,12 +393,12 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
 
     if processor != "neuron":
         mms_command = (
-            f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
-            + " ".join(parameters)
+                f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
+                + " ".join(parameters)
         )
     else:
         mms_command = (
-            f"/usr/local/bin/entrypoint.sh -m {parameters} -t /home/model-server/config.properties"
+            f"/usr/local/bin/entrypoint.sh -t /home/model-server/config.properties -m " + " ".join(parameters)
         )
 
     return mms_command
@@ -479,6 +518,9 @@ def get_canary_default_tag_py3_version(framework, version):
     """
     if framework == "tensorflow2":
         return "py37" if Version(version) >= Version("2.2") else "py3"
+
+    if framework == "mxnet":
+        return "py37" if Version(version) >= Version("1.8") else "py3"
 
     return "py3"
 
@@ -624,7 +666,7 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install -U 'sagemaker<2' awscli boto3 botocore six==1.11")
+            ctx.run("pip install 'sagemaker>=2,<3' awscli boto3 botocore six==1.11")
 
             # SageMaker TF estimator is coded to only accept framework versions up to 2.1.0 as py2 compatible.
             # Fixing this through the following changes:
@@ -649,7 +691,7 @@ def setup_sm_benchmark_mx_train_env(resources_location):
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install -U sagemaker awscli boto3 botocore")
+            ctx.run("pip install sagemaker awscli boto3 botocore")
     return venv_dir
 
 
@@ -745,3 +787,42 @@ def get_processor_from_image_uri(image_uri):
         if match:
             return match.group(1)
     raise RuntimeError("Cannot find processor")
+
+
+def get_container_name(prefix, image_uri):
+    """
+    Create a unique container name based off of a test related prefix and the image uri
+    :param prefix: test related prefix, like "emacs" or "pip-check"
+    :param image_uri: ECR image URI
+    :return: container name
+    """
+    return f"{prefix}-{image_uri.split('/')[-1].replace('.', '-').replace(':', '-')}"
+
+
+def start_container(container_name, image_uri, context):
+    """
+    Helper function to start a container locally
+    :param container_name: Name of the docker container
+    :param image_uri: ECR image URI
+    :param context: Invoke context object
+    """
+    context.run(
+        f"docker run --entrypoint='/bin/bash' --name {container_name} -itd {image_uri}", hide=True,
+    )
+
+
+def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=False):
+    """
+    Helper function to run commands on a locally running container
+    :param container_name: Name of the docker container
+    :param context: ECR image URI
+    :param cmd: Command to run on the container
+    :param executable: Executable to run on the container (bash or python)
+    :param warn: Whether to only warn as opposed to exit if command fails
+    :return: invoke output, can be used to parse stdout, etc
+    """
+    if executable not in ("bash", "python"):
+        LOGGER.warn(f"Unrecognized executable {executable}. It will be run as {executable} -c '{cmd}'")
+    return context.run(
+        f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
+    )

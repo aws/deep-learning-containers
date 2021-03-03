@@ -18,7 +18,7 @@ import pytest
 from sagemaker.pytorch import PyTorch
 
 from ...utils.local_mode_utils import assert_files_exist
-from ...integration import data_dir, fastai_path, fastai_mnist_script, mnist_script, ROLE
+from ...integration import data_dir, fastai_path, fastai_mnist_script, mnist_path, mnist_script, ROLE
 
 
 @pytest.mark.model("mnist")

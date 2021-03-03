@@ -5,6 +5,7 @@ import random
 import re
 from time import sleep
 
+import invoke
 from invoke.context import Context
 from invoke import exceptions
 from junit_xml import TestSuite, TestCase
@@ -29,6 +30,10 @@ from test_utils import (
 
 
 class DLCSageMakerRemoteTestFailure(Exception):
+    pass
+
+
+class DLCSageMakerLocalTestFailure(Exception):
     pass
 
 
@@ -105,6 +110,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     docker_base_arg = "--docker-base-name"
     instance_type_arg = "--instance-type"
     accelerator_type_arg = "--accelerator-type"
+    framework_version_arg = "--framework-version"
     eia_arg = "ml.eia1.large"
     processor = "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
     py_version = re.search(r"py\d+", tag).group()
@@ -121,6 +127,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             aws_id_arg = "--registry"
             docker_base_arg = "--repo"
             instance_type_arg = "--instance-types"
+            framework_version_arg = "--versions"
             integration_path = os.path.join(integration_path, "test_tfs.py") if processor != "eia" else os.path.join(integration_path, "test_ei.py")
 
     if framework == "tensorflow" and job_type == "training":
@@ -131,8 +138,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     is_py3 = " python3 -m "
 
     remote_pytest_cmd = (
-        f"pytest {integration_path} --region {region} {docker_base_arg} "
-        f"{sm_remote_docker_base_name} --tag {tag} --framework-version {framework_version} "
+        f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
+        f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
         f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} --junitxml {test_report}"
     )
 
@@ -258,7 +265,14 @@ def execute_local_tests(image, ec2_client):
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
         ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
-        ec2_conn.run(f"docker pull {image}")
+        try:
+            ec2_conn.run(f"docker pull {image}", timeout=600)
+        except invoke.exceptions.CommandTimedOut as e:
+            output = ec2_conn.run(f"docker images {image} --format '{{.Repository}}:{{.Tag}}'").stdout.strip("\n")
+            if output != image:
+                raise DLCSageMakerLocalTestFailure(
+                    f"Image pull for {image} failed.\ndocker images output = {output}"
+                ) from e
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):

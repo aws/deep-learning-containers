@@ -20,7 +20,7 @@ import pytest
 from sagemaker import LocalSession, Session
 from sagemaker.mxnet import MXNet
 
-from .integration import NO_P2_REGIONS
+from .integration import NO_P2_REGIONS, NO_P3_REGIONS
 from .integration.utils import get_ecr_registry
 
 
@@ -39,7 +39,7 @@ def pytest_addoption(parser):
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--instance-count', default='1,2', choices=['1', '2', '1,2'])
     parser.addoption('--framework-version', default='')
-    parser.addoption('--py-version', default='3', choices=['2', '3', '2,3'])
+    parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37'])
     parser.addoption('--processor', default='cpu', choices=['gpu', 'cpu', 'cpu,gpu'])
     parser.addoption('--aws-id', default=None)
     parser.addoption('--instance-type', default=None)
@@ -152,9 +152,12 @@ def skip_by_device_type(request, processor):
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-    if region in NO_P2_REGIONS and instance_type.startswith('ml.p2'):
-        pytest.skip('Skipping GPU test in region {} to avoid insufficient capacity'.format(region))
 
+    no_p2 = region in NO_P2_REGIONS and instance_type.startswith('ml.p2')
+    no_p3 = region in NO_P3_REGIONS and instance_type.startswith('ml.p3')
+
+    if no_p2 or no_p3:
+        pytest.skip('Skipping GPU test in region {} to avoid insufficient capacity'.format(region))
 
 @pytest.fixture(autouse=True)
 def skip_py2_containers(request, tag):

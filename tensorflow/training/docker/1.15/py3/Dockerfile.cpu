@@ -28,9 +28,7 @@ ARG SMDEBUG_VERSION=0.9.4
 ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.7.7
-
-ARG OPENSSL_VERSION=1.1.1g
+ARG PYTHON_VERSION=3.7.10
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -41,28 +39,13 @@ RUN apt-get update \
     git \
     openssh-client \
     openssh-server \
+    libssl1.1 \
+    openssl \
     vim \
     wget \
     zlib1g-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
-
-RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt-get update \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && apt-get install -y \
-    ca-certificates \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test \
- && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-*
-
- # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
-# causing sslcertverificationerror the below steps are to fix that
-RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
 # Install Open MPI
 RUN mkdir /tmp/openmpi \
@@ -107,6 +90,7 @@ RUN apt-get update \
     libffi-dev \
     libgdbm-dev \
     libncursesw5-dev \
+    liblzma-dev \
     libreadline-gplv2-dev \
     libsqlite3-dev \
     libssl-dev \
@@ -137,9 +121,10 @@ RUN ${PIP} install --no-cache-dir -U \
     requests==2.22.0 \
     "sagemaker>=2,<3" \
     smdebug==${SMDEBUG_VERSION} \
+    smclarify \
     sagemaker-experiments==0.* \
     mpi4py==3.0.2 \
-    "cryptography>=2.3" \
+    "cryptography>=3.3" \
     "sagemaker-tensorflow>=1.15,<1.16" \
     "sagemaker-tensorflow-training>=10,<20" \
     # Let's install TensorFlow separately in the end to avoid
@@ -150,6 +135,8 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --force-reinstall --no-cache-dir -U \
     horovod==0.19.5 \
  && ${PIP} install --no-cache-dir -U \
+    # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
+    "pyYAML>=5.4,<5.5" \
     "awscli<2"
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
