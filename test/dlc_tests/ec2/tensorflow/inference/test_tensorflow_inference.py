@@ -33,7 +33,9 @@ def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connec
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_gpu(tensorflow_inference, ec2_connection, region, gpu_only):
+def test_ec2_tensorflow_inference_gpu(tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type):
+    if test_utils.is_image_compatible_with_instance_type(tensorflow_inference, ec2_instance_type):
+        pytest.skip(f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}")
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
 
@@ -61,7 +63,11 @@ def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connecti
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_gpu_telemetry(tensorflow_inference, ec2_connection, region, gpu_only):
+def test_ec2_tensorflow_inference_gpu_telemetry(
+        tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
+):
+    if test_utils.is_image_compatible_with_instance_type(tensorflow_inference, ec2_instance_type):
+        pytest.skip(f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}")
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region, True)
 
 
@@ -81,7 +87,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
     mnist_client_path = os.path.join(
         serving_folder_path, "tensorflow_serving", "example", "mnist_client.py"
     )
-    
+
     is_neuron = "neuron" in image_uri
 
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
