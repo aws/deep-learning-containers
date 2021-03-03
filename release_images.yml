@@ -64,7 +64,7 @@ release_images:
     framework: "pytorch"
     version: "1.5.1"
     inference:
-      device_types: ["eia"]
+      device_types: ["eia", "neuron"]
       python_versions: ["py36"]
       os_version: "ubuntu16.04"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
@@ -246,5 +246,16 @@ release_images:
       os_version: "ubuntu18.04"
       cuda_version: "cu110"
       example: True
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  20:
+    framework: "tensorflow"
+    version: "1.15.5"
+    training:
+      device_types: [ "neuron" ]
+      python_versions: [ "py37" ]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu110"
+      example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
