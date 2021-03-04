@@ -240,7 +240,7 @@ release_images:
   19:
     framework: "tensorflow"
     version: "1.15.5"
-    inference:
+    training:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py36", "py37" ]
       os_version: "ubuntu18.04"
@@ -251,7 +251,7 @@ release_images:
   20:
     framework: "tensorflow"
     version: "1.15.5"
-    inference:
+    training:
       device_types: [ "gpu" ]
       python_versions: [ "py36", "py37" ]
       os_version: "ubuntu18.04"
