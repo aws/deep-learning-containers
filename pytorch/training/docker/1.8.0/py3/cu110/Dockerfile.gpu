@@ -241,7 +241,9 @@ RUN rm -rf /root/.ssh/ && \
 RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
 
 # Install SM Distributed DataParallel binary
-RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
+RUN aws s3 cp ${SMDATAPARALLEL_BINARY} . \
+ && SMDATAPARALLEL_PT=1 pip install --no-cache-dir ./smdistributed_dataparallel-1.0.0-cp36-cp36m-linux_x86_64.whl \
+ && rm ./smdistributed_dataparallel-1.0.0-cp36-cp36m-linux_x86_64.whl
 
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python3.6/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"}
 
