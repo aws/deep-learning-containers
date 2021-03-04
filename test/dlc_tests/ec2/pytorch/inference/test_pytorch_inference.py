@@ -34,7 +34,7 @@ def test_ec2_pytorch_inference_neuron(pytorch_inference_neuron, ec2_connection, 
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type):
-    if test_utils.is_image_compatible_with_instance_type(pytorch_inference, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_inference, ec2_instance_type):
         pytest.skip(f"Image {pytorch_inference} is incompatible with instance type {ec2_instance_type}")
     ec2_pytorch_inference(pytorch_inference, "gpu", ec2_connection, region)
 
@@ -111,7 +111,7 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_inference_telemetry_gpu(pytorch_inference, ec2_connection, gpu_only, ec2_instance_type):
-    if test_utils.is_image_compatible_with_instance_type(pytorch_inference, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_inference, ec2_instance_type):
         pytest.skip(f"Image {pytorch_inference} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TELEMETRY_CMD)
 
