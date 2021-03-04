@@ -205,6 +205,36 @@ release_images:
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
   15:
+    framework: "mxnet"
+    version: "1.6.0"
+    training:
+      device_types: ["cpu","gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu16.04"
+      cuda_version: "cu101"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+    inference:
+      device_types: ["cpu","gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu16.04"
+      cuda_version: "cu101"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  16:
+    framework: "mxnet"
+    version: "1.6.0"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu16.04"
+      cuda_version: "cu101"
+      example: True
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  17:
     framework: "tensorflow"
     version: "2.2.1"
     training:
@@ -215,7 +245,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  16:
+  18:
     framework: "tensorflow"
     version: "2.2.1"
     training:
@@ -226,7 +256,7 @@ release_images:
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  17:
+  19:
     framework: "tensorflow"
     version: "2.0.0"
     inference:
@@ -236,7 +266,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  18:
+  20:
     framework: "tensorflow"
     version: "2.4.1"
     inference:
@@ -247,7 +277,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  19:
+  21:
     framework: "tensorflow"
     version: "1.15.5"
     training:
@@ -258,7 +288,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  20:
+  22:
     framework: "tensorflow"
     version: "1.15.5"
     training:
