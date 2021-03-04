@@ -108,6 +108,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-pytorch-training<2" \
+    sagemaker-training \
  && pip install --no-cache-dir -U https://pytorch-aws.s3.amazonaws.com/pytorch-1.4.0/py3/cpu/torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl \
  && pip uninstall -y torchvision \
  && pip install --no-cache-dir -U \
