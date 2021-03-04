@@ -250,11 +250,22 @@ release_images:
   19:
     framework: "tensorflow"
     version: "1.15.5"
-    inference:
-      device_types: [ "neuron" ]
-      python_versions: [ "py37" ]
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py36", "py37" ]
       os_version: "ubuntu18.04"
-      cuda_version: "cu110"
+      cuda_version: "cu100"
       example: False
-      disable_sm_tag: True  # [Default: False] This option is not used by Example images
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  20:
+    framework: "tensorflow"
+    version: "1.15.5"
+    training:
+      device_types: [ "gpu" ]
+      python_versions: [ "py36", "py37" ]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu100"
+      example: True
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
