@@ -259,6 +259,14 @@ release_images:
   20:
     framework: "tensorflow"
     version: "2.4.1"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu110"
+      example: False
+      disable_sm_tag: False
+      force_release: False
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py37" ]
@@ -269,6 +277,17 @@ release_images:
       force_release: False
   21:
     framework: "tensorflow"
+    version: "2.4.1"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu110"
+      example: True
+      disable_sm_tag: False
+      force_release: False
+  22:
+    framework: "tensorflow"
     version: "1.15.5"
     training:
       device_types: [ "gpu" ]
@@ -278,7 +297,7 @@ release_images:
       example: False
       disable_sm_tag: True  # [Default: False] This option is not used by Example images
       force_release: False
-  22:
+  23:
     framework: "tensorflow"
     version: "1.15.5"
     training:
