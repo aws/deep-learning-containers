@@ -142,12 +142,12 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only):
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only, pt14_and_above_only):
+def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only, pt15_and_above_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)
 
 
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only, pt14_and_above_only):
+def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only, pt15_and_above_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)

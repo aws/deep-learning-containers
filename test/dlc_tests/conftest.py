@@ -331,7 +331,7 @@ def pt16_and_above_only():
     pass
 
 @pytest.fixture(scope="session")
-def pt14_and_above_only():
+def pt15_and_above_only():
     pass
 
 def framework_version_within_limit(metafunc_obj, image):
@@ -356,8 +356,8 @@ def framework_version_within_limit(metafunc_obj, image):
             return False
     if image_framework_name == "pytorch" :
         pt16_requirement_failed = "pt16_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.6", image, "pytorch")
-        pt14_requirement_failed = "pt14_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.4", image, "pytorch")
-        if pt16_requirement_failed or pt14_requirement_failed:
+        pt15_requirement_failed = "pt15_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.5", image, "pytorch")
+        if pt16_requirement_failed or pt15_requirement_failed:
             return False
     return True
 
