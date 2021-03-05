@@ -59,6 +59,11 @@
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
       docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
                            *DEVICE_TYPE ]
+      download_artifacts:
+        smdataparallel:
+          type: s3
+          URI: s3://smdataparallel/binary/pytorch/1.8.0/cu110/2021-03-04/smdistributed_dataparallel-1.0.0-cp36-cp36m-linux_x86_64.whl
+          VAR_IN_DOCKERFILE: SMDATAPARALLEL_BINARY
       context:
         <<: *TRAINING_CONTEXT
     BuildPyTorchExampleGPUTrainPy3DockerImage:
