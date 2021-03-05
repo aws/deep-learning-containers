@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.0-cudnn8-devel-ubuntu18.04
+FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu18.04
 # NCCL_VERSION=2.4.7, CUDNN_VERSION=7.6.2.24
 
 LABEL maintainer="Amazon AI"
@@ -9,8 +9,8 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 ARG PYTHON_VERSION=3.6.13
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.3.0
-ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3-us-west-2.amazonaws.com/r1.8.0_inference/20210305-024356/504185aef9b2ba5b6dc65680f8ab7c177a53c874/gpu/torch-1.8.0-cp36-cp36m-manylinux1_x86_64.whl
-ARG PT_TORCHVISION_URL=cu111/torchvision-0.9.0%2Bcu111-cp36-cp36m-linux_x86_64.whl
+ARG PT_INFERENCE_URL=https://download.pytorch.org/whl/cu111/torch-1.8.0%2Bcu111-cp36-cp36m-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu111/torchvision-0.9.0%2Bcu111-cp36-cp36m-linux_x86_64.whl
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
