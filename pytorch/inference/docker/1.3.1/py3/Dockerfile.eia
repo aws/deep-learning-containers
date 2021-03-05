@@ -84,7 +84,7 @@ RUN conda install -c \
     graphviz==$GRAPHVIZ_VERSION \
     multi-model-server==$MMS_VERSION \
     pillow==7.2.0 \
-    "cryptography>=3.3.2" \
+    "cryptography>=3.3.2"
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
