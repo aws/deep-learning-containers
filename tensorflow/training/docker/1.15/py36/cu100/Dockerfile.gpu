@@ -20,7 +20,7 @@ ENV LC_ALL=C.UTF-8
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
 # Define framework-related package sources
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws/20201014-122550/gpu/tensorflow_gpu-1.15.4-cp36-cp36m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws/20210225-220854/gpu/cu100/py36/tensorflow_gpu-1.15.5-cp36-cp36m-manylinux2010_x86_64.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
