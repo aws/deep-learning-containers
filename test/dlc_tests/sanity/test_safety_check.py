@@ -102,9 +102,9 @@ def _get_safety_ignore_list(image_uri):
     framework = ("mxnet" if "mxnet" in image_uri else
                  "pytorch" if "pytorch" in image_uri else
                  "tensorflow")
-    job_type = ("training" if "training" in image_uri else 
-                "inference-eia" if "eia" in image_uri else 
-                "inference-neuron" if "neuron" in image_uri else 
+    job_type = ("training" if "training" in image_uri else
+                "inference-eia" if "eia" in image_uri else
+                "inference-neuron" if "neuron" in image_uri else
                 "inference")
     python_version = "py2" if "py2" in image_uri else "py3"
 
@@ -127,9 +127,6 @@ def _get_latest_package_version(package):
 
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
-@pytest.mark.skipif(not is_mainline_context(),
-                    reason="Skipping the test to decrease the number of calls to the Safety Check DB. "
-                           "Test will be executed in the 'mainline' pipeline only")
 def test_safety(image):
     """
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
