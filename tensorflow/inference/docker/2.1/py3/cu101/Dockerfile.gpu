@@ -7,6 +7,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 ARG PYTHON=python3
 ARG PIP=pip3
 ARG TFS_SHORT_VERSION=2.1
+ARG PYTHON_VERSION=3.6.13
 ARG TFS_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/2.1.1/Serving/GPU/tensorflow_model_server
 
 ENV NCCL_VERSION=2.4.7-1+cuda10.1
