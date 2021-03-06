@@ -12,13 +12,12 @@
 # language governing permissions and limitations under the License.
 
 # Workaround for https://github.com/pytorch/vision/issues/1938
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 from six.moves import urllib
 opener = urllib.request.build_opener()
 opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 urllib.request.install_opener(opener)
 
-from __future__ import absolute_import
 import argparse
 import logging
 import sys
