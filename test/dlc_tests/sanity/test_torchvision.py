@@ -10,7 +10,7 @@ from test.test_utils import (
 
 
 @pytest.mark.model("N/A")
-def test_torchvision_nms_training(pytorch_training, pt16_and_above_only):
+def test_torchvision_nms_training(pytorch_training):
     """
     Check that the internally built torchvision binary is used to resolve the missing nms issue.
     :param pytorch_training: framework fixture for pytorch training
@@ -25,7 +25,7 @@ def test_torchvision_nms_training(pytorch_training, pt16_and_above_only):
 
 
 @pytest.mark.model("N/A")
-def test_torchvision_nms_inference(pytorch_inference, pt16_and_above_only):
+def test_torchvision_nms_inference(pytorch_inference):
     """
     Check that the internally built torchvision binary is used to resolve the missing nms issue.
     :param pytorch_inference: framework fixture for pytorch inference
