@@ -111,7 +111,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     typing \
     future \
     "pyopenssl>=17.5.0" \
- && pip install https://yuliu-dev.s3-us-west-2.amazonaws.com/dgl_tests/mar06/dgl_cu111-0.6.0-cp36-cp36m-manylinux1_x86_64.whl \
+ && pip install dgl==0.6.0post1 \
  && ${CONDA_PREFIX}/bin/conda clean -ya
 
 RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
