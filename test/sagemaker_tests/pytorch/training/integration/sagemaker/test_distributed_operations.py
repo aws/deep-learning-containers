@@ -175,7 +175,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_v
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip(reason="Skipping test because it is flaky on mainline pipeline.")
-def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
+def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_version, sagemaker_session, tmpdir, pt16_and_above_only):
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
@@ -199,7 +199,7 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p3dn.24xlarge"])
-def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_session, tmpdir):
+def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_session, tmpdir, pt16_and_above_only):
     """
     Tests smddprun command via Estimator API distribution parameter
     """

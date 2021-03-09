@@ -35,7 +35,24 @@ def test_eks_pytorch_single_node_training(pytorch_training):
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-{rand_int}"
 
-    args = "git clone https://github.com/pytorch/examples.git && python examples/mnist/main.py"
+    mnist_download = '''
+    FILE=new_main.py
+    cat <<EOT >> $FILE
+    from __future__ import print_function
+    from six.moves import urllib
+    opener = urllib.request.build_opener()
+    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+    urllib.request.install_opener(opener)
+    EOT
+    sed -i '1d' examples/mnist/main.py
+    cat examples/mnist/main.py >> $FILE
+    rm examples/mnist/main.py
+    mv $FILE examples/mnist/main.py
+    '''
+
+    args = f"git clone https://github.com/pytorch/examples.git && {mnist_download} && python examples/mnist/main.py"
+    
+    LOGGER.info(f"args: {args}")
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
     cpu_limit = 72
@@ -53,6 +70,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
     )
 
     try:
+        run("cat {}".format(yaml_path))
         run("kubectl create -f {}".format(yaml_path))
 
         if eks_utils.is_eks_training_complete(pod_name):
