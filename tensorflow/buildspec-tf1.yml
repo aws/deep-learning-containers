@@ -2,7 +2,7 @@
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK tensorflow
   short_version: &SHORT_VERSION 1.15
-  version: &VERSION 1.15.4
+  version: &VERSION 1.15.5
 
   repository_info:
     training_repository: &TRAINING_REPOSITORY
@@ -36,7 +36,7 @@
     BuildTensorflowCPUTrainPy36DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &TENSORFLOW_CPU_TRAINING_PY3 false
-      image_size_baseline: 4899
+      image_size_baseline: 4489
       device_type: &DEVICE_TYPE cpu
       python_version: &DOCKER_PYTHON_VERSION py36
       tag_python_version: &TAG_PYTHON_VERSION py36
@@ -48,7 +48,7 @@
     BuildTensorflowGPUCu100TrainPy36DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &TENSORFLOW_GPU_TRAINING_PY3 false
-      image_size_baseline: 7738
+      image_size_baseline: 4489
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py36
       tag_python_version: &TAG_PYTHON_VERSION py36
@@ -61,7 +61,7 @@
     BuildTensorflowExampleGPUCu100TrainPy36DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &TENSORFLOW_GPU_TRAINING_PY3 false
-      image_size_baseline: 7738
+      image_size_baseline: 4489
       base_image_name: BuildTensorflowGPUCu100TrainPy36DockerImage
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py36
@@ -76,7 +76,7 @@
     BuildTensorflowCPUTrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &TENSORFLOW_CPU_TRAINING_PY3 false
-      image_size_baseline: 4899
+      image_size_baseline: 4489
       device_type: &DEVICE_TYPE cpu
       python_version: &DOCKER_PYTHON_VERSION py3
       tag_python_version: &TAG_PYTHON_VERSION py37
@@ -88,7 +88,7 @@
     BuildTensorflowGPUCu100TrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &TENSORFLOW_GPU_TRAINING_PY3 false
-      image_size_baseline: 7738
+      image_size_baseline:  4489
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3
       tag_python_version: &TAG_PYTHON_VERSION py37
@@ -101,7 +101,7 @@
     BuildTensorflowExampleGPUCu100TrainPy3DockerImage:
       <<: *TRAINING_REPOSITORY
       build: &TENSORFLOW_GPU_TRAINING_PY3 false
-      image_size_baseline: 7738
+      image_size_baseline: 4489
       base_image_name: BuildTensorflowGPUCu100TrainPy3DockerImage
       device_type: &DEVICE_TYPE gpu
       python_version: &DOCKER_PYTHON_VERSION py3

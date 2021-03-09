@@ -285,9 +285,8 @@ class PythonServiceResource:
         try:
             res.status = falcon.HTTP_200
             if SAGEMAKER_MULTI_MODEL_ENABLED:
-                with lock():
-                    handlers = self.model_handlers[model_name]
-                    res.body, res.content_type = handlers(data, context)
+                handlers = self.model_handlers[model_name]
+                res.body, res.content_type = handlers(data, context)
             else:
                 res.body, res.content_type = self._handlers(data, context)
         except Exception as e:  # pylint: disable=broad-except
