@@ -175,10 +175,14 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_v
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip(reason="Skipping test because it is flaky on mainline pipeline.")
-def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_version, sagemaker_session, tmpdir, pt16_and_above_only):
+def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    if not (Version(image_framework_version) in SpecifierSet("<1.6")):
+        pytest.skip("Data Parallelism is supported on PyTorch v1.6 and above")
+
     instance_type = "ml.p3.16xlarge"
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smdataparallel_mnist_script_mode.sh',
@@ -199,10 +203,14 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p3dn.24xlarge"])
-def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_session, tmpdir, pt16_and_above_only):
+def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_session, tmpdir):
     """
     Tests smddprun command via Estimator API distribution parameter
     """
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    if not (Version(image_framework_version) in SpecifierSet("<1.6")):
+        pytest.skip("Data Parallelism is supported on PT v1.6 and above")
+    
     distribution = {"smdistributed":{"dataparallel":{"enabled":True}}}
     estimator = PyTorch(entry_point='smdataparallel_mnist.py',
                         role='SageMakerRole',
