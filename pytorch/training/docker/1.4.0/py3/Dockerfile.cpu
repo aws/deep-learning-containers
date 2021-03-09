@@ -101,6 +101,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
     "PyYAML>=5.4,<5.5" \
     "awscli<2" \
+    "cryptography>3.2" \
     ruamel-yaml \
     fastai==1.0.59 \
     scipy==1.2.2 \

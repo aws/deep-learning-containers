@@ -88,7 +88,12 @@ RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.4.0/license.txt -o /license.txt
 
-RUN pip install -U pillow==7.1.0 awscli ruamel-yaml
+RUN pip install -U \
+   pillow==7.1.0 \
+   awscli \
+   ruamel-yaml \
+   # pyopenssl requires cryptography>3.2
+   cryptography>3.2 
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]

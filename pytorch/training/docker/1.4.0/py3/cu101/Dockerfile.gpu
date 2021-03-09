@@ -131,6 +131,7 @@ RUN pip install \
     --no-cache-dir fastai==1.0.59 \
     # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
     "PyYAML>=5.4,<5.5" \
+    "cryptography>3.2" \
     ruamel-yaml \
     "awscli<2" \
     scipy==1.2.2 \
