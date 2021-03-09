@@ -83,8 +83,11 @@ IGNORE_SAFETY_IDS = {
         "inference-eia": {
             "py3": []
         },
-        "inference-neuron": {
-            "py3": []
+        "inference-neuron":{
+            "py3": [
+                # 39409, 39408, 39407, 39406: TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches
+                '39409', '39408', '39407', '39406',
+            ]
         }
     }
 }
@@ -99,9 +102,9 @@ def _get_safety_ignore_list(image_uri):
     framework = ("mxnet" if "mxnet" in image_uri else
                  "pytorch" if "pytorch" in image_uri else
                  "tensorflow")
-    job_type = ("training" if "training" in image_uri else 
-                "inference-eia" if "eia" in image_uri else 
-                "inference-neuron" if "neuron" in image_uri else 
+    job_type = ("training" if "training" in image_uri else
+                "inference-eia" if "eia" in image_uri else
+                "inference-neuron" if "neuron" in image_uri else
                 "inference")
     python_version = "py2" if "py2" in image_uri else "py3"
 

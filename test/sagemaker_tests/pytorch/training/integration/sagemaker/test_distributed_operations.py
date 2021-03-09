@@ -198,7 +198,6 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
-@pytest.mark.skip(reason="Skipping test because it is flaky on mainline pipeline.")
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p3dn.24xlarge"])
 def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_session, tmpdir):
     """
@@ -212,7 +211,6 @@ def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_s
                         instance_count=2,
                         instance_type=instance_types,
                         sagemaker_session=sagemaker_session,
-                        debugger_hook_config=False,
                         distribution=distribution)
 
     estimator.fit()

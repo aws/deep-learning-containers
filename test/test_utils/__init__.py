@@ -111,6 +111,24 @@ def is_below_pytorch_version(version_upper_bound, image_uri):
     return image_framework_name == "pytorch" and image_framework_version in required_version_specifier_set
 
 
+def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
+    """
+    Check for all compatibility issues between DLC Image Types and EC2 Instance Types.
+    Currently configured to fail on the following checks:
+        1. p4d.24xlarge instance type is used with a cuda<11.0 image
+
+    :param image_uri: ECR Image URI in valid DLC-format
+    :param ec2_instance_type: EC2 Instance Type
+    :return: bool True if there are incompatibilities, False if there aren't
+    """
+    image_is_cuda10_on_incompatible_p4d_instance = (
+        get_processor_from_image_uri(image_uri) == "gpu" and
+        get_cuda_version_from_tag(image_uri).startswith("cu10") and
+        ec2_instance_type in ["p4d.24xlarge"]
+    )
+    return image_is_cuda10_on_incompatible_p4d_instance
+
+
 def get_repository_local_path():
     git_repo_path = os.getcwd().split("/test/")[0]
     return git_repo_path
@@ -239,12 +257,13 @@ def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connecti
 @retry(
     stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false,
 )
-def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connection=None):
+def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connection=None, model_name="pytorch-densenet"):
     """
     Send request to container to test inference on flower.jpg
     :param ip_address: str
     :param port: str
     :param connection: obj
+    :param model_name: str
     :return: <bool> True/False based on result of inference
     """
     conn_run = connection.run if connection is not None else run
@@ -254,13 +273,22 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
         conn_run("curl -O https://s3.amazonaws.com/model-server/inputs/flower.jpg", hide=True)
 
     run_out = conn_run(
-        f"curl -X POST http://{ip_address}:{port}/predictions/pytorch-densenet -T flower.jpg", hide=True, warn=True
+        f"curl -X POST http://{ip_address}:{port}/predictions/{model_name} -T flower.jpg", hide=True, warn=True
     )
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
-    if run_out.return_code != 0 or "pot" not in run_out.stdout:
+    if run_out.return_code != 0:
+        LOGGER.error("run_out.return_code != 0")
         return False
+    else:
+        inference_output = json.loads(run_out.stdout.strip("\n"))
+        if not (
+                ("neuron" in model_name and isinstance(inference_output, list) and len(inference_output) == 3)
+                or (isinstance(inference_output, dict) and len(inference_output) == 5)
+        ):
+            return False
+        LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
 
     return True
 
@@ -374,7 +402,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         )
     else:
         mms_command = (
-            f"/usr/local/bin/entrypoint.sh -m {parameters} -t /home/model-server/config.properties"
+            f"/usr/local/bin/entrypoint.sh -t /home/model-server/config.properties -m " + " ".join(parameters)
         )
 
     return mms_command
@@ -756,7 +784,7 @@ def get_processor_from_image_uri(image_uri):
     :param image_uri: ECR image URI
     :return: cpu, gpu, or eia
     """
-    allowed_processors = ("cpu", "gpu", "eia", "neuron")
+    allowed_processors = ["eia", "neuron", "cpu", "gpu"]
 
     for processor in allowed_processors:
         match = re.search(rf"-({processor})", image_uri)
