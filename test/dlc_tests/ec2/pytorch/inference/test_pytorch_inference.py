@@ -96,7 +96,8 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
         LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
         inference_result = test_utils.request_pytorch_inference_densenet(
-            connection=ec2_connection, model_name=model_name,
+            connection=ec2_connection,
+            model_name=model_name,
         )
         assert (
             inference_result
