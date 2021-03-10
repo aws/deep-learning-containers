@@ -18,13 +18,21 @@ import boto3
 import pytest
 from sagemaker.pytorch import PyTorch
 from six.moves.urllib.parse import urlparse
+from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
-from .utils import validate_smmodelparallel_support
+from packaging.specifiers import SpecifierSet
 from ...integration import (data_dir, dist_operations_path, fastai_path, mnist_script,
                               DEFAULT_TIMEOUT, mnist_path)
 from ...integration.sagemaker.timeout import timeout
 
 MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
+
+
+def validate_or_skip_smmodelparallel(ecr_image):
+	_, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    if not(Version(image_framework_version) in SpecifierSet(">=1.6,<1.9")) or image_cuda_version != "cu110":
+        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6, 1.7 and 1.8")
 
 
 @pytest.mark.processor("cpu")
