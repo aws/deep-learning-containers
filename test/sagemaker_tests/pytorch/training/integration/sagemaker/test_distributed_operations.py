@@ -179,6 +179,10 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    if (Version(image_framework_version) in SpecifierSet("<1.6")):
+        pytest.skip("Data Parallelism is supported on PyTorch v1.6 and above")
+
     instance_type = "ml.p3.16xlarge"
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smdataparallel_mnist_script_mode.sh',
@@ -204,6 +208,10 @@ def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_s
     """
     Tests smddprun command via Estimator API distribution parameter
     """
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    if (Version(image_framework_version) in SpecifierSet("<1.6")):
+        pytest.skip("Data Parallelism is supported on PT v1.6 and above")
+    
     distribution = {"smdistributed":{"dataparallel":{"enabled":True}}}
     estimator = PyTorch(entry_point='smdataparallel_mnist.py',
                         role='SageMakerRole',

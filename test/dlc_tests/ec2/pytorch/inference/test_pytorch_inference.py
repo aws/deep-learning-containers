@@ -5,7 +5,7 @@ import pytest
 import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
-from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag
+from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, get_inference_server_type
 from test.test_utils.ec2 import get_ec2_instance_type, execute_ec2_inference_test, get_ec2_accelerator_type
 from test.dlc_tests.conftest import LOGGER
 
@@ -95,9 +95,11 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
         )
         LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
+        server_type = get_inference_server_type(image_uri)
         inference_result = test_utils.request_pytorch_inference_densenet(
             connection=ec2_connection,
             model_name=model_name,
+            server_type=server_type
         )
         assert (
             inference_result
@@ -110,7 +112,7 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_inference_telemetry_gpu(pytorch_inference, ec2_connection, gpu_only, ec2_instance_type):
+def test_pytorch_inference_telemetry_gpu(pytorch_inference, ec2_connection, gpu_only, ec2_instance_type, pt15_and_above_only):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_inference, ec2_instance_type):
         pytest.skip(f"Image {pytorch_inference} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TELEMETRY_CMD)
@@ -119,5 +121,5 @@ def test_pytorch_inference_telemetry_gpu(pytorch_inference, ec2_connection, gpu_
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_inference_telemetry_cpu(pytorch_inference, ec2_connection, cpu_only):
+def test_pytorch_inference_telemetry_cpu(pytorch_inference, ec2_connection, cpu_only, pt15_and_above_only):
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TELEMETRY_CMD)
