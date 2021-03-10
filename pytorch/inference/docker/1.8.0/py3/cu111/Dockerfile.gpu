@@ -100,7 +100,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c \
-    pytorch magma-cuda111 \
+    pytorch magma-cuda101 \
  && conda install -c \
     conda-forge \
     opencv==4.0.1 \
