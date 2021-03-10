@@ -130,7 +130,7 @@ def test_smmodelparallel_mnist_multigpu(ecr_image, instance_type, py_version, sa
     Tests pt mnist command via script mode
     """
     instance_type = "ml.p3.16xlarge"
-    validate_smmodelparallel_support(ecr_image)
+    validate_or_skip_smmodelparallel(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smmodelparallel_pt_mnist.sh',
                           role='SageMakerRole',
@@ -154,7 +154,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_v
     Tests pt mnist command via script mode
     """
     instance_type = "ml.p3.16xlarge"
-    validate_smmodelparallel_support(ecr_image)
+    validate_or_skip_smmodelparallel(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smmodelparallel_pt_mnist_multinode.sh',
                           role='SageMakerRole',
@@ -226,7 +226,7 @@ def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, py_vers
     This test has been added for SM DataParallelism and ModelParallelism tests for re:invent.
     TODO: Consider reworking these tests after re:Invent releases are done
     """
-    validate_smmodelparallel_support(ecr_image)
+    validate_or_skip_smmodelparallel(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smdataparallel_smmodelparallel_mnist_script_mode.sh',
                           role='SageMakerRole',
