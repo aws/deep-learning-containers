@@ -85,7 +85,7 @@ You can pin your version by adding the version tag to your URL as follows:
      763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.2.0-cpu-py37-ubuntu18.04-v1.0
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
-|-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|---------------|
+|-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
 |TensorFlow 2.4.1   |training	|Yes			|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04		|
 |TensorFlow 2.4.1   |training	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-gpu-py37-cu110-ubuntu18.04	|
 |TensorFlow 2.4.1   |inference	|Yes			|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.4.1-cpu-py37-ubuntu18.04		|
