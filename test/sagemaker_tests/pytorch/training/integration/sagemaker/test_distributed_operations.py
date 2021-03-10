@@ -198,6 +198,7 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
+@pytest.mark.flaky(reruns=2)
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p3dn.24xlarge"])
 def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_session, tmpdir):
     """
