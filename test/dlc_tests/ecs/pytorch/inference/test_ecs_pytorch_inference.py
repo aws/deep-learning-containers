@@ -32,7 +32,9 @@ def test_ecs_pytorch_inference_cpu(pytorch_inference, ecs_container_instance, re
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", ["eia1.large"], indirect=True)
-def test_ecs_pytorch_inference_eia(pytorch_inference_eia, ecs_container_instance, ei_accelerator_type, region, eia_only):
+def test_ecs_pytorch_inference_eia(
+        pytorch_inference_eia, ecs_container_instance, ei_accelerator_type, region, eia_only, pt14_and_above_only
+):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
 
@@ -46,7 +48,7 @@ def test_ecs_pytorch_inference_eia(pytorch_inference_eia, ecs_container_instance
             pytorch_inference_eia, "pytorch", ecs_cluster_arn, model_name, worker_instance_id, ei_accelerator_type, region=region
         )
         server_type = get_inference_server_type(pytorch_inference_eia)
-        inference_result = request_pytorch_inference_densenet(public_ip_address, server_type=server_type)
+        inference_result = request_pytorch_inference_densenet(public_ip_address, model_name=model_name, server_type=server_type)
         assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
 
     finally:
