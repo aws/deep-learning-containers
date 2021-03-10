@@ -245,7 +245,7 @@ def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connecti
 @retry(
     stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false,
 )
-def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connection=None, model_name="pytorch-densenet"):
+def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connection=None, model_name="pytorch-densenet", server_type="ts"):
     """
     Send request to container to test inference on flower.jpg
     :param ip_address: str
@@ -273,7 +273,8 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
         inference_output = json.loads(run_out.stdout.strip("\n"))
         if not (
                 ("neuron" in model_name and isinstance(inference_output, list) and len(inference_output) == 3)
-                or (isinstance(inference_output, list) and len(inference_output) == 5)
+                or (server_type=="ts" and isinstance(inference_output, dict) and len(inference_output) == 5) 
+                or (server_type=="mms" and isinstance(inference_output, list) and len(inference_output) == 5)
         ):
             return False
         LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
