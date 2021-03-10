@@ -18,10 +18,8 @@ import boto3
 import pytest
 from sagemaker.pytorch import PyTorch
 from six.moves.urllib.parse import urlparse
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-
+from .utils import validate_smmodelparallel_support
 from ...integration import (data_dir, dist_operations_path, fastai_path, mnist_script,
                               DEFAULT_TIMEOUT, mnist_path)
 from ...integration.sagemaker.timeout import timeout
@@ -124,11 +122,7 @@ def test_smmodelparallel_mnist_multigpu(ecr_image, instance_type, py_version, sa
     Tests pt mnist command via script mode
     """
     instance_type = "ml.p3.16xlarge"
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if not(Version(image_framework_version) in SpecifierSet(">=1.6,<1.8")) or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6 and PyTorch 1.7")
-
+    validate_smmodelparallel_support(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smmodelparallel_pt_mnist.sh',
                           role='SageMakerRole',
@@ -152,11 +146,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_v
     Tests pt mnist command via script mode
     """
     instance_type = "ml.p3.16xlarge"
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if not(Version(image_framework_version) in SpecifierSet(">=1.6,<1.8")) or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6 and PyTorch 1.7")
-
+    validate_smmodelparallel_support(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smmodelparallel_pt_mnist_multinode.sh',
                           role='SageMakerRole',
@@ -228,10 +218,7 @@ def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, py_vers
     This test has been added for SM DataParallelism and ModelParallelism tests for re:invent.
     TODO: Consider reworking these tests after re:Invent releases are done
     """
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if not (Version(image_framework_version) in SpecifierSet(">=1.6,<1.8")) or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6 and PyTorch 1.7")
+    validate_smmodelparallel_support(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smdataparallel_smmodelparallel_mnist_script_mode.sh',
                           role='SageMakerRole',
