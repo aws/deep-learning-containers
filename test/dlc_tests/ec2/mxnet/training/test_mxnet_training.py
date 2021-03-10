@@ -99,6 +99,7 @@ def test_mxnet_train_nlp_gpu(mxnet_training, ec2_connection, gpu_only, py3_only,
 
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("textCNN")
+@pytest.mark.skip(reason="Skip test due to failure on mainline pipeline. See https://github.com/aws/deep-learning-containers/issues/936")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_train_nlp_cpu(mxnet_training, ec2_connection, cpu_only, py3_only):
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_NLP_CMD)
