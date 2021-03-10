@@ -9,7 +9,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 # https://docs.aws.amazon.com/sagemaker/latest/dg/build-multi-model-build-container.html
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
-ARG PYTHON_VERSION=3.6.10
+ARG PYTHON_VERSION=3.6.13
 ARG PYTORCH_VERSION=1.4.0
 ARG TORCHVISION_VERSION=0.5.0
 ARG MMS_VERSION=1.1.2
@@ -44,8 +44,9 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
  && /opt/conda/bin/conda update conda \
- && /opt/conda/bin/conda install -y \
+ && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -y \
     cython==0.29.12 \
     ipython==7.7.0 \
     mkl-include==2019.4 \
@@ -57,6 +58,8 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
 
 RUN conda install -c \
     conda-forge \
+    # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
+    "PyYAML>=5.4,<5.5" \
     "awscli<2" \
     opencv==4.0.1 \
  && conda install -y \
@@ -85,8 +88,12 @@ RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.4.0/license.txt -o /license.txt
 
-RUN conda install -y -c conda-forge pyyaml==5.3.1
-RUN pip install -U pillow==7.1.0 awscli
+RUN pip install -U \
+   pillow==7.1.0 \
+   awscli \
+   ruamel-yaml \
+   # pyopenssl requires cryptography>3.2
+   cryptography>3.2 
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
