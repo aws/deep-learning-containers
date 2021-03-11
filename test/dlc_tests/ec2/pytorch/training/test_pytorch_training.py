@@ -163,14 +163,13 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only, ec2_instance_ty
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
+def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt15_and_above_only):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)
 
 
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only):
+def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only, pt15_and_above_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)
