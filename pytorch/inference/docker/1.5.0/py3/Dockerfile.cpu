@@ -9,7 +9,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 # https://docs.aws.amazon.com/sagemaker/latest/dg/build-multi-model-build-container.html
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
-ARG PYTHON_VERSION=3.6.10
+ARG PYTHON_VERSION=3.6.13
 ARG MMS_VERSION=1.1.2
 
 # See http://bugs.python.org/issue19846
@@ -42,8 +42,11 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
  && /opt/conda/bin/conda update conda \
- && /opt/conda/bin/conda install -y \
+ && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -y \
+    # conda 4.9.2 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.87 \
     cython==0.29.12 \
     ipython==7.7.0 \
     mkl-include==2019.4 \
@@ -71,7 +74,7 @@ RUN pip uninstall -y torch \
  && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/inference/cpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U \
-    https://torchvision-build.s3.amazonaws.com/1.5.0/cpu/torchvision-0.6.0-cp36-cp36m-manylinux1_x86_64.whl
+    https://torchvision-build.s3-us-west-2.amazonaws.com/1.5.0/cpu/torchvision-0.6.0%2Bcpu-cp36-cp36m-linux_x86_64.whl
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
@@ -90,8 +93,13 @@ RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.0/license.txt -o /license.txt
 
-RUN conda install -y -c conda-forge pyyaml==5.3.1
-RUN pip install pillow==7.1.0 "awscli<2"
+# install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
+RUN conda install -y -c conda-forge "PyYAML>=5.4,<5.5"
+RUN pip install \
+    pillow==7.1.0 \
+    "awscli<2" \
+    # cryptography required by pyopenssl and paramiko, <3.3.2 has safety vulnerabilities
+    "cryptography>=3.3.2"
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
