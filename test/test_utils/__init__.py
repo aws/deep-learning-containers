@@ -98,18 +98,6 @@ def is_below_framework_version(version_upper_bound, image_uri, framework):
     required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
     return image_framework_name == framework and image_framework_version in required_version_specifier_set
 
-def is_below_pytorch_version(version_upper_bound, image_uri):
-    """
-    Validate that image_uri has framework version strictly less than version_upper_bound
-
-    :param version_upper_bound: str Framework version that image_uri is required to be below
-    :param image_uri: str ECR Image URI for the image to be validated
-    :return: bool True if image_uri has framework version less than version_upper_bound, else False
-    """
-    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
-    required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
-    return image_framework_name == "pytorch" and image_framework_version in required_version_specifier_set
-
 
 def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
     """
@@ -257,7 +245,9 @@ def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connecti
 @retry(
     stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false,
 )
-def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connection=None, model_name="pytorch-densenet"):
+def request_pytorch_inference_densenet(
+        ip_address="127.0.0.1", port="80", connection=None, model_name="pytorch-densenet", server_type="ts"
+):
     """
     Send request to container to test inference on flower.jpg
     :param ip_address: str
@@ -285,7 +275,8 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
         inference_output = json.loads(run_out.stdout.strip("\n"))
         if not (
                 ("neuron" in model_name and isinstance(inference_output, list) and len(inference_output) == 3)
-                or (isinstance(inference_output, list) and len(inference_output) == 5)
+                or (server_type=="ts" and isinstance(inference_output, dict) and len(inference_output) == 5) 
+                or (server_type=="mms" and isinstance(inference_output, list) and len(inference_output) == 5)
         ):
             return False
         LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")

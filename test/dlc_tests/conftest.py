@@ -18,9 +18,9 @@ import test.test_utils.ec2 as ec2_utils
 from test import test_utils
 from test.test_utils import (
     is_benchmark_dev_context, get_framework_and_version_from_tag, get_job_type_from_image, is_tf_version,
-    is_below_framework_version, 
+    is_below_framework_version,
     DEFAULT_REGION, P3DN_REGION, UBUNTU_18_BASE_DLAMI_US_EAST_1, UBUNTU_18_BASE_DLAMI_US_WEST_2,
-    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, KEYS_TO_DESTROY_FILE 
+    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, KEYS_TO_DESTROY_FILE
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -332,6 +332,16 @@ def pt16_and_above_only():
     pass
 
 
+@pytest.fixture(scope="session")
+def pt15_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def pt14_and_above_only():
+    pass
+
+
 def framework_version_within_limit(metafunc_obj, image):
     """
     Test all pytest fixtures for TensorFlow version limits, and return True if all requirements are satisfied
@@ -354,7 +364,9 @@ def framework_version_within_limit(metafunc_obj, image):
             return False
     if image_framework_name == "pytorch" :
         pt16_requirement_failed = "pt16_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.6", image, "pytorch")
-        if pt16_requirement_failed :
+        pt15_requirement_failed = "pt15_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.5", image, "pytorch")
+        pt14_requirement_failed = "pt14_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.4", image, "pytorch")
+        if pt16_requirement_failed or pt15_requirement_failed or pt14_requirement_failed:
             return False
     return True
 
