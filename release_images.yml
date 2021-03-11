@@ -351,3 +351,14 @@ release_images:
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
+  25:
+    framework: "pytorch"
+    version: "1.3.1"
+    inference:
+      device_types: ["eia"]
+      python_versions: ["py36"]
+      os_version: "ubuntu16.04"
+      cuda_version: "cu101"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
