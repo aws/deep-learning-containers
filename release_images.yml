@@ -359,6 +359,6 @@ release_images:
       python_versions: ["py36"]
       os_version: "ubuntu16.04"
       cuda_version: "cu101"
-      example: True
+      example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
