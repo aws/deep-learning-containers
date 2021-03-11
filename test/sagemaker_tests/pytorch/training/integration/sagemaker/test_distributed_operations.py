@@ -120,28 +120,6 @@ def test_mnist_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_bac
         pytorch.fit({'training': training_input})
 
 
-@pytest.mark.integration("smmodelparallel")
-@pytest.mark.model("mnist")
-@pytest.mark.processor("gpu")
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-def test_smmodelparallel_mnist_multigpu(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
-    """
-    Tests pt mnist command via script mode
-    """
-    instance_type = "ml.p3.16xlarge"
-    validate_or_skip_smmodelparallel(ecr_image)
-    with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(entry_point='smmodelparallel_pt_mnist.sh',
-                          role='SageMakerRole',
-                          image_uri=ecr_image,
-                          source_dir=mnist_path,
-                          instance_count=1,
-                          instance_type=instance_type,
-                          sagemaker_session=sagemaker_session)
-
-        pytorch.fit()
-
 
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
@@ -149,6 +127,7 @@ def test_smmodelparallel_mnist_multigpu(ecr_image, instance_type, py_version, sa
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
     """
     Tests pt mnist command via script mode
@@ -156,14 +135,36 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_v
     instance_type = "ml.p3.16xlarge"
     validate_or_skip_smmodelparallel(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(entry_point='smmodelparallel_pt_mnist_multinode.sh',
-                          role='SageMakerRole',
-                          image_uri=ecr_image,
-                          source_dir=mnist_path,
-                          instance_count=2,
-                          instance_type=instance_type,
-                          sagemaker_session=sagemaker_session)
-
+        pytorch = PyTorch(
+            entry_point='smmodelparallel_pt_mnist.py',
+            role='SageMakerRole',
+            image_uri=ecr_image,
+            source_dir=mnist_path,
+            instance_count=2,
+            instance_type=instance_type,
+            sagemaker_session=sagemaker_session,
+            hyperparameters = {"assert-losses": 1, "amp": 1, "ddp": 1, "data-dir": "data/training"},
+            distribution={
+                "smdistributed": { 
+                    "modelparallel": {
+                        "enabled": True,
+                        "parameters": {
+                            "partitions": 2,
+                            "placement_strategy": "spread",
+                            "microbatches": 4,
+                            "optimize": "speed",
+                            "pipeline": "interleaved",
+                            "ddp": True,
+                        },
+                    }
+                },
+                "mpi": {
+                    "enabled": True,
+                    "processes_per_host": 8,
+                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none",
+                },
+            },
+        )
         pytorch.fit()
 
 
