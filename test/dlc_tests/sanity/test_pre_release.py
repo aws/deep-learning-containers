@@ -368,6 +368,11 @@ def test_sm_pysdk_2(training):
     :param training: training ECR image URI
     """
 
+    _, image_framework_version = get_framework_and_version_from_tag(training)
+    
+    if Version(image_framework_version) == Version("1.5.0"):
+        pytest.skip("sagemaker version < 2.0 is installled for PT 1.5.0 images")
+
     # Ensure that sm py sdk 2 is on the container
     ctx = Context()
     container_name = get_container_name("sm_pysdk", training)
