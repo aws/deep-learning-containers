@@ -161,7 +161,6 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_v
                         "enabled": True,
                         "parameters": {
                             "partitions": 2,
-                            "placement_strategy": "spread",
                             "microbatches": 4,
                             "optimize": "speed",
                             "pipeline": "interleaved",
