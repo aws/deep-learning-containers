@@ -10,7 +10,7 @@ from invoke.context import Context
 from retrying import retry
 
 import test.test_utils.eks as eks_utils
-from test.test_utils import is_pr_context, SKIP_PR_REASON, is_below_pytorch_version
+from test.test_utils import is_pr_context, SKIP_PR_REASON, is_below_framework_version
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 
@@ -35,7 +35,20 @@ def test_eks_pytorch_single_node_training(pytorch_training):
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-{rand_int}"
 
-    args = "git clone https://github.com/pytorch/examples.git && python examples/mnist/main.py"
+    mnist_dataset_download_config = '''
+      FILE=new_main.py &&
+      echo "from __future__ import print_function" > $FILE &&
+      echo "from six.moves import urllib" >> $FILE &&
+      echo "opener = urllib.request.build_opener()" >> $FILE &&
+      echo "opener.addheaders = [('User-agent', 'Mozilla/5.0')]" >> $FILE &&
+      echo "urllib.request.install_opener(opener)" >> $FILE &&
+      sed -i '1d' examples/mnist/main.py &&
+      cat examples/mnist/main.py >> $FILE &&
+      rm examples/mnist/main.py &&
+      mv $FILE examples/mnist/main.py
+    '''
+
+    args = f"git clone https://github.com/pytorch/examples.git && {mnist_dataset_download_config}  && python examples/mnist/main.py"
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
     cpu_limit = 72
@@ -89,7 +102,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
 
-    if is_below_pytorch_version("1.7", pytorch_training):
+    if is_below_framework_version("1.7", pytorch_training, "pytorch"):
         dgl_branch = "0.4.x"
     else:
         dgl_branch = "0.5.x"
