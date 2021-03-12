@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.1.1-base-ubuntu18.04
+FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu18.04
 
 # NCCL_VERSION=2.4.7, CUDNN_VERSION=7.6.2.24
 
@@ -20,8 +20,6 @@ ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
-ENV CUDNN_VERSION=8.0.5.39
-ENV NCCL_VERSION=2.8.4
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends software-properties-common \
@@ -31,14 +29,11 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    cuda-libraries-11-1 \
     curl \
     emacs \
     git \
     jq \
-    libcudnn8=$CUDNN_VERSION-1+cuda11.1 \
     libgl1-mesa-glx \
-    libnccl2=${NCCL_VERSION}-1+cuda11.1 \
     libglib2.0-0 \
     libgomp1 \
     libibverbs-dev \
