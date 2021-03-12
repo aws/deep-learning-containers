@@ -38,7 +38,7 @@ def validate_or_skip_smdataparallel(ecr_image):
 
 def can_run_smdataparallel(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    return not (Version(image_framework_version) in SpecifierSet("<1.6"))
+    return (Version(image_framework_version) in SpecifierSet(">=1.6"))
 
 def can_run_smmodelparallel(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
