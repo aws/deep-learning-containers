@@ -50,7 +50,6 @@ RUN apt-get update \
     libxrender-dev \
     openjdk-11-jdk \
     openssl \
-    python3-dev \
     vim \
     wget \
     zlib1g-dev \
