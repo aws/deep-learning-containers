@@ -136,7 +136,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_v
     validate_or_skip_smmodelparallel(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(
-            entry_point='smmodelparallel_pt_mnist.py',
+            entry_point=test_script,
             role='SageMakerRole',
             image_uri=ecr_image,
             source_dir=mnist_path,
@@ -160,7 +160,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_v
                 },
                 "mpi": {
                     "enabled": True,
-                    "processes_per_host": 8,
+                    "processes_per_host": num_processes,
                     "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none",
                 },
             },
