@@ -30,7 +30,7 @@ MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
 
 def validate_or_skip_smmodelparallel(ecr_image):
     if not can_run_smmodelparallel(ecr_image):
-        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6, 1.7 and 1.8")
+        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch v1.6 and above")
 
 def validate_or_skip_smdataparallel(ecr_image):
     if not can_run_smdataparallel(ecr_image):
