@@ -104,6 +104,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
     Check for all compatibility issues between DLC Image Types and EC2 Instance Types.
     Currently configured to fail on the following checks:
         1. p4d.24xlarge instance type is used with a cuda<11.0 image
+        2. p2.8xlarge instance type is used with a cuda=11.0 image for MXNET framework
 
     :param image_uri: ECR Image URI in valid DLC-format
     :param ec2_instance_type: EC2 Instance Type
@@ -114,7 +115,17 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         get_cuda_version_from_tag(image_uri).startswith("cu10") and
         ec2_instance_type in ["p4d.24xlarge"]
     )
-    return image_is_cuda10_on_incompatible_p4d_instance
+
+    framework, _ = get_framework_and_version_from_tag(image_uri)
+
+    image_is_cuda11_on_incompatible_p2_instance_mxnet = (
+        framework == "mxnet" and
+        get_processor_from_image_uri(image_uri) == "gpu" and
+        get_cuda_version_from_tag(image_uri).startswith("cu11") and
+        ec2_instance_type in ["p2.8xlarge"]
+    )
+    
+    return image_is_cuda10_on_incompatible_p4d_instance or image_is_cuda11_on_incompatible_p2_instance_mxnet
 
 
 def get_repository_local_path():
