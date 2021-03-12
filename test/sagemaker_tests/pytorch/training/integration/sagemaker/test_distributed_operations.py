@@ -128,7 +128,7 @@ def test_mnist_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_bac
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
-def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
+def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_version, sagemaker_session, tmpdir, test_script):
     """
     Tests pt mnist command via script mode
     """
