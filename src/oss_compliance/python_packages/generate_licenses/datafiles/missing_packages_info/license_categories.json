@@ -1,0 +1,14 @@
+{
+  "not_blessed_licenses": [
+    "GPL_3",
+    "LGPL_3",
+    "GPL 3",
+    "LGPL 3",
+    "GNU Lesser General Public License (LGPL), Version 3",
+    "GNU LGPL v3+",
+    "GNU GPL v3",
+    "GNU General Public License (GPL), Version 3"
+  ],
+  "public_licenses": ["cco", "public domain", "cc0"],
+  "third_party_source_code_needed_licenses": ["LPGL", "GPL", "MPL"]
+}

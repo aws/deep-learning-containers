@@ -1,0 +1,1576 @@
+{
+  "entrypoints": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright (c) 2015 Thomas Kluyver and contributors"]
+  },
+  "terminado": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (c) 2014-, Jupyter development team",
+      "Copyright (c) 2014, Ramalingam Saravanan <sarava@sarava.net>",
+      "All rights reserved."
+    ]
+  },
+  "ruamel-yaml": {
+    "license_type": "MIT",
+    "copyright_info": [
+      "Copyright (c) 2014-2020 Anthon van der Neut, Ruamel bvba"
+    ],
+    "source_code_url": "https://github.com/commx/ruamel-yaml"
+  },
+  "PyYAML": {
+    "license_type": "MIT",
+    "copyright_info": [
+      "Copyright (c) 2017-2020 Ingy döt Net",
+      "Copyright (c) 2006-2016 Kirill Simonov"
+    ]
+  },
+  "mkl-random": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2017-2019, Intel Corporation"]
+  },
+  "requests-kerberos": {
+    "license_type": "ISC",
+    "copyright_info": ["Copyright (c) 2012 Kenneth Reitz"]
+  },
+  "pycrypto": {
+    "license_type": "public domain",
+    "copyright_info": [
+      "Copyright (c) 2020 Andrew M. Kuchling and other contributors"
+    ]
+  },
+  "ptyprocess": {
+    "license_type": "ISC",
+    "copyright_info": [
+      "Copyright (c) 2013-2014, Pexpect development team",
+      "Copyright (c) 2012, Noah Spurrier <noah@noah.org>"
+    ]
+  },
+  "pandocfilters": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2013, John MacFarlane All rights reserved."
+    ]
+  },
+  "nb-conda": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2020 Continuum Analytics, Inc. and contributors"
+    ]
+  },
+  "locket": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (c) 2015-Present CloudFoundry.org Foundation, Inc. All Rights Reserved."
+    ]
+  },
+  "gmpy2": {
+    "license_type": "LGPL_3",
+    "copyright_info": ["Copyright (c) 2007 Free Software Foundation, Inc."],
+    "source_code_url": "https://github.com/aleaxit/gmpy",
+    "internal_package_info": {
+      "internal_package_not_found": "No internal package license information was found for this project."
+    }
+  },
+  "protobuf3-to-dict": {
+    "license_type": "public domain",
+    "copyright_info": ["Copyright (c) 2020 Ben Hodgson <ben@benhodgson.com>"]
+  },
+  "libarchive-c": {
+    "license_type": "CC0"
+  },
+  "navigator-updater": {
+    "license_type": "Continuum",
+    "copyright_info": [
+      "Copyright (c) 2020 Continuum Analytics, Inc. and contributors"
+    ]
+  },
+  "anaconda-navigator": {
+    "license_type": "Continuum",
+    "copyright_info": [
+      "Copyright (c) 2020 Continuum Analytics, Inc. and contributors"
+    ]
+  },
+  "backports.weakref": {
+    "license_type": "PSF"
+  },
+  "funcsigs": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright 2013 Aaron Iles"]
+  },
+  "pillow": {
+    "license_type": "HPND",
+    "copyright_info": [
+      "Copyright (c) 2010-2020 by Alex Clark and contributors",
+      "Copyright (c) 1997-2011 by Secret Labs AB",
+      "Copyright © 1995-2011 by Fredrik Lundh"
+    ]
+  },
+  "backports.os": {
+    "license_type": "PSF"
+  },
+  "backports.ssl-match-hostname": {
+    "license_type": "PSF"
+  },
+  "backports-abc": {
+    "license_type": "PSF"
+  },
+  "jsonschema": {
+    "license_type": "MIT",
+    "copyright_info": ["Julian Berman"]
+  },
+  "linecache2": {
+    "license_type": "PSF"
+  },
+  "prompt-toolkit": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2014, Jonathan Slenders"]
+  },
+  "pycairo": {
+    "license_type": "LGPL_2"
+  },
+  "traceback2": {
+    "license_type": "PSF"
+  },
+  "pygal": {
+    "license_type": "LGPL_3",
+    "source_code_url": "https://github.com/Kozea/pygal"
+  },
+  "unittest2": {
+    "license_type": "BSD_3",
+    "copyright_info": ["No copyright statement was found for this project."]
+  },
+  "argh": {
+    "license_type": "LGPL_3"
+  },
+  "chainercv": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright (c) 2017 Preferred Networks, Inc."]
+  },
+  "gym": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright (c) 2016 OpenAI (https://openai.com)"]
+  },
+  "ipaddress": {
+    "license_type": "PSF"
+  },
+  "backports.functools-lru-cache": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright (c) 2020 Jason R. Coombs"]
+  },
+  "dmlc-nnvm": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright (c) 2020 package contributors"]
+  },
+  "dmlc-topi": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright (c) 2020 package contributors"]
+  },
+  "dmlc-tvm": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright (c) 2020 package contributors"]
+  },
+  "regex": {
+    "license_type": "PSF"
+  },
+  "amazonei-mxnet": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright (c) 2020 incubator-mxnet contributors"]
+  },
+  "inferentia-hwm": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright (c) 2020 inferentia-hwm contributors"]
+  },
+  "sacremoses": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright (c) 2020 alvations"]
+  },
+  "pygpu": {
+    "license_type": "MIT",
+    "copyright_info": [
+      "Copyright (c) 2013 Arnaud Begeron <abergeron@gmail.com>"
+    ],
+    "source_code_url": "https://github.com/dendisuhubdy/pygpu"
+  },
+  "protobuf": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright 2008 Google Inc.  All rights reserved."]
+  },
+  "bleach": {
+    "license_type": "BSD_2",
+    "copyright_info": ["Copyright (c) 2014-2017, Mozilla Foundation"],
+    "notice": "No notice statement was found for this project."
+  },
+  "scipy": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2001-2002 Enthought, Inc.  2003-2019, SciPy Developers."
+    ]
+  },
+  "xlwt": {
+    "license_type": "xlwt_license",
+    "copyright_info": [
+      "Copyright (c) 2007, Stephen John Machin, Lingfo Pty Ltd",
+      "Copyright (c) 2010, Manfred Moitzi",
+      "Copyright (c) 2005 Roman V. Kiseliov",
+      "Copyright (c) 2004 Evgeny Filatov <fufff@users.sourceforge.net>",
+      "Copyright (c) 2002-2004 John McNamara (Perl Spreadsheet::WriteExcel)",
+      "All rights reserved."
+    ]
+  },
+  "greenlet": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright (c) 2011, Armin Rigo, Christian Tismer"],
+    "internal_package_info": {
+      "internal_package_not_found": "No internal package license information was found for this project."
+    }
+  },
+  "tqdm": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright (c) 2013 noamraph"]
+  },
+  "py2-ipaddress": {
+    "license_type": "PSF"
+  },
+  "bottleneck": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (c) 2010-2019 Keith Goodman",
+      "Copyright (c) 2019 Bottleneck Developers",
+      "All rights reserved."
+    ]
+  },
+  "scikit-learn": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2007-2020 The scikit-learn developers. All rights reserved."
+    ]
+  },
+  "zict": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2016 Matthew Rocklin"]
+  },
+  "click": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright 2014 Pallets"]
+  },
+  "yg.lockfile": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright Jason R. Coombs"]
+  },
+  "pykerberos": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright (c) 2006-2013 Apple Inc. All rights reserved."
+    ],
+    "source_code_url": "https://github.com/apple/ccs-pykerberos",
+    "internal_package_info": {
+      "package_name": "double-conversion",
+      "license_type": "BSD_3",
+      "copyright_info": "Copyright 2006-2011, the V8 project authors. All rights reserved."
+    }
+  },
+  "pandas": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2008-2011, AQR Capital Management, LLC, Lambda Foundry, Inc. and PyData Development Team",
+      "Copyright (c) 2011-2020, Open source contributors.",
+      "All rights reserved."
+    ]
+  },
+  "pyodbc": {
+    "license_type": "MIT",
+    "copyright_info": ["No copyright statement was found for this project."],
+    "internal_package_info": {
+      "internal_package_not_found": "No internal package license information was found for this project."
+    }
+  },
+  "scikit-image": {
+    "license_type": "scikit-image_license",
+    "copyright_info": ["Copyright (C) 2019, the scikit-image team"]
+  },
+  "subprocess32": {
+    "license_type": "PSF"
+  },
+  "fsspec": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2018, Martin Durant All rights reserved."]
+  },
+  "opencv-python": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright (c) Olli-Pekka Heinisuo and contributors"]
+  },
+  "pyxdg": {
+    "license_type": "LGPL_2",
+    "copyright_info": ["Copyright (c) 2018 Freedesktop.org"],
+    "source_code_url": "https://github.com/takluyver/pyxdg"
+  },
+  "sphinxcontrib-applehelp": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (c) 2007-2019 by the Sphinx team. All rights reserved."
+    ],
+    "source_code_url": "https://github.com/sphinx-doc/sphinxcontrib-applehelp"
+  },
+  "sphinxcontrib-devhelp": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (c) 2007-2019 by the Sphinx team. All rights reserved."
+    ],
+    "source_code_url": "https://github.com/sphinx-doc/sphinxcontrib-devhelp"
+  },
+  "sphinxcontrib-htmlhelp": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (c) 2007-2019 by the Sphinx team. All rights reserved."
+    ],
+    "source_code_url": "https://github.com/sphinx-doc/sphinxcontrib-htmlhelp"
+  },
+  "sphinxcontrib-qthelp": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (c) 2007-2019 by the Sphinx team. All rights reserved."
+    ],
+    "source_code_url": "https://github.com/sphinx-doc/sphinxcontrib-qthelp"
+  },
+  "sphinxcontrib-serializinghtml": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (c) 2007-2019 by the Sphinx team. All rights reserved."
+    ],
+    "source_code_url": "https://github.com/sphinx-doc/sphinxcontrib-serializinghtml"
+  },
+  "cryptography": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) The cryptography developers and individual contributors"
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "packaging": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (c) Donald Stufft and individual contributors."
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "astroid": {
+    "license_type": "LGPL_2"
+  },
+  "chardet": {
+    "license_type": "LGPL_2"
+  },
+  "pycurl": {
+    "license_type": "LGPL_2",
+    "source_code_url": "https://github.com/pycurl/pycurl",
+    "internal_package_info": {
+      "internal_package_not_found": "No internal package license information was found for this project."
+    }
+  },
+  "nose": {
+    "license_type": "LGPL_2",
+    "source_code_url": "https://github.com/nose-devs/nose"
+  },
+  "aws-mxnet-mkl": {
+    "license_type": "mxnet_1.6.0_license",
+    "copyright_info": ["Copyright 2017-2020 The Apache Software Foundation"]
+  },
+  "psycopg2": {
+    "license_type": "psycopg2_license",
+    "copyright_info": [
+      "Copyright (C) 2020 The Psycopg Team",
+      "Copyright (C) 2017 My Karlsson <mk@acc.umu.se>",
+      "Copyright (c) 2018-2019, Joyent, Inc.",
+      "Copyright (C) 2008-2019  James Henstridge <james@jamesh.id.au>",
+      "Copyright (C) 2010-2019  Daniele Varrazzo <daniele.varrazzo@gmail.com>",
+      "Copyright (C) 2003-2019 Federico Di Gregorio <fog@debian.org>"
+    ]
+  },
+  "mxnet-neuron": {
+    "license_type": "aws-neuron-sdk_license",
+    "copyright_info": ["Copyright (c) 2020, Amazon.com"]
+  },
+  "bitarray": {
+    "license_type": "bitarray_license"
+  },
+  "neuron-cc": {
+    "license_type": "aws-neuron-sdk_license",
+    "copyright_info": ["Copyright (c) 2020, Amazon.com"]
+  },
+  "tensorflow": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2019 The TensorFlow Authors.  All rights reserved."
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "tensorflow-gpu": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2019 The TensorFlow Authors.  All rights reserved."
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "tensorflow-cpu": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2019 The TensorFlow Authors.  All rights reserved."
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "tensorflow-estimator": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2018 The TensorFlow Authors.  All rights reserved."
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "tensorflow-serving-api": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright 2020 Google Inc."],
+    "notice": "No notice statement was found for this project."
+  },
+  "boto3": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2013-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ],
+    "notice": "boto3\nCopyright 2013-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+  },
+  "botocore": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2012-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ],
+    "notice": "botocore_notice"
+  },
+  "s3transfer": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ],
+    "notice": "s3transfer\nCopyright 2016 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+  },
+  "sagemaker": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ],
+    "notice": "Amazon SageMaker Python SDK\nCopyright 2017-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+  },
+  "google-auth": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2020 Google Cloud Platform. All Rights Reserved."
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "google-auth-oauthlib": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2020 Google Cloud Platform. All Rights Reserved."
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "google-pasta": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2020 Google Cloud Platform. All Rights Reserved."
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "diff-match-patch": {
+    "copyright_info": ["Copyright 2020 Google Inc. All Rights Reserved."],
+    "notice": "No notice statement was found for this project."
+  },
+  "json5": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright (c) 2012-2018 Aseem Kishore, and others."],
+    "notice": "No notice statement was found for this project."
+  },
+  "absl-py": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright 2017 The Abseil Authors."],
+    "notice": "No notice statement was found for this project."
+  },
+  "absl": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright 2017 The Abseil Authors."],
+    "notice": "No notice statement was found for this project."
+  },
+  "lief": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright (c) 2020 Romain Thomas <rthomas@quarkslab.com>."
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "retrying": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright (c) 2020 Ray Holder."]
+  },
+  "sortedcontainers": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright 2014-2019 Grant Jenks"],
+    "notice": "No notice statement was found for this project."
+  },
+  "grpcio": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright (c) 2015 The gRPC Authors",
+      "Copyright 2016, Google Inc.",
+      "Copyright 2019, Google Inc."
+    ],
+    "notice": "grpcio_notice"
+  },
+  "grpc": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright (c) 2014 The gRPC Authors"],
+    "notice": "grpc_notice"
+  },
+  "watchdog": {
+    "copyright_info": [
+      "Copyright (c) 2010-2020 Yesudeep Mangalapilly and contributors"
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "smdebug-rulesconfig": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ]
+  },
+  "intervaltree": {
+    "copyright_info": ["Copyright 2013-2018 Chaim Leib Halbert"],
+    "notice": "No notice statement was found for this project."
+  },
+  "pyOpenSSL": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright 2020 The pyOpenSSL developers"],
+    "notice": "No notice statement was found for this project."
+  },
+  "yapf": {
+    "copyright_info": ["Copyright 2020 Google Inc."],
+    "source_code_url": "https://github.com/google/yapf",
+    "notice": "No notice statement was found for this project."
+  },
+  "prometheus-client": {
+    "copyright_info": ["Copyright 2015 The Prometheus Authors"]
+  },
+  "cffi": {
+    "copyright_info": [
+      "Copyright (C) 2005-2007, James Bielman  <jamesjb@jamesjb.com>"
+    ]
+  },
+  "jedi": {
+    "copyright_info": [
+      "Copyright (C) 2005-2007, David Halter (@davidhalter) <davidhalter88@gmail.com> Takafumi Arakaki (@tkf) <aka.tkf@gmail.com>"
+    ]
+  },
+  "pyparsing": {
+    "copyright_info": [
+      "Copyright (C) 2018-2020, Paul T. McGuire and other contributors"
+    ]
+  },
+  "py": {
+    "copyright_info": [
+      "Copyright (C) 2020, holger krekel, Ronny Pfannschmidt, Benjamin Peterson and others"
+    ]
+  },
+  "certifi": {
+    "license_type": "MPL_2",
+    "copyright_info": ["No copyright statement was found for this project."],
+    "source_code_url": "https://github.com/certifi/python-certifi"
+  },
+  "filelock": {
+    "copyright_info": ["Copyright (C) 2015, Benedikt Schmitt"]
+  },
+  "tornado": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright (C) 2020 Facebook"]
+  },
+  "Cython": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright (C) 2020 Stefan Behnel, Robert Bradshaw, Dag Sverre Seljebotn, Greg Ewing, William Stein, Gabriel Gellner, et al and other contributors"
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "msgpack": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright (C) 2008-2011 INADA Naoki <songofacandy@gmail.com>"
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "python-editor": {
+    "license_type": "Apache_2",
+    "copyright_info": ["No copyright statement was found for this project."]
+  },
+  "statistics": {
+    "license_type": "PSF",
+    "copyright_info": ["Copyright (C) 2020 Stefano Crosta and contributors"]
+  },
+  "structlog": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright (c) 2013 Hynek Schlawack"]
+  },
+  "dataclasses": {
+    "license_type": "Apache_2",
+    "copyright_info": ["No copyright statement was found for this project."],
+    "notice": "No notice statement was found for this project."
+  },
+  "fastai": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright fast.ai"],
+    "notice": "No notice statement was found for this project."
+  },
+  "fastprogress": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright fast.ai"],
+    "notice": "No notice statement was found for this project."
+  },
+  "mxboard": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "MXNet TensorBoard\nCopyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ],
+    "notice": "MXNet TensorBoard\nCopyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+  },
+  "model-archiver": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "multi-model-server": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ],
+    "notice": "No notice statement was found for this project.",
+    "internal_package_info": {
+      "internal_package_not_found": "No internal package license information was found for this project."
+    }
+  },
+  "tensorflow-neuron": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright (C) 2020 Amazon Web Services"],
+    "source_code_url": "https://github.com/aws/aws-neuron-sdk"
+  },
+  "torch-neuron-base": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright (C) 2020 Amazon Web Services"]
+  },
+  "gevent": {
+    "license_type": "MIT",
+    "copyright_info": ["No copyright statement was found for this project."]
+  },
+  "iniconfig": {
+    "license_type": "MIT",
+    "copyright_info": ["No copyright statement was found for this project."]
+  },
+  "torch-neuron": {
+    "copyright_info": ["Copyright (C) 2020 2020 Amazon Web Services"]
+  },
+  "patsy": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (C) 2011-2012, Patsy Developers. All rights reserved."
+    ]
+  },
+  "Click": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright 2014 Pallets"]
+  },
+  "sphinx": {
+    "license_type": "Sphinx_license",
+    "copyright_info": ["Copyright (c) 2007-2020 by the Sphinx team"]
+  },
+  "astropy": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2011-2020, Astropy Developers"]
+  },
+  "clyent": {
+    "license_type": "clyent_license",
+    "copyright_info": ["Copyright © 2017, Continuum Analytics, Inc."]
+  },
+  "colorama": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2010 Jonathan Hartley. All rights reserved."
+    ]
+  },
+  "cycler": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2015, matplotlib project. All rights reserved."
+    ]
+  },
+  "defusedxml": {
+    "license_type": "PSF"
+  },
+  "matplotlib": {
+    "license_type": "matplotlib_license"
+  },
+  "cytoolz": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2014 Erik Welch"]
+  },
+  "grin": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright 2020 The Grin Developers"]
+  },
+  "h5py": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2008 Andrew Collette and contributors. All rights reserved."
+    ]
+  },
+  "ipykernel": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2015, IPython Development Team"]
+  },
+
+  "ipyparallel": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2015, IPython Development Team"]
+  },
+  "ipython": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2015, IPython Development Team"]
+  },
+  "ipython-genutils": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2015, IPython Development Team"]
+  },
+  "jupyter": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2017, Project Jupyter Contributors. All rights reserved."
+    ]
+  },
+  "jupyter_client": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2001-2015, IPython Development Team, Copyright (c) 2015-, Jupyter Development Team. All rights reserved."
+    ]
+  },
+  "jupyter-console": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2001-2015, IPython Development Team, Copyright (c) 2015-, Jupyter Development Team. All rights reserved."
+    ]
+  },
+  "jupyter-core": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2015-, Jupyter Development Team. All rights reserved."
+    ]
+  },
+  "jupyterlab": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2015 Project Jupyter Contributors. All rights reserved."
+    ]
+  },
+  "kiwisolver": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2013, Nucleic Development Team. All rights reserved."
+    ],
+    "internal_package_info": {
+      "internal_package_not_found": "No internal package license information was found for this project."
+    }
+  },
+  "llvmlite": {
+    "license_type": "BSD_2",
+    "copyright_info": ["Copyright (c) 2014-, Continuum Analytics, Inc."]
+  },
+  "lxml": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2004 Infrae. All rights reserved."]
+  },
+  "mkl_fft": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2017-2019, Intel Corporation"]
+  },
+  "mkl-service": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2017-2019, Intel Corporation"]
+  },
+  "mpmath": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2005-2018 Fredrik Johansson and mpmath contributors. All rights reserved."
+    ]
+  },
+  "multipledispatch": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2014 Matthew Rocklin. All rights reserved."
+    ]
+  },
+  "nbformat": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2001-2015, IPython Development Team, Copyright (c) 2015-, Jupyter Development Team. All rights reserved."
+    ]
+  },
+  "networkx": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (C) 2004-2020, NetworkX Developers.",
+      "Aric Hagberg <hagberg@lanl.gov>",
+      "Dan Schult <dschult@colgate.edu>",
+      "Pieter Swart <swart@lanl.gov>. All rights reserved."
+    ]
+  },
+  "notebook": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2001-2015, IPython Development Team, Copyright (c) 2015-, Jupyter Development Team. All rights reserved."
+    ]
+  },
+  "numpy": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2005-2020, NumPy Developers. All rights reserved."
+    ]
+  },
+  "numba": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (c) 2012, Anaconda, Inc. All rights reserved."
+    ]
+  },
+  "olefile": {
+    "license_type": "olefile_license",
+    "copyright_info": [
+      "copyright (c) 2005-2019 Philippe Lagadec (https://www.decalage.info). All rights reserved."
+    ]
+  },
+  "ply": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (C) 2001-2018 David M. Beazley (Dabeaz LLC) All rights reserved."
+    ]
+  },
+  "pycparser": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2008-2017, Eli Bendersky. All rights reserved."
+    ]
+  },
+  "sympy": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2006-2020 SymPy Development Team. All rights reserved."
+    ]
+  },
+  "traitlets": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2001-, IPython Development Team. All rights reserved."
+    ]
+  },
+  "async-timeout": {
+    "license_type": "Apache_2",
+    "copyright_info": ["No copyright statement was found for this project."],
+    "notice": "No notice statement was found for this project."
+  },
+  "backcall": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2014, Thomas Kluyver. All rights reserved."
+    ]
+  },
+  "mkl-fft": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2017-2019, Intel Corporation"]
+  },
+  "webencodings": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2012 by Simon Sapin. Some rights reserved."
+    ]
+  },
+  "autovizwidget": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2001-2015, IPython Development Team",
+      "Copyright (c) 2015-, Jupyter Development Team",
+      "All rights reserved."
+    ]
+  },
+  "hdijupyterutils": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2001-2015, IPython Development Team",
+      "Copyright (c) 2015-, Jupyter Development Team",
+      "All rights reserved."
+    ]
+  },
+  "sparkmagic": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2001-2015, IPython Development Team",
+      "Copyright (c) 2015-, Jupyter Development Team",
+      "All rights reserved."
+    ]
+  },
+  "Send2Trash": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2017, Virgil Dupras. All rights reserved."
+    ]
+  },
+  "anaconda-client": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2016, Continuum Analytics, Inc. All rights reserved."
+    ]
+  },
+  "enum34": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2013, Ethan Furman. All rights reserved."]
+  },
+  "ujson": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Developed by ESN, an Electronic Arts Inc. studio.",
+      "Copyright (c) 2014, Electronic Arts Inc. All rights reserved.",
+      "Portions of code from MODP_ASCII - Ascii transformations (upper/lower, etc)",
+      "https://github.com/client9/stringencoders",
+      "Copyright (c) 2007  Nick Galbreath -- nickg [at] modp [dot] com. All rights reserved.",
+      "Numeric decoder derived from from TCL library",
+      "https://opensource.apple.com/source/tcl/tcl-14/tcl/license.terms",
+      " * Copyright (c) 1988-1993 The Regents of the University of California.",
+      "* Copyright (c) 1994 Sun Microsystems, Inc."
+    ],
+    "internal_package_info": {
+      "package_name": "double-conversion",
+      "license_type": "BSD_3",
+      "copyright_info": "Copyright 2006-2011, the V8 project authors. All rights reserved."
+    }
+  },
+  "unicodecsv": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright 2010 Jeremy Dunck. All rights reserved."]
+  },
+
+  "idna": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2013-2020, Kim Davies. All rights reserved."
+    ]
+  },
+
+  "mccabe": {
+    "license_type": "Expatlicense",
+    "copyright_info": [
+      "Copyright © <year> Ned Batchelder",
+      "Copyright © 2011-2013 Tarek Ziade <tarek@ziade.org>",
+      "Copyright © 2013 Florent Xicluna <florent.xicluna@gmail.com>"
+    ]
+  },
+  "pep8": {
+    "license_type": "Expatlicense",
+    "copyright_info": [
+      "Copyright © 2006-2009 Johann C. Rocholl <johann@rocholl.net>",
+      "Copyright © 2009-2014 Florent Xicluna <florent.xicluna@gmail.com>",
+      "Copyright © 2014-2020 Ian Lee <IanLee1521@gmail.com>"
+    ]
+  },
+  "pycodestyle": {
+    "license_type": "Expatlicense",
+    "copyright_info": [
+      "Copyright © 2006-2009 Johann C. Rocholl <johann@rocholl.net>",
+      "Copyright © 2009-2014 Florent Xicluna <florent.xicluna@gmail.com>",
+      "Copyright © 2014-2020 Ian Lee <IanLee1521@gmail.com>"
+    ]
+  },
+  "pyzmq": {
+    "license_type": "LGPL_3+BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2009-2012, Brian Granger, Min Ragan-Kelley",
+      "All rights reserved."
+    ],
+    "source_code_url": "https://github.com/zeromq/pyzmq"
+  },
+  "QtPy": {
+    "license_type": "MIT",
+    "copyright_info": [
+      "Copyright (c) The Spyder Development Team",
+      "All rights reserved."
+    ]
+  },
+  "lazy-object-proxy": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (c) 2014-2019, Ionel Cristian Mărieș",
+      "All rights reserved."
+    ]
+  },
+  "atomicwrites": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright (c) 2015-2016 Markus Unterwaditzer"]
+  },
+  "backports.shutil-get-terminal-size": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright (c) 2014 Christopher Rosell"]
+  },
+  "jupyterlab-launcher": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2015 Project Jupyter Contributors",
+      "All rights reserved."
+    ]
+  },
+  "boto": {
+    "license_type": "MIT",
+    "copyright_info": [
+      "Copyright (c) 2012 Mitch Garnaat http://garnaat.org/",
+      "Copyright (c) 2012 Amazon.com, Inc. or its affiliates.",
+      "Copyright (c) 2010, Eucalyptus Systems, Inc.",
+      "Copyright (c) 2010 Spotify AB",
+      "Copyright (c) 2014, Steven Richards <sbrichards@mit.edu>",
+      "Copyright (c) 2014 Tellybug, Matt Millar",
+      "Copyright (c) 2010 Yelp",
+      "Copyright 2012 Google Inc.",
+      "Copyright (c) 2008, Chris Moyer http://coredumped.org",
+      "Copyright (c) 2012 Thomas Parslow http://almostobsolete.net/",
+      "All Rights Reserved"
+    ]
+  },
+  "et-xmlfile": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2015-2019, conda-forge",
+      "All rights reserved."
+    ]
+  },
+  "pickleshare": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright (c) 2016 Ville Vainio."]
+  },
+  "pkginfo": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright (c) 2009 Agendaless Consulting, Inc."]
+  },
+  "pycosat": {
+    "license_type": "MIT",
+    "copyright_info": [
+      "Copyright (c) 2013, Ilan Schnell, Continuum Analytics, Inc."
+    ],
+    "internal_package_info": {
+      "internal_package_not_found": "No internal package license information was found for this project."
+    }
+  },
+  "singledispatch": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright (C) 2013 by Łukasz Langa"]
+  },
+  "pytest": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright (c) 2004-2020 Holger Krekel and others"]
+  },
+  "bkcharts": {
+    "license_type": "BSD_3",
+    "copyright_info": ["Copyright (c) 2012, Continuum Analytics, Inc."]
+  },
+  "keyring": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright Jason R. Coombs"]
+  },
+  "path": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright Jason R. Coombs"]
+  },
+  "zipp": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright Jason R. Coombs"]
+  },
+  "simplegeneric": {
+    "license_type": "ZPL_2",
+    "copyright_info": ["No copyright statement was found for this project."]
+  },
+  "aiohttp": {
+    "notice": "No notice statement was found for this project."
+  },
+  "multidict": {
+    "notice": "No notice statement was found for this project."
+  },
+  "yarl": {
+    "notice": "No notice statement was found for this project."
+  },
+  "requests": {
+    "copyright_info": ["Copyright 2019 Kenneth Reitz"],
+    "source_code_url": "https://github.com/psf/requests",
+    "notice": "Copyright 2019 Kenneth Reitz"
+  },
+  "sortedcollections": {
+    "notice": "No notice statement was found for this project."
+  },
+  "tensorboard": {
+    "notice": "No notice statement was found for this project."
+  },
+  "typed-ast": {
+    "license_type": "typed-ast_license",
+    "notice": "No notice statement was found for this project."
+  },
+  "nltk": {
+    "notice": "Natural Language Toolkit (NLTK)\nCopyright (C) 2001-2020 NLTK Project"
+  },
+  "importlib-metadata": {
+    "notice": "No notice statement was found for this project."
+  },
+  "blis": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (C) 2018, The University of Texas at Austin",
+      "Copyright (C) 2016, Hewlett Packard Enterprise Development LP",
+      "Copyright (C) 2018 - 2019, Advanced Micro Devices, Inc."
+    ]
+  },
+  "pynvml": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2011-2020, NVIDIA Corporation.",
+      "All rights reserved."
+    ]
+  },
+  "nvidia-ml-py": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2011-2020, NVIDIA Corporation.",
+      "All rights reserved."
+    ]
+  },
+  "nvidia-ml-py3": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2011-2020, NVIDIA Corporation.",
+      "All rights reserved."
+    ]
+  },
+  "tensorboard-plugin-wit": {
+    "license_type": "BSD_3",
+    "source_code_url": "https://github.com/pair-code/what-if-tool",
+    "copyright_info": [
+      "Copyright (c) 2015-2019, conda-forge",
+      "All rights reserved."
+    ]
+  },
+  "torchvision": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) Soumith Chintala 2016,",
+      "All rights reserved."
+    ]
+  },
+  "plac": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (c) 2010-2019, Michele Simionato",
+      "All rights reserved."
+    ]
+  },
+  "torch": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "From PyTorch:",
+      "\n",
+      "Copyright (c) 2016-     Facebook, Inc            (Adam Paszke)",
+      "Copyright (c) 2014-     Facebook, Inc            (Soumith Chintala)",
+      "Copyright (c) 2011-2014 Idiap Research Institute (Ronan Collobert)",
+      "Copyright (c) 2012-2014 Deepmind Technologies    (Koray Kavukcuoglu)",
+      "Copyright (c) 2011-2012 NEC Laboratories America (Koray Kavukcuoglu)",
+      "Copyright (c) 2011-2013 NYU                      (Clement Farabet)",
+      "Copyright (c) 2006-2010 NEC Laboratories America (Ronan Collobert, Leon Bottou, Iain Melvin, Jason Weston)",
+      "Copyright (c) 2006      Idiap Research Institute (Samy Bengio)",
+      "Copyright (c) 2001-2004 Idiap Research Institute (Ronan Collobert, Samy Bengio, Johnny Mariethoz)",
+      "\n",
+      "From Caffe2:",
+      "\n",
+      "Copyright (c) 2016-present, Facebook Inc. All rights reserved.",
+      "\n",
+      "All contributions by Facebook:",
+      "Copyright (c) 2016 Facebook Inc.",
+      "\n",
+      "All contributions by Google:",
+      "Copyright (c) 2015 Google Inc.",
+      "All rights reserved.",
+      "\n",
+      "All contributions by Yangqing Jia:",
+      "Copyright (c) 2015 Yangqing Jia",
+      "All rights reserved.",
+      "\n",
+      "All contributions from Caffe:",
+      "Copyright(c) 2013, 2014, 2015, the respective contributors",
+      "All rights reserved.",
+      "\n",
+      "All other contributions:",
+      "Copyright(c) 2015, 2016 the respective contributors",
+      "All rights reserved.",
+      "\n",
+      "Caffe2 uses a copyright model similar to Caffe: each contributor holds",
+      "copyright over their contributions to Caffe2. The project versioning records",
+      "all such contribution and copyright details. If a contributor wants to further",
+      "mark their specific copyright on a particular contribution, they should",
+      "indicate their copyright solely in the commit message of the change when it is",
+      "committed.",
+      "All rights reserved."
+    ]
+  },
+  "catalogue": {
+    "license_type": "MIT",
+    "copyright_info": ["Copyright (c) 2019 ExplosionAI GmbH"]
+  },
+  "murmurhash": {
+    "license_type": "MIT",
+    "copyright_info": [
+      "Copyright (C) 2016 ExplosionAI GmbH, 2014-2015 Matthew Honnibal, 2016 spaCy GmbH"
+    ]
+  },
+  "onnx": {
+    "license_type": "MIT",
+    "copyright_info": [
+      "Copyright (c) ONNX Project Contributors. All rights reserved."
+    ]
+  },
+  "enum-compat": {
+    "license_type": "MIT",
+    "copyright_info": ["No copyright statement was found for this project."],
+    "notice": "No notice statement was found for this project.",
+    "internal_package_info": {
+      "internal_package_not_found": "No internal package license information was found for this project."
+    }
+  },
+  "aws-mx-cu101": {
+    "license_type": "mxnet_1.7.0_license",
+    "notice": "mxnet_1.7.0_notice"
+  },
+  "aws-mxnet-cu101mkl": {
+    "license_type": "mxnet_1.6.0_license",
+    "notice": "mxnet_1.6.0_notice"
+  },
+  "aws-mx-cu110": {
+    "license_type": "mxnet_1.8.0_license",
+    "notice": "mxnet_1.8.0_notice"
+  },
+  "Keras": {
+    "license_type": "MIT",
+    "copyright_info": [
+      "All contributions by François Chollet:",
+      "Copyright (c) 2015 - 2019, François Chollet.",
+      "All rights reserved.",
+      "\n",
+      "All contributions by Google:",
+      "Copyright (c) 2015 - 2019, Google, Inc.",
+      "All rights reserved.",
+      "\n",
+      "All contributions by Microsoft:",
+      "Copyright (c) 2017 - 2019, Microsoft, Inc.",
+      "All rights reserved.",
+      "\n",
+      "All other contributions:",
+      "Copyright (c) 2015 - 2019, the respective contributors.",
+      "All rights reserved.",
+      "\n",
+      "Each contributor holds copyright over their respective contributions.",
+      "The project versioning (Git) records all such contribution source information."
+    ]
+  },
+  "highwayhash": {
+    "license_type": "Apache_2",
+    "copyright_info": ["Copyright 2017 Google Inc. All Rights Reserved."],
+    "notice": "No notice statement was found for this project."
+  },
+  "swig": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright (c) 1995-2011 The SWIG Developers",
+      "Copyright (c) 2005-2006 Arizona Board of Regents (University of Arizona).",
+      "Copyright (c) 1998-2005 University of Chicago.",
+      "Copyright (c) 1995-1998 The University of Utah and the Regents of the University of California"
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "blaze": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2012-2014, Continuum Analytics, Inc. and contributors",
+      "All rights reserved."
+    ],
+    "source_code_url": "https://github.com/blaze/blaze"
+  },
+  "odo": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2014, Continuum Analytics, Inc. and contributors",
+      "All rights reserved."
+    ]
+  },
+  "gast": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2016, Serge Guelton",
+      "All rights reserved."
+    ]
+  },
+  "brotlipy": {
+    "copyright_info": ["Copyright (c) 2015 Cory Benfield"]
+  },
+  "islpy": {
+    "copyright_info": ["Copyright (c) 2011 Andreas Klöckner and Contributors."]
+  },
+  "termcolor": {
+    "copyright_info": ["Copyright (c) 2008-2011 Volvox Development Team"]
+  },
+  "conda-build": {
+    "license_type": "conda-build_license"
+  },
+  "conda": {
+    "license_type": "conda_license"
+  },
+  "sip": {
+    "license_type": "sip_license+GPL_2+GPL_3",
+    "copyright_info": "copyright (c) Riverbank Computing Limited."
+  },
+  "PyQt5-sip": {
+    "license_type": "sip_license+GPL_2+GPL_3",
+    "copyright_info": "copyright (c) Riverbank Computing Limited."
+  },
+  "PyQt5": {
+    "license_type": "GPL_3",
+    "copyright_info": "copyright (c) Riverbank Computing Limited."
+  },
+  "PyQtChart": {
+    "license_type": "GPL_3",
+    "copyright_info": "copyright (c) Riverbank Computing Limited."
+  },
+  "PyQtWebEngine": {
+    "license_type": "GPL_3",
+    "copyright_info": "copyright (c) Riverbank Computing Limited."
+  },
+  "zope.event": {
+    "license_type": "ZPL_3",
+    "copyright_info": "Zope Foundation and Contributors"
+  },
+  "zope.interface": {
+    "license_type": "ZPL_3",
+    "copyright_info": "Zope Foundation and Contributors"
+  },
+  "async-generator": {
+    "license_type": "MIT",
+    "copyright_info": "The async_generator authors"
+  },
+  "spyder": {
+    "license_type": "MIT",
+    "copyright_info": [
+      "Copyright (c) 2009- Spyder Project Contributors",
+      "All rights reserved."
+    ],
+    "notice": "spyder_notice"
+  },
+  "tensorboard-neuron": {
+    "source_code_url": "https://github.com/aws/aws-neuron-sdk"
+  },
+  "hypothesis": {
+    "source_code_url": "https://github.com/HypothesisWorks/hypothesis"
+  },
+  "docutils": {
+    "source_code_url": "https://github.com/docutils-mirror/docutils"
+  },
+  "torchserve": {
+    "copyright_info": "Copyright (c) 2020, PyTorch Serve Contributors"
+  },
+  "torch-model-archiver": {
+    "copyright_info": "Copyright (c) 2020, PyTorch Serve Contributors"
+  },
+  "dill": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright (c) 2004-2016 California Institute of Technology.",
+      "Copyright (c) 2016-2021 The Uncertainty Quantification Foundation.",
+      "All rights reserved."
+    ]
+  },
+  "aws-parallelcluster": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2013-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ]
+  },
+  "awscli": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2013-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ]
+  },
+  "sagemaker-tensorflow-training": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2013-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ]
+  },
+  "sagemaker-training": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2013-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ]
+  },
+  "sagemaker-tensorflow": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2013-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ]
+  },
+  "smdebug": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2013-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ]
+  },
+  "sagemaker-experiments": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2013-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ]
+  },
+  "smclarify": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2013-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ]
+  },
+  "inotify-simple": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (c) 2016, Chris Billington. All Rights Reserved."
+    ]
+  },
+  "mpi4py": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (c) 2021, Lisandro Dalcin. All rights reserved."
+    ]
+  },
+  "wrapt": {
+    "license_type": "BSD_2",
+    "copyright_info": [
+      "Copyright (c) 2013-2019, Graham Dumpleton"
+    ]
+  },
+  "sklearn": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2007-2020 The scikit-learn developers.",
+      "All rights reserved."
+    ]
+  },
+  "smdistributed-dataparallel": {
+    "copyright_info": [
+      "No copyright statement was found for this project."
+    ]
+  },
+  "smdistributed-modelparallel": {
+    "copyright_info": [
+      "No copyright statement was found for this project."
+    ]
+  },
+  "PyNaCl": {
+    "copyright_info": [
+      "Copyright 2013 Donald Stufft and individual contributors."
+    ]
+  },
+  "bcrypt": {
+    "copyright_info": [
+      "Copyright (c) 2013 Donald Stufft and individual contributors."
+    ]
+  },
+  "flatbuffers": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "No copyright statement was found for this project."
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "dgl-cu110": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright (c) 2020 by Contributors"
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "torchfile": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2016, Brendan Shillingford"
+    ]
+  },
+  "torchnet": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "Copyright (c) 2017- Sergey Zagoruyko",
+      "Copyright (c) 2017- Sasank Chilamkurthy",
+      "All rights reserved."
+    ]
+  },
+  "visdom": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2017-present, The Visdom Authors",
+      "All rights reserved."
+    ]
+  },
+  "jsonpointer": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright (c) 2011 Stefan Kögl <stefan@skoegl.net>",
+      "All rights reserved."
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "apex": {
+    "license_type": "BSD_3",
+    "copyright_info": [
+      "No copyright statement was found for this project."
+    ]
+  },
+  "sagemaker-pytorch-training": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2013-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ]
+  },
+  "sagemaker-mxnet-training": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2013-2018 Amazon.com, Inc. or its affiliates. All Rights Reserved."
+    ]
+  },
+  "gluonnlp": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "No copyright statement was found for this project."
+    ],
+    "notice": "No notice statement was found for this project."
+  },
+  "horovod": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "Copyright 2018 Uber Technologies, Inc."
+    ],
+    "notice": "horovod_0.19.5_notice"
+  },
+  "gluoncv": {
+    "license_type": "Apache_2",
+    "copyright_info": [
+      "No copyright statement was found for this project."
+    ],
+    "notice": "No notice statement was found for this project."
+  }
+}

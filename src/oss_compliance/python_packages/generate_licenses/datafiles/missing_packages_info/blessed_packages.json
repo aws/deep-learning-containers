@@ -1,0 +1,10 @@
+{
+  "blessed_packages": [
+    "rope",
+    "gmpy2",
+    "argh",
+    "pygal",
+    "pyzmq",
+    "spyder"
+  ]
+}

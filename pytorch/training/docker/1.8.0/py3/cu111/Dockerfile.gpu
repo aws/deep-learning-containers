@@ -249,6 +249,15 @@ WORKDIR /
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
+# License attribution for packages
+ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/oss_compliance /oss_compliance
+RUN pip install -r oss_compliance/python_packages/piplicenses/requirements.txt
+RUN python3 oss_compliance/python_packages/piplicenses/piplicenses.py --with-license-file --with-notice-file --with-urls --format=json --with-authors --order=license --with-urls --with-internal-license-file --with-internal-notice-file --output-file=oss_compliance/python_packages/piplicenses/PACKAGES_LICENSES_JSON.json
+RUN python3 oss_compliance/python_packages/generate_licenses/process_licenses_json_file.py
+RUN python3 oss_compliance/linux_packages/linux_packages.py
+ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/oss_compliance/build_from_source_packages/BUILD_FROM_SOURCE_PACKAGES_ALL_IMAGES /BUILD_FROM_SOURCE_PACKAGES_ALL_IMAGES
+RUN rm -rf /oss_compliance
+
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
  && chmod +x /usr/local/bin/deep_learning_container.py
 
