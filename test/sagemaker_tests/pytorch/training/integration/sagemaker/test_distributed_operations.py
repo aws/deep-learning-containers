@@ -154,7 +154,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_v
             instance_count=2,
             instance_type=instance_type,
             sagemaker_session=sagemaker_session,
-            hyperparameters = {"assert-losses": 1, "amp": 1, "ddp": 1, "data-dir": "data/training"},
+            hyperparameters = {"assert-losses": 1, "amp": 1, "ddp": 1, "data-dir": "data/training", "epochs": 5},
             distribution={
                 "smdistributed": { 
                     "modelparallel": {
