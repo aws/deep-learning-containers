@@ -1,7 +1,7 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="3"
+LABEL dlc_major_version="1"
 
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.6.13
@@ -9,7 +9,7 @@ ARG OPEN_MPI_VERSION=4.0.1
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.9.2
+ARG SMDEBUG_VERSION=1.0.6
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -24,26 +24,29 @@ ENV PATH=/opt/conda/bin:$PATH
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV DGLBACKEND=pytorch
 
+ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.8.0_aws/20210306-000727/b5cc095ca218fb9eab43948dc83c7a020ab1db26/cpu/torch-1.8.0-cp36-cp36m-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.8.0/cpu/torchvision-0.9.0-cp36-cp36m-linux_x86_64.whl
+
 WORKDIR /
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
+    build-essential \
     ca-certificates \
     cmake \
     curl \
     emacs \
     git \
-    wget \
-    vim \
-    build-essential \
     jq \
     libglib2.0-0 \
     libgl1-mesa-glx \
     libsm6 \
     libxext6 \
     libxrender-dev \
-    zlib1g-dev \
     software-properties-common \
+    wget \
+    vim \
+    zlib1g-dev \
  && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
@@ -74,22 +77,23 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y -c anaconda \
-    numpy==1.16.4 \
-    ipython==7.10.1 \
-    mkl==2019.4 \
-    mkl-include==2019.4 \
-    cython==0.29.12 \
-    typing==3.6.4 \
+    # conda 4.9.2 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.87 \
+    numpy \
+    ipython \
+    mkl \
+    mkl-include \
+    cython \
+    typing \
     "pyopenssl>=17.5.0" \
  && conda install -c conda-forge \
-    opencv==4.0.1 \
+    opencv \
  && conda install -y \
-    scikit-learn==0.21.2 \
-    pandas==0.25.0 \
-    Pillow \
-    h5py==2.9.0 \
-    requests==2.22.0 \
- && conda install -c dglteam -y dgl==0.4.3post2 \
+    scikit-learn \
+    pandas \
+    h5py \
+    requests \
+ && conda install -c dglteam -y dgl \
  && /opt/conda/bin/conda clean -ya \
  && conda clean -ya
 
@@ -98,26 +102,30 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
-    # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
-    "PyYAML>=5.4,<5.5" \
+    "pyyaml>=5.4,<5.5" \
     "awscli<2" \
-    "cryptography>3.2" \
-    ruamel-yaml \
-    fastai==1.0.59 \
+    fastai==1.0.61 \
     scipy==1.2.2 \
+    click \
+    "cryptography>3.2" \
     smdebug==${SMDEBUG_VERSION} \
+    smclarify \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
-    "sagemaker-pytorch-training<2" \
-    sagemaker-training \
- && pip install --no-cache-dir -U https://pytorch-aws.s3.amazonaws.com/pytorch-1.4.0/py3/cpu/torch-1.4.0-cp36-cp36m-manylinux1_x86_64.whl \
+    "sagemaker-pytorch-training<3" \
+    psutil==5.6.7 \
+    Pillow==7.1.0 \
+ && pip uninstall -y torch \
+ && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
- && pip install --no-cache-dir -U \
-    https://torchvision-build.s3.amazonaws.com/1.4.0/py3/cpu/torchvision-0.5.0%2Bcpu-cp36-cp36m-linux_x86_64.whl
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
 
-RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
+ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.4.0/license.txt
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
+ && chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.8/license.txt
 
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
