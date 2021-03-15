@@ -258,14 +258,14 @@ def _run_dependency_check_test(image, ec2_connection, processor):
 
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+# @pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_cpu(cpu, ec2_connection):
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
 
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+# @pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
 def test_dependency_check_gpu(gpu, ec2_connection):
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
 
@@ -369,9 +369,9 @@ def test_sm_pysdk_2(training):
     """
 
     _, image_framework_version = get_framework_and_version_from_tag(training)
-    
+
     if Version(image_framework_version) == Version("1.5.0"):
-        pytest.skip("sagemaker version < 2.0 is installled for PT 1.5.0 images")
+        pytest.skip("sagemaker version < 2.0 is installed for PT 1.5.0 images")
 
     # Ensure that sm py sdk 2 is on the container
     ctx = Context()
