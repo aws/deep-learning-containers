@@ -21,12 +21,29 @@ from six.moves.urllib.parse import urlparse
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-
 from ...integration import (data_dir, dist_operations_path, fastai_path, mnist_script,
                               DEFAULT_TIMEOUT, mnist_path)
 from ...integration.sagemaker.timeout import timeout
 
 MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
+
+
+def validate_or_skip_smmodelparallel(ecr_image):
+    if not can_run_smmodelparallel(ecr_image):
+        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch v1.6 and above")
+
+def validate_or_skip_smdataparallel(ecr_image):
+    if not can_run_smdataparallel(ecr_image):
+        pytest.skip("Data Parallelism is supported on PyTorch v1.6 and above")
+
+def can_run_smdataparallel(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    return (Version(image_framework_version) in SpecifierSet(">=1.6"))
+
+def can_run_smmodelparallel(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(image_cuda_version.strip("cu")) >= Version("110")
 
 
 @pytest.mark.processor("cpu")
@@ -114,32 +131,6 @@ def test_mnist_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_bac
         pytorch.fit({'training': training_input})
 
 
-@pytest.mark.integration("smmodelparallel")
-@pytest.mark.model("mnist")
-@pytest.mark.processor("gpu")
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-def test_smmodelparallel_mnist_multigpu(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
-    """
-    Tests pt mnist command via script mode
-    """
-    instance_type = "ml.p3.16xlarge"
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if not(Version(image_framework_version) in SpecifierSet(">=1.6,<1.8")) or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6 and PyTorch 1.7")
-
-    with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(entry_point='smmodelparallel_pt_mnist.sh',
-                          role='SageMakerRole',
-                          image_uri=ecr_image,
-                          source_dir=mnist_path,
-                          instance_count=1,
-                          instance_type=instance_type,
-                          sagemaker_session=sagemaker_session)
-
-        pytorch.fit()
-
 
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
@@ -147,25 +138,43 @@ def test_smmodelparallel_mnist_multigpu(ecr_image, instance_type, py_version, sa
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
+@pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
+def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_version, sagemaker_session, tmpdir, test_script, num_processes):
     """
     Tests pt mnist command via script mode
     """
     instance_type = "ml.p3.16xlarge"
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if not(Version(image_framework_version) in SpecifierSet(">=1.6,<1.8")) or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6 and PyTorch 1.7")
-
+    validate_or_skip_smmodelparallel(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(entry_point='smmodelparallel_pt_mnist_multinode.sh',
-                          role='SageMakerRole',
-                          image_uri=ecr_image,
-                          source_dir=mnist_path,
-                          instance_count=2,
-                          instance_type=instance_type,
-                          sagemaker_session=sagemaker_session)
-
+        pytorch = PyTorch(
+            entry_point=test_script,
+            role='SageMakerRole',
+            image_uri=ecr_image,
+            source_dir=mnist_path,
+            instance_count=2,
+            instance_type=instance_type,
+            sagemaker_session=sagemaker_session,
+            hyperparameters = {"assert-losses": 1, "amp": 1, "ddp": 1, "data-dir": "data/training", "epochs": 5},
+            distribution={
+                "smdistributed": { 
+                    "modelparallel": {
+                        "enabled": True,
+                        "parameters": {
+                            "partitions": 2,
+                            "microbatches": 4,
+                            "optimize": "speed",
+                            "pipeline": "interleaved",
+                            "ddp": True,
+                        },
+                    }
+                },
+                "mpi": {
+                    "enabled": True,
+                    "processes_per_host": num_processes,
+                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none",
+                },
+            },
+        )
         pytorch.fit()
 
 
@@ -179,10 +188,8 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    if (Version(image_framework_version) in SpecifierSet("<1.6")):
-        pytest.skip("Data Parallelism is supported on PyTorch v1.6 and above")
-
+    validate_or_skip_smdataparallel(ecr_image)
+    
     instance_type = "ml.p3.16xlarge"
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smdataparallel_mnist_script_mode.sh',
@@ -208,10 +215,7 @@ def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_s
     """
     Tests smddprun command via Estimator API distribution parameter
     """
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    if (Version(image_framework_version) in SpecifierSet("<1.6")):
-        pytest.skip("Data Parallelism is supported on PT v1.6 and above")
-    
+    validate_or_skip_smdataparallel(ecr_image)
     distribution = {"smdistributed":{"dataparallel":{"enabled":True}}}
     estimator = PyTorch(entry_point='smdataparallel_mnist.py',
                         role='SageMakerRole',
@@ -236,12 +240,19 @@ def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, py_vers
     This test has been added for SM DataParallelism and ModelParallelism tests for re:invent.
     TODO: Consider reworking these tests after re:Invent releases are done
     """
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if not (Version(image_framework_version) in SpecifierSet(">=1.6,<1.8")) or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch 1.6 and PyTorch 1.7")
+    can_run_modelparallel = can_run_smmodelparallel(ecr_image)
+    can_run_dataparallel = can_run_smdataparallel(ecr_image)
+    if can_run_dataparallel and can_run_modelparallel:
+        entry_point = 'smdataparallel_smmodelparallel_mnist_script_mode.sh'
+    elif can_run_dataparallel:
+        entry_point = 'smdataparallel_mnist_script_mode.sh'
+    elif can_run_modelparallel:
+        entry_point = 'smmodelparallel_mnist_script_mode.sh'
+    else:
+        pytest.skip("Both modelparallel and dataparallel dont support this image, nothing to run")
+
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(entry_point='smdataparallel_smmodelparallel_mnist_script_mode.sh',
+        pytorch = PyTorch(entry_point=entry_point,
                           role='SageMakerRole',
                           image_uri=ecr_image,
                           source_dir=mnist_path,
