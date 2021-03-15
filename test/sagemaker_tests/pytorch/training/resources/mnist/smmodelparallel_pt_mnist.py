@@ -102,7 +102,10 @@ def train(args, model, scaler, device, train_loader, optimizer, epoch):
             scaler.step(optimizer)
             scaler.update()
         else:
-            optimizer.step()
+            # some optimizers like adadelta from PT 1.8 dont like it when optimizer.step is called with no param
+            # this is a bug in PT 1.8
+            if len(list(model.local_parameters())) > 0:
+                optimizer.step()
 
         if smp.rank() == 0 and batch_idx % args.log_interval == 0:
             print(
@@ -179,7 +182,7 @@ def get_parser():
         help="input batch size for testing (default: 1000)",
     )
     parser.add_argument(
-        "--epochs", type=int, default=1, metavar="N", help="number of epochs to train (default: 14)"
+        "--epochs", type=int, default=5, metavar="N", help="number of epochs to train (default: 14)"
     )
     parser.add_argument(
         "--lr", type=float, default=4.0, metavar="LR", help="learning rate (default: 1.0)"
@@ -217,14 +220,12 @@ def get_parser():
         default=False,
         help="For Saving the current Model",
     )
-    parser.add_argument("--num-microbatches", type=int, default=4)
     parser.add_argument("--num-batches", type=int, default=0)
-    parser.add_argument("--num-partitions", type=int, default=2)
-    parser.add_argument("--horovod", type=int, default=0)
-    parser.add_argument("--ddp", type=int, default=0)
     parser.add_argument("--amp", type=int, default=0)
-    parser.add_argument("--pipeline", type=str, default="interleaved")
     parser.add_argument("--assert-losses", type=int, default=0)
+    parser.add_argument("--data-dir", type=str, default=None)
+    parser.add_argument("--ddp", type=int, default=0)
+    parser.add_argument('--mp_parameters', type=str, default='')
     return parser
 
 
@@ -234,7 +235,7 @@ def main():
     if not torch.cuda.is_available():
         raise ValueError("The script requires CUDA support, but CUDA not available")
     use_ddp = args.ddp > 0
-    use_horovod = args.horovod > 0
+    
 
     # Fix seeds in order to get the same losses across runs
     random.seed(args.seed)
@@ -242,17 +243,7 @@ def main():
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
 
-    cfg = {
-        "microbatches": args.num_microbatches,
-        "placement_strategy": "spread",
-        "pipeline": args.pipeline,
-        "optimize": "speed",
-        "partitions": args.num_partitions,
-        "horovod": use_horovod,
-        "ddp": use_ddp,
-    }
-
-    smp.init(cfg)
+    smp.init()
 
     # SM Distributed: Set the device to the GPU ID used by the current process.
     # Input tensors should be transferred to this device.
@@ -265,21 +256,24 @@ def main():
         [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
     )
 
-    # SM Distributed: Download only on a single process per instance.
-    # When this is not present, the file is corrupted by multiple processes trying
-    # to download and extract at the same time
-    if smp.local_rank() == 0:
-        dataset1 = datasets.MNIST("../data", train=True, download=True, transform=transform)
-    smp.barrier()
-    dataset1 = datasets.MNIST("../data", train=True, download=False, transform=transform)
+    if args.data_dir is None:
+        # SM Distributed: Download only on a single process per instance.
+        # When this is not present, the file is corrupted by multiple processes trying
+        # to download and extract at the same time
+        args.data_dir = "../data"
+        if smp.local_rank() == 0:
+            dataset1 = datasets.MNIST(args.data_dir, train=True, download=True, transform=transform)
+        smp.barrier()
 
-    if (use_ddp or use_horovod) and smp.dp_size() > 1:
+    dataset1 = datasets.MNIST(args.data_dir, train=True, download=False, transform=transform)
+
+    if (use_ddp) and smp.dp_size() > 1:
         partitions_dict = {f"{i}": 1 / smp.dp_size() for i in range(smp.dp_size())}
         dataset1 = SplitDataset(dataset1, partitions=partitions_dict)
         dataset1.select(f"{smp.dp_rank()}")
 
     # Download and create dataloaders for train and test dataset
-    dataset2 = datasets.MNIST("../data", train=False, transform=transform)
+    dataset2 = datasets.MNIST(args.data_dir, train=False, download=False, transform=transform)
 
     train_loader = torch.utils.data.DataLoader(dataset1, **kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **kwargs)
@@ -338,7 +332,7 @@ def main():
     smp.barrier()
 
     if args.assert_losses:
-        if use_horovod or use_ddp:
+        if use_ddp:
             # SM Distributed: If using data parallelism, gather all losses across different model
             # replicas and check if losses match.
 
@@ -349,6 +343,10 @@ def main():
             assert test_loss < 0.18
         else:
             assert test_loss < 0.08
+
+    # For CI/CD
+    smp.barrier()
+    print("SMP training finished successfully")
 
 
 if __name__ == "__main__":
