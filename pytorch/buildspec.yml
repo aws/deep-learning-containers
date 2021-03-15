@@ -1,7 +1,7 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
-version: &VERSION 1.8.0
+version: &VERSION 1.5.1
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
@@ -27,9 +27,9 @@ context:
       source: docker/build_artifacts/mnist.py
       target: mnist.py
   inference_context: &INFERENCE_CONTEXT
-    torchserve-entrypoint:
-      source: docker/build_artifacts/torchserve-entrypoint.py
-      target: torchserve-entrypoint.py
+    mms-entrypoint:
+      source: docker/build_artifacts/mms-entrypoint.py
+      target: mms-entrypoint.py
     config:
       source: docker/build_artifacts/config.properties
       target: config.properties
@@ -42,7 +42,7 @@ images:
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py36
-    os_version: &OS_VERSION ubuntu18.04
+    os_version: &OS_VERSION ubuntu16.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
     docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
@@ -50,12 +50,12 @@ images:
   BuildGPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false
-    image_size_baseline: 14000
+    image_size_baseline: 9228
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py36
-    cuda_version: &CUDA_VERSION cu111
-    os_version: &OS_VERSION ubuntu18.04
+    cuda_version: &CUDA_VERSION cu101
+    os_version: &OS_VERSION ubuntu16.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
     docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
                          *DEVICE_TYPE ]
@@ -64,13 +64,13 @@ images:
   BuildPyTorchExampleGPUTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false
-    image_size_baseline: 14500
+    image_size_baseline: 9228
     base_image_name: BuildGPUPTTrainPy3DockerImage
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py36
-    cuda_version: &CUDA_VERSION cu111
-    os_version: &OS_VERSION ubuntu18.04
+    cuda_version: &CUDA_VERSION cu101
+    os_version: &OS_VERSION ubuntu16.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
                  "-example" ]
     docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /example, /Dockerfile., *DEVICE_TYPE ]
@@ -83,7 +83,7 @@ images:
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py36
-    os_version: &OS_VERSION ubuntu18.04
+    os_version: &OS_VERSION ubuntu16.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
     docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
@@ -91,12 +91,12 @@ images:
   BuildGPUPTInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &PYTORCH_GPU_INFERENCE_PY3 false
-    image_size_baseline: 14000
+    image_size_baseline: 9228
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py36
-    cuda_version: &CUDA_VERSION cu111
-    os_version: &OS_VERSION ubuntu18.04
+    cuda_version: &CUDA_VERSION cu101
+    os_version: &OS_VERSION ubuntu16.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
     docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
