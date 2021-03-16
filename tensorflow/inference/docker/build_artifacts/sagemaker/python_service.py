@@ -18,9 +18,11 @@ import os
 import subprocess
 import time
 import sys
+import grpc
 
 import falcon
 import requests
+import random
 
 from urllib3.util.retry import Retry
 
@@ -32,10 +34,10 @@ INFERENCE_SCRIPT_PATH = '/opt/ml/model/code/inference.py'
 
 SAGEMAKER_BATCHING_ENABLED = os.environ.get('SAGEMAKER_TFS_ENABLE_BATCHING', 'false').lower()
 MODEL_CONFIG_FILE_PATH = '/sagemaker/model-config.cfg'
-TFS_GRPC_PORT = os.environ.get('TFS_GRPC_PORT')
-TFS_REST_PORT = os.environ.get('TFS_REST_PORT')
+TFS_GRPC_PORT_RANGE = os.environ.get("TFS_GRPC_PORT_RANGE")
+TFS_REST_PORT_RANGE = os.environ.get("TFS_REST_PORT_RANGE")
 SAGEMAKER_TFS_PORT_RANGE = os.environ.get('SAGEMAKER_SAFE_PORT_RANGE')
-
+TFS_INSTANCE_COUNT = int(os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", "1"))
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -65,13 +67,19 @@ class PythonServiceResource:
             self._model_tfs_rest_port = {}
             self._model_tfs_grpc_port = {}
             self._model_tfs_pid = {}
-            self._tfs_ports = self._parse_sagemaker_port_range(SAGEMAKER_TFS_PORT_RANGE)
+            self._tfs_ports = self._parse_sagemaker_port_range_mme(SAGEMAKER_TFS_PORT_RANGE)
             # If Multi-Model mode is enabled, dependencies/handlers will be imported
             # during the _handle_load_model_post()
             self.model_handlers = {}
         else:
-            self._tfs_grpc_port = TFS_GRPC_PORT
-            self._tfs_rest_port = TFS_REST_PORT
+            self._tfs_grpc_ports = self._parse_sagemaker_port_range(TFS_GRPC_PORT_RANGE)
+            self._tfs_rest_ports = self._parse_sagemaker_port_range(TFS_REST_PORT_RANGE)
+
+            self._channels = {}
+            for grpc_port in self._tfs_grpc_ports:
+                # Initialize grpc channel here so gunicorn worker could have mapping
+                # between each grpc port and channel
+                self._setup_channel(grpc_port)
 
             if os.path.exists(INFERENCE_SCRIPT_PATH):
                 self._handler, self._input_handler, self._output_handler = self._import_handlers()
@@ -93,6 +101,17 @@ class PythonServiceResource:
             self._handle_load_model_post(res, data)
 
     def _parse_sagemaker_port_range(self, port_range):
+        lower, upper = port_range.split('-')
+        lower = int(lower)
+        upper = int(upper)
+        if lower == upper:
+            return [lower]
+        return [lower + 2 * i for i in range(TFS_INSTANCE_COUNT)]
+
+    def _pick_port(self, ports):
+        return str(random.choice(ports))
+
+    def _parse_sagemaker_port_range_mme(self, port_range):
         lower, upper = port_range.split('-')
         lower = int(lower)
         upper = lower + int((int(upper) - lower) * 0.9)  # only utilizing 90% of the ports
@@ -272,15 +291,19 @@ class PythonServiceResource:
                     log.info("grpc port: {}".format(str(self._model_tfs_grpc_port[model_name])))
                     data, context = tfs_utils.parse_request(req, rest_port, grpc_port,
                                                             self._tfs_default_model_name,
-                                                            model_name)
+                                                            model_name=model_name)
             else:
                 res.status = falcon.HTTP_400
                 res.body = json.dumps({
                     'error': 'Invocation request does not contain model name.'
                 })
         else:
-            data, context = tfs_utils.parse_request(req, self._tfs_rest_port, self._tfs_grpc_port,
-                                                    self._tfs_default_model_name)
+            # Randomly pick port used for routing incoming request.
+            grpc_port = self._pick_port(self._tfs_grpc_ports)
+            rest_port = self._pick_port(self._tfs_rest_ports)
+            data, context = tfs_utils.parse_request(req, rest_port, grpc_port,
+                                                    self._tfs_default_model_name,
+                                                    channel=self._channels[int(grpc_port)])
 
         try:
             res.status = falcon.HTTP_200
@@ -295,6 +318,11 @@ class PythonServiceResource:
             res.body = json.dumps({
                 'error': str(e)
             }).encode('utf-8')  # pylint: disable=E1101
+
+    def _setup_channel(self, grpc_port):
+        if grpc_port not in self._channels:
+            log.info("Creating grpc channel for port: %s", grpc_port)
+            self._channels[grpc_port] = grpc.insecure_channel("localhost:{}".format(grpc_port))
 
     def _import_handlers(self, model_name=None):
         inference_script = INFERENCE_SCRIPT_PATH
