@@ -1,4 +1,5 @@
 import os
+from github_handler import GitHubHandler
 
 class PullMissingInformation(object):
 
@@ -56,7 +57,39 @@ class PullMissingInformation(object):
     def pull_missing_license(self):
         """Update input json entry by pulling missing license texts info from datafiles
         """
+        if 'https://github.com/' not in self.entry.URL:
+            if 'source_code_url' in self.missing_licenses_info[self.entry.Name]:
+                self.entry.URL = self.missing_licenses_info[self.entry.Name]["source_code_url"]
+
         if 'UNKNOWN' in self.entry.LicenseText:
+            if 'UNKNOWN' not in self.entry.URL and 'UKNOWN' not in self.entry.Version:
+                if 'https://github.com/' in self.entry.URL:
+                    # print("Github repo found: {}".format(self.entry.Name))
+                    url_split =  ' '.join(self.entry.URL.split('/')).split()
+                    github_handler = GitHubHandler(url_split[-2], url_split[-1])
+                    if self.entry.Name == 'patsy':
+                        print("hihihihihi")
+                    for file_name in [ 'LICENSE', 'LICENSE.txt', 'LICENSE.md', 'COPYRIGHT', 'LICENSE.rst' ,'COPYING', 'COPYING.txt']:
+                        content = github_handler.get_file_contents(file_name, self.entry.Version)
+                        if content:
+                            self.entry.LicenseText = [content]
+                            break
+                    if content == "":
+                        print("No license file found on github repo for package {}".format(self.entry.Name))
+                    # if 'UNKNOWN' in self.entry.LicenseText:
+                    #     print("License not found: {}".format(self.entry.Name))
+                else:
+                    print("No github repo: {}".format(self.entry.Name))
+
+# for url in urls:
+#     url_split =  ' '.join(url.split('/')).split()
+#     print(url_split[-1])
+#     print(url_split[-2])
+        if self.entry.Name == 'patsy':
+            print(content)
+            raise
+        if 'UNKNOWN' in self.entry.LicenseText:
+            print(self.entry.Name)
             for row in self.entry.License:
                 # self.entry.License has list of license types which is used to pull license texts from 'licenses' folder
                 if row.lower() not in self.public_licenses:

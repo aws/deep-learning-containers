@@ -140,18 +140,19 @@ class CreateLicenseAttribution(object):
                 self.manage_licenses_warnings.generate_licenses_warnings("not_blessed_license", "package {} has not blessed License {}".format(self.entry.Name, row))
 
     def upload_third_party_source_code_needed_licenses_to_s3(self):
-        if 'github' in self.entry.URL:
-            if 'master' not in self.entry.URL:
-                if not os.path.exists(self.cloned_folder_name):
-                    subprocess.check_output(["bash", "-c", "git clone {0} {1}".format(self.entry.URL, self.cloned_folder_name)])
-                    subprocess.check_output(["bash", "-c", "tar -czvf {0}.tar.gz {0}".format(self.cloned_folder_name)])
-                    try:
-                        subprocess.check_call(["bash", "-c", "aws s3api head-object --bucket {0} --key {1}/{2}.tar.gz".format(S3_BUCKET_PATH, S3_THIRD_PARTY_OBJECT_PATH, self.cloned_folder_name)])
-                    except subprocess.CalledProcessError as e:
-                        print("Uploading third party source code needed licenses: {}".format(self.cloned_folder_name))
-                        subprocess.check_output(["bash", "-c", "aws s3 cp {0}.tar.gz s3://{1}/{2}/{0}.tar.gz"
-                                                    .format(self.cloned_folder_name, S3_BUCKET_PATH, S3_THIRD_PARTY_OBJECT_PATH)])
-            else:
-                self.manage_licenses_warnings.generate_licenses_warnings("cant_clone_repo", "package {} repo cant be cloned as url is not supported for git clone {}".format(self.entry.Name, self.entry.URL))
-        else:
-            self.manage_licenses_warnings.generate_licenses_warnings("no_github_repo", "package {} has no github url to git clone {}".format(self.entry.Name, self.entry.URL))
+        print("hi")
+        # if 'github' in self.entry.URL:
+        #     if 'master' not in self.entry.URL:
+        #         if not os.path.exists(self.cloned_folder_name):
+        #             subprocess.check_output(["bash", "-c", "git clone {0} {1}".format(self.entry.URL, self.cloned_folder_name)])
+        #             subprocess.check_output(["bash", "-c", "tar -czvf {0}.tar.gz {0}".format(self.cloned_folder_name)])
+        #             try:
+        #                 subprocess.check_call(["bash", "-c", "aws s3api head-object --bucket {0} --key {1}/{2}.tar.gz".format(S3_BUCKET_PATH, S3_THIRD_PARTY_OBJECT_PATH, self.cloned_folder_name)])
+        #             except subprocess.CalledProcessError as e:
+        #                 print("Uploading third party source code needed licenses: {}".format(self.cloned_folder_name))
+        #                 subprocess.check_output(["bash", "-c", "aws s3 cp {0}.tar.gz s3://{1}/{2}/{0}.tar.gz"
+        #                                             .format(self.cloned_folder_name, S3_BUCKET_PATH, S3_THIRD_PARTY_OBJECT_PATH)])
+        #     else:
+        #         self.manage_licenses_warnings.generate_licenses_warnings("cant_clone_repo", "package {} repo cant be cloned as url is not supported for git clone {}".format(self.entry.Name, self.entry.URL))
+        # else:
+        #     self.manage_licenses_warnings.generate_licenses_warnings("no_github_repo", "package {} has no github url to git clone {}".format(self.entry.Name, self.entry.URL))

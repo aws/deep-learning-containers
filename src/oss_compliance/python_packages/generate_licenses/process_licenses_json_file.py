@@ -45,7 +45,7 @@ class LicenseEntry(object):
 license_txt_file_name = "PYTHON_PACKAGES_LICENSES"
 license_json_file_name = "PACKAGES_LICENSES_JSON"
 
-home_dir = "/"
+home_dir = "/Users/jspatil/workspace/deep-learning-containers/src/"
 python_packages_dir = os.path.join(home_dir, "oss_compliance", "python_packages")
 
 dir_paths = {

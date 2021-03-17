@@ -31,6 +31,7 @@ class LicenseEntry(object):
     LicenseText: str
 
 license_txt_file_name = "LINUX_PACKAGES_LICENSES"
+packages_list_txt_file_name = "LINUX_PACKAGES_LIST"
 
 home_dir = "/"
 
@@ -38,10 +39,13 @@ class License_attribution_file(object):
 
     def __init__(self):
         license_text_file_path = os.path.join(home_dir, license_txt_file_name)
+        packages_list_txt_file_path = os.path.join(home_dir, packages_list_txt_file_name)
+        self.packages_list_txt_file_name = open(packages_list_txt_file_path, "w+")
         self.license_txt_file = open(license_text_file_path, "w+")
 
     def create_license_attribution_file(self):
         output = subprocess.check_output("dpkg -l | grep '^.[iufhwt]'", shell=True, universal_newlines=True)
+        self.packages_list_txt_file_name.write(output)
         output_list = output.split("\n")
         for packages in output_list:
             package_details = ' '.join(packages.split()).split(' ')

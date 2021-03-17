@@ -35,6 +35,7 @@
   },
   "pycrypto": {
     "license_type": "public domain",
+    "source_code_url": "https://github.com/pycrypto/pycrypto",
     "copyright_info": [
       "Copyright (c) 2020 Andrew M. Kuchling and other contributors"
     ]
@@ -48,6 +49,7 @@
   },
   "pandocfilters": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/jgm/pandocfilters",
     "copyright_info": [
       "Copyright (c) 2013, John MacFarlane All rights reserved."
     ]
@@ -60,6 +62,7 @@
   },
   "locket": {
     "license_type": "BSD_2",
+    "source_code_url": "https://github.com/cloudfoundry/locket",
     "copyright_info": [
       "Copyright (c) 2015-Present CloudFoundry.org Foundation, Inc. All Rights Reserved."
     ]
@@ -67,10 +70,7 @@
   "gmpy2": {
     "license_type": "LGPL_3",
     "copyright_info": ["Copyright (c) 2007 Free Software Foundation, Inc."],
-    "source_code_url": "https://github.com/aleaxit/gmpy",
-    "internal_package_info": {
-      "internal_package_not_found": "No internal package license information was found for this project."
-    }
+    "source_code_url": "https://github.com/aleaxit/gmpy"
   },
   "protobuf3-to-dict": {
     "license_type": "public domain",
@@ -141,7 +141,8 @@
     "copyright_info": ["No copyright statement was found for this project."]
   },
   "argh": {
-    "license_type": "LGPL_3"
+    "license_type": "LGPL_3",
+    "source_code_url": "https://github.com/neithere/argh"
   },
   "chainercv": {
     "license_type": "MIT",
@@ -194,6 +195,7 @@
   },
   "protobuf": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/protocolbuffers/protobuf",
     "copyright_info": ["Copyright 2008 Google Inc.  All rights reserved."]
   },
   "bleach": {
@@ -209,6 +211,7 @@
   },
   "xlwt": {
     "license_type": "xlwt_license",
+    "source_code_url": "https://github.com/python-excel/xlwt",
     "copyright_info": [
       "Copyright (c) 2007, Stephen John Machin, Lingfo Pty Ltd",
       "Copyright (c) 2010, Manfred Moitzi",
@@ -220,10 +223,7 @@
   },
   "greenlet": {
     "license_type": "MIT",
-    "copyright_info": ["Copyright (c) 2011, Armin Rigo, Christian Tismer"],
-    "internal_package_info": {
-      "internal_package_not_found": "No internal package license information was found for this project."
-    }
+    "copyright_info": ["Copyright (c) 2011, Armin Rigo, Christian Tismer"]
   },
   "tqdm": {
     "license_type": "MIT",
@@ -248,6 +248,7 @@
   },
   "zict": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/dask/zict",
     "copyright_info": ["Copyright (c) 2016 Matthew Rocklin"]
   },
   "click": {
@@ -263,12 +264,7 @@
     "copyright_info": [
       "Copyright (c) 2006-2013 Apple Inc. All rights reserved."
     ],
-    "source_code_url": "https://github.com/apple/ccs-pykerberos",
-    "internal_package_info": {
-      "package_name": "double-conversion",
-      "license_type": "BSD_3",
-      "copyright_info": "Copyright 2006-2011, the V8 project authors. All rights reserved."
-    }
+    "source_code_url": "https://github.com/apple/ccs-pykerberos"
   },
   "pandas": {
     "license_type": "BSD_3",
@@ -280,10 +276,7 @@
   },
   "pyodbc": {
     "license_type": "MIT",
-    "copyright_info": ["No copyright statement was found for this project."],
-    "internal_package_info": {
-      "internal_package_not_found": "No internal package license information was found for this project."
-    }
+    "copyright_info": ["No copyright statement was found for this project."]
   },
   "scikit-image": {
     "license_type": "scikit-image_license",
@@ -362,10 +355,7 @@
   },
   "pycurl": {
     "license_type": "LGPL_2",
-    "source_code_url": "https://github.com/pycurl/pycurl",
-    "internal_package_info": {
-      "internal_package_not_found": "No internal package license information was found for this project."
-    }
+    "source_code_url": "https://github.com/pycurl/pycurl"
   },
   "nose": {
     "license_type": "LGPL_2",
@@ -500,6 +490,7 @@
   },
   "lief": {
     "license_type": "Apache_2",
+    "source_code_url": "https://github.com/lief-project/LIEF",
     "copyright_info": [
       "Copyright (c) 2020 Romain Thomas <rthomas@quarkslab.com>."
     ],
@@ -511,6 +502,7 @@
   },
   "sortedcontainers": {
     "license_type": "Apache_2",
+    "source_code_url": "https://github.com/grantjenks/python-sortedcontainers",
     "copyright_info": ["Copyright 2014-2019 Grant Jenks"],
     "notice": "No notice statement was found for this project."
   },
@@ -649,10 +641,7 @@
     "copyright_info": [
       "Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved."
     ],
-    "notice": "No notice statement was found for this project.",
-    "internal_package_info": {
-      "internal_package_not_found": "No internal package license information was found for this project."
-    }
+    "notice": "No notice statement was found for this project."
   },
   "tensorflow-neuron": {
     "license_type": "Apache_2",
@@ -665,6 +654,7 @@
   },
   "gevent": {
     "license_type": "MIT",
+    "source_code_url": "https://github.com/gevent/gevent",
     "copyright_info": ["No copyright statement was found for this project."]
   },
   "iniconfig": {
@@ -676,12 +666,11 @@
   },
   "patsy": {
     "license_type": "BSD_2",
-    "copyright_info": [
-      "Copyright (C) 2011-2012, Patsy Developers. All rights reserved."
-    ]
+    "source_code_url": "https://github.com/pydata/patsy"
   },
   "Click": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/pallets/click",
     "copyright_info": ["Copyright 2014 Pallets"]
   },
   "sphinx": {
@@ -690,11 +679,11 @@
   },
   "astropy": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/astropy/astropy",
     "copyright_info": ["Copyright (c) 2011-2020, Astropy Developers"]
   },
   "clyent": {
-    "license_type": "clyent_license",
-    "copyright_info": ["Copyright © 2017, Continuum Analytics, Inc."]
+    "source_code_url": "https://github.com/Anaconda-Platform/clyent"
   },
   "colorama": {
     "license_type": "BSD_3",
@@ -704,6 +693,7 @@
   },
   "cycler": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/matplotlib/cycler",
     "copyright_info": [
       "Copyright (c) 2015, matplotlib project. All rights reserved."
     ]
@@ -712,6 +702,7 @@
     "license_type": "PSF"
   },
   "matplotlib": {
+    "source_code_url": "https://github.com/matplotlib/matplotlib",
     "license_type": "matplotlib_license"
   },
   "cytoolz": {
@@ -743,10 +734,12 @@
   },
   "ipython-genutils": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/ipython/ipython_genutils",
     "copyright_info": ["Copyright (c) 2015, IPython Development Team"]
   },
   "jupyter": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/jupyter/jupyter",
     "copyright_info": [
       "Copyright (c) 2017, Project Jupyter Contributors. All rights reserved."
     ]
@@ -771,6 +764,7 @@
   },
   "jupyterlab": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/jupyterlab/jupyterlab",
     "copyright_info": [
       "Copyright (c) 2015 Project Jupyter Contributors. All rights reserved."
     ]
@@ -779,17 +773,16 @@
     "license_type": "BSD_3",
     "copyright_info": [
       "Copyright (c) 2013, Nucleic Development Team. All rights reserved."
-    ],
-    "internal_package_info": {
-      "internal_package_not_found": "No internal package license information was found for this project."
-    }
+    ]
   },
   "llvmlite": {
     "license_type": "BSD_2",
+    "source_code_url": "https://github.com/numba/llvmlite",
     "copyright_info": ["Copyright (c) 2014-, Continuum Analytics, Inc."]
   },
   "lxml": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/lxml/lxml",
     "copyright_info": ["Copyright (c) 2004 Infrae. All rights reserved."]
   },
   "mkl_fft": {
@@ -802,12 +795,14 @@
   },
   "mpmath": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/fredrik-johansson/mpmath",
     "copyright_info": [
       "Copyright (c) 2005-2018 Fredrik Johansson and mpmath contributors. All rights reserved."
     ]
   },
   "multipledispatch": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/mrocklin/multipledispatch",
     "copyright_info": [
       "Copyright (c) 2014 Matthew Rocklin. All rights reserved."
     ]
@@ -835,24 +830,24 @@
   },
   "numpy": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/numpy/numpy",
     "copyright_info": [
       "Copyright (c) 2005-2020, NumPy Developers. All rights reserved."
     ]
   },
   "numba": {
     "license_type": "BSD_2",
+    "source_code_url": "https://github.com/numba/numba",
     "copyright_info": [
       "Copyright (c) 2012, Anaconda, Inc. All rights reserved."
     ]
   },
   "olefile": {
-    "license_type": "olefile_license",
-    "copyright_info": [
-      "copyright (c) 2005-2019 Philippe Lagadec (https://www.decalage.info). All rights reserved."
-    ]
+    "source_code_url": "https://github.com/decalage2/olefile"
   },
   "ply": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/dabeaz/ply",
     "copyright_info": [
       "Copyright (C) 2001-2018 David M. Beazley (Dabeaz LLC) All rights reserved."
     ]
@@ -888,6 +883,7 @@
   },
   "mkl-fft": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/IntelPython/mkl_fft",
     "copyright_info": ["Copyright (c) 2017-2019, Intel Corporation"]
   },
   "webencodings": {
@@ -928,6 +924,7 @@
   },
   "anaconda-client": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/Anaconda-Platform/anaconda-client",
     "copyright_info": [
       "Copyright (c) 2016, Continuum Analytics, Inc. All rights reserved."
     ]
@@ -938,6 +935,7 @@
   },
   "ujson": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/ultrajson/ultrajson",
     "copyright_info": [
       "Developed by ESN, an Electronic Arts Inc. studio.",
       "Copyright (c) 2014, Electronic Arts Inc. All rights reserved.",
@@ -948,12 +946,7 @@
       "https://opensource.apple.com/source/tcl/tcl-14/tcl/license.terms",
       " * Copyright (c) 1988-1993 The Regents of the University of California.",
       "* Copyright (c) 1994 Sun Microsystems, Inc."
-    ],
-    "internal_package_info": {
-      "package_name": "double-conversion",
-      "license_type": "BSD_3",
-      "copyright_info": "Copyright 2006-2011, the V8 project authors. All rights reserved."
-    }
+    ]
   },
   "unicodecsv": {
     "license_type": "BSD_3",
@@ -977,6 +970,7 @@
   },
   "pep8": {
     "license_type": "Expatlicense",
+    "source_code_url": "https://github.com/treyhunner/pep8",
     "copyright_info": [
       "Copyright © 2006-2009 Johann C. Rocholl <johann@rocholl.net>",
       "Copyright © 2009-2014 Florent Xicluna <florent.xicluna@gmail.com>",
@@ -985,6 +979,7 @@
   },
   "pycodestyle": {
     "license_type": "Expatlicense",
+    "source_code_url": "https://github.com/PyCQA/pycodestyle",
     "copyright_info": [
       "Copyright © 2006-2009 Johann C. Rocholl <johann@rocholl.net>",
       "Copyright © 2009-2014 Florent Xicluna <florent.xicluna@gmail.com>",
@@ -1046,6 +1041,7 @@
   },
   "et-xmlfile": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/conda-forge/et-xmlfile-feedstock",
     "copyright_info": [
       "Copyright (c) 2015-2019, conda-forge",
       "All rights reserved."
@@ -1057,27 +1053,28 @@
   },
   "pkginfo": {
     "license_type": "MIT",
+    "source_code_url": "https://github.com/rsquaredacademy/pkginfo",
     "copyright_info": ["Copyright (c) 2009 Agendaless Consulting, Inc."]
   },
   "pycosat": {
     "license_type": "MIT",
     "copyright_info": [
       "Copyright (c) 2013, Ilan Schnell, Continuum Analytics, Inc."
-    ],
-    "internal_package_info": {
-      "internal_package_not_found": "No internal package license information was found for this project."
-    }
+    ]
   },
   "singledispatch": {
     "license_type": "MIT",
+    "source_code_url": "https://github.com/ambv/singledispatch",
     "copyright_info": ["Copyright (C) 2013 by Łukasz Langa"]
   },
   "pytest": {
     "license_type": "MIT",
+    "source_code_url": "https://github.com/pytest-dev/pytest",
     "copyright_info": ["Copyright (c) 2004-2020 Holger Krekel and others"]
   },
   "bkcharts": {
     "license_type": "BSD_3",
+    "source_code_url": "https://github.com/bokeh/bkcharts",
     "copyright_info": ["Copyright (c) 2012, Continuum Analytics, Inc."]
   },
   "keyring": {
@@ -1094,6 +1091,7 @@
   },
   "simplegeneric": {
     "license_type": "ZPL_2",
+    "source_code_url": "https://github.com/mindw/simplegeneric",
     "copyright_info": ["No copyright statement was found for this project."]
   },
   "aiohttp": {
@@ -1243,45 +1241,20 @@
   "enum-compat": {
     "license_type": "MIT",
     "copyright_info": ["No copyright statement was found for this project."],
-    "notice": "No notice statement was found for this project.",
-    "internal_package_info": {
-      "internal_package_not_found": "No internal package license information was found for this project."
-    }
+    "notice": "No notice statement was found for this project."
   },
   "aws-mx-cu101": {
-    "license_type": "mxnet_1.7.0_license",
-    "notice": "mxnet_1.7.0_notice"
+    "source_code_url": "https://github.com/apache/incubator-mxnet"
   },
   "aws-mxnet-cu101mkl": {
-    "license_type": "mxnet_1.6.0_license",
-    "notice": "mxnet_1.6.0_notice"
+    "source_code_url": "https://github.com/apache/incubator-mxnet"
   },
   "aws-mx-cu110": {
-    "license_type": "mxnet_1.8.0_license",
-    "notice": "mxnet_1.8.0_notice"
+    "source_code_url": "https://github.com/apache/incubator-mxnet"
   },
   "Keras": {
-    "license_type": "MIT",
-    "copyright_info": [
-      "All contributions by François Chollet:",
-      "Copyright (c) 2015 - 2019, François Chollet.",
-      "All rights reserved.",
-      "\n",
-      "All contributions by Google:",
-      "Copyright (c) 2015 - 2019, Google, Inc.",
-      "All rights reserved.",
-      "\n",
-      "All contributions by Microsoft:",
-      "Copyright (c) 2017 - 2019, Microsoft, Inc.",
-      "All rights reserved.",
-      "\n",
-      "All other contributions:",
-      "Copyright (c) 2015 - 2019, the respective contributors.",
-      "All rights reserved.",
-      "\n",
-      "Each contributor holds copyright over their respective contributions.",
-      "The project versioning (Git) records all such contribution source information."
-    ]
+    "license_type": "Apache_2",
+    "source_code_url": "https://github.com/keras-team/keras"
   },
   "highwayhash": {
     "license_type": "Apache_2",
