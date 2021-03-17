@@ -11,7 +11,6 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-import boto3
 import logging
 import os
 import re
@@ -33,6 +32,7 @@ PYTHON_LIB_PATH = '/opt/ml/model/code/lib'
 REQUIREMENTS_PATH = '/opt/ml/model/code/requirements.txt'
 INFERENCE_PATH = '/opt/ml/model/code/inference.py'
 
+
 class ServiceManager(object):
     def __init__(self):
         self._state = 'initializing'
@@ -46,6 +46,8 @@ class ServiceManager(object):
         self._nginx_loglevel = os.environ.get('SAGEMAKER_TFS_NGINX_LOGLEVEL', 'error')
         self._tfs_default_model_name = os.environ.get('SAGEMAKER_TFS_DEFAULT_MODEL_NAME', 'None')
         self._sagemaker_port_range = os.environ.get('SAGEMAKER_SAFE_PORT_RANGE', None)
+        self._gunicorn_workers = os.environ.get("SAGEMAKER_GUNICORN_WORKERS", 1)
+        self._gunicorn_threads = os.environ.get("SAGEMAKER_GUNICORN_THREADS", 1)
         self._tfs_config_path = '/sagemaker/model-config.cfg'
         self._tfs_batching_config_path = '/sagemaker/batching-config.cfg'
 
@@ -153,9 +155,11 @@ class ServiceManager(object):
 
         gunicorn_command = (
             "gunicorn -b unix:/tmp/gunicorn.sock -k {} --chdir /sagemaker "
+            "--workers {} --threads {} "
             "{}{} -e TFS_GRPC_PORT_RANGE={} -e TFS_REST_PORT_RANGE={} "
             "-e SAGEMAKER_MULTI_MODEL={} -e SAGEMAKER_SAFE_PORT_RANGE={} "
             "python_service:app").format(self._gunicorn_worker_class,
+                                         self._gunicorn_workers, self._gunicorn_threads,
                                          python_path_option, ",".join(python_path_content),
                                          self._tfs_grpc_port_range, self._tfs_rest_port_range,
                                          self._tfs_enable_multi_model_endpoint,
@@ -163,7 +167,7 @@ class ServiceManager(object):
 
         log.info('gunicorn command: {}'.format(gunicorn_command))
         self._gunicorn_command = gunicorn_command
-    
+
     def _create_nginx_tfs_upstream(self):
         indentation = "    "
         tfs_upstream = ""
