@@ -6,36 +6,48 @@ from test.test_utils import get_framework_and_version_from_tag
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.processor("gpu")
+@pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_telemetry_bad_instance_role_gpu(gpu, ec2_client, ec2_instance, ec2_connection):
     _run_bad_instance_role(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.processor("cpu")
+@pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
 def test_telemetry_bad_instance_role_cpu(cpu, ec2_client, ec2_instance, ec2_connection):
     _run_bad_instance_role(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.processor("neuron")
+@pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
 def test_telemetry_bad_instance_role_neuron(neuron, ec2_client, ec2_instance, ec2_connection):
     _run_bad_instance_role(neuron, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.processor("gpu")
+@pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_connection):
     _run_tag_success(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.processor("cpu")
+@pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
 def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_connection):
     _run_tag_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.processor("neuron")
+@pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
 def test_telemetry_instance_tag_success_neuron(neuron, ec2_client, ec2_instance, ec2_connection):
     _run_tag_success(neuron, ec2_client, ec2_instance, ec2_connection)
