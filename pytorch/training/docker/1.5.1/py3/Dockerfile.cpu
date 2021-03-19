@@ -4,7 +4,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
 
 # Add arguments to achieve the version, python and url
-ARG PYTHON_VERSION=3.6.10
+ARG PYTHON_VERSION=3.6.13
 ARG OPEN_MPI_VERSION=4.0.1
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
@@ -70,8 +70,12 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
- && /opt/conda/bin/conda install -y -c anaconda \
+ && /opt/conda/bin/conda update conda \
+ && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -y -c anaconda \
+    # conda 4.9.2 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.87 \
     numpy==1.16.4 \
     ipython==7.10.1 \
     mkl==2019.4 \
@@ -95,6 +99,8 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
+    # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
+    "PyYAML>=5.4,<5.5" \
     "awscli<2" \
     fastai==1.0.59 \
     scipy==1.2.2 \
@@ -119,8 +125,8 @@ RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.1
 RUN pip install \
     psutil==5.6.7 \
     Pillow==7.1.0 \
-    # cryptography required by pyopenssl and paramiko, <=3.2 has safety vulnerabilities
-    "cryptography>3.2"
+    # cryptography required by pyopenssl and paramiko, <3.3.2 has safety vulnerabilities
+    "cryptography>=3.3.2"
 
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
