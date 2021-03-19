@@ -114,10 +114,8 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     typing \
     future \
     "pyopenssl>=17.5.0" \
+ && conda install -y -c dglteam dgl-cuda11.0 \
  && ${CONDA_PREFIX}/bin/conda clean -ya
-
-# DGL has noted incompatibility issues with CUDA 11.0 - regarding specific libraries i.e. CUB. Re-enable this package once this issue has been resolved.
-# RUN pip install https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_cuda/dgl-0.5.2-cp36-cp36m-manylinux1_x86_64.whl
 
 RUN conda install -c pytorch magma-cuda110==2.5.2 \
  && conda install -c conda-forge \
@@ -129,12 +127,15 @@ RUN conda install -c pytorch magma-cuda110==2.5.2 \
     libgcc \
  && conda clean -ya
 
-# Install libboost from source
+# Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO].
 RUN wget --quiet https://dl.bintray.com/boostorg/release/1.73.0/source/boost_1_73_0.tar.gz \
   && tar -xzf boost_1_73_0.tar.gz \
   && cd boost_1_73_0 \
   && ./bootstrap.sh \
-  && ./b2 threading=multi --prefix=${CONDA_PREFIX} -j 64 cxxflags=-fPIC cflags=-fPIC install || true
+  && ./b2 threading=multi --prefix=${CONDA_PREFIX} -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
+  && cd .. \
+  && rm -rf boost_1_73_0.tar.gz \
+  && rm -rf boost_1_73_0
 
 WORKDIR /opt/pytorch
 
@@ -149,7 +150,7 @@ RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
  && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
-RUN pip install --no-cache-dir -U \ 
+RUN pip install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
@@ -239,7 +240,7 @@ RUN rm -rf /root/.ssh/ && \
  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 # Install SM Distributed Modelparallel binary
-RUN pip install --no-cache-dir -U ${SMD_MP_BINARY} 
+RUN pip install --no-cache-dir -U ${SMD_MP_BINARY}
 
 # Install SM Distributed DataParallel binary
 RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
