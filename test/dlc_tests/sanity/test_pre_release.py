@@ -198,7 +198,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     # Record any whitelisted medium/low severity CVEs; I.E. allowed_vulnerabilities = {CVE-1000-5555, CVE-9999-9999}
     allowed_vulnerabilities = {
         # Those vulnerabilities are fixed. Current openssl version is 1.1.1g. These are false positive
-        'CVE-2016-2109', 'CVE-2016-2177', 'CVE-2016-6303', 'CVE-2016-2182', 
+        'CVE-2016-2109', 'CVE-2016-2177', 'CVE-2016-6303', 'CVE-2016-2182',
         # CVE-2020-13936: vulnerability found in apache velocity package which is a dependency for dependency-check package. Hence, ignoring.
         'CVE-2020-13936',
     }
@@ -371,9 +371,9 @@ def test_sm_pysdk_2(training):
     """
 
     _, image_framework_version = get_framework_and_version_from_tag(training)
-    
+
     if Version(image_framework_version) == Version("1.5.0"):
-        pytest.skip("sagemaker version < 2.0 is installled for PT 1.5.0 images")
+        pytest.skip("sagemaker version < 2.0 is installed for PT 1.5.0 images")
 
     # Ensure that sm py sdk 2 is on the container
     ctx = Context()
