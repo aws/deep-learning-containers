@@ -1,0 +1,18 @@
+# https://github.com/aws/deep-learning-containers/blob/master/available_images.md 
+# refer to the above page to pull latest Pytorch image
+
+# docker image region us-west-2
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.7.1-gpu-py36-cu110-ubuntu18.04
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# version args
+ARG TRANSFORMERS_VERSION==4.4.0
+ARG DATASETS_VERSION==1.4.1
+
+# install Hugging Face libraries and its dependencies
+RUN pip install --no-cache-dir \ 
+	transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \ 
+	datasets==${DATASETS_VERSION}
+RUN apt-get update && apt install git-lfs
