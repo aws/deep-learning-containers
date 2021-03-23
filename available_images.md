@@ -107,13 +107,22 @@ You can pin your version by adding the version tag to your URL as follows:
 |PyTorch 1.8.0      |inference	|No				|CPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.8.0-cpu-py36-ubuntu18.04			|
 
 
+HuggingFace training containers
+===============================
+
+| Framework         |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
+|-------------------|-----------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
+|TensorFlow 2.4.1 with HuggingFace transformers   |training	|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-west-2.amazonaws.com/huggingface-pytorch-training:1.6.0-transformers4.4.2-gpu-py36-cu110-ubuntu18.04		|
+|PyTorch 1.6.0   with HuggingFace transformers    |training	|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-west-2.amazonaws.com/huggingface-tensorflow-training:2.4.1-transformers4.4.2-gpu-py37-cu110-ubuntu18.04 	|
+
+
 Elastic Inference Containers
 ============================
 
 | Framework 			                      |Job Type 	 |Horovod Options 	  |CPU/GPU 	   |Python Version Options     |Example URL 			                                                                           |
 |---------------------------------------------|--------------|--------------------|------------|---------------------------|---------------------------------------------------------------------------------------------------|
+|TensorFlow 2.3.0 with Elastic Inference 	  |inference     |No 			      |CPU 		   |3.7 (py37) 	   |763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference-eia:2.3.0-cpu-py37-ubuntu18.04   |
 |TensorFlow 1.15.0 with Elastic Inference     |inference 	 |No                  |CPU         |2.7 (py27), 3.6 (py36) 	   |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-eia:1.15.0-cpu-py36-ubuntu18.04  |
-|TensorFlow 2.0.0 with Elastic Inference 	  |inference     |No 			      |CPU 		   |2.7 (py27), 3.6 (py36) 	   |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-eia:2.0.0-cpu-py36-ubuntu18.04   |
 |MXNet 1.7.0 with Elastic Inference           |inference     |No 			      |CPU 		   |3.6 (py36) 	   |763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference-eia:1.7.0-cpu-py36-ubuntu16.04        |
 |PyTorch 1.5.1 with Elastic Inference 		  |inference 	 |No 			      |CPU 		   |3.6 (py36) 			       |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-eia:1.5.1-cpu-py36-ubuntu16.04      |
 
@@ -188,6 +197,7 @@ Prior Elastic Inference Container Versions
 ==============
 | Framework 			                      |Job Type 	 |Horovod Options 	  |CPU/GPU 	   |Python Version Options     |Example URL 			                                                                           |
 |---------------------------------------------|--------------|--------------------|------------|---------------------------|---------------------------------------------------------------------------------------------------|
+|TensorFlow 2.0.0 with Elastic Inference 	  |inference     |No 			      |CPU 		   |2.7 (py27), 3.6 (py36) 	   |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-eia:2.0.0-cpu-py36-ubuntu18.04   |
 |MXNet 1.5.1 with Elastic Inference           |inference     |No 			      |CPU 		   |3.6 (py36) 	   |763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference-eia:1.5.1-cpu-py36-ubuntu16.04        |
 |PyTorch 1.3.1 with Elastic Inference 		  |inference 	 |No 			      |CPU 		   |3.6 (py36) 			       |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-eia:1.3.1-cpu-py36-ubuntu16.04      |
 |TensorFlow 1.14.0 with Elastic Inference 	  |inference 	 |No                      |CPU 	        |2.7 (py27), 3.6 (py36) 			      |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-eia:1.14.0-cpu-py36-ubuntu16.04   |
