@@ -708,12 +708,8 @@ def get_framework_and_version_from_tag(image_uri):
     :param image_uri: ECR image URI
     :return: framework name, framework version
     """
-    tested_framework = None
-    allowed_frameworks = ("tensorflow", "mxnet", "pytorch")
-    for framework in allowed_frameworks:
-        if framework in image_uri:
-            tested_framework = framework
-            break
+    tested_framework = get_framework_from_image_uri(image_uri)
+    allowed_frameworks = ("huggingface_tensorflow", "huggingface_pytorch", "tensorflow", "mxnet", "pytorch")
 
     if not tested_framework:
         raise RuntimeError(
@@ -724,6 +720,16 @@ def get_framework_and_version_from_tag(image_uri):
 
     return tested_framework, tag_framework_version
 
+
+def get_framework_from_image_uri(image_uri):
+    return (
+        "huggingface_tensorflow" if "huggingface-tensorflow" in image_uri
+        else "huggingface_pytorch" if "huggingface-pytorch" in image_uri
+        else "mxnet" if "mxnet" in image_uri
+        else "pytorch" if "pytorch" in image_uri
+        else "tensorflow" if "tensorflow" in image_uri
+        else None
+    )
 
 def get_cuda_version_from_tag(image_uri):
     """
