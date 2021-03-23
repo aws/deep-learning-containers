@@ -53,8 +53,12 @@ def image_builder(buildspec):
     BUILDSPEC.load(buildspec)
     IMAGES = []
 
+    if "huggingface" in str(BUILDSPEC["framework"]):
+        os.system("echo login into public ECR")
+        os.system("aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com")
+
     for image_name, image_config in BUILDSPEC["images"].items():
-        ARTIFACTS = deepcopy(BUILDSPEC["context"])
+        ARTIFACTS = deepcopy(BUILDSPEC["context"]) if BUILDSPEC.get("context") else {}
 
         extra_build_args = {}
         labels = {}
@@ -116,6 +120,9 @@ def image_builder(buildspec):
         )
 
         context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
+
+        if "labels" in image_config:
+            labels.update(image_config.get("labels"))
 
         """
         Override parameters from parent in child.
