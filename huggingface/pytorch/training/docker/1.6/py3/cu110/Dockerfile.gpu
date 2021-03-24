@@ -11,8 +11,8 @@ ARG DATASETS_VERSION
 RUN pip install --no-cache-dir \ 
 	transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \ 
 	datasets==${DATASETS_VERSION}
-RUN apt-get update && \
-    apt install git-lfs && \
-    apt-get clean && \
-    rm -rf /…/apt-cache
+RUN apt-get update \
+    && apt install git-lfs \
+    && apt-get clean \
+    && rm -rf /…/apt-cache
 

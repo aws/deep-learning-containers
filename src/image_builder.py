@@ -114,7 +114,7 @@ def image_builder(buildspec):
             if "transformers_version" in image_config:
                 extra_build_args["TRANSFORMERS_VERSION"] = image_config.get("transformers_version")
             else:
-                raise KeyError(f"HuggingFace buildspec.yml must contain 'transformer_version' field for each image")
+                raise KeyError(f"HuggingFace buildspec.yml must contain 'transformers_version' field for each image")
             if "datasets_version" in image_config:
                 extra_build_args["DATASETS_VERSION"] = image_config.get("datasets_version")
             else:
