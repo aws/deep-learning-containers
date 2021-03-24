@@ -16,7 +16,6 @@ import json
 import logging
 import os
 import subprocess
-import time
 import sys
 import grpc
 
@@ -24,9 +23,7 @@ import falcon
 import requests
 import random
 
-from urllib3.util.retry import Retry
-
-from multi_model_utils import lock, timeout, MultiModelException
+from multi_model_utils import lock, MultiModelException
 import tfs_utils
 
 SAGEMAKER_MULTI_MODEL_ENABLED = os.environ.get('SAGEMAKER_MULTI_MODEL', 'false').lower() == 'true'
@@ -91,6 +88,7 @@ class PythonServiceResource:
 
         self._tfs_enable_batching = SAGEMAKER_BATCHING_ENABLED == 'true'
         self._tfs_default_model_name = os.environ.get('TFS_DEFAULT_MODEL_NAME', "None")
+        self._tfs_wait_time_seconds = int(os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 300))
 
     def on_post(self, req, res, model_name=None):
         log.info(req.uri)
@@ -176,7 +174,8 @@ class PythonServiceResource:
                     batching_config_file,
                 )
                 p = subprocess.Popen(cmd.split())
-                self._wait_for_model(model_name)
+                tfs_utils.wait_for_model(self._model_tfs_rest_port[model_name], model_name,
+                                         self._tfs_wait_time_seconds)
 
                 log.info('started tensorflow serving (pid: %d)', p.pid)
                 # update model name <-> tfs pid map
@@ -254,25 +253,6 @@ class PythonServiceResource:
     def _cleanup_config_file(self, config_file):
         if os.path.exists(config_file):
             os.remove(config_file)
-
-    def _wait_for_model(self, model_name):
-        url = "http://localhost:{}/v1/models/{}".format(self._model_tfs_rest_port[model_name],
-                                                        model_name)
-        with timeout():
-            while True:
-                time.sleep(0.5)
-                try:
-                    session = requests.Session()
-                    retries = Retry(total=9,
-                                    backoff_factor=0.1)
-                    session.mount('http://', requests.adapters.HTTPAdapter(max_retries=retries))
-                    response = session.get(url)
-                    if response.status_code == 200:
-                        versions = json.loads(response.content)['model_version_status']
-                        if all(version["state"] == "AVAILABLE" for version in versions):
-                            break
-                except ConnectionError:
-                    log.exception("Failed to load models.")
 
     def _handle_invocation_post(self, req, res, model_name=None):
         if SAGEMAKER_MULTI_MODEL_ENABLED:
