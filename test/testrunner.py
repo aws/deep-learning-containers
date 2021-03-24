@@ -266,6 +266,15 @@ def main():
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
+    # Skipping non HuggingFace specific tests to execute only sagemaker remote tests
+    # TODO: remove "sagemaker" once sagemaker tests are ready
+    if any("huggingface" in image_uri for image_uri in all_image_list) and \
+            specific_test_type in ("ecs", "ec2", "eks", "canary", "bai", "sagemaker-local", "sagemaker"):
+        # Creating an empty file for because codebuild job fails without it
+        report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+        sm_utils.generate_empty_report(report, test_type, "huggingface")
+        return
+
     if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary", "bai"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.

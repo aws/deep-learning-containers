@@ -151,7 +151,7 @@ def test_framework_version_cpu(image):
 
 # TODO: Enable as canary once resource cleaning lambda is added
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     """
     Check that the framework  and cuda version in the image tag is the same as the one on a running container.
@@ -168,6 +168,10 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
+        if tested_framework == "huggingface_pytorch":
+            tested_framework = "torch"
+        if tested_framework == "huggingface_tensorflow":
+            tested_framework = "tensorflow"
         cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
 
@@ -198,7 +202,9 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     # Record any whitelisted medium/low severity CVEs; I.E. allowed_vulnerabilities = {CVE-1000-5555, CVE-9999-9999}
     allowed_vulnerabilities = {
         # Those vulnerabilities are fixed. Current openssl version is 1.1.1g. These are false positive
-        'CVE-2016-2109', 'CVE-2016-2177', 'CVE-2016-6303', 'CVE-2016-2182'
+        'CVE-2016-2109', 'CVE-2016-2177', 'CVE-2016-6303', 'CVE-2016-2182',
+        # CVE-2020-13936: vulnerability found in apache velocity package which is a dependency for dependency-check package. Hence, ignoring.
+        'CVE-2020-13936',
     }
 
     container_name = f"dep_check_{processor}"
@@ -369,9 +375,9 @@ def test_sm_pysdk_2(training):
     """
 
     _, image_framework_version = get_framework_and_version_from_tag(training)
-    
+
     if Version(image_framework_version) == Version("1.5.0"):
-        pytest.skip("sagemaker version < 2.0 is installled for PT 1.5.0 images")
+        pytest.skip("sagemaker version < 2.0 is installed for PT 1.5.0 images")
 
     # Ensure that sm py sdk 2 is on the container
     ctx = Context()
@@ -402,28 +408,23 @@ def test_cuda_paths(gpu):
     job_type = "training" if "training" in image else "inference"
 
     # Ensure that image has a supported framework
-    frameworks = ("tensorflow", "pytorch", "mxnet")
-    framework = ""
-    for fw in frameworks:
-        if fw in image:
-            framework = fw
-            break
-    assert framework, f"Cannot find any frameworks {frameworks} in image uri {image}"
+    framework, framework_version = get_framework_and_version_from_tag(image)
 
     # Get cuda, framework version, python version through regex
     cuda_version = re.search(r"-(cu\d+)-", image).group(1)
-    framework_version = re.search(r":(\d+(\.\d+){2})", image).group(1)
     framework_short_version = None
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
-        r":(\d+(\.\d+){2}-(cpu|gpu|neuron)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)(-example)?)", image
+        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(cpu|gpu|neuron)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)(-example)?)", image
     ).group(1)
 
-    framework_version_path = os.path.join(dlc_path, framework, job_type, "docker", framework_version)
+    # replacing '_' by '/' to handle huggingface_<framework> case
+    framework_path = framework.replace('_', '/')
+    framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_version)
     if not os.path.exists(framework_version_path):
         framework_short_version = re.match(r"(\d+.\d+)", framework_version).group(1)
-        framework_version_path = os.path.join(dlc_path, framework, job_type, "docker", framework_short_version)
+        framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_short_version)
     if not os.path.exists(os.path.join(framework_version_path, python_version)):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
         short_python_version = python_version[:3]
@@ -436,7 +437,7 @@ def test_cuda_paths(gpu):
     cuda_in_buildspec = False
     dockerfile_spec_abs_path = None
     cuda_in_buildspec_ref = f"CUDA_VERSION {cuda_version}"
-    buildspec_path = os.path.join(dlc_path, framework, buildspec)
+    buildspec_path = os.path.join(dlc_path, framework_path, buildspec)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
