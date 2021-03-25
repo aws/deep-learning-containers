@@ -200,7 +200,7 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 # Add NGC vars
 ENV TF_ADJUST_HUE_FUSED=1 TF_AUTOTUNE_THRESHOLD=2 TF_USE_CUDNN_BATCHNORM_SPATIAL_PERSISTENT=1 TF_ADJUST_SATURATION_FUSED=1 TF_ENABLE_WINOGRAD_NONFUSED=1 CUDA_CACHE_DISABLE=1
 
-ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 

@@ -5,15 +5,15 @@ version: &VERSION 1.8.0
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
-      image_type: &TRAINING_IMAGE_TYPE training
-      root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
-      repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
-      repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+    image_type: &TRAINING_IMAGE_TYPE training
+    root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
+    repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
   inference_repository: &INFERENCE_REPOSITORY
-      image_type: &INFERENCE_IMAGE_TYPE inference
-      root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
-      repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
-      repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+    image_type: &INFERENCE_IMAGE_TYPE inference
+    root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
+    repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
 context:
   training_context: &TRAINING_CONTEXT
@@ -26,6 +26,9 @@ context:
     example_mnist_file:
       source: docker/build_artifacts/mnist.py
       target: mnist.py
+    deep_learning_container:
+      source: ../../src/deep_learning_container.py
+      target: deep_learning_container.py
   inference_context: &INFERENCE_CONTEXT
     torchserve-entrypoint:
       source: docker/build_artifacts/torchserve-entrypoint.py
@@ -33,6 +36,9 @@ context:
     config:
       source: docker/build_artifacts/config.properties
       target: config.properties
+    deep_learning_container:
+      source: ../../src/deep_learning_container.py
+      target: deep_learning_container.py
 
 images:
   BuildCPUPTTrainPy3DockerImage:
