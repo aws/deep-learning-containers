@@ -160,6 +160,17 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only, ec2_instance_ty
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD)
 
 
+# This is placeholder test needed for EFA
+@pytest.mark.integration("efa")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", ["p3dn.24xlarge"], indirect=True)
+def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
+    disable_efa_tests = os.getenv("DISABLE_EFA_TESTS", "False").lower() == "true"
+    if disable_efa_tests != "true":
+        print("EFA tests to be added")
+    else:
+        print("EFA tests disabled")
+
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
