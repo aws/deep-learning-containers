@@ -95,9 +95,11 @@ class ServiceManager(object):
             # just use the standard default ports
             self._tfs_grpc_port = ["9000"]
             self._tfs_rest_port = ["8501"]
+            self._tfs_grpc_port_range = "9000-9000"
+            self._tfs_rest_port_range = "8501-8501"
             # set environment variable for python service
-            os.environ["TFS_GRPC_PORT_RANGE"] = "9000-9000"
-            os.environ["TFS_REST_PORT_RANGE"] = "8501-8501"
+            os.environ["TFS_GRPC_PORT_RANGE"] = self._tfs_grpc_port_range
+            os.environ["TFS_REST_PORT_RANGE"] = self._tfs_rest_port_range
 
     def _create_tfs_config(self):
         models = tfs_utils.find_models()
