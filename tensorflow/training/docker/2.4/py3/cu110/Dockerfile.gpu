@@ -50,7 +50,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     libcusparse-dev-11-0 \
     curl \
     emacs \
-    libcudnn8=8.0.4.30-1+cuda11.0 \
+    libcudnn8=8.0.5.39-1+cuda11.0 \
     # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
     libnccl2=2.7.8-1+cuda11.0 \
     libgomp1 \

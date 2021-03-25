@@ -57,6 +57,7 @@ class ServiceManager(object):
         # Use this to specify memory that is needed to initialize CUDA/cuDNN and other GPU libraries
         self._tfs_gpu_margin = float(os.environ.get("SAGEMAKER_TFS_FRACTIONAL_GPU_MEM_MARGIN", 0.2))
         self._tfs_instance_count = int(os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", 1))
+        self._tfs_wait_time_seconds = int(os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 300))
         self._tfs_inter_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTER_OP_PARALLELISM", 0)
         self._tfs_intra_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)
         self._gunicorn_worker_class = os.environ.get("SAGEMAKER_GUNICORN_WORKER_CLASS", 'gevent')
@@ -158,12 +159,14 @@ class ServiceManager(object):
             "--workers {} --threads {} "
             "{}{} -e TFS_GRPC_PORT_RANGE={} -e TFS_REST_PORT_RANGE={} "
             "-e SAGEMAKER_MULTI_MODEL={} -e SAGEMAKER_SAFE_PORT_RANGE={} "
+            "-e SAGEMAKER_TFS_WAIT_TIME_SECONDS={} "
             "python_service:app").format(self._gunicorn_worker_class,
                                          self._gunicorn_workers, self._gunicorn_threads,
                                          python_path_option, ",".join(python_path_content),
                                          self._tfs_grpc_port_range, self._tfs_rest_port_range,
                                          self._tfs_enable_multi_model_endpoint,
-                                         self._sagemaker_port_range)
+                                         self._sagemaker_port_range,
+                                         self._tfs_wait_time_seconds)
 
         log.info('gunicorn command: {}'.format(gunicorn_command))
         self._gunicorn_command = gunicorn_command
@@ -273,6 +276,11 @@ class ServiceManager(object):
                 log.info('gunicorn server is ready!')
                 return
 
+    def _wait_for_tfs(self):
+        for i in range(self._tfs_instance_count):
+            tfs_utils.wait_for_model(self._tfs_rest_port[i],
+                                     self._tfs_default_model_name, self._tfs_wait_time_seconds)
+
     @contextmanager
     def _timeout(self, seconds):
         def _raise_timeout_error(signum, frame):
@@ -350,6 +358,10 @@ class ServiceManager(object):
         self._state = 'starting'
         signal.signal(signal.SIGTERM, self._stop)
 
+        if self._tfs_enable_batching:
+            log.info('batching is enabled')
+            tfs_utils.create_batching_config(self._tfs_batching_config_path)
+
         if self._tfs_enable_multi_model_endpoint:
             log.info('multi-model endpoint is enabled, TFS model servers will be started later')
         else:
@@ -359,12 +371,9 @@ class ServiceManager(object):
             )
             self._create_tfs_config()
             self._start_tfs()
+            self._wait_for_tfs()
 
         self._create_nginx_config()
-
-        if self._tfs_enable_batching:
-            log.info('batching is enabled')
-            tfs_utils.create_batching_config(self._tfs_batching_config_path)
 
         if self._use_gunicorn:
             self._setup_gunicorn()
