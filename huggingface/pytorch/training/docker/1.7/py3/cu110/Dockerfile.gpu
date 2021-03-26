@@ -8,11 +8,14 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 # version args
-ARG TRANSFORMERS_VERSION==4.4.0
-ARG DATASETS_VERSION==1.4.1
+ARG TRANSFORMERS_VERSION
+ARG DATASETS_VERSION
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \ 
 	transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \ 
 	datasets==${DATASETS_VERSION}
-RUN apt-get update && apt install git-lfs
+RUN apt-get update \
+ && apt install git-lfs \
+ && apt-get clean \  
+ && rm -rf /var/lib/apt/lists/*
