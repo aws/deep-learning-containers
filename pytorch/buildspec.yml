@@ -1,7 +1,6 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
-version: &VERSION 1.8.1
 short_version: &SHORT_VERSION 1.8
 
 repository_info:
@@ -81,6 +80,7 @@ images:
     <<: *INFERENCE_REPOSITORY
     build: &PYTORCH_CPU_INFERENCE_PY3 false
     image_size_baseline: 4899
+    version: &VERSION 1.8.1
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py36
@@ -93,6 +93,7 @@ images:
     <<: *INFERENCE_REPOSITORY
     build: &PYTORCH_GPU_INFERENCE_PY3 false
     image_size_baseline: 14000
+    version: &VERSION 1.8.1
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py36
