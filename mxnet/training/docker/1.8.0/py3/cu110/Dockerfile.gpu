@@ -210,20 +210,14 @@ COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-# License attribution for packages
-ENV PYTHON_PACKAGES=/root/oss_compliance/python_packages
-ENV LINUX_PACKAGES=/root/oss_compliance/linux_packages
-ENV BUILD_FROM_SOURCE_PACKAGES_LICENCES=/root/oss_compliance/build_from_source_packages/BUILD_FROM_SOURCE_PACKAGES_LICENCES_ALL_IMAGES
-RUN curl -o /root/oss_compliance.zip https://asimov-utility-packages.s3.amazonaws.com/oss_compliance.zip \
- && unzip /root/oss_compliance.zip -d /root/ \
- && pip install -r ${PYTHON_PACKAGES}/piplicenses/requirements.txt \
- && pip install -r ${LINUX_PACKAGES}/requirements.txt \
- && python3 ${PYTHON_PACKAGES}/piplicenses/piplicenses.py --with-license-file --with-notice-file --with-urls --format=json --with-authors --order=license --with-urls --with-internal-license-file --with-internal-notice-file --output-file=${PYTHON_PACKAGES}/piplicenses/PACKAGES_LICENSES_JSON.json \
- && python3 ${PYTHON_PACKAGES}/generate_licenses/process_licenses_json_file.py \
- && python3 ${LINUX_PACKAGES}/linux_packages.py \
- && cp ${BUILD_FROM_SOURCE_PACKAGES_LICENCES} /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
- && ls /root \
- && rm -rf /root/oss_compliance*
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://asimov-utility-packages.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.8.0/license.txt
 

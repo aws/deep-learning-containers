@@ -29,7 +29,6 @@ from buildspec import Buildspec
 from output import OutputFormatter
 from config import build_config
 
-import boto3
 
 def _find_image_object(images_list, image_name):
     """
@@ -120,7 +119,6 @@ def image_builder(buildspec):
                 extra_build_args["DATASETS_VERSION"] = image_config.get("datasets_version")
             else:
                 raise KeyError(f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image")
-
 
         ARTIFACTS.update(
             {
