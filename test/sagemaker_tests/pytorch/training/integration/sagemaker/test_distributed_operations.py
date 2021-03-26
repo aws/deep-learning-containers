@@ -156,7 +156,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_v
             sagemaker_session=sagemaker_session,
             hyperparameters = {"assert-losses": 1, "amp": 1, "ddp": 1, "data-dir": "data/training", "epochs": 5},
             distribution={
-                "smdistributed": { 
+                "smdistributed": {
                     "modelparallel": {
                         "enabled": True,
                         "parameters": {
@@ -189,7 +189,7 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_
     Tests SM Distributed DataParallel single-node via script mode
     """
     validate_or_skip_smdataparallel(ecr_image)
-    
+
     instance_type = "ml.p3.16xlarge"
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smdataparallel_mnist_script_mode.sh',
@@ -210,10 +210,12 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
 @pytest.mark.flaky(reruns=2)
-@pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p3dn.24xlarge"])
+# @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p3dn.24xlarge"])
+@pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge"])
 def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_session, tmpdir):
     """
     Tests smddprun command via Estimator API distribution parameter
+    #TODO: Re-enable testing for p3dn.24xlarge instances once capacity issues are resolved.
     """
     validate_or_skip_smdataparallel(ecr_image)
     distribution = {"smdistributed":{"dataparallel":{"enabled":True}}}
@@ -281,7 +283,7 @@ def _test_dist_operations(
         )
 
         pytorch = _disable_sm_profiler(sagemaker_session.boto_region_name, pytorch)
-        
+
         pytorch.sagemaker_session.default_bucket()
         fake_input = pytorch.sagemaker_session.upload_data(
             path=dist_operations_path, key_prefix='pytorch/distributed_operations'
