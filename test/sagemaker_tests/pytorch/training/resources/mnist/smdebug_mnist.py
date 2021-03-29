@@ -28,6 +28,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
 import torch.utils.data.distributed
+import torchvision
 from torchvision import datasets, transforms
 from smdebug.pytorch import *
 import numpy as np

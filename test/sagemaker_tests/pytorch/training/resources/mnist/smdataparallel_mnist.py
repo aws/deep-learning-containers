@@ -19,6 +19,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import torchvision
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 from smdistributed.dataparallel.torch.parallel.distributed import DistributedDataParallel as DDP
