@@ -72,11 +72,11 @@ def _run_instance_role_disabled(image_uri, ec2_client, ec2_instance, ec2_connect
     ec2_connection.run(f"{docker_cmd} pull {image_uri}")
     ec2_connection.run(f"{docker_cmd} run --name {container_name} -itd {image_uri} bash", hide=True)
 
-    ec2_connection.run(f"sudo route add -host 169.254.169.254 reject'")
+    ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 
-    output = ec2_connection.run(f"{docker_cmd} exec -it {container_name} python -c 'import {framework}' ", warn=True)
-
-    time.sleep(5)
+    output = ec2_connection.run(
+        f"{docker_cmd} exec -i {container_name} python -c 'import {framework}; import time; time.sleep(5)' ", warn=True
+    )
 
     assert output.ok, f"'import {framework}' fails when credentials not configured"
 
@@ -109,7 +109,9 @@ def _run_tag_success(image_uri, ec2_client, ec2_instance, ec2_connection):
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.remove_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
-    ec2_connection.run(f"{docker_cmd} exec -it {container_name} python -c 'import {framework}' ", warn=True)
+    ec2_connection.run(
+        f"{docker_cmd} exec -i {container_name} python -c 'import {framework}; import time; time.sleep(5)' ", warn=True
+    )
 
     time.sleep(5)
 

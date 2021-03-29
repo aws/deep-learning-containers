@@ -91,9 +91,12 @@ def _retrieve_instance_region():
 
 def _retrieve_device():
     return (
-        "gpu" if os.path.isdir("/usr/local/cuda")
-        else "eia" if os.path.isdir("/opt/ei_tools")
-        else "neuron" if os.path.exists("/usr/local/bin/tensorflow_model_server_neuron")
+        "gpu"
+        if os.path.isdir("/usr/local/cuda")
+        else "eia"
+        if os.path.isdir("/opt/ei_tools")
+        else "neuron"
+        if os.path.exists("/usr/local/bin/tensorflow_model_server_neuron")
         else "cpu"
     )
 
@@ -114,8 +117,8 @@ def _retrieve_os():
     name = ""
     with open("/etc/os-release", "r") as f:
         for line in f.readlines():
-            if re.match(r'^ID=\w+$', line):
-                name = re.search(r'^ID=(\w+)$', line).group(1)
+            if re.match(r"^ID=\w+$", line):
+                name = re.search(r"^ID=(\w+)$", line).group(1)
             if re.match(r'^VERSION_ID="\d+\.\d+"$', line):
                 version = re.search(r'^VERSION_ID="(\d+\.\d+)"$', line).group(1)
     return name + version
@@ -137,20 +140,24 @@ def parse_args():
     Return: args, which containers parsed input arguments.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--framework",
-                        choices=["tensorflow", "mxnet", "pytorch"],
-                        help="framework of container image.",
-                        required=True)
-    parser.add_argument("--framework-version",
-                        help="framework version of container image.",
-                        required=True)
-    parser.add_argument("--container-type",
-                        choices=["training", "inference"],
-                        help="What kind of jobs you want to run on container. \
-                        Either training or inference.",
-                        required=True)
+    parser.add_argument(
+        "--framework", choices=["tensorflow", "mxnet", "pytorch"], help="framework of container image.", required=True
+    )
+    parser.add_argument("--framework-version", help="framework version of container image.", required=True)
+    parser.add_argument(
+        "--container-type",
+        choices=["training", "inference"],
+        help="What kind of jobs you want to run on container. Either training or inference.",
+        required=True,
+    )
 
     args, _unknown = parser.parse_known_args()
+
+    fw_version_pattern = r"\d+(\.\d+){1,2}"
+    assert re.fullmatch(fw_version_pattern, args.framework_version), (
+        f"args.framework_version = {args.framework_version} does not match {fw_version_pattern}\n"
+        f"Please specify framework version as X.Y.Z or X.Y."
+    )
 
     return args
 
@@ -204,10 +211,7 @@ def tag_instance():
         try:
             session = botocore.session.get_session()
             ec2_client = session.create_client("ec2", region_name=region)
-            response = ec2_client.create_tags(
-                Resources=[instance_id],
-                Tags=[tag_struct]
-            )
+            response = ec2_client.create_tags(Resources=[instance_id], Tags=[tag_struct])
             request_status = response.get("ResponseMetadata").get("HTTPStatusCode")
             if os.environ.get("TEST_MODE") == str(1):
                 with open(os.path.join(os.sep, "tmp", "test_tag_request.txt"), "w+") as rf:
