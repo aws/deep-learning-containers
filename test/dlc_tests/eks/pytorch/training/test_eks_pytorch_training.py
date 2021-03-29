@@ -45,8 +45,8 @@ def test_eks_pytorch_single_node_training(pytorch_training):
       echo "import torchvision" >> $FILE &&
       echo "from torchvision import datasets, transforms" >> $FILE &&
       echo "# from torchvision 0.9.1, 2 candidate mirror website links will be added before resources items automatically" >> $FILE &&
-      echo "# Reference PR: https://github.com/pytorch/vision/pull/3559" >> $FILE &&
-      echo "TORCHVISION_VERSION = \"0.9.1\"" >> $FILE &&
+      echo "# Reference PR https://github.com/pytorch/vision/pull/3559" >> $FILE &&
+      echo "TORCHVISION_VERSION = '0.9.1'" >> $FILE &&
       echo "if torchvision.__version__ < TORCHVISION_VERSION:" >> $FILE &&
       echo "    datasets.MNIST.resources = [" >> $FILE &&
       echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz', 'f68b3c2dcbeaaa9fbdd348bbdeb94873')," >> $FILE &&
