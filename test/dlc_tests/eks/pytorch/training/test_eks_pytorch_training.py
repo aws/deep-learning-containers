@@ -42,15 +42,23 @@ def test_eks_pytorch_single_node_training(pytorch_training):
       echo "opener = urllib.request.build_opener()" >> $FILE &&
       echo "opener.addheaders = [('User-agent', 'Mozilla/5.0')]" >> $FILE &&
       echo "urllib.request.install_opener(opener)" >> $FILE &&
+      echo "import torchvision" >> $FILE &&
+      echo "from torchvision import datasets, transforms" >> $FILE &&
+      echo "# from torchvision 0.9.1, 2 candidate mirror website links will be added before resources items automatically" >> $FILE &&
+      echo "# Reference PR https://github.com/pytorch/vision/pull/3559" >> $FILE &&
+      echo "TORCHVISION_VERSION = '0.9.1'" >> $FILE &&
+      echo "if torchvision.__version__ < TORCHVISION_VERSION:" >> $FILE &&
+      echo "    datasets.MNIST.resources = [" >> $FILE &&
+      echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz', 'f68b3c2dcbeaaa9fbdd348bbdeb94873')," >> $FILE &&
+      echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-labels-idx1-ubyte.gz', 'd53e105ee54ea40749a09fcbcd1e9432')," >> $FILE &&
+      echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz', '9fb629c4189551a2d022fa330f9573f3')," >> $FILE &&
+      echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz', 'ec29112dd5afa0611ce80d1b7f02629c')" >> $FILE &&
+      echo "          ]" >> $FILE &&
       sed -i '1d' examples/mnist/main.py &&
+      sed -i '6d' examples/mnist/main.py &&
       cat examples/mnist/main.py >> $FILE &&
       rm examples/mnist/main.py &&
-      mv $FILE examples/mnist/main.py &&
-      sed -i -e "13 a datasets.MNIST.resources = [\
-      ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz', 'f68b3c2dcbeaaa9fbdd348bbdeb94873'), \
-      ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-labels-idx1-ubyte.gz', 'd53e105ee54ea40749a09fcbcd1e9432'), \
-      ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz', '9fb629c4189551a2d022fa330f9573f3'), \
-      ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz', 'ec29112dd5afa0611ce80d1b7f02629c')]" examples/mnist/main.py
+      mv $FILE examples/mnist/main.py
     '''
 
     args = f"git clone https://github.com/pytorch/examples.git && {mnist_dataset_download_config}  && python examples/mnist/main.py"
