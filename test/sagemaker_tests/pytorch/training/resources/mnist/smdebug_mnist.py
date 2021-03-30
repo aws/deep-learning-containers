@@ -28,6 +28,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
 import torch.utils.data.distributed
+import torchvision
 from torchvision import datasets, transforms
 from smdebug.pytorch import *
 import numpy as np
@@ -37,6 +38,20 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
+# from torchvision 0.9.1, 2 candidate mirror website links will be added before "resources" items automatically
+# Reference PR: https://github.com/pytorch/vision/pull/3559
+TORCHVISION_VERSION = "0.9.1"
+if torchvision.__version__ < TORCHVISION_VERSION:
+    datasets.MNIST.resources = [
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz',
+         'f68b3c2dcbeaaa9fbdd348bbdeb94873'),
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-labels-idx1-ubyte.gz',
+         'd53e105ee54ea40749a09fcbcd1e9432'),
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz',
+         '9fb629c4189551a2d022fa330f9573f3'),
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz',
+         'ec29112dd5afa0611ce80d1b7f02629c')
+    ]
 
 # Based on https://github.com/pytorch/examples/blob/master/mnist/main.py
 class Net(nn.Module):
@@ -129,13 +144,6 @@ def train(model, device, optimizer, hook, epochs, log_interval, training_dir):
     criterion = nn.CrossEntropyLoss()
     hook.register_loss(criterion)
 
-    # Temporariy fix for 503 error while downloading MNIST dataset. See https://github.com/pytorch/vision/issues/3549
-    datasets.MNIST.resources = [
-            ('https://ossci-datasets.s3.amazonaws.com/mnist/train-images-idx3-ubyte.gz', 'f68b3c2dcbeaaa9fbdd348bbdeb94873'),
-            ('https://ossci-datasets.s3.amazonaws.com/mnist/train-labels-idx1-ubyte.gz', 'd53e105ee54ea40749a09fcbcd1e9432'),
-            ('https://ossci-datasets.s3.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz', '9fb629c4189551a2d022fa330f9573f3'),
-            ('https://ossci-datasets.s3.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz', 'ec29112dd5afa0611ce80d1b7f02629c')
-        ]
     trainloader = _get_train_data_loader(4, training_dir)
     validloader = _get_test_data_loader(4, training_dir)
 

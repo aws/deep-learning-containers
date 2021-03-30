@@ -423,6 +423,12 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     return conn
 
 
+def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
+    ec2_client = ec2_client or get_ec2_client(region)
+    response = ec2_client.describe_tags(Filters=[{"Name": "resource-id", "Values": [instance_id]}])
+    return {tag["Key"]: tag["Value"] for tag in response.get("Tags")}
+
+
 def execute_ec2_training_test(
     connection,
     ecr_uri,
