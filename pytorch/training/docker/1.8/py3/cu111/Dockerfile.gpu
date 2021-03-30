@@ -247,7 +247,7 @@ ENV LD_LIBRARY_PATH="/opt/conda/lib/python3.6/site-packages/smdistributed/datapa
 
 WORKDIR /
 
-ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
  && chmod +x /usr/local/bin/deep_learning_container.py
