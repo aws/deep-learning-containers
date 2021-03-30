@@ -97,7 +97,9 @@ def main():
                 if "huggingface" in images_str and test_type in [constants.EC2_TESTS,
                                                                  constants.ECS_TESTS,
                                                                  constants.EKS_TESTS]:
+                    LOGGER.debug(f"Skipping huggingface {test_type} test")
                     return
+                LOGGER.debug(f"Running {test_type} test for {images_str}")
                 run_test_job(commit, pr_test_job, images_str)
 
                 # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
