@@ -77,6 +77,8 @@ RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VER
 WORKDIR /
 
 RUN ${PIP} install --no-cache-dir \
+    "awscli<2" \
+    boto3 \
     ${MX_URL} \
     gluonnlp==0.10.0 \
     gluoncv==0.8.0 \
@@ -100,7 +102,7 @@ COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
-ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
