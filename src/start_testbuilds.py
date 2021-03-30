@@ -98,7 +98,7 @@ def main():
                                                                  constants.ECS_TESTS,
                                                                  constants.EKS_TESTS]:
                     LOGGER.debug(f"Skipping huggingface {test_type} test")
-                    return
+                    continue
                 LOGGER.debug(f"Running {test_type} test for {images_str}")
                 run_test_job(commit, pr_test_job, images_str)
 
