@@ -147,19 +147,26 @@ def main():
 
     device = torch.device("cuda")
 
-    if local_rank == 0:
-        train_dataset = datasets.MNIST(data_path, train=True, download=True,
-                       transform=transforms.Compose([
-                           transforms.ToTensor(),
-                           transforms.Normalize((0.1307,), (0.3081,))
-                       ]))
-    else:
-        time.sleep(8)
-        train_dataset = datasets.MNIST(data_path, train=True, download=False,
-                       transform=transforms.Compose([
-                           transforms.ToTensor(),
-                           transforms.Normalize((0.1307,), (0.3081,))
-                       ]))
+    is_first_local_rank = (local_rank == 0)
+    if is_first_local_rank:
+        train_dataset = datasets.MNIST(data_path,
+                                       train=True,
+                                       download=True,
+                                       transform=transforms.Compose([
+                                           transforms.ToTensor(),
+                                           transforms.Normalize((0.1307, ),
+                                                                (0.3081, ))
+                                       ]))
+    dist.barrier()  # prevent other ranks from accessing the data early
+    if not is_first_local_rank:
+        train_dataset = datasets.MNIST(data_path,
+                                       train=True,
+                                       download=False,
+                                       transform=transforms.Compose([
+                                           transforms.ToTensor(),
+                                           transforms.Normalize((0.1307, ),
+                                                                (0.3081, ))
+                                       ]))
 
     train_sampler = torch.utils.data.distributed.DistributedSampler(
             train_dataset,
