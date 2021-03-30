@@ -179,8 +179,5 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
 
 
 def check_telemetry(ec2_connection, container_name):
-    telemetry_cmd = "import os; assert (os.path.exists('/tmp/test_request.txt'))"
-    ec2_connection.run(
-        f'''docker exec -it {container_name} python -c {telemetry_cmd} ''',
-        hide=True, warn=True
-    )
+    ec2_connection.run(f"docker exec -i {container_name} bash -c '[ -f /tmp/test_request.txt ]'")
+    ec2_connection.run(f"docker exec -i {container_name} bash -c '[ -f /tmp/test_tag_request.txt ]'")
