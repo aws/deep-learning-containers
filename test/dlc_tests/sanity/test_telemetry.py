@@ -86,6 +86,7 @@ def _run_instance_role_disabled(image_uri, ec2_client, ec2_instance, ec2_connect
         ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri}")
         time.sleep(5)
     else:
+        framework = "torch" if framework == "pytorch" else framework
         ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
         output = ec2_connection.run(
             f"{docker_cmd} exec -i {container_name} python -c 'import {framework}; import time; time.sleep(5)'",
