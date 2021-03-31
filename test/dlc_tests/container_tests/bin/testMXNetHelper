@@ -22,7 +22,7 @@ set -e
 # ======================================================================
 # Temporariy fix for 503 error while downloading MNIST dataset. See https://github.com/pytorch/vision/issues/3549
 FROM="http:\/\/yann\.lecun\.com\/exdb\/mnist\/"
-TO="https:\/\/ossci-datasets\.s3\.amazonaws\.com\/mnist\/"
+TO="https:\/\/dlinfra-mnist-dataset\.s3-us-west-2\.amazonaws\.com\/mnist\/"
 sed -i -e "s/${FROM}/${TO}/g" ./example/image-classification/train_mnist.py
 # ======================================================================
 
