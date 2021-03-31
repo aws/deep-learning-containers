@@ -62,6 +62,9 @@ class ServiceManager(object):
         self._tfs_intra_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)
         self._gunicorn_worker_class = os.environ.get("SAGEMAKER_GUNICORN_WORKER_CLASS", 'gevent')
 
+        if os.environ.get("OMP_NUM_THREADS") is None:
+            os.environ["OMP_NUM_THREADS"] = "1"
+
         if _enable_batching not in ['true', 'false']:
             raise ValueError('SAGEMAKER_TFS_ENABLE_BATCHING must be "true" or "false"')
         self._tfs_enable_batching = _enable_batching == 'true'
