@@ -3,48 +3,43 @@ import numpy as np
 import time
 
 
+def _clean_up_reports():
+    if os.path.exists("/tmp/test_request.txt"):
+        os.system("rm /tmp/test_request.txt")
+    if os.path.exists("/tmp/test_tag_request.txt"):
+        os.system("rm /tmp/test_tag_request.txt")
+
+
 def opt_in_opt_out_test():
     os.environ["TEST_MODE"] = "1"
-    if os.path.exists("/tmp/test_request.txt"):
-        os.system("rm /tmp/test_request.txt")
-    os.environ["OPT_OUT_TRACKING"] = "True"
-    cmd = "python -c 'import tensorflow'"
-    os.system(cmd)
-    time.sleep(1)
-    assert not os.path.exists("/tmp/test_request.txt"), "Test failed on OPT_OUT_TRACKING."
 
-    if os.path.exists("/tmp/test_request.txt"):
-        os.system("rm /tmp/test_request.txt")
-    os.environ["OPT_OUT_TRACKING"] = "False"
-    cmd = "python -c 'import tensorflow'"
-    os.system(cmd)
-    time.sleep(1)
-    assert os.path.exists("/tmp/test_request.txt")
+    for opt_out_value in ["True", "TRUE", "true"]:
+        _clean_up_reports()
+        os.environ["OPT_OUT_TRACKING"] = opt_out_value
+        cmd = "python -c 'import tensorflow'"
+        os.system(cmd)
+        time.sleep(5)
+        assert not os.path.exists("/tmp/test_request.txt"), (
+            f"URL request placed even though OPT_OUT_TRACKING is {opt_out_value}."
+        )
+        assert not os.path.exists("/tmp/test_tag_request.txt"), (
+            f"Tag request placed even though OPT_OUT_TRACKING is {opt_out_value}."
+        )
 
-    if os.path.exists("/tmp/test_request.txt"):
-        os.system("rm /tmp/test_request.txt")
-    os.environ["OPT_OUT_TRACKING"] = "TRUE"
-    cmd = "python -c 'import tensorflow'"
-    os.system(cmd)
-    time.sleep(1)
-    assert not os.path.exists("/tmp/test_request.txt"), "Test failed on OPT_OUT_TRACKING."
+    for opt_out_value in ["False", "XYgg"]:
+        _clean_up_reports()
+        os.environ["OPT_OUT_TRACKING"] = opt_out_value
+        cmd = "python -c 'import tensorflow'"
+        os.system(cmd)
+        time.sleep(5)
+        assert os.path.exists("/tmp/test_request.txt"), (
+            f"URL request not placed even though OPT_OUT_TRACKING is {opt_out_value}."
+        )
+        assert os.path.exists("/tmp/test_tag_request.txt"), (
+            f"Tag request not placed even though OPT_OUT_TRACKING is {opt_out_value}."
+        )
 
-    if os.path.exists("/tmp/test_request.txt"):
-        os.system("rm /tmp/test_request.txt")
-    os.environ["OPT_OUT_TRACKING"] = "true"
-    cmd = "python -c 'import tensorflow'"
-    os.system(cmd)
-    time.sleep(1)
-    assert not os.path.exists("/tmp/test_request.txt"), "Test failed on OPT_OUT_TRACKING."
-
-    if os.path.exists("/tmp/test_request.txt"):
-        os.system("rm /tmp/test_request.txt")
-    os.environ["OPT_OUT_TRACKING"] = "XYgg"
-    cmd = "python -c 'import tensorflow'"
-    os.system(cmd)
-    time.sleep(1)
-    assert os.path.exists("/tmp/test_request.txt")
-
+    os.environ["TEST_MODE"] = "0"
     print("Opt-In/Opt-Out Test passed")
 
 
