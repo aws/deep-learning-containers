@@ -30,15 +30,19 @@ MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
 
 def validate_or_skip_smmodelparallel(ecr_image):
     if not can_run_smmodelparallel(ecr_image):
-        pytest.skip("Model Parallelism only supports CUDA 11 on PyTorch v1.6 and above")
+        pytest.skip("Model Parallelism is supported on CUDA 11 on PyTorch v1.6 and above")
+
 
 def validate_or_skip_smdataparallel(ecr_image):
     if not can_run_smdataparallel(ecr_image):
-        pytest.skip("Data Parallelism is supported on PyTorch v1.6 and above")
+        pytest.skip("Data Parallelism is supported on CUDA 11 on PyTorch v1.6 and above")
+
 
 def can_run_smdataparallel(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    return (Version(image_framework_version) in SpecifierSet(">=1.6"))
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(image_cuda_version.strip("cu")) >= Version("110")
+
 
 def can_run_smmodelparallel(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
@@ -295,6 +299,7 @@ def _assert_s3_file_exists(region, s3_url):
     parsed_url = urlparse(s3_url)
     s3 = boto3.resource('s3', region_name=region)
     s3.Object(parsed_url.netloc, parsed_url.path.lstrip('/')).load()
+
 
 def _disable_sm_profiler(region, estimator):
     """Disable SMProfiler feature for China regions
