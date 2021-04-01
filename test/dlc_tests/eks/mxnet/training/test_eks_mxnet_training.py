@@ -31,7 +31,7 @@ def test_eks_mxnet_single_node_training(mxnet_training):
     # Temporariy fix for 503 error while downloading MNIST dataset. See https://github.com/pytorch/vision/issues/3549
     mnist_dataset_download_config = '''
       FROM="http:\/\/yann\.lecun\.com\/exdb\/mnist\/" &&
-      TO="https:\/\/ossci-datasets\.s3\.amazonaws\.com\/mnist\/" &&
+      TO="https:\/\/dlinfra-mnist-dataset\.s3-us-west-2\.amazonaws\.com\/mnist\/" &&
       sed -i -e "s/${FROM}/${TO}/g" /incubator-mxnet/example/image-classification/train_mnist.py
     '''
     args = (

@@ -124,7 +124,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         get_cuda_version_from_tag(image_uri).startswith("cu11") and
         ec2_instance_type in ["p2.8xlarge"]
     )
-    
+
     return image_is_cuda10_on_incompatible_p4d_instance or image_is_cuda11_on_incompatible_p2_instance_mxnet
 
 
@@ -286,7 +286,7 @@ def request_pytorch_inference_densenet(
         inference_output = json.loads(run_out.stdout.strip("\n"))
         if not (
                 ("neuron" in model_name and isinstance(inference_output, list) and len(inference_output) == 3)
-                or (server_type=="ts" and isinstance(inference_output, dict) and len(inference_output) == 5) 
+                or (server_type=="ts" and isinstance(inference_output, dict) and len(inference_output) == 5)
                 or (server_type=="mms" and isinstance(inference_output, list) and len(inference_output) == 5)
         ):
             return False
@@ -701,6 +701,29 @@ def setup_sm_benchmark_mx_train_env(resources_location):
     return venv_dir
 
 
+def get_account_id_from_image_uri(image_uri):
+    """
+    Find the account ID where the image is located
+
+    :param image_uri: <str> ECR image URI
+    :return: <str> AWS Account ID
+    """
+    return image_uri.split(".")[0]
+
+
+def get_region_from_image_uri(image_uri):
+    """
+    Find the region where the image is located
+
+    :param image_uri: <str> ECR image URI
+    :return: <str> AWS Region Name
+    """
+    region_pattern = r"(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d+"
+    region_search = re.search(region_pattern, image_uri)
+    assert region_search, f"{image_uri} must have region that matches {region_pattern}"
+    return region_search.group()
+
+
 def get_framework_and_version_from_tag(image_uri):
     """
     Return the framework and version from the image tag.
@@ -730,6 +753,7 @@ def get_framework_from_image_uri(image_uri):
         else "tensorflow" if "tensorflow" in image_uri
         else None
     )
+
 
 def get_cuda_version_from_tag(image_uri):
     """
