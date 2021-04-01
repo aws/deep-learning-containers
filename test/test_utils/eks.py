@@ -419,6 +419,20 @@ def setup_kubeflow(eks_cluster_name,region=os.getenv("AWS_REGION", DEFAULT_REGIO
     run(f"chmod +x {local_template_file_path}")
     run(f"./{local_template_file_path} {eks_cluster_name} {region}", echo=True)
 
+def setup_ssm_agent():
+    """Function to setup ssm agent on EKS worker nodes
+    """
+
+    ssm_template_file_path = os.path.join(
+        "eks",
+        "eks_manifest_templates",
+        "ssm",
+        "install_ssm.yaml"
+    )
+
+    run("kubectl create -f {}".format(ssm_template_file_path))
+    run("kubectl get ds")
+
 def write_eks_yaml_file_from_template(
     local_template_file_path, remote_yaml_file_path, search_replace_dict
 ):
