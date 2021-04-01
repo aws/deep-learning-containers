@@ -10,6 +10,7 @@ import requests
 
 from urllib3.util.retry import Retry
 from invoke.context import Context
+from botocore.exceptions import ClientError
 
 from src.buildspec import Buildspec
 from test.test_utils import (
@@ -532,8 +533,8 @@ def test_oss_compliance(image):
             s3_object_path = f"{THIRD_PARTY_SOURCE_CODE_BUCKET_PATH}/{file_name}.tar.gz"
             local_file_path = os.path.join(local_repo_path, file_name)
             if not os.path.exists(local_file_path):
-                context.run(f"git clone {url} {local_file_path}")
-                context.run("tar -czvf {local_file_path}.tar.gz {local_file_path}")
+                context.run(f"git clone {url.rstrip()} {local_file_path}")
+                context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
 
             try:
                 s3_resource.Object(THIRD_PARTY_SOURCE_CODE_BUCKET, s3_object_path).load()
