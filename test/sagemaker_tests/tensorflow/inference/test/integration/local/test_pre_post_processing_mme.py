@@ -21,7 +21,7 @@ import pytest
 
 import requests
 
-from multi_model_endpoint_test_utils import make_load_model_request, make_headers
+from .multi_model_endpoint_test_utils import make_load_model_request, make_headers
 
 
 PING_URL = "http://localhost:8080/ping"
