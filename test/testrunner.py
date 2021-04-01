@@ -269,7 +269,7 @@ def main():
     # Skipping non HuggingFace specific tests to execute only sagemaker remote tests
     # TODO: remove "sagemaker" once sagemaker tests are ready
     if any("huggingface" in image_uri for image_uri in all_image_list) and \
-            specific_test_type in ("ecs", "ec2", "eks", "canary", "bai", "sagemaker-local", "sagemaker"):
+            specific_test_type in ("ecs", "ec2", "eks", "canary", "bai", "sagemaker-local"):
         # Creating an empty file for because codebuild job fails without it
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         sm_utils.generate_empty_report(report, test_type, "huggingface")
@@ -303,6 +303,7 @@ def main():
             framework = frameworks_in_images[0]
             is_neuron = "neuron" in dlc_images
             eks_cluster_name = setup_eks_cluster(framework, is_neuron)
+            eks_utils.setup_ssm_agent()
 
             if not is_neuron:
                 # setup kubeflow
