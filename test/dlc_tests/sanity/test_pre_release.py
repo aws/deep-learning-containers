@@ -526,6 +526,7 @@ def test_oss_compliance(image):
 
     with open(os.path.join(local_repo_path, file)) as source_code_file:
         for line in source_code_file:
+            LOGGER.info(f"Uploading package to s3 bucket: {line}")
             name, version, url = line.split(" ")
             file_name = f"{name}_v{version}_source_code"
             s3_object_path = f"{THIRD_PARTY_SOURCE_CODE_BUCKET_PATH}/{file_name}.tar.gz"
