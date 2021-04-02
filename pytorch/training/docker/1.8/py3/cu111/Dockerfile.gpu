@@ -127,28 +127,8 @@ RUN conda install -c pytorch magma-cuda111==2.5.2 \
     h5py \
     requests \
     libgcc \
- && conda clean -ya
-
-# Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO].
-RUN wget --quiet https://dl.bintray.com/boostorg/release/1.73.0/source/boost_1_73_0.tar.gz \
-  && tar -xzf boost_1_73_0.tar.gz \
-  && cd boost_1_73_0 \
-  && ./bootstrap.sh \
-  && ./b2 threading=multi --prefix=${CONDA_PREFIX} -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
-  && cd .. \
-  && rm -rf boost_1_73_0.tar.gz \
-  && rm -rf boost_1_73_0
-
-WORKDIR /opt/pytorch
-
-# Copy workaround script for incorrect hostname
-COPY changehostname.c /
-COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
-
-WORKDIR /root
-
-# Uninstall torch and torchvision before installing the custom versions from an S3 bucket
-RUN pip install --no-cache-dir -U \
+ && conda clean -ya \
+ && pip install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
@@ -170,6 +150,24 @@ RUN pip install --no-cache-dir -U \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+
+# Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO].
+RUN wget --quiet https://dl.bintray.com/boostorg/release/1.73.0/source/boost_1_73_0.tar.gz \
+  && tar -xzf boost_1_73_0.tar.gz \
+  && cd boost_1_73_0 \
+  && ./bootstrap.sh \
+  && ./b2 threading=multi --prefix=${CONDA_PREFIX} -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
+  && cd .. \
+  && rm -rf boost_1_73_0.tar.gz \
+  && rm -rf boost_1_73_0
+
+WORKDIR /opt/pytorch
+
+# Copy workaround script for incorrect hostname
+COPY changehostname.c /
+COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+
+WORKDIR /root
 
 # install metis
 RUN wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
