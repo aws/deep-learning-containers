@@ -71,7 +71,7 @@ class ServiceManager(object):
         if _enable_batching not in ['true', 'false']:
             raise ValueError('SAGEMAKER_TFS_ENABLE_BATCHING must be "true" or "false"')
         self._tfs_enable_batching = _enable_batching == 'true'
-        
+
         if _enable_multi_model_endpoint not in ["true", "false"]:
             raise ValueError("SAGEMAKER_MULTI_MODEL must be 'true' or 'false'")
         self._tfs_enable_multi_model_endpoint = _enable_multi_model_endpoint == "true"
