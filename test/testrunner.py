@@ -211,6 +211,9 @@ def setup_eks_cluster(framework_name, is_neuron):
         raise
     return cluster_name
 
+def setup_ssm_eks_cluster(eks_cluster_name):
+    eks_utils.add_iam_permissions_nodegroup(eks_cluster_name)
+    eks_utils.setup_ssm_agent()
 
 def setup_sm_benchmark_env(dlc_images, test_path):
     # The plan is to have a separate if/elif-condition for each type of image
@@ -303,7 +306,7 @@ def main():
             framework = frameworks_in_images[0]
             is_neuron = "neuron" in dlc_images
             eks_cluster_name = setup_eks_cluster(framework, is_neuron)
-            eks_utils.setup_ssm_agent()
+            setup_ssm_eks_cluster(eks_cluster_name)
 
             if not is_neuron:
                 # setup kubeflow

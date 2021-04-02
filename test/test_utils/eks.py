@@ -176,6 +176,13 @@ def init_cfn_client():
     """
     return boto3.client('cloudformation')
 
+def init_iam_client():
+    """Function to initiate the iam session
+    Args:
+        material_set: str
+    """
+    return boto3.client('iam')
+
 def list_cfn_stack_names():
     """Function to list the cfn stacks in the account.
     Note: lists all the cfn stacks that aren't
@@ -418,6 +425,69 @@ def setup_kubeflow(eks_cluster_name,region=os.getenv("AWS_REGION", DEFAULT_REGIO
 
     run(f"chmod +x {local_template_file_path}")
     run(f"./{local_template_file_path} {eks_cluster_name} {region}", echo=True)
+
+def add_iam_permissions_nodegroup(eks_cluster_name, region=os.getenv("AWS_REGION", DEFAULT_REGION)):
+
+    """Function to add IAM permissions to EKS worker nodegroup
+       1. Retrieve active nodegroups in the EKS cluster
+       2. Add SSM IAM policy to each nodegroup
+    """
+    list_node_groups=run(f"eksctl get nodegroup --cluster {eks_cluster_name} --region {region} -o json | jq -r '.[].Name'").stdout.splitlines()
+
+    if list_node_groups:
+        for node_group in list_node_groups:
+            add_ssm_access_policy(eks_cluster_name, node_group)
+    else:
+        LOGGER.info(f"No Nodegroups present in the EKS cluster {eks_cluster_name}. Skipping addition of SSM policy.")
+            
+
+def add_ssm_access_policy(eks_cluster_name, node_group):
+    """Function to add SSM policy to EKS nodegroup
+       1. Retrieve the cloudformation stack name of the EKS nodegroup
+       2. Get the IAM instance profile for the nodegroup and the corresponding IAM role 
+       3. Attach SSM policy to the IAM role
+    """
+    SSM_POLICY_ARN="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+
+    cfn = init_cfn_client()
+    iam = init_iam_client() 
+
+    try:
+        stack_name = f'eksctl-{eks_cluster_name}-nodegroup-{node_group}'
+        instance_profile_prefix = cfn.describe_stacks(StackName=stack_name)["Stacks"][0]["StackName"]
+
+        if instance_profile_prefix:
+            instance_profile_name = get_instance_profile_name(instance_profile_prefix)
+            if instance_profile_name:
+                instance_role_name = iam.get_instance_profile(InstanceProfileName=instance_profile_name)["InstanceProfile"]["Roles"][0]["RoleName"]
+                if instance_role_name:
+                    iam.attach_role_policy(RoleName=instance_role_name, PolicyArn=SSM_POLICY_ARN)
+            else:
+                LOGGER.info(f"No instance role configured for instance profile {instance_profile_name}. Skipping addition of SSM policy.")
+        else:
+            LOGGER.info(f"Cloudformation stack {stack_name} not found for corresponding nodegroup {node_group}. Skipping addition of SSM policy.")
+
+    except ClientError as e:
+        LOGGER.error(f"Error: Cannot add SSM policy to EKS worker node IAM role. Full Exception:\n{e}")
+
+def get_instance_profile_name(instance_profile_prefix):
+    iam = init_iam_client()
+    paginator = True
+    marker = None
+
+    while paginator:
+        if marker:
+            resp = iam.list_instance_profiles(Marker=marker)
+        else:
+            resp = iam.list_instance_profiles()
+        paginator = resp["IsTruncated"]
+        if paginator:
+            marker = resp["Marker"]
+
+        for instance_profile in resp["InstanceProfiles"]:
+            instance_profile_name = instance_profile["InstanceProfileName"]
+            if instance_profile_prefix in instance_profile_name:
+                return instance_profile_name
 
 def setup_ssm_agent():
     """Function to setup ssm agent on EKS worker nodes
