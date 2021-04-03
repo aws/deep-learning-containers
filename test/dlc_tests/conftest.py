@@ -20,7 +20,7 @@ from test.test_utils import (
     is_benchmark_dev_context, get_framework_and_version_from_tag, get_job_type_from_image, is_tf_version,
     is_below_framework_version,
     DEFAULT_REGION, P3DN_REGION, UBUNTU_18_BASE_DLAMI_US_EAST_1, UBUNTU_18_BASE_DLAMI_US_WEST_2,
-    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, KEYS_TO_DESTROY_FILE
+    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, KEYS_TO_DESTROY_FILE, are_efa_tests_disabled
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -281,6 +281,11 @@ def pull_images(docker_client, dlc_images):
 
 
 @pytest.fixture(scope="session")
+def non_huggingface_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def cpu_only():
     pass
 
@@ -422,7 +427,13 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
     :return: <dict> Mapping of "Fixture to be parametrized" -> "Unique values for fixture to be parametrized"
     """
     job_type_map = {"training": "tr", "inference": "inf"}
-    framework_name_map = {"tensorflow": "tf", "mxnet": "mx", "pytorch": "pt"}
+    framework_name_map = {
+        "tensorflow": "tf",
+        "mxnet": "mx",
+        "pytorch": "pt",
+        "huggingface_pytorch": "hf-pt",
+        "huggingface_tensorflow": "hf-tf",
+    }
     fixtures_parametrized = {}
 
     if images_to_parametrize:
@@ -472,6 +483,8 @@ def pytest_generate_tests(metafunc):
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
                     if not framework_version_within_limit(metafunc, image) :
                         continue
+                    if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
+                        continue
                     if is_example_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
@@ -509,3 +522,11 @@ def pytest_generate_tests(metafunc):
     # Parametrize for framework agnostic tests, i.e. sanity
     if "image" in metafunc.fixturenames:
         metafunc.parametrize("image", images)
+
+
+@pytest.fixture(autouse=True)
+def skip_efa_tests(request):
+    efa_tests = [mark for mark in request.node.iter_markers(name="efa")]
+
+    if efa_tests and are_efa_tests_disabled():
+        pytest.skip('Skipping EFA tests as EFA tests are disabled.')
