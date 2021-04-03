@@ -10,6 +10,7 @@ import boto3
 import git
 import pytest
 
+import boto3
 from botocore.exceptions import ClientError
 from glob import glob
 from invoke import run
