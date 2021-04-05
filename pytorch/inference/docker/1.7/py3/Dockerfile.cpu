@@ -1,18 +1,15 @@
-FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu18.04
-
-# NCCL_VERSION=2.4.7, CUDNN_VERSION=7.6.2.24
+FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
-# Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.6.13
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.3.0
-ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3-us-west-2.amazonaws.com/r1.8.0_inference/20210312-020706/84ad9ab3d24dccb98dd2642682cac0a6d072b5d3/gpu/torch-1.8.0-cp36-cp36m-manylinux1_x86_64.whl
-ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.8.0ei/gpu/torchvision-0.9.0-cp36-cp36m-linux_x86_64.whl
-
+ARG TS_VERSION=0.3.1
+ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.1_inference/20210112-183245/c1130f2829b03c0997b9813211a7c0f600fc569a/cpu/torch-1.7.1-cp36-cp36m-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.7.1/cpu/torchvision-0.8.2-cp36-cp36m-linux_x86_64.whl
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
@@ -22,10 +19,10 @@ ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends software-properties-common \
-    && add-apt-repository ppa:openjdk-r/ppa \
-    && apt-get update \
-    && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
+ && apt-get install -y --no-install-recommends software-properties-common \
+ && add-apt-repository ppa:openjdk-r/ppa \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
     cmake \
@@ -35,12 +32,7 @@ RUN apt-get update \
     jq \
     libgl1-mesa-glx \
     libglib2.0-0 \
-    libgomp1 \
-    libibverbs-dev \
-    libnuma1 \
-    libnuma-dev \
     libsm6 \
-    libssl1.1 \
     libxext6 \
     libxrender-dev \
     openjdk-11-jdk \
@@ -56,30 +48,6 @@ RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeysto
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
-RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
- && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
- && cd openmpi-$OPEN_MPI_VERSION \
- && ./configure --prefix=/home/.openmpi \
- && make all install \
- && cd .. \
- && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
- && rm -rf openmpi-$OPEN_MPI_VERSION
-
-ENV PATH="$PATH:/home/.openmpi/bin"
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
-
-# Install OpenSSH. Allow OpenSSH to talk to containers without asking for confirmation
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-    openssh-client \
-    openssh-server \
- && mkdir -p /var/run/sshd \
- && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
- && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
- && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_configs \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
 RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
@@ -88,8 +56,8 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y \
-    # conda 4.9.2 requires ruamel_yaml to be installed. Currently pinned at latest.
-    ruamel_yaml==0.15.87 \
+    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.100 \
     cython==0.29.12 \
     ipython==7.7.0 \
     mkl-include==2019.4 \
@@ -100,9 +68,23 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     typing==3.6.4 \
  && /opt/conda/bin/conda clean -ya
 
+RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
+ && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
+ && cd openmpi-$OPEN_MPI_VERSION \
+ && ./configure --prefix=/home/.openmpi \
+ && make all install \
+ && cd .. \
+ && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
+ && rm -rf openmpi-$OPEN_MPI_VERSION
+
+# The ENV variables declared below are changed in the previous section
+# Grouping these ENV variables in the first section causes
+# ompi_info to fail. This is only observed in CPU containers
+ENV PATH="$PATH:/home/.openmpi/bin"
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
 RUN conda install -c \
-    pytorch magma-cuda111 \
- && conda install -c \
     conda-forge \
     opencv==4.0.1 \
  && conda install -y \
@@ -111,12 +93,11 @@ RUN conda install -c \
     h5py==2.9.0 \
     requests==2.22.0 \
  && conda clean -ya \
- && /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
-    "cryptography>=3.3.2"
+    "cryptography>3.2"
 
 # Uninstall and re-install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
@@ -126,7 +107,6 @@ RUN pip uninstall -y torch \
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
 RUN pip install pillow==7.2.0 "awscli<2"
-
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
 RUN pip uninstall -y model-archiver multi-model-server \
@@ -150,7 +130,7 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.8/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.7/license.txt -o /license.txt
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]

@@ -93,6 +93,13 @@ def main():
             pr_test_job = f"dlc-pr-{test_type}-test"
             images_str = " ".join(images)
             if is_test_job_enabled(test_type):
+                # TODO: remove "sagemaker" once sagemaker tests are ready
+                if "huggingface" in images_str and test_type in [constants.EC2_TESTS,
+                                                                 constants.ECS_TESTS,
+                                                                 constants.EKS_TESTS,
+                                                                 constants.SAGEMAKER_TESTS]:
+                    LOGGER.debug(f"Skipping huggingface {test_type} test")
+                    continue
                 run_test_job(commit, pr_test_job, images_str)
 
                 # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
