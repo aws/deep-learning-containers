@@ -135,7 +135,7 @@ RUN HOME_DIR=/root \
  && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
  && chmod +x /usr/local/bin/testOSSCompliance \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
- && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.8/license.txt -o /license.txt
