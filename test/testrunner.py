@@ -278,6 +278,7 @@ def main():
     benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
+    test_path = f"{os.path.join(test_path)}/test_pre_release.py::test_oss_compliance"
 
     # Skipping non HuggingFace specific tests to execute only sagemaker remote tests
     # TODO: remove "sagemaker" once sagemaker tests are ready
