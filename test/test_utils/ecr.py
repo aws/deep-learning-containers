@@ -94,3 +94,31 @@ def get_ecr_image_scan_results(ecr_client, image_uri, minimum_vulnerability="HIG
         if CVESeverity[finding["severity"]] >= CVESeverity[minimum_vulnerability]
     ]
     return scan_findings
+
+
+def ecr_repo_exists(ecr_client, repo_name, account_id=None):
+    """
+
+    """
+    query = {"repositoryNames": [repo_name]}
+    if account_id:
+        query["registryId"] = account_id
+    try:
+        ecr_client.describe_repositories(**query)
+    except ecr_client.exceptions.RepositoryNotFoundException as e:
+        return False
+    return True
+
+
+def create_ecr_repository(ecr_client, repository_name, enable_scan_on_push=False):
+    try:
+        response = ecr_client.create_repository(
+            repositoryName=repository_name, imageScanningConfiguration=enable_scan_on_push,
+        )
+    except ecr_client.exceptions.RepositoryAlreadyExistsException as e:
+        LOGGER.info(f"Repository {repository_name} already exists: {e}")
+        response = ecr_client.describe_repositories(repositoryNames=[repository_name])
+        # Place a reference to response["repositories][0] on response["repository"] to make it match the response
+        # from create_repository.
+        response["repository"] = response["repositories"][0]
+    return response
