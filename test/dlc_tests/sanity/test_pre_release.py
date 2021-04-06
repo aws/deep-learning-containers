@@ -527,14 +527,13 @@ def test_oss_compliance(image):
 
     with open(os.path.join(local_repo_path, file)) as source_code_file:
         for line in source_code_file:
-            LOGGER.info(f"Uploading package to s3 bucket: {line}")
             name, version, url = line.split(" ")
             file_name = f"{name}_v{version}_source_code"
             s3_object_path = f"{THIRD_PARTY_SOURCE_CODE_BUCKET_PATH}/{file_name}.tar.gz"
             local_file_path = os.path.join(local_repo_path, file_name)
 
             try:
-                if not os.path.exists(local_file_path):
+                if not os.path.isdir(local_file_path):
                     context.run(f"git clone {url.rstrip()} {local_file_path}")
                     context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
             except Exception as e:
@@ -542,7 +541,8 @@ def test_oss_compliance(image):
                 raise
 
             try:
-                if os.path.exists(local_file_path):
+                if os.path.exists(f"{local_file_path}.tar.gz"):
+                    LOGGER.info(f"Uploading package to s3 bucket: {line}")
                     s3_resource.Object(THIRD_PARTY_SOURCE_CODE_BUCKET, s3_object_path).load()
             except botocore.exceptions.ClientError as e:
                 if e.response['Error']['Code'] == "404":
