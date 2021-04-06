@@ -46,6 +46,7 @@ RUN apt-get update \
     libxrender-dev \
     software-properties-common \
     wget \
+    unzip \
     vim \
     zlib1g-dev \
  && rm -rf /var/lib/apt/lists/*

@@ -532,12 +532,18 @@ def test_oss_compliance(image):
             file_name = f"{name}_v{version}_source_code"
             s3_object_path = f"{THIRD_PARTY_SOURCE_CODE_BUCKET_PATH}/{file_name}.tar.gz"
             local_file_path = os.path.join(local_repo_path, file_name)
-            if not os.path.exists(local_file_path):
-                context.run(f"git clone {url.rstrip()} {local_file_path}")
-                context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
 
             try:
-                s3_resource.Object(THIRD_PARTY_SOURCE_CODE_BUCKET, s3_object_path).load()
+                if not os.path.exists(local_file_path):
+                    context.run(f"git clone {url.rstrip()} {local_file_path}")
+                    context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
+            except Exception as e:
+                LOGGER.error(f"Unable to clone git repo. Error: {e}")
+                raise
+
+            try:
+                if os.path.exists(local_file_path):
+                    s3_resource.Object(THIRD_PARTY_SOURCE_CODE_BUCKET, s3_object_path).load()
             except botocore.exceptions.ClientError as e:
                 if e.response['Error']['Code'] == "404":
                     try:
