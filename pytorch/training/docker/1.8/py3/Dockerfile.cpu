@@ -9,7 +9,7 @@ ARG OPEN_MPI_VERSION=4.0.1
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.6
+ARG SMDEBUG_VERSION=1.0.8
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -77,8 +77,8 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y -c anaconda \
-    # conda 4.9.2 requires ruamel_yaml to be installed. Currently pinned at latest.
-    ruamel_yaml==0.15.87 \
+    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.100 \
     numpy \
     ipython \
     mkl \
