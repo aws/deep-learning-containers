@@ -211,6 +211,19 @@ def setup_eks_cluster(framework_name, is_neuron):
         raise
     return cluster_name
 
+def setup_ssm_eks_cluster(eks_cluster_name):
+    """ Function to attach SSM policy to IAM role created by EKS nodegroup and install SSM agent
+    """
+    ATTACH_SSM_POLICY="attach"
+    eks_utils.manage_ssm_permissions_nodegroup(eks_cluster_name, ATTACH_SSM_POLICY)
+    eks_utils.setup_ssm_agent()
+
+def delete_eks_cluster(eks_cluster_name):
+    """ Function to detach SSM policy from IAM role created by EKS nodegroups and delete the EKS cluster
+    """
+    DETACH_SSM_POLICY="detach"
+    eks_utils.manage_ssm_permissions_nodegroup(eks_cluster_name, DETACH_SSM_POLICY)
+    eks_utils.delete_eks_cluster(eks_cluster_name)
 
 def setup_sm_benchmark_env(dlc_images, test_path):
     # The plan is to have a separate if/elif-condition for each type of image
@@ -266,6 +279,15 @@ def main():
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
+    # Skipping non HuggingFace specific tests to execute only sagemaker remote tests
+    # TODO: remove "sagemaker" once sagemaker tests are ready
+    if any("huggingface" in image_uri for image_uri in all_image_list) and \
+            specific_test_type in ("ecs", "ec2", "eks", "canary", "bai", "sagemaker-local"):
+        # Creating an empty file for because codebuild job fails without it
+        report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+        sm_utils.generate_empty_report(report, test_type, "huggingface")
+        return
+
     if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary", "bai"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
@@ -294,6 +316,7 @@ def main():
             framework = frameworks_in_images[0]
             is_neuron = "neuron" in dlc_images
             eks_cluster_name = setup_eks_cluster(framework, is_neuron)
+            setup_ssm_eks_cluster(eks_cluster_name)
 
             if not is_neuron:
                 # setup kubeflow
@@ -365,7 +388,7 @@ def main():
                 raise RuntimeError(pytest_cmds)
         finally:
             if specific_test_type == "eks" and eks_cluster_name:
-                eks_utils.delete_eks_cluster(eks_cluster_name)
+                delete_eks_cluster(eks_cluster_name)
 
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):

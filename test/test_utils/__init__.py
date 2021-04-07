@@ -86,7 +86,7 @@ def is_tf_version(required_version, image_uri):
     return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
 
 
-def is_below_tf_version(version_upper_bound, image_uri):
+def is_below_framework_version(version_upper_bound, image_uri, framework):
     """
     Validate that image_uri has framework version strictly less than version_upper_bound
 
@@ -96,33 +96,7 @@ def is_below_tf_version(version_upper_bound, image_uri):
     """
     image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
     required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
-    return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
-
-
-def is_below_mxnet_version(version_upper_bound, image_uri):
-    """
-    Validate that image_uri has framework version strictly less than version_upper_bound
-
-    :param version_upper_bound: str Framework version that image_uri is required to be below
-    :param image_uri: str ECR Image URI for the image to be validated
-    :return: bool True if image_uri has framework version less than version_upper_bound, else False
-    """
-    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
-    required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
-    return image_framework_name == "mxnet" and image_framework_version in required_version_specifier_set
-
-
-def is_below_pytorch_version(version_upper_bound, image_uri):
-    """
-    Validate that image_uri has framework version strictly less than version_upper_bound
-
-    :param version_upper_bound: str Framework version that image_uri is required to be below
-    :param image_uri: str ECR Image URI for the image to be validated
-    :return: bool True if image_uri has framework version less than version_upper_bound, else False
-    """
-    image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
-    required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
-    return image_framework_name == "pytorch" and image_framework_version in required_version_specifier_set
+    return image_framework_name == framework and image_framework_version in required_version_specifier_set
 
 
 def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
@@ -130,6 +104,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
     Check for all compatibility issues between DLC Image Types and EC2 Instance Types.
     Currently configured to fail on the following checks:
         1. p4d.24xlarge instance type is used with a cuda<11.0 image
+        2. p2.8xlarge instance type is used with a cuda=11.0 image for MXNET framework
 
     :param image_uri: ECR Image URI in valid DLC-format
     :param ec2_instance_type: EC2 Instance Type
@@ -140,7 +115,17 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         get_cuda_version_from_tag(image_uri).startswith("cu10") and
         ec2_instance_type in ["p4d.24xlarge"]
     )
-    return image_is_cuda10_on_incompatible_p4d_instance
+
+    framework, _ = get_framework_and_version_from_tag(image_uri)
+
+    image_is_cuda11_on_incompatible_p2_instance_mxnet = (
+        framework == "mxnet" and
+        get_processor_from_image_uri(image_uri) == "gpu" and
+        get_cuda_version_from_tag(image_uri).startswith("cu11") and
+        ec2_instance_type in ["p2.8xlarge"]
+    )
+
+    return image_is_cuda10_on_incompatible_p4d_instance or image_is_cuda11_on_incompatible_p2_instance_mxnet
 
 
 def get_repository_local_path():
@@ -271,7 +256,9 @@ def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connecti
 @retry(
     stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false,
 )
-def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connection=None, model_name="pytorch-densenet"):
+def request_pytorch_inference_densenet(
+        ip_address="127.0.0.1", port="80", connection=None, model_name="pytorch-densenet", server_type="ts"
+):
     """
     Send request to container to test inference on flower.jpg
     :param ip_address: str
@@ -299,7 +286,8 @@ def request_pytorch_inference_densenet(ip_address="127.0.0.1", port="80", connec
         inference_output = json.loads(run_out.stdout.strip("\n"))
         if not (
                 ("neuron" in model_name and isinstance(inference_output, list) and len(inference_output) == 3)
-                or (isinstance(inference_output, dict) and len(inference_output) == 5)
+                or (server_type=="ts" and isinstance(inference_output, dict) and len(inference_output) == 5)
+                or (server_type=="mms" and isinstance(inference_output, list) and len(inference_output) == 5)
         ):
             return False
         LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
@@ -713,6 +701,29 @@ def setup_sm_benchmark_mx_train_env(resources_location):
     return venv_dir
 
 
+def get_account_id_from_image_uri(image_uri):
+    """
+    Find the account ID where the image is located
+
+    :param image_uri: <str> ECR image URI
+    :return: <str> AWS Account ID
+    """
+    return image_uri.split(".")[0]
+
+
+def get_region_from_image_uri(image_uri):
+    """
+    Find the region where the image is located
+
+    :param image_uri: <str> ECR image URI
+    :return: <str> AWS Region Name
+    """
+    region_pattern = r"(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d+"
+    region_search = re.search(region_pattern, image_uri)
+    assert region_search, f"{image_uri} must have region that matches {region_pattern}"
+    return region_search.group()
+
+
 def get_framework_and_version_from_tag(image_uri):
     """
     Return the framework and version from the image tag.
@@ -720,12 +731,8 @@ def get_framework_and_version_from_tag(image_uri):
     :param image_uri: ECR image URI
     :return: framework name, framework version
     """
-    tested_framework = None
-    allowed_frameworks = ("tensorflow", "mxnet", "pytorch")
-    for framework in allowed_frameworks:
-        if framework in image_uri:
-            tested_framework = framework
-            break
+    tested_framework = get_framework_from_image_uri(image_uri)
+    allowed_frameworks = ("huggingface_tensorflow", "huggingface_pytorch", "tensorflow", "mxnet", "pytorch")
 
     if not tested_framework:
         raise RuntimeError(
@@ -735,6 +742,17 @@ def get_framework_and_version_from_tag(image_uri):
     tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]
 
     return tested_framework, tag_framework_version
+
+
+def get_framework_from_image_uri(image_uri):
+    return (
+        "huggingface_tensorflow" if "huggingface-tensorflow" in image_uri
+        else "huggingface_pytorch" if "huggingface-pytorch" in image_uri
+        else "mxnet" if "mxnet" in image_uri
+        else "pytorch" if "pytorch" in image_uri
+        else "tensorflow" if "tensorflow" in image_uri
+        else None
+    )
 
 
 def get_cuda_version_from_tag(image_uri):

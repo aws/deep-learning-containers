@@ -57,7 +57,9 @@ def test_ec2_tensorflow_inference_eia_cpu(tensorflow_inference_eia, ec2_connecti
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", TF_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connection, region, eia_only):
+def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connection, region, eia_only, ec2_instance_type):
+    if ec2_instance_type == "p4d.24xlarge":
+        pytest.skip(f"Skipping EIA GPU test for {ec2_instance_type} instance type. See https://github.com/aws/deep-learning-containers/issues/962")
     run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, "8500", region)
 
 
@@ -177,8 +179,5 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
 
 
 def check_telemetry(ec2_connection, container_name):
-    telemetry_cmd = "import os; assert (os.path.exists('/tmp/test_request.txt'))"
-    ec2_connection.run(
-        f'''docker exec -it {container_name} python -c {telemetry_cmd} ''',
-        hide=True, warn=True
-    )
+    ec2_connection.run(f"docker exec -i {container_name} bash -c '[ -f /tmp/test_request.txt ]'")
+    ec2_connection.run(f"docker exec -i {container_name} bash -c '[ -f /tmp/test_tag_request.txt ]'")
