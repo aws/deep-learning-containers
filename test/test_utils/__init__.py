@@ -146,11 +146,11 @@ def get_inference_server_type(image_uri):
 
 
 def is_pr_context():
-    return os.getenv("BUILD_CONTEXT") == "PR"
+    return False  # os.getenv("BUILD_CONTEXT") == "PR"
 
 
 def is_canary_context():
-    return os.getenv("BUILD_CONTEXT") == "CANARY"
+    return True  # os.getenv("BUILD_CONTEXT") == "CANARY"
 
 
 def is_mainline_context():
