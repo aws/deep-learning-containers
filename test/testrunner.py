@@ -200,7 +200,7 @@ def setup_eks_cluster(framework_name, is_neuron):
     try:
         eks_utils.eks_setup()
         if is_neuron:
-            #TODO the eks AMI used for neuron has a snapshot size of 500GB, if we pass the default 80GB the cluster 
+            #TODO the eks AMI used for neuron has a snapshot size of 500GB, if we pass the default 80GB the cluster
             #creation will fail. Once official EKS AMI for neuron 1.1 is released, revert this change.
             volume_size = 500
             eks_utils.create_eks_cluster(cluster_name, "neuron", num_nodes, volume_size, "inf1.xlarge", "pytest.pem")
@@ -211,6 +211,7 @@ def setup_eks_cluster(framework_name, is_neuron):
         raise
     return cluster_name
 
+
 def setup_ssm_eks_cluster(eks_cluster_name):
     """ Function to attach SSM policy to IAM role created by EKS nodegroup and install SSM agent
     """
@@ -218,12 +219,14 @@ def setup_ssm_eks_cluster(eks_cluster_name):
     eks_utils.manage_ssm_permissions_nodegroup(eks_cluster_name, ATTACH_SSM_POLICY)
     eks_utils.setup_ssm_agent()
 
+
 def delete_eks_cluster(eks_cluster_name):
     """ Function to detach SSM policy from IAM role created by EKS nodegroups and delete the EKS cluster
     """
     DETACH_SSM_POLICY="detach"
     eks_utils.manage_ssm_permissions_nodegroup(eks_cluster_name, DETACH_SSM_POLICY)
     eks_utils.delete_eks_cluster(eks_cluster_name)
+
 
 def setup_sm_benchmark_env(dlc_images, test_path):
     # The plan is to have a separate if/elif-condition for each type of image
@@ -266,7 +269,7 @@ def build_bai_docker_container():
 def main():
     # Define constants
     start_time = datetime.now()
-    test_type = os.getenv("TEST_TYPE")
+    test_type = "canary"  # os.getenv("TEST_TYPE")
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
     LOGGER.info(f"Images tested: {dlc_images}")
