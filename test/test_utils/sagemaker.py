@@ -88,7 +88,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     :param sagemaker_test_type: local or remote test type
     :return: <tuple> pytest command to be run, path where it should be executed, image tag
     """
-    reruns = 4
+    reruns = 2
+    reruns_delay = 10
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
     print("image name {}".format(image))
@@ -140,7 +141,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
         f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
-        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} --junitxml {test_report}"
+        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} --junitxml {test_report} "
+        f"--reruns {reruns} --reruns-delay {reruns_delay}"
     )
 
     if processor == "eia" :
