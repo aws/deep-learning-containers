@@ -342,6 +342,15 @@ def pt14_and_above_only():
     pass
 
 
+@pytest.fixture(autouse=True)
+def log_current_test():
+    """
+    Log the name of the test currently being executed by pytest
+    """
+    test_name = f"{os.environ.get('PYTEST_CURRENT_TEST').split(':')[-1].split(' ')[0]}"
+    LOGGER.info(f"============================= Executing test :: {test_name} :: =============================")
+
+
 def framework_version_within_limit(metafunc_obj, image):
     """
     Test all pytest fixtures for TensorFlow version limits, and return True if all requirements are satisfied

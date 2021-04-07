@@ -146,3 +146,12 @@ def skip_py2_containers(request, tag):
 def ecr_image(account_id, docker_base_name, tag, region):
     registry = get_ecr_registry(account_id, region)
     return '{}/{}:{}'.format(registry, docker_base_name, tag)
+
+
+@pytest.fixture(autouse=True)
+def log_current_test():
+    """
+    Log the name of the test currently being executed by pytest
+    """
+    test_name = f"{os.environ.get('PYTEST_CURRENT_TEST').split(':')[-1].split(' ')[0]}"
+    logger.info(f"============================= Executing test :: {test_name} :: =============================")
