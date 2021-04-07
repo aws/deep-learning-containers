@@ -16,7 +16,7 @@ import os
 
 import pytest
 from ...integration import (DEFAULT_TIMEOUT)
-import sagemaker.huggingface import HuggingFace
+from sagemaker.huggingface import HuggingFace
 from ...integration.sagemaker.timeout import timeout
 
 @pytest.mark.processor("gpu")
