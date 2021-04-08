@@ -36,7 +36,6 @@ def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_back
             'do_train': True,
             'do_eval': True,
             'do_predict': True,
-            'num_train_epochs': 2,
             'output_dir': '/opt/ml/model',
             'max_steps': 500,
         }
