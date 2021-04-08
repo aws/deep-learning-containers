@@ -54,11 +54,13 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
 
     :param image: str Image URI for image to be tested
     :param ecr_client: boto3 Client for ECR
+    :param sts_client: boto3 Client for STS
+    :param region: str Name of region where test is executed
     """
-    current_account_id = sts_client.get_caller_identity().get("Account")
+    test_account_id = sts_client.get_caller_identity().get("Account")
     image_account_id = get_account_id_from_image_uri(image)
-    if image_account_id != current_account_id:
-        image = _reupload_image_to_test_ecr(image, ecr_client, region, current_account_id)
+    if image_account_id != test_account_id:
+        image = _reupload_image_to_test_ecr(image, ecr_client, region, test_account_id)
     minimum_sev_threshold = "HIGH"
     scan_status = None
     start_time = time()
@@ -91,6 +93,7 @@ def _reupload_image_to_test_ecr(source_image_uri, test_ecr_client, test_region, 
     :param test_ecr_client: boto3.Client ECR client for account where test is being run
     :param test_region: str Region where test is being run
     :param test_account_id: str Account ID for account where test is being run
+    :return: str New image URI for re-uploaded image
     """
     ctx = Context()
     image_account_id = get_account_id_from_image_uri(source_image_uri)
@@ -102,7 +105,9 @@ def _reupload_image_to_test_ecr(source_image_uri, test_ecr_client, test_region, 
     _, image_repo_name = image_repo_uri.split("/")
     test_image_repo_name = f"beta-{image_repo_name}"
     if not ecr_utils.ecr_repo_exists(test_ecr_client, test_image_repo_name):
-        ecr_utils.create_ecr_repository(test_ecr_client, test_image_repo_name)
+        raise ecr_utils.ECRRepoDoesNotExist(
+            f"Repo named {test_image_repo_name} does not exist in {test_region} on the account {test_account_id}"
+        )
 
     test_image_uri = (
         source_image_uri.replace(image_region, test_region)

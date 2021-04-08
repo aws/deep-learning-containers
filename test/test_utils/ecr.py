@@ -18,6 +18,10 @@ class ECRScanFailedError(Exception):
     pass
 
 
+class ECRRepoDoesNotExist(Exception):
+    pass
+
+
 def get_ecr_image_scan_time(ecr_client, image_uri):
     """
     Find timestamp of when ECR Scan was last run for a given image URI assuming that this repository makes this
@@ -98,7 +102,10 @@ def get_ecr_image_scan_results(ecr_client, image_uri, minimum_vulnerability="HIG
 
 def ecr_repo_exists(ecr_client, repo_name, account_id=None):
     """
-
+    :param ecr_client: boto3.Client for ECR
+    :param repo_name: str ECR Repository Name
+    :param account_id: str Account ID where repo is expected to exist
+    :return: bool True if repo exists, False if not
     """
     query = {"repositoryNames": [repo_name]}
     if account_id:
@@ -108,17 +115,3 @@ def ecr_repo_exists(ecr_client, repo_name, account_id=None):
     except ecr_client.exceptions.RepositoryNotFoundException as e:
         return False
     return True
-
-
-def create_ecr_repository(ecr_client, repository_name, enable_scan_on_push=False):
-    try:
-        response = ecr_client.create_repository(
-            repositoryName=repository_name, imageScanningConfiguration=enable_scan_on_push,
-        )
-    except ecr_client.exceptions.RepositoryAlreadyExistsException as e:
-        LOGGER.info(f"Repository {repository_name} already exists: {e}")
-        response = ecr_client.describe_repositories(repositoryNames=[repository_name])
-        # Place a reference to response["repositories][0] on response["repository"] to make it match the response
-        # from create_repository.
-        response["repository"] = response["repositories"][0]
-    return response
