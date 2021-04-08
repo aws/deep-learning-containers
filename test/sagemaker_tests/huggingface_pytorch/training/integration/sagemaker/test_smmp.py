@@ -26,7 +26,7 @@ from ...integration.sagemaker.timeout import timeout
 @pytest.mark.skip_py2_containers
 def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type, dist_gpu_backend):
 
-    with timeout(minutes=DEFAULT_TIMEOUT):
+    with timeout(minutes=40):
         # hyperparameters, which are passed into the training job
         hyperparameters = {
             'model_name_or_path': 'roberta-large',
