@@ -26,6 +26,34 @@ from ...integration.sagemaker.timeout import timeout
 
 MULTI_GPU_INSTANCE = 'ml.p3.16xlarge'
 
+git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v4.4.2'}
+
+# configuration for running training on smdistributed Data Parallel
+distribution = {'smdistributed': {'dataparallel': {'enabled': True}}}
+
+# hyperparameters, which are passed into the training job
+hyperparameters = {
+    'model_name_or_path': 'bert-large-uncased-whole-word-masking',
+    'dataset_name': 'squad',
+    'do_train': True,
+    'do_eval': True,
+    'fp16': True,
+    'per_device_train_batch_size': 4,
+    'per_device_eval_batch_size': 4,
+    'num_train_epochs': 1,
+    'max_seq_length': 384,
+    'max_steps': 100,
+    'pad_to_max_length': True,
+    'doc_stride': 128,
+    'output_dir': '/opt/ml/model'
+}
+# metric definition to extract the results
+metric_definitions = [
+    {"Name": "train_runtime", "Regex": "train_runtime.*=\D*(.*?)$"},
+    {'Name': 'train_samples_per_second', 'Regex': "train_samples_per_second.*=\D*(.*?)$"},
+    {'Name': 'epoch', 'Regex': "epoch.*=\D*(.*?)$"},
+    {'Name': 'f1', 'Regex': "f1.*=\D*(.*?)$"},
+    {'Name': 'exact_match', 'Regex': "exact_match.*=\D*(.*?)$"}]
 
 def validate_or_skip_smdataparallel(ecr_image):
     if not can_run_smdataparallel(ecr_image):
@@ -48,35 +76,7 @@ def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker
     Tests SM Distributed DataParallel single-node via script mode
     """
     validate_or_skip_smdataparallel(ecr_image)
-    git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v4.4.2'}
-
-    # configuration for running training on smdistributed Data Parallel
-    distribution = {'smdistributed': {'dataparallel': {'enabled': True}}}
-
-    # hyperparameters, which are passed into the training job
-    hyperparameters = {
-        'model_name_or_path': 'bert-large-uncased-whole-word-masking',
-        'dataset_name': 'squad',
-        'do_train': True,
-        'do_eval': True,
-        'fp16': True,
-        'per_device_train_batch_size': 4,
-        'per_device_eval_batch_size': 4,
-        'num_train_epochs': 2,
-        'max_seq_length': 384,
-        'max_steps': 100,
-        'pad_to_max_length': True,
-        'doc_stride': 128,
-        'output_dir': '/opt/ml/model'
-    }
-    # metric definition to extract the results
-    metric_definitions = [
-        {"Name": "train_runtime", "Regex": "train_runtime.*=\D*(.*?)$"},
-        {'Name': 'train_samples_per_second', 'Regex': "train_samples_per_second.*=\D*(.*?)$"},
-        {'Name': 'epoch', 'Regex': "epoch.*=\D*(.*?)$"},
-        {'Name': 'f1', 'Regex': "f1.*=\D*(.*?)$"},
-        {'Name': 'exact_match', 'Regex': "exact_match.*=\D*(.*?)$"}]
-
+    instance_count = 1
     instance_type = "ml.p3.16xlarge"
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator = HuggingFace(
@@ -86,7 +86,7 @@ def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker
             metric_definitions=metric_definitions,
             role='SageMakerRole',
             image_uri=ecr_image,
-            instance_count=1,
+            instance_count=instance_count,
             instance_type=instance_type,
             sagemaker_session=sagemaker_session,
             transformers_version='4.4.2',
@@ -95,7 +95,40 @@ def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker
             distribution=distribution,
             hyperparameters=hyperparameters,
             debugger_hook_config=False,
-            output_path='file://{}'.format(tmpdir),
         )
+        estimator.fit()
 
+
+@pytest.mark.integration("smdataparallel")
+@pytest.mark.model("hf_qa_smdp_multi")
+@pytest.mark.multinode(2)
+@pytest.mark.processor("gpu")
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+def test_smdp_question_answering_multinode(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
+    """
+    Tests SM Distributed DataParallel single-node via script mode
+    """
+    validate_or_skip_smdataparallel(ecr_image)
+
+    instance_count = 2
+    instance_type = "ml.p3.16xlarge"
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        estimator = HuggingFace(
+            entry_point='run_qa.py',
+            source_dir='./examples/question-answering',
+            git_config=git_config,
+            metric_definitions=metric_definitions,
+            role='SageMakerRole',
+            image_uri=ecr_image,
+            instance_count=instance_count,
+            instance_type=instance_type,
+            sagemaker_session=sagemaker_session,
+            transformers_version='4.4.2',
+            pytorch_version='1.6.0',
+            py_version='py36',
+            distribution=distribution,
+            hyperparameters=hyperparameters,
+            debugger_hook_config=False,
+        )
         estimator.fit()
