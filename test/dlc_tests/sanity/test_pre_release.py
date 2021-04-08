@@ -21,7 +21,10 @@ from test.test_utils import (
     is_dlc_cicd_context,
     is_pr_context,
     run_cmd_on_container,
-    start_container,
+    start_container, 
+    is_time_for_canary_safety_scan, 
+    is_mainline_context,
+    is_nightly_context
 )
 
 
@@ -263,22 +266,34 @@ def _run_dependency_check_test(image, ec2_connection, processor):
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+@pytest.mark.skipif(not (is_nightly_context() or is_mainline_context() or (is_canary_context() and is_time_for_canary_safety_scan())),
+                    reason="Do not run dependency check on PR tests. "
+                           "Executing test in canaries pipeline during only a limited period of time."
+                    )
 def test_dependency_check_cpu(cpu, ec2_connection):
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+@pytest.mark.skipif(not (is_nightly_context() or is_mainline_context() or (is_canary_context() and is_time_for_canary_safety_scan())),
+                    reason="Do not run dependency check on PR tests. "
+                           "Executing test in canaries pipeline during only a limited period of time."
+                    )
 def test_dependency_check_gpu(gpu, ec2_connection):
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
-@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+@pytest.mark.skipif(not (is_nightly_context() or is_mainline_context() or (is_canary_context() and is_time_for_canary_safety_scan())),
+                    reason="Do not run dependency check on PR tests. "
+                           "Executing test in canaries pipeline during only a limited period of time."
+                    )
 def test_dependency_check_neuron(neuron, ec2_connection):
     _run_dependency_check_test(neuron, ec2_connection, "neuron")
 

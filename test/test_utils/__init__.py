@@ -173,6 +173,15 @@ def is_benchmark_dev_context():
     return ENABLE_BENCHMARK_DEV_MODE
 
 
+def is_time_for_canary_safety_scan():
+    """
+    Canary tests run every 15 minutes. 
+    Using a 20 minutes interval to make tests run only once a day around 9 am PST (10 am during winter time).
+    """
+    current_utc_time = time.gmtime()
+    return current_utc_time.tm_hour == 16 and (0 < current_utc_time.tm_min < 20)
+
+
 def run_subprocess_cmd(cmd, failure="Command failed"):
     command = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
     if command.returncode:
