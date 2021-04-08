@@ -86,6 +86,7 @@ def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_back
                                             instance_count=instance_count,
                                             volume_size=volume_size,
                                             role='SageMakerRole',
+                                            framework_version='1.6.0',
                                             transformers_version='4.4.2',
                                             pytorch_version='1.6.0',
                                             py_version='py36',
