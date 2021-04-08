@@ -9,7 +9,6 @@ import torch
 LOGGER = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
-
 def test_nccl_version():
     try:
         pt_nccl = torch.cuda.nccl.version()
@@ -28,7 +27,6 @@ def test_nccl_version():
         LOGGER.debug("Error: check_pytorch test failed.")
         LOGGER.debug("Exception: {}".format(excp))
         raise
-
 
 if __name__ == '__main__':
     try:
