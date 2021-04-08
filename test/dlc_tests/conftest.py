@@ -98,6 +98,11 @@ def ecr_client(region):
 
 
 @pytest.fixture(scope="session")
+def sts_client(region):
+    return boto3.client("sts", region_name=region)
+
+
+@pytest.fixture(scope="session")
 def ec2_client(region):
     return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
