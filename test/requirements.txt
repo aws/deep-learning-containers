@@ -2,10 +2,10 @@ docker==4.2.0
 fabric==2.5.0
 junit-xml==1.9
 packaging==20.1
-pytest==5.3.5
-pytest-rerunfailures==9.0
+pytest==6.2.3
+pytest-rerunfailures==9.1.1
 pytest-timeout
-pytest-xdist==1.31.0
+pytest-xdist==2.2.1
 xmltodict
 boto3
 retrying
