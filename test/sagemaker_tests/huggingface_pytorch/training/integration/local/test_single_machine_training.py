@@ -16,7 +16,7 @@ import os
 
 import pytest
 import sagemaker.huggingface
-from sagemaker.HuggingFace import HuggingFace
+from sagemaker.huggingface import HuggingFace
 import botocore
 from datasets.filesystems import S3FileSystem
 

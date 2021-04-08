@@ -19,4 +19,4 @@ scripts_path = os.path.join(resources_path, 'scripts')
 distrilbert_script = os.path.join(scripts_path, 'train.py')
 
 ROLE = 'dummy/unused-role'
-DEFAULT_TIMEOUT = 20
+DEFAULT_TIMEOUT = 60
