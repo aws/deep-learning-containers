@@ -20,7 +20,6 @@ import sagemaker.huggingface
 from sagemaker.huggingface import HuggingFace
 
 from packaging.version import Version
-from sagemaker.tensorflow import TensorFlow
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
