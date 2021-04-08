@@ -63,7 +63,7 @@ def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type
         }
 
         # instance configurations
-        instance_type = instance_type or 'ml.p3dn.16xlarge'
+        instance_type = instance_type or 'ml.p3.16xlarge'
         instance_count = 1
         volume_size = 400
 
