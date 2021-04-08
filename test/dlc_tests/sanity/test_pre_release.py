@@ -1,6 +1,8 @@
 import os
 import re
-
+import subprocess
+import botocore
+import boto3
 from packaging.version import Version
 
 import pytest
@@ -8,6 +10,7 @@ import requests
 
 from urllib3.util.retry import Retry
 from invoke.context import Context
+from botocore.exceptions import ClientError
 
 from src.buildspec import Buildspec
 from test.test_utils import (
@@ -25,6 +28,7 @@ from test.test_utils import (
     is_time_for_canary_safety_scan, 
     is_mainline_context,
     is_nightly_context
+    get_repository_local_path,
 )
 
 
@@ -494,3 +498,62 @@ def _assert_artifact_free(output, stray_artifacts):
         assert not re.search(
             artifact, output.stdout
         ), f"Matched {artifact} in {output.stdout} while running {output.command}"
+
+@pytest.mark.integration("oss_compliance")
+@pytest.mark.model("N/A")
+@pytest.mark.skipif(not is_dlc_cicd_context(), reason="We need to test OSS compliance only on PRs and pipelines")
+def test_oss_compliance(image):
+    """
+    Run oss compliance check on a container to check if license attribution files exist.
+    And upload source of third party packages to S3 bucket.
+    """
+    THIRD_PARTY_SOURCE_CODE_BUCKET = "aws-dlinfra-licenses"
+    THIRD_PARTY_SOURCE_CODE_BUCKET_PATH = "third_party_source_code"
+    file = "THIRD_PARTY_SOURCE_CODE_URLS"
+    container_name = get_container_name("oss_compliance", image)
+    context = Context()
+    local_repo_path = get_repository_local_path()
+    start_container(container_name, image, context)
+
+    # run compliance test to make sure license attribution files exists. testOSSCompliance is copied as part of Dockerfile
+    run_cmd_on_container(container_name, context, "/usr/local/bin/testOSSCompliance /root")
+
+    try:
+        context.run(f"docker cp {container_name}:/root/{file} {os.path.join(local_repo_path, file)}")
+    finally:
+        context.run(f"docker rm -f {container_name}", hide=True)
+
+    s3_resource = boto3.resource('s3')
+
+    with open(os.path.join(local_repo_path, file)) as source_code_file:
+        for line in source_code_file:
+            name, version, url = line.split(" ")
+            file_name = f"{name}_v{version}_source_code"
+            s3_object_path = f"{THIRD_PARTY_SOURCE_CODE_BUCKET_PATH}/{file_name}.tar.gz"
+            local_file_path = os.path.join(local_repo_path, file_name)
+
+            try:
+                if not os.path.isdir(local_file_path):
+                    context.run(f"git clone {url.rstrip()} {local_file_path}")
+                    context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
+            except Exception as e:
+                LOGGER.error(f"Unable to clone git repo. Error: {e}")
+                raise
+
+            try:
+                if os.path.exists(f"{local_file_path}.tar.gz"):
+                    LOGGER.info(f"Uploading package to s3 bucket: {line}")
+                    s3_resource.Object(THIRD_PARTY_SOURCE_CODE_BUCKET, s3_object_path).load()
+            except botocore.exceptions.ClientError as e:
+                if e.response['Error']['Code'] == "404":
+                    try:
+                        # using aws cli as using boto3 expects to upload folder by iterating through each file instead of entire folder.
+                        context.run(f"aws s3 cp {local_file_path}.tar.gz s3://{THIRD_PARTY_SOURCE_CODE_BUCKET}/{s3_object_path}")
+                        object = s3_resource.Bucket(THIRD_PARTY_SOURCE_CODE_BUCKET).Object(s3_object_path)
+                        object.Acl().put(ACL='public-read')
+                    except ClientError as e:
+                        LOGGER.error(f"Unable to upload source code to bucket {THIRD_PARTY_SOURCE_CODE_BUCKET}. Error: {e}")
+                        raise
+                else:
+                    LOGGER.error(f"Unable to check if source code is present on bucket {THIRD_PARTY_SOURCE_CODE_BUCKET}. Error: {e}")
+                    raise
