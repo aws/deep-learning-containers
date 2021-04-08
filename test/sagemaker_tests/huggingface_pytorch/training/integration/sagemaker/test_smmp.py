@@ -24,7 +24,7 @@ from ...integration.sagemaker.timeout import timeout
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_backend):
+def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type, dist_gpu_backend):
 
     with timeout(minutes=DEFAULT_TIMEOUT):
         # hyperparameters, which are passed into the training job
@@ -63,8 +63,8 @@ def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_back
         }
 
         # instance configurations
-        instance_type = 'ml.p3dn.24xlarge'
-        instance_count = 2
+        instance_type = instance_type or 'ml.p3dn.16xlarge'
+        instance_count = 1
         volume_size = 400
 
         # git configuration to download our fine-tuning script
