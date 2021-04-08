@@ -11,7 +11,7 @@ import requests
 
 from invoke import run
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_dlc_cicd_context, is_canary_context, is_mainline_context
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_dlc_cicd_context, is_canary_context, is_mainline_context, is_time_for_canary_safety_scan
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -126,10 +126,12 @@ def _get_latest_package_version(package):
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.canary("Run safety tests regularly on production images")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
-@pytest.mark.skipif(not is_mainline_context(),
+@pytest.mark.skipif(not (is_mainline_context() or (is_canary_context() and is_time_for_canary_safety_scan())),
                     reason="Skipping the test to decrease the number of calls to the Safety Check DB. "
-                           "Test will be executed in the 'mainline' pipeline only")
+                           "Test will be executed in the 'mainline' pipeline and canaries pipeline."
+                    )
 def test_safety(image):
     """
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
