@@ -33,7 +33,7 @@ def test_distributed_training_horovod(sagemaker_session,
                                       tmpdir,
                                       framework_version):
 
-    mpi_options = '-verbose -x orte_base_help_aggregate=0'
+    mpi_options = '-verbose -x orte_base_help_aggregate=0 -x RDMAV_FORK_SAFE=1'
     estimator = TensorFlow(
         entry_point=os.path.join(RESOURCE_PATH, 'mnist', 'horovod_mnist.py'),
         role='SageMakerRole',
@@ -63,7 +63,7 @@ def test_distributed_training_horovod_with_env_vars(
         sagemaker_session, instance_type, ecr_image, tmpdir, framework_version
 ):
 
-    mpi_options = "-verbose -x orte_base_help_aggregate=0"
+    mpi_options = "-verbose -x orte_base_help_aggregate=0 -x RDMAV_FORK_SAFE=1"
     estimator = TensorFlow(
         entry_point=os.path.join(RESOURCE_PATH, "hvdbasic", "train_hvd_env_vars.py"),
         role="SageMakerRole",

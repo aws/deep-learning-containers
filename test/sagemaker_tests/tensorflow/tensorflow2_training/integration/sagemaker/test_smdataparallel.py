@@ -57,6 +57,7 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip(reason="Skipping test because it is flaky on mainline pipeline.")
 def test_distributed_training_smdataparallel_script_mode(
     n_virginia_sagemaker_session, instance_type, n_virginia_ecr_image, tmpdir, framework_version
 ):
