@@ -153,9 +153,7 @@ def log_current_test():
     Log the name of the test currently being executed by pytest
     """
     try:
-        test_name_raw = f"{os.environ.get('PYTEST_CURRENT_TEST')}"
-        test_name = f"{os.environ.get('PYTEST_CURRENT_TEST').split(':')[-1].split(' ')[0]}"
-        logger.info(f"============================= Executing raw test info :: {test_name_raw} :: =============================")
+        test_name = f"{os.environ.get('PYTEST_CURRENT_TEST')}"
         logger.info(f"============================= Executing test :: {test_name} :: =============================")
     except Exception:
-        logger.error("log_current_test error")
+        logger.error("Pytest env variable PYTEST_CURRENT_TEST not set")
