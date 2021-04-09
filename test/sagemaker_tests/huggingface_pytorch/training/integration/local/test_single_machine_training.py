@@ -26,8 +26,9 @@ from ...integration import ROLE, distrilbert_script
 
 @pytest.mark.model("hf_bert")
 @pytest.mark.integration("hf_local")
+@pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_distilbert_base(docker_image, processor, instance_type, sagemaker_local_session, tmpdir):
+def test_distilbert_base(ecr_image, processor, instance_type, sagemaker_local_session, py_version):
     from datasets import load_dataset
     from transformers import AutoTokenizer
 
@@ -82,11 +83,10 @@ def test_distilbert_base(docker_image, processor, instance_type, sagemaker_local
     estimator = HuggingFace(entry_point=distrilbert_script,
                             instance_type='ml.p3.16xlarge',
                             sagemaker_session=sagemaker_local_session,
+                            image_uri=ecr_image,
                             instance_count=1,
                             role=ROLE,
-                            transformers_version='4.4',
-                            pytorch_version='1.6',
-                            py_version='py36',
+                            py_version=py_version,
                             hyperparameters = hyperparameters)
 
     estimator.fit({'train':f's3://{sagemaker_local_session.default_bucket()}/{s3_prefix}/train', 'test':f's3://{sagemaker_local_session.default_bucket()}/{s3_prefix}/test'})
