@@ -18,6 +18,10 @@ class ECRScanFailedError(Exception):
     pass
 
 
+class ECRRepoDoesNotExist(Exception):
+    pass
+
+
 def get_ecr_image_scan_time(ecr_client, image_uri):
     """
     Find timestamp of when ECR Scan was last run for a given image URI assuming that this repository makes this
@@ -94,3 +98,20 @@ def get_ecr_image_scan_results(ecr_client, image_uri, minimum_vulnerability="HIG
         if CVESeverity[finding["severity"]] >= CVESeverity[minimum_vulnerability]
     ]
     return scan_findings
+
+
+def ecr_repo_exists(ecr_client, repo_name, account_id=None):
+    """
+    :param ecr_client: boto3.Client for ECR
+    :param repo_name: str ECR Repository Name
+    :param account_id: str Account ID where repo is expected to exist
+    :return: bool True if repo exists, False if not
+    """
+    query = {"repositoryNames": [repo_name]}
+    if account_id:
+        query["registryId"] = account_id
+    try:
+        ecr_client.describe_repositories(**query)
+    except ecr_client.exceptions.RepositoryNotFoundException as e:
+        return False
+    return True
