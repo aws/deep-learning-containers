@@ -64,7 +64,7 @@ git_config = {'repo': 'https://github.com/huggingface/notebooks.git', 'branch': 
 @pytest.mark.model("hf_qa_smmp")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type, dist_gpu_backend):
+def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type, py_version, dist_gpu_backend):
     # instance configurations
     instance_type = instance_type or 'ml.p3.16xlarge'
     instance_count = 1
@@ -79,6 +79,7 @@ def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type
                                         role='SageMakerRole',
                                         image_uri=ecr_image,
                                         distribution=distribution,
+                                        py_version=py_version,
                                         hyperparameters=hyperparameters,
                                         sagemaker_session=sagemaker_session)
     huggingface_estimator.fit(job_name=sagemaker.utils.unique_name_from_base('test-hf-pt-qa-smmp'))
@@ -90,7 +91,7 @@ def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.multinode(2)
-def test_smmp_gpu_multinode(sagemaker_session, framework_version, ecr_image, instance_type, dist_gpu_backend):
+def test_smmp_gpu_multinode(sagemaker_session, framework_version, ecr_image, instance_type, py_version, dist_gpu_backend):
     instance_type = instance_type or 'ml.p3.16xlarge'
     instance_count = 2
     volume_size = 400
@@ -104,6 +105,7 @@ def test_smmp_gpu_multinode(sagemaker_session, framework_version, ecr_image, ins
                                         role='SageMakerRole',
                                         image_uri=ecr_image,
                                         distribution=distribution,
+                                        py_version=py_version,
                                         hyperparameters=hyperparameters,
                                         sagemaker_session=sagemaker_session)
     huggingface_estimator.fit(job_name=sagemaker.utils.unique_name_from_base('test-hf-pt-qa-smmp-multi'))
