@@ -27,7 +27,7 @@ BERT_PATH = os.path.join(RESOURCE_PATH, 'local_scripts')
 @pytest.mark.model("hf_distilbert")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_hf_tf_distilbert(sagemaker_local_session, docker_image, framework_version):
+def test_hf_tf_distilbert(sagemaker_local_session, ecr_image, framework_version):
     # hyperparameters, which are passed into the training job
     hyperparameters = {'epochs': 1,
                        'train_batch_size': 16,
@@ -40,10 +40,8 @@ def test_hf_tf_distilbert(sagemaker_local_session, docker_image, framework_versi
                                         instance_count=1,
                                         role='SageMakerRole',
                                         sagemaker_local_session=sagemaker_local_session,
-                                        docker_image=docker_image,
-                                        transformers_version='4.4',
-                                        tensorflow_version='2.4',
+                                        image_uri=ecr_image,
                                         framework_version=framework_version,
-                                        py_version='py37',
+                                        py_version=py_version,
                                         hyperparameters=hyperparameters)
     huggingface_estimator.fit()
