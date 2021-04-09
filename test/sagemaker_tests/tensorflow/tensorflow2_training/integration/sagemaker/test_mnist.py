@@ -228,6 +228,7 @@ def test_smdebug(sagemaker_session, ecr_image, instance_type, framework_version)
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip(reason="Consider reworking these tests after re:Invent releases are done")
 def test_smdataparallel_smmodelparallel_mnist(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version):
     """
     Tests SM Distributed DataParallel and ModelParallel single-node via script mode
