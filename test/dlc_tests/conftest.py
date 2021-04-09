@@ -67,6 +67,9 @@ def pytest_addoption(parser):
     parser.addoption(
         "--multinode", action="store_true", default=False, help="Run only multi-node tests",
     )
+    parser.addoption(
+        "--efa", action="store_true", default=False, help="Run only efa tests",
+    )
 
 
 @pytest.fixture(scope="function")
@@ -95,6 +98,11 @@ def docker_client(region):
 @pytest.fixture(scope="session")
 def ecr_client(region):
     return boto3.client("ecr", region_name=region)
+
+
+@pytest.fixture(scope="session")
+def sts_client(region):
+    return boto3.client("sts", region_name=region)
 
 
 @pytest.fixture(scope="session")
@@ -378,6 +386,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
     config.addinivalue_line("markers", "processor(cpu/gpu/eia): explicitly mark which processor is used")
+    config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
 
 def pytest_runtest_setup(item):
@@ -389,6 +398,10 @@ def pytest_runtest_setup(item):
         multinode_opts = [mark for mark in item.iter_markers(name="multinode")]
         if not multinode_opts:
             pytest.skip("Skipping non-multinode tests")
+    if item.config.getoption("--efa"):
+        efa_tests = [mark for mark in item.iter_markers(name="efa")]
+        if not efa_tests:
+            pytest.skip("Skipping non-efa tests")
 
 
 def pytest_collection_modifyitems(session, config, items):
