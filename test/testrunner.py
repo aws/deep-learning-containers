@@ -200,7 +200,7 @@ def setup_eks_cluster(framework_name, is_neuron):
     try:
         eks_utils.eks_setup()
         if is_neuron:
-            #TODO the eks AMI used for neuron has a snapshot size of 500GB, if we pass the default 80GB the cluster 
+            #TODO the eks AMI used for neuron has a snapshot size of 500GB, if we pass the default 80GB the cluster
             #creation will fail. Once official EKS AMI for neuron 1.1 is released, revert this change.
             volume_size = 500
             eks_utils.create_eks_cluster(cluster_name, "neuron", num_nodes, volume_size, "inf1.xlarge", "pytest.pem")
@@ -266,10 +266,9 @@ def main():
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
-    # Skipping non HuggingFace specific tests to execute only sagemaker remote tests
-    # TODO: remove "sagemaker" once sagemaker tests are ready
+    # Skipping non HuggingFace specific tests to execute only sagemaker tests
     if any("huggingface" in image_uri for image_uri in all_image_list) and \
-            specific_test_type in ("ecs", "ec2", "eks", "canary", "bai", "sagemaker-local"):
+            specific_test_type in ("ecs", "ec2", "eks", "canary", "bai"):
         # Creating an empty file for because codebuild job fails without it
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         sm_utils.generate_empty_report(report, test_type, "huggingface")
