@@ -23,8 +23,7 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from ...integration import DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
-from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
-
+import sagemaker
 
 git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v4.4.2'}
 
@@ -72,7 +71,7 @@ def can_run_smdataparallel(ecr_image):
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
+def test_smdp_question_answering(ecr_image, instance_type, sagemaker_session, tmpdir):
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
@@ -90,13 +89,10 @@ def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker
             instance_count=instance_count,
             instance_type=instance_type,
             sagemaker_session=sagemaker_session,
-            transformers_version='4.4.2',
-            pytorch_version='1.6.0',
-            py_version='py36',
             distribution=distribution,
             hyperparameters=hyperparameters,
         )
-        estimator.fit(job_name=unique_name_from_base('test-hf-pt-qa-smdp'))
+        estimator.fit(job_name=sagemaker.utils.unique_name_from_base('test-hf-pt-qa-smdp'))
 
 
 @pytest.mark.integration("smdataparallel")
@@ -105,7 +101,7 @@ def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_smdp_question_answering_multinode(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
+def test_smdp_question_answering_multinode(ecr_image, instance_type, sagemaker_session, tmpdir):
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
@@ -124,10 +120,7 @@ def test_smdp_question_answering_multinode(ecr_image, instance_type, py_version,
             instance_count=instance_count,
             instance_type=instance_type,
             sagemaker_session=sagemaker_session,
-            transformers_version='4.4.2',
-            pytorch_version='1.6.0',
-            py_version='py36',
             distribution=distribution,
             hyperparameters=hyperparameters,
         )
-        estimator.fit(job_name=unique_name_from_base('test-hf-pt-qa-smdp-multi'))
+        estimator.fit(job_name=sagemaker.utils.unique_name_from_base('test-hf-pt-qa-smdp-multi'))

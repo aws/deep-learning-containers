@@ -18,8 +18,7 @@ import pytest
 from ...integration import (DEFAULT_TIMEOUT)
 from sagemaker.huggingface import HuggingFace
 from ...integration.sagemaker.timeout import timeout
-from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
-
+import sagemaker
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
@@ -79,11 +78,10 @@ def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type
                                         volume_size=volume_size,
                                         role='SageMakerRole',
                                         image_uri=ecr_image,
-                                        py_version='py36',
                                         distribution=distribution,
                                         hyperparameters=hyperparameters,
                                         sagemaker_session=sagemaker_session)
-    huggingface_estimator.fit(job_name=unique_name_from_base('test-hf-pt-qa-smmp'))
+    huggingface_estimator.fit(job_name=sagemaker.utils.unique_name_from_base('test-hf-pt-qa-smmp'))
 
 
 @pytest.mark.processor("gpu")
@@ -105,8 +103,7 @@ def test_smmp_gpu_multinode(sagemaker_session, framework_version, ecr_image, ins
                                         volume_size=volume_size,
                                         role='SageMakerRole',
                                         image_uri=ecr_image,
-                                        py_version='py36',
                                         distribution=distribution,
                                         hyperparameters=hyperparameters,
                                         sagemaker_session=sagemaker_session)
-    huggingface_estimator.fit(job_name=unique_name_from_base('test-hf-pt-qa-smmp-multi'))
+    huggingface_estimator.fit(job_name=sagemaker.utils.unique_name_from_base('test-hf-pt-qa-smmp-multi'))
