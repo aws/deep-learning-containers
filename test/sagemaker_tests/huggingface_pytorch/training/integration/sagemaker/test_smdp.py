@@ -71,7 +71,7 @@ def can_run_smdataparallel(ecr_image):
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_smdp_question_answering(ecr_image, instance_type, sagemaker_session, tmpdir):
+def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
@@ -89,6 +89,7 @@ def test_smdp_question_answering(ecr_image, instance_type, sagemaker_session, tm
             instance_count=instance_count,
             instance_type=instance_type,
             sagemaker_session=sagemaker_session,
+            py_version=py_version,
             distribution=distribution,
             hyperparameters=hyperparameters,
         )
@@ -101,7 +102,7 @@ def test_smdp_question_answering(ecr_image, instance_type, sagemaker_session, tm
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_smdp_question_answering_multinode(ecr_image, instance_type, sagemaker_session, tmpdir):
+def test_smdp_question_answering_multinode(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
@@ -120,6 +121,7 @@ def test_smdp_question_answering_multinode(ecr_image, instance_type, sagemaker_s
             instance_count=instance_count,
             instance_type=instance_type,
             sagemaker_session=sagemaker_session,
+            py_version=py_version,
             distribution=distribution,
             hyperparameters=hyperparameters,
         )
