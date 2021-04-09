@@ -86,7 +86,7 @@ RUN apt-get update \
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
  && cd openmpi-$OPEN_MPI_VERSION \
- && ./configure --prefix=$OPEN_MPI_PATH \
+ && ./configure --enable-orterun-prefix-by-default \
  && make all install \
  && cd .. \
  && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
