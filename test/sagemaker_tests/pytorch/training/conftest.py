@@ -251,12 +251,12 @@ def skip_py2_containers(request, tag):
             pytest.skip('Skipping python2 container with tag {}'.format(tag))
 
 
-# def pytest_configure(config):
-#     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+def pytest_configure(config):
+    config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
 
-# def pytest_runtest_setup(item):
-#     if item.config.getoption("--efa"):
-#         efa_tests = [mark for mark in item.iter_markers(name="efa")]
-#         if not efa_tests:
-#             pytest.skip("Skipping non-efa tests")
+def pytest_runtest_setup(item):
+    if item.config.getoption("--efa"):
+        efa_tests = [mark for mark in item.iter_markers(name="efa")]
+        if not efa_tests:
+            pytest.skip("Skipping non-efa tests")

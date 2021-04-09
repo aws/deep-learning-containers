@@ -246,11 +246,11 @@ def skip_gpu_py2(request, use_gpu, instance_type, py_version, framework_version)
             and framework_version == '1.4.0':
         pytest.skip('Skipping the test until mms issue resolved.')
 
-# def pytest_configure(config):
-#     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+def pytest_configure(config):
+    config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
-# def pytest_runtest_setup(item):
-#     if item.config.getoption("--efa"):
-#         efa_tests = [mark for mark in item.iter_markers(name="efa")]
-#         if not efa_tests:
-#             pytest.skip("Skipping non-efa tests")
+def pytest_runtest_setup(item):
+    if item.config.getoption("--efa"):
+        efa_tests = [mark for mark in item.iter_markers(name="efa")]
+        if not efa_tests:
+            pytest.skip("Skipping non-efa tests")
