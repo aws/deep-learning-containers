@@ -89,9 +89,7 @@ def pytest_addoption(parser):
     parser.addoption('--tag', default=None)
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
                      help='use this option to generate test coverage doc')
-    parser.addoption(
-        "--efa", action="store_true", default=False, help="Run only efa tests",
-    )
+
 
 def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
@@ -245,12 +243,3 @@ def skip_gpu_py2(request, use_gpu, instance_type, py_version, framework_version)
     if request.node.get_closest_marker('skip_gpu_py2') and is_gpu and py_version != 'py3' \
             and framework_version == '1.4.0':
         pytest.skip('Skipping the test until mms issue resolved.')
-
-def pytest_configure(config):
-    config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
-
-def pytest_runtest_setup(item):
-    if item.config.getoption("--efa"):
-        efa_tests = [mark for mark in item.iter_markers(name="efa")]
-        if not efa_tests:
-            pytest.skip("Skipping non-efa tests")
