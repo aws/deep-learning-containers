@@ -95,7 +95,7 @@ def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
         from test.test_utils.test_reporting import TestReportGenerator
         report_generator = TestReportGenerator(items, is_sagemaker=True)
-        report_generator.generate_coverage_doc(framework="pytorch", job_type="training")
+        report_generator.generate_coverage_doc(framework="huggingface_pytorch", job_type="training")
 
 
 @pytest.fixture(scope='session', name='docker_base_name')

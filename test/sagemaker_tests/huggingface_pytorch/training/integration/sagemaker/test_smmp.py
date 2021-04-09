@@ -18,6 +18,8 @@ import pytest
 from ...integration import (DEFAULT_TIMEOUT)
 from sagemaker.huggingface import HuggingFace
 from ...integration.sagemaker.timeout import timeout
+from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
+
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
@@ -57,15 +59,13 @@ distribution = {
 # git configuration to download our fine-tuning script
 git_config = {'repo': 'https://github.com/huggingface/notebooks.git', 'branch': 'master'}
 
+
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smmp")
 @pytest.mark.model("hf_qa_smmp")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type, dist_gpu_backend):
-
-
-
     # instance configurations
     instance_type = instance_type or 'ml.p3.16xlarge'
     instance_count = 1
@@ -82,9 +82,9 @@ def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type
                                         py_version='py36',
                                         distribution=distribution,
                                         hyperparameters=hyperparameters,
-                                        sagemaker_session=sagemaker_session,
-                                        debugger_hook_config=False)
-    huggingface_estimator.fit()
+                                        sagemaker_session=sagemaker_session)
+    huggingface_estimator.fit(job_name=unique_name_from_base('test-hf-pt-qa-smmp'))
+
 
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smmp")
@@ -108,6 +108,5 @@ def test_smmp_gpu_multinode(sagemaker_session, framework_version, ecr_image, ins
                                         py_version='py36',
                                         distribution=distribution,
                                         hyperparameters=hyperparameters,
-                                        sagemaker_session=sagemaker_session,
-                                        debugger_hook_config=False)
-    huggingface_estimator.fit()
+                                        sagemaker_session=sagemaker_session)
+    huggingface_estimator.fit(job_name=unique_name_from_base('test-hf-pt-qa-smmp-multi'))

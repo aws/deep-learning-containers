@@ -23,8 +23,8 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from ...integration import DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
+from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 
-MULTI_GPU_INSTANCE = 'ml.p3.16xlarge'
 
 git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v4.4.2'}
 
@@ -54,6 +54,7 @@ metric_definitions = [
     {'Name': 'epoch', 'Regex': "epoch.*=\D*(.*?)$"},
     {'Name': 'f1', 'Regex': "f1.*=\D*(.*?)$"},
     {'Name': 'exact_match', 'Regex': "exact_match.*=\D*(.*?)$"}]
+
 
 def validate_or_skip_smdataparallel(ecr_image):
     if not can_run_smdataparallel(ecr_image):
@@ -94,9 +95,8 @@ def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker
             py_version='py36',
             distribution=distribution,
             hyperparameters=hyperparameters,
-            debugger_hook_config=False,
         )
-        estimator.fit()
+        estimator.fit(job_name=unique_name_from_base('test-hf-pt-qa-smdp'))
 
 
 @pytest.mark.integration("smdataparallel")
@@ -129,6 +129,5 @@ def test_smdp_question_answering_multinode(ecr_image, instance_type, py_version,
             py_version='py36',
             distribution=distribution,
             hyperparameters=hyperparameters,
-            debugger_hook_config=False,
         )
-        estimator.fit()
+        estimator.fit(job_name=unique_name_from_base('test-hf-pt-qa-smdp-multi'))

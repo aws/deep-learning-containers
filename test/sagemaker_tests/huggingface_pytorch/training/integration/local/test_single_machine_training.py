@@ -23,7 +23,9 @@ from datasets.filesystems import S3FileSystem
 from ...utils.local_mode_utils import assert_files_exist
 from ...integration import ROLE, distrilbert_script
 
-@pytest.mark.model("bert_hf")
+
+@pytest.mark.model("hf_bert")
+@pytest.mark.integration("hf_local")
 @pytest.mark.skip_py2_containers
 def test_distilbert_base(docker_image, processor, instance_type, sagemaker_local_session, tmpdir):
     from datasets import load_dataset

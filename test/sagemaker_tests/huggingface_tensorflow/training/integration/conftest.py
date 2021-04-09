@@ -49,7 +49,7 @@ def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
         from test.test_utils.test_reporting import TestReportGenerator
         report_generator = TestReportGenerator(items, is_sagemaker=True)
-        report_generator.generate_coverage_doc(framework="tensorflow_2", job_type="training")
+        report_generator.generate_coverage_doc(framework="huggingface_tensorflow", job_type="training")
 
 
 def pytest_configure(config):
