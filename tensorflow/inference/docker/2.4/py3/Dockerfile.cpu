@@ -35,6 +35,7 @@ RUN apt-get update \
     ca-certificates \
     emacs \
     git \
+    unzip \
     wget \
     vim \
     libbz2-dev \

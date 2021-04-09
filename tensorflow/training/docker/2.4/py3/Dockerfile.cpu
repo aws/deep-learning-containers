@@ -47,6 +47,7 @@ RUN apt-get update \
     libtemplate-perl \
     libssl1.1 \
     openssl \
+    unzip \
     wget \
     vim \
     zlib1g-dev \

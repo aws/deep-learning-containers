@@ -38,6 +38,7 @@ RUN apt-get update \
     ca-certificates \
     emacs \
     git \
+    unzip \
     wget \
     build-essential \
     vim \

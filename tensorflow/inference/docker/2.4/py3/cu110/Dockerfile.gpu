@@ -58,6 +58,7 @@ RUN apt-get update \
     emacs \
     git \
     wget \
+    unzip \
     vim \
     build-essential \
     zlib1g-dev \

@@ -53,6 +53,7 @@ RUN apt-get update \
     libpng-dev \
     libzmq3-dev \
     git \
+    unzip \
     wget \
     vim \
     build-essential \

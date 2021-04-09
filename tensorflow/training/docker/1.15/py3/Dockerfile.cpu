@@ -41,6 +41,7 @@ RUN apt-get update \
     openssh-server \
     libssl1.1 \
     openssl \
+    unzip \
     vim \
     wget \
     zlib1g-dev \
