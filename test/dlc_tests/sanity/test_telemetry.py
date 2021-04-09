@@ -19,7 +19,7 @@ def test_telemetry_instance_role_disabled_gpu(gpu, ec2_client, ec2_instance, ec2
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
-def test_telemetry_bad_instance_role_disabled_cpu(cpu, ec2_client, ec2_instance, ec2_connection):
+def test_telemetry_bad_instance_role_disabled_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only):
     _run_instance_role_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -43,7 +43,7 @@ def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
-def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_connection):
+def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only):
     _run_tag_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
