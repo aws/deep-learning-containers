@@ -19,6 +19,44 @@ from ...integration import (DEFAULT_TIMEOUT)
 from sagemaker.huggingface import HuggingFace
 from ...integration.sagemaker.timeout import timeout
 
+# hyperparameters, which are passed into the training job
+hyperparameters = {
+    'model_name_or_path': 'roberta-large',
+    'task_name': 'mnli',
+    'per_device_train_batch_size': 8,
+    'per_device_eval_batch_size': 4,
+    'do_train': True,
+    'do_eval': True,
+    'do_predict': True,
+    'output_dir': '/opt/ml/model',
+    'max_steps': 50,
+}
+
+# configuration for running training on smdistributed Model Parallel
+mpi_options = {
+    "enabled": True,
+    "processes_per_host": 8,
+}
+smp_options = {
+    "enabled": True,
+    "parameters": {
+        "microbatches": 2,
+        "placement_strategy": "spread",
+        "pipeline": "interleaved",
+        "optimize": "speed",
+        "partitions": 2,
+        "ddp": True,
+    }
+}
+
+distribution = {
+    "smdistributed": {"modelparallel": smp_options},
+    "mpi": mpi_options
+}
+
+# git configuration to download our fine-tuning script
+git_config = {'repo': 'https://github.com/huggingface/notebooks.git', 'branch': 'master'}
+
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smmp")
 @pytest.mark.model("hf_qa_smmp")
@@ -26,48 +64,12 @@ from ...integration.sagemaker.timeout import timeout
 @pytest.mark.skip_py2_containers
 def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type, dist_gpu_backend):
 
-    # hyperparameters, which are passed into the training job
-    hyperparameters = {
-        'model_name_or_path': 'roberta-large',
-        'task_name': 'mnli',
-        'per_device_train_batch_size': 8,
-        'per_device_eval_batch_size': 4,
-        'do_train': True,
-        'do_eval': True,
-        'do_predict': True,
-        'output_dir': '/opt/ml/model',
-        'max_steps': 50,
-    }
 
-    # configuration for running training on smdistributed Model Parallel
-    mpi_options = {
-        "enabled": True,
-        "processes_per_host": 8,
-    }
-    smp_options = {
-        "enabled": True,
-        "parameters": {
-            "microbatches": 2,
-            "placement_strategy": "spread",
-            "pipeline": "interleaved",
-            "optimize": "speed",
-            "partitions": 2,
-            "ddp": True,
-        }
-    }
-
-    distribution = {
-        "smdistributed": {"modelparallel": smp_options},
-        "mpi": mpi_options
-    }
 
     # instance configurations
     instance_type = instance_type or 'ml.p3.16xlarge'
     instance_count = 1
     volume_size = 400
-
-    # git configuration to download our fine-tuning script
-    git_config = {'repo': 'https://github.com/huggingface/notebooks.git', 'branch': 'master'}
 
     huggingface_estimator = HuggingFace(entry_point='run_glue.py',
                                         source_dir='./sagemaker/04_distributed_training_model_parallelism/scripts/',
@@ -77,9 +79,32 @@ def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type
                                         volume_size=volume_size,
                                         role='SageMakerRole',
                                         image_uri=ecr_image,
-                                        framework_version=framework_version,
-                                        transformers_version='4.4.2',
-                                        pytorch_version=framework_version,
+                                        py_version='py36',
+                                        distribution=distribution,
+                                        hyperparameters=hyperparameters,
+                                        sagemaker_session=sagemaker_session,
+                                        debugger_hook_config=False)
+    huggingface_estimator.fit()
+
+@pytest.mark.processor("gpu")
+@pytest.mark.integration("smmp")
+@pytest.mark.model("hf_qa_smmp_multi")
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.multinode(2)
+def test_smmp_gpu_multinode(sagemaker_session, framework_version, ecr_image, instance_type, dist_gpu_backend):
+    instance_type = instance_type or 'ml.p3.16xlarge'
+    instance_count = 2
+    volume_size = 400
+
+    huggingface_estimator = HuggingFace(entry_point='run_glue.py',
+                                        source_dir='./sagemaker/04_distributed_training_model_parallelism/scripts/',
+                                        git_config=git_config,
+                                        instance_type=instance_type,
+                                        instance_count=instance_count,
+                                        volume_size=volume_size,
+                                        role='SageMakerRole',
+                                        image_uri=ecr_image,
                                         py_version='py36',
                                         distribution=distribution,
                                         hyperparameters=hyperparameters,
