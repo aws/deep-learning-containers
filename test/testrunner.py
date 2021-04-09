@@ -267,6 +267,7 @@ def main():
     # Define constants
     start_time = datetime.now()
     test_type = os.getenv("TEST_TYPE")
+    efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
     LOGGER.info(f"Images tested: {dlc_images}")
@@ -381,6 +382,11 @@ def main():
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
+
+            for pytest_cmd in pytest_cmds:
+                if not is_pr_context():
+                    pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
+
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
             if all([status == 0 for status in cmd_exit_statuses]):
                 sys.exit(0)
@@ -407,6 +413,8 @@ def main():
 
             setup_sm_benchmark_env(dlc_images, test_path)
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
+            if not is_pr_context():
+                pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
             sys.exit(pytest.main(pytest_cmd))
 
         else:
