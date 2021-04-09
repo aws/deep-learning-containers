@@ -17,11 +17,11 @@ import os
 import pytest
 import sagemaker.huggingface
 from sagemaker.huggingface import HuggingFace
-
 from ...integration.utils import processor, py_version  # noqa: F401
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 BERT_PATH = os.path.join(RESOURCE_PATH, 'local_scripts')
+
 
 @pytest.mark.processor("gpu")
 @pytest.mark.model("hf_distilbert")
