@@ -4,6 +4,7 @@ import subprocess
 import random
 import re
 import boto3
+from botocore.config import Config
 from time import sleep
 
 import invoke
