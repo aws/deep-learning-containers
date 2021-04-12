@@ -139,7 +139,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     is_py3 = " python3 -m "
 
     remote_pytest_cmd = (
-        f"pytest -s -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
+        f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
         f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
         f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} --junitxml {test_report} "
         f"--reruns {reruns} --reruns-delay {reruns_delay} -n auto"
@@ -152,7 +152,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         f"{is_py3} pytest -v {integration_path} {docker_base_arg} "
         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
         f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report} "
-        f"--reruns {reruns} --reruns-delay {reruns_delay}"
+        f"--reruns {reruns} --reruns-delay {reruns_delay} -n auto"
     )
 
     if framework == "tensorflow" and job_type != "inference":

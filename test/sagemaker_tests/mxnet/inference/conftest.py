@@ -149,3 +149,15 @@ def skip_eia_containers(request, docker_base_name):
     if request.node.get_closest_marker('skip_eia_containers'):
         if 'eia' in docker_base_name:
             pytest.skip('Skipping eia container with tag {}'.format(docker_base_name))
+
+
+@pytest.fixture(autouse=True)
+def log_current_test():
+    """
+    Log the name of the test currently being executed by pytest
+    """
+    try:
+        test_name = f"{os.environ.get('PYTEST_CURRENT_TEST').split('::')[-1].split(' ')[0]}"
+        logger.info(f"============================= Executing test :: {test_name} :: =============================")
+    except Exception:
+        logger.error("Pytest env variable PYTEST_CURRENT_TEST not set")

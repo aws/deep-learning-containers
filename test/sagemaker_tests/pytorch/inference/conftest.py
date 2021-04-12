@@ -243,3 +243,15 @@ def skip_gpu_py2(request, use_gpu, instance_type, py_version, framework_version)
     if request.node.get_closest_marker('skip_gpu_py2') and is_gpu and py_version != 'py3' \
             and framework_version == '1.4.0':
         pytest.skip('Skipping the test until mms issue resolved.')
+
+
+@pytest.fixture(autouse=True)
+def log_current_test():
+    """
+    Log the name of the test currently being executed by pytest
+    """
+    try:
+        test_name = f"{os.environ.get('PYTEST_CURRENT_TEST').split('::')[-1].split(' ')[0]}"
+        logger.info(f"============================= Executing test :: {test_name} :: =============================")
+    except Exception:
+        logger.error("Pytest env variable PYTEST_CURRENT_TEST not set")
