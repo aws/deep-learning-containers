@@ -89,6 +89,20 @@ def pytest_addoption(parser):
     parser.addoption('--tag', default=None)
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
                      help='use this option to generate test coverage doc')
+    parser.addoption(
+        "--efa", action="store_true", default=False, help="Run only efa tests",
+    )
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+
+
+def pytest_runtest_setup(item):
+    if item.config.getoption("--efa"):
+        efa_tests = [mark for mark in item.iter_markers(name="efa")]
+        if not efa_tests:
+            pytest.skip("Skipping non-efa tests")
 
 
 def pytest_collection_modifyitems(session, config, items):
