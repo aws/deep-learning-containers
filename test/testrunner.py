@@ -50,7 +50,7 @@ def run_sagemaker_local_tests(images):
 
     pool_number = len(images)
     with Pool(pool_number) as p:
-        p.map(sm_utils.execute_local_tests(image, ec2_client))
+        p.map(sm_utils.execute_local_tests(images, ec2_client))
 
 
 def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
