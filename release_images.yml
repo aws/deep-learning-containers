@@ -207,7 +207,7 @@ release_images:
       force_release: False
   14:
     framework: "pytorch"
-    version: "1.8.0"
+    version: "1.8.1"
     training:
       device_types: ["cpu", "gpu"]
       python_versions: ["py36"]
@@ -230,7 +230,7 @@ release_images:
                             # has already been published. Re-released image will have minor version incremented by 1.
   15:
     framework: "pytorch"
-    version: "1.8.0"
+    version: "1.8.1"
     training:
       device_types: ["gpu"]
       python_versions: ["py36"]
