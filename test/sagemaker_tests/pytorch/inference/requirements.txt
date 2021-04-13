@@ -1,5 +1,4 @@
 boto3
-boto3
 coverage==4.5.3
 docker-compose==1.25.4
 flake8==3.7.7
