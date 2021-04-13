@@ -39,7 +39,7 @@ def pytest_addoption(parser):
     parser.addoption('--framework-version', default='')
     parser.addoption('--processor', default='cpu', choices=['cpu', 'gpu', 'cpu,gpu'])
     parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37'])
-    parser.addoption('--account-id', default='142577830533')
+    parser.addoption('--aws-id', default='142577830533')
     parser.addoption('--instance-type', default=None)
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
                      help='use this option to generate test coverage doc')
@@ -89,9 +89,9 @@ def sagemaker_local_session(region):
     return LocalSession(boto_session=boto3.Session(region_name=region))
 
 
-@pytest.fixture(scope='session')
-def account_id(request):
-    return request.config.getoption('--account-id')
+@pytest.fixture(name='aws_id', scope='session')
+def aws_id(request):
+    return request.config.getoption('--aws-id')
 
 
 @pytest.fixture
@@ -136,8 +136,8 @@ def docker_image(docker_base_name, tag):
 
 
 @pytest.fixture
-def ecr_image(account_id, docker_base_name, tag, region):
-    registry = get_ecr_registry(account_id, region)
+def ecr_image(aws_id, docker_base_name, tag, region):
+    registry = get_ecr_registry(aws_id, region)
     return '{}/{}:{}'.format(registry, docker_base_name, tag)
 
 
