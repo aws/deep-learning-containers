@@ -66,7 +66,7 @@ git_config = {'repo': 'https://github.com/huggingface/notebooks.git', 'branch': 
 @pytest.mark.skip_py2_containers
 def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type, py_version, dist_gpu_backend):
     # instance configurations
-    instance_type = instance_type or 'ml.p3.16xlarge'
+    instance_type = 'ml.p3.16xlarge'
     instance_count = 1
     volume_size = 400
 
@@ -92,7 +92,7 @@ def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type
 @pytest.mark.skip_py2_containers
 @pytest.mark.multinode(2)
 def test_smmp_gpu_multinode(sagemaker_session, framework_version, ecr_image, instance_type, py_version, dist_gpu_backend):
-    instance_type = instance_type or 'ml.p3.16xlarge'
+    instance_type = 'ml.p3.16xlarge'
     instance_count = 2
     volume_size = 400
 
