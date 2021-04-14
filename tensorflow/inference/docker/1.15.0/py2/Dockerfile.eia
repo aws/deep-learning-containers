@@ -3,6 +3,7 @@ FROM ubuntu:18.04
 LABEL dlc_major_version="2"
 
 # Add arguments to achieve the version, python and url
+ARG PYTHON_VERSION=2.7.18
 ARG PYTHON=python
 ARG PIP=pip
 ARG HEALTH_CHECK_VERSION=1.7.0
