@@ -39,7 +39,7 @@ def test_hf_tf_distilbert(sagemaker_local_session, docker_image, framework_versi
                                         instance_type='local_gpu',
                                         instance_count=1,
                                         role='SageMakerRole',
-                                        sagemaker_local_session=sagemaker_local_session,
+                                        sagemaker_session=sagemaker_local_session,
                                         image_uri=docker_image,
                                         framework_version=framework_version,
                                         py_version=py_version,
