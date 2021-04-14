@@ -34,6 +34,7 @@ RUN apt-get update \
     openjdk-11-jdk \
     vim \
     wget \
+    unzip \
     zlib1g-dev
 
 RUN echo "deb https://apt.repos.neuron.amazonaws.com xenial main" > /etc/apt/sources.list.d/neuron.list
@@ -128,6 +129,15 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.1/license.txt -o /license.txt
 

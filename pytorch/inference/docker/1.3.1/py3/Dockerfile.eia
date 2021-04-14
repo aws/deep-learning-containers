@@ -37,6 +37,7 @@ RUN apt-get update \
     openjdk-8-jdk-headless \
     vim \
     wget \
+    unzip \
     zlib1g-dev
 
 # Install OpenSSH. Allow OpenSSH to talk to containers without asking for confirmation
@@ -117,6 +118,15 @@ RUN wget https://amazonei-tools.s3.amazonaws.com/v${HEALTH_CHECK_VERSION}/ei_too
  && mkdir -p /opt/ei_health_check/bin \
  && ln -s /opt/ei_tools/bin/health_check /opt/ei_health_check/bin/health_check \
  && ln -s /opt/ei_tools/lib /opt/ei_health_check/lib
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
