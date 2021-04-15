@@ -78,7 +78,7 @@ release_images:
       os_version: "ubuntu18.04"
       cuda_version: "cu100"
       example: False
-      disable_sm_tag: True
+      disable_sm_tag: False
       force_release: False
     inference:
       device_types: ["cpu", "gpu"]
@@ -93,7 +93,7 @@ release_images:
     version: "1.15.5"
     training:
       device_types: ["gpu"]
-      python_versions: ["py36"]
+      python_versions: ["py36", "py37"]
       os_version: "ubuntu18.04"
       cuda_version: "cu100"
       example: True        # [Default: False] Set to True to denote that this image is an Example image
