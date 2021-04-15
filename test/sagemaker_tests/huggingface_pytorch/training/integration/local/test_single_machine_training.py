@@ -65,8 +65,8 @@ def test_distilbert_base(docker_image, processor, instance_type, sagemaker_local
     test_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
 
     # hyperparameters, which are passed into the training job
-    hyperparameters = {'epochs': 1,
-                       'train_batch_size': 32,
+    hyperparameters = {'max_steps': 5,
+                       'train_batch_size': 4,
                        'model_name': 'distilbert-base-uncased'
                        }
 
@@ -81,7 +81,7 @@ def test_distilbert_base(docker_image, processor, instance_type, sagemaker_local
     test_dataset.save_to_disk(test_input_path, fs=s3)
 
     estimator = HuggingFace(entry_point=distrilbert_script,
-                            instance_type='ml.p3.16xlarge',
+                            instance_type='local_gpu',
                             sagemaker_session=sagemaker_local_session,
                             image_uri=docker_image,
                             instance_count=1,

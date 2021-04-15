@@ -29,8 +29,8 @@ BERT_PATH = os.path.join(RESOURCE_PATH, 'local_scripts')
 @pytest.mark.skip_py2_containers
 def test_hf_tf_distilbert(sagemaker_local_session, docker_image, framework_version):
     # hyperparameters, which are passed into the training job
-    hyperparameters = {'epochs': 1,
-                       'train_batch_size': 16,
+    hyperparameters = {'max_steps': 5,
+                       'train_batch_size': 4,
                        'model_name': 'distilbert-base-uncased'
                        }
 
