@@ -85,6 +85,7 @@ def pytest_addoption(parser):
     parser.addoption('--framework-version', default='')
     parser.addoption('--py-version', choices=['2', '3'], default=str(sys.version_info.major))
     parser.addoption('--processor', choices=['gpu', 'cpu'], default='gpu')
+
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
