@@ -30,7 +30,6 @@ from ...integration.sagemaker.timeout import timeout
 MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
-
 def validate_or_skip_smmodelparallel(ecr_image):
     if not can_run_smmodelparallel(ecr_image):
         pytest.skip("Model Parallelism is supported on CUDA 11 on PyTorch v1.6 and above")
