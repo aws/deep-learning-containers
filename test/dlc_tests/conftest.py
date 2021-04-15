@@ -281,6 +281,11 @@ def pull_images(docker_client, dlc_images):
 
 
 @pytest.fixture(scope="session")
+def non_huggingface_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def cpu_only():
     pass
 
@@ -350,11 +355,6 @@ def pt14_and_above_only():
     pass
 
 
-@pytest.fixture(scope="session")
-def non_huggingface_only():
-    pass
-
-
 def framework_version_within_limit(metafunc_obj, image):
     """
     Test all pytest fixtures for TensorFlow version limits, and return True if all requirements are satisfied
@@ -380,10 +380,6 @@ def framework_version_within_limit(metafunc_obj, image):
         pt15_requirement_failed = "pt15_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.5", image, "pytorch")
         pt14_requirement_failed = "pt14_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.4", image, "pytorch")
         if pt16_requirement_failed or pt15_requirement_failed or pt14_requirement_failed:
-            return False
-    if image_framework_name.startswith("huggingface_"):
-        non_huggingface_requirement_failed = "non_huggingface_only" in metafunc_obj.fixturenames
-        if non_huggingface_requirement_failed:
             return False
     return True
 
@@ -486,6 +482,8 @@ def pytest_generate_tests(metafunc):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
                     if not framework_version_within_limit(metafunc, image) :
+                        continue
+                    if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
                         continue
                     if is_example_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:

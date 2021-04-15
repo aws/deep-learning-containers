@@ -193,8 +193,6 @@ def setup_eks_cluster(framework_name, is_neuron):
         "tensorflow": "tf",
         "mxnet": "mx",
         "pytorch": "pt",
-        "huggingface_pytorch": "hf-pt",
-        "huggingface_tensorflow": "hf-tf",
     }
     long_name = framework_name
     short_name = frameworks[long_name]
