@@ -12,9 +12,9 @@ ARG PYTHON=python3
 RUN pip install --no-cache-dir \ 
 	transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \ 
 	datasets==${DATASETS_VERSION} \
-	unzip
 RUN apt-get update \
  && apt install git-lfs \
+   	unzip \
  && apt-get clean \  
  && rm -rf /var/lib/apt/lists/*
 
