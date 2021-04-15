@@ -422,7 +422,13 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
     :return: <dict> Mapping of "Fixture to be parametrized" -> "Unique values for fixture to be parametrized"
     """
     job_type_map = {"training": "tr", "inference": "inf"}
-    framework_name_map = {"tensorflow": "tf", "mxnet": "mx", "pytorch": "pt"}
+    framework_name_maps = {
+        "tensorflow": "tf",
+        "mxnet": "mx",
+        "pytorch": "pt",
+        "huggingface-pytorch": "hf-pt",
+        "huggingface-tensorflow": "hf-tf",
+    }
     fixtures_parametrized = {}
 
     if images_to_parametrize:

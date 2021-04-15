@@ -86,13 +86,14 @@ def _run_instance_role_disabled(image_uri, ec2_client, ec2_instance, ec2_connect
         ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri}")
         time.sleep(5)
     else:
-        framework = "torch" if framework == "pytorch" else framework
+        framework_to_import = framework.replace("huggingface_")
+        framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
         ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
         output = ec2_connection.run(
-            f"{docker_cmd} exec -i {container_name} python -c 'import {framework}; import time; time.sleep(5)'",
+            f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5)'",
             warn=True
         )
-        assert output.ok, f"'import {framework}' fails when credentials not configured"
+        assert output.ok, f"'import {framework_to_import}' fails when credentials not configured"
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     assert expected_tag_key not in ec2_instance_tags, (
@@ -129,10 +130,11 @@ def _run_tag_success(image_uri, ec2_client, ec2_instance, ec2_connection):
         ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri}")
         time.sleep(5)
     else:
-        framework = "torch" if framework == "pytorch" else framework
+        framework_to_import = framework.replace("huggingface_")
+        framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
         ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
-        ec2_connection.run(
-            f"{docker_cmd} exec -i {container_name} python -c 'import {framework}; import time; time.sleep(5)'",
+        output = ec2_connection.run(
+            f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5)'",
             warn=True
         )
 

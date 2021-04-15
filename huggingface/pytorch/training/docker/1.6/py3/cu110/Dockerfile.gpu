@@ -11,7 +11,8 @@ ARG PYTHON=python3
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \ 
 	transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \ 
-	datasets==${DATASETS_VERSION}
+	datasets==${DATASETS_VERSION} \
+	unzip
 RUN apt-get update \
  && apt install git-lfs \
  && apt-get clean \  
