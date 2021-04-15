@@ -88,6 +88,8 @@ def make_request(data, content_type="application/json", method="predict", versio
     return json.loads(response.content.decode("utf-8"))
 
 
+@pytest.mark.flaky(reruns=5, reruns_delay=25)
+@pytest.mark.model("half_plus_three")
 def test_predict():
     x = {
         "instances": [1.0, 2.0, 5.0]
