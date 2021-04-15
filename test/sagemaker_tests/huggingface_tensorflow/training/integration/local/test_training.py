@@ -44,4 +44,4 @@ def test_hf_tf_distilbert(sagemaker_local_session, docker_image, framework_versi
                                         framework_version=framework_version,
                                         py_version=py_version,
                                         hyperparameters=hyperparameters)
-    huggingface_estimator.fit()
+    huggingface_estimator.fit(job_name='test-hf-tf-local')

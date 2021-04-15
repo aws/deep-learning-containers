@@ -30,7 +30,7 @@ hyperparameters = {
     'do_eval': True,
     'do_predict': True,
     'output_dir': '/opt/ml/model',
-    'max_steps': 50,
+    'max_steps': 5,
 }
 
 # configuration for running training on smdistributed Model Parallel

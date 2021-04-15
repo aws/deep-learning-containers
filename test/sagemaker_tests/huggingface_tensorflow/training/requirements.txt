@@ -1,4 +1,4 @@
-boto3
+boto3==1.17.35
 awscli
 sagemaker>=2.31,<3
 smdebug>=1
@@ -8,13 +8,13 @@ scipy
 sklearn
 pandas
 Pillow
-h5py
+h5py==2.10.0
 tox
 flake8
 pytest==5.3.5
 pytest-cov
 pytest-rerunfailures==9.0
-pytest-xdist
+pytest-xdist==1.34.0
 requests==2.24
 mock
 docker-compose

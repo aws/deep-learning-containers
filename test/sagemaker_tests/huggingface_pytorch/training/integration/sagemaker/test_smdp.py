@@ -41,7 +41,7 @@ hyperparameters = {
     'per_device_eval_batch_size': 4,
     'num_train_epochs': 1,
     'max_seq_length': 384,
-    'max_steps': 100,
+    'max_steps': 10,
     'pad_to_max_length': True,
     'doc_stride': 128,
     'output_dir': '/opt/ml/model'
