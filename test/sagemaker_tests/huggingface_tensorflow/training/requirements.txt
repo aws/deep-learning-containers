@@ -1,5 +1,6 @@
 boto3==1.17.35
-awscli
+botocore==1.20.35
+awscli==1.19.35
 sagemaker>=2.31,<3
 smdebug>=1
 sagemaker-experiments
