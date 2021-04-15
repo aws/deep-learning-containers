@@ -30,7 +30,7 @@ BERT_PATH = os.path.join(RESOURCE_PATH, 'local_scripts')
 def test_hf_tf_distilbert(sagemaker_local_session, docker_image, framework_version):
     # hyperparameters, which are passed into the training job
     hyperparameters = {'max_steps': 5,
-                       'train_batch_size': 4,
+                       'train_batch_size': 2,
                        'model_name': 'distilbert-base-uncased'
                        }
 
