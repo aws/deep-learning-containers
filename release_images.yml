@@ -330,25 +330,25 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  23: # PT-1.6.0 Wave-1
-    framework: "pytorch"
-    version: "1.6.0"
-    training:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py36"]
-      os_version: "ubuntu16.04"
-      cuda_version: "cu101"
-      example: False
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
-  24: # PT-1.6.0 Wave-1
+  23: # PT-1.6.0 Wave-2
     framework: "pytorch"
     version: "1.6.0"
     training:
       device_types: ["gpu"]
       python_versions: ["py36"]
-      os_version: "ubuntu16.04"
-      cuda_version: "cu101"
+      os_version: "ubuntu18.04"
+      cuda_version: "cu110"
+      example: False
+      disable_sm_tag: True  # [Default: False] This option is not used by Example images
+      force_release: False
+  24: # PT-1.6.0 Wave-2
+    framework: "pytorch"
+    version: "1.6.0"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu110"
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
