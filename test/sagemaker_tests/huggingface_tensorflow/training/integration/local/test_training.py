@@ -150,7 +150,7 @@ def run_hf_training(script,
                                         sagemaker_session=sagemaker_local_session,
                                         image_uri=docker_image,
                                         framework_version=framework_version,
-                                        py_version=py_version,
+                                        py_version='py3',
                                         hyperparameters=hyperparameters)
     huggingface_estimator.fit(job_name='test-hf-tf-local')
 
