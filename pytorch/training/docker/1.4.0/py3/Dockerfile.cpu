@@ -34,6 +34,7 @@ RUN apt-get update \
     emacs \
     git \
     wget \
+    unzip \
     vim \
     build-essential \
     jq \
@@ -116,6 +117,15 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     https://torchvision-build.s3.amazonaws.com/1.4.0/py3/cpu/torchvision-0.5.0%2Bcpu-cp36-cp36m-linux_x86_64.whl
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.4.0/license.txt
 
