@@ -38,10 +38,10 @@ logging.basicConfig(
 
 # Load model and tokenizer
 model = TFAutoModelForSequenceClassification.from_pretrained(args.model_name)
-# tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 #
 # # Load dataset
-# train_dataset, test_dataset = load_dataset("imdb", split=["train", "test"])
+train_dataset, test_dataset = load_dataset("imdb", split=["train", "test"])
 #
 # # Preprocess train dataset
 # train_dataset = train_dataset.map(
