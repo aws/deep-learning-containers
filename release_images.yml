@@ -341,7 +341,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  23: # PT-1.6.0 Wave-1
+  24: # PT-1.6.0 Wave-1
     framework: "pytorch"
     version: "1.6.0"
     training:
