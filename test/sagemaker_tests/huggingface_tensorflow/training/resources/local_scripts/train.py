@@ -38,10 +38,12 @@ if __name__ == "__main__":
     )
 
     # Load model and tokenizer
+    print("Loading model file")
     model = TFAutoModelForSequenceClassification.from_pretrained(args.model_name)
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
     # Load dataset
+    print("Loading dataset ")
     train_dataset, test_dataset = load_dataset("imdb", split=["train", "test"])
 
     # Preprocess train dataset
