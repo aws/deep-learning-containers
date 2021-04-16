@@ -191,7 +191,7 @@ def run_tf_training(script,
 
     hyperparameters = hyperparameters or {}
 
-    estimator = TensorFlow(entry_point=script,
+    estimator = HuggingFace(entry_point=script,
                            role='SageMakerRole',
                            instance_count=instance_count,
                            instance_type=instance_type,
