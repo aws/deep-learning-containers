@@ -17,6 +17,7 @@ import tarfile
 
 import pytest
 from sagemaker.tensorflow import TensorFlow
+from sagemaker.huggingface import HuggingFace
 
 from ...integration.utils import processor, py_version  # noqa: F401
 
@@ -86,6 +87,28 @@ def test_gpu(sagemaker_local_session, docker_image, framework_version):
                     training_data_path='file://{}'.format(
                         os.path.join(RESOURCE_PATH, 'mnist', 'data')))
 
+
+@pytest.mark.processor("gpu")
+@pytest.mark.model("hf_distilbert")
+@pytest.mark.skip_cpu
+def test_hf_tf_distilbert(sagemaker_local_session, docker_image, framework_version):
+    hyperparameters = {'max_steps': 5,
+                       'train_batch_size': 2,
+                       'model_name': 'distilbert-base-uncased'
+                       }
+
+    huggingface_estimator = HuggingFace(
+                                        entry_point=os.path.join(RESOURCE_PATH, 'train.py'),
+                                        # source_dir=RESOURCE_PATH,
+                                        instance_type='local_gpu',
+                                        instance_count=1,
+                                        role='SageMakerRole',
+                                        sagemaker_session=sagemaker_local_session,
+                                        image_uri=docker_image,
+                                        framework_version=framework_version,
+                                        py_version=py_version,
+                                        hyperparameters=hyperparameters)
+    huggingface_estimator.fit(job_name='test-hf-tf-local')
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("mnist")
