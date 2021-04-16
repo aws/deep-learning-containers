@@ -101,9 +101,7 @@ def test_hf_tf_distilbert(sagemaker_local_session, docker_image, framework_versi
                     instance_count=1,
                     sagemaker_local_session=sagemaker_local_session,
                     docker_image=docker_image,
-                    framework_version=framework_version,
-                    training_data_path='file://{}'.format(
-                        os.path.join(RESOURCE_PATH, 'mnist', 'data')))
+                    framework_version=framework_version)
 
     #
     # run_hf_training(script=os.path.join(RESOURCE_PATH, 'train.py'),
@@ -117,51 +115,31 @@ def test_hf_tf_distilbert(sagemaker_local_session, docker_image, framework_versi
 
 
 
-@pytest.mark.processor("cpu")
-@pytest.mark.model("mnist")
-@pytest.mark.multinode(2)
-@pytest.mark.integration("no parameter server")
-@pytest.mark.skip_gpu
-def test_distributed_training_cpu_no_ps(sagemaker_local_session,
-                                        docker_image,
-                                        tmpdir,
-                                        framework_version):
-    output_path = 'file://{}'.format(tmpdir)
-    run_hf_training(script=os.path.join(RESOURCE_PATH, 'mnist', 'mnist_estimator.py'),
-                    instance_type='local',
-                    instance_count=2,
-                    sagemaker_local_session=sagemaker_local_session,
-                    docker_image=docker_image,
-                    framework_version=framework_version,
-                    output_path=output_path,
-                    training_data_path='file://{}'.format(
-                        os.path.join(RESOURCE_PATH, 'mnist', 'data-distributed')))
-    _assert_files_exist_in_tar(output_path, TF_CHECKPOINT_FILES)
 
 
-def run_hf_training(script,
-                    instance_type,
-                    instance_count,
-                    sagemaker_local_session,
-                    docker_image,
-                    framework_version,
-                    output_path=None,
-                    hyperparameters=None):
-
-    hyperparameters = hyperparameters or {}
-
-    huggingface_estimator = HuggingFace(
-                                        entry_point=script,
-                                        # source_dir=RESOURCE_PATH,
-                                        instance_type=instance_type,
-                                        instance_count=instance_count,
-                                        role='SageMakerRole',
-                                        sagemaker_session=sagemaker_local_session,
-                                        image_uri=docker_image,
-                                        framework_version=framework_version,
-                                        py_version='py3',
-                                        hyperparameters=hyperparameters)
-    huggingface_estimator.fit(job_name='test-hf-tf-local')
+# def run_hf_training(script,
+#                     instance_type,
+#                     instance_count,
+#                     sagemaker_local_session,
+#                     docker_image,
+#                     framework_version,
+#                     output_path=None,
+#                     hyperparameters=None):
+#
+#     hyperparameters = hyperparameters or {}
+#
+#     huggingface_estimator = HuggingFace(
+#                                         entry_point=script,
+#                                         # source_dir=RESOURCE_PATH,
+#                                         instance_type=instance_type,
+#                                         instance_count=instance_count,
+#                                         role='SageMakerRole',
+#                                         sagemaker_session=sagemaker_local_session,
+#                                         image_uri=docker_image,
+#                                         framework_version=framework_version,
+#                                         py_version='py3',
+#                                         hyperparameters=hyperparameters)
+#     huggingface_estimator.fit(job_name='test-hf-tf-local')
 
     # estimator = TensorFlow(entry_point=script,
     #                        role='SageMakerRole',
@@ -185,7 +163,6 @@ def run_tf_training(script,
                     sagemaker_local_session,
                     docker_image,
                     framework_version,
-                    training_data_path,
                     output_path=None,
                     hyperparameters=None):
 
@@ -204,7 +181,7 @@ def run_tf_training(script,
                            framework_version=framework_version,
                            py_version='py3')
 
-    estimator.fit(training_data_path)
+    estimator.fit()
 
 
 def _assert_files_exist_in_tar(output_path, files):
