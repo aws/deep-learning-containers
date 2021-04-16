@@ -44,18 +44,18 @@ tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 train_dataset, test_dataset = load_dataset("imdb", split=["train", "test"])
 
 # # Preprocess train dataset
-# train_dataset = train_dataset.map(
-#     lambda e: tokenizer(e["text"], truncation=True, padding="max_length"), batched=True
-# )
-# train_dataset.set_format(type="tensorflow", columns=["input_ids", "attention_mask", "label"])
-#
-# train_features = {
-#     x: train_dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length])
-#     for x in ["input_ids", "attention_mask"]
-# }
-# tf_train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_dataset["label"])).batch(
-#     args.train_batch_size
-# )
+train_dataset = train_dataset.map(
+    lambda e: tokenizer(e["text"], truncation=True, padding="max_length"), batched=True
+)
+train_dataset.set_format(type="tensorflow", columns=["input_ids", "attention_mask", "label"])
+
+train_features = {
+    x: train_dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length])
+    for x in ["input_ids", "attention_mask"]
+}
+tf_train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_dataset["label"])).batch(
+    args.train_batch_size
+)
 #
 # # Preprocess test dataset
 # test_dataset = test_dataset.map(
