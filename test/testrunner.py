@@ -189,7 +189,11 @@ def pull_dlc_images(images):
 
 
 def setup_eks_cluster(framework_name, is_neuron):
-    frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
+    frameworks = {
+        "tensorflow": "tf",
+        "mxnet": "mx",
+        "pytorch": "pt",
+    }
     long_name = framework_name
     short_name = frameworks[long_name]
     codebuild_version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")[0:7]
