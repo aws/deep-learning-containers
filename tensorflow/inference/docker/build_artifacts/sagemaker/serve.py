@@ -18,6 +18,8 @@ import re
 import signal
 import subprocess
 import tfs_utils
+import fnmatch
+import os
 
 from contextlib import contextmanager
 
@@ -35,6 +37,8 @@ PYTHON_LIB_PATH = os.path.join(CODE_DIR, "lib")
 REQUIREMENTS_PATH = os.path.join(CODE_DIR, "requirements.txt")
 INFERENCE_PATH = os.path.join(CODE_DIR, "inference.py")
 
+def find_neuron_devices(base, pattern):
+    return [n for n in fnmatch.filter(os.listdir(base), pattern) if os.path.exists(os.path.join(base, n))]
 
 class ServiceManager(object):
     def __init__(self):
@@ -109,6 +113,7 @@ class ServiceManager(object):
             # set environment variable for python service
             os.environ["TFS_GRPC_PORT_RANGE"] = self._tfs_grpc_port_range
             os.environ["TFS_REST_PORT_RANGE"] = self._tfs_rest_port_range
+        self._neuron_devices = find_neuron_devices('/dev', 'neuron*')
 
     def _need_python_service(self):
         if os.path.exists(INFERENCE_PATH):
@@ -193,13 +198,15 @@ class ServiceManager(object):
             "{}{} -e TFS_GRPC_PORT_RANGE={} -e TFS_REST_PORT_RANGE={} "
             "-e SAGEMAKER_MULTI_MODEL={} -e SAGEMAKER_SAFE_PORT_RANGE={} "
             "-e SAGEMAKER_TFS_WAIT_TIME_SECONDS={} "
+            "-e NEURON_DEVICES={} "
             "python_service:app").format(self._gunicorn_worker_class,
                                          self._gunicorn_workers, self._gunicorn_threads,
                                          python_path_option, ",".join(python_path_content),
                                          self._tfs_grpc_port_range, self._tfs_rest_port_range,
                                          self._tfs_enable_multi_model_endpoint,
                                          self._sagemaker_port_range,
-                                         self._tfs_wait_time_seconds)
+                                         self._tfs_wait_time_seconds,
+                                         len(self._neuron_devices))
 
         log.info("gunicorn command: {}".format(gunicorn_command))
         self._gunicorn_command = gunicorn_command
@@ -272,7 +279,10 @@ class ServiceManager(object):
         return round((1 - self._tfs_gpu_margin) / float(self._tfs_instance_count), 4)
 
     def _start_tfs(self):
-        self._log_version("tensorflow_model_server --version", "tensorflow version info:")
+        if len(self._neuron_devices):
+            self._log_version("tensorflow_model_server_neuron --version", "tensorflow version info:")
+        else:
+            self._log_version("tensorflow_model_server --version", "tensorflow version info:")
 
         for i in range(self._tfs_instance_count):
             p = self._start_single_tfs(i)

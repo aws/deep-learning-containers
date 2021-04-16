@@ -108,13 +108,15 @@ def tfs_command(tfs_grpc_port,
                 tfs_intra_op_parallelism=None,
                 tfs_inter_op_parallelism=None,
                 tfs_enable_gpu_memory_fraction=False,
-                tfs_gpu_memory_fraction=None):
-    cmd = "tensorflow_model_server " \
+                tfs_gpu_memory_fraction=None,
+                tfs_in_neuron=False):
+    tfs_cmd = "tensorflow_model_server_neuron " if tfs_in_inferentia else "tensorflow_model_server "
+    cmd = "{}" \
           "--port={} " \
           "--rest_api_port={} " \
           "--model_config_file={} " \
           "--max_num_load_retries=0 {} {} {} {}"\
-        .format(tfs_grpc_port, tfs_rest_port, tfs_config_path,
+        .format(tfs_cmd, tfs_grpc_port, tfs_rest_port, tfs_config_path,
                 get_tfs_batching_args(tfs_enable_batching, tfs_batching_config_file),
                 get_tensorflow_intra_op_parallelism_args(tfs_intra_op_parallelism),
                 get_tensorflow_inter_op_parallelism_args(tfs_inter_op_parallelism),

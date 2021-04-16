@@ -16,6 +16,7 @@ import json
 import logging
 import os
 import subprocess
+import sys
 import grpc
 
 import falcon
@@ -35,6 +36,7 @@ TFS_GRPC_PORT_RANGE = os.environ.get("TFS_GRPC_PORT_RANGE")
 TFS_REST_PORT_RANGE = os.environ.get("TFS_REST_PORT_RANGE")
 SAGEMAKER_TFS_PORT_RANGE = os.environ.get("SAGEMAKER_SAFE_PORT_RANGE")
 TFS_INSTANCE_COUNT = int(os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", "1"))
+NEURON_DEVICES = os.environ.get("NEURON_DEVICES")
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -138,6 +140,21 @@ class PythonServiceResource:
                 "error": "Model {} is already loaded.".format(model_name)
             })
 
+        # For inferentia check if number of cores is less than total models
+        if NEURON_DEVICES:
+            total_nc = 4 * NEURON_DEVICES
+            total_models_loaded = len(self._model_tfs_pid)
+            # if NEURONCORE_GROUP_SIZES is not set then for each model all cores
+            # will be used.
+            neuron_group_size = os.environ.get("NEURONCORE_GROUP_SIZES")
+            nc_per_model = neuron_group_size if neuron_group_size else total_nc
+            if (total_models_loaded + 1) * nc_per_model > total_nc:
+                res.status = falcon.HTTP_507
+                res.body = json.dumps({
+                    'error': 'Enough Neuron Cores not available for the model'
+                })
+                return
+
         # check if there are available ports
         if not self._ports_available():
             res.status = falcon.HTTP_507
@@ -163,12 +180,14 @@ class PythonServiceResource:
                 if self._tfs_enable_batching:
                     tfs_utils.create_batching_config(batching_config_file)
 
+                tfs_in_neuron = True if NEURON_DEVICES else False
                 cmd = tfs_utils.tfs_command(
                     self._model_tfs_grpc_port[model_name],
                     self._model_tfs_rest_port[model_name],
                     tfs_config_file,
                     self._tfs_enable_batching,
                     batching_config_file,
+                    tfs_in_neuron=tfs_in_neuron,
                 )
                 p = subprocess.Popen(cmd.split())
                 tfs_utils.wait_for_model(self._model_tfs_rest_port[model_name], model_name,
