@@ -76,7 +76,7 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
     # update resource pool accordingly, then add a try-catch statement here to update the pool in case of failure
     try:
         log_return.update_pool("running", instance_type, num_of_instances, job_type)
-        context = Context()
+        context = Context() 
         with context.cd(path):
             context.run(f"python3 -m virtualenv {tag}")
             with context.prefix(f"source {tag}/bin/activate"):
