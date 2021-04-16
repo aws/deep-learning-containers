@@ -37,10 +37,10 @@ def pytest_addoption(parser):
     parser.addoption('--tag', default=None)
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
-    parser.addoption('--processor', default='gpu', choices=['cpu', 'gpu', 'cpu,gpu'])
+    parser.addoption('--processor', default='cpu', choices=['cpu', 'gpu', 'cpu,gpu'])
     parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37'])
-    parser.addoption('--aws-id', default='142577830533')
-    parser.addoption('--instance-type', default='ml.p3.16xlarge')
+    parser.addoption('--account-id', default='142577830533')
+    parser.addoption('--instance-type', default=None)
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
                      help='use this option to generate test coverage doc')
 
@@ -89,15 +89,15 @@ def sagemaker_local_session(region):
     return LocalSession(boto_session=boto3.Session(region_name=region))
 
 
-@pytest.fixture(name='aws_id', scope='session')
-def aws_id(request):
-    return request.config.getoption('--aws-id')
+@pytest.fixture(scope='session')
+def account_id(request):
+    return request.config.getoption('--account-id')
 
 
 @pytest.fixture
 def instance_type(request, processor):
     provided_instance_type = request.config.getoption('--instance-type')
-    default_instance_type = 'ml.c4.xlarge' if processor == 'cpu' else 'ml.p3.16xlarge'
+    default_instance_type = 'ml.c4.xlarge' if processor == 'cpu' else 'ml.p2.xlarge'
     return provided_instance_type if provided_instance_type is not None else default_instance_type
 
 
@@ -136,8 +136,8 @@ def docker_image(docker_base_name, tag):
 
 
 @pytest.fixture
-def ecr_image(aws_id, docker_base_name, tag, region):
-    registry = get_ecr_registry(aws_id, region)
+def ecr_image(account_id, docker_base_name, tag, region):
+    registry = get_ecr_registry(account_id, region)
     return '{}/{}:{}'.format(registry, docker_base_name, tag)
 
 
