@@ -179,7 +179,9 @@ def run_tf_training(script,
                            hyperparameters=hyperparameters,
                            base_job_name='test-tf',
                            framework_version=framework_version,
-                           py_version='py3')
+                           py_version='py3',
+                           debugger_hook_config=False,  # currently needed
+                        )
 
     estimator.fit()
 
