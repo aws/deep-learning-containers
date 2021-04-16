@@ -189,7 +189,11 @@ def pull_dlc_images(images):
 
 
 def setup_eks_cluster(framework_name, is_neuron):
-    frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
+    frameworks = {
+        "tensorflow": "tf",
+        "mxnet": "mx",
+        "pytorch": "pt",
+    }
     long_name = framework_name
     short_name = frameworks[long_name]
     codebuild_version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")[0:7]
@@ -211,6 +215,19 @@ def setup_eks_cluster(framework_name, is_neuron):
         raise
     return cluster_name
 
+def setup_ssm_eks_cluster(eks_cluster_name):
+    """ Function to attach SSM policy to IAM role created by EKS nodegroup and install SSM agent
+    """
+    ATTACH_SSM_POLICY="attach"
+    eks_utils.manage_ssm_permissions_nodegroup(eks_cluster_name, ATTACH_SSM_POLICY)
+    eks_utils.setup_ssm_agent()
+
+def delete_eks_cluster(eks_cluster_name):
+    """ Function to detach SSM policy from IAM role created by EKS nodegroups and delete the EKS cluster
+    """
+    DETACH_SSM_POLICY="detach"
+    eks_utils.manage_ssm_permissions_nodegroup(eks_cluster_name, DETACH_SSM_POLICY)
+    eks_utils.delete_eks_cluster(eks_cluster_name)
 
 def setup_sm_benchmark_env(dlc_images, test_path):
     # The plan is to have a separate if/elif-condition for each type of image
@@ -254,6 +271,7 @@ def main():
     # Define constants
     start_time = datetime.now()
     test_type = os.getenv("TEST_TYPE")
+    efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
     LOGGER.info(f"Images tested: {dlc_images}")
@@ -302,7 +320,7 @@ def main():
             framework = frameworks_in_images[0]
             is_neuron = "neuron" in dlc_images
             eks_cluster_name = setup_eks_cluster(framework, is_neuron)
-            eks_utils.setup_ssm_agent()
+            setup_ssm_eks_cluster(eks_cluster_name)
 
             if not is_neuron:
                 # setup kubeflow
@@ -367,6 +385,11 @@ def main():
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
+
+            for pytest_cmd in pytest_cmds:
+                if not is_pr_context():
+                    pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
+
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
             if all([status == 0 for status in cmd_exit_statuses]):
                 sys.exit(0)
@@ -374,7 +397,7 @@ def main():
                 raise RuntimeError(pytest_cmds)
         finally:
             if specific_test_type == "eks" and eks_cluster_name:
-                eks_utils.delete_eks_cluster(eks_cluster_name)
+                delete_eks_cluster(eks_cluster_name)
 
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
@@ -393,6 +416,8 @@ def main():
 
             setup_sm_benchmark_env(dlc_images, test_path)
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
+            if not is_pr_context():
+                pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
             sys.exit(pytest.main(pytest_cmd))
 
         else:

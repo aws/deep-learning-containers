@@ -67,6 +67,9 @@ def pytest_addoption(parser):
     parser.addoption(
         "--multinode", action="store_true", default=False, help="Run only multi-node tests",
     )
+    parser.addoption(
+        "--efa", action="store_true", default=False, help="Run only efa tests",
+    )
 
 
 @pytest.fixture(scope="function")
@@ -95,6 +98,11 @@ def docker_client(region):
 @pytest.fixture(scope="session")
 def ecr_client(region):
     return boto3.client("ecr", region_name=region)
+
+
+@pytest.fixture(scope="session")
+def sts_client(region):
+    return boto3.client("sts", region_name=region)
 
 
 @pytest.fixture(scope="session")
@@ -273,6 +281,11 @@ def pull_images(docker_client, dlc_images):
 
 
 @pytest.fixture(scope="session")
+def non_huggingface_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def cpu_only():
     pass
 
@@ -378,6 +391,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
     config.addinivalue_line("markers", "processor(cpu/gpu/eia): explicitly mark which processor is used")
+    config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
 
 def pytest_runtest_setup(item):
@@ -389,6 +403,10 @@ def pytest_runtest_setup(item):
         multinode_opts = [mark for mark in item.iter_markers(name="multinode")]
         if not multinode_opts:
             pytest.skip("Skipping non-multinode tests")
+    if item.config.getoption("--efa"):
+        efa_tests = [mark for mark in item.iter_markers(name="efa")]
+        if not efa_tests:
+            pytest.skip("Skipping non-efa tests")
 
 
 def pytest_collection_modifyitems(session, config, items):
@@ -409,7 +427,13 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
     :return: <dict> Mapping of "Fixture to be parametrized" -> "Unique values for fixture to be parametrized"
     """
     job_type_map = {"training": "tr", "inference": "inf"}
-    framework_name_map = {"tensorflow": "tf", "mxnet": "mx", "pytorch": "pt"}
+    framework_name_map = {
+        "tensorflow": "tf",
+        "mxnet": "mx",
+        "pytorch": "pt",
+        "huggingface_pytorch": "hf-pt",
+        "huggingface_tensorflow": "hf-tf",
+    }
     fixtures_parametrized = {}
 
     if images_to_parametrize:
@@ -458,6 +482,8 @@ def pytest_generate_tests(metafunc):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
                     if not framework_version_within_limit(metafunc, image) :
+                        continue
+                    if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
                         continue
                     if is_example_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
