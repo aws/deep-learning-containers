@@ -92,7 +92,11 @@ def test_gpu(sagemaker_local_session, docker_image, framework_version):
 @pytest.mark.model("hf_distilbert")
 @pytest.mark.skip_cpu
 def test_hf_tf_distilbert(sagemaker_local_session, docker_image, framework_version):
-    run_tf_training(script=os.path.join(RESOURCE_PATH, 'gpu_device_placement.py'),
+    hyperparameters = {'max_steps': 5,
+                       'train_batch_size': 2,
+                       'model_name': 'distilbert-base-uncased'
+                       }
+    run_tf_training(script=os.path.join(RESOURCE_PATH, 'train.py'),
                     instance_type='local_gpu',
                     instance_count=1,
                     sagemaker_local_session=sagemaker_local_session,
@@ -100,10 +104,7 @@ def test_hf_tf_distilbert(sagemaker_local_session, docker_image, framework_versi
                     framework_version=framework_version,
                     training_data_path='file://{}'.format(
                         os.path.join(RESOURCE_PATH, 'mnist', 'data')))
-    # hyperparameters = {'max_steps': 5,
-    #                    'train_batch_size': 2,
-    #                    'model_name': 'distilbert-base-uncased'
-    #                    }
+
     #
     # run_hf_training(script=os.path.join(RESOURCE_PATH, 'train.py'),
     #                 instance_type='local_gpu',
