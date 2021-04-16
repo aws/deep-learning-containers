@@ -37,7 +37,7 @@ logging.basicConfig(
 )
 
 # Load model and tokenizer
-# model = TFAutoModelForSequenceClassification.from_pretrained(args.model_name)
+model = TFAutoModelForSequenceClassification.from_pretrained(args.model_name)
 # tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 #
 # # Load dataset
