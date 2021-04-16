@@ -101,6 +101,7 @@ def test_hf_tf_distilbert(sagemaker_local_session, docker_image, framework_versi
                     instance_count=1,
                     sagemaker_local_session=sagemaker_local_session,
                     docker_image=docker_image,
+                    hyperparameters=hyperparameters,
                     framework_version=framework_version)
 
     #
