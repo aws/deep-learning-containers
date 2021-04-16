@@ -1,4 +1,4 @@
-boto3==1.17.35
+boto3
 botocore
 awscli
 sagemaker>=2.31,<3
