@@ -78,10 +78,10 @@ metrics = [tf.keras.metrics.SparseCategoricalAccuracy()]
 model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
 # # Training
-# if args.do_train:
-#
-#     train_results = model.fit(tf_train_dataset, epochs=args.epochs, batch_size=args.train_batch_size)
-#     logger.info("*** Train ***")
+if args.do_train:
+
+    train_results = model.fit(tf_train_dataset, epochs=args.epochs, batch_size=args.train_batch_size)
+    logger.info("*** Train ***")
 #
 #     output_eval_file = os.path.join(args.output_data_dir, "train_results.txt")
 #
