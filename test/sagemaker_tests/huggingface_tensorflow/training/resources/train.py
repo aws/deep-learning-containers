@@ -58,9 +58,9 @@ tf_train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_dat
 )
 #
 # # Preprocess test dataset
-# test_dataset = test_dataset.map(
-#     lambda e: tokenizer(e["text"], truncation=True, padding="max_length"), batched=True
-# )
+test_dataset = test_dataset.map(
+    lambda e: tokenizer(e["text"], truncation=True, padding="max_length"), batched=True
+)
 # test_dataset.set_format(type="tensorflow", columns=["input_ids", "attention_mask", "label"])
 #
 # test_features = {
