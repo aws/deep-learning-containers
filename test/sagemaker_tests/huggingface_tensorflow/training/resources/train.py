@@ -61,15 +61,15 @@ tf_train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_dat
 test_dataset = test_dataset.map(
     lambda e: tokenizer(e["text"], truncation=True, padding="max_length"), batched=True
 )
-# test_dataset.set_format(type="tensorflow", columns=["input_ids", "attention_mask", "label"])
-#
-# test_features = {
-#     x: test_dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length])
-#     for x in ["input_ids", "attention_mask"]
-# }
-# tf_test_dataset = tf.data.Dataset.from_tensor_slices((test_features, test_dataset["label"])).batch(
-#     args.eval_batch_size
-# )
+test_dataset.set_format(type="tensorflow", columns=["input_ids", "attention_mask", "label"])
+
+test_features = {
+    x: test_dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length])
+    for x in ["input_ids", "attention_mask"]
+}
+tf_test_dataset = tf.data.Dataset.from_tensor_slices((test_features, test_dataset["label"])).batch(
+    args.eval_batch_size
+)
 #
 # # fine optimizer and loss
 # optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate)
