@@ -38,7 +38,7 @@ def pytest_addoption(parser):
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
     parser.addoption('--processor', default='gpu', choices=['cpu', 'gpu', 'cpu,gpu'])
-    parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37'])
+    parser.addoption('--py-version', default='37', choices=['2', '3', '2,3', '37'])
     parser.addoption('--aws-id', default='142577830533')
     parser.addoption('--instance-type', default='ml.p3.16xlarge')
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
