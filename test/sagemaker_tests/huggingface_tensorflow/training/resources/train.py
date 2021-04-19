@@ -72,10 +72,10 @@ tf_test_dataset = tf.data.Dataset.from_tensor_slices((test_features, test_datase
 )
 #
 # # fine optimizer and loss
-# optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate)
-# loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-# metrics = [tf.keras.metrics.SparseCategoricalAccuracy()]
-# model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate)
+loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+metrics = [tf.keras.metrics.SparseCategoricalAccuracy()]
+model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
 # # Training
 # if args.do_train:
