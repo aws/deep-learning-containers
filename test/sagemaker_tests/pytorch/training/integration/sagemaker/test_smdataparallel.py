@@ -35,6 +35,10 @@ def can_run_smdataparallel(ecr_image):
     return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(
         image_cuda_version.strip("cu")) >= Version("110")
 
+def validate_or_skip_smdataparallel_efa(ecr_image):
+    image_cuda_version = get_cuda_version_from_tag(n_virginia_ecr_image)
+    if Version(framework_version) < Version("1.8.1") or image_cuda_version != "cu111":
+        pytest.skip("EFA is only supported on CUDA 11, and on PyTorch 1.8.1 or higher")
 
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
@@ -45,9 +49,8 @@ def can_run_smdataparallel(ecr_image):
 @pytest.mark.efa()
 def test_smdataparallel_throughput(n_virginia_sagemaker_session, framework_version, n_virginia_ecr_image, instance_types, tmpdir):
     with timeout(minutes=DEFAULT_TIMEOUT):
-        image_cuda_version = get_cuda_version_from_tag(n_virginia_ecr_image)
-        if Version(framework_version) < Version("1.8.1") or image_cuda_version != "cu111":
-            pytest.skip("EFA is only supported on CUDA 11, and on PyTorch 1.8.1 or higher")
+        validate_or_skip_smdataparallel(n_virginia_ecr_image)
+        validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
         hyperparameters = {
             "size": 64,
             "num_tensors": 20,
@@ -111,10 +114,8 @@ def test_smdataparallel_mnist(n_virginia_sagemaker_session, framework_version, n
     Tests smddprun command via Estimator API distribution parameter
     """
     with timeout(minutes=DEFAULT_TIMEOUT):
-        image_cuda_version = get_cuda_version_from_tag(n_virginia_ecr_image)
-        if Version(framework_version) < Version("1.8.0") or image_cuda_version != "cu111":
-            pytest.skip("EFA is only supported on CUDA 11, and on PyTorch 1.8.1 or higher")
         validate_or_skip_smdataparallel(n_virginia_ecr_image)
+        validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
         distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
         pytorch = PyTorch(entry_point='smdataparallel_mnist.py',
                           role='SageMakerRole',

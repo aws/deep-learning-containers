@@ -234,7 +234,6 @@ RUN mkdir /tmp/efa-ofi-nccl \
   --with-cuda=/usr/local/cuda \
   --with-nccl=/usr/local --prefix=/usr/local \
   && make \
-  NVCC_GENCODE="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75 -gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_80,code=compute_80" \
   && make install \
   && rm -rf /tmp/efa-ofi-nccl
 
