@@ -190,7 +190,11 @@ def pull_dlc_images(images):
 
 
 def setup_eks_cluster(framework_name, is_neuron):
-    frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
+    frameworks = {
+        "tensorflow": "tf",
+        "mxnet": "mx",
+        "pytorch": "pt",
+    }
     long_name = framework_name
     short_name = frameworks[long_name]
     codebuild_version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")[0:7]
@@ -284,7 +288,7 @@ def main():
     # Skipping non HuggingFace specific tests to execute only sagemaker remote tests
     # TODO: remove "sagemaker" once sagemaker tests are ready
     if any("huggingface" in image_uri for image_uri in all_image_list) and \
-            specific_test_type in ("ecs", "ec2", "eks", "canary", "bai", "sagemaker-local"):
+            specific_test_type in {"ecs", "ec2", "eks", "canary", "bai", "sagemaker-local", "sagemaker"}:
         # Creating an empty file for because codebuild job fails without it
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         sm_utils.generate_empty_report(report, test_type, "huggingface")
