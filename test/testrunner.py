@@ -287,7 +287,7 @@ def main():
     # Skipping non HuggingFace specific tests to execute only sagemaker remote tests
     # TODO: remove "sagemaker" once sagemaker tests are ready
     if any("huggingface" in image_uri for image_uri in all_image_list) and \
-            specific_test_type in ("ecs", "ec2", "eks", "canary", "bai", "sagemaker-local"):
+            specific_test_type in {"ecs", "ec2", "eks", "canary", "bai", "sagemaker-local", "sagemaker"}:
         # Creating an empty file for because codebuild job fails without it
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         sm_utils.generate_empty_report(report, test_type, "huggingface")
