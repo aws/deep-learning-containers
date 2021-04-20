@@ -201,7 +201,6 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     if framework == "pytorch":
         # The following distutils package conflict with test dependencies
         ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
-    ec2_conn.run(f"sudo {is_py3} pip install --upgrade pip==21.0.1 ", warn=True)
     ec2_conn.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
 
 
