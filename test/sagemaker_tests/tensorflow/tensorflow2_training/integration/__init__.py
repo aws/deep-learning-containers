@@ -24,7 +24,6 @@ import botocore
 import subprocess
 
 
-
 logging.getLogger("boto3").setLevel(logging.INFO)
 logging.getLogger("botocore").setLevel(logging.INFO)
 
@@ -205,6 +204,16 @@ def get_account_id_from_image_uri(image_uri):
     """
     return image_uri.split(".")[0]
 
+
+def get_account_id_from_image_uri(image_uri):
+    """
+    Find the account ID where the image is located
+
+    :param image_uri: <str> ECR image URI
+    :return: <str> AWS Account ID
+    """
+    return image_uri.split(".")[0]
+    
 
 def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_region):
     """
