@@ -3,6 +3,8 @@ import os
 import subprocess
 import random
 import re
+import boto3
+from botocore.config import Config
 from time import sleep
 
 import invoke
@@ -238,13 +240,13 @@ def kill_background_processes_and_run_apt_get_update(ec2_conn):
     return
 
 
-def execute_local_tests(image, ec2_client):
+def execute_local_tests(image):
     """
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
-    :param ec2_client: boto3_obj
     :return: None
     """
+    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
     print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
