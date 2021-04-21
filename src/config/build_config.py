@@ -10,4 +10,4 @@ DISABLE_FRAMEWORK_TESTS = ["mxnet", "huggingface_pytorch", "huggingface_tensorfl
 DISABLE_DATETIME_TAG = True
 # Note: Need to build the images at least once with DISABLE_DATETIME_TAG = True
 # before disabling new builds or tests will fail
-DISABLE_NEW_BUILDS = False
+DISABLE_NEW_BUILDS = True
