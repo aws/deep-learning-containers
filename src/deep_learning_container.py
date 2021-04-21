@@ -209,10 +209,12 @@ def tag_instance():
     request_status = None
     if instance_id and region:
         try:
-            session = botocore.session.get_session()
-            ec2_client = session.create_client("ec2", region_name=region)
-            response = ec2_client.create_tags(Resources=[instance_id], Tags=[tag_struct])
-            request_status = response.get("ResponseMetadata").get("HTTPStatusCode")
+            # # The section below has been commented out because the feature has been disabled until it is
+            # # ready to be enabled.
+            # session = botocore.session.get_session()
+            # ec2_client = session.create_client("ec2", region_name=region)
+            # response = ec2_client.create_tags(Resources=[instance_id], Tags=[tag_struct])
+            # request_status = response.get("ResponseMetadata").get("HTTPStatusCode")
             if os.environ.get("TEST_MODE") == str(1):
                 with open(os.path.join(os.sep, "tmp", "test_tag_request.txt"), "w+") as rf:
                     rf.write(json.dumps(tag_struct, indent=4))
