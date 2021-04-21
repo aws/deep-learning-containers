@@ -13,6 +13,7 @@
 from __future__ import absolute_import
 
 import pytest
+import sagemaker
 from sagemaker.pytorch import PyTorch
 
 from ...integration import training_dir, mnist_script, DEFAULT_TIMEOUT
@@ -24,9 +25,10 @@ from ...integration.sagemaker.timeout import timeout
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_gpu
-def test_mnist_distributed_cpu(sagemaker_session, framework_version, ecr_image, instance_type, dist_cpu_backend):
+def test_mnist_distributed_cpu(sagemaker_session, n_virginia_sagemaker_session, framework_version, ecr_image, n_virginia_ecr_image, instance_type, dist_cpu_backend):
     instance_type = instance_type or 'ml.c4.xlarge'
-    _test_mnist_distributed(sagemaker_session, framework_version, ecr_image, instance_type, dist_cpu_backend)
+    #_test_mnist_distributed(sagemaker_session, framework_version, ecr_image, instance_type, dist_cpu_backend)
+    _test_mnist(sagemaker_session, n_virginia_sagemaker_session, framework_version, ecr_image, n_virginia_ecr_image, instance_type, dist_gpu_backend)
 
 
 @pytest.mark.processor("gpu")
@@ -34,9 +36,22 @@ def test_mnist_distributed_cpu(sagemaker_session, framework_version, ecr_image, 
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
-def test_mnist_distributed_gpu(sagemaker_session, framework_version, ecr_image, instance_type, dist_gpu_backend):
+def test_mnist_distributed_gpu(sagemaker_session, n_virginia_sagemaker_session, framework_version, ecr_image, n_virginia_ecr_image, instance_type, dist_gpu_backend):
     instance_type = instance_type or 'ml.p2.xlarge'
-    _test_mnist_distributed(sagemaker_session, framework_version, ecr_image, instance_type, dist_gpu_backend)
+    #_test_mnist_distributed(sagemaker_session, framework_version, ecr_image, instance_type, dist_cpu_backend)
+    _test_mnist(sagemaker_session, n_virginia_sagemaker_session, framework_version, ecr_image, n_virginia_ecr_image, instance_type, dist_gpu_backend)
+
+def _test_mnist(sagemaker_session, n_virginia_sagemaker_session, framework_version, ecr_image, n_virginia_ecr_image, instance_type, dist_backend):
+    try:
+        #_test_mnist_distributed(sagemaker_session, framework_version, ecr_image, instance_type, dist_cpu_backend)
+        print("running test")
+        raise sagemaker.exceptions.UnexpectedStatusException("Capacity Error","Completed","EnRoute")
+    except Exception as e:
+        print(f"inside exception {e}")
+        print(f"type {type(e)}")
+        if type(e) == sagemaker.exceptions.UnexpectedStatusException and "Capacity Error" in str(e):
+            print(f"condition matched {str(e)}")
+            _test_mnist_distributed(n_virginia_sagemaker_session, framework_version, n_virginia_ecr_image, instance_type, dist_cpu_backend)
 
 
 def _test_mnist_distributed(sagemaker_session, framework_version, ecr_image, instance_type, dist_backend):

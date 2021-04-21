@@ -21,12 +21,10 @@ import tempfile
 
 import pytest
 import boto3
-
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
-from .utils import image_utils, get_ecr_registry
-
+from .utils import image_utils, get_ecr_registry, reupload_image_to_test_ecr
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
@@ -74,6 +72,24 @@ NO_P3_REGIONS = [
     "af-south-1",
 ]
 
+NO_P4_REGIONS = [
+    "ap-east-1",
+    "ap-northeast-3",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ap-south-1",
+    "ca-central-1",
+    "eu-central-1",
+    "eu-north-1",
+    "eu-west-2",
+    "eu-west-3",
+    "sa-east-1",
+    "us-west-1",
+    "me-south-1",
+    "cn-northwest-1",
+    "eu-south-1",
+    "af-south-1",
+]
 
 def pytest_addoption(parser):
     parser.addoption('--build-image', '-D', action='store_true')
@@ -186,6 +202,34 @@ def fixture_sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
 
 
+@pytest.fixture(scope='session', name='n_virginia_sagemaker_session')
+def fixture_n_virginia_sagemaker_session(n_virginia_region):
+    return Session(boto_session=boto3.Session(region_name=n_virginia_region))
+
+
+@pytest.fixture(name='efa_instance_type')
+def fixture_efa_instance_type():
+    default_instance_type = "ml.p3dn.24xlarge"
+    return default_instance_type
+
+
+@pytest.fixture(scope='session', name='n_virginia_region')
+def fixture_n_virginia_region(request):
+    return "us-east-1"
+
+
+@pytest.fixture(name='n_virginia_ecr_image')
+def fixture_n_virginia_ecr_image(ecr_image, n_virginia_region):
+    """
+    It uploads image to n_virginia region and return image uri
+    """
+    image_repo_uri, image_tag = ecr_image.split(":")
+    _, image_repo_name = image_repo_uri.split("/")
+    target_image_repo_name = f"{image_repo_name}"
+    n_virginia_ecr_image = reupload_image_to_test_ecr(ecr_image, target_image_repo_name, n_virginia_region)
+    return n_virginia_ecr_image
+
+
 @pytest.fixture(scope='session', name='sagemaker_local_session')
 def fixture_sagemaker_local_session(region):
     return LocalSession(boto_session=boto3.Session(region_name=region))
@@ -252,8 +296,9 @@ def skip_test_in_region(request, region):
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
     if ((region in NO_P2_REGIONS and instance_type.startswith('ml.p2'))
-       or (region in NO_P3_REGIONS and instance_type.startswith('ml.p3'))):
-        pytest.skip('Skipping GPU test in region {}'.format(region))
+        or (region in NO_P3_REGIONS and instance_type.startswith('ml.p3'))
+            or (region in NO_P4_REGIONS and instance_type.startswith('ml.p4'))):
+                pytest.skip('Skipping GPU test in region {}'.format(region))
 
 
 @pytest.fixture(autouse=True)
