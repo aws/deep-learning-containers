@@ -45,6 +45,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     emacs \
     git \
     libtemplate-perl \
+    unzip \
     wget \
     vim \
     zlib1g-dev \
