@@ -47,8 +47,8 @@ def run_sagemaker_local_tests(images):
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
     ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
-    for image in images:
-        sm_utils.execute_local_tests(image, ec2_client)
+    # for image in images:
+    #     sm_utils.execute_local_tests(image, ec2_client)
 
 
 def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):

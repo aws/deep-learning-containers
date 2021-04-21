@@ -121,6 +121,14 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     else:
         integration_path = os.path.join("integration", sagemaker_test_type)
 
+    if job_type == "training":
+        if framework == "tensorflow":
+            integration_path = f"integration/sagemaker/test_mnist.py::test_smdataparallel_smmodelparallel_mnist"
+        else:
+            integration_path = f"integration/sagemaker/test_smdataparallel.py:test_smmodelparallel_smdataparallel_mnist"
+
+    print(integration_path)
+
     # Conditions for modifying tensorflow SageMaker pytest commands
     if framework == "tensorflow" and sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE:
         if job_type == "inference":
