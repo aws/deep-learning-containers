@@ -1,4 +1,4 @@
-# Copyright 2019-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"). You
 # may not use this file except in compliance with the License. A copy of
@@ -14,10 +14,9 @@
 import shlex
 import subprocess
 import sys
-import os.path
 
 if sys.argv[1] == 'serve':
-    from sagemaker_mxnet_serving_container import serving
+    from sagemaker_huggingface_serving_container import serving
     serving.main()
 else:
     subprocess.check_call(shlex.split(' '.join(sys.argv[1:])))
