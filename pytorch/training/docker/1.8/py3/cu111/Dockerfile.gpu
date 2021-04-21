@@ -147,7 +147,8 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.
   && ./b2 threading=multi --prefix=${CONDA_PREFIX} -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
   && cd .. \
   && rm -rf boost_1_73_0.tar.gz \
-  && rm -rf boost_1_73_0
+  && rm -rf boost_1_73_0 \
+  && cd ${CONDA_PREFIX}/include/boost
 
 WORKDIR /opt/pytorch
 

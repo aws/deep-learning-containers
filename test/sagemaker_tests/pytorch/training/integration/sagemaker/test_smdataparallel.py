@@ -35,10 +35,13 @@ def can_run_smdataparallel(ecr_image):
     return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(
         image_cuda_version.strip("cu")) >= Version("110")
 
+
 def validate_or_skip_smdataparallel_efa(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if Version(framework_version) < Version("1.8.1") or image_cuda_version != "cu111":
+    if Version(image_framework_version) < Version("1.8.1") or image_cuda_version != "cu111":
         pytest.skip("EFA is only supported on CUDA 11, and on PyTorch 1.8.1 or higher")
+
 
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")

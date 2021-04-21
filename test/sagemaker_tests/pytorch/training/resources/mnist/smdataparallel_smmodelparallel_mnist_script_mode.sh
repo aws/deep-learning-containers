@@ -6,4 +6,4 @@ set -ex
 
 bash smmodelparallel_mnist_script_mode.sh
 
-smddpsinglenode python smdataparallel_mnist.py
+python smdataparallel_mnist.py
