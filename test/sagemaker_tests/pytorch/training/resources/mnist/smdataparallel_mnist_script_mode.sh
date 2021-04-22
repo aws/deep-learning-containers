@@ -4,4 +4,4 @@
 
 set -ex
 
-python smdataparallel_mnist.py
+smddpsinglenode python smdataparallel_mnist.py

@@ -32,7 +32,6 @@ THROUGHPUT_PATH = os.path.join(RESOURCE_PATH, 'smdataparallel')
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.skip(reason="Skipping test because it is flaky on mainline pipeline.")
 def test_distributed_training_smdataparallel_script_mode(
     sagemaker_session, instance_type, ecr_image, tmpdir, framework_version
 ):
