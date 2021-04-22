@@ -42,7 +42,8 @@ if [[ $FRAMEWORK == "tensorflow2" ]]; then
     pip install tensorflow-datasets==${TENSORFLOW_DATASETS_VERSION}
 fi
 if [[ $FRAMEWORK == "tensorflow2" ]] || [[ $FRAMEWORK == "pytorch" ]]; then
-    for test_file in tests/profiler/${FRAMEWORK}/*
+    echo "Rajan : ${PWD}............"
+    for test_file in ../tests/profiler/${FRAMEWORK}/*
     do
         pytest $test_file
         exit_code=$?
