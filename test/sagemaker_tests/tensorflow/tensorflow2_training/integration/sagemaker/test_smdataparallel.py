@@ -65,6 +65,7 @@ def test_distributed_training_smdataparallel_script_mode(
     """
     validate_or_skip_smdataparallel(ecr_image)
     instance_type = "ml.p3.16xlarge"
+    distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
     estimator = TensorFlow(
         entry_point='smdataparallel_mnist_script_mode.sh',
         source_dir=MNIST_PATH,
