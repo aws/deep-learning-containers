@@ -318,16 +318,16 @@ def execute_sagemaker_remote_tests(image):
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
     context = Context()
     with context.cd(path):
-        #context.run(f"virtualenv {tag}")
-        #with context.prefix(f"source {tag}/bin/activate"):
-        context.run("pip install -r requirements.txt", warn=True)
-        res = context.run(pytest_command, warn=True)
-        metrics_utils.send_test_result_metrics(res.return_code)
-        if res.failed:
-            raise DLCSageMakerRemoteTestFailure(
-                f"{pytest_command} failed with error code: {res.return_code}\n"
-                f"Traceback:\n{res.stdout}"
-            )
+        context.run(f"virtualenv {tag}")
+        with context.prefix(f"source {tag}/bin/activate"):
+            context.run("pip install -r requirements.txt", warn=True)
+            res = context.run(pytest_command, warn=True)
+            metrics_utils.send_test_result_metrics(res.return_code)
+            if res.failed:
+                raise DLCSageMakerRemoteTestFailure(
+                    f"{pytest_command} failed with error code: {res.return_code}\n"
+                    f"Traceback:\n{res.stdout}"
+                )
 
 
 def generate_empty_report(report, test_type, case):
