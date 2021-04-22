@@ -87,7 +87,6 @@ def test_smdataparallel_throughput(n_virginia_sagemaker_session, framework_versi
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.skip(reason="Skipping test because it is flaky on mainline pipeline.")
 def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
     """
     Tests SM Distributed DataParallel single-node via script mode
