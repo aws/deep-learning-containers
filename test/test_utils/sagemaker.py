@@ -122,6 +122,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         # Tf Inference tests have an additional sub directory with test
         integration_path = os.path.join("test", "integration", sagemaker_test_type)
     else:
+        integration_path = os.path.join("integration", sagemaker_test_type)
 
     # Conditions for modifying tensorflow SageMaker pytest commands
     if framework == "tensorflow" and sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE:
