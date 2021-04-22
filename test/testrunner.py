@@ -46,9 +46,10 @@ def run_sagemaker_local_tests(images):
     sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
-    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
-    for image in images:
-        sm_utils.execute_local_tests(image, ec2_client)
+
+    pool_number = len(images)
+    with Pool(pool_number) as p:
+        p.map(sm_utils.execute_local_tests, images)
 
 
 def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
@@ -189,7 +190,11 @@ def pull_dlc_images(images):
 
 
 def setup_eks_cluster(framework_name, is_neuron):
-    frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
+    frameworks = {
+        "tensorflow": "tf",
+        "mxnet": "mx",
+        "pytorch": "pt",
+    }
     long_name = framework_name
     short_name = frameworks[long_name]
     codebuild_version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")[0:7]
@@ -280,10 +285,9 @@ def main():
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
-    # Skipping non HuggingFace specific tests to execute only sagemaker remote tests
-    # TODO: remove "sagemaker" once sagemaker tests are ready
+    # Skipping non HuggingFace specific tests to execute only sagemaker tests
     if any("huggingface" in image_uri for image_uri in all_image_list) and \
-            specific_test_type in ("ecs", "ec2", "eks", "canary", "bai", "sagemaker-local"):
+            specific_test_type in ("ecs", "ec2", "eks", "canary", "bai"):
         # Creating an empty file for because codebuild job fails without it
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         sm_utils.generate_empty_report(report, test_type, "huggingface")

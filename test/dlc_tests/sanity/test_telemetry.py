@@ -11,6 +11,7 @@ from test.test_utils import ecs as ecs_utils
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.skip(reason="Skip test until feature is enabled.")
 def test_telemetry_instance_role_disabled_gpu(gpu, ec2_client, ec2_instance, ec2_connection):
     _run_instance_role_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -19,6 +20,7 @@ def test_telemetry_instance_role_disabled_gpu(gpu, ec2_client, ec2_instance, ec2
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
+@pytest.mark.skip(reason="Skip test until feature is enabled.")
 def test_telemetry_bad_instance_role_disabled_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only):
     _run_instance_role_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -27,6 +29,7 @@ def test_telemetry_bad_instance_role_disabled_cpu(cpu, ec2_client, ec2_instance,
 @pytest.mark.processor("neuron")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
+@pytest.mark.skip(reason="Skip test until feature is enabled.")
 def test_telemetry_bad_instance_role_disabled_neuron(neuron, ec2_client, ec2_instance, ec2_connection):
     _run_instance_role_disabled(neuron, ec2_client, ec2_instance, ec2_connection)
 
@@ -35,7 +38,8 @@ def test_telemetry_bad_instance_role_disabled_neuron(neuron, ec2_client, ec2_ins
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_connection):
+@pytest.mark.skip(reason="Skip test until feature is enabled.")
+def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_connection, non_huggingface_only):
     _run_tag_success(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -43,7 +47,8 @@ def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
-def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only):
+@pytest.mark.skip(reason="Skip test until feature is enabled.")
+def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, non_huggingface_only):
     _run_tag_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -51,7 +56,8 @@ def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.processor("neuron")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
-def test_telemetry_instance_tag_success_neuron(neuron, ec2_client, ec2_instance, ec2_connection):
+@pytest.mark.skip(reason="Skip test until feature is enabled.")
+def test_telemetry_instance_tag_success_neuron(neuron, ec2_client, ec2_instance, ec2_connection, non_huggingface_only):
     _run_tag_success(neuron, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -86,13 +92,14 @@ def _run_instance_role_disabled(image_uri, ec2_client, ec2_instance, ec2_connect
         ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri}")
         time.sleep(5)
     else:
-        framework = "torch" if framework == "pytorch" else framework
+        framework_to_import = framework.replace("huggingface_", "")
+        framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
         ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
         output = ec2_connection.run(
-            f"{docker_cmd} exec -i {container_name} python -c 'import {framework}; import time; time.sleep(5)'",
+            f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5)'",
             warn=True
         )
-        assert output.ok, f"'import {framework}' fails when credentials not configured"
+        assert output.ok, f"'import {framework_to_import}' fails when credentials not configured"
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     assert expected_tag_key not in ec2_instance_tags, (
@@ -129,10 +136,11 @@ def _run_tag_success(image_uri, ec2_client, ec2_instance, ec2_connection):
         ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri}")
         time.sleep(5)
     else:
-        framework = "torch" if framework == "pytorch" else framework
+        framework_to_import = framework.replace("huggingface_", "")
+        framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
         ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
-        ec2_connection.run(
-            f"{docker_cmd} exec -i {container_name} python -c 'import {framework}; import time; time.sleep(5)'",
+        output = ec2_connection.run(
+            f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5)'",
             warn=True
         )
 

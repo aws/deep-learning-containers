@@ -281,6 +281,11 @@ def pull_images(docker_client, dlc_images):
 
 
 @pytest.fixture(scope="session")
+def non_huggingface_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def cpu_only():
     pass
 
@@ -422,7 +427,13 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
     :return: <dict> Mapping of "Fixture to be parametrized" -> "Unique values for fixture to be parametrized"
     """
     job_type_map = {"training": "tr", "inference": "inf"}
-    framework_name_map = {"tensorflow": "tf", "mxnet": "mx", "pytorch": "pt"}
+    framework_name_map = {
+        "tensorflow": "tf",
+        "mxnet": "mx",
+        "pytorch": "pt",
+        "huggingface_pytorch": "hf-pt",
+        "huggingface_tensorflow": "hf-tf",
+    }
     fixtures_parametrized = {}
 
     if images_to_parametrize:
@@ -471,6 +482,8 @@ def pytest_generate_tests(metafunc):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
                     if not framework_version_within_limit(metafunc, image) :
+                        continue
+                    if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
                         continue
                     if is_example_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
