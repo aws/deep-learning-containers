@@ -39,6 +39,8 @@ hyperparameters={
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+# TODO: Enable sagemaker debugger, resolve github issue after enabling.
+#  https://github.com/aws/deep-learning-containers/issues/1053
 def test_hf_smdp(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version):
     """
     Tests SMDataParallel single-node command via script mode
@@ -80,7 +82,8 @@ def test_hf_smdp(sagemaker_session, instance_type, ecr_image, tmpdir, framework_
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge"])
 # Temprarily skipping `ml.p3dn.24xlarge` instance type due to capacity issue in us-west-2
-# TODO: Revert this change asap
+# TODO: Enable sagemaker debugger, resolve github issue after enabling.
+#  https://github.com/aws/deep-learning-containers/issues/1053
 def test_hf_smdp_multi(instance_types, ecr_image, py_version, sagemaker_session, tmpdir, framework_version):
     """
     Tests smddprun command via Estimator API distribution parameter
