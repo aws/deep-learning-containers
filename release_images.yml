@@ -298,7 +298,7 @@ release_images:
   20:
     framework: "huggingface_tensorflow"
     version: "2.4.1"
-    hf_transformers: "4.4.2"
+    hf_transformers: "4.5.0"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py37" ]
@@ -310,7 +310,7 @@ release_images:
   21:
     framework: "huggingface_pytorch"
     version: "1.6.0"
-    hf_transformers: "4.4.2"
+    hf_transformers: "4.5.0"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py36" ]
