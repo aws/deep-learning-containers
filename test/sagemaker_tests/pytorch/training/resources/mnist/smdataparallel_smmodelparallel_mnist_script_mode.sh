@@ -4,6 +4,6 @@
 
 set -ex
 
-smddpsinglenode python smdataparallel_mnist.py
+smddpsinglenode -x RDMAV_FORK_SAFE=1 python smdataparallel_mnist.py
 
 bash smmodelparallel_mnist_script_mode.sh
