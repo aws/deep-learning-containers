@@ -75,7 +75,8 @@ def test_distributed_training_smdataparallel_script_mode(
         image_uri=ecr_image,
         framework_version=framework_version,
         py_version='py3',
-        sagemaker_session=sagemaker_session)
+        sagemaker_session=sagemaker_session,
+        distribution=distribution)
 
     estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel'))
 

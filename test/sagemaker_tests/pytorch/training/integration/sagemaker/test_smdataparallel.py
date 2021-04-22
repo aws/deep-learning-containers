@@ -94,6 +94,7 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_
     validate_or_skip_smdataparallel(ecr_image)
 
     instance_type = "ml.p3.16xlarge"
+    distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(entry_point='smdataparallel_mnist_script_mode.sh',
                           role='SageMakerRole',
@@ -101,7 +102,8 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_
                           source_dir=mnist_path,
                           instance_count=1,
                           instance_type=instance_type,
-                          sagemaker_session=sagemaker_session)
+                          sagemaker_session=sagemaker_session,
+                          distribution=distribution)
 
         pytorch.fit()
 
