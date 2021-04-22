@@ -6,6 +6,8 @@ JRE_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
 EOL
 
 pip install dependency-check
+# Adding a temporary fix until the NIST data feeds are reporting correctly: https://github.com/jeremylong/DependencyCheck/issues/3307
+export DEPENDENCY_CHECK_NVD_URL='https://freedumbytes.gitlab.io/setup/nist-nvd-mirror/nvdcve-1.1-%d.json.gz'
 dependency-check --disableAssembly -s / -o build
 
 cat /build/dependency-check-report.html
