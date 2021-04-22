@@ -4,6 +4,7 @@ LABEL dlc_major_version="1"
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
+ARG PYTHON=python3
 ARG PYTHON_VERSION=3.6.13
 
 # See http://bugs.python.org/issue19846
@@ -59,7 +60,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y \
     # conda 4.9.2 requires ruamel_yaml to be installed. Currently pinned at latest.
-    ruamel_yaml==0.15.87 \
+    ruamel_yaml==0.15.100 \
     cython==0.29.12 \
     ipython==7.7.0 \
     mkl-include==2019.4 \
