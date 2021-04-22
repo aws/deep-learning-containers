@@ -71,11 +71,12 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
     try:
         log_return.update_pool("running", instance_type, num_of_instances, job_type)
         context = Context()
-        with context.cd(path):
-            context.run(f"python3 -m virtualenv {tag}")
-            with context.prefix(f"source {tag}/bin/activate"):
-                context.run("pip install -r requirements.txt", warn=True)
-                context.run(pytest_command)
+        if job_type == "training":
+            with context.cd(path):
+                context.run(f"python3 -m virtualenv {tag}")
+                with context.prefix(f"source {tag}/bin/activate"):
+                    context.run("pip install -r requirements.txt", warn=True)
+                    context.run(pytest_command)
     except Exception as e:
         LOGGER.error(e)
         return False
