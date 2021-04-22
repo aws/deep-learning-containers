@@ -37,10 +37,14 @@ def can_run_smdataparallel(ecr_image):
 
 
 def validate_or_skip_smdataparallel_efa(ecr_image):
+    if not can_run_smdataparallel_efa(ecr_image):
+        pytest.skip("EFA is only supported on CUDA 11, and on PyTorch 1.8.1 or higher")
+
+
+def can_run_smdataparallel_efa(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if Version(image_framework_version) < Version("1.8.1") or image_cuda_version != "cu111":
-        pytest.skip("EFA is only supported on CUDA 11, and on PyTorch 1.8.1 or higher")
+    return Version(image_framework_version) in SpecifierSet(">=1.8.1") and Version(image_cuda_version.strip("cu")) >= Version("110")
 
 
 @pytest.mark.processor("gpu")
@@ -137,7 +141,6 @@ def test_smdataparallel_mnist(n_virginia_sagemaker_session, framework_version, n
 @pytest.mark.integration("smdataparallel_smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge"])
-@pytest.mark.skip(reason="Consider reworking these tests after re:Invent releases are done")
 def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_session, tmpdir):
     """
     Tests SM Distributed DataParallel and ModelParallel single-node via script mode

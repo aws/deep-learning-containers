@@ -18,6 +18,7 @@ import pytest
 import sagemaker
 
 from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 from sagemaker.tensorflow import TensorFlow
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
@@ -26,6 +27,30 @@ from test.test_utils import get_framework_and_version_from_tag, get_cuda_version
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 MNIST_PATH = os.path.join(RESOURCE_PATH, 'mnist')
 THROUGHPUT_PATH = os.path.join(RESOURCE_PATH, 'smdataparallel')
+
+
+def validate_or_skip_smdataparallel(ecr_image):
+    if not can_run_smdataparallel(ecr_image):
+        pytest.skip("Data Parallelism is supported on CUDA 11 on TensorFlow 2.3.1 and above")
+
+
+def can_run_smdataparallel(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    return Version(image_framework_version) in SpecifierSet(">=2.3.1") and Version(
+        image_cuda_version.strip("cu")) >= Version("110")
+
+
+def validate_or_skip_smdataparallel_efa(ecr_image):
+    if not can_run_smdataparallel_efa(ecr_image):
+        pytest.skip("EFA is only supported on CUDA 11, and on TensorFlow 2.4.1 or higher")
+
+
+def can_run_smdataparallel_efa(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    return Version(image_framework_version) in SpecifierSet(">=2.4.1") and Version(image_cuda_version.strip("cu")) >= Version("110")
+
 
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("mnist")
@@ -38,10 +63,7 @@ def test_distributed_training_smdataparallel_script_mode(
     """
     Tests SMDataParallel single-node command via script mode
     """
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if Version(image_framework_version) < Version("2.3.1") or image_cuda_version != "cu110":
-        pytest.skip("Data Parallelism is only supported on CUDA 11, and on TensorFlow 2.3.1 or higher")
+    validate_or_skip_smdataparallel(ecr_image)
     instance_type = "ml.p3.16xlarge"
     estimator = TensorFlow(
         entry_point='smdataparallel_mnist_script_mode.sh',
@@ -69,10 +91,8 @@ def test_smdataparallel_mnist(instance_types, n_virginia_ecr_image, py_version, 
     """
     Tests smddprun command via Estimator API distribution parameter
     """
-    _, image_framework_version = get_framework_and_version_from_tag(n_virginia_ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(n_virginia_ecr_image)
-    if Version(image_framework_version) < Version("2.3.1") or image_cuda_version != "cu110":
-        pytest.skip("Data Parallelism is only supported on CUDA 11, and on TensorFlow 2.3.1 or higher")
+    validate_or_skip_smdataparallel(n_virginia_ecr_image)
+    validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
 
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
     estimator = TensorFlow(entry_point='smdataparallel_mnist.py',
@@ -99,10 +119,8 @@ def test_smdataparallel_throughput(instance_types, n_virginia_ecr_image, py_vers
     """
     Tests smddprun throughput
     """
-    _, image_framework_version = get_framework_and_version_from_tag(n_virginia_ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(n_virginia_ecr_image)
-    if Version(image_framework_version) < Version("2.4.1") or image_cuda_version != "cu110":
-        pytest.skip("EFA is only supported on CUDA 11, and on TensorFlow 2.4.1 or higher")
+    validate_or_skip_smdataparallel(n_virginia_ecr_image)
+    validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
     hyperparameters = {
         "size": 64,
         "num_tensors": 20,

@@ -29,23 +29,29 @@ from ...integration.sagemaker.timeout import timeout
 MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
+
 def validate_or_skip_smmodelparallel(ecr_image):
     if not can_run_smmodelparallel(ecr_image):
         pytest.skip("Model Parallelism is supported on CUDA 11 on PyTorch v1.6 and above")
 
-def validate_or_skip_smmodelparallel_efa(ecr_image):
-    if not can_run_smmodelparallel_efa(ecr_image):
-        pytest.skip("Model Parallelism with EFA is supported on CUDA 11.1 on PyTorch v1.8 and above")
 
 def can_run_smmodelparallel(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(image_cuda_version.strip("cu")) >= Version("110")
+    return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(
+        image_cuda_version.strip("cu")) >= Version("110")
+
+
+def validate_or_skip_smmodelparallel_efa(ecr_image):
+    if not can_run_smmodelparallel_efa(ecr_image):
+        pytest.skip("EFA is only supported on CUDA 11, and on PyTorch 1.8.1 or higher")
+
 
 def can_run_smmodelparallel_efa(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet(">=1.8") and Version(image_cuda_version.strip("cu")) >= Version("111")
+    return Version(image_framework_version) in SpecifierSet(">=1.8.1") and Version(image_cuda_version.strip("cu")) >= Version("110")
+
 
 @pytest.mark.processor("cpu")
 @pytest.mark.multinode(3)
@@ -237,6 +243,7 @@ def test_sanity_efa(n_virginia_ecr_image, efa_instance_type, n_virginia_sagemake
     Tests pt mnist command via script mode
     """
     validate_or_skip_smmodelparallel(n_virginia_ecr_image)
+    validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
     efa_test_path = os.path.join(RESOURCE_PATH, 'efa', 'test_efa.sh')
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(

@@ -20,9 +20,34 @@ import sagemaker
 from sagemaker.tensorflow import TensorFlow
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
+
+
+def validate_or_skip_smmodelparallel(ecr_image):
+    if not can_run_smmodelparallel(ecr_image):
+        pytest.skip("Model Parallelism is supported on CUDA 11 on TensorFlow v2.3.1 or higher")
+
+
+def can_run_smmodelparallel(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    return Version(image_framework_version) in SpecifierSet(">=2.3.1") and Version(
+        image_cuda_version.strip("cu")) >= Version("110")
+
+
+def validate_or_skip_smmodelparallel_efa(ecr_image):
+    if not can_run_smmodelparallel_efa(ecr_image):
+        pytest.skip("EFA is only supported on CUDA 11, and on TensorFlow v2.4.1 or higher")
+
+
+def can_run_smmodelparallel_efa(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    return Version(image_framework_version) in SpecifierSet(">=2.4.1") and Version(image_cuda_version.strip("cu")) >= Version("110")
+
 
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.processor("gpu")
@@ -35,10 +60,8 @@ def test_smmodelparallel_efa(n_virginia_sagemaker_session, efa_instance_type, n_
     """
     Tests SM Modelparallel in sagemaker
     """
-    _, image_framework_version = get_framework_and_version_from_tag(n_virginia_ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(n_virginia_ecr_image)
-    if Version(image_framework_version) < Version("2.4.1") or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism with EFA only supports CUDA 11, and on TensorFlow 2.4.1 or higher")
+    validate_or_skip_smmodelparallel(n_virginia_ecr_image)
+    validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
                            role='SageMakerRole',
@@ -72,10 +95,8 @@ def test_smmodelparallel_multinode_efa(n_virginia_sagemaker_session, efa_instanc
     """
     Tests SM Modelparallel in sagemaker
     """
-    _, image_framework_version = get_framework_and_version_from_tag(n_virginia_ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(n_virginia_ecr_image)
-    if Version(image_framework_version) < Version("2.4.1") or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism on EFA only supports CUDA 11, and on TensorFlow 2.4.1 or higher")
+    validate_or_skip_smmodelparallel(n_virginia_ecr_image)
+    validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
                            role='SageMakerRole',
@@ -108,10 +129,7 @@ def test_smmodelparallel(sagemaker_session, instance_type, ecr_image, tmpdir, fr
     Tests SM Modelparallel in sagemaker
     """
     instance_type = "ml.p3.16xlarge"
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if Version(image_framework_version) < Version("2.3.1") or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11, and on TensorFlow 2.3.1 or higher")
+    validate_or_skip_smmodelparallel(ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
                            role='SageMakerRole',
@@ -145,10 +163,7 @@ def test_smmodelparallel_multinode(sagemaker_session, instance_type, ecr_image, 
     Tests SM Modelparallel in sagemaker
     """
     instance_type = "ml.p3.16xlarge"
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if Version(image_framework_version) < Version("2.3.1") or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11, and on TensorFlow 2.3.1 or higher")
+    validate_or_skip_smmodelparallel(ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
                            role='SageMakerRole',
