@@ -15,6 +15,7 @@ from __future__ import absolute_import
 import os
 
 import pytest
+import sagemaker
 from sagemaker import utils
 from sagemaker.pytorch import PyTorch
 
@@ -44,7 +45,7 @@ def test_dgl_gcn_training_cpu(sagemaker_session, ecr_image, instance_type):
 @pytest.mark.model("gcn")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_dgl_gcn_training_gpu(sagemaker_session, ecr_image, instance_type):
+def test_dgl_gcn_training_gpu(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type):
 
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
@@ -52,7 +53,15 @@ def test_dgl_gcn_training_gpu(sagemaker_session, ecr_image, instance_type):
         pytest.skip("DGL does not support CUDA 11 for PyTorch 1.6")
 
     instance_type = instance_type or 'ml.p2.xlarge'
-    _test_dgl_training(sagemaker_session, ecr_image, instance_type)
+    _test_dgl(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type)
+
+
+def _test_dgl(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type):
+    try:
+        _test_dgl_training(sagemaker_session, ecr_image, instance_type)
+    except Exception as e:
+        if type(e) == sagemaker.exceptions.UnexpectedStatusException and "Capacity Error" in str(e):
+            _test_dgl_training(n_virginia_sagemaker_session, n_virginia_ecr_image, instance_type)
 
 
 def _test_dgl_training(sagemaker_session, ecr_image, instance_type):
