@@ -387,9 +387,6 @@ def main():
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
 
-            for pytest_cmd in pytest_cmds:
-                if not is_pr_context():
-                    pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
 
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
             if all([status == 0 for status in cmd_exit_statuses]):
