@@ -584,9 +584,11 @@ def parse_canary_images(framework, region):
             elif "inf" in tag_str:
                 versions_counter[version]["inf"] = True
 
+    # Adding huggingface here since we dont have inference HF containers now
     versions = []
     for v, inf_train in versions_counter.items():
-        if inf_train["inf"] and inf_train["tr"]:
+        if (inf_train["inf"] and inf_train["tr"])\
+                or framework.startswith("huggingface"):
             versions.append(v)
 
     # Sort ascending to descending, use lambda to ensure 2.2 < 2.15, for instance
@@ -663,7 +665,7 @@ def parse_canary_images(framework, region):
             },
         }
         dlc_images += images[framework]["py3"]
-        no_py2 = py2_deprecated[framework]
+        no_py2 = py2_deprecated.get(framework)
         if no_py2 and (Version(fw_version) >= Version(no_py2)):
             continue
         else:
