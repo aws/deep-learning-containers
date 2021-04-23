@@ -110,6 +110,7 @@ RUN conda install -c \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
     ruamel-yaml \
+ && conda install -y -c pytorch captum \
  && conda install -y -c pytorch torchserve=$TS_VERSION \
  && conda install -y -c pytorch torch-model-archiver=$TS_VERSION
 
