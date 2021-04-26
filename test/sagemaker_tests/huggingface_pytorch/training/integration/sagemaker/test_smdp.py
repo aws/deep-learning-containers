@@ -25,7 +25,7 @@ from ...integration import DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
 import sagemaker
 
-git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v4.4.2'}
+git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v4.5.0'}
 
 # configuration for running training on smdistributed Data Parallel
 distribution = {'smdistributed': {'dataparallel': {'enabled': True}}}
