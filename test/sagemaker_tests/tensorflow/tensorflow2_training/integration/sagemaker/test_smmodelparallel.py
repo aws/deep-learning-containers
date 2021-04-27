@@ -60,7 +60,6 @@ def test_smmodelparallel_efa(n_virginia_sagemaker_session, efa_instance_type, n_
     """
     Tests SM Modelparallel in sagemaker
     """
-    validate_or_skip_smmodelparallel(n_virginia_ecr_image)
     validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
@@ -95,7 +94,6 @@ def test_smmodelparallel_multinode_efa(n_virginia_sagemaker_session, efa_instanc
     """
     Tests SM Modelparallel in sagemaker
     """
-    validate_or_skip_smmodelparallel(n_virginia_ecr_image)
     validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,

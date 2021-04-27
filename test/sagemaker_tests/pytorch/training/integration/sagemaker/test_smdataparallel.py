@@ -56,7 +56,6 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.efa()
 def test_smdataparallel_throughput(n_virginia_sagemaker_session, framework_version, n_virginia_ecr_image, instance_types, tmpdir):
     with timeout(minutes=DEFAULT_TIMEOUT):
-        validate_or_skip_smdataparallel(n_virginia_ecr_image)
         validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
         hyperparameters = {
             "size": 64,
@@ -122,7 +121,6 @@ def test_smdataparallel_mnist(n_virginia_sagemaker_session, framework_version, n
     Tests smddprun command via Estimator API distribution parameter
     """
     with timeout(minutes=DEFAULT_TIMEOUT):
-        validate_or_skip_smdataparallel(n_virginia_ecr_image)
         validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
         distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
         pytorch = PyTorch(entry_point='smdataparallel_mnist.py',

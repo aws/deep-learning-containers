@@ -93,7 +93,6 @@ def test_smdataparallel_mnist(instance_types, n_virginia_ecr_image, py_version, 
     """
     Tests smddprun command via Estimator API distribution parameter
     """
-    validate_or_skip_smdataparallel(n_virginia_ecr_image)
     validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
 
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
@@ -121,7 +120,6 @@ def test_smdataparallel_throughput(instance_types, n_virginia_ecr_image, py_vers
     """
     Tests smddprun throughput
     """
-    validate_or_skip_smdataparallel(n_virginia_ecr_image)
     validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
     hyperparameters = {
         "size": 64,

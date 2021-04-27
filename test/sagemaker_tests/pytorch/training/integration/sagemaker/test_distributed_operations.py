@@ -196,8 +196,6 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(n_virginia_ecr_image, efa_
     """
     Tests pt mnist command via script mode
     """
-    
-    validate_or_skip_smmodelparallel(n_virginia_ecr_image)
     validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(
@@ -242,7 +240,6 @@ def test_sanity_efa(n_virginia_ecr_image, efa_instance_type, n_virginia_sagemake
     """
     Tests pt mnist command via script mode
     """
-    validate_or_skip_smmodelparallel(n_virginia_ecr_image)
     validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
     efa_test_path = os.path.join(RESOURCE_PATH, 'efa', 'test_efa.sh')
     with timeout(minutes=DEFAULT_TIMEOUT):

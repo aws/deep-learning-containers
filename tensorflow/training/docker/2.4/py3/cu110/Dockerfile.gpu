@@ -109,7 +109,8 @@ RUN mkdir /tmp/efa \
   && tar -xf aws-efa-installer-$EFA_VERSION.tar.gz \
   && cd aws-efa-installer \
   && ./efa_installer.sh -y --skip-kmod -g \
-  && rm -rf /tmp/efa
+  && rm -rf /tmp/efa \
+  && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz
 
 RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
  && tar -xzf boost_1_73_0.tar.gz \
