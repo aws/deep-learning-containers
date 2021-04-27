@@ -106,7 +106,7 @@ RUN pip uninstall -y torch \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U $PT_VISION_URL
  
- RUN pip uninstall -y model-archiver multi-model-server \
+RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
  && pip install torchserve==$TS_VERSION \
  && pip install torch-model-archiver==$TS_VERSION
