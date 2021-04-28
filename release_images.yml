@@ -334,21 +334,18 @@ release_images:
     framework: "pytorch"
     version: "1.6.0"
     training:
-      device_types: ["cpu"]
+      device_types: ["cpu", "gpu"]
       python_versions: ["py36"]
       os_version: "ubuntu18.04"
       cuda_version: "cu110"
       example: False
       disable_sm_tag: True  # [Default: False] This option is not used by Example images
       force_release: False
-  24: # PT-1.6.0 Wave-2
-    framework: "pytorch"
-    version: "1.6.0"
-    training:
+    inference:
       device_types: ["cpu"]
       python_versions: ["py36"]
       os_version: "ubuntu18.04"
       cuda_version: "cu110"
-      example: True
+      example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
