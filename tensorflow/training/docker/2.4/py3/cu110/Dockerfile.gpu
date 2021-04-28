@@ -26,7 +26,10 @@ ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.10
-ARG OPEN_MPI_PATH=/usr/local
+ARG OPEN_MPI_PATH=/opt/amazon/openmpi/
+ARG NCCL_VERSION=2.7.8
+ARG EFA_VERSION=1.11.2
+ARG BRANCH_OFI=1.1.1
 
 ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.4_aws/20210127-150238/gpu/py37/cu110/tensorflow_gpu-2.4.1-cp37-cp37m-manylinux2010_x86_64.whl
 
@@ -36,7 +39,7 @@ ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/est
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=1.0.8
 
-ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.4.1/cu110/2021-04-08/smdistributed_dataparallel-1.1.2-cp37-cp37m-linux_x86_64.whl
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.4.1/cu110/2021-04-12/smdistributed_dataparallel-1.2.0-cp37-cp37m-linux_x86_64.whl
 
 ARG SMMODELPARALLEL_BINARY=https://sagemaker-distributed-model-parallel.s3.amazonaws.com/tensorflow-2.4/build-artifacts/2021-03-26-21-57/smdistributed_modelparallel-1.3.1-cp37-cp37m-linux_x86_64.whl
 
@@ -52,15 +55,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     emacs \
     libcudnn8=8.0.5.39-1+cuda11.0 \
     # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
-    libnccl2=2.7.8-1+cuda11.0 \
     libgomp1 \
-    libnccl-dev=2.7.8-1+cuda11.0 \
     libfreetype6-dev \
     libhdf5-serial-dev \
     liblzma-dev \
     libpng-dev \
     libtemplate-perl \
     libzmq3-dev \
+    hwloc \
     git \
     unzip \
     wget \
@@ -74,6 +76,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     zlib1g-dev \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
+    jq \
  && apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated \
     libcublas-11-0=11.2.0.252-1 \
@@ -93,30 +96,35 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /var/run/sshd
 
-RUN wget --quiet https://dl.bintray.com/boostorg/release/1.73.0/source/boost_1_73_0.tar.gz \
+RUN cd /tmp \
+  && git clone https://github.com/NVIDIA/nccl.git -b v$NCCL_VERSION-1 \
+  && cd nccl \
+  && make -j64 src.build BUILDDIR=/usr/local \
+  && rm -rf /tmp/nccl
+
+# Install EFA along with AWS OPEN_MPI
+RUN mkdir /tmp/efa \
+  && cd /tmp/efa \
+  && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-$EFA_VERSION.tar.gz \
+  && tar -xf aws-efa-installer-$EFA_VERSION.tar.gz \
+  && cd aws-efa-installer \
+  && ./efa_installer.sh -y --skip-kmod -g \
+  && rm -rf /tmp/efa \
+  && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz
+
+RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
  && tar -xzf boost_1_73_0.tar.gz \
  && cd boost_1_73_0 \
  && ./bootstrap.sh \
  && ./b2 threading=multi --prefix=/usr -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
  && cd .. \
  && rm -rf boost_1_73_0.tar.gz \
- && rm -rf boost_1_73_0
+ && rm -rf boost_1_73_0 \
+ && cd /usr/include/boost
 
 ###########################################################################
 # Horovod & its dependencies
 ###########################################################################
-
-# Install Open MPI
-RUN mkdir /tmp/openmpi \
- && cd /tmp/openmpi \
- && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz \
- && tar zxf openmpi-4.0.4.tar.gz \
- && cd openmpi-4.0.4 \
- && ./configure --enable-orterun-prefix-by-default \
- && make -j $(nproc) all \
- && make install \
- && ldconfig \
- && rm -rf /tmp/openmpi
 
 # Create a wrapper for OpenMPI to allow running as root by default
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
@@ -132,10 +140,10 @@ RUN echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-pa
 # Set default NCCL parameters
 RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
 
-ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/openmpi/lib:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib:$LD_LIBRARY_PATH
 # /usr/local/lib/libpython* needs to be accessible for dynamic linking
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-ENV PATH=$OPEN_MPI_PATH/openmpi/bin/:$PATH
+ENV PATH=$OPEN_MPI_PATH/bin/:$PATH
 ENV PATH=$OPEN_MPI_PATH/nvidia/bin:$PATH
 
 # SSH login fix. Otherwise user is kicked off after login
@@ -237,6 +245,21 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
   && cd .. \
   && rm -rf v${RMM_VERSION}.tar* \
   && rm -rf rmm-${RMM_VERSION}
+
+# Install AWS OFI NCCL plug-in
+RUN apt-get update && apt-get install -y autoconf
+RUN mkdir /tmp/efa-ofi-nccl \
+  && cd /tmp/efa-ofi-nccl \
+  && git clone https://github.com/aws/aws-ofi-nccl.git -b v$BRANCH_OFI \
+  && cd aws-ofi-nccl \
+  && ./autogen.sh \
+  && ./configure --with-libfabric=/opt/amazon/efa \
+  --with-mpi=/opt/amazon/openmpi \
+  --with-cuda=/usr/local/cuda \
+  --with-nccl=/usr/local --prefix=/usr/local \
+  && make \
+  && make install \
+  && rm -rf /tmp/efa-ofi-nccl
 
 ENV CPATH="/usr/local/lib/python3.7/dist-packages/pybind11/include/"
 
