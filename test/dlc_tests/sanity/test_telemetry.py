@@ -11,7 +11,6 @@ from test.test_utils import ecs as ecs_utils
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.skip(reason="Skip test until feature is enabled.")
 def test_telemetry_instance_role_disabled_gpu(gpu, ec2_client, ec2_instance, ec2_connection):
     _run_instance_role_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -20,7 +19,6 @@ def test_telemetry_instance_role_disabled_gpu(gpu, ec2_client, ec2_instance, ec2
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
-@pytest.mark.skip(reason="Skip test until feature is enabled.")
 def test_telemetry_bad_instance_role_disabled_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only):
     _run_instance_role_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -29,7 +27,6 @@ def test_telemetry_bad_instance_role_disabled_cpu(cpu, ec2_client, ec2_instance,
 @pytest.mark.processor("neuron")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
-@pytest.mark.skip(reason="Skip test until feature is enabled.")
 def test_telemetry_bad_instance_role_disabled_neuron(neuron, ec2_client, ec2_instance, ec2_connection):
     _run_instance_role_disabled(neuron, ec2_client, ec2_instance, ec2_connection)
 
@@ -38,7 +35,6 @@ def test_telemetry_bad_instance_role_disabled_neuron(neuron, ec2_client, ec2_ins
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.skip(reason="Skip test until feature is enabled.")
 def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_connection, non_huggingface_only):
     _run_tag_success(gpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -47,7 +43,6 @@ def test_telemetry_instance_tag_success_gpu(gpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c4.4xlarge"], indirect=True)
-@pytest.mark.skip(reason="Skip test until feature is enabled.")
 def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, non_huggingface_only):
     _run_tag_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -56,7 +51,6 @@ def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.processor("neuron")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
-@pytest.mark.skip(reason="Skip test until feature is enabled.")
 def test_telemetry_instance_tag_success_neuron(neuron, ec2_client, ec2_instance, ec2_connection, non_huggingface_only):
     _run_tag_success(neuron, ec2_client, ec2_instance, ec2_connection)
 
