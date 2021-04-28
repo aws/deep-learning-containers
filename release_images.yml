@@ -334,7 +334,7 @@ release_images:
     framework: "pytorch"
     version: "1.6.0"
     training:
-      device_types: ["gpu"]
+      device_types: ["cpu"]
       python_versions: ["py36"]
       os_version: "ubuntu18.04"
       cuda_version: "cu110"
@@ -345,7 +345,7 @@ release_images:
     framework: "pytorch"
     version: "1.6.0"
     training:
-      device_types: ["gpu"]
+      device_types: ["cpu"]
       python_versions: ["py36"]
       os_version: "ubuntu18.04"
       cuda_version: "cu110"
