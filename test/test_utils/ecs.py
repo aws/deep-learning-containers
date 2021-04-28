@@ -12,7 +12,6 @@ from test.test_utils import DEFAULT_REGION, get_inference_run_command, get_tenso
 from test.test_utils import ec2 as ec2_utils
 
 
-ECS_AMI_ID = {"cpu": "ami-0fb71e703258ab7eb", "gpu": "ami-0a36be2e955646bb2", "eia": "ami-0fb71e703258ab7eb"}
 
 ECS_TENSORFLOW_INFERENCE_PORT_MAPPINGS = [
     {"containerPort": 8500, "hostPort": 8500, "protocol": "tcp"},
