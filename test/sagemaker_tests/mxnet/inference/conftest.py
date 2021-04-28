@@ -20,7 +20,7 @@ import pytest
 from sagemaker import LocalSession, Session
 from sagemaker.mxnet import MXNet
 
-from .integration import NO_P2_REGIONS, NO_P3_REGIONS, get_ecr_registry
+from .integration import NO_P2_REGIONS, NO_P3_REGIONS, NO_P4_REGIONS, get_ecr_registry
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
@@ -133,7 +133,8 @@ def local_instance_type(processor):
 def skip_gpu_instance_restricted_regions(region, instance_type):
     no_p2 = region in NO_P2_REGIONS and instance_type.startswith('ml.p2')
     no_p3 = region in NO_P3_REGIONS and instance_type.startswith('ml.p3')
-    if no_p2 or no_p3:
+    no_p4 = region in NO_P4_REGIONS and instance_type.startswith('ml.p4')
+    if no_p2 or no_p3 or no_p4:
         pytest.skip('Skipping GPU test in region {} to avoid insufficient capacity'.format(region))
 
 

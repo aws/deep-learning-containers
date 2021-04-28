@@ -5,10 +5,11 @@ import subprocess
 import time
 import logging
 import sys
-
+import re
 import git
 import pytest
 
+import boto3
 from botocore.exceptions import ClientError
 from invoke import run
 from invoke.context import Context
@@ -175,11 +176,32 @@ def is_benchmark_dev_context():
 
 def is_time_for_canary_safety_scan():
     """
-    Canary tests run every 15 minutes. 
+    Canary tests run every 15 minutes.
     Using a 20 minutes interval to make tests run only once a day around 9 am PST (10 am during winter time).
     """
     current_utc_time = time.gmtime()
     return current_utc_time.tm_hour == 16 and (0 < current_utc_time.tm_min < 20)
+
+
+# Now we can skip EFA tests on pipeline without making any source code change
+def are_efa_tests_disabled():
+    disable_efa_tests = is_pr_context() and os.getenv("DISABLE_EFA_TESTS", "False").lower() == "true"
+
+    try:
+        s3_client = boto3.client('s3')
+        sts_client = boto3.client('sts')
+        account_id = sts_client.get_caller_identity().get('Account')
+        result = s3_client.get_object(Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json")
+        json_content = json.loads(result["Body"].read().decode('utf-8'))
+        if "disable_efa_tests" in json_content:
+            override_disable_efa_tests = json_content["disable_efa_tests"].lower() == "true"
+        else:
+            override_disable_efa_tests = False
+    except ClientError as e:
+        override_disable_efa_tests = False
+        LOGGER.error("ClientError when performing S3/STS operation. Exception: {}".format(e))
+
+    return disable_efa_tests or override_disable_efa_tests
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
@@ -754,6 +776,15 @@ def get_region_from_image_uri(image_uri):
     region_search = re.search(region_pattern, image_uri)
     assert region_search, f"{image_uri} must have region that matches {region_pattern}"
     return region_search.group()
+
+
+def get_unique_name_from_tag(image_uri):
+    """
+    Return the unique from the image tag.
+    :param image_uri: ECR image URI
+    :return: unique name
+    """
+    return re.sub('[^A-Za-z0-9]+', '', image_uri)
 
 
 def get_framework_and_version_from_tag(image_uri):
