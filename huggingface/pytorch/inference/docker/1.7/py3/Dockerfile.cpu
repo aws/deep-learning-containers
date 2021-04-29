@@ -15,6 +15,7 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.6.13
 ARG OPEN_MPI_VERSION=4.0.1
 # HF ARGS
+ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.1_inference/20210112-183245/c1130f2829b03c0997b9813211a7c0f600fc569a/cpu/torch-1.7.1-cp36-cp36m-manylinux1_x86_64.whl
 ARG TRANSFORMERS_VERSION
 ARG HF_INFERENCE_TOOLKIT_VERSION
 
@@ -92,8 +93,9 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
  && chown -R model-server /home/model-server
 
-COPY ./docker/build_artifacts/mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-COPY ./docker/build_artifacts/config.properties /etc/sagemaker-mms.properties
+# TODO: Modify copy path to compatible with buildspec.yaml
+COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY config.properties /etc/sagemaker-mms.properties
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
@@ -111,15 +113,10 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
 
-#################################
-#                               #
-# Hugging Face specific section #
-#                               #
-#             START             #
-#                               #
 #################################           
+# Hugging Face specific section #
+#################################            
 
-ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.1_inference/20210112-183245/c1130f2829b03c0997b9813211a7c0f600fc569a/cpu/torch-1.7.1-cp36-cp36m-manylinux1_x86_64.whl
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.7/license.txt -o /license.txt
 
@@ -137,10 +134,3 @@ EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["serve"]
 
-#################################
-#                               #
-# Hugging Face specific section #
-#                               #
-#              END              #
-#                               #
-#################################  
