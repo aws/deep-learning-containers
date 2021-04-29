@@ -58,12 +58,12 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_distributed_training_smdataparallel_script_mode(
-    sagemaker_session, instance_type, ecr_image, tmpdir, framework_version
+    n_virginia_sagemaker_session, instance_type, n_virginia_ecr_image, tmpdir, framework_version
 ):
     """
     Tests SMDataParallel single-node command via script mode
     """
-    validate_or_skip_smdataparallel(ecr_image)
+    validate_or_skip_smdataparallel(n_virginia_ecr_image)
     instance_type = "ml.p3.16xlarge"
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
     estimator = TensorFlow(
@@ -72,10 +72,10 @@ def test_distributed_training_smdataparallel_script_mode(
         role='SageMakerRole',
         instance_type=instance_type,
         instance_count=1,
-        image_uri=ecr_image,
+        image_uri=n_virginia_ecr_image,
         framework_version=framework_version,
         py_version='py3',
-        sagemaker_session=sagemaker_session,
+        sagemaker_session=n_virginia_sagemaker_session,
         distribution=distribution)
 
     estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel'))
