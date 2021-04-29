@@ -125,4 +125,3 @@ RUN pip install --no-cache-dir \
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["serve"]
-
