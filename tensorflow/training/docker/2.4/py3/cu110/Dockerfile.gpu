@@ -39,7 +39,7 @@ ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/est
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=1.0.8
 
-ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.4.1/cu110/2021-04-12/smdistributed_dataparallel-1.2.0-cp37-cp37m-linux_x86_64.whl
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.4.1/cu110/2021-04-28/smdistributed_dataparallel-1.2.0-cp37-cp37m-linux_x86_64.whl
 
 ARG SMMODELPARALLEL_BINARY=https://sagemaker-distributed-model-parallel.s3.amazonaws.com/tensorflow-2.4/build-artifacts/2021-03-26-21-57/smdistributed_modelparallel-1.3.1-cp37-cp37m-linux_x86_64.whl
 
@@ -193,7 +193,7 @@ RUN ${PIP} install --no-cache-dir -U \
     scipy==1.5.2 \
     scikit-learn==0.23 \
     pandas==1.1 \
-    Pillow==7.2.0 \
+    Pillow==8.2.0 \
     # python-dateutil==2.8.1 to satisfy botocore associated with latest awscli
     python-dateutil==2.8.1 \
     # install PyYAML>=5.4 to avoid conflict with latest awscli
