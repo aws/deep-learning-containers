@@ -122,12 +122,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         integration_path = os.path.join("test", "integration", sagemaker_test_type)
     else:
         integration_path = os.path.join("integration", sagemaker_test_type)
-    if job_type == "training":
-        if framework == "tensorflow":
-            if framework_major_version == "2":
-                integration_path = f"integration/sagemaker/test_mnist.py::test_smdataparallel_smmodelparallel_mnist integration/sagemaker/test_smdataparallel.py::test_distributed_training_smdataparallel_script_mode"
-            else:
-                integration_path = f"integration/sagemaker/test_tuning_model_dir.py"
     # Conditions for modifying tensorflow SageMaker pytest commands
     if framework == "tensorflow" and sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE:
         if job_type == "inference":
