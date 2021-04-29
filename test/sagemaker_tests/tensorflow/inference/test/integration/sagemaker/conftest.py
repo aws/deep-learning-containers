@@ -52,6 +52,23 @@ NO_P3_REGIONS = [
     "eu-south-1",
     "af-south-1",
 ]
+NO_P4_REGIONS = [
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ap-south-1",
+    "ca-central-1",
+    "eu-central-1",
+    "eu-west-2",
+    "us-west-1",
+    "eu-west-3",
+    "eu-north-1",
+    "sa-east-1",
+    "ap-east-1",
+    "me-south-1",
+    "cn-northwest-1",
+    "eu-south-1",
+    "af-south-1",
+]
 
 
 def pytest_addoption(parser):
@@ -140,9 +157,10 @@ def model_name():
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-    if (region in NO_P2_REGIONS and instance_type.startswith("ml.p2")) or \
-            (region in NO_P3_REGIONS and instance_type.startswith("ml.p3")):
-        pytest.skip("Skipping GPU test in region {}".format(region))
+    if ((region in NO_P2_REGIONS and instance_type.startswith('ml.p2'))
+        or (region in NO_P3_REGIONS and instance_type.startswith('ml.p3'))
+            or (region in NO_P4_REGIONS and instance_type.startswith('ml.p4'))):
+                pytest.skip('Skipping GPU test in region {}'.format(region))
 
 
 @pytest.fixture(autouse=True)
