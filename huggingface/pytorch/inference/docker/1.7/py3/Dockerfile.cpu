@@ -93,7 +93,6 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
  && chown -R model-server /home/model-server
 
-# TODO: Modify copy path to compatible with buildspec.yaml
 COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /etc/sagemaker-mms.properties
 
