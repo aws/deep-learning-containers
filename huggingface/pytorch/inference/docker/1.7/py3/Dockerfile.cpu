@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.0-cudnn8-runtime-ubuntu18.04
+FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -17,6 +17,7 @@ ARG OPEN_MPI_VERSION=4.0.1
 # HF ARGS
 ARG TRANSFORMERS_VERSION
 ARG HF_INFERENCE_TOOLKIT_VERSION
+
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -40,7 +41,6 @@ RUN apt-get update \
     curl \
     unzip \
     git \
-    libnuma1 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -55,9 +55,9 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
     cython==0.29.12 \
-    botocore \
     mkl-include==2019.4 \
     mkl==2019.4 \
+    botocore \
  && /opt/conda/bin/conda clean -ya
 
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
@@ -75,8 +75,12 @@ RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI
  && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
  && rm -rf openmpi-$OPEN_MPI_VERSION
 
+# The ENV variables declared below are changed in the previous section
+# Grouping these ENV variables in the first section causes
+# ompi_info to fail. This is only observed in CPU containers
 ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 WORKDIR /
 
@@ -106,6 +110,7 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
+
 #################################
 #                               #
 # Hugging Face specific section #
@@ -114,7 +119,7 @@ RUN HOME_DIR=/root \
 #                               #
 #################################           
 
-ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.1_inference/20210112-183245/c1130f2829b03c0997b9813211a7c0f600fc569a/gpu/torch-1.7.1-cp36-cp36m-manylinux1_x86_64.whl
+ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.1_inference/20210112-183245/c1130f2829b03c0997b9813211a7c0f600fc569a/cpu/torch-1.7.1-cp36-cp36m-manylinux1_x86_64.whl
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.7/license.txt -o /license.txt
 
