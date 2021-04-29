@@ -48,8 +48,8 @@ def run_sagemaker_local_tests(images):
     run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
 
     pool_number = len(images)
-    with Pool(pool_number) as p:
-        p.map(sm_utils.execute_local_tests, images)
+    # with Pool(pool_number) as p:
+    #     p.map(sm_utils.execute_local_tests, images)
 
 
 def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
