@@ -327,6 +327,9 @@ def main():
                 # setup kubeflow
                 eks_utils.setup_kubeflow(eks_cluster_name)
 
+pytest -rA test/integration/sagemaker/test_tfs.py --region us-west-2 --processor cpu --repo pr-tensorflow-inference --tag 1.15.5-cpu-py36-ubuntu18.04-pr-1083 --versions 1.15.5 --registry 669063966089 --instance-types ml.c4.4xlarge -m not efa --junitxml /codebuild/output/src134570604/src/github.com/aws/deep-learning-containers/test/inference_1.15.5-cpu-py36-ubuntu18.04-pr-1083.xml
+pytest -s -v test/integration/local --docker-base-name 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-tensorflow-inference --tag 1.15.5-gpu-py36-cu100-ubuntu18.04-pr-1083 --framework-version 1.15.5 --processor gpu --aws-id 669063966089 -m not efa --junitxml /home/ubuntu/test/inference_1.15.5-gpu-py36-cu100-ubuntu18.04-pr-1083_sm_local.xml
+
             # Change 1: Split training and inference, and run one after the other, to prevent scheduling issues
             # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in
             # pods timing-out while they were in the Pending state. Scheduling 4 tests (and hence, 4 pods) at once
