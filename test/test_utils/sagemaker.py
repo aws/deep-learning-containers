@@ -142,7 +142,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     efa_flag = ""
     if job_type == "training" and (framework_major_version == "tensorflow" or framework == "pytorch"):
         efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
-        efa_dedicated = True
         efa_flag = '--efa' if efa_dedicated else '-m not efa'
 
     remote_pytest_cmd = (
@@ -254,7 +253,7 @@ def execute_local_tests(image):
     """
     ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
-
+    print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
@@ -320,7 +319,6 @@ def execute_sagemaker_remote_tests(image):
     :param image: ECR url
     """
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
-    print(pytest_command)
     context = Context()
     with context.cd(path):
         context.run(f"virtualenv {tag}")
