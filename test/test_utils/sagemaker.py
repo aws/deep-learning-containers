@@ -142,6 +142,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     efa_flag = ""
     if job_type == "training" and (framework_major_version == "tensorflow" or framework == "pytorch"):
         efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
+        efa_dedicated = True
         efa_flag = '--efa' if efa_dedicated else '-m not efa'
 
     remote_pytest_cmd = (
@@ -155,7 +156,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     local_pytest_cmd = (f"{is_py3} pytest -s -v {integration_path} {docker_base_arg} "
                         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
-                        f"--processor {processor} {aws_id_arg} {account_id} {efa_flag} --junitxml {local_test_report}")
+                        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}")
 
     if framework == "tensorflow" and job_type != "inference":
         local_pytest_cmd = f"{local_pytest_cmd} --py-version {sm_local_py_version} --region {region}"
