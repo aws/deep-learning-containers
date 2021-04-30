@@ -10,20 +10,3 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-import pytest
-
-def pytest_addoption(parser):
-    parser.addoption(
-        "--efa", action="store_true", default=False, help="Run only efa tests",
-    )
-
-
-def pytest_configure(config):
-    config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
-
-
-def pytest_runtest_setup(item):
-    if item.config.getoption("--efa"):
-        efa_tests = [mark for mark in item.iter_markers(name="efa")]
-        if not efa_tests:
-            pytest.skip("Skipping non-efa tests")
