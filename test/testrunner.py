@@ -67,8 +67,6 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
 
     LOGGER.info("Started running SageMaker test.....")
     pytest_command, path, tag, job_type = sm_utils.generate_sagemaker_pytest_cmd(image, "sagemaker")
-    efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
-    pytest_command += " --efa " if efa_dedicated else " -m not efa "
     print(pytest_command)
     # update resource pool accordingly, then add a try-catch statement here to update the pool in case of failure
     try:
@@ -200,7 +198,7 @@ def setup_eks_cluster(framework_name, is_neuron):
     long_name = framework_name
     short_name = frameworks[long_name]
     codebuild_version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")[0:7]
-    num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
+    num_nodes = 4
     cluster_name = f"dlc-{short_name}-cluster-{codebuild_version}-{random.randint(1, 10000)}"
     # default volume size
     volume_size = 80

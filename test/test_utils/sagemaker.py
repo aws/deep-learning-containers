@@ -139,10 +139,13 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     is_py3 = " python3 -m "
 
+
+    efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
+
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
         f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
-        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} --junitxml {test_report}"
+        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {"--efa" if efa_dedicated else "-m not efa"} --junitxml {test_report}"
     )
 
     if processor == "eia" :
@@ -150,7 +153,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     local_pytest_cmd = (f"{is_py3} pytest -s -v {integration_path} {docker_base_arg} "
                         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
-                        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}")
+                        f"--processor {processor} {aws_id_arg} {account_id} {"--efa" if efa_dedicated else "-m not efa"} --junitxml {local_test_report}")
 
     if framework == "tensorflow" and job_type != "inference":
         local_pytest_cmd = f"{local_pytest_cmd} --py-version {sm_local_py_version} --region {region}"
@@ -248,8 +251,6 @@ def execute_local_tests(image):
     """
     ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
-    efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
-    pytest_command += " --efa " if efa_dedicated else " -m not efa "
     print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
@@ -316,8 +317,6 @@ def execute_sagemaker_remote_tests(image):
     :param image: ECR url
     """
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
-    efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
-    pytest_command += " --efa " if efa_dedicated else " -m not efa "
     print(pytest_command)
     context = Context()
     with context.cd(path):
