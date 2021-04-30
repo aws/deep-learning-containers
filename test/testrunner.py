@@ -70,7 +70,7 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
     # efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
     efa_dedicated = True
     pytest_command += " --efa " if efa_dedicated else " -m not efa "
-    pytest_command += " --collect-only "
+    # pytest_command += " --collect-only "
     print(pytest_command)
     # update resource pool accordingly, then add a try-catch statement here to update the pool in case of failure
     try:
