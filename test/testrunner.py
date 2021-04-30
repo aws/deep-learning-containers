@@ -333,26 +333,9 @@ def main():
             # seems to be an optimal configuration.
             # Change 2: Separate multi-node EKS tests from single-node tests in execution to prevent resource contention
             if not is_neuron:
+                /Users/jspatil/workspace/deep-learning-containers/test/dlc_tests/eks/tensorflow/training/test_eks_tensorflow_multi_node_training.py
                 pytest_cmds = [
-                    [
-                        "-s",
-                        "-rA",
-                        os.path.join(test_path, framework, "training"),
-                        f"--junitxml={report_train}",
-                        "-n=4",
-                        "-m",
-                        "not multinode",
-                    ],
-                    [
-                        "-s",
-                        "-rA",
-                        os.path.join(test_path, framework, "inference"),
-                        f"--junitxml={report_infer}",
-                        "-n=4",
-                        "-m",
-                        "not multinode",
-                    ],
-                    ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
+                    ["-s", "-rA", os.path.join(test_path, framework, "training", "test_eks_tensorflow_multi_node_training.py::test_eks_tensorflow_multi_node_training_gpu"), f"--junitxml={report_multinode_train}", "--multinode"],
                 ]
             else:
                 pytest_cmds = [
