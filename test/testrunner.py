@@ -67,7 +67,7 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
 
     LOGGER.info("Started running SageMaker test.....")
     pytest_command, path, tag, job_type = sm_utils.generate_sagemaker_pytest_cmd(image, "sagemaker")
-    print(pytest_command)
+
     # update resource pool accordingly, then add a try-catch statement here to update the pool in case of failure
     try:
         log_return.update_pool("running", instance_type, num_of_instances, job_type)
@@ -198,7 +198,7 @@ def setup_eks_cluster(framework_name, is_neuron):
     long_name = framework_name
     short_name = frameworks[long_name]
     codebuild_version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")[0:7]
-    num_nodes = 4
+    num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
     cluster_name = f"dlc-{short_name}-cluster-{codebuild_version}-{random.randint(1, 10000)}"
     # default volume size
     volume_size = 80
@@ -333,9 +333,26 @@ def main():
             # seems to be an optimal configuration.
             # Change 2: Separate multi-node EKS tests from single-node tests in execution to prevent resource contention
             if not is_neuron:
-                print(test_path)
                 pytest_cmds = [
-                    ["-s", "-rA", os.path.join(test_path, framework, "training", "test_eks_tensorflow_multi_node_training.py::test_eks_tensorflow_multi_node_training_gpu"), f"--junitxml={report_multinode_train}", "--multinode"],
+                    [
+                        "-s",
+                        "-rA",
+                        os.path.join(test_path, framework, "training"),
+                        f"--junitxml={report_train}",
+                        "-n=4",
+                        "-m",
+                        "not multinode",
+                    ],
+                    [
+                        "-s",
+                        "-rA",
+                        os.path.join(test_path, framework, "inference"),
+                        f"--junitxml={report_infer}",
+                        "-n=4",
+                        "-m",
+                        "not multinode",
+                    ],
+                    ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
                 ]
             else:
                 pytest_cmds = [
