@@ -120,25 +120,24 @@ def test_smdataparallel_throughput(instance_types, n_virginia_ecr_image, py_vers
     """
     Tests smddprun throughput
     """
-    print("printing test_smdataparallel_throughput to check it runs")
-    # validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
-    # hyperparameters = {
-    #     "size": 64,
-    #     "num_tensors": 20,
-    #     "iterations": 100,
-    #     "warmup": 10,
-    #     "bucket_size": 25,
-    #     "info": "TF-{}-N{}".format(instance_types, 2)
-    # }
+    validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
+    hyperparameters = {
+        "size": 64,
+        "num_tensors": 20,
+        "iterations": 100,
+        "warmup": 10,
+        "bucket_size": 25,
+        "info": "TF-{}-N{}".format(instance_types, 2)
+    }
 
-    # distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
-    # estimator = TensorFlow(entry_point='smdataparallel_throughput.py',
-    #                        role='SageMakerRole',
-    #                        image_uri=n_virginia_ecr_image,
-    #                        source_dir=THROUGHPUT_PATH,
-    #                        instance_count=2,
-    #                        instance_type=instance_types,
-    #                        sagemaker_session=n_virginia_sagemaker_session,
-    #                        hyperparameters=hyperparameters,
-    #                        distribution=distribution)
-    # estimator.fit()
+    distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
+    estimator = TensorFlow(entry_point='smdataparallel_throughput.py',
+                           role='SageMakerRole',
+                           image_uri=n_virginia_ecr_image,
+                           source_dir=THROUGHPUT_PATH,
+                           instance_count=2,
+                           instance_type=instance_types,
+                           sagemaker_session=n_virginia_sagemaker_session,
+                           hyperparameters=hyperparameters,
+                           distribution=distribution)
+    estimator.fit()
