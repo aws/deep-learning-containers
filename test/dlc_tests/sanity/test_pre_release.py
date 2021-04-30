@@ -229,13 +229,14 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     html_output = ec2_connection.run(f"cat ~/{dependency_check_report}", hide=True).stdout
     cves = re.findall(r">(CVE-\d+-\d+)</a>", html_output)
     vulnerabilities = set(cves) - allowed_vulnerabilities
-    severity = None
+
     if vulnerabilities:
         vulnerability_severity = {}
 
         # Check NVD for vulnerability severity to provide this useful info in error message.
         for vulnerability in vulnerabilities:
             try:
+                severity = "UNKNOWN"
                 cve_url = f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerability}"
 
                 session = requests.Session()
@@ -250,14 +251,15 @@ def _run_dependency_check_test(image, ec2_connection, processor):
                         .get("impact", {})
                         .get("baseMetricV2", {})
                         .get("severity", "UNKNOWN"))
+                else:
+                    LOGGER.exception(f"Failed to load NIST data for CVE {vulnerability}")
             except ConnectionError:
                 LOGGER.exception(f"Failed to load NIST data for CVE {vulnerability}")
-            
-            if severity:
-                if vulnerability_severity.get(severity):
-                    vulnerability_severity[severity].append(vulnerability)
-                else:
-                    vulnerability_severity[severity] = [vulnerability]
+
+            if vulnerability_severity.get(severity):
+                vulnerability_severity[severity].append(vulnerability)
+            else:
+                vulnerability_severity[severity] = [vulnerability]
 
         # TODO: Remove this once we have whitelisted appropriate LOW/MEDIUM vulnerabilities
         if not (vulnerability_severity.get("CRITICAL") or vulnerability_severity.get("HIGH")):
