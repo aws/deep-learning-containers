@@ -47,7 +47,6 @@ def pytest_addoption(parser):
     )
 
 
-
 def pytest_runtest_setup(item):
     if item.config.getoption("--efa"):
         efa_tests = [mark for mark in item.iter_markers("efa")]
@@ -66,10 +65,7 @@ def pytest_configure(config):
     os.environ['TEST_PY_VERSIONS'] = config.getoption('--py-version')
     os.environ['TEST_PROCESSORS'] = config.getoption('--processor')
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
-    # if config.getoption("--efa"):
-    #     efa_tests = [mark for mark in item.iter_markers(name="efa")]
-    #     if not efa_tests:
-    #         pytest.skip("Skipping non-efa tests")
+
 
 @pytest.fixture(scope='session')
 def docker_base_name(request):
