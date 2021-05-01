@@ -140,7 +140,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     is_py3 = " python3 -m "
 
     efa_flag = ""
-    if job_type == "training" and (framework_major_version == "tensorflow" or framework == "pytorch"):
+    if job_type == "training" and (framework == "tensorflow" or framework == "pytorch"):
         efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
         efa_flag = '--efa' if efa_dedicated else '-m not efa'
 
