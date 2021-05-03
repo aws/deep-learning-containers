@@ -46,14 +46,13 @@ def pytest_addoption(parser):
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
 
-def pytest_configure(config):
-    config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
 def pytest_runtest_setup(item):
     if item.config.getoption("--efa"):
-        efa_tests = [mark for mark in item.iter_markers(name="efa")]
+        efa_tests = [mark for mark in item.iter_markers("efa")]
         if not efa_tests:
             pytest.skip("Skipping non-efa tests")
+
 
 def pytest_collection_modifyitems(session, config, items):
     if config.getoption("--generate-coverage-doc"):
@@ -65,6 +64,7 @@ def pytest_collection_modifyitems(session, config, items):
 def pytest_configure(config):
     os.environ['TEST_PY_VERSIONS'] = config.getoption('--py-version')
     os.environ['TEST_PROCESSORS'] = config.getoption('--processor')
+    config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
 
 @pytest.fixture(scope='session')
