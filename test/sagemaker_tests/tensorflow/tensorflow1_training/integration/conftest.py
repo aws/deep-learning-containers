@@ -66,6 +66,7 @@ def pytest_configure(config):
     os.environ['TEST_PROCESSORS'] = config.getoption('--processor')
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
+
 @pytest.fixture(scope='session')
 def docker_base_name(request):
     return request.config.getoption('--docker-base-name')
