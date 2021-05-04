@@ -26,6 +26,7 @@ ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.10
 ARG OPENSSL_VERSION=1.1.1g
+ARG EFA_VERSION=1.11.2
 
 ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.5_aws/20210428_192657/gpu/cu112/py37/tensorflow_gpu-2.5.0rc2-cp37-cp37m-manylinux2010_x86_64.whl
 
