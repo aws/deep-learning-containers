@@ -31,8 +31,7 @@ LOG_DIR=${HOME_DIR}/logs
 
 echo "Simply verify if smdebug is installed correctly."
 echo "Cloning git repo for release tag $SMDEBUG_RELEASE_TAG"
-# temprarily using master
-git clone https://github.com/awslabs/sagemaker-debugger.git sagemaker-debugger || exit 1
+git clone -b ${SMDEBUG_RELEASE_TAG} https://github.com/awslabs/sagemaker-debugger.git sagemaker-debugger || exit 1
 
 echo "Changing to sagemaker-debugger."
 cd sagemaker-debugger
