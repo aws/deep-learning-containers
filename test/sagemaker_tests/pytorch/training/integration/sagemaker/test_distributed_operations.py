@@ -178,7 +178,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(n_virginia_ecr_image, instance
                 "mpi": {
                     "enabled": True,
                     "processes_per_host": num_processes,
-                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none -x RDMAV_FORK_SAFE=1 ",
+                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none ",
                 },
             },
         )
@@ -223,7 +223,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(n_virginia_ecr_image, efa_
                 "mpi": {
                     "enabled": True,
                     "processes_per_host": num_processes,
-                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none -x FI_EFA_USE_DEVICE_RDMA=1 -x FI_PROVIDER=efa -x RDMAV_FORK_SAFE=1 ",
+                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none -x FI_EFA_USE_DEVICE_RDMA=1 -x FI_PROVIDER=efa ",
                 },
             },
         )
