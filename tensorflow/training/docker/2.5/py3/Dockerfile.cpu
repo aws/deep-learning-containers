@@ -135,7 +135,7 @@ RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
-RUN apt-get update && apt-get -y install cmake protobuf-compiler libcurl4-openssl-dev
+RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
@@ -168,12 +168,6 @@ RUN ${PIP} install --no-cache-dir -U \
     psutil==5.7.2 \
     smdebug==${SMDEBUG_VERSION} \
     smclarify
-
-RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git && \
-    cd sagemaker-tensorflow-extensions && \
-    pip install . && \
-    cd .. && \
-    rm -rf sagemaker-tensorflow-extensions
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
