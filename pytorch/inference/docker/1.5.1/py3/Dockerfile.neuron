@@ -92,7 +92,6 @@ RUN pip install --no-cache-dir -U \
     scipy==1.2.2 \
     scikit-learn==0.20.3 \
     pandas==0.24.2 \
-    Pillow \
     h5py==2.10.0 \
     # install PyYAML>=5.4 to avoid conflict with latest awscli
     "pyYAML>=5.4,<5.5" \
@@ -104,7 +103,7 @@ RUN pip install --no-cache-dir -U \
     grpcio==1.24.1 \
     protobuf==3.10.0 \
     gast==0.2.2 \
-    pillow==7.2.0 \
+    pillow==8.2.0 \
     "awscli<2"
 
 RUN pip install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neuron.amazonaws.com \
