@@ -21,12 +21,14 @@ ENV KMP_AFFINITY=granularity=fine,compact,1,0
 ENV KMP_BLOCKTIME=1
 ENV KMP_SETTINGS=0
 ENV MANUAL_BUILD=0
+ENV RDMAV_FORK_SAFE=1
 
 ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.10
-ARG OPEN_MPI_PATH=/opt/amazon/openmpi/
+ARG OPEN_MPI_PATH=/opt/amazon/openmpi
+ARG EFA_PATH=/opt/amazon/efa
 ARG NCCL_VERSION=2.7.8
 ARG EFA_VERSION=1.11.2
 ARG BRANCH_OFI=1.1.1
@@ -139,8 +141,8 @@ RUN echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-pa
 
 # Set default NCCL parameters
 RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
-
-ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib:$LD_LIBRARY_PATH
+RUN echo "pml = ob1" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf
+ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 # /usr/local/lib/libpython* needs to be accessible for dynamic linking
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PATH=$OPEN_MPI_PATH/bin/:$PATH

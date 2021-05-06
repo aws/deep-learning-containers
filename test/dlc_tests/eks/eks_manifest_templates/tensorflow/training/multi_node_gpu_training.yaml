@@ -31,8 +31,6 @@ spec:
               - -x
               - LD_LIBRARY_PATH
               - -x
-              - RDMAV_FORK_SAFE=1
-              - -x
               - PATH
               - -x
               - NCCL_SOCKET_IFNAME=eth0
