@@ -75,8 +75,8 @@ def test_ecs_tensorflow_training_fasterrcnn_gpu(gpu_only, ecs_container_instance
                                          num_gpus=num_gpus)
 
 
-@pytest.mark.model("tf2mpi")
-@pytest.mark.skipif(not is_pr_context(), reason="Running additional model in nightly context only")
+@pytest.mark.model("tensorflow_mpi")
+@pytest.mark.skipif(not is_pr_context(), reason="Running additional model in pr context only")
 @pytest.mark.parametrize("training_script", [TF_MPI_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p3dn.24xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
