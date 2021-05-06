@@ -52,6 +52,8 @@ def pytest_runtest_setup(item):
         efa_tests = [mark for mark in item.iter_markers("efa")]
         if not efa_tests:
             pytest.skip("Skipping non-efa tests")
+        if efa_tests and are_efa_tests_disabled():
+            pytest.skip('Skipping EFA tests as EFA tests are disabled.')
 
 
 def pytest_collection_modifyitems(session, config, items):
