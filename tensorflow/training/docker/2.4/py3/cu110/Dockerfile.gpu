@@ -141,7 +141,7 @@ RUN echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-pa
 
 # Set default NCCL parameters
 RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
-RUN echo "pml = ob1" >> /opt/amazon/openmpi/etc/openmpi-mca-params.conf
+RUN echo "pml = ob1" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 # /usr/local/lib/libpython* needs to be accessible for dynamic linking
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
