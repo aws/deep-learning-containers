@@ -75,13 +75,13 @@ def test_ecs_tensorflow_training_fasterrcnn_gpu(gpu_only, ecs_container_instance
                                          num_gpus=num_gpus)
 
 
-@pytest.mark.model("tensorflow_mpi")
+@pytest.mark.model("tensorflow2_mpi")
 @pytest.mark.skipif(not is_pr_context(), reason="Running additional model in pr context only")
 @pytest.mark.parametrize("training_script", [TF_MPI_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p3dn.24xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_tensorflow_training_mpi_gpu(
-    gpu_only, ecs_container_instance, tensorflow_training, training_cmd, ecs_cluster_name,
+    gpu_only, ecs_container_instance, tensorflow_training, training_cmd, ecs_cluster_name, tf2_only
 ):
     """
     GPU MPI test for TF Training
