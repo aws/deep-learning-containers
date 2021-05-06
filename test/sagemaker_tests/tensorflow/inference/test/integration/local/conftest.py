@@ -11,7 +11,13 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+import json
+import os
+
+import boto3
 import pytest
+
+from botocore.exceptions import ClientError
 
 
 TFS_DOCKER_BASE_NAME = 'sagemaker-tensorflow-serving'
@@ -70,3 +76,37 @@ def skip_by_device_type(request, processor):
     if (request.node.get_closest_marker('skip_gpu') and is_gpu) or \
             (request.node.get_closest_marker('skip_cpu') and not is_gpu):
         pytest.skip('Skipping because running on \'{}\' instance'.format(processor))
+
+
+def _get_remote_override_flags():
+    try:
+        s3_client = boto3.client('s3')
+        sts_client = boto3.client('sts')
+        account_id = sts_client.get_caller_identity().get('Account')
+        result = s3_client.get_object(Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json")
+        json_content = json.loads(result["Body"].read().decode('utf-8'))
+    except ClientError as e:
+        print("ClientError when performing S3/STS operation. Exception: {}".format(e))
+        json_content = {}
+    return json_content
+
+
+def _is_test_disabled(test_name, build_name, version):
+    remote_override_flags = _get_remote_override_flags()
+    remote_override_build = remote_override_flags.get(build_name, {})
+    if version in remote_override_build:
+        if not remote_override_build[version] or test_name in remote_override_build[version]:
+            return True
+    return False
+
+
+@pytest.fixture(autouse=True)
+def disable_test(request):
+    test_name = request.node.name
+    # We do not have a regex pattern to find CB name, which means we must resort to string splitting
+    build_arn = os.getenv("CODEBUILD_BUILD_ARN")
+    build_name = build_arn.split("/")[-1].split(":")[0] if build_arn else None
+    version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+
+    if build_name and version and _is_test_disabled(test_name, build_name, version):
+        pytest.skip(f"Skipping {test_name} test because it has been disabled.")
