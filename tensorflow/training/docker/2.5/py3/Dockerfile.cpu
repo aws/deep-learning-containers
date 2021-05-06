@@ -176,7 +176,7 @@ RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git
     cd .. && \
     rm -rf sagemaker-tensorflow-extensions
 
-ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
