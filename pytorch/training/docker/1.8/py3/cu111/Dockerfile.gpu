@@ -103,6 +103,7 @@ RUN mkdir /tmp/efa \
   && rm -rf /tmp/efa \
   && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz
 
+RUN echo "pml = ob1" >> /opt/amazon/openmpi/etc/openmpi-mca-params.conf
 ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
