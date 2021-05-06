@@ -243,7 +243,8 @@ RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git
     cd sagemaker-tensorflow-extensions && \
     pip install . && \
     cd .. && \
-    rm -rf sagemaker-tensorflow-extensions
+    rm -rf sagemaker-tensorflow-extensions \
+    rm -rf /tmp/*
 
 
 
