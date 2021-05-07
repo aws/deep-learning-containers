@@ -198,6 +198,22 @@ def _get_remote_override_flags():
 
 
 def _is_test_disabled(test_name, build_name, version):
+    """
+    Expected format of remote_override_flags:
+    {
+        "CB Project Name for Test Type A": {
+            "CodeBuild Resolved Source Version": ["test_type_A_test_function_1", "test_type_A_test_function_2"]
+        },
+        "CB Project Name for Test Type B": {
+            "CodeBuild Resolved Source Version": ["test_type_B_test_function_1", "test_type_B_test_function_2"]
+        }
+    }
+
+    :param test_name: str Test Function node name (includes parametrized values in string)
+    :param build_name: str Build Project name of current execution
+    :param version: str Source Version of current execution
+    :return: bool True if test is disabled as per remote override, False otherwise
+    """
     remote_override_flags = _get_remote_override_flags()
     remote_override_build = remote_override_flags.get(build_name, {})
     if version in remote_override_build:
