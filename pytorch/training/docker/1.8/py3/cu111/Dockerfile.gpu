@@ -34,6 +34,7 @@ ENV CUDNN_VERSION=8.0.5.39
 ENV NCCL_VERSION=2.7.8
 ENV HOROVOD_VERSION=0.21.3
 ENV EFA_VERSION=1.11.2
+ENV OMPI_VERSION=4.1.1
 ENV BRANCH_OFI=1.1.1
 ENV DGLBACKEND=pytorch
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
@@ -93,17 +94,30 @@ RUN cd /tmp \
   && make -j64 src.build BUILDDIR=/usr/local \
   && rm -rf /tmp/nccl
 
-# Install EFA along with AWS OPEN_MPI
+# Install EFA along without AWS OPEN_MPI
 RUN mkdir /tmp/efa \
   && cd /tmp/efa \
   && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
   && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
   && cd aws-efa-installer \
   && ./efa_installer.sh -y --skip-kmod -g \
+  && rm -rf $OPEN_MPI_PATH \
   && rm -rf /tmp/efa \
   && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz
 
-RUN echo "pml = ob1" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf
+# Install OpenMPI without libfabric support
+RUN mkdir /tmp/openmpi && \
+  cd /tmp/openmpi && \
+  wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz && \
+  tar zxf openmpi-${OMPI_VERSION}.tar.gz && \
+  cd openmpi-${OMPI_VERSION} && \
+  ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH && \
+  make -j $(nproc) all && \
+  make install && \
+  ldconfig && \
+  cd / && \
+  rm -rf /tmp/openmpi
+
 ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
