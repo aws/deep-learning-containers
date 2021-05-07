@@ -27,6 +27,7 @@ def test_telemetry_bad_instance_role_disabled_cpu(cpu, ec2_client, ec2_instance,
 @pytest.mark.processor("neuron")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
+@pytest.mark.skip("Feature doesn't exist on Neuron DLCs")
 def test_telemetry_bad_instance_role_disabled_neuron(neuron, ec2_client, ec2_instance, ec2_connection):
     _run_instance_role_disabled(neuron, ec2_client, ec2_instance, ec2_connection)
 
@@ -51,6 +52,7 @@ def test_telemetry_instance_tag_success_cpu(cpu, ec2_client, ec2_instance, ec2_c
 @pytest.mark.processor("neuron")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
+@pytest.mark.skip("Feature doesn't exist on Neuron DLCs")
 def test_telemetry_instance_tag_success_neuron(neuron, ec2_client, ec2_instance, ec2_connection, non_huggingface_only):
     _run_tag_success(neuron, ec2_client, ec2_instance, ec2_connection)
 
