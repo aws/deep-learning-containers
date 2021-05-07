@@ -42,8 +42,7 @@ if str(sagemaker.__version__).startswith('2'):
               "custom_mpi_options": (
                   "-x HOROVOD_HIERARCHICAL_ALLREDUCE=1 "
                   "-x HOROVOD_FUSION_THRESHOLD=16777216 "
-                  "-x TF_CPP_MIN_LOG_LEVEL=3 "
-                  "-x RDMAV_FORK_SAFE=1"
+                  "-x TF_CPP_MIN_LOG_LEVEL=3"
               ),
             }
         },
@@ -69,8 +68,7 @@ else:
                 "custom_mpi_options": (
                     "-x HOROVOD_HIERARCHICAL_ALLREDUCE=1 "
                     "-x HOROVOD_FUSION_THRESHOLD=16777216 "
-                    "-x TF_CPP_MIN_LOG_LEVEL=3 "
-                    "-x RDMAV_FORK_SAFE=1"
+                    "-x TF_CPP_MIN_LOG_LEVEL=3"
                 ),
             }
         },
