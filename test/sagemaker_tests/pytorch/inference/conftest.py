@@ -297,8 +297,11 @@ def _get_remote_override_flags():
 def _is_test_disabled(test_name, build_name, version):
     remote_override_flags = _get_remote_override_flags()
     remote_override_build = remote_override_flags.get(build_name, {})
-    if version in remote_override_build and remote_override_build[version]:
-        return any([test_keyword in test_name for test_keyword in remote_override_build[version]])
+    if version in remote_override_build:
+        return (
+            not remote_override_build[version]
+            or any([test_keyword in test_name for test_keyword in remote_override_build[version]])
+        )
     return False
 
 
