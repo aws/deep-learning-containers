@@ -60,7 +60,10 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
     test_account_id = sts_client.get_caller_identity().get("Account")
     image_account_id = get_account_id_from_image_uri(image)
     if image_account_id != test_account_id:
-        image = _reupload_image_to_test_ecr(image, ecr_client, region, test_account_id)
+        image_repo_uri, image_tag = image.split(":")
+        _, image_repo_name = image_repo_uri.split("/")
+        target_image_repo_name = f"beta-{image_repo_name}"
+        image = ecr_utils.reupload_image_to_test_ecr(image, target_image_repo_name, region)
     minimum_sev_threshold = "HIGH"
     scan_status = None
     start_time = time()
@@ -82,41 +85,3 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         f"Found vulnerabilities in image {image}: {str(severity_counts)}\n"
         f"Vulnerabilities: {json.dumps(scan_results, indent=4)}"
     )
-
-
-def _reupload_image_to_test_ecr(source_image_uri, test_ecr_client, test_region, test_account_id):
-    """
-    Helper function to reupload an image owned by a different account to an ECR repo in this account, so that
-    this account can freely run ECR Scan without permission issues.
-
-    :param source_image_uri: str Image URI for image to be tested
-    :param test_ecr_client: boto3.Client ECR client for account where test is being run
-    :param test_region: str Region where test is being run
-    :param test_account_id: str Account ID for account where test is being run
-    :return: str New image URI for re-uploaded image
-    """
-    ctx = Context()
-    image_account_id = get_account_id_from_image_uri(source_image_uri)
-    image_region = get_region_from_image_uri(source_image_uri)
-    login_to_ecr_registry(ctx, image_account_id, image_region)
-    ctx.run(f"docker pull {source_image_uri}")
-
-    image_repo_uri, image_tag = source_image_uri.split(":")
-    _, image_repo_name = image_repo_uri.split("/")
-    test_image_repo_name = f"beta-{image_repo_name}"
-    if not ecr_utils.ecr_repo_exists(test_ecr_client, test_image_repo_name):
-        raise ecr_utils.ECRRepoDoesNotExist(
-            f"Repo named {test_image_repo_name} does not exist in {test_region} on the account {test_account_id}"
-        )
-
-    test_image_uri = (
-        source_image_uri.replace(image_region, test_region)
-        .replace(image_repo_name, test_image_repo_name)
-        .replace(image_account_id, test_account_id)
-    )
-    ctx.run(f"docker tag {source_image_uri} {test_image_uri}")
-
-    login_to_ecr_registry(ctx, test_account_id, test_region)
-    ctx.run(f"docker push {test_image_uri}")
-
-    return test_image_uri

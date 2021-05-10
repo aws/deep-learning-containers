@@ -5,6 +5,7 @@ BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 TRAINING_LOG=${LOG_DIR}/tensorflow_horovod_test.log
 HOVOROD_DIR=${BIN_DIR}/examples/Horovod
+
 set -e
 
 echo "Simply verify if Horovod works well. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
@@ -39,7 +40,7 @@ if [ ${RETURN_VAL} -eq 0 ]; then
   INTERFACE=eth0
   # Train
 
-  /usr/local/bin/mpirun -np $GPU_AMOUNT -hostfile ${HOVOROD_DIR}/hosts -mca plm_rsh_no_tree_spawn 1 \
+  mpirun -np $GPU_AMOUNT -hostfile ${HOVOROD_DIR}/hosts -mca plm_rsh_no_tree_spawn 1 \
         -bind-to socket -map-by slot \
         -x HOROVOD_HIERARCHICAL_ALLREDUCE=1 -x HOROVOD_FUSION_THRESHOLD=16777216 \
         -x NCCL_MIN_NRINGS=4 -x LD_LIBRARY_PATH -x PATH -mca pml ob1 -mca btl ^openib \
