@@ -40,7 +40,7 @@ ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/est
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.8
+ARG SMDEBUG_VERSION=1.0.9
 
 ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.4.1/cu110/2021-04-28/smdistributed_dataparallel-1.2.0-cp37-cp37m-linux_x86_64.whl
 
