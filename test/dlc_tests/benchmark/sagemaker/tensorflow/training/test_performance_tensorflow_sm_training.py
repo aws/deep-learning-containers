@@ -52,7 +52,7 @@ def run_sm_perf_test(image_uri, num_nodes, region):
         pytest.skip("Skipping benchmark test on TF 1.x images.")
 
     processor = "gpu" if "gpu" in image_uri else "cpu"
-    device_cuda_str = f"gpu-{get_cuda_version_from_tag(image_uri)}" if processor == "gpu" else "cpu"
+    device_cuda_str = f"{processor}-{get_cuda_version_from_tag(image_uri)}" if processor == "gpu" else "cpu"
 
     ec2_instance_type = "p3.16xlarge" if processor == "gpu" else "c5.18xlarge"
 
