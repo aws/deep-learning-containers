@@ -30,6 +30,8 @@ ARG OPENSSL_VERSION=1.1.1g
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 ARG EFA_VERSION=1.11.2
+ARG OMPI_VERSION=4.1.1
+ARG BRANCH_OFI=1.1.1
 
 ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.5_aws/20210506_042508/gpu/cu112/py37/tensorflow_gpu-2.5.0rc3-cp37-cp37m-manylinux2010_x86_64.whl
 
@@ -99,15 +101,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    && rm -rf /var/lib/apt/lists/* \
    && mkdir -p /var/run/sshd
 
-# Install EFA along with AWS OPEN_MPI
+# Install EFA without AWS OPEN_MPI
 RUN mkdir /tmp/efa \
-   && cd /tmp/efa \
-   && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-$EFA_VERSION.tar.gz \
-   && tar -xf aws-efa-installer-$EFA_VERSION.tar.gz \
-   && cd aws-efa-installer \
-   && ./efa_installer.sh -y --skip-kmod -g \
-   && rm -rf /tmp/efa \
-   && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz
+  && cd /tmp/efa \
+  && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
+  && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
+  && cd aws-efa-installer \
+  && ./efa_installer.sh -y --skip-kmod -g \
+  && rm -rf $OPEN_MPI_PATH \
+  && rm -rf /tmp/efa \
+  && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz
+
+# Install OpenMPI without libfabric support
+RUN mkdir /tmp/openmpi && \
+  cd /tmp/openmpi && \
+  wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz && \
+  tar zxf openmpi-${OMPI_VERSION}.tar.gz && \
+  cd openmpi-${OMPI_VERSION} && \
+  ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH && \
+  make -j $(nproc) all && \
+  make install && \
+  ldconfig && \
+  cd / && \
+  rm -rf /tmp/openmpi
 
 RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
    && tar -xzf boost_1_73_0.tar.gz \
@@ -123,23 +139,11 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.
 # Horovod & its dependencies
 ###########################################################################
 
-# Install Open MPI
-RUN mkdir /tmp/openmpi \
-   && cd /tmp/openmpi \
-   && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz \
-   && tar zxf openmpi-4.0.4.tar.gz \
-   && cd openmpi-4.0.4 \
-   && ./configure --enable-orterun-prefix-by-default \
-   && make -j $(nproc) all \
-   && make install \
-   && ldconfig \
-   && rm -rf /tmp/openmpi
-
 # Create a wrapper for OpenMPI to allow running as root by default
-RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real \
-   && echo '#!/bin/bash' > /usr/local/bin/mpirun \
-   && echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun \
-   && chmod a+x /usr/local/bin/mpirun
+RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
+ && echo '#!/bin/bash' > $OPEN_MPI_PATH/bin/mpirun \
+ && echo 'mpirun.real --allow-run-as-root "$@"' >> $OPEN_MPI_PATH/bin/mpirun \
+ && chmod a+x $OPEN_MPI_PATH/bin/mpirun
 
 # Configure OpenMPI to run good defaults:
 #   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0
@@ -148,11 +152,11 @@ RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params
 
 # Set default NCCL parameters
 RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
-RUN echo "pml = ob1" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
-ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
-ENV PATH /usr/local/openmpi/bin/:$PATH
-ENV PATH=/usr/local/nvidia/bin:$PATH
+# /usr/local/lib/libpython* needs to be accessible for dynamic linking
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+ENV PATH=$OPEN_MPI_PATH/bin/:$PATH
+ENV PATH=$OPEN_MPI_PATH/nvidia/bin:$PATH
 
 # SSH login fix. Otherwise user is kicked off after login
 RUN mkdir -p /var/run/sshd \
