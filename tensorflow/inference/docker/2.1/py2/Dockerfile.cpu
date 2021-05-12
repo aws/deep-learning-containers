@@ -27,7 +27,7 @@ ARG PYTHON_PIP=python-pip
 #  PIP=pip3 for 3.5, 3.6 is not available directly on 16.04
 ARG PIP=pip
 
-ARG OPENSSL_VERSION=1.1.1g
+ARG OPENSSL_VERSION=1.1.1k
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 ENV PYTHONDONTWRITEBYTECODE=1 \

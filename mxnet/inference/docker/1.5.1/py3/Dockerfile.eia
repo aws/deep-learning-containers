@@ -9,6 +9,7 @@ ARG MMS_VERSION=1.1.2
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.6.10
 ARG HEALTH_CHECK_VERSION=1.7.0
+ARG OPENSSL_VERSION=1.1.1k
 
 RUN apt-get update \
  && apt-get -y install --no-install-recommends \
@@ -75,16 +76,16 @@ RUN pip install --no-cache-dir \
     onnx==1.4.1 \
     "sagemaker-mxnet-inference<2"
 
-# Install openssl-1.1.1g to override default openssl-1.0.2g
-RUN wget https://www.openssl.org/source/openssl-1.1.1g.tar.gz \
+# Install openssl-1.1.1* to override default openssl-1.0.2g
+RUN wget https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
  && apt-get remove --purge -y openssl \
  && rm -rf /usr/include/openssl \
  && apt-get update \
  && apt-get install -y \
     ca-certificates \
     openjdk-8-jdk-headless \
- && tar -xzvf openssl-1.1.1g.tar.gz \
- && cd openssl-1.1.1g \
+ && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
  && ./config \
  && make \
  && make test \
