@@ -4,6 +4,5 @@
 
 set -ex
 
-mpirun --allow-run-as-root -np 2 python tf2_conv.py
-
 smddpsinglenode python smdataparallel_mnist.py
+mpirun --allow-run-as-root -np 2 python tf2_conv.py

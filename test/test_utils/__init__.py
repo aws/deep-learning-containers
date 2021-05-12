@@ -5,10 +5,11 @@ import subprocess
 import time
 import logging
 import sys
-
+import re
 import git
 import pytest
 
+import boto3
 from botocore.exceptions import ClientError
 from invoke import run
 from invoke.context import Context
@@ -175,11 +176,61 @@ def is_benchmark_dev_context():
 
 def is_time_for_canary_safety_scan():
     """
-    Canary tests run every 15 minutes. 
+    Canary tests run every 15 minutes.
     Using a 20 minutes interval to make tests run only once a day around 9 am PST (10 am during winter time).
     """
     current_utc_time = time.gmtime()
     return current_utc_time.tm_hour == 16 and (0 < current_utc_time.tm_min < 20)
+
+
+def _get_remote_override_flags():
+    try:
+        s3_client = boto3.client('s3')
+        sts_client = boto3.client('sts')
+        account_id = sts_client.get_caller_identity().get('Account')
+        result = s3_client.get_object(Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json")
+        json_content = json.loads(result["Body"].read().decode('utf-8'))
+    except ClientError as e:
+        LOGGER.error("ClientError when performing S3/STS operation. Exception: {}".format(e))
+        json_content = {}
+    return json_content
+
+
+# Now we can skip EFA tests on pipeline without making any source code change
+def are_efa_tests_disabled():
+    disable_efa_tests = is_pr_context() and os.getenv("DISABLE_EFA_TESTS", "False").lower() == "true"
+
+    remote_override_flags = _get_remote_override_flags()
+    override_disable_efa_tests = remote_override_flags.get("disable_efa_tests", "false").lower() == "true"
+
+    return disable_efa_tests or override_disable_efa_tests
+
+
+def is_test_disabled(test_name, build_name, version):
+    """
+    Expected format of remote_override_flags:
+    {
+        "CB Project Name for Test Type A": {
+            "CodeBuild Resolved Source Version": ["test_type_A_test_function_1", "test_type_A_test_function_2"]
+        },
+        "CB Project Name for Test Type B": {
+            "CodeBuild Resolved Source Version": ["test_type_B_test_function_1", "test_type_B_test_function_2"]
+        }
+    }
+
+    :param test_name: str Test Function node name (includes parametrized values in string)
+    :param build_name: str Build Project name of current execution
+    :param version: str Source Version of current execution
+    :return: bool True if test is disabled as per remote override, False otherwise
+    """
+    remote_override_flags = _get_remote_override_flags()
+    remote_override_build = remote_override_flags.get(build_name, {})
+    if version in remote_override_build:
+        return (
+            not remote_override_build[version]
+            or any([test_keyword in test_name for test_keyword in remote_override_build[version]])
+        )
+    return False
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
@@ -531,7 +582,7 @@ def get_canary_default_tag_py3_version(framework, version):
     :param version: fw major.minor version, i.e. 2.2
     :return: default tag python version
     """
-    if framework == "tensorflow2":
+    if framework == "tensorflow2" or framework == "huggingface_tensorflow":
         return "py37" if Version(version) >= Version("2.2") else "py3"
 
     if framework == "mxnet":
@@ -559,6 +610,8 @@ def parse_canary_images(framework, region):
         "tensorflow2": r"tf-(2.\d+)",
         "mxnet": r"mx-(\d+.\d+)",
         "pytorch": r"pt-(\d+.\d+)",
+        "huggingface_pytorch": r"hf-pt-(\d+.\d+)",
+        "huggingface_tensorflow": r"hf-tf-(\d+.\d+)",
     }
 
     py2_deprecated = {"tensorflow1": None, "tensorflow2": "2.2", "mxnet": "1.7", "pytorch": "1.5"}
@@ -582,9 +635,11 @@ def parse_canary_images(framework, region):
             elif "inf" in tag_str:
                 versions_counter[version]["inf"] = True
 
+    # Adding huggingface here since we dont have inference HF containers now
     versions = []
     for v, inf_train in versions_counter.items():
-        if inf_train["inf"] and inf_train["tr"]:
+        if (inf_train["inf"] and inf_train["tr"])\
+                or framework.startswith("huggingface"):
             versions.append(v)
 
     # Sort ascending to descending, use lambda to ensure 2.2 < 2.15, for instance
@@ -640,9 +695,28 @@ def parse_canary_images(framework, region):
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-{py3_version}",
                 ],
             },
+            # TODO: uncomment once cpu training and inference images become available
+            "huggingface_pytorch": {
+                "py2": [],
+                "py3": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py3_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py3_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py3_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py3_version}",
+                ],
+            },
+            "huggingface_tensorflow": {
+                "py2": [],
+                "py3": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py3_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py3_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py3_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py3_version}",
+                ],
+            },
         }
         dlc_images += images[framework]["py3"]
-        no_py2 = py2_deprecated[framework]
+        no_py2 = py2_deprecated.get(framework)
         if no_py2 and (Version(fw_version) >= Version(no_py2)):
             continue
         else:
@@ -731,6 +805,15 @@ def get_region_from_image_uri(image_uri):
     region_search = re.search(region_pattern, image_uri)
     assert region_search, f"{image_uri} must have region that matches {region_pattern}"
     return region_search.group()
+
+
+def get_unique_name_from_tag(image_uri):
+    """
+    Return the unique from the image tag.
+    :param image_uri: ECR image URI
+    :return: unique name
+    """
+    return re.sub('[^A-Za-z0-9]+', '', image_uri)
 
 
 def get_framework_and_version_from_tag(image_uri):

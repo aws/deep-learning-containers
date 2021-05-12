@@ -20,7 +20,7 @@ from test.test_utils import (
     is_benchmark_dev_context, get_framework_and_version_from_tag, get_job_type_from_image, is_tf_version,
     is_below_framework_version,
     DEFAULT_REGION, P3DN_REGION, UBUNTU_18_BASE_DLAMI_US_EAST_1, UBUNTU_18_BASE_DLAMI_US_WEST_2,
-    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, KEYS_TO_DESTROY_FILE
+    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, KEYS_TO_DESTROY_FILE, are_efa_tests_disabled
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -522,3 +522,23 @@ def pytest_generate_tests(metafunc):
     # Parametrize for framework agnostic tests, i.e. sanity
     if "image" in metafunc.fixturenames:
         metafunc.parametrize("image", images)
+
+
+@pytest.fixture(autouse=True)
+def skip_efa_tests(request):
+    efa_tests = [mark for mark in request.node.iter_markers(name="efa")]
+
+    if efa_tests and are_efa_tests_disabled():
+        pytest.skip('Skipping EFA tests as EFA tests are disabled.')
+
+
+@pytest.fixture(autouse=True)
+def disable_test(request):
+    test_name = request.node.name
+    # We do not have a regex pattern to find CB name, which means we must resort to string splitting
+    build_arn = os.getenv("CODEBUILD_BUILD_ARN")
+    build_name = build_arn.split("/")[-1].split(":")[0] if build_arn else None
+    version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+
+    if test_utils.is_test_disabled(test_name, build_name, version):
+        pytest.skip(f"Skipping {test_name} test because it has been disabled.")

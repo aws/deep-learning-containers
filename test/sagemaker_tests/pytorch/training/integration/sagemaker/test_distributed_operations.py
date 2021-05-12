@@ -18,6 +18,7 @@ import boto3
 import pytest
 import sagemaker
 from sagemaker.pytorch import PyTorch
+from sagemaker import Session 
 from six.moves.urllib.parse import urlparse
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
@@ -27,6 +28,7 @@ from ...integration import (data_dir, dist_operations_path, fastai_path, mnist_s
 from ...integration.sagemaker.timeout import timeout
 
 MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
+RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 
 def validate_or_skip_smmodelparallel(ecr_image):
@@ -34,21 +36,22 @@ def validate_or_skip_smmodelparallel(ecr_image):
         pytest.skip("Model Parallelism is supported on CUDA 11 on PyTorch v1.6 and above")
 
 
-def validate_or_skip_smdataparallel(ecr_image):
-    if not can_run_smdataparallel(ecr_image):
-        pytest.skip("Data Parallelism is supported on CUDA 11 on PyTorch v1.6 and above")
-
-
-def can_run_smdataparallel(ecr_image):
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(image_cuda_version.strip("cu")) >= Version("110")
-
-
 def can_run_smmodelparallel(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(image_cuda_version.strip("cu")) >= Version("110")
+    return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(
+        image_cuda_version.strip("cu")) >= Version("110")
+
+
+def validate_or_skip_smmodelparallel_efa(ecr_image):
+    if not can_run_smmodelparallel_efa(ecr_image):
+        pytest.skip("EFA is only supported on CUDA 11, and on PyTorch 1.8.1 or higher")
+
+
+def can_run_smmodelparallel_efa(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    return Version(image_framework_version) in SpecifierSet(">=1.8.1") and Version(image_cuda_version.strip("cu")) >= Version("110")
 
 
 @pytest.mark.processor("cpu")
@@ -172,7 +175,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, n_virginia_ecr_imag
     Tests pt mnist command via script mode
     """
     instance_type = "ml.p3.16xlarge"
-    validate_or_skip_smmodelparallel(ecr_image)
+    validate_or_skip_smmodelparallel(n_virginia_ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
             'entry_point': test_script,
@@ -197,7 +200,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, n_virginia_ecr_imag
                 "mpi": {
                     "enabled": True,
                     "processes_per_host": num_processes,
-                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none",
+                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none ",
                 },
             },
         }
@@ -216,20 +219,18 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, n_virginia_ecr_imag
                 )
         pytorch.fit()
 
-
-@pytest.mark.integration("smdataparallel")
+@pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
+@pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip(reason="Skipping test because it is flaky on mainline pipeline.")
 def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, n_virginia_ecr_image, instance_type, py_version, sagemaker_session, n_virginia_sagemaker_session, tmpdir):
     """
-    Tests SM Distributed DataParallel single-node via script mode
+    Tests pt mnist command via script mode
     """
-    validate_or_skip_smdataparallel(ecr_image)
-
-    instance_type = "ml.p3.16xlarge"
+    validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
 
         estimator_parameter = {
@@ -257,10 +258,7 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, n_virginia_ecr_ima
         pytorch.fit()
 
 
-@pytest.mark.processor("gpu")
-@pytest.mark.skip_cpu
-@pytest.mark.multinode(2)
-@pytest.mark.integration("smdataparallel")
+@pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
 @pytest.mark.flaky(reruns=2)
@@ -306,21 +304,10 @@ def test_smdataparallel_mnist(instance_types, ecr_image, n_virginia_ecr_image, p
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge"])
 def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, n_virginia_ecr_image, py_version, sagemaker_session, n_virginia_sagemaker_session, tmpdir):
     """
-    Tests SM Distributed DataParallel and ModelParallel single-node via script mode
-    This test has been added for SM DataParallelism and ModelParallelism tests for re:invent.
-    TODO: Consider reworking these tests after re:Invent releases are done
+    Tests pt mnist command via script mode
     """
-    can_run_modelparallel = can_run_smmodelparallel(ecr_image)
-    can_run_dataparallel = can_run_smdataparallel(ecr_image)
-    if can_run_dataparallel and can_run_modelparallel:
-        entry_point = 'smdataparallel_smmodelparallel_mnist_script_mode.sh'
-    elif can_run_dataparallel:
-        entry_point = 'smdataparallel_mnist_script_mode.sh'
-    elif can_run_modelparallel:
-        entry_point = 'smmodelparallel_mnist_script_mode.sh'
-    else:
-        pytest.skip("Both modelparallel and dataparallel dont support this image, nothing to run")
-
+    validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
+    efa_test_path = os.path.join(RESOURCE_PATH, 'efa', 'test_efa.sh')
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
             'entry_point': entry_point,

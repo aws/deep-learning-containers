@@ -140,17 +140,20 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     is_py3 = " python3 -m "
 
+    efa_flag = ""
+    efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
+    efa_flag = '--efa' if efa_dedicated else '-m \"not efa\"'
+
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
         f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
-        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} --junitxml {test_report} "
-        f"--reruns {reruns} --reruns-delay {reruns_delay} -n auto"
+        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} --junitxml {test_report}"
     )
 
     if processor == "eia" :
         remote_pytest_cmd += (f" {accelerator_type_arg} {eia_arg}")
 
-    local_pytest_cmd = (f"{is_py3} pytest -v {integration_path} {docker_base_arg} "
+    local_pytest_cmd = (f"{is_py3} pytest -s -v {integration_path} {docker_base_arg} "
                         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
                         f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}")
 
