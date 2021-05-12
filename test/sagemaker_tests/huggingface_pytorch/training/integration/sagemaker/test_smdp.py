@@ -25,7 +25,6 @@ from ...integration import DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
 import sagemaker
 
-git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v4.5.0'}
 
 # configuration for running training on smdistributed Data Parallel
 distribution = {'smdistributed': {'dataparallel': {'enabled': True}}}
@@ -75,6 +74,9 @@ def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
+    transformers_version = ecr_image.split('transformers')[1][:5]
+    git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v'+transformers_version}
+
     validate_or_skip_smdataparallel(ecr_image)
     instance_count = 1
     instance_type = "ml.p3.16xlarge"
@@ -106,6 +108,10 @@ def test_smdp_question_answering_multinode(ecr_image, instance_type, py_version,
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
+
+    transformers_version = ecr_image.split('transformers')[1][:5]
+    git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v'+transformers_version}
+
     validate_or_skip_smdataparallel(ecr_image)
 
     instance_count = 2
