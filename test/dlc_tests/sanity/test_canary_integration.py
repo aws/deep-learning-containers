@@ -34,4 +34,5 @@ def test_canary_images_pullable(region):
     if not images:
         return
     for image in images.split(" "):
-        ctx.run(f"docker pull {image}", hide=True)
+        ctx.run(f"docker pull -q {image}")
+        ctx.run(f"docker rmi -f {image}")

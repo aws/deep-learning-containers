@@ -191,15 +191,15 @@ def test_smdebug(sagemaker_session, ecr_image, instance_type, framework_version)
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_smdataparallel_smmodelparallel_mnist(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version):
+def test_smdataparallel_smmodelparallel_mnist(n_virginia_sagemaker_session, instance_type, n_virginia_ecr_image, tmpdir, framework_version):
     """
     Tests SM Distributed DataParallel and ModelParallel single-node via script mode
     This test has been added for SM DataParallelism and ModelParallelism tests for re:invent.
     TODO: Consider reworking these tests after re:Invent releases are done
     """
     instance_type = "ml.p3.16xlarge"
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    _, image_framework_version = get_framework_and_version_from_tag(n_virginia_ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(n_virginia_ecr_image)
     if Version(image_framework_version) < Version("2.3.1") or image_cuda_version != "cu110":
         pytest.skip("SMD Model and Data Parallelism are only supported on CUDA 11, and on TensorFlow 2.3.1 or higher")
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
@@ -209,12 +209,12 @@ def test_smdataparallel_smmodelparallel_mnist(sagemaker_session, instance_type, 
                            instance_count=1,
                            instance_type=instance_type,
                            source_dir=smmodelparallel_path,
-                           sagemaker_session=sagemaker_session,
-                           image_uri=ecr_image,
+                           sagemaker_session=n_virginia_sagemaker_session,
+                           image_uri=n_virginia_ecr_image,
                            framework_version=framework_version,
                            py_version='py3')
     
-    estimator = _disable_sm_profiler(sagemaker_session.boto_region_name, estimator)
+    estimator = _disable_sm_profiler(n_virginia_sagemaker_session.boto_region_name, estimator)
 
     estimator.fit()
 
