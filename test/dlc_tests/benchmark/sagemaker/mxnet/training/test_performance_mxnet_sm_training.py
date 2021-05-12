@@ -9,7 +9,9 @@ from src.benchmark_metrics import (
     MXNET_TRAINING_GPU_IMAGENET_LATENCY_THRESHOLD,
     get_threshold_for_image,
 )
-from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER, get_framework_and_version_from_tag
+from test.test_utils import (
+    BENCHMARK_RESULTS_S3_BUCKET, LOGGER, get_framework_and_version_from_tag, get_cuda_version_from_tag,
+)
 
 
 # This test can also be performed for 1 node, but it takes a very long time, and CodeBuild job may expire before the
@@ -35,15 +37,16 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
     :param region: AWS region
     """
     _, framework_version = get_framework_and_version_from_tag(mxnet_training)
+    device_cuda_str = f"gpu-{get_cuda_version_from_tag(mxnet_training)}"
     py_version = "py37" if "py37" in mxnet_training else "py2" if "py2" in mxnet_training else "py3"
     ec2_instance_type = "p3.16xlarge"
 
     time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "manual")
     target_upload_location = os.path.join(
-        BENCHMARK_RESULTS_S3_BUCKET, "mxnet", framework_version, "sagemaker", "training", "gpu", py_version
+        BENCHMARK_RESULTS_S3_BUCKET, "mxnet", framework_version, "sagemaker", "training", device_cuda_str, py_version
     )
-    training_job_name = f"mx-tr-bench-gpu-{num_nodes}-node-{py_version}-{commit_info[:7]}-{time_str}"
+    training_job_name = f"mx-tr-bench-{device_cuda_str}-{num_nodes}-node-{py_version}-{commit_info[:7]}-{time_str}"
 
     test_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "resources")
     venv_dir = os.path.join(test_dir, "sm_benchmark_venv")
