@@ -21,12 +21,9 @@ import sys
 import tempfile
 
 import boto3
-<<<<<<< HEAD
-=======
 import pytest
 
 from botocore.exceptions import ClientError
->>>>>>> master
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
