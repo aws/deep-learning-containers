@@ -16,7 +16,7 @@ import os
 
 import pytest
 from sagemaker import utils
-from sagemaker.mxnet.estimator import MXNet
+from . import invoke_mxnet_estimator
 
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
@@ -28,18 +28,21 @@ SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist.py')
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_test_in_region
-def test_training(sagemaker_session, ecr_image, instance_type, instance_count, framework_version):
+def test_training(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type, instance_count, framework_version, multi_region_support):
     hyperparameters = {'sagemaker_parameter_server_enabled': True} if instance_count > 1 else {}
     hyperparameters['epochs'] = 1
+    
+    estimator_parameter = {
+            'entry_point': SCRIPT_PATH,
+            'role': 'SageMakerRole',
+            'instance_count': instance_count,
+            'instance_type': instance_type,
+            'framework_version': framework_version,
+            'hyperparameters': hyperparameters
+        }
+        
+    mx = invoke_mxnet_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
 
-    mx = MXNet(entry_point=SCRIPT_PATH,
-               role='SageMakerRole',
-               instance_count=instance_count,
-               instance_type=instance_type,
-               sagemaker_session=sagemaker_session,
-               image_uri=ecr_image,
-               framework_version=framework_version,
-               hyperparameters=hyperparameters)
     
     mx = _disable_sm_profiler(sagemaker_session.boto_region_name, mx)
 

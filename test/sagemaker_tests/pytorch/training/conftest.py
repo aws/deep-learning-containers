@@ -114,6 +114,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
+    parser.addoption('--multi-region-support', default='True')
 
 
 def pytest_configure(config):
@@ -158,6 +159,9 @@ def fixture_py_version(request):
 def fixture_processor(request):
     return request.config.getoption('--processor')
 
+@pytest.fixture(scope='session', name='multi_region_support')
+def fixture_region(request):
+    return request.config.getoption('--multi-region-support')
 
 @pytest.fixture(scope='session', name='tag')
 def fixture_tag(request, framework_version, processor, py_version):

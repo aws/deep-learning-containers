@@ -19,10 +19,10 @@ import sagemaker
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-from sagemaker.tensorflow import TensorFlow
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
+from .... import invoke_tensorflow_estimator
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 MNIST_PATH = os.path.join(RESOURCE_PATH, 'mnist')
@@ -58,7 +58,7 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_distributed_training_smdataparallel_script_mode(
-    n_virginia_sagemaker_session, instance_type, n_virginia_ecr_image, tmpdir, framework_version
+    sagemaker_session, n_virginia_sagemaker_session, instance_type, ecr_image, n_virginia_ecr_image, tmpdir, framework_version, multi_region_support
 ):
     """
     Tests SMDataParallel single-node command via script mode
@@ -66,17 +66,19 @@ def test_distributed_training_smdataparallel_script_mode(
     validate_or_skip_smdataparallel(n_virginia_ecr_image)
     instance_type = "ml.p3.16xlarge"
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
-    estimator = TensorFlow(
-        entry_point='smdataparallel_mnist_script_mode.sh',
-        source_dir=MNIST_PATH,
-        role='SageMakerRole',
-        instance_type=instance_type,
-        instance_count=1,
-        image_uri=n_virginia_ecr_image,
-        framework_version=framework_version,
-        py_version='py3',
-        sagemaker_session=n_virginia_sagemaker_session,
-        distribution=distribution)
+    
+    estimator_parameter = {
+        'entry_point': 'smdataparallel_mnist_script_mode.sh',
+        'source_dir': MNIST_PATH,
+        'role': 'SageMakerRole',
+        'instance_type': instance_type,
+        'instance_count': 1,
+        'framework_version': framework_version,
+        'py_version': 'py3',
+        'distribution': distribution
+        }
+    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
+
 
     estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel'))
 
@@ -89,21 +91,24 @@ def test_distributed_training_smdataparallel_script_mode(
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p4d.24xlarge"])
-def test_smdataparallel_mnist(instance_types, n_virginia_ecr_image, py_version, n_virginia_sagemaker_session, tmpdir):
+def test_smdataparallel_mnist(instance_types, ecr_image, n_virginia_ecr_image, py_version, sagemaker_session, n_virginia_sagemaker_session, tmpdir, multi_region_support):
     """
     Tests smddprun command via Estimator API distribution parameter
     """
     validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
 
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
-    estimator = TensorFlow(entry_point='smdataparallel_mnist.py',
-                           role='SageMakerRole',
-                           image_uri=n_virginia_ecr_image,
-                           source_dir=MNIST_PATH,
-                           instance_count=2,
-                           instance_type=instance_types,
-                           sagemaker_session=n_virginia_sagemaker_session,
-                           distribution=distribution)
+    
+    estimator_parameter = {
+        'entry_point': 'smdataparallel_mnist.py',
+        'role': 'SageMakerRole',
+        'source_dir': MNIST_PATH,
+        'instance_count': 2,
+        'instance_type': instance_types,
+        'distribution': distribution
+        }
+    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
+
 
     estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel-multi'))
 
@@ -116,7 +121,7 @@ def test_smdataparallel_mnist(instance_types, n_virginia_ecr_image, py_version, 
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
 @pytest.mark.parametrize('instance_types', ["ml.p4d.24xlarge"])
-def test_smdataparallel_throughput(instance_types, n_virginia_ecr_image, py_version, n_virginia_sagemaker_session, tmpdir):
+def test_smdataparallel_throughput(instance_types, ecr_image, n_virginia_ecr_image, py_version, sagemaker_session, n_virginia_sagemaker_session, tmpdir, multi_region_support):
     """
     Tests smddprun throughput
     """
@@ -131,13 +136,16 @@ def test_smdataparallel_throughput(instance_types, n_virginia_ecr_image, py_vers
     }
 
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
-    estimator = TensorFlow(entry_point='smdataparallel_throughput.py',
-                           role='SageMakerRole',
-                           image_uri=n_virginia_ecr_image,
-                           source_dir=THROUGHPUT_PATH,
-                           instance_count=2,
-                           instance_type=instance_types,
-                           sagemaker_session=n_virginia_sagemaker_session,
-                           hyperparameters=hyperparameters,
-                           distribution=distribution)
+    
+    estimator_parameter = {
+        'entry_point': 'smdataparallel_throughput.py',
+        'role': 'SageMakerRole',
+        'source_dir': THROUGHPUT_PATH,
+        'instance_count': 2,
+        'instance_type': instance_types,
+        'hyperparameters': hyperparameters,
+        'distribution': distribution
+        }
+    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
+
     estimator.fit()

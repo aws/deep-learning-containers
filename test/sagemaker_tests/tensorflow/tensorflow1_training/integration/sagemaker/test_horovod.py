@@ -17,9 +17,9 @@ import os
 import pytest
 
 import sagemaker
-from sagemaker.tensorflow import TensorFlow
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
+from .... import invoke_tensorflow_estimator
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
@@ -28,25 +28,30 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 def test_distributed_training_horovod(sagemaker_session,
+                                      n_virginia_sagemaker_session,
                                       instance_type,
                                       ecr_image,
+                                      n_virginia_ecr_image,
                                       tmpdir,
-                                      framework_version):
+                                      framework_version,
+                                      multi_region_support):
 
     mpi_options = '-verbose -x orte_base_help_aggregate=0'
-    estimator = TensorFlow(
-        entry_point=os.path.join(RESOURCE_PATH, 'mnist', 'horovod_mnist.py'),
-        role='SageMakerRole',
-        instance_type=instance_type,
-        instance_count=2,
-        image_uri=ecr_image,
-        framework_version=framework_version,
-        py_version='py3',
-        script_mode=True,
-        hyperparameters={'sagemaker_mpi_enabled': True,
+    
+    estimator_parameter = {
+            'entry_point': os.path.join(RESOURCE_PATH, 'mnist', 'horovod_mnist.py'),
+            'role': 'SageMakerRole',
+            'instance_type': instance_type,
+            'instance_count': 2,
+            'framework_version': framework_version,
+            'py_version': 'py3',
+            'script_mode': True,
+            'hyperparameters': {'sagemaker_mpi_enabled': True,
                          'sagemaker_mpi_custom_mpi_options': mpi_options,
                          'sagemaker_mpi_num_of_processes_per_host': 1},
-        sagemaker_session=sagemaker_session)
+        }
+    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
+
 
     estimator.fit(job_name=unique_name_from_base('test-tf-horovod'))
 
@@ -61,25 +66,23 @@ def test_distributed_training_horovod(sagemaker_session,
 @pytest.mark.multinode(2)
 @pytest.mark.model("unknown_model")
 def test_distributed_training_horovod_with_env_vars(
-        sagemaker_session, instance_type, ecr_image, tmpdir, framework_version
+        sagemaker_session, n_virginia_sagemaker_session, instance_type, ecr_image, n_virginia_ecr_image, tmpdir, framework_version, multi_region_support
 ):
 
     mpi_options = "-verbose -x orte_base_help_aggregate=0"
-    estimator = TensorFlow(
-        entry_point=os.path.join(RESOURCE_PATH, "hvdbasic", "train_hvd_env_vars.py"),
-        role="SageMakerRole",
-        instance_type=instance_type,
-        instance_count=2,
-        image_uri=ecr_image,
-        framework_version=framework_version,
-        py_version="py3",
-        script_mode=True,
-        hyperparameters={
-            "sagemaker_mpi_enabled": True,
-            "sagemaker_mpi_custom_mpi_options": mpi_options,
-            "sagemaker_mpi_num_of_processes_per_host": 2,
-        },
-        sagemaker_session=sagemaker_session,
-    )
+    
+    estimator_parameter = {
+            'entry_point': os.path.join(RESOURCE_PATH, "hvdbasic", "train_hvd_env_vars.py"),
+            'role': 'SageMakerRole',
+            'instance_type': instance_type,
+            'instance_count': 2,
+            'framework_version': framework_version,
+            'py_version': 'py3',
+            'script_mode': True,
+            'hyperparameters': {'sagemaker_mpi_enabled': True,
+                         'sagemaker_mpi_custom_mpi_options': mpi_options,
+                         'sagemaker_mpi_num_of_processes_per_host': 2},
+        }
+    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
 
     estimator.fit(job_name=unique_name_from_base("test-tf-horovod-env-vars"))

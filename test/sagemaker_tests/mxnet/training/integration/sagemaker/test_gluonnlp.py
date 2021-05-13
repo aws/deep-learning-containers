@@ -16,7 +16,7 @@ import os
 
 import pytest
 from sagemaker import utils
-from sagemaker.mxnet.estimator import MXNet
+from . import invoke_mxnet_estimator
 
 from ...integration import RESOURCE_PATH
 
@@ -27,16 +27,19 @@ NLP_SCRIPT_PATH = os.path.join(NLP_DATA_PATH, 'word_embedding.py')
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("word_embeddings")
 @pytest.mark.skip_py2_containers
-def test_nlp_training(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_nlp_training(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type, framework_version, multi_region_support):
 
-    nlp = MXNet(entry_point=NLP_SCRIPT_PATH,
-                role='SageMakerRole',
-                instance_count=1,
-                instance_type=instance_type,
-                sagemaker_session=sagemaker_session,
-                image_uri=ecr_image,
-                framework_version=framework_version,
-                train_max_run=5 * 60)
+    estimator_parameter = {
+            'entry_point': NLP_SCRIPT_PATH,
+            'role': 'SageMakerRole',
+            'instance_count': 1,
+            'instance_type': instance_type,
+            'framework_version': framework_version,
+            'train_max_run': 5 * 60
+        }
+        
+    nlp = invoke_mxnet_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
+
 
     job_name = utils.unique_name_from_base('test-nlp-image')
     nlp.fit(job_name=job_name)

@@ -16,26 +16,29 @@ import os
 
 import pytest
 
-from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
+from .... import invoke_tensorflow_estimator
 
 
 @pytest.mark.integration("hpo")
 @pytest.mark.model("N/A")
-def test_model_dir_with_training_job_name(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_model_dir_with_training_job_name(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type, framework_version, multi_region_support):
     resource_path = os.path.join(os.path.dirname(__file__), '../..', 'resources')
     script = os.path.join(resource_path, 'tuning_model_dir', 'entry.py')
 
-    estimator = TensorFlow(entry_point=script,
-                           role='SageMakerRole',
-                           instance_type=instance_type,
-                           instance_count=1,
-                           image_uri=ecr_image,
-                           framework_version=framework_version,
-                           py_version='py3',
-                           sagemaker_session=sagemaker_session)
+    estimator_parameter = {
+            'entry_point': script,
+            'role': 'SageMakerRole',
+            'instance_type': instance_type,
+            'instance_count': 1,
+            'framework_version': framework_version,
+            'py_version': 'py3'
+            }
+    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
+
+
 
     tuner = HyperparameterTuner(estimator=estimator,
                                 objective_metric_name='accuracy',

@@ -48,6 +48,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
+    parser.addoption('--multi-region-support', default='True')
 
 
 def pytest_runtest_setup(item):
@@ -155,6 +156,9 @@ def processor():
         return os.environ['TEST_PROCESSORS'].split(',')
     return None
 
+@pytest.fixture(scope='session', name='multi_region_support')
+def fixture_region(request):
+    return request.config.getoption('--multi-region-support')
 
 @pytest.fixture(autouse=True)
 def skip_by_device_type(request, processor):

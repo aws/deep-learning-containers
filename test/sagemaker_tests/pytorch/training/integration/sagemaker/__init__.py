@@ -11,3 +11,24 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
+import sagemaker
+from sagemaker.pytorch import PyTorch
+
+
+def invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support):
+    try:
+        pytorch = PyTorch(
+            image_uri=ecr_image,
+            sagemaker_session=sagemaker_session,
+            **estimator_parameter
+            )
+    except Exception as e:
+        if multi_region_support and type(e) == sagemaker.exceptions.UnexpectedStatusException and "Capacity Error" in str(e):
+            pytorch = PyTorch(
+                image_uri=n_virginia_ecr_image,
+                sagemaker_session=n_virginia_sagemaker_session,
+                **estimator_parameter
+            )
+        else:
+            raise e
+    return pytorch

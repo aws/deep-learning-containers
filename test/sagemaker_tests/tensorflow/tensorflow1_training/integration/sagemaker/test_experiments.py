@@ -19,10 +19,10 @@ import time
 
 import pytest
 from sagemaker import utils
-from sagemaker.tensorflow import TensorFlow
 
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
+from .... import invoke_tensorflow_estimator
 
 DATA_PATH = os.path.join(RESOURCE_PATH, "mnist")
 SCRIPT_PATH = os.path.join(DATA_PATH, "mnist_gluon_basic_hook_demo.py")
@@ -31,7 +31,7 @@ SCRIPT_PATH = os.path.join(DATA_PATH, "mnist_gluon_basic_hook_demo.py")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_py2_containers
-def test_training(sagemaker_session, ecr_image, instance_type, framework_version, py_version):
+def test_training(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type, framework_version, py_version, multi_region_support):
 
     if py_version is None or '2' in py_version:
         pytest.skip('Skipping python2 {}'.format(py_version))
@@ -64,16 +64,20 @@ def test_training(sagemaker_session, ecr_image, instance_type, framework_version
     with timeout(minutes=15):
         resource_path = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
         script = os.path.join(resource_path, "mnist", "mnist.py")
-        estimator = TensorFlow(
-            entry_point=script,
-            role="SageMakerRole",
-            instance_type=instance_type,
-            instance_count=1,
-            sagemaker_session=sagemaker_session,
-            image_uri=ecr_image,
-            framework_version=framework_version,
-            script_mode=True,
-        )
+
+        estimator_parameter = {
+            'entry_point': script,
+            'role': 'SageMakerRole',
+            'instance_type': instance_type,
+            'instance_count': 1,
+            'framework_version': framework_version,
+            'script_mode': True,
+        }
+        estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
+
+
+
+
         inputs = estimator.sagemaker_session.upload_data(
             path=os.path.join(resource_path, "mnist", "data"), key_prefix="scriptmode/mnist"
         )

@@ -22,7 +22,7 @@ from ...integration import DEFAULT_TIMEOUT, mnist_path, throughput_path
 from ...integration.sagemaker.timeout import timeout
 from ...integration.sagemaker.test_distributed_operations import can_run_smmodelparallel, _disable_sm_profiler
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
-
+from . import invoke_pytorch_estimator
 
 def validate_or_skip_smdataparallel(ecr_image):
     if not can_run_smdataparallel(ecr_image):
@@ -54,9 +54,9 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.parametrize('instance_types', ["ml.p4d.24xlarge"])
 @pytest.mark.skip_cpu
 @pytest.mark.efa()
-def test_smdataparallel_throughput(n_virginia_sagemaker_session, framework_version, n_virginia_ecr_image, instance_types, tmpdir):
+def test_smdataparallel_throughput(sagemaker_session, n_virginia_sagemaker_session, framework_version, ecr_image, n_virginia_ecr_image, instance_types, tmpdir, multi_region_support):
     with timeout(minutes=DEFAULT_TIMEOUT):
-        validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
+        validate_or_skip_smdataparallel_efa(ecr_image)
         hyperparameters = {
             "size": 64,
             "num_tensors": 20,
@@ -66,18 +66,18 @@ def test_smdataparallel_throughput(n_virginia_sagemaker_session, framework_versi
             "info": "PT-{}-N{}".format(instance_types, 2)
         }
         distribution = {'smdistributed': {'dataparallel': {'enabled': True}}}
-        pytorch = PyTorch(
-            entry_point='smdataparallel_throughput.py',
-            role='SageMakerRole',
-            instance_count=2,
-            instance_type=instance_types,
-            source_dir=throughput_path,
-            sagemaker_session=n_virginia_sagemaker_session,
-            image_uri=n_virginia_ecr_image,
-            framework_version=framework_version,
-            hyperparameters=hyperparameters,
-            distribution=distribution
-        )
+        estimator_parameter = {
+            'entry_point': 'smdataparallel_throughput.py',
+            'role': 'SageMakerRole',
+            'instance_count': 2,
+            'instance_type': instance_types,
+            'source_dir': throughput_path,
+            'framework_version': framework_version,
+            'hyperparameters': hyperparameters,
+            'distribution': distribution
+        }
+
+        pytorch = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
         pytorch.fit()
 
 
@@ -86,7 +86,7 @@ def test_smdataparallel_throughput(n_virginia_sagemaker_session, framework_versi
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
+def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, n_virginia_ecr_image, instance_type, py_version, sagemaker_session, n_virginia_sagemaker_session, tmpdir, multi_region_support):
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
@@ -95,15 +95,16 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_
     instance_type = "ml.p3.16xlarge"
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(entry_point='smdataparallel_mnist_script_mode.sh',
-                          role='SageMakerRole',
-                          image_uri=ecr_image,
-                          source_dir=mnist_path,
-                          instance_count=1,
-                          instance_type=instance_type,
-                          sagemaker_session=sagemaker_session,
-                          distribution=distribution)
-
+        estimator_parameter = {
+            'entry_point': 'smdataparallel_mnist_script_mode.sh',
+            'role': 'SageMakerRole',
+            'source_dir': mnist_path,
+            'instance_count': 1,
+            'instance_type': instance_type,
+            'distribution': distribution
+        }
+        
+        pytorch = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
         pytorch.fit()
 
 
@@ -116,22 +117,23 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.efa()
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p4d.24xlarge"])
-def test_smdataparallel_mnist(n_virginia_sagemaker_session, framework_version, n_virginia_ecr_image, instance_types, tmpdir):
+def test_smdataparallel_mnist(sagemaker_session, n_virginia_sagemaker_session, framework_version, ecr_image, n_virginia_ecr_image, instance_types, tmpdir, multi_region_support):
     """
     Tests smddprun command via Estimator API distribution parameter
     """
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
         distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
-        pytorch = PyTorch(entry_point='smdataparallel_mnist.py',
-                          role='SageMakerRole',
-                          image_uri=n_virginia_ecr_image,
-                          source_dir=mnist_path,
-                          instance_count=2,
-                          instance_type=instance_types,
-                          sagemaker_session=n_virginia_sagemaker_session,
-                          distribution=distribution)
-
+        estimator_parameter = {
+            'entry_point': 'smdataparallel_mnist.py',
+            'role': 'SageMakerRole',
+            'source_dir': mnist_path,
+            'instance_count': 2,
+            'instance_type': instance_types,
+            'distribution': distribution
+        }
+        
+        pytorch = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
         pytorch.fit()
 
 
@@ -140,7 +142,7 @@ def test_smdataparallel_mnist(n_virginia_sagemaker_session, framework_version, n
 @pytest.mark.integration("smdataparallel_smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge"])
-def test_smmodelparallel_smdataparallel_mnist(instance_types, n_virginia_ecr_image, py_version, n_virginia_sagemaker_session, tmpdir):
+def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, n_virginia_ecr_image, py_version, sagemaker_session, n_virginia_sagemaker_session, tmpdir, multi_region_support):
     """
     Tests SM Distributed DataParallel and ModelParallel single-node via script mode
     This test has been added for SM DataParallelism and ModelParallelism tests for re:invent.
@@ -158,14 +160,14 @@ def test_smmodelparallel_smdataparallel_mnist(instance_types, n_virginia_ecr_ima
         pytest.skip("Both modelparallel and dataparallel dont support this image, nothing to run")
 
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(entry_point=entry_point,
-                          role='SageMakerRole',
-                          image_uri=n_virginia_ecr_image,
-                          source_dir=mnist_path,
-                          instance_count=1,
-                          instance_type=instance_types,
-                          sagemaker_session=n_virginia_sagemaker_session)
-
-        pytorch = _disable_sm_profiler(n_virginia_sagemaker_session.boto_region_name, pytorch)
+        estimator_parameter = {
+            'entry_point': entry_point,
+            'role': 'SageMakerRole',
+            'source_dir': mnist_path,
+            'instance_count': 1,
+            'instance_type': instance_types,
+        }
+        pytorch_estimator = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
+        pytorch = _disable_sm_profiler(n_virginia_sagemaker_session.boto_region_name, pytorch_estimator)
 
         pytorch.fit()

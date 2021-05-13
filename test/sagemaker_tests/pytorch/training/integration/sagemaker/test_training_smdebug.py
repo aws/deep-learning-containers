@@ -13,17 +13,16 @@
 from __future__ import absolute_import
 
 import pytest
-import sagemaker
 from sagemaker.pytorch import PyTorch
 
 from ...integration import training_dir, smdebug_mnist_script, DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
-
+from . import invoke_pytorch_estimator
 
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
-def test_training_smdebug(sagemaker_session, n_virginia_sagemaker_session, framework_version, ecr_image, n_virginia_ecr_image, instance_type):
+def test_training_smdebug(sagemaker_session, n_virginia_sagemaker_session, framework_version, ecr_image, n_virginia_ecr_image, instance_type, multi_region_support):
     hyperparameters = {
         'random_seed': True,
         'num_steps': 50,
@@ -41,18 +40,6 @@ def test_training_smdebug(sagemaker_session, n_virginia_sagemaker_session, frame
             'framework_version': framework_version,
             'hyperparameters': hyperparameters
         }
-        try:
-            pytorch = PyTorch(
-                image_uri=ecr_image,
-                sagemaker_session=sagemaker_session,
-                **estimator_parameter
-                )
-        except Exception as e:
-            if type(e) == sagemaker.exceptions.UnexpectedStatusException and "Capacity Error" in str(e):
-                pytorch = PyTorch(
-                    image_uri=n_virginia_ecr_image,
-                    sagemaker_session=n_virginia_sagemaker_session,
-                    **estimator_parameter
-                )
+        pytorch = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
         training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
         pytorch.fit({'training': training_input})

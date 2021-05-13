@@ -19,10 +19,10 @@ import uuid
 import pytest
 from .recordio_utils import build_record_file, build_single_record_file
 from sagemaker import TrainingInput
-from sagemaker.tensorflow import TensorFlow
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from .timeout import timeout
+from .... import invoke_tensorflow_estimator
 
 DIMENSION = 5
 
@@ -72,19 +72,22 @@ def single_record_test_data(sagemaker_session):
     return s3_url
 
 
-def run_test(sagemaker_session, ecr_image, instance_type, framework_version, test_data,
+def run_test(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type, framework_version, test_data, multi_region_support,
              record_wrapper_type=None):
     source_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources', 'pipemode')
     script = os.path.join(source_path, 'pipemode.py')
-    estimator = TensorFlow(entry_point=script,
-                           role='SageMakerRole',
-                           instance_type=instance_type,
-                           instance_count=1,
-                           sagemaker_session=sagemaker_session,
-                           image_uri=ecr_image,
-                           framework_version=framework_version,
-                           input_mode='Pipe',
-                           hyperparameters={'dimension': DIMENSION})
+
+    estimator_parameter = {
+        'entry_point': script,
+        'role': 'SageMakerRole',
+        'instance_type': instance_type,
+        'instance_count': 1,
+        'framework_version': framework_version,
+        'input_mode': 'Pipe',
+        'hyperparameters': {'dimension': DIMENSION}
+        }
+    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
+
     input = TrainingInput(s3_data=test_data,
                      distribution='FullyReplicated',
                      record_wrapping=record_wrapper_type,
@@ -108,10 +111,12 @@ def test_single_record(sagemaker_session, ecr_image, instance_type, framework_ve
 
 @pytest.mark.integration("pipemode")
 @pytest.mark.model("N/A")
-def test_multi_records(sagemaker_session, ecr_image, instance_type, framework_version,
-                       multi_records_test_data):
+def test_multi_records(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type, framework_version,
+                       multi_records_test_data, multi_region_support):
     run_test(sagemaker_session,
+             n_virginia_sagemaker_session,
              ecr_image,
+             n_virginia_ecr_image,
              instance_type,
              framework_version,
-             multi_records_test_data)
+             multi_records_test_data, multi_region_support)

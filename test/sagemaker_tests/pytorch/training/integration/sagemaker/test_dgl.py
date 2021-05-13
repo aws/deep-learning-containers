@@ -15,7 +15,6 @@ from __future__ import absolute_import
 import os
 
 import pytest
-import sagemaker
 from sagemaker import utils
 from sagemaker.pytorch import PyTorch
 
@@ -24,6 +23,7 @@ from ...integration.sagemaker.timeout import timeout
 
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
+from test.sagemaker_tests import invoke_pytorch_helper_function
 
 
 DGL_DATA_PATH = os.path.join(resources_path, 'dgl-gcn')
@@ -37,7 +37,7 @@ DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, 'gcn.py')
 @pytest.mark.skip_py2_containers
 def test_dgl_gcn_training_cpu(sagemaker_session, ecr_image, instance_type):
     instance_type = instance_type or 'ml.c4.xlarge'
-    _test_dgl_training(sagemaker_session, ecr_image, instance_type)
+    _test_dgl_training(ecr_image, sagemaker_session, instance_type)
 
 
 @pytest.mark.integration("dgl")
@@ -45,7 +45,7 @@ def test_dgl_gcn_training_cpu(sagemaker_session, ecr_image, instance_type):
 @pytest.mark.model("gcn")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_dgl_gcn_training_gpu(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type):
+def test_dgl_gcn_training_gpu(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type, multi_region_support):
 
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
@@ -53,18 +53,14 @@ def test_dgl_gcn_training_gpu(sagemaker_session, n_virginia_sagemaker_session, e
         pytest.skip("DGL does not support CUDA 11 for PyTorch 1.6")
 
     instance_type = instance_type or 'ml.p2.xlarge'
-    _test_dgl(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type)
+    function_args = {
+            'instance_type': instance_type,
+        }
+
+    invoke_pytorch_helper_function(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, multi_region_support, _test_dgl_training, function_args)
 
 
-def _test_dgl(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type):
-    try:
-        _test_dgl_training(sagemaker_session, ecr_image, instance_type)
-    except Exception as e:
-        if type(e) == sagemaker.exceptions.UnexpectedStatusException and "Capacity Error" in str(e):
-            _test_dgl_training(n_virginia_sagemaker_session, n_virginia_ecr_image, instance_type)
-
-
-def _test_dgl_training(sagemaker_session, ecr_image, instance_type):
+def _test_dgl_training(ecr_image, sagemaker_session, instance_type):
     dgl = PyTorch(
         entry_point=DGL_SCRIPT_PATH,
         role='SageMakerRole',
