@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:16.04
 
 LABEL dlc_major_version="1"
 LABEL maintainer="Amazon AI"
@@ -36,9 +36,7 @@ RUN apt-get update \
     vim \
     wget \
     unzip \
-    zlib1g-dev \
-    libcap-dev \
-    gpg-agent
+    zlib1g-dev
 
 RUN echo "deb https://apt.repos.neuron.amazonaws.com xenial main" > /etc/apt/sources.list.d/neuron.list
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
@@ -103,7 +101,7 @@ RUN pip install --no-cache-dir -U \
     gevent==1.4.0 \
     requests==2.22.0 \
     grpcio==1.24.1 \
-    protobuf==3.16.0 \
+    protobuf==3.10.0 \
     gast==0.2.2 \
     pillow==8.2.0 \
     "awscli<2"
