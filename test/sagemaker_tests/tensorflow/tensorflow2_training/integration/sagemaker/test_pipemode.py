@@ -22,7 +22,7 @@ from sagemaker import TrainingInput
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from .timeout import timeout
-from .... import invoke_tensorflow_estimator
+from ... import invoke_tensorflow_estimator
 
 DIMENSION = 5
 
@@ -97,13 +97,16 @@ def run_test(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virgi
 
 @pytest.mark.integration("pipemode")
 @pytest.mark.model("N/A")
-def test_single_record(sagemaker_session, ecr_image, instance_type, framework_version,
-                       single_record_test_data):
+def test_single_record(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type, framework_version,
+                       single_record_test_data, multi_region_support):
     run_test(sagemaker_session,
+            n_virginia_sagemaker_session,
              ecr_image,
+             n_virginia_ecr_image,
              instance_type,
              framework_version,
              single_record_test_data,
+             multi_region_support,
              'RecordIO')
 
 

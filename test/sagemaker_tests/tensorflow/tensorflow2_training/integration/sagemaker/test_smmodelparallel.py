@@ -20,7 +20,7 @@ from test.test_utils import get_framework_and_version_from_tag, get_cuda_version
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
-from .... import invoke_tensorflow_estimator
+from ... import invoke_tensorflow_estimator
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 

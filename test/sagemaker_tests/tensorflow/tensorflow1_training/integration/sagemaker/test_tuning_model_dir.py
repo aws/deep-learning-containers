@@ -19,7 +19,7 @@ import pytest
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
-from .... import invoke_tensorflow_estimator
+from ... import invoke_tensorflow_estimator
 
 
 @pytest.mark.integration("hpo")

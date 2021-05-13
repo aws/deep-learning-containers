@@ -22,7 +22,7 @@ from sagemaker import utils
 
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
-from .... import invoke_tensorflow_estimator
+from ... import invoke_tensorflow_estimator
 
 DATA_PATH = os.path.join(RESOURCE_PATH, "mnist")
 SCRIPT_PATH = os.path.join(DATA_PATH, "mnist_gluon_basic_hook_demo.py")

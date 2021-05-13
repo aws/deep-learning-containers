@@ -22,7 +22,7 @@ from six.moves.urllib.parse import urlparse
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from .timeout import timeout
-from .... import invoke_tensorflow_estimator
+from ... import invoke_tensorflow_estimator
 
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)

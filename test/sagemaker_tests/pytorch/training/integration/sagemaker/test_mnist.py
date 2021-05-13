@@ -40,7 +40,7 @@ def test_mnist_distributed_gpu(sagemaker_session, n_virginia_sagemaker_session, 
     function_args = {
             'framework_version': framework_version,
             'instance_type': instance_type,
-            'dist_gpu_backend': dist_gpu_backend
+            'dist_backend': dist_gpu_backend
         }
 
     invoke_pytorch_helper_function(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, multi_region_support, _test_mnist_distributed, function_args)
