@@ -61,7 +61,6 @@ def test_smmodelparallel_efa(sagemaker_session, n_virginia_sagemaker_session, ef
     """
     validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
-
     estimator_parameter = {
         'entry_point': test_script,
         'role': 'SageMakerRole',
@@ -81,7 +80,6 @@ def test_smmodelparallel_efa(sagemaker_session, n_virginia_sagemaker_session, ef
         
         }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
     estimator.fit()
 
 
@@ -99,7 +97,6 @@ def test_smmodelparallel_multinode_efa(sagemaker_session, n_virginia_sagemaker_s
     """
     validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
-
     estimator_parameter = {
         'entry_point': test_script,
         'role': 'SageMakerRole',
@@ -119,7 +116,6 @@ def test_smmodelparallel_multinode_efa(sagemaker_session, n_virginia_sagemaker_s
         
         }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
     estimator.fit()
 
 
@@ -136,7 +132,6 @@ def test_smmodelparallel(sagemaker_session, n_virginia_sagemaker_session, instan
     instance_type = "ml.p3.16xlarge"
     validate_or_skip_smmodelparallel(n_virginia_ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
-    
     estimator_parameter = {
         'entry_point': test_script,
         'role': 'SageMakerRole',
@@ -156,7 +151,6 @@ def test_smmodelparallel(sagemaker_session, n_virginia_sagemaker_session, instan
         
         }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
     estimator.fit()
 
 
@@ -190,8 +184,6 @@ def test_smmodelparallel_multinode(sagemaker_session, n_virginia_sagemaker_sessi
         'framework_version': framework_version,
         'py_version': 'py3',
         'base_job_name': 'smp-test2'
-        
         }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
     estimator.fit()

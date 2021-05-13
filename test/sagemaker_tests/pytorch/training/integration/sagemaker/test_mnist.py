@@ -26,7 +26,7 @@ from test.sagemaker_tests import invoke_pytorch_helper_function
 @pytest.mark.skip_gpu
 def test_mnist_distributed_cpu(sagemaker_session, framework_version, ecr_image, instance_type, dist_cpu_backend):
     instance_type = instance_type or 'ml.c4.xlarge'
-    _test_mnist_distributed(sagemaker_session, framework_version, ecr_image, instance_type, dist_cpu_backend)
+    _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, instance_type, dist_cpu_backend)
 
 
 @pytest.mark.processor("gpu")

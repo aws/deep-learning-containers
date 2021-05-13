@@ -70,7 +70,6 @@ def test_training(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_
             'framework_version': framework_version,
         }
         estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
         inputs = estimator.sagemaker_session.upload_data(
             path=os.path.join(resource_path, "mnist", "data"), key_prefix="scriptmode/mnist"
         )

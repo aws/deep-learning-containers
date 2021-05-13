@@ -207,16 +207,15 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, n_virginia_ecr_
     """
     Tests pt mnist command via script mode
     """
-    validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
+    validate_or_skip_smmodelparallel_efa(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
 
         estimator_parameter = {
             'entry_point': test_script,
             'role': 'SageMakerRole',
-            'image_uri': 'n_virginia_ecr_image',
             'source_dir': mnist_path,
             'instance_count': 2,
-            'instance_type': 'efa_instance_type',
+            'instance_type': efa_instance_type,
             'hyperparameters': {"assert-losses": 1, "amp": 1, "ddp": 1, "data-dir": "data/training", "epochs": 5},
             'distribution': {
                 "smdistributed": {

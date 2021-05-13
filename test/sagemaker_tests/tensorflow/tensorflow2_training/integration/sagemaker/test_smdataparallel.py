@@ -66,7 +66,6 @@ def test_distributed_training_smdataparallel_script_mode(
     validate_or_skip_smdataparallel(n_virginia_ecr_image)
     instance_type = "ml.p3.16xlarge"
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
-    
     estimator_parameter = {
         'entry_point': 'smdataparallel_mnist_script_mode.sh',
         'source_dir': MNIST_PATH,
@@ -78,7 +77,6 @@ def test_distributed_training_smdataparallel_script_mode(
         'distribution': distribution
         }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
 
     estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel'))
 
@@ -98,7 +96,6 @@ def test_smdataparallel_mnist(instance_types, ecr_image, n_virginia_ecr_image, p
     validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
 
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
-    
     estimator_parameter = {
         'entry_point': 'smdataparallel_mnist.py',
         'role': 'SageMakerRole',
@@ -108,7 +105,6 @@ def test_smdataparallel_mnist(instance_types, ecr_image, n_virginia_ecr_image, p
         'distribution': distribution
         }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
 
     estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel-multi'))
 
@@ -136,7 +132,6 @@ def test_smdataparallel_throughput(instance_types, ecr_image, n_virginia_ecr_ima
     }
 
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
-    
     estimator_parameter = {
         'entry_point': 'smdataparallel_throughput.py',
         'role': 'SageMakerRole',
@@ -147,5 +142,4 @@ def test_smdataparallel_throughput(instance_types, ecr_image, n_virginia_ecr_ima
         'distribution': distribution
         }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
     estimator.fit()

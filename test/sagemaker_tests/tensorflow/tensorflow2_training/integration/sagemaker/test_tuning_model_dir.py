@@ -39,7 +39,6 @@ def test_model_dir_with_training_job_name(sagemaker_session, n_virginia_sagemake
         }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
 
-
     tuner = HyperparameterTuner(estimator=estimator,
                                 objective_metric_name='accuracy',
                                 hyperparameter_ranges={'arbitrary_value': IntegerParameter(0, 1)},

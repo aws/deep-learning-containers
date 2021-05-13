@@ -37,7 +37,6 @@ def test_distributed_training_horovod(sagemaker_session,
                                       multi_region_support):
 
     mpi_options = '-verbose -x orte_base_help_aggregate=0'
-    
     estimator_parameter = {
             'entry_point': os.path.join(RESOURCE_PATH, 'mnist', 'horovod_mnist.py'),
             'role': 'SageMakerRole',
@@ -51,7 +50,6 @@ def test_distributed_training_horovod(sagemaker_session,
                          'sagemaker_mpi_num_of_processes_per_host': 1},
         }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
 
     estimator.fit(job_name=unique_name_from_base('test-tf-horovod'))
 
@@ -70,7 +68,6 @@ def test_distributed_training_horovod_with_env_vars(
 ):
 
     mpi_options = "-verbose -x orte_base_help_aggregate=0"
-    
     estimator_parameter = {
             'entry_point': os.path.join(RESOURCE_PATH, "hvdbasic", "train_hvd_env_vars.py"),
             'role': 'SageMakerRole',

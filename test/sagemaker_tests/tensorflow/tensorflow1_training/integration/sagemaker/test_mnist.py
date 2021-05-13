@@ -31,7 +31,6 @@ from .... import invoke_tensorflow_estimator
 def test_mnist(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type, framework_version, multi_region_support):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
-    
     estimator_parameter = {
             'entry_point': script,
             'role': 'SageMakerRole',
@@ -41,7 +40,6 @@ def test_mnist(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_vir
             'script_mode': True
             }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
     
     estimator = _disable_sm_profiler(sagemaker_session.boto_region_name, estimator)
     
@@ -59,7 +57,6 @@ def test_mnist(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_vir
 def test_distributed_mnist_no_ps(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type, framework_version, multi_region_support):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
-
     estimator_parameter = {
             'entry_point': script,
             'role': 'SageMakerRole',
@@ -69,7 +66,6 @@ def test_distributed_mnist_no_ps(sagemaker_session, n_virginia_sagemaker_session
             'script_mode': True
             }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
     inputs = estimator.sagemaker_session.upload_data(
         path=os.path.join(resource_path, 'mnist', 'data'),
         key_prefix='scriptmode/mnist')
@@ -83,7 +79,6 @@ def test_distributed_mnist_no_ps(sagemaker_session, n_virginia_sagemaker_session
 def test_distributed_mnist_ps(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type, framework_version, multi_region_support):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
-
     estimator_parameter = {
             'entry_point': script,
             'role': 'SageMakerRole',
@@ -94,7 +89,6 @@ def test_distributed_mnist_ps(sagemaker_session, n_virginia_sagemaker_session, e
             'script_mode': True
             }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
     inputs = estimator.sagemaker_session.upload_data(
         path=os.path.join(resource_path, 'mnist', 'data-distributed'),
         key_prefix='scriptmode/mnist-distributed')
@@ -109,7 +103,6 @@ def test_distributed_mnist_ps(sagemaker_session, n_virginia_sagemaker_session, e
 def test_s3_plugin(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type, region, framework_version, multi_region_support):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
-
     estimator_parameter = {
             'entry_point': script,
             'role': 'SageMakerRole',
@@ -133,7 +126,6 @@ def test_s3_plugin(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n
             'script_mode': True
             }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
     estimator.fit('s3://sagemaker-sample-data-{}/tensorflow/mnist'.format(region),
                   job_name=unique_name_from_base('test-tf-sm-s3-mnist'))
     _assert_s3_file_exists(region, estimator.model_data)
@@ -185,7 +177,6 @@ def test_tf1x_smdebug(sagemaker_session, n_virginia_sagemaker_session, ecr_image
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'tf1x_mnist_smdebug.py')
     hyperparameters = {'smdebug_path': '/tmp/ml/output/tensors'}
-    
     estimator_parameter = {
             'entry_point': script,
             'role': 'SageMakerRole',
@@ -196,7 +187,6 @@ def test_tf1x_smdebug(sagemaker_session, n_virginia_sagemaker_session, ecr_image
             'hyperparameters': hyperparameters
             }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
     inputs = estimator.sagemaker_session.upload_data(
         path=os.path.join(resource_path, 'mnist', 'data'),
         key_prefix='scriptmode/mnist_smdebug')

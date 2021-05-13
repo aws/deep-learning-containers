@@ -64,7 +64,6 @@ def test_training(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_
     with timeout(minutes=15):
         resource_path = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
         script = os.path.join(resource_path, "mnist", "mnist.py")
-
         estimator_parameter = {
             'entry_point': script,
             'role': 'SageMakerRole',
@@ -74,9 +73,6 @@ def test_training(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_
             'script_mode': True,
         }
         estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
-
-
 
         inputs = estimator.sagemaker_session.upload_data(
             path=os.path.join(resource_path, "mnist", "data"), key_prefix="scriptmode/mnist"

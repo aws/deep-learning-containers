@@ -76,7 +76,6 @@ def run_test(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virgi
              record_wrapper_type=None):
     source_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources', 'pipemode')
     script = os.path.join(source_path, 'pipemode.py')
-
     estimator_parameter = {
         'entry_point': script,
         'role': 'SageMakerRole',
@@ -87,7 +86,6 @@ def run_test(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virgi
         'hyperparameters': {'dimension': DIMENSION}
         }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
     input = TrainingInput(s3_data=test_data,
                      distribution='FullyReplicated',
                      record_wrapping=record_wrapper_type,
