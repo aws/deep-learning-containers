@@ -111,7 +111,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
-    parser.addoption('--multi-region-support', default='True')
+    parser.addoption('--multi-region-support', action="store_true", default=False)
 
 
 def pytest_configure(config):
