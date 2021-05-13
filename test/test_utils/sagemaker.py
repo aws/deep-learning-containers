@@ -148,6 +148,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
         f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
         f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} --multi-region-support --junitxml {test_report}"
+        f"--reruns {reruns} --reruns-delay {reruns_delay} -n auto"
     )
 
     if processor == "eia" :
@@ -155,7 +156,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     local_pytest_cmd = (f"{is_py3} pytest -s -v {integration_path} {docker_base_arg} "
                         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
-                        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}")
+                        f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}"
+                        f"--reruns {reruns} --reruns-delay {reruns_delay}")
 
     if framework == "tensorflow" and job_type != "inference":
         local_pytest_cmd = f"{local_pytest_cmd} --py-version {sm_local_py_version} --region {region}"
