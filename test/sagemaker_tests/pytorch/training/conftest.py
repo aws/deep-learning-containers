@@ -157,7 +157,7 @@ def fixture_processor(request):
     return request.config.getoption('--processor')
 
 @pytest.fixture(scope='session', name='multi_region_support')
-def fixture_region(request):
+def fixture_multi_region(request):
     return request.config.getoption('--multi-region-support')
 
 @pytest.fixture(scope='session', name='tag')
