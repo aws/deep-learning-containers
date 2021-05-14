@@ -51,7 +51,6 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
-    parser.addoption('--multi-region-support', action="store_true", default=False)
 
 
 def pytest_configure(config):
@@ -120,9 +119,6 @@ def instance_type(request, processor):
 def accelerator_type(request):
     return request.config.getoption('--accelerator-type')
 
-@pytest.fixture(scope='session', name='multi_region_support')
-def fixture_multi_region(request):
-    return request.config.getoption('--multi-region-support')
 
 @pytest.fixture(scope='session')
 def docker_image(docker_base_name, tag):

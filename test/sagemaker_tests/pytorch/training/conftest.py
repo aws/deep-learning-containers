@@ -210,8 +210,10 @@ def fixture_sagemaker_session(region):
 
 
 @pytest.fixture(scope='session', name='n_virginia_sagemaker_session')
-def fixture_n_virginia_sagemaker_session(n_virginia_region):
-    return Session(boto_session=boto3.Session(region_name=n_virginia_region))
+def fixture_n_virginia_sagemaker_session(n_virginia_region, multi_region_support):
+    if multi_region_support:
+        return Session(boto_session=boto3.Session(region_name=n_virginia_region))
+    return None
 
 
 @pytest.fixture(name='efa_instance_type')
@@ -226,15 +228,17 @@ def fixture_n_virginia_region(request):
 
 
 @pytest.fixture(name='n_virginia_ecr_image')
-def fixture_n_virginia_ecr_image(ecr_image, n_virginia_region):
+def fixture_n_virginia_ecr_image(ecr_image, n_virginia_region, multi_region_support):
     """
     It uploads image to n_virginia region and return image uri
     """
-    image_repo_uri, image_tag = ecr_image.split(":")
-    _, image_repo_name = image_repo_uri.split("/")
-    target_image_repo_name = f"{image_repo_name}"
-    n_virginia_ecr_image = reupload_image_to_test_ecr(ecr_image, target_image_repo_name, n_virginia_region)
-    return n_virginia_ecr_image
+    if multi_region_support:
+        image_repo_uri, image_tag = ecr_image.split(":")
+        _, image_repo_name = image_repo_uri.split("/")
+        target_image_repo_name = f"{image_repo_name}"
+        n_virginia_ecr_image = reupload_image_to_test_ecr(ecr_image, target_image_repo_name, n_virginia_region)
+        return n_virginia_ecr_image
+    return None
 
 
 @pytest.fixture(scope='session', name='sagemaker_local_session')

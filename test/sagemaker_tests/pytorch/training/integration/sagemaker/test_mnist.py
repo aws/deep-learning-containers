@@ -17,16 +17,23 @@ from sagemaker.pytorch import PyTorch
 
 from ...integration import training_dir, mnist_script, DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
-from test.sagemaker_tests import invoke_pytorch_helper_function
+from .... import invoke_pytorch_helper_function
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_gpu
-def test_mnist_distributed_cpu(sagemaker_session, framework_version, ecr_image, instance_type, dist_cpu_backend):
+def test_mnist_distributed_cpu(sagemaker_session, n_virginia_sagemaker_session, framework_version, ecr_image, n_virginia_ecr_image, instance_type, dist_cpu_backend, multi_region_support):
     instance_type = instance_type or 'ml.c4.xlarge'
-    _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, instance_type, dist_cpu_backend)
+    
+    function_args = {
+            'framework_version': framework_version,
+            'instance_type': instance_type,
+            'dist_backend': dist_cpu_backend
+        }
+
+    invoke_pytorch_helper_function(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, multi_region_support, _test_mnist_distributed, function_args)
 
 
 @pytest.mark.processor("gpu")

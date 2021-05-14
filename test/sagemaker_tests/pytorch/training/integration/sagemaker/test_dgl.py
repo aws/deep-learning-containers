@@ -23,7 +23,7 @@ from ...integration.sagemaker.timeout import timeout
 
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
-from test.sagemaker_tests import invoke_pytorch_helper_function
+from .... import invoke_pytorch_helper_function
 
 
 DGL_DATA_PATH = os.path.join(resources_path, 'dgl-gcn')
@@ -35,9 +35,12 @@ DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, 'gcn.py')
 @pytest.mark.model("gcn")
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
-def test_dgl_gcn_training_cpu(sagemaker_session, ecr_image, instance_type):
+def test_dgl_gcn_training_cpu(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virginia_ecr_image, instance_type, multi_region_support):
     instance_type = instance_type or 'ml.c4.xlarge'
-    _test_dgl_training(ecr_image, sagemaker_session, instance_type)
+    function_args = {
+            'instance_type': instance_type,
+        }
+    invoke_pytorch_helper_function(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, multi_region_support, _test_dgl_training, function_args)
 
 
 @pytest.mark.integration("dgl")

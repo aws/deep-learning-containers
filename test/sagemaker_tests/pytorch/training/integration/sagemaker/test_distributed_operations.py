@@ -25,7 +25,7 @@ from packaging.specifiers import SpecifierSet
 from ...integration import (data_dir, dist_operations_path, fastai_path, mnist_script,
                               DEFAULT_TIMEOUT, mnist_path)
 from ...integration.sagemaker.timeout import timeout
-from test.sagemaker_tests import invoke_pytorch_helper_function
+from .... import invoke_pytorch_helper_function
 from . import invoke_pytorch_estimator
 
 MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
@@ -61,9 +61,15 @@ def can_run_smmodelparallel_efa(ecr_image):
 @pytest.mark.skip_gpu
 @pytest.mark.deploy_test
 @pytest.mark.skip_test_in_region
-def test_dist_operations_cpu(sagemaker_session, framework_version, ecr_image, instance_type, dist_cpu_backend):
+def test_dist_operations_cpu(sagemaker_session, n_virginia_sagemaker_session, framework_version, ecr_image, n_virginia_ecr_image, instance_type, dist_cpu_backend, multi_region_support):
     instance_type = instance_type or 'ml.c4.xlarge'
-    _test_dist_operations(ecr_image, sagemaker_session, framework_version, instance_type, dist_cpu_backend)
+
+    function_args = {
+            'framework_version': framework_version,
+            'instance_type': instance_type,
+            'dist_backend': dist_cpu_backend,
+        }
+    invoke_pytorch_helper_function(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, multi_region_support, _test_dist_operations, function_args)
 
 
 @pytest.mark.processor("gpu")
