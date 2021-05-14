@@ -87,7 +87,6 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
-    parser.addoption('--multi-region-support', action="store_true", default=False)
 
 
 def pytest_runtest_setup(item):
@@ -155,9 +154,6 @@ def sagemaker_client(boto_session):
 def sagemaker_runtime_client(boto_session):
     return boto_session.client("runtime.sagemaker", config=Config(retries={"max_attempts": 10}))
 
-@pytest.fixture(scope='session', name='multi_region_support')
-def fixture_multi_region(request):
-    return request.config.getoption('--multi-region-support')
 
 def unique_name_from_base(base, max_length=63):
     unique = "%04x" % random.randrange(16 ** 4)  # 4-digit hex
