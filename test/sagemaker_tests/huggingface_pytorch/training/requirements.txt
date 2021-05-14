@@ -21,5 +21,5 @@ fabric
 retrying
 gitpython
 s3fs==0.4.2
-datasets[s3]==1.5.0
-transformers==4.5.0
+datasets[s3]==1.6.2
+transformers==4.6.0
