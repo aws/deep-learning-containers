@@ -23,7 +23,7 @@ def invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session,
             **estimator_parameter
             )
     except Exception as e:
-        if multi_region_support and type(e) == sagemaker.exceptions.UnexpectedStatusException and "Capacity Error" in str(e):
+        if multi_region_support and type(e) == sagemaker.exceptions.UnexpectedStatusException and "CapacityError" in str(e):
             pytorch = PyTorch(
                 image_uri=n_virginia_ecr_image,
                 sagemaker_session=n_virginia_sagemaker_session,

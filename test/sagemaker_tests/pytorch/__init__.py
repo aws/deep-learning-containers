@@ -16,7 +16,7 @@ def invoke_pytorch_helper_function(ecr_image, n_virginia_ecr_image, sagemaker_se
     try:
         helper_function(ecr_image, sagemaker_session, **helper_function_args)
     except Exception as e:
-        if multi_region_support and type(e) == sagemaker.exceptions.UnexpectedStatusException and "Capacity Error" in str(e):
+        if multi_region_support and type(e) == sagemaker.exceptions.UnexpectedStatusException and "CapacityError" in str(e):
             helper_function(n_virginia_ecr_image, n_virginia_sagemaker_session, **helper_function_args)
         else:
             raise e
