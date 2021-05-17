@@ -46,8 +46,7 @@ ARG CUDA_DASH=11-2
 ARG CUDNN=8.1.0.77-1
 ARG CUDNN_MAJOR_VERSION=8
 ARG LIB_DIR_PREFIX=x86_64
-ARG LIBNVINFER=7.2.2-1
-ARG LIBNVINFER_MAJOR_VERSION=7
+
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
    ca-certificates \
@@ -94,10 +93,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    # and libnvinfer4 doesn't contain libnvinfer.a static library.
    # nvinfer-runtime-trt-repo doesn't have a 1804-cuda10.1 version yet. see:
    # https://developer.download.nvidia.cn/compute/machine-learning/repos/ubuntu1804/x86_64/
-   && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  --allow-change-held-packages \
-   nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0 \
-   && apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated  --allow-change-held-packages \
-   libnvinfer${LIBNVINFER_MAJOR_VERSION}=${LIBNVINFER}+cuda11.1 \ 
+
    && rm -rf /var/lib/apt/lists/* \
    && mkdir -p /var/run/sshd
 
