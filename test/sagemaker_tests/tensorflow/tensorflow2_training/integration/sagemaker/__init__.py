@@ -60,49 +60,37 @@ def generate_training_input(s3_data, distribution, record_wrapper_type, input_mo
                      input_mode=input_mode)
     return training_input
 
+def run_training_job(ecr_image, sagemaker_session, estimator_parameter, job_name, inputs, disable_sm_profiler, upload_s3_data_args, training_input_args, hyperparameter_args):
+    
+    estimator = initate_tensorflow_estimator(ecr_image, sagemaker_session, estimator_parameter)
+        
+    if disable_sm_profiler:
+        disable_sm_profiler_args = {
+            'region': sagemaker_session.boto_region_name
+        }
+        estimator = disable_sagemaker_profiler(estimator, **disable_sm_profiler_args)
+
+    if upload_s3_data_args:
+        inputs = upload_s3_data(estimator, **upload_s3_data_args)
+    
+    if hyperparameter_args:
+        estimator = hyper_parameter_tuner(estimator, **hyperparameter_args)
+    
+    if training_input_args:
+        training_input = generate_training_input(**training_input_args)
+        inputs = {'elizabeth': training_input}
+    
+    estimator.fit(inputs=inputs, job_name=job_name)
+    return estimator, sagemaker_session
+
+
 def invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name=None, inputs=None, disable_sm_profiler=False, upload_s3_data_args=None, training_input_args=None, hyperparameter_args=None):
     try:
-        estimator = initate_tensorflow_estimator(ecr_image, sagemaker_session, estimator_parameter)
-        #TODO: Add it in a function??
-        if disable_sm_profiler:
-            disable_sm_profiler_args = {
-                'region': sagemaker_session.boto_region_name
-            }
-            estimator = disable_sagemaker_profiler(estimator, **disable_sm_profiler_args)
-
-        if upload_s3_data_args:
-            inputs = upload_s3_data(estimator, **upload_s3_data_args)
-        
-        if hyperparameter_args:
-            estimator = hyper_parameter_tuner(estimator, **hyperparameter_args)
-        
-        if training_input_args:
-            training_input = generate_training_input(**training_input_args)
-            inputs = {'elizabeth': training_input}
-        
-        estimator.fit(inputs=inputs, job_name=job_name)
+        estimator, sagemaker_session = run_training_job(ecr_image, sagemaker_session, estimator_parameter, job_name, inputs, disable_sm_profiler, upload_s3_data_args, training_input_args, hyperparameter_args)
         return estimator, sagemaker_session
     except Exception as e:
         if multi_region_support and type(e) == sagemaker.exceptions.UnexpectedStatusException and "CapacityError" in str(e):
-            n_virginia_estimator = initate_tensorflow_estimator(n_virginia_ecr_image, n_virginia_sagemaker_session, estimator_parameter)
-            #TODO: Add it in a function??
-            if disable_sm_profiler:
-                disable_sm_profiler_args = {
-                    'region': sagemaker_session.boto_region_name
-                }
-                estimator = disable_sagemaker_profiler(estimator, **disable_sm_profiler_args)
-
-            if upload_s3_data_args:
-                inputs = upload_s3_data(estimator, **upload_s3_data_args)
-            
-            if hyperparameter_args:
-                estimator = hyper_parameter_tuner(estimator, **hyperparameter_args)
-            
-            if training_input_args:
-                training_input = generate_training_input(**training_input_args)
-                inputs = {'elizabeth': training_input}
-
-            n_virginia_estimator.fit(inputs=inputs, job_name=job_name)
+            n_virginia_estimator, n_virginia_sagemaker_session = run_training_job(n_virginia_ecr_image, n_virginia_sagemaker_session, estimator_parameter, job_name, inputs, disable_sm_profiler, upload_s3_data_args, training_input_args, hyperparameter_args)
             return n_virginia_estimator, n_virginia_sagemaker_session
         else:
             raise e

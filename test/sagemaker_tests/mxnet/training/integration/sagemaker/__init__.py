@@ -77,16 +77,16 @@ def invoke_mxnet_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n
                 disable_sm_profiler_args = {
                     'region': sagemaker_session.boto_region_name
                 }
-                estimator = disable_sagemaker_profiler(estimator, **disable_sm_profiler_args)
+            n_virginia_estimator = disable_sagemaker_profiler(n_virginia_estimator, **disable_sm_profiler_args)
 
             if upload_s3_train_data_args and upload_s3_test_data_args:
-                train_input = upload_s3_data(estimator, **upload_s3_train_data_args)
-                test_input = upload_s3_data(estimator, **upload_s3_test_data_args)
+                train_input = upload_s3_data(n_virginia_estimator, **upload_s3_train_data_args)
+                test_input = upload_s3_data(n_virginia_estimator, **upload_s3_test_data_args)
 
                 inputs = {'train': train_input, 'test': test_input}
             
             if hyperparameter_args:
-                estimator = hyper_parameter_tuner(estimator, **hyperparameter_args)
+                n_virginia_estimator = hyper_parameter_tuner(n_virginia_estimator, **hyperparameter_args)
 
             n_virginia_estimator.fit(inputs=inputs, job_name=job_name)
             return n_virginia_estimator, n_virginia_sagemaker_session

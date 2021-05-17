@@ -26,7 +26,7 @@ from ...integration import (data_dir, dist_operations_path, fastai_path, mnist_s
                               DEFAULT_TIMEOUT, mnist_path)
 from ...integration.sagemaker.timeout import timeout
 from .... import invoke_pytorch_helper_function
-from . import invoke_pytorch_estimator, disable_sm_profiler
+from . import invoke_pytorch_estimator, disable_sagemaker_profiler
 
 MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
@@ -289,7 +289,7 @@ def _test_dist_operations(
             hyperparameters={'backend': dist_backend},
         )
 
-        pytorch = disable_sm_profiler(pytorch, sagemaker_session.boto_region_name)
+        pytorch = disable_sagemaker_profiler(pytorch, sagemaker_session.boto_region_name)
 
         pytorch.sagemaker_session.default_bucket()
         fake_input = pytorch.sagemaker_session.upload_data(
