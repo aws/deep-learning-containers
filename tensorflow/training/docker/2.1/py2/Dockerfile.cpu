@@ -27,7 +27,7 @@ ARG PYTHON=python
 ARG PYTHON_PIP=python-pip
 ARG PIP=pip
 
-ARG OPENSSL_VERSION=1.1.1g
+ARG OPENSSL_VERSION=1.1.1k
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     software-properties-common \
