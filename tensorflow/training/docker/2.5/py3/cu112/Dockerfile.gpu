@@ -187,7 +187,7 @@ RUN apt-get update \
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
    && tar -xvf Python-$PYTHON_VERSION.tgz \
    && cd Python-$PYTHON_VERSION \
-   && ./configure && make && make install \
+   && ./configure --enable-shared && make && make install \
    && make && make install && rm -rf ../Python-$PYTHON_VERSION*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
