@@ -19,7 +19,7 @@ import pytest
 import sagemaker
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
-from ... import invoke_tensorflow_estimator
+from . import invoke_tensorflow_estimator
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
@@ -48,9 +48,8 @@ def test_distributed_training_horovod(sagemaker_session,
                             'sagemaker_mpi_custom_mpi_options': mpi_options,
                             'sagemaker_mpi_num_of_processes_per_host': 1},
         }
-    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
-    estimator.fit(job_name=unique_name_from_base('test-tf-horovod'))
+    job_name=unique_name_from_base('test-tf-horovod')
+    estimator, sagemaker_session = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name)
 
     model_data_source = sagemaker.local.data.get_data_source_instance(
         estimator.model_data, sagemaker_session)
@@ -78,6 +77,6 @@ def test_distributed_training_horovod_with_env_vars(
                             'sagemaker_mpi_custom_mpi_options': mpi_options,
                             'sagemaker_mpi_num_of_processes_per_host': 2},
         }
-    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
 
-    estimator.fit(job_name=unique_name_from_base("test-tf-horovod-env-vars"))
+    job_name=unique_name_from_base("test-tf-horovod-env-vars")
+    invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name)

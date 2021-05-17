@@ -160,7 +160,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     local_pytest_cmd = (f"{is_py3} pytest -s -v {integration_path} {docker_base_arg} "
                         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
                         f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report} "
-                        f"--reruns {reruns} --reruns-delay {reruns_delay}")
+                        f"--reruns {reruns} --reruns-delay {reruns_delay} -n auto")
 
     if framework == "tensorflow" and job_type != "inference":
         local_pytest_cmd = f"{local_pytest_cmd} --py-version {sm_local_py_version} --region {region}"

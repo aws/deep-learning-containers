@@ -22,7 +22,7 @@ from packaging.specifiers import SpecifierSet
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
-from ... import invoke_tensorflow_estimator
+from . import invoke_tensorflow_estimator
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 MNIST_PATH = os.path.join(RESOURCE_PATH, 'mnist')
@@ -76,10 +76,8 @@ def test_distributed_training_smdataparallel_script_mode(
         'py_version': 'py3',
         'distribution': distribution
         }
-    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
-    estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel'))
-
+    job_name=unique_name_from_base('test-tf-smdataparallel')
+    invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name)
 
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
@@ -104,9 +102,9 @@ def test_smdataparallel_mnist(instance_types, ecr_image, n_virginia_ecr_image, p
         'instance_type': instance_types,
         'distribution': distribution
         }
-    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
+    job_name=unique_name_from_base('test-tf-smdataparallel-multi')
+    invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name)
 
-    estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel-multi'))
 
 
 @pytest.mark.processor("gpu")
@@ -141,5 +139,4 @@ def test_smdataparallel_throughput(instance_types, ecr_image, n_virginia_ecr_ima
         'hyperparameters': hyperparameters,
         'distribution': distribution
         }
-    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-    estimator.fit()
+    invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)

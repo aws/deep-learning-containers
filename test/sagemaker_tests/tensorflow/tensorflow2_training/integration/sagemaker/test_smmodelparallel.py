@@ -20,7 +20,7 @@ from test.test_utils import get_framework_and_version_from_tag, get_cuda_version
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
-from ... import invoke_tensorflow_estimator
+from . import invoke_tensorflow_estimator
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
@@ -79,8 +79,7 @@ def test_smmodelparallel_efa(sagemaker_session, n_virginia_sagemaker_session, ef
         'base_job_name': 'smp-test1'
         
         }
-    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-    estimator.fit()
+    invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
 
 
 @pytest.mark.integration("smmodelparallel")
@@ -115,8 +114,7 @@ def test_smmodelparallel_multinode_efa(sagemaker_session, n_virginia_sagemaker_s
         'base_job_name': 'smp-test2'
         
         }
-    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-    estimator.fit()
+    invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
 
 
 @pytest.mark.integration("smmodelparallel")
@@ -150,8 +148,7 @@ def test_smmodelparallel(sagemaker_session, n_virginia_sagemaker_session, instan
         'base_job_name': 'smp-test1'
         
         }
-    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-    estimator.fit()
+    invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
 
 
 @pytest.mark.integration("smmodelparallel")
@@ -185,5 +182,4 @@ def test_smmodelparallel_multinode(sagemaker_session, n_virginia_sagemaker_sessi
         'py_version': 'py3',
         'base_job_name': 'smp-test2'
         }
-    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-    estimator.fit()
+    invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)

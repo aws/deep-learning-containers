@@ -38,9 +38,7 @@ def test_dgl_training(sagemaker_session, n_virginia_sagemaker_session, ecr_image
             'instance_type': instance_type,
             'framework_version': framework_version,
         }
-        
-    dgl = invoke_mxnet_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
+    job_name = utils.unique_name_from_base('test-dgl-image')
 
     with timeout(minutes=15):
-        job_name = utils.unique_name_from_base('test-dgl-image')
-        dgl.fit(job_name=job_name)
+        invoke_mxnet_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name)

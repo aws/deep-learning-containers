@@ -40,6 +40,9 @@ def test_training_smdebug(sagemaker_session, n_virginia_sagemaker_session, frame
             'framework_version': framework_version,
             'hyperparameters': hyperparameters
         }
-        pytorch = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-        training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
-        pytorch.fit({'training': training_input})
+        upload_s3_data_args = {
+        'path': training_dir,
+        'key_prefix': 'pytorch/mnist'
+        }
+        invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, upload_s3_data_args=upload_s3_data_args)        
+

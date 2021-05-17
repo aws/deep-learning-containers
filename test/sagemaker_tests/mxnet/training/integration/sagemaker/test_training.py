@@ -40,26 +40,16 @@ def test_training(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_
             'framework_version': framework_version,
             'hyperparameters': hyperparameters
         }
-        
-    mx = invoke_mxnet_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
+    job_name = utils.unique_name_from_base('test-mxnet-image')
+    prefix = 'mxnet_mnist/{}'.format(utils.sagemaker_timestamp())
+    upload_s3_train_data_args = {
+        'path': os.path.join(DATA_PATH, 'train'),
+        'key_prefix': prefix + '/train'
+    }
+    upload_s3_test_data_args = {
+        'path': os.path.join(DATA_PATH, 'test'),
+        'key_prefix': prefix + '/test'
+    }
     
-    mx = _disable_sm_profiler(sagemaker_session.boto_region_name, mx)
-
     with timeout(minutes=15):
-        prefix = 'mxnet_mnist/{}'.format(utils.sagemaker_timestamp())
-        train_input = mx.sagemaker_session.upload_data(path=os.path.join(DATA_PATH, 'train'),
-                                                       key_prefix=prefix + '/train')
-        test_input = mx.sagemaker_session.upload_data(path=os.path.join(DATA_PATH, 'test'),
-                                                      key_prefix=prefix + '/test')
-
-        job_name = utils.unique_name_from_base('test-mxnet-image')
-        mx.fit({'train': train_input, 'test': test_input}, job_name=job_name)
-
-def _disable_sm_profiler(region, estimator):
-    """Disable SMProfiler feature for China regions
-    """
-    
-    if region in ('cn-north-1', 'cn-northwest-1'):
-        estimator.disable_profiler = True
-    return estimator
+        invoke_mxnet_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name, disable_sm_profiler=True, upload_s3_train_data_args=upload_s3_train_data_args, upload_s3_test_data_args=upload_s3_test_data_args)

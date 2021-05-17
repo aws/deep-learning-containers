@@ -40,29 +40,26 @@ def test_tuning(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_vi
             'framework_version': framework_version,
             'hyperparameters': {'epochs': 1}
         }
-    mx = invoke_mxnet_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
-
-
-    hyperparameter_ranges = {'learning-rate': ContinuousParameter(0.01, 0.2)}
-    objective_metric_name = 'Validation-accuracy'
-    metric_definitions = [
-        {'Name': 'Validation-accuracy', 'Regex': 'Validation-accuracy=([0-9\\.]+)'}]
-
-    tuner = HyperparameterTuner(mx,
-                                objective_metric_name,
-                                hyperparameter_ranges,
-                                metric_definitions,
-                                max_jobs=2,
-                                max_parallel_jobs=2)
+    prefix = 'mxnet_mnist/{}'.format(utils.sagemaker_timestamp())
+    job_name = utils.unique_name_from_base('test-mxnet-image', max_length=32)
+    upload_s3_train_data_args = {
+        'path': os.path.join(DATA_PATH, 'train'),
+        'key_prefix': prefix + '/train'
+    }
+    upload_s3_test_data_args = {
+        'path': os.path.join(DATA_PATH, 'test'),
+        'key_prefix': prefix + '/test'
+    }
+    hyperparameter_args = {
+        'objective_metric_name': 'Validation-accuracy',
+        'hyperparameter_ranges': {'learning-rate': ContinuousParameter(0.01, 0.2)},
+        'metric_definitions': [{'Name': 'Validation-accuracy', 'Regex': 'Validation-accuracy=([0-9\\.]+)'}],
+        'max_jobs': 2,
+        'max_parallel_jobs': 2
+    }
 
     with timeout(minutes=20):
-        prefix = 'mxnet_mnist/{}'.format(utils.sagemaker_timestamp())
-        train_input = mx.sagemaker_session.upload_data(path=os.path.join(DATA_PATH, 'train'),
-                                                       key_prefix=prefix + '/train')
-        test_input = mx.sagemaker_session.upload_data(path=os.path.join(DATA_PATH, 'test'),
-                                                      key_prefix=prefix + '/test')
-
-        job_name = utils.unique_name_from_base('test-mxnet-image', max_length=32)
-        tuner.fit({'train': train_input, 'test': test_input}, job_name=job_name)
+        tuner, _ = invoke_mxnet_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name, upload_s3_train_data_args=upload_s3_train_data_args, upload_s3_test_data_args=upload_s3_test_data_args, hyperparameter_args=hyperparameter_args)
         tuner.wait()
+
+

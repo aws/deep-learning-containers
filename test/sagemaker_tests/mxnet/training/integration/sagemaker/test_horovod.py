@@ -46,10 +46,8 @@ def test_distributed_training_horovod(sagemaker_session,
                          'sagemaker_mpi_custom_mpi_options': mpi_options,
                          'sagemaker_mpi_num_of_processes_per_host': 1}
         }
-        
-    estimator = invoke_mxnet_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
-    estimator.fit(job_name=unique_name_from_base('test-mx-horovod'))
+    job_name=unique_name_from_base('test-mx-horovod')
+    estimator, sagemaker_session = invoke_mxnet_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name)
 
     model_data_source = sagemaker.local.data.get_data_source_instance(
         estimator.model_data, sagemaker_session)

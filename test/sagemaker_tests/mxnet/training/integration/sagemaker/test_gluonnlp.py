@@ -37,9 +37,5 @@ def test_nlp_training(sagemaker_session, n_virginia_sagemaker_session, ecr_image
             'framework_version': framework_version,
             'train_max_run': 5 * 60
         }
-        
-    nlp = invoke_mxnet_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
-
     job_name = utils.unique_name_from_base('test-nlp-image')
-    nlp.fit(job_name=job_name)
+    invoke_mxnet_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name)

@@ -20,7 +20,7 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from ...integration import DEFAULT_TIMEOUT, mnist_path, throughput_path
 from ...integration.sagemaker.timeout import timeout
-from ...integration.sagemaker.test_distributed_operations import can_run_smmodelparallel, _disable_sm_profiler
+from ...integration.sagemaker.test_distributed_operations import can_run_smmodelparallel
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from . import invoke_pytorch_estimator
 
@@ -77,8 +77,7 @@ def test_smdataparallel_throughput(sagemaker_session, n_virginia_sagemaker_sessi
             'distribution': distribution
         }
 
-        pytorch = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-        pytorch.fit()
+        invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
 
 
 @pytest.mark.integration("smdataparallel")
@@ -104,8 +103,7 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, n_virginia_ecr_ima
             'distribution': distribution
         }
         
-        pytorch = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-        pytorch.fit()
+        invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
 
 
 @pytest.mark.processor("gpu")
@@ -133,8 +131,7 @@ def test_smdataparallel_mnist(sagemaker_session, n_virginia_sagemaker_session, f
             'distribution': distribution
         }
         
-        pytorch = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-        pytorch.fit()
+        invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
 
 
 @pytest.mark.processor("gpu")
@@ -167,7 +164,4 @@ def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, n_virgi
             'instance_count': 1,
             'instance_type': instance_types,
         }
-        pytorch_estimator = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-        pytorch = _disable_sm_profiler(n_virginia_sagemaker_session.boto_region_name, pytorch_estimator)
-
-        pytorch.fit()
+        invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, disable_sm_profiler=True)

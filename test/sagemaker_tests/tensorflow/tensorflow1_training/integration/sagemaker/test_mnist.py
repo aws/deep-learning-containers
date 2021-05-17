@@ -22,7 +22,7 @@ from six.moves.urllib.parse import urlparse
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from .timeout import timeout
-from ... import invoke_tensorflow_estimator
+from . import invoke_tensorflow_estimator
 
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
@@ -39,14 +39,12 @@ def test_mnist(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_vir
             'framework_version': framework_version,
             'script_mode': True
             }
-    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-    
-    estimator = _disable_sm_profiler(sagemaker_session.boto_region_name, estimator)
-    
-    inputs = estimator.sagemaker_session.upload_data(
-        path=os.path.join(resource_path, 'mnist', 'data'),
-        key_prefix='scriptmode/mnist')
-    estimator.fit(inputs, job_name=unique_name_from_base('test-sagemaker-mnist'))
+    upload_s3_data_args = {
+        'path': os.path.join(resource_path, 'mnist', 'data'),
+        'key_prefix': 'scriptmode/mnist'
+    }
+    job_name=unique_name_from_base('test-sagemaker-mnist')
+    estimator, sagemaker_session = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name, disable_sm_profiler=True, upload_s3_data_args=upload_s3_data_args)
     _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 
@@ -65,11 +63,12 @@ def test_distributed_mnist_no_ps(sagemaker_session, n_virginia_sagemaker_session
             'framework_version': framework_version,
             'script_mode': True
             }
-    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-    inputs = estimator.sagemaker_session.upload_data(
-        path=os.path.join(resource_path, 'mnist', 'data'),
-        key_prefix='scriptmode/mnist')
-    estimator.fit(inputs, job_name=unique_name_from_base('test-tf-sm-distributed-mnist'))
+    upload_s3_data_args = {
+        'path': os.path.join(resource_path, 'mnist', 'data'),
+        'key_prefix': 'scriptmode/mnist'
+    }
+    job_name=unique_name_from_base('test-tf-sm-distributed-mnist')
+    estimator, sagemaker_session = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name, upload_s3_data_args=upload_s3_data_args)
     _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 
@@ -87,12 +86,13 @@ def test_distributed_mnist_ps(sagemaker_session, n_virginia_sagemaker_session, e
             'instance_type': instance_type,
             'framework_version': framework_version,
             'script_mode': True
-            }
-    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-    inputs = estimator.sagemaker_session.upload_data(
-        path=os.path.join(resource_path, 'mnist', 'data-distributed'),
-        key_prefix='scriptmode/mnist-distributed')
-    estimator.fit(inputs, job_name=unique_name_from_base('test-tf-sm-distributed-mnist'))
+            }  
+    upload_s3_data_args = {
+        'path': os.path.join(resource_path, 'mnist', 'data-distributed'),
+        'key_prefix': 'scriptmode/mnist-distributed'
+    }
+    job_name=unique_name_from_base('test-tf-sm-distributed-mnist')
+    estimator, sagemaker_session = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name, upload_s3_data_args=upload_s3_data_args)
     _assert_checkpoint_exists(sagemaker_session.boto_region_name, estimator.model_dir, 0)
     _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
@@ -125,11 +125,12 @@ def test_s3_plugin(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n
             'framework_version': framework_version,
             'script_mode': True
             }
-    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-    estimator.fit('s3://sagemaker-sample-data-{}/tensorflow/mnist'.format(region),
-                  job_name=unique_name_from_base('test-tf-sm-s3-mnist'))
-    _assert_s3_file_exists(region, estimator.model_data)
-    _assert_checkpoint_exists(region, estimator.model_dir, 200)
+    #TODO region config
+    inputs = 's3://sagemaker-sample-data-{}/tensorflow/mnist'.format(region) 
+    job_name=unique_name_from_base('test-tf-sm-s3-mnist')
+    estimator, sagemaker_session = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name, inputs)
+    _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
+    _assert_checkpoint_exists(sagemaker_session.boto_region_name, estimator.model_dir, 200)
 
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
@@ -147,26 +148,22 @@ def test_tuning(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_vi
             'framework_version': framework_version,
             'script_mode': True
             }
-    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-
-    hyperparameter_ranges = {'epochs': IntegerParameter(1, 2)}
     objective_metric_name = 'accuracy'
-    metric_definitions = [{'Name': objective_metric_name, 'Regex': 'accuracy = ([0-9\\.]+)'}]
-
-    tuner = HyperparameterTuner(estimator,
-                                objective_metric_name,
-                                hyperparameter_ranges,
-                                metric_definitions,
-                                max_jobs=2,
-                                max_parallel_jobs=2)
+    hyperparameter_args = {
+        'objective_metric_name': objective_metric_name,
+        'hyperparameter_ranges': {'epochs': IntegerParameter(1, 2)},
+        'metric_definitions': [{'Name': objective_metric_name, 'Regex': 'accuracy = ([0-9\\.]+)'}],
+        'max_jobs': 2,
+        'max_parallel_jobs': 2
+    }
+    upload_s3_data_args = {
+        'path': os.path.join(resource_path, 'mnist', 'data'),
+        'key_prefix': 'scriptmode/mnist'
+    }
+    job_name = unique_name_from_base('test-tf-sm-tuning', max_length=32)
 
     with timeout(minutes=20):
-        inputs = estimator.sagemaker_session.upload_data(
-            path=os.path.join(resource_path, 'mnist', 'data'),
-            key_prefix='scriptmode/mnist')
-
-        tuning_job_name = unique_name_from_base('test-tf-sm-tuning', max_length=32)
-        tuner.fit(inputs, job_name=tuning_job_name)
+        tuner, _ = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name, upload_s3_data_args=upload_s3_data_args,hyperparameter_args=hyperparameter_args)
         tuner.wait()
 
 
@@ -187,10 +184,12 @@ def test_tf1x_smdebug(sagemaker_session, n_virginia_sagemaker_session, ecr_image
             'hyperparameters': hyperparameters
             }
     estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-    inputs = estimator.sagemaker_session.upload_data(
-        path=os.path.join(resource_path, 'mnist', 'data'),
-        key_prefix='scriptmode/mnist_smdebug')
-    estimator.fit(inputs, job_name=unique_name_from_base('test-sagemaker-mnist-smdebug'))
+    upload_s3_data_args = {
+        'path': os.path.join(resource_path, 'mnist', 'data'),
+        'key_prefix': 'scriptmode/mnist_smdebug'
+    }
+    job_name=unique_name_from_base('test-sagemaker-mnist-smdebug')
+    estimator, sagemaker_session = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name, upload_s3_data_args=upload_s3_data_args)
     _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 
@@ -207,10 +206,3 @@ def _assert_s3_file_exists(region, s3_url):
     s3 = boto3.resource('s3', region_name=region)
     s3.Object(parsed_url.netloc, parsed_url.path.lstrip('/')).load()
 
-def _disable_sm_profiler(region, estimator):
-    """Disable SMProfiler feature for China regions
-    """
-
-    if region in ('cn-north-1', 'cn-northwest-1'):
-        estimator.disable_profiler = True
-    return estimator

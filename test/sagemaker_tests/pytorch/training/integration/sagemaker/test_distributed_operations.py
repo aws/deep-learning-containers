@@ -26,7 +26,7 @@ from ...integration import (data_dir, dist_operations_path, fastai_path, mnist_s
                               DEFAULT_TIMEOUT, mnist_path)
 from ...integration.sagemaker.timeout import timeout
 from .... import invoke_pytorch_helper_function
-from . import invoke_pytorch_estimator
+from . import invoke_pytorch_estimator, disable_sm_profiler
 
 MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
@@ -121,12 +121,11 @@ def test_dist_operations_fastai_gpu(sagemaker_session, n_virginia_sagemaker_sess
             'instance_type': MULTI_GPU_INSTANCE,
             'framework_version': framework_version,
         }
-        pytorch = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-        pytorch.sagemaker_session.default_bucket()
-        training_input = pytorch.sagemaker_session.upload_data(
-            path=os.path.join(fastai_path, 'cifar_tiny', 'training'), key_prefix='pytorch/distributed_operations'
-        )
-        pytorch.fit({'training': training_input})
+        upload_s3_data_args = {
+        'path': os.path.join(fastai_path, 'cifar_tiny', 'training'),
+        'key_prefix': 'pytorch/distributed_operations'
+        }
+        pytorch, sagemaker_session = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, upload_s3_data_args=upload_s3_data_args)        
 
     model_s3_url = pytorch.create_model().model_data
     _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
@@ -147,12 +146,12 @@ def test_mnist_gpu(sagemaker_session, n_virginia_sagemaker_session, framework_ve
             'instance_type': MULTI_GPU_INSTANCE,
             'hyperparameters': {'backend': dist_gpu_backend},
         }
-        pytorch = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
+        upload_s3_data_args = {
+        'path': os.path.join(data_dir, 'training'),
+        'key_prefix': 'pytorch/mnist'
+        }
+        invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, upload_s3_data_args=upload_s3_data_args)
 
-        training_input = sagemaker_session.upload_data(
-            path=os.path.join(data_dir, 'training'), key_prefix='pytorch/mnist'
-        )
-        pytorch.fit({'training': training_input})
 
 
 
@@ -198,8 +197,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, n_virginia_ecr_imag
             },
         }
 
-        pytorch = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-        pytorch.fit()
+        invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support) 
 
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
@@ -244,8 +242,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, n_virginia_ecr_
         }
         }
 
-        pytorch = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-        pytorch.fit()
+        invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
 
 
 @pytest.mark.integration("smmodelparallel")
@@ -274,8 +271,7 @@ def test_sanity_efa(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virgin
             },
         }
 
-        pytorch = invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-        pytorch.fit()
+        invoke_pytorch_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
 
 
 def _test_dist_operations(
@@ -293,7 +289,7 @@ def _test_dist_operations(
             hyperparameters={'backend': dist_backend},
         )
 
-        pytorch = _disable_sm_profiler(sagemaker_session.boto_region_name, pytorch)
+        pytorch = disable_sm_profiler(pytorch, sagemaker_session.boto_region_name)
 
         pytorch.sagemaker_session.default_bucket()
         fake_input = pytorch.sagemaker_session.upload_data(
@@ -307,11 +303,3 @@ def _assert_s3_file_exists(region, s3_url):
     s3 = boto3.resource('s3', region_name=region)
     s3.Object(parsed_url.netloc, parsed_url.path.lstrip('/')).load()
 
-
-def _disable_sm_profiler(region, estimator):
-    """Disable SMProfiler feature for China regions
-    """
-
-    if region in ('cn-north-1', 'cn-northwest-1'):
-        estimator.disable_profiler = True
-    return estimator

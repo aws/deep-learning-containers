@@ -22,7 +22,7 @@ from sagemaker import TrainingInput
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from .timeout import timeout
-from ... import invoke_tensorflow_estimator
+from . import invoke_tensorflow_estimator
 
 DIMENSION = 5
 
@@ -85,14 +85,16 @@ def run_test(sagemaker_session, n_virginia_sagemaker_session, ecr_image, n_virgi
         'input_mode': 'Pipe',
         'hyperparameters': {'dimension': DIMENSION}
         }
-    estimator = invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support)
-    input = TrainingInput(s3_data=test_data,
-                     distribution='FullyReplicated',
-                     record_wrapping=record_wrapper_type,
-                     input_mode='Pipe')
+    training_input_args = {
+        's3_data': test_data,
+        'distribution': 'FullyReplicated',
+        'record_wrapping': record_wrapper_type,
+        'input_mode': 'Pipe'
+    }
+    job_name=unique_name_from_base('test-sagemaker-pipemode')
+
     with timeout(minutes=20):
-        estimator.fit({'elizabeth': input},
-                      job_name=unique_name_from_base('test-sagemaker-pipemode'))
+       invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_session, n_virginia_sagemaker_session, estimator_parameter, multi_region_support, job_name, training_input_args=training_input_args)
 
 
 @pytest.mark.integration("pipemode")
