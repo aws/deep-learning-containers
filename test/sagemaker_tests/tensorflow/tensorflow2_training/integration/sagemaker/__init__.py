@@ -36,7 +36,7 @@ def upload_s3_data(estimator, path, key_prefix):
         key_prefix=key_prefix)
     return inputs
 
-def disable_sm_profiler(estimator, region):
+def disable_sagemaker_profiler(estimator, region):
     """Disable SMProfiler feature for China regions
     """
 
@@ -53,8 +53,8 @@ def hyper_parameter_tuner(estimator, objective_metric_name, hyperparameter_range
                             max_parallel_jobs=max_parallel_jobs)
     return tuner
 
-def generate_training_input(test_data, distribution, record_wrapper_type, input_mode):
-    training_input = TrainingInput(s3_data=test_data,
+def generate_training_input(s3_data, distribution, record_wrapper_type, input_mode):
+    training_input = TrainingInput(s3_data=s3_data,
                      distribution=distribution,
                      record_wrapping=record_wrapper_type,
                      input_mode=input_mode)
@@ -68,7 +68,7 @@ def invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_sessi
             disable_sm_profiler_args = {
                 'region': sagemaker_session.boto_region_name
             }
-            estimator = disable_sm_profiler(estimator, **disable_sm_profiler_args)
+            estimator = disable_sagemaker_profiler(estimator, **disable_sm_profiler_args)
 
         if upload_s3_data_args:
             inputs = upload_s3_data(estimator, **upload_s3_data_args)
@@ -90,7 +90,7 @@ def invoke_tensorflow_estimator(ecr_image, n_virginia_ecr_image, sagemaker_sessi
                 disable_sm_profiler_args = {
                     'region': sagemaker_session.boto_region_name
                 }
-                estimator = disable_sm_profiler(estimator, **disable_sm_profiler_args)
+                estimator = disable_sagemaker_profiler(estimator, **disable_sm_profiler_args)
 
             if upload_s3_data_args:
                 inputs = upload_s3_data(estimator, **upload_s3_data_args)
