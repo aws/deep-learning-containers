@@ -30,6 +30,8 @@ PT_EC2_MULTI_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="g3.8xlarge", processor="gpu", filter_function=ec2_utils.filter_only_multi_gpu,
 )
 PT_EC2_GPU_EFA_INSTANCE_TYPE = get_ec2_instance_type(default="p3dn.24xlarge", processor="gpu", efa=True)
+#Instance type to be updated once the EC2 Gaudi instance is available
+PT_EC2_HPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="hpu")
 
 
 @pytest.mark.integration("pytorch_sanity_test")
@@ -228,3 +230,11 @@ def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only, pt15_
 @pytest.mark.efa()
 def test_pytorch_efa_gpu(pytorch_training, ec2_connection, gpu_only):
     pytest.skip("EFA tests are not yet implemented and will be implemented once EFA is supported.")
+
+# Placeholder for habana test
+# Instance type and AMI to be updated once the EC2 Gaudi instance is available
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_HPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.HPU_AL2_DLAMI], indirect=True)
+def test_tensorflow_standalone_hpu(pytorch_training_habana, ec2_connection):
+    assert 1 == 1

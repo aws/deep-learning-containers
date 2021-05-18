@@ -28,7 +28,8 @@ TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 )
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.16xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="cpu")
-
+#Instance type to be updated once the EC2 Gaudi instance is available
+TF_EC2_HPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="hpu")
 
 class TFTrainingTestFailure(Exception):
     pass
@@ -261,3 +262,11 @@ def test_tensorflow_distribute_dataservice_gpu(
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}")
     run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_DISTRIBUTE_TEST_CMD)
+
+# Placeholder for habana test
+# Instance type and AMI to be updated once the EC2 Gaudi instance is available
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_HPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.HPU_AL2_DLAMI], indirect=True)
+def test_tensorflow_standalone_hpu(tensorflow_training_habana, ec2_connection):
+    assert 1 == 1

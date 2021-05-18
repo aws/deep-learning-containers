@@ -33,7 +33,7 @@ def test_ecs_pytorch_inference_cpu(pytorch_inference, ecs_container_instance, re
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", ["eia1.large"], indirect=True)
 def test_ecs_pytorch_inference_eia(
-        pytorch_inference_eia, ecs_container_instance, ei_accelerator_type, region, eia_only, pt14_and_above_only
+        pytorch_inference_eia, ecs_container_instance, ei_accelerator_type, region, pt14_and_above_only
 ):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
