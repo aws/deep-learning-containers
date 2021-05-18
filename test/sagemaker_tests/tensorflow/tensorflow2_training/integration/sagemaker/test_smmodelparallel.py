@@ -71,7 +71,7 @@ def test_smmodelparallel_efa(n_virginia_sagemaker_session, efa_instance_type, n_
                                "mpi": {
                                    "enabled": True,
                                    "processes_per_host": num_processes,
-                                   "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x FI_EFA_USE_DEVICE_RDMA=1 -x FI_PROVIDER=efa -x RDMAV_FORK_SAFE=1 ",
+                                   "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x FI_EFA_USE_DEVICE_RDMA=1 -x FI_PROVIDER=efa ",
                                 }
                            },
                            sagemaker_session=n_virginia_sagemaker_session,
@@ -105,7 +105,7 @@ def test_smmodelparallel_multinode_efa(n_virginia_sagemaker_session, efa_instanc
                                "mpi": {
                                    "enabled": True,
                                    "processes_per_host": num_processes,
-                                   "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x FI_EFA_USE_DEVICE_RDMA=1 -x FI_PROVIDER=efa -x RDMAV_FORK_SAFE=1 ",
+                                   "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x FI_EFA_USE_DEVICE_RDMA=1 -x FI_PROVIDER=efa ",
                                 }
                            },
                            sagemaker_session=n_virginia_sagemaker_session,
@@ -138,7 +138,7 @@ def test_smmodelparallel(n_virginia_sagemaker_session, instance_type, n_virginia
                                "mpi": {
                                    "enabled": True,
                                    "processes_per_host": num_processes,
-                                   "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x RDMAV_FORK_SAFE=1 ",
+                                   "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 ",
                                 }
                            },
                            sagemaker_session=n_virginia_sagemaker_session,
@@ -172,7 +172,7 @@ def test_smmodelparallel_multinode(n_virginia_sagemaker_session, instance_type, 
                                "mpi": {
                                    "enabled": True,
                                    "processes_per_host": num_processes,
-                                   "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x RDMAV_FORK_SAFE=1 ",
+                                   "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 ",
                                 }
                            },
                            sagemaker_session=n_virginia_sagemaker_session,

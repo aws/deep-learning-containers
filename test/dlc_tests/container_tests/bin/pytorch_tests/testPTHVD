@@ -4,7 +4,6 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 HOROVOD_VERSION=v0.16.4
-export RDMAV_FORK_SAFE=1
 
 git clone -b ${HOROVOD_VERSION} https://github.com/horovod/horovod.git ${HOME_DIR}/artifacts/horovod
 ${BIN_DIR}/pytorch_tests/testPTHVDHelper || exit 1
