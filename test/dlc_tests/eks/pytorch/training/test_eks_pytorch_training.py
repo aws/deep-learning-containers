@@ -261,6 +261,9 @@ def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_path, replace_dict)
     run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_path)
 
+# Placeholder for habana test
+def test_eks_pytorch_single_node_training_hpu(pytorch_training_habana):
+    assert 1==1
 
 def run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_file_path):
     """Run PyTorch distributed training on EKS using PyTorch Operator

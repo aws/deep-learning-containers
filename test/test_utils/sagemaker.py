@@ -44,6 +44,9 @@ class DLCSageMakerLocalTestFailure(Exception):
 def assign_sagemaker_remote_job_instance_type(image):
     if "gpu" in image:
         return "ml.p3.8xlarge"
+    elif "hpu" in image:
+        # Instance type and AMI to be updated once the EC2 Gaudi instance is available
+        return "ml.p3.8xlarge"
     elif "tensorflow" in image:
         return "ml.c4.4xlarge"
     else:
@@ -116,7 +119,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     accelerator_type_arg = "--accelerator-type"
     framework_version_arg = "--framework-version"
     eia_arg = "ml.eia1.large"
-    processor = "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
+    processor = "gpu" if "gpu" in image else "eia" if "eia" in image else "hpu" if "hpu" in image else "cpu"
     py_version = re.search(r"py\d+", tag).group()
     sm_local_py_version = "37" if py_version == "py37" else "2" if py_version == "py27" else "3"
     if framework == "tensorflow" and job_type == "inference":
@@ -161,7 +164,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} --junitxml {test_report}"
     )
 
-    if processor == "eia" :
+    if processor == "eia":
         remote_pytest_cmd += (f" {accelerator_type_arg} {eia_arg}")
 
     local_pytest_cmd = (f"pytest -s -v {integration_path} {docker_base_arg} "

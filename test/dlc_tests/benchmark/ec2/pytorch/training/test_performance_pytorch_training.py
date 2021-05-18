@@ -29,7 +29,9 @@ PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
 
 PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "p3.16xlarge"
 PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
-
+#Placeholder for habana instance type. 
+# Instance type and AMI to be updated once the EC2 Gaudi instance is available
+PT_EC2_HPU_INSTANCE_TYPE = "t2.nano"
 
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE], indirect=True)
@@ -55,6 +57,11 @@ def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD
     )
 
+# Placeholder for habana benchmark test
+@pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.HPU_AL2_DLAMI], indirect=True)
+def test_performance_tensorflow_hpu_imagenet(pytorch_training_habana, ec2_connection):
+    assert 1==1  
 
 def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     connection, ecr_uri, test_cmd, region=DEFAULT_REGION

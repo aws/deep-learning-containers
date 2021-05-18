@@ -1,0 +1,27 @@
+#Placeholder for habana dockerfile
+FROM vault.habana.ai/gaudi-docker/0.14.0/ubuntu18.04/habanalabs/tensorflow-installer-tf-cpu-2.4.1:0.14.0-420
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    build-essential \
+    openssh-client \
+    openssh-server \
+    ca-certificates \
+    curl \
+    emacs \
+    git \
+    libtemplate-perl \
+    libssl1.1 \
+    openssl \
+    unzip \
+    wget \
+    vim \
+    zlib1g-dev \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+CMD ["bin/bash"]

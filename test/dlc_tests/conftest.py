@@ -62,6 +62,8 @@ FRAMEWORK_FIXTURES = (
     "huggingface_tensorflow_inference",
     "huggingface_pytorch_inference",
     "huggingface_mxnet_inference",
+    "tensorflow_training_habana",
+    "pytorch_training_habana"
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -354,16 +356,6 @@ def gpu_only():
 
 
 @pytest.fixture(scope="session")
-def eia_only():
-    pass
-
-
-@pytest.fixture(scope="session")
-def neuron_only():
-    pass
-
-
-@pytest.fixture(scope="session")
 def py3_only():
     pass
 
@@ -602,7 +594,9 @@ def pytest_generate_tests(metafunc):
             lookup = fixture.replace("_", "-")
             images_to_parametrize = []
             for image in images:
-                if lookup in image:
+                #Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
+                repo_name, _ = image.split("/")[-1].split(":")
+                if repo_name.endswith(lookup):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_huggingface_lookup = "huggingface_only" in metafunc.fixturenames and "huggingface" in image
                     is_standard_lookup = all(
@@ -618,15 +612,9 @@ def pytest_generate_tests(metafunc):
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
-                        elif "eia_only" in metafunc.fixturenames and "eia" in image:
-                            images_to_parametrize.append(image)
-                        elif "neuron_only" in metafunc.fixturenames and "neuron" in image:
-                            images_to_parametrize.append(image)
                         elif (
                             "cpu_only" not in metafunc.fixturenames
                             and "gpu_only" not in metafunc.fixturenames
-                            and "eia_only" not in metafunc.fixturenames
-                            and "neuron_only" not in metafunc.fixturenames
                         ):
                             images_to_parametrize.append(image)
 

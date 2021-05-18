@@ -10,10 +10,8 @@ import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
 @pytest.mark.model("resnet")
-def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
+def test_eks_pytorch_neuron_inference(pytorch_inference_neuron):
     server_type = test_utils.get_inference_server_type(pytorch_inference)
-    if "neuron" not in pytorch_inference:
-        pytest.skip("Skipping EKS Neuron Test for EIA and Non Neuron Images")
 
     server_cmd = "/usr/local/bin/entrypoint.sh -m pytorch-resnet-neuron=https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar -t /home/model-server/config.properties"
     num_replicas = "1"
@@ -57,11 +55,8 @@ def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
 @pytest.mark.model("densenet")
 def test_eks_pytorch_densenet_inference(pytorch_inference):
     server_type = test_utils.get_inference_server_type(pytorch_inference)
-    if "eia" in pytorch_inference:
-        pytest.skip("Skipping EKS Test for EIA")
-    elif "neuron" in pytorch_inference:
-        pytest.skip("Neuron specific test is run and so skipping this test for Neuron")
-    elif server_type == "ts":
+    
+    if server_type == "ts":
         model = "pytorch-densenet=https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar"
         server_cmd = "torchserve"
     else:

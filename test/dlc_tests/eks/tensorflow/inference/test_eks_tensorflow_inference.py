@@ -9,9 +9,7 @@ import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
 @pytest.mark.model("mnist")
-def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
-    if "eia" in tensorflow_inference or "neuron" not in tensorflow_inference:
-        pytest.skip("Skipping EKS Neuron Test for EIA and Non Neuron Images")
+def test_eks_tensorflow_neuron_inference(tensorflow_inference):
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
@@ -58,8 +56,6 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
 
 @pytest.mark.model("half_plus_two")
 def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
-    if "eia" in tensorflow_inference or "neuron" in tensorflow_inference:
-        pytest.skip("Skipping EKS Test for EIA and neuron Images")
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
@@ -105,8 +101,6 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
 @pytest.mark.skipif(not test_utils.is_nightly_context(), reason="Running additional model in nightly context only")
 @pytest.mark.model("albert")
 def test_eks_tensorflow_albert(tensorflow_inference):
-    if "eia" in tensorflow_inference or "neuron" in tensorflow_inference:
-        pytest.skip("Skipping EKS Test for EIA and neuron Images")
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)

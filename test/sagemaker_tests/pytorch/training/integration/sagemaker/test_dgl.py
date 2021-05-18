@@ -55,6 +55,14 @@ def test_dgl_gcn_training_gpu(sagemaker_session, ecr_image, instance_type):
     _test_dgl_training(sagemaker_session, ecr_image, instance_type)
 
 
+# Placeholder for Habana SM test
+def test_dgl_training_habana(sagemaker_session,
+                                      instance_type,
+                                      ecr_image,
+                                      tmpdir,
+                                      framework_version):
+    assert 1==1
+
 def _test_dgl_training(sagemaker_session, ecr_image, instance_type):
     dgl = PyTorch(
         entry_point=DGL_SCRIPT_PATH,
