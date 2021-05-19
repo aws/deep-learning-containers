@@ -44,6 +44,7 @@ ARG SMDEBUG_VERSION=1.0.9
 ARG CUDA=11.2
 ARG CUDA_DASH=11-2
 ARG CUDNN=8.1.0.77-1
+ARG NCCL_VERSION=2.8.4
 ARG CUDNN_MAJOR_VERSION=8
 ARG LIB_DIR_PREFIX=x86_64
 
@@ -60,9 +61,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    emacs \
    libcudnn8=${CUDNN}+cuda${CUDA} \
    # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
-   libnccl2=2.8.4-1+cuda${CUDA} \
    libgomp1 \
-   libnccl-dev=2.8.4-1+cuda${CUDA} \
    libfreetype6-dev \
    libhdf5-serial-dev \
    liblzma-dev \
@@ -97,6 +96,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
 
    && rm -rf /var/lib/apt/lists/* \
    && mkdir -p /var/run/sshd
+
+RUN cd /tmp \
+  && git clone https://github.com/NVIDIA/nccl.git -b v$NCCL_VERSION-1 \
+  && cd nccl \
+  && make -j64 src.build BUILDDIR=/usr/local \
+  && rm -rf /tmp/nccl
 
 # Install EFA without AWS OPEN_MPI
 RUN mkdir /tmp/efa \
