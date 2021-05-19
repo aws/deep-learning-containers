@@ -214,7 +214,6 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
-   cmake \
    numpy==1.19.1 \
    scipy==1.5.2 \
    scikit-learn==0.23 \
@@ -228,7 +227,7 @@ RUN ${PIP} install --no-cache-dir -U \
    opencv-python==4.3.0.36 \
    "sagemaker>=2,<3" \
    sagemaker-experiments==0.* \
-   #"sagemaker-tensorflow>=2.4,<2.5" \
+   "sagemaker-tensorflow>=2.5,<2.6" \
    "sagemaker-tensorflow-training>=20" \
    # Let's install TensorFlow separately in the end to avoid
    # the library version to be overwritten
@@ -241,16 +240,7 @@ RUN ${PIP} install --no-cache-dir -U \
    smdebug==${SMDEBUG_VERSION} \
    smclarify
 
-RUN apt-get update && apt-get -y install  protobuf-compiler libcurl4-openssl-dev
-
-RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git && \
-    cd sagemaker-tensorflow-extensions && \
-    pip install . && \
-    cd .. && \
-    rm -rf sagemaker-tensorflow-extensions \
-    rm -rf /tmp/*
-
-
+RUN apt-get update && apt-get -y install  protobuf-compiler
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
