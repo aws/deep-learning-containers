@@ -26,7 +26,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV DGLBACKEND=pytorch
 
 ARG PT_TRAINING_URL=https://download.pytorch.org/whl/test/cpu/torch-1.9.0%2Bcpu-cp36-cp36m-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cpu/torchvision-0.9.0%2Bcpu-cp36-cp36m-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.9.1%2Bcpu-cp38-cp38-linux_x86_64.whl
 
 
 WORKDIR /
