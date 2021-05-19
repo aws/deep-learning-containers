@@ -90,7 +90,7 @@ def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator = HuggingFace(
             entry_point='run_qa.py',
-            source_dir='./examples/question-answering',
+            source_dir='./examples/pytorch/question-answering',
             git_config=git_config,
             metric_definitions=metric_definitions,
             role='SageMakerRole',
@@ -126,7 +126,7 @@ def test_smdp_question_answering_multinode(ecr_image, instance_type, py_version,
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator = HuggingFace(
             entry_point='run_qa.py',
-            source_dir='./examples/question-answering',
+            source_dir='./examples/pytorch/question-answering',
             git_config=git_config,
             metric_definitions=metric_definitions,
             role='SageMakerRole',
