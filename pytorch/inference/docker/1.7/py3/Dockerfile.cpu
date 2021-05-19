@@ -108,7 +108,7 @@ RUN pip uninstall -y torch \
  && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
-RUN pip install pillow==7.2.0 "awscli<2"
+RUN pip install pillow==8.2.0 "awscli<2"
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
 RUN pip uninstall -y model-archiver multi-model-server \
