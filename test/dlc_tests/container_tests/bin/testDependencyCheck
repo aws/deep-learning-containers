@@ -8,6 +8,7 @@ EOL
 #Installing from head of github repo until the 0.6.0 release is available on pypi
 repo="jhermann/dependency-check-py"
 pip install "https://github.com/$repo/archive/master.zip#egg=dependency-check"
-dependency-check --disableAssembly -s / -o build
+# Adding disableNodeJS flag. Refer: https://github.com/jeremylong/DependencyCheck/issues/2796
+dependency-check --disableAssembly --disableNodeJS -s / -o build
 
 cat /build/dependency-check-report.html
