@@ -40,15 +40,20 @@ RUN apt-get update \
     unzip \
     zlib1g-dev \
     libcap-dev \
-    gpg-agent
+    gpg-agent \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 RUN echo "deb https://apt.repos.neuron.amazonaws.com xenial main" > /etc/apt/sources.list.d/neuron.list
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
-RUN apt-get update
 
-RUN apt-get install -y \
+RUN apt-get update \
+    && apt-get install -y \
     aws-neuron-runtime \
-    aws-neuron-tools
+    aws-neuron-tools \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
 
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
