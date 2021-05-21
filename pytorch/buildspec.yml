@@ -72,10 +72,10 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
                          *DEVICE_TYPE ]
     download_artifacts:
-      awsio:
+      awsio_gpu:
         type: s3
         URI: s3://aws-s3-plugin/binaries/0.0.1/93fdaed/awsio-0.0.1-cp36-cp36m-manylinux1_x86_64.whl
-        VAR_IN_DOCKERFILE: PT_S3_WHL
+        VAR_IN_DOCKERFILE: PT_S3_WHL_GPU
     context:
       <<: *TRAINING_CONTEXT
   BuildPyTorchExampleGPUTrainPy3DockerImage:
