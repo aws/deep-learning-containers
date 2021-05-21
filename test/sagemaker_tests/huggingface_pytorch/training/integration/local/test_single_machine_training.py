@@ -60,9 +60,9 @@ def test_distilbert_base(docker_image, processor, instance_type, sagemaker_local
 
     # set format for pytorch
     train_dataset =  train_dataset.rename_column("label", "labels")
-    train_dataset = train_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
+    train_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
     test_dataset = test_dataset.rename_column("label", "labels")
-    test_dataset = test_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
+    test_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
 
     # hyperparameters, which are passed into the training job
     hyperparameters = {'max_steps': 5,
