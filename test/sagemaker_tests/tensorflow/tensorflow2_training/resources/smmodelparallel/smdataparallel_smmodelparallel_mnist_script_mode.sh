@@ -4,5 +4,5 @@
 
 set -ex
 
-smddpsinglenode -x RDMAV_FORK_SAFE=1 python smdataparallel_mnist.py
-mpirun --allow-run-as-root -x RDMAV_FORK_SAFE=1 -np 2 python tf2_conv.py
+smddpsinglenode python smdataparallel_mnist.py
+mpirun --allow-run-as-root -np 2 python tf2_conv.py

@@ -6,7 +6,9 @@ LABEL dlc_major_version="1"
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.6.13
 ARG CUBLAS_VERSION=11.3.0.106
-ARG OPEN_MPI_PATH=/opt/amazon/openmpi/
+ARG OPEN_MPI_PATH=/opt/amazon/openmpi
+ARG EFA_PATH=/opt/amazon/efa
+
 ARG CUDA_HOME=/usr/local/cuda
 ARG CONDA_PREFIX=/opt/conda
 ARG METIS=metis-5.1.0
@@ -14,7 +16,7 @@ ARG RMM_VERSION=0.15.0
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.8
+ARG SMDEBUG_VERSION=1.0.9
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -32,16 +34,18 @@ ENV CUDNN_VERSION=8.0.5.39
 ENV NCCL_VERSION=2.7.8
 ENV HOROVOD_VERSION=0.21.3
 ENV EFA_VERSION=1.11.2
+ENV OMPI_VERSION=4.1.1
 ENV BRANCH_OFI=1.1.1
 ENV DGLBACKEND=pytorch
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV MANUAL_BUILD=0
+ENV RDMAV_FORK_SAFE=1
 
 ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.8.1_aws/20210325-012734/e1343088f0beb99438343e1e99e8d71ffb972b47/gpu/torch-1.8.1-cp36-cp36m-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.8.1/gpu/torchvision-0.9.1-cp36-cp36m-linux_x86_64.whl
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.amazonaws.com/pytorch-1.8/build-artifacts/2021-03-26-22-01/smdistributed_modelparallel-1.3.1-cp36-cp36m-linux_x86_64.whl
-ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.8.1/cu111/2021-04-16/smdistributed_dataparallel-1.2.0-cp36-cp36m-linux_x86_64.whl
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.8.1/cu111/2021-04-28/smdistributed_dataparallel-1.2.0-cp36-cp36m-linux_x86_64.whl
 
 RUN apt-get update \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
@@ -90,18 +94,32 @@ RUN cd /tmp \
   && make -j64 src.build BUILDDIR=/usr/local \
   && rm -rf /tmp/nccl
 
-# Install EFA along with AWS OPEN_MPI
+# Install EFA along without AWS OPEN_MPI
 RUN mkdir /tmp/efa \
   && cd /tmp/efa \
   && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
   && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
   && cd aws-efa-installer \
   && ./efa_installer.sh -y --skip-kmod -g \
+  && rm -rf $OPEN_MPI_PATH \
   && rm -rf /tmp/efa \
   && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz
 
+# Install OpenMPI without libfabric support
+RUN mkdir /tmp/openmpi && \
+  cd /tmp/openmpi && \
+  wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz && \
+  tar zxf openmpi-${OMPI_VERSION}.tar.gz && \
+  cd openmpi-${OMPI_VERSION} && \
+  ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH && \
+  make -j $(nproc) all && \
+  make install && \
+  ldconfig && \
+  cd / && \
+  rm -rf /tmp/openmpi
+
 ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
-ENV LD_LIBRARY_PATH="$OPEN_MPI_PATH/lib/:$LD_LIBRARY_PATH"
+ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \

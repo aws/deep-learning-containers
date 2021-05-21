@@ -5,7 +5,7 @@ BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 TRAINING_LOG=${LOG_DIR}/tensorflow_horovod_test.log
 HOVOROD_DIR=${BIN_DIR}/examples/Horovod
-export RDMAV_FORK_SAFE=1
+
 set -e
 
 echo "Simply verify if Horovod works well. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
@@ -45,7 +45,7 @@ if [ ${RETURN_VAL} -eq 0 ]; then
         -x HOROVOD_HIERARCHICAL_ALLREDUCE=1 -x HOROVOD_FUSION_THRESHOLD=16777216 \
         -x NCCL_MIN_NRINGS=4 -x LD_LIBRARY_PATH -x PATH -mca pml ob1 -mca btl ^openib \
         -x NCCL_SOCKET_IFNAME=$INTERFACE -mca btl_tcp_if_exclude lo,docker0 \
-        -x TF_CPP_MIN_LOG_LEVEL=0 -x RDMAV_FORK_SAFE\
+        -x TF_CPP_MIN_LOG_LEVEL=0 \
         python -W ignore ${HOVOROD_DIR}/tf2_train_imagenet_resnet_hvd.py \
         --synthetic --batch_size 64 --num_batches 100 --clear_log 2> ${TRAINING_LOG}
 else
