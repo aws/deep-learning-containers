@@ -25,10 +25,10 @@ ENV PATH /opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends software-properties-common \
-    && add-apt-repository ppa:openjdk-r/ppa \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
+  && apt-get install -y --no-install-recommends software-properties-common \
+  && add-apt-repository ppa:openjdk-r/ppa \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends \
     build-essential \
     apt-transport-https \
     ca-certificates \
@@ -48,15 +48,20 @@ RUN apt-get update \
     unzip \
     zlib1g-dev \
     libcap-dev \
-    gpg-agent
+    gpg-agent \
+  && rm -rf /var/lib/apt/lists/* \
+  && apt-get clean
 
 RUN echo "deb https://apt.repos.neuron.amazonaws.com xenial main" > /etc/apt/sources.list.d/neuron.list
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
 RUN apt-get update
 
-RUN apt-get install -y \
+RUN apt-get update \
+  && apt-get install -y \
     aws-neuron-runtime \
-    aws-neuron-tools
+    aws-neuron-tools \
+  && rm -rf /var/lib/apt/lists/* \
+  && apt-get clean
 
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
@@ -137,10 +142,7 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
  && chown -R model-server /home/model-server
 
-COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
-
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
