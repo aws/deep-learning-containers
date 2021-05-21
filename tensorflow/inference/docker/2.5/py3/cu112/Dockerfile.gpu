@@ -46,8 +46,8 @@ RUN apt-get update \
     libbz2-dev \
     liblzma-dev \
     #cuda-cublas-dev not available with 10-1, install libcublas instead
-    libcublas-11-0=11.2.0.252-1 \
-    libcublas-dev-11-0=11.2.0.252-1 \
+    libcublas-11-2 \
+    libcublas-dev-11-2 \
     libcudnn8=${CUDNN_VERSION} \
     libcudnn8-dev=${CUDNN_VERSION} \
     libnccl2=${NCCL_VERSION} \
