@@ -89,9 +89,9 @@ def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker
     instance_type = "ml.p3.16xlarge"
     
     source_dir = (
-    "./examples/question-answering"
-    if Version(transformers_version) < Version("4.6")
-    else "./examples/pytorch/question-answering"
+        "./examples/question-answering"
+        if Version(transformers_version) < Version("4.6")
+        else "./examples/pytorch/question-answering"
     )
     
     
@@ -134,9 +134,9 @@ def test_smdp_question_answering_multinode(ecr_image, instance_type, py_version,
     
     
     source_dir = (
-    "./examples/question-answering"
-    if Version(transformers_version) < Version("4.6")
-    else "./examples/pytorch/question-answering"
+        "./examples/question-answering"
+        if Version(transformers_version) < Version("4.6")
+        else "./examples/pytorch/question-answering"
     )
     
     with timeout(minutes=DEFAULT_TIMEOUT):
