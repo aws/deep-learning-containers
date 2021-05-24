@@ -68,6 +68,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    libpng-dev \
    libtemplate-perl \
    libzmq3-dev \
+   hwloc \
    git \
    unzip \
    wget \
@@ -79,6 +80,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    zlib1g-dev \
    # Install dependent library for OpenCV
    libgtk2.0-dev \
+   jq \
    && apt-get update \
    && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-change-held-packages \
    #libcublas-11-0=11.2.0.252-1 \
@@ -149,8 +151,8 @@ RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
 
 # Configure OpenMPI to run good defaults:
 #   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0
-RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf \
-   && echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
+RUN echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf
 
 # Set default NCCL parameters
 RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
@@ -189,8 +191,9 @@ RUN apt-get update \
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
    && tar -xvf Python-$PYTHON_VERSION.tgz \
    && cd Python-$PYTHON_VERSION \
-   && ./configure --enable-shared && make && make install \
-   && make && make install && rm -rf ../Python-$PYTHON_VERSION*
+   && ./configure --enable-shared \
+   && make && make install \
+   && rm -rf ../Python-$PYTHON_VERSION*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
    pip \
