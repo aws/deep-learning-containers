@@ -114,6 +114,27 @@ def test_dist_operations_fastai_gpu(sagemaker_session, framework_version, ecr_im
     _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
 
 
+
+@pytest.mark.processor("gpu")
+@pytest.mark.integration("pt_s3")
+@pytest.mark.model("resnet18")
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+def test_dist_operations_pt_s3_gpu(sagemaker_session, framework_version, ecr_image):
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        pytorch = PyTorch(
+            entry_point="main.py",
+            source_dir=resnet18_path,
+            image_uri=ecr_image,
+            role='SageMakerRole',
+            instance_count=1,
+            instance_type=MULTI_GPU_INSTANCE,
+            sagemaker_session=sagemaker_session,
+            framework_version=framework_version
+        )
+        pytorch.fit()
+
+
 @pytest.mark.processor("gpu")
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
