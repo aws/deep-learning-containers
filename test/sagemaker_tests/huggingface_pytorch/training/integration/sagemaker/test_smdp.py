@@ -87,10 +87,18 @@ def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker
     validate_or_skip_smdataparallel(ecr_image)
     instance_count = 1
     instance_type = "ml.p3.16xlarge"
+    
+    source_dir = (
+    "./examples/question-answering"
+    if Version(transformers_version) < Version("4.6")
+    else "./examples/pytorch/question-answering"
+    )
+    
+    
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator = HuggingFace(
             entry_point='run_qa.py',
-            source_dir='./examples/pytorch/question-answering',
+            source_dir=source_dir,
             git_config=git_config,
             metric_definitions=metric_definitions,
             role='SageMakerRole',
@@ -123,10 +131,18 @@ def test_smdp_question_answering_multinode(ecr_image, instance_type, py_version,
 
     instance_count = 2
     instance_type = "ml.p3.16xlarge"
+    
+    
+    source_dir = (
+    "./examples/question-answering"
+    if Version(transformers_version) < Version("4.6")
+    else "./examples/pytorch/question-answering"
+    )
+    
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator = HuggingFace(
             entry_point='run_qa.py',
-            source_dir='./examples/pytorch/question-answering',
+            source_dir=source_dir,
             git_config=git_config,
             metric_definitions=metric_definitions,
             role='SageMakerRole',
