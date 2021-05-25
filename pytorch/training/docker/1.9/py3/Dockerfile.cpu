@@ -5,7 +5,7 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
 # Add arguments to achieve the version, python and url
-ARG PYTHON_VERSION=3.6.13
+ARG PYTHON_VERSION=3.8.8
 ARG OPEN_MPI_VERSION=4.0.1
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
@@ -25,8 +25,8 @@ ENV PATH=/opt/conda/bin:$PATH
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV DGLBACKEND=pytorch
 
-ARG PT_TRAINING_URL=https://download.pytorch.org/whl/test/cpu/torch-1.9.0%2Bcpu-cp36-cp36m-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.9.1%2Bcpu-cp36-cp36m-linux_x86_64.whl
+ARG PT_TRAINING_URL=https://download.pytorch.org/whl/test/cu111/torch-1.9.0%2Bcu111-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cpu/torchvision-0.9.1%2Bcpu-cp38-cp38-linux_x86_64.whl
 
 
 WORKDIR /
