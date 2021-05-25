@@ -16,6 +16,7 @@ import os
 
 import boto3
 import pytest
+from sagemaker import utils
 from sagemaker.pytorch import PyTorch
 from sagemaker import Session 
 from six.moves.urllib.parse import urlparse
@@ -23,7 +24,7 @@ from test.test_utils import get_framework_and_version_from_tag, get_cuda_version
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from ...integration import (data_dir, dist_operations_path, fastai_path, mnist_script,
-                              DEFAULT_TIMEOUT, mnist_path)
+                              DEFAULT_TIMEOUT, mnist_path, resnet18_path)
 from ...integration.sagemaker.timeout import timeout
 
 MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
@@ -114,7 +115,6 @@ def test_dist_operations_fastai_gpu(sagemaker_session, framework_version, ecr_im
     _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
 
 
-
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("pt_s3")
 @pytest.mark.model("resnet18")
@@ -132,7 +132,8 @@ def test_dist_operations_pt_s3_gpu(sagemaker_session, framework_version, ecr_ima
             sagemaker_session=sagemaker_session,
             framework_version=framework_version
         )
-        pytorch.fit()
+        job_name = utils.unique_name_from_base('test-pytorch-s3-plugin')
+        pytorch.fit(job_name=job_name)
 
 
 @pytest.mark.processor("gpu")
