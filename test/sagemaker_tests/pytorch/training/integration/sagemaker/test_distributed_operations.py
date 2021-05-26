@@ -116,7 +116,7 @@ def test_dist_operations_fastai_gpu(sagemaker_session, framework_version, ecr_im
 
 
 @pytest.mark.processor("gpu")
-@pytest.mark.integration("pt_s3")
+@pytest.mark.integration("pt_s3_plugin")
 @pytest.mark.model("resnet18")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
