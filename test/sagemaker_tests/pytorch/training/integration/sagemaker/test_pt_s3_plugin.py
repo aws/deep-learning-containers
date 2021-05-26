@@ -16,12 +16,24 @@ import os
 
 import boto3
 import pytest
+from sagemaker.pytorch import PyTorch
 from sagemaker import utils
 from ...integration import (DEFAULT_TIMEOUT, resnet18_path)
 from ...integration.sagemaker.timeout import timeout
+from test.test_utils import get_framework_and_version_from_tag
 
 MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
+
+
+def can_run_s3_plugin(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    return Version(image_framework_version) in SpecifierSet(">=1.6")
+
+
+def validate_or_skip_s3_plugin(ecr_image):
+    if not can_run_s3_plugin(ecr_image):
+        pytest.skip("S3 plugin is added only on PyTorch 1.6 or higher")
 
 
 @pytest.mark.processor("gpu")
@@ -30,6 +42,7 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_pt_s3_plugin_sm_gpu(sagemaker_session, framework_version, ecr_image):
+    validate_or_skip_s3_plugin(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(
             entry_point="main.py",

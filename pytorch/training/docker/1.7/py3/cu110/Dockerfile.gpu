@@ -244,6 +244,15 @@ RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python3.6/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"}
 
+# Install PT S3 plugin
+ARG PT_S3_WHL_GPU
+RUN echo ${PT_S3_WHL_GPU}
+COPY ${PT_S3_WHL_GPU} /root/
+RUN ls /root/
+RUN pip install --no-cache-dir -U ${PT_S3_WHL_GPU}
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+RUN rm -rf ${PT_S3_WHL_GPU}
+
 WORKDIR /
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py

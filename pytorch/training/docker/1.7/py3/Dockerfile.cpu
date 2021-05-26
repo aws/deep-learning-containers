@@ -122,6 +122,13 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
 
+# Install PT S3 plugin
+ARG PT_S3_WHL
+COPY ${PT_S3_WHL} /
+RUN pip install ${PT_S3_WHL}
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+RUN rm -rf ${PT_S3_WHL}
+
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
