@@ -16,7 +16,6 @@ import os
 
 import boto3
 import pytest
-from sagemaker import utils
 from sagemaker.pytorch import PyTorch
 from sagemaker import Session 
 from six.moves.urllib.parse import urlparse
