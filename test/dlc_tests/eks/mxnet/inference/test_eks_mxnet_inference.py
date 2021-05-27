@@ -8,6 +8,7 @@ from invoke import run
 import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
+@pytest.mark.model("resnet50")
 def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
     if "eia" in mxnet_inference or "neuron" not in mxnet_inference:
         pytest.skip("Skipping EKS Neuron Test for EIA and Non Neuron Images")
