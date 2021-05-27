@@ -50,6 +50,7 @@ RUN apt-get update \
     libcap-dev \
     gpg-agent \
   && rm -rf /var/lib/apt/lists/* \
+  && rm -rf /tmp/tmp* \
   && apt-get clean
 
 RUN echo "deb https://apt.repos.neuron.amazonaws.com xenial main" > /etc/apt/sources.list.d/neuron.list
@@ -61,6 +62,7 @@ RUN apt-get update \
     aws-neuron-runtime \
     aws-neuron-tools \
   && rm -rf /var/lib/apt/lists/* \
+  && rm -rf /tmp/tmp* \
   && apt-get clean
 
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
