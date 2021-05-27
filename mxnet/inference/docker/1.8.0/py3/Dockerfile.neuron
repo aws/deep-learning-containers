@@ -130,7 +130,7 @@ RUN pip install --no-cache-dir -U \
     "awscli<2"
 
 RUN pip install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && pip install --no-deps --no-cache-dir -U \
+ && pip install --no-cache-dir -U \
     https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.8.0/aws_mx-1.8.0-py2.py3-none-manylinux2014_x86_64.whl \
  && pip install mx-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install multi-model-server --no-deps
