@@ -44,26 +44,30 @@ For the purposes of testing in your personal account, the following managed perm
 -- [AWSServiceRoleForAmazonEKSNodegroup](https://console.aws.amazon.com/iam/home#policies/arn:aws:iam::aws:policy/AWSServiceRoleForAmazonEKSNodegroup) <br>
 -- [AmazonSageMakerFullAccess](https://console.aws.amazon.com/iam/home#policies/arn:aws:iam::aws:policy/AmazonSageMakerFullAccess) <br>
 -- [AmazonS3FullAccess](https://console.aws.amazon.com/iam/home#policies/arn:aws:iam::aws:policy/AmazonS3FullAccess) <br>
-* [Create](https://docs.aws.amazon.com/cli/latest/reference/ecr/create-repository.html) an ECR repository with the name “beta-mxnet-training” in the us-west-2 region
+
 * Ensure you have [docker](https://docs.docker.com/get-docker/) client set-up on your system - osx/ec2
 
 1. Clone the repo and set the following environment variables: 
     ```shell script
-    export ACCOUNT_ID=<YOUR_ACCOUNT_ID>
+    export ACCOUNT_ID=`aws sts get-caller-identity --query Account --output text`
     export REGION=us-west-2
     export REPOSITORY_NAME=beta-mxnet-training
     ``` 
-2. Login to ECR
+2. Create an ECR repository:
     ```shell script
-    aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com
+    aws ecr create-repository --repository-name $REPOSITORY_NAME --region $REGION
+    ```
+3. Login to ECR
+    ```shell script
+    aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
     ``` 
-3. Assuming your working directory is the cloned repo, create a virtual environment to use the repo and install requirements
+4. Assuming your working directory is the cloned repo, create a virtual environment to use the repo and install requirements
     ```shell script
     python3 -m venv dlc
     source dlc/bin/activate
     pip install -r src/requirements.txt
     ``` 
-4. Perform the initial setup
+5. Perform the initial setup
     ```shell script
     bash src/setup.sh mxnet
     ```
