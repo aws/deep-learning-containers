@@ -88,25 +88,6 @@ RUN apt-get update \
     jq \
  && rm -rf /var/lib/apt/lists/*
 
-RUN echo "DATE"
-RUN date
-# install metis step by step
-RUN wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz
-RUN gunzip -f ${METIS}.tar.gz
-  RUN tar -xvf ${METIS}.tar
-  RUN cd ${METIS}
-  RUN apt-get update
-  RUN apt-get install --reinstall  ca-certificates
-  RUN apt-get install -y build-essential
-  RUN apt-get install -y cmake
-  RUN make config shared=1
-  RUN make install
-  RUN cd ..
-  RUN rm -rf ${METIS}.tar*
-  RUN rm -rf ${METIS}
-  RUN rm -rf /var/lib/apt/lists/*
-  RUN apt-get clean
-
 RUN cd /tmp \
   && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
   && cd nccl \
@@ -226,7 +207,22 @@ RUN pip install --no-cache-dir -U \
 # Reinstalling ca-certificates
 RUN apt-get install --reinstall -y --allow-change-held-packages --no-install-recommends ca-certificates
 
-
+RUN date
+# install metis step by step
+RUN wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz
+RUN gunzip -f ${METIS}.tar.gz
+  RUN tar -xvf ${METIS}.tar
+  RUN cd ${METIS}
+  RUN apt-get install --reinstall  ca-certificates
+  RUN apt-get install -y build-essential
+  RUN apt-get install -y cmake
+  RUN make config shared=1
+  RUN make install
+  RUN cd ..
+  RUN rm -rf ${METIS}.tar*
+  RUN rm -rf ${METIS}
+  RUN rm -rf /var/lib/apt/lists/*
+  RUN apt-get clean
 
 
 
