@@ -176,7 +176,8 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 WORKDIR /root
 
-RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+# Reinstalling ca-certificates
+RUN apt-get install -y --allow-change-held-packages --no-install-recommends ca-certificates
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install --no-cache-dir -U \
