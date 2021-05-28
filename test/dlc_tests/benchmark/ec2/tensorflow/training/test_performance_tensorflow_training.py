@@ -78,9 +78,14 @@ def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection
     )
 
 # Placeholder for habana benchmark test
-@pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.HPU_AL2_DLAMI], indirect=True)
-def test_performance_tensorflow_hpu_imagenet(tensorflow_training_habana, ec2_connection):
+# Using exisitng instance to run the test
+#@pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)
+#@pytest.mark.parametrize("ec2_instance_ami", [test_utils.HPU_AL2_DLAMI], indirect=True)
+@pytest.mark.parametrize("ec2_key_file_name", ["<ec2_key_file>"], indirect=True)
+@pytest.mark.parametrize("ec2_user_name", ["<user-name>"], indirect=True)
+@pytest.mark.parametrize("ec2_public_ip", ["public-ip-address"], indirect=True)
+def test_performance_tensorflow_hpu_imagenet(tensorflow_training_habana, existing_ec2_instance_connection):
+    existing_ec2_instance_connection.run('mkdir habana')
     assert 1==1    
 
 def post_process_tensorflow_training_performance(connection, log_location):

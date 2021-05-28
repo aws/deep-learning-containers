@@ -119,6 +119,17 @@ def num_nodes(request):
 def ec2_key_name(request):
     return request.param
 
+@pytest.fixture(scope="function")
+def ec2_key_file_name(request):
+    return request.param
+
+@pytest.fixture(scope="function")
+def ec2_user_name(request):
+    return request.param
+
+@pytest.fixture(scope="function")
+def ec2_public_ip(request):
+    return request.param
 
 @pytest.fixture(scope="session")
 def region():
@@ -328,6 +339,37 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
 
     return conn
 
+@pytest.fixture(scope="function")
+def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, ec2_public_ip):
+    """
+    Fixture to establish connection with EC2 instance if necessary
+    :param request: pytest test request
+    :param ec2_key_file_name: ec2 key file name
+    :param ec2_user_name: username of the ec2 instance to login
+    :param ec2_public_ip: public ip address of the instance
+    :return: Fabric connection object
+    """
+    conn = Connection(
+        user=ec2_user_name,
+        host=ec2_public_ip,
+        connect_kwargs={"key_filename": [ec2_key_file_name]},
+    )
+
+    random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
+    unique_id = random.randint(1, 100000)
+    ec2_key_name = ec2_public_ip.split(".")[0]
+    artifact_folder = f"{ec2_key_name}-{unique_id}-folder"
+    s3_test_artifact_location = test_utils.upload_tests_to_s3(artifact_folder)
+
+    def delete_s3_artifact_copy():
+        test_utils.delete_uploaded_tests_from_s3(s3_test_artifact_location)
+
+    request.addfinalizer(delete_s3_artifact_copy)
+
+    conn.run(f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests")
+    conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
+
+    return conn
 
 @pytest.fixture(scope="session")
 def dlc_images(request):
