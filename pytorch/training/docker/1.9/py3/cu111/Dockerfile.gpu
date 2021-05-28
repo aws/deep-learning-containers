@@ -4,7 +4,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.8
+ARG PYTHON_VERSION=3.8.3
 ARG CUBLAS_VERSION=11.3.0.106
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
