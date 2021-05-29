@@ -176,6 +176,9 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 WORKDIR /root
 
+# Reinstalling ca-certificates
+RUN apt-get install -y --allow-change-held-packages --no-install-recommends ca-certificates
+
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
