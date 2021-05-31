@@ -111,7 +111,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "pyyaml>=5.4,<5.5" \
     "awscli<2" \
     fastai==1.0.61 \
-    scipy==1.2.2 \
+    scipy \
     click \
     "cryptography>3.2" \
     smdebug==${SMDEBUG_VERSION} \
