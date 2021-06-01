@@ -36,11 +36,11 @@ release_images:
       force_release: False
   3:
     framework: "pytorch"
-    version: "1.5.1"
+    version: "1.7.1"
     inference:
       device_types: ["neuron"]
       python_versions: ["py36"]
-      os_version: "ubuntu16.04"
+      os_version: "ubuntu18.04"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
       # to images being published.
