@@ -121,7 +121,7 @@ RUN pip uninstall -y torch \
 RUN pip install --no-cache-dir \ 
 	transformers[sentencepiece]==${TRANSFORMERS_VERSION} \ 
 	protobuf==3.12.0 \
-   sagemaker_huggingface_inference_toolkit==${HF_INFERENCE_TOOLKIT_VERSION}
+   sagemaker-huggingface-inference-toolkit==${HF_INFERENCE_TOOLKIT_VERSION}
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]

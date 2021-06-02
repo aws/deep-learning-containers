@@ -53,7 +53,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py36
     os_version: &OS_VERSION ubuntu18.04
     transformers_version: &TRANSFORMERS_VERSION 4.6.0
-    inference_toolkit_version: &INFERENCE_TOOLKIT_VERSION 1.0.0
+    inference_toolkit_version: &INFERENCE_TOOLKIT_VERSION 0.0.1.dev0
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
       *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, 
@@ -70,7 +70,7 @@ images:
     cuda_version: &CUDA_VERSION cu111
     os_version: &OS_VERSION ubuntu18.04
     transformers_version: &TRANSFORMERS_VERSION 4.6.0
-    inference_toolkit_version: &INFERENCE_TOOLKIT_VERSION 1.0.0
+    inference_toolkit_version: &INFERENCE_TOOLKIT_VERSION 0.0.1.dev0
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
       *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, 
