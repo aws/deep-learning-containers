@@ -16,9 +16,6 @@ import pytest
 
 from ..sagemaker import util
 
-NON_P3_REGIONS = ["ap-southeast-1", "ap-southeast-2", "ap-south-1",
-                  "ca-central-1", "eu-central-1", "eu-west-2", "us-west-1"]
-
 
 @pytest.fixture(params=os.environ["TEST_VERSIONS"].split(","))
 def version(request):
@@ -27,7 +24,7 @@ def version(request):
 
 @pytest.fixture(scope="session")
 def repo(request):
-    return request.config.getoption("--repo") or "sagemaker-tensorflow-serving"
+    return request.config.getoption("--docker-base-name") or "huggingface-tensorflow-inference"
 
 
 @pytest.fixture
