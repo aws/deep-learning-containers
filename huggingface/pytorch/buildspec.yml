@@ -13,7 +13,7 @@ repository_info:
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
   inference_repository: &INFERENCE_REPOSITORY
     image_type: &INFERENCE_IMAGE_TYPE inference
-    root: !join [ "huggingface/", *BASE_FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
+    root: !join [ "huggingface/", *BASE_FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
     repository_name: &REPOSITORY_NAME !join ["pr", "-", "huggingface", "-", *BASE_FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
