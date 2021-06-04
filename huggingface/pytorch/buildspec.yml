@@ -10,8 +10,12 @@ repository_info:
     image_type: &TRAINING_IMAGE_TYPE training
     root: !join [ "huggingface/", *BASE_FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
     repository_name: &REPOSITORY_NAME !join ["pr", "-", "huggingface", "-", *BASE_FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
-    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/,
-      *REPOSITORY_NAME ]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+  inference_repository: &INFERENCE_REPOSITORY
+    image_type: &INFERENCE_IMAGE_TYPE inference
+    root: !join [ "huggingface/", *BASE_FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
+    repository_name: &REPOSITORY_NAME !join ["pr", "-", "huggingface", "-", *BASE_FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
 images:
   BuildHuggingFacePytorchGpuPy37Cu110TrainingDockerImage:
@@ -30,8 +34,8 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
       *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
   BuildHuggingFacePytorchGpuPy37Cu110InferenceDockerImage:
-    <<: *TRAINING_REPOSITORY
-    build: &HUGGINGFACE_PYTORCH_GPU_TRAINING_PY3 false
+    <<: *INFERENCE_REPOSITORY
+    build: &HUGGINGFACE_PYTORCH_GPU_INFERENCE_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 15000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
