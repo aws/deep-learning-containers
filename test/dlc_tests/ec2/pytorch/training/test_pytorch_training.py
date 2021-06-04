@@ -125,10 +125,13 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl")
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
+
 @pytest.mark.integration("nccl")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_nccl_version(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
+def test_pytorch_nccl_version(
+    pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type, pt17_and_above_only,
+):
     """
     Tests nccl version
     """
@@ -136,6 +139,7 @@ def test_pytorch_nccl_version(pytorch_training, ec2_connection, gpu_only, py3_on
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNcclVersion")
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
+
 
 @pytest.mark.integration("mpi")
 @pytest.mark.model("resnet18")
