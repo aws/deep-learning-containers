@@ -96,10 +96,10 @@ def pytest_collection_modifyitems(session, config, items):
 def pytest_configure(config):
     os.environ["TEST_REGION"] = config.getoption("--region")
     os.environ["TEST_VERSIONS"] = config.getoption("--version") or "2.4"
-    os.environ["TEST_INSTANCE_TYPES"] = config.getoption("--instance-types") or "ml.m5.xlarge,ml.p2.xlarge"
+    os.environ["TEST_INSTANCE_TYPES"] = config.getoption("--instance-type") or "ml.m5.xlarge,ml.p2.xlarge"
 
     os.environ["TEST_EI_VERSIONS"] = config.getoption("--version") or "2.4"
-    os.environ["TEST_EI_INSTANCE_TYPES"] = config.getoption("--instance-types") or "ml.m5.xlarge"
+    os.environ["TEST_EI_INSTANCE_TYPES"] = config.getoption("--instance-type") or "ml.m5.xlarge"
 
     if config.getoption("--tag"):
         os.environ["TEST_VERSIONS"] = config.getoption("--tag")
