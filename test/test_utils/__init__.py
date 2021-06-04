@@ -785,7 +785,7 @@ def setup_sm_benchmark_mx_train_env(resources_location):
     return venv_dir
 
 
-def setup_sm_benchmark_hf_tf_infer_env(resources_location):
+def setup_sm_benchmark_hf_infer_env(resources_location):
     """
     Create a virtual environment for benchmark tests if it doesn't already exist, and download all necessary scripts
     :param resources_location: <str> directory in which test resources should be placed
@@ -793,23 +793,7 @@ def setup_sm_benchmark_hf_tf_infer_env(resources_location):
     """
     ctx = Context()
 
-    venv_dir = os.path.join(resources_location, "sm_benchmark_hf_tf_venv")
-    if not os.path.isdir(venv_dir):
-        ctx.run(f"python3 -m virtualenv {venv_dir}")
-        with ctx.prefix(f"source {venv_dir}/bin/activate"):
-            ctx.run("pip install sagemaker awscli boto3 botocore")
-    return venv_dir
-
-
-def setup_sm_benchmark_hf_pt_infer_env(resources_location):
-    """
-    Create a virtual environment for benchmark tests if it doesn't already exist, and download all necessary scripts
-    :param resources_location: <str> directory in which test resources should be placed
-    :return: absolute path to the location of the virtual environment
-    """
-    ctx = Context()
-
-    venv_dir = os.path.join(resources_location, "sm_benchmark_hf_pt_venv")
+    venv_dir = os.path.join(resources_location, "sm_benchmark_hf_venv")
     if not os.path.isdir(venv_dir):
         ctx.run(f"python3 -m virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
