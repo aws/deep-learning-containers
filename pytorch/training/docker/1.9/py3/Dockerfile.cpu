@@ -5,7 +5,7 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
 # Add arguments to achieve the version, python and url
-ARG PYTHON_VERSION=3.8.5
+ARG PYTHON_VERSION=3.8.10
 ARG OPEN_MPI_VERSION=4.0.1
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
