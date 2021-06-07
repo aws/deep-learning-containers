@@ -1,4 +1,4 @@
-FROM vault.habana.ai/gaudi-docker/0.14.0/ubuntu18.04/habanalabs/tensorflow-installer-tf-cpu-2.4.1:0.14.0-420
+FROM vault.habana.ai/gaudi-docker/0.15.0/ubuntu18.04/habanalabs/tensorflow-installer-tf-cpu-2.5.0:0.15.0-420
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -31,8 +31,6 @@ RUN mkdir -p /tmp/habana-ai/tf-whl-no-mkl/
 #ARG TF_URL=https://srajanku.s3-us-west-2.amazonaws.com/habana-ai/tf-whl-no-mkl/tensorflow_cpu-2.4.1-cp37-cp37m-manylinux2010_x86_64.whl
 #ARG TF_URL=/tmp/habana-ai/tf-whl-no-mkl/tensorflow_cpu-2.4.1-cp37-cp37m-manylinux2010_x86_64.whl
 #ARG TF_URL=/tmp/habana-ai/tf-whl-no-mkl/tensorflow_cpu-2.4.1-cp37-cp37m-manylinux2010_x86_64.whl
-
-ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.4_aws/20210127-150238/tensorflow_estimator-2.4.0-py2.py3-none-any.whl
 
 
 RUN apt-get update \
@@ -113,7 +111,6 @@ RUN ${PIP} uninstall -y tensorflow-cpu \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     #${TF_URL} \
-    ${ESTIMATOR_URL} \
     h5py==2.10.0 \
     "absl-py>=0.9,<0.11" \
     werkzeug==1.0.1 \
