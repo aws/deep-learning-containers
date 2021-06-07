@@ -1,8 +1,13 @@
 #Placeholder for habana dockerfile
-FROM vault.habana.ai/gaudi-docker/0.14.0/ubuntu18.04/habanalabs/tensorflow-installer-tf-cpu-2.4.1:0.14.0-420
+FROM vault.habana.ai/gaudi-docker/0.15.0/ubuntu18.04/habanalabs/pytorch-installer:0.15.0-420
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+
+# Python versions
+ARG PYTHON=python3.7
+ARG PYTHON_PIP=python3-pip
+ARG PIP=pip3.7
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -23,5 +28,8 @@ RUN apt-get update \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
  && rm -rf /var/lib/apt/lists/*
+
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
+ && ln -s $(which ${PIP}) /usr/bin/pip
 
 CMD ["bin/bash"]
