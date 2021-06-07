@@ -310,3 +310,15 @@ release_images:
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
+  23:
+    framework: "huggingface_pytorch"
+    version: "1.6.0"
+    hf_transformers: "4.6.1"
+    training:
+      device_types: [ "gpu" ]
+      python_versions: [ "py36" ]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu110"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
