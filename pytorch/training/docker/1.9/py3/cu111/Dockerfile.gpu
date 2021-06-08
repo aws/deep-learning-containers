@@ -188,6 +188,7 @@ RUN pip install --no-cache-dir -U \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training \
     --no-cache-dir fastai==2.3.1 \
+    pytorch-lightning == 1.3.4 \
     "pyyaml>=5.4,<5.5" \
     "awscli<2" \
     psutil \
