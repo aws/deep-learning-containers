@@ -57,10 +57,11 @@ def test_ecs_pytorch_training_mnist_gpu(gpu_only, ecs_container_instance, pytorc
 
 
 @pytest.mark.model("resnet18")
+@pytest.mark.integration("pt_s3_plugin")
 @pytest.mark.parametrize("training_script", [PT_S3_PLUGIN_CMD], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["c5.9xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
-def test_ecs_pytorch_s3_training_cpu(cpu_only, ecs_container_instance, pytorch_training, training_cmd,
+def test_ecs_pytorch_s3_plugin_training_cpu(cpu_only, ecs_container_instance, pytorch_training, training_cmd,
                                         ecs_cluster_name):
     """
     CPU resnet18 test for PyTorch Training using S3 plugin
@@ -76,10 +77,11 @@ def test_ecs_pytorch_s3_training_cpu(cpu_only, ecs_container_instance, pytorch_t
 
 
 @pytest.mark.model("resnet18")
+@pytest.mark.integration("pt_s3_plugin")
 @pytest.mark.parametrize("training_script", [PT_S3_PLUGIN_CMD], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
-def test_ecs_pytorch_s3_training_gpu(gpu_only, ecs_container_instance, pytorch_training, training_cmd,
+def test_ecs_pytorch_s3_plugin_training_gpu(gpu_only, ecs_container_instance, pytorch_training, training_cmd,
                                         ecs_cluster_name):
     """
     GPU resnet18 test for PyTorch Training using S3 plugin
