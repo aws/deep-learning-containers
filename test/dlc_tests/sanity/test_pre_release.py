@@ -1,12 +1,16 @@
 import os
 import re
-
+import subprocess
+import botocore
+import boto3
 from packaging.version import Version
 
 import pytest
 import requests
 
+from urllib3.util.retry import Retry
 from invoke.context import Context
+from botocore.exceptions import ClientError
 
 from src.buildspec import Buildspec
 from test.test_utils import (
@@ -20,7 +24,11 @@ from test.test_utils import (
     is_dlc_cicd_context,
     is_pr_context,
     run_cmd_on_container,
-    start_container,
+    start_container, 
+    is_time_for_canary_safety_scan, 
+    is_mainline_context,
+    is_nightly_context,
+    get_repository_local_path,
 )
 
 
@@ -87,11 +95,9 @@ def test_python_version(image):
     start_container(container_name, image, ctx)
     output = run_cmd_on_container(container_name, ctx, "python --version")
 
-    container_py_version = output.stdout
     # Due to py2 deprecation, Python2 version gets streamed to stderr. Python installed via Conda also appears to
-    # stream to stderr, hence the pytorch condition.
-    if "Python 2" in py_version or "pytorch" in image:
-        container_py_version = output.stderr
+    # stream to stderr (in some cases).
+    container_py_version = output.stdout + output.stderr
 
     assert py_version in container_py_version, f"Cannot find {py_version} in {container_py_version}"
 
@@ -120,14 +126,16 @@ def test_ubuntu_version(image):
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run cpu framework version test regularly on production images")
-def test_framework_version_cpu(cpu):
+@pytest.mark.canary("Run non-gpu framework version test regularly on production images")
+def test_framework_version_cpu(image):
     """
     Check that the framework version in the image tag is the same as the one on a running container.
+    This function tests CPU, EIA, and Neuron images.
 
-    :param cpu: ECR image URI with "cpu" in the name
+    :param image: ECR image URI
     """
-    image = cpu
+    if "gpu" in image:
+        pytest.skip("GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
     if "tensorflow-inference" in image:
         pytest.skip(msg="TF inference does not have core tensorflow installed")
 
@@ -150,7 +158,7 @@ def test_framework_version_cpu(cpu):
 
 # TODO: Enable as canary once resource cleaning lambda is added
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     """
     Check that the framework  and cuda version in the image tag is the same as the one on a running container.
@@ -167,6 +175,10 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
+        if tested_framework == "huggingface_pytorch":
+            tested_framework = "torch"
+        if tested_framework == "huggingface_tensorflow":
+            tested_framework = "tensorflow"
         cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
 
@@ -197,7 +209,9 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     # Record any whitelisted medium/low severity CVEs; I.E. allowed_vulnerabilities = {CVE-1000-5555, CVE-9999-9999}
     allowed_vulnerabilities = {
         # Those vulnerabilities are fixed. Current openssl version is 1.1.1g. These are false positive
-        'CVE-2016-2109', 'CVE-2016-2177', 'CVE-2016-6303', 'CVE-2016-2182'
+        'CVE-2016-2109', 'CVE-2016-2177', 'CVE-2016-6303', 'CVE-2016-2182',
+        # CVE-2020-13936: vulnerability found in apache velocity package which is a dependency for dependency-check package. Hence, ignoring.
+        'CVE-2020-13936',
     }
 
     container_name = f"dep_check_{processor}"
@@ -215,20 +229,30 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     html_output = ec2_connection.run(f"cat ~/{dependency_check_report}", hide=True).stdout
     cves = re.findall(r">(CVE-\d+-\d+)</a>", html_output)
     vulnerabilities = set(cves) - allowed_vulnerabilities
+
     if vulnerabilities:
         vulnerability_severity = {}
 
         # Check NVD for vulnerability severity to provide this useful info in error message.
         for vulnerability in vulnerabilities:
-            resp = requests.get(f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerability}")
-            severity = (
-                resp.json()
-                .get("result", {})
-                .get("CVE_Items", [{}])[0]
-                .get("impact", {})
-                .get("baseMetricV2", {})
-                .get("severity", "UNKNOWN")
-            )
+            try:
+                cve_url = f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerability}"
+
+                session = requests.Session()
+                session.mount('https://', requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[404, 504, 502])))
+                response = session.get(cve_url)
+
+                if response.status_code == 200:
+                    severity = (
+                        response.json()
+                        .get("result", {})
+                        .get("CVE_Items", [{}])[0]
+                        .get("impact", {})
+                        .get("baseMetricV2", {})
+                        .get("severity", "UNKNOWN"))
+            except ConnectionError:
+                LOGGER.exception(f"Failed to load NIST data for CVE {vulnerability}")
+
             if vulnerability_severity.get(severity):
                 vulnerability_severity[severity].append(vulnerability)
             else:
@@ -239,24 +263,40 @@ def _run_dependency_check_test(image, ec2_connection, processor):
             return
 
         raise DependencyCheckFailure(
-            f"Unrecognized CVES have been reported : {vulnerability_severity}. "
-            f"Allowed vulnerabilites are {allowed_vulnerabilities or None}. Please see "
+            f"Unrecognized CVEs have been reported : {vulnerability_severity}. "
+            f"Allowed vulnerabilities are {allowed_vulnerabilities or None}. Please see "
             f"{dependency_check_report} for more details."
         )
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+@pytest.mark.skipif((is_canary_context() and not is_time_for_canary_safety_scan()),
+                    reason="Executing test in canaries pipeline during only a limited period of time."
+                    )
 def test_dependency_check_cpu(cpu, ec2_connection):
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+@pytest.mark.skipif((is_canary_context() and not is_time_for_canary_safety_scan()),
+                    reason="Executing test in canaries pipeline during only a limited period of time."
+                    )
 def test_dependency_check_gpu(gpu, ec2_connection):
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.canary("Run dependency tests regularly on production images")
+@pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
+@pytest.mark.skipif((is_canary_context() and not is_time_for_canary_safety_scan()),
+                    reason="Executing test in canaries pipeline during only a limited period of time."
+                    )
+def test_dependency_check_neuron(neuron, ec2_connection):
+    _run_dependency_check_test(neuron, ec2_connection, "neuron")
 
 
 @pytest.mark.model("N/A")
@@ -350,6 +390,11 @@ def test_sm_pysdk_2(training):
     :param training: training ECR image URI
     """
 
+    _, image_framework_version = get_framework_and_version_from_tag(training)
+
+    if Version(image_framework_version) == Version("1.5.0"):
+        pytest.skip("sagemaker version < 2.0 is installed for PT 1.5.0 images")
+
     # Ensure that sm py sdk 2 is on the container
     ctx = Context()
     container_name = get_container_name("sm_pysdk", training)
@@ -379,28 +424,23 @@ def test_cuda_paths(gpu):
     job_type = "training" if "training" in image else "inference"
 
     # Ensure that image has a supported framework
-    frameworks = ("tensorflow", "pytorch", "mxnet")
-    framework = ""
-    for fw in frameworks:
-        if fw in image:
-            framework = fw
-            break
-    assert framework, f"Cannot find any frameworks {frameworks} in image uri {image}"
+    framework, framework_version = get_framework_and_version_from_tag(image)
 
     # Get cuda, framework version, python version through regex
     cuda_version = re.search(r"-(cu\d+)-", image).group(1)
-    framework_version = re.search(r":(\d+(\.\d+){2})", image).group(1)
     framework_short_version = None
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
-        r":(\d+(\.\d+){2}-(cpu|gpu|neuron)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)(-example)?)", image
+        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(cpu|gpu|neuron)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)(-example)?)", image
     ).group(1)
 
-    framework_version_path = os.path.join(dlc_path, framework, job_type, "docker", framework_version)
+    # replacing '_' by '/' to handle huggingface_<framework> case
+    framework_path = framework.replace('_', '/')
+    framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_version)
     if not os.path.exists(framework_version_path):
         framework_short_version = re.match(r"(\d+.\d+)", framework_version).group(1)
-        framework_version_path = os.path.join(dlc_path, framework, job_type, "docker", framework_short_version)
+        framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_short_version)
     if not os.path.exists(os.path.join(framework_version_path, python_version)):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
         short_python_version = python_version[:3]
@@ -413,7 +453,7 @@ def test_cuda_paths(gpu):
     cuda_in_buildspec = False
     dockerfile_spec_abs_path = None
     cuda_in_buildspec_ref = f"CUDA_VERSION {cuda_version}"
-    buildspec_path = os.path.join(dlc_path, framework, buildspec)
+    buildspec_path = os.path.join(dlc_path, framework_path, buildspec)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
@@ -455,3 +495,62 @@ def _assert_artifact_free(output, stray_artifacts):
         assert not re.search(
             artifact, output.stdout
         ), f"Matched {artifact} in {output.stdout} while running {output.command}"
+
+@pytest.mark.integration("oss_compliance")
+@pytest.mark.model("N/A")
+@pytest.mark.skipif(not is_dlc_cicd_context(), reason="We need to test OSS compliance only on PRs and pipelines")
+def test_oss_compliance(image):
+    """
+    Run oss compliance check on a container to check if license attribution files exist.
+    And upload source of third party packages to S3 bucket.
+    """
+    THIRD_PARTY_SOURCE_CODE_BUCKET = "aws-dlinfra-licenses"
+    THIRD_PARTY_SOURCE_CODE_BUCKET_PATH = "third_party_source_code"
+    file = "THIRD_PARTY_SOURCE_CODE_URLS"
+    container_name = get_container_name("oss_compliance", image)
+    context = Context()
+    local_repo_path = get_repository_local_path()
+    start_container(container_name, image, context)
+
+    # run compliance test to make sure license attribution files exists. testOSSCompliance is copied as part of Dockerfile
+    run_cmd_on_container(container_name, context, "/usr/local/bin/testOSSCompliance /root")
+
+    try:
+        context.run(f"docker cp {container_name}:/root/{file} {os.path.join(local_repo_path, file)}")
+    finally:
+        context.run(f"docker rm -f {container_name}", hide=True)
+
+    s3_resource = boto3.resource('s3')
+
+    with open(os.path.join(local_repo_path, file)) as source_code_file:
+        for line in source_code_file:
+            name, version, url = line.split(" ")
+            file_name = f"{name}_v{version}_source_code"
+            s3_object_path = f"{THIRD_PARTY_SOURCE_CODE_BUCKET_PATH}/{file_name}.tar.gz"
+            local_file_path = os.path.join(local_repo_path, file_name)
+
+            try:
+                if not os.path.isdir(local_file_path):
+                    context.run(f"git clone {url.rstrip()} {local_file_path}")
+                    context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
+            except Exception as e:
+                LOGGER.error(f"Unable to clone git repo. Error: {e}")
+                raise
+
+            try:
+                if os.path.exists(f"{local_file_path}.tar.gz"):
+                    LOGGER.info(f"Uploading package to s3 bucket: {line}")
+                    s3_resource.Object(THIRD_PARTY_SOURCE_CODE_BUCKET, s3_object_path).load()
+            except botocore.exceptions.ClientError as e:
+                if e.response['Error']['Code'] == "404":
+                    try:
+                        # using aws cli as using boto3 expects to upload folder by iterating through each file instead of entire folder.
+                        context.run(f"aws s3 cp {local_file_path}.tar.gz s3://{THIRD_PARTY_SOURCE_CODE_BUCKET}/{s3_object_path}")
+                        object = s3_resource.Bucket(THIRD_PARTY_SOURCE_CODE_BUCKET).Object(s3_object_path)
+                        object.Acl().put(ACL='public-read')
+                    except ClientError as e:
+                        LOGGER.error(f"Unable to upload source code to bucket {THIRD_PARTY_SOURCE_CODE_BUCKET}. Error: {e}")
+                        raise
+                else:
+                    LOGGER.error(f"Unable to check if source code is present on bucket {THIRD_PARTY_SOURCE_CODE_BUCKET}. Error: {e}")
+                    raise

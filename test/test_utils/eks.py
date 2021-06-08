@@ -176,6 +176,13 @@ def init_cfn_client():
     """
     return boto3.client('cloudformation')
 
+def init_iam_client():
+    """Function to initiate the iam session
+    Args:
+        material_set: str
+    """
+    return boto3.client('iam')
+
 def list_cfn_stack_names():
     """Function to list the cfn stacks in the account.
     Note: lists all the cfn stacks that aren't
@@ -418,6 +425,124 @@ def setup_kubeflow(eks_cluster_name,region=os.getenv("AWS_REGION", DEFAULT_REGIO
 
     run(f"chmod +x {local_template_file_path}")
     run(f"./{local_template_file_path} {eks_cluster_name} {region}", echo=True)
+
+def get_eks_nodegroups(eks_cluster_name, region):
+
+    """Function to retrieve nodegroups corresponding to the EKS cluster
+    """
+    eks_node_groups=run(f"eksctl get nodegroup --cluster {eks_cluster_name} --region {region} -o json | jq -r '.[].Name'").stdout.splitlines()
+    
+    return eks_node_groups
+
+def manage_ssm_permissions_nodegroup(eks_cluster_name, operation, region=os.getenv("AWS_REGION", DEFAULT_REGION)):
+    """Function to manage SSM permissions to EKS worker nodegroup
+       1. Retrieve active nodegroups in the EKS cluster
+       2. Get the IAM instance profile for the nodegroup and the corresponding IAM role
+       3. Based on the operation, attach or detach SSM policy
+    """
+    ATTACH_IAM_POLICY="attach"
+    DETACH_IAM_POLICY="detach"
+
+    eks_node_groups=get_eks_nodegroups(eks_cluster_name, region)
+
+    if eks_node_groups:
+        for node_group in eks_node_groups:
+            iam_role = get_eks_nodegroup_iam_role(eks_cluster_name, node_group)
+            if iam_role:
+                if operation == ATTACH_IAM_POLICY:
+                    add_ssm_access_policy(iam_role)
+                if operation == DETACH_IAM_POLICY:
+                    remove_ssm_access_policy(iam_role)
+            else:
+                LOGGER.info(f"No IAM role found for the EKS nodegroup {node_group}. Skipping addition of SSM policy.")
+    else:
+        LOGGER.info(f"No Nodegroups present in the EKS cluster {eks_cluster_name}. Skipping addition of SSM policy.")
+            
+
+def get_eks_nodegroup_iam_role(eks_cluster_name, node_group):
+    """Function to get IAM role corresponding to EKS nodegroup
+       1. Retrieve the cloudformation stack name of the EKS nodegroup
+       2. Get the IAM instance profile for the nodegroup and the corresponding IAM role 
+    """
+
+    cfn = init_cfn_client()
+    iam = init_iam_client() 
+
+    try:
+        stack_name = f'eksctl-{eks_cluster_name}-nodegroup-{node_group}'
+        instance_profile_prefix = cfn.describe_stacks(StackName=stack_name)["Stacks"][0]["StackName"]
+
+        if instance_profile_prefix:
+            instance_profile_name = get_instance_profile_name(instance_profile_prefix)
+            if instance_profile_name:
+                instance_role_name = iam.get_instance_profile(InstanceProfileName=instance_profile_name)["InstanceProfile"]["Roles"][0]["RoleName"]
+                return instance_role_name
+            else:
+                LOGGER.info(f"No instance profile found for prefix {instance_profile_prefix}. Skipping addition of SSM policy.")
+        else:
+            LOGGER.info(f"Cloudformation stack {stack_name} not found for corresponding nodegroup {node_group}. Skipping addition of SSM policy.")
+
+    except ClientError as e:
+        LOGGER.error(f"Error: Cannot find IAM role corresponding to the EKS nodegroup {node_group}. Full Exception:\n{e}")
+
+def add_ssm_access_policy(instance_role_name):
+    """Function to attach SSM policy to IAM role
+    """
+
+    SSM_POLICY_ARN="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+    iam = init_iam_client() 
+    try:
+        iam.attach_role_policy(RoleName=instance_role_name, PolicyArn=SSM_POLICY_ARN)
+    except ClientError as e:
+        LOGGER.error(f"Error: Cannot add SSM policy to EKS worker node IAM role. Full Exception:\n{e}")
+
+def remove_ssm_access_policy(instance_role_name):
+    """ Function to detach SSM policy from IAM role
+    """
+
+    SSM_POLICY_ARN="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+    iam = init_iam_client() 
+    try:
+        iam.detach_role_policy(RoleName=instance_role_name, PolicyArn=SSM_POLICY_ARN)
+    except ClientError as e:
+        LOGGER.error(f"Error: Cannot remove SSM policy from EKS worker node IAM role. Full Exception:\n{e}")
+
+def get_instance_profile_name(instance_profile_prefix):
+    """ Function to retrieve the instance profile name given the instance profile prefix
+    """
+    iam = init_iam_client()
+    paginator = True
+    marker = None
+    try:
+        while paginator:
+            if marker:
+                resp = iam.list_instance_profiles(Marker=marker)
+            else:
+                resp = iam.list_instance_profiles()
+            paginator = resp["IsTruncated"]
+            if paginator:
+                marker = resp["Marker"]
+
+            for instance_profile in resp["InstanceProfiles"]:
+                instance_profile_name = instance_profile["InstanceProfileName"]
+                if instance_profile_prefix in instance_profile_name:
+                    return instance_profile_name
+    except ClientError as e:
+        LOGGER.error(f"Error: Error while retrieving IAM instance profile for prefix {instance_profile_prefix}. Full Exception:\n{e}")
+
+def setup_ssm_agent():
+    """Function to setup ssm agent on EKS worker nodes
+    """
+
+    ssm_template_file_path = os.path.join(
+        "eks",
+        "eks_manifest_templates",
+        "ssm",
+        "install_ssm.yaml"
+    )
+
+    run("kubectl create -f {}".format(ssm_template_file_path))
+    run("kubectl get ds")
 
 def write_eks_yaml_file_from_template(
     local_template_file_path, remote_yaml_file_path, search_replace_dict

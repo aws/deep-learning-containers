@@ -4,13 +4,17 @@ set -e
 install_kfctl(){
     #install kfctl cli
     KFCTL_VERSION="v1.0.2"
-    S3_BUCKET="kubeflow-kfctl-binary"
+    S3_URL="https://kubeflow-kfctl-binary.s3-us-west-2.amazonaws.com/kfctl_v1.0.2-1-g93e95e1_linux.tar.gz"
 
     if ! command -v kfctl &> /dev/null
     then
-        aws s3 cp s3://${S3_BUCKET}/kfctl_${KFCTL_VERSION}-1-g93e95e1_linux.tar.gz /tmp/kfctl_${KFCTL_VERSION}_linux.tar.gz
+        wget -O /tmp/kfctl_${KFCTL_VERSION}_linux.tar.gz ${S3_URL}
         tar -xvf /tmp/kfctl_${KFCTL_VERSION}_linux.tar.gz -C /tmp --strip-components=1
-        mv /tmp/kfctl /usr/local/bin
+        if ! [ -x "$(command -v sudo)" ]; then
+            mv /tmp/kfctl /usr/local/bin
+        else
+            sudo mv /tmp/kfctl /usr/local/bin
+        fi
     fi
 }
 
@@ -56,6 +60,9 @@ fi
 
 eks_cluster_name=$1
 region_name=$2
+
+echo "> Set AWS region"
+export AWS_REGION=$2
 
 echo "> Setup installation directory"
 create_dir $eks_cluster_name

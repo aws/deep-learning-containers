@@ -28,8 +28,14 @@ def test_eks_mxnet_single_node_training(mxnet_training):
     yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_training_{rand_int}.yaml")
     pod_name = f"mxnet-single-node-training-{rand_int}"
 
+    # Temporariy fix for 503 error while downloading MNIST dataset. See https://github.com/pytorch/vision/issues/3549
+    mnist_dataset_download_config = '''
+      FROM="http:\/\/yann\.lecun\.com\/exdb\/mnist\/" &&
+      TO="https:\/\/dlinfra-mnist-dataset\.s3-us-west-2\.amazonaws\.com\/mnist\/" &&
+      sed -i -e "s/${FROM}/${TO}/g" /incubator-mxnet/example/image-classification/train_mnist.py
+    '''
     args = (
-        f"git clone -b {framework_version} https://github.com/apache/incubator-mxnet.git && python "
+        f"git clone -b {framework_version} https://github.com/apache/incubator-mxnet.git && {mnist_dataset_download_config}  && python "
         f"/incubator-mxnet/example/image-classification/train_mnist.py"
     )
 

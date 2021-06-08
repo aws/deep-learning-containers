@@ -3,6 +3,7 @@ import sys
 import subprocess
 from subprocess import PIPE
 
+import re
 import logging
 import numpy as np
 import tensorflow as tf
@@ -26,22 +27,14 @@ def check_tensorflow():
         sess = tf.compat.v1.Session(config=tf.compat.v1.ConfigProto(log_device_placement=False))
 
         with sess:
-            if is_gpu:
-                # Use GPU device 0
-                with tf.device('/job:localhost/replica:0/task:0/device:XLA_GPU:0'):
-                    x_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[2, 3], name='x_mat')
-                    y_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[3, 2], name='y_mat')
-                    z_mat = tf.matmul(x_mat, y_mat)
-
-                assert sess.run(z_mat).any(), "Error: GPU sanity test for TensorFlow failed."
-            else:
-                # Use CPU device 0
-                with tf.device('/job:localhost/replica:0/task:0/device:XLA_CPU:0'):
-                    x_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[2, 3], name='x_mat')
-                    y_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[3, 2], name='y_mat')
-                    z_mat = tf.matmul(x_mat, y_mat)
-
-                assert sess.run(z_mat).any(), "Error: CPU sanity test for TensorFlow failed."
+            tf_version = tf.__version__
+            version_check = r"2\.[0-3](\.\d+)?"
+            device_tag = ("XLA_" if re.match(version_check, tf_version) else "") + ("GPU" if is_gpu else "CPU")
+            with tf.device(f"/job:localhost/replica:0/task:0/device:{device_tag}:0"):
+                x_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[2, 3], name='x_mat')
+                y_mat = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[3, 2], name='y_mat')
+                z_mat = tf.matmul(x_mat, y_mat)
+                assert sess.run(z_mat).any(), f"Error: {device_tag} sanity test for TensorFlow failed."
 
     except Exception as excp:
         LOGGER.debug("Error: check_tensorflow test failed.")

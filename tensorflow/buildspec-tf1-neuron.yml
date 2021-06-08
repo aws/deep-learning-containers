@@ -2,7 +2,7 @@
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK tensorflow
   short_version: &SHORT_VERSION 1.15
-  version: &VERSION 1.15.4
+  version: &VERSION 1.15.5
   os_version: &OS_VERSION ubuntu18.04
 
   repository_info:
@@ -23,6 +23,9 @@
       dockerd-entrypoint:
         source: docker/build_artifacts/entrypoint.sh
         target: entrypoint.sh
+      deep_learning_container:
+        source: ../../src/deep_learning_container.py
+        target: deep_learning_container.py
 
   images:
     BuildNeuronTFInferencePy3DockerImage:

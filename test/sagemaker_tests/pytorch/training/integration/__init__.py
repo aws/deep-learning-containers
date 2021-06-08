@@ -17,6 +17,7 @@ import os
 resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'resources'))
 mnist_path = os.path.join(resources_path, 'mnist')
 mnist_script = os.path.join(mnist_path, 'mnist.py')
+throughput_path = os.path.join(resources_path, "smdataparallel")
 smdataparallel_mnist_script = os.path.join(mnist_path, 'smdataparallel_mnist_script_mode.sh')
 fastai_path = os.path.join(resources_path, 'fastai')
 fastai_cifar_script = os.path.join(fastai_path, 'train_cifar.py')

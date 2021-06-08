@@ -4,6 +4,8 @@ from time import sleep
 
 import pytest
 
+import test.test_utils.ec2 as ec2_utils
+
 from test import test_utils
 from test.test_utils.ec2 import get_ec2_instance_type, get_ec2_accelerator_type
 from test.dlc_tests.conftest import LOGGER
@@ -15,7 +17,11 @@ TENSORFLOW2_VERSION = "2."
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 TF_EC2_EIA_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="eia1.large", processor="eia")
-TF_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="inf1.xlarge", processor="neuron")
+TF_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_instance_type(default="inf1.xlarge", processor="neuron")
+TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
+    default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
+)
+
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURON_ACCELERATOR_TYPE, indirect=True)
@@ -24,9 +30,12 @@ TF_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="inf1.xlarge",
 def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, region, neuron_only):
     run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, "8500", region)
 
+
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_gpu(tensorflow_inference, ec2_connection, region, gpu_only):
+def test_ec2_tensorflow_inference_gpu(tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type):
+    if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
+        pytest.skip(f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}")
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
 
@@ -48,18 +57,24 @@ def test_ec2_tensorflow_inference_eia_cpu(tensorflow_inference_eia, ec2_connecti
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", TF_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connection, region, eia_only):
+def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connection, region, eia_only, ec2_instance_type):
+    if ec2_instance_type == "p4d.24xlarge":
+        pytest.skip(f"Skipping EIA GPU test for {ec2_instance_type} instance type. See https://github.com/aws/deep-learning-containers/issues/962")
     run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, "8500", region)
 
 
 @pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_type", ["p2.xlarge"], indirect=True)
-def test_ec2_tensorflow_inference_gpu_telemetry(tensorflow_inference, ec2_connection, region, gpu_only):
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+def test_ec2_tensorflow_inference_gpu_telemetry(
+        tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
+):
+    if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
+        pytest.skip(f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}")
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region, True)
 
 
 @pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_cpu_telemetry(tensorflow_inference, ec2_connection, region, cpu_only):
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region, True)
 
@@ -74,12 +89,10 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
     mnist_client_path = os.path.join(
         serving_folder_path, "tensorflow_serving", "example", "mnist_client.py"
     )
-    
+
     is_neuron = "neuron" in image_uri
-         
 
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
-    docker_run_cmd = ""
     if is_neuron:
         docker_run_cmd = (
             f"{docker_cmd} run -id --name {container_name} -p {grpc_port}:8500 "
@@ -155,10 +168,10 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
             LOGGER.info(f"Host Model path {neuron_model_file_path}")
             ec2_connection.run(f"mkdir -p {neuron_model_file_path}")
             model_file_path = f"https://aws-dlc-sample-models.s3.amazonaws.com/{model_name}_neuron/1/saved_model.pb"
-            model_dwld = (
+            model_download = (
                 f"wget -O {neuron_model_file} {model_file_path} "
             )
-            ec2_connection.run(model_dwld)
+            ec2_connection.run(model_download)
     else:
         local_scripts_path = os.path.join("container_tests", "bin", "tensorflow_serving")
         ec2_connection.run(f"mkdir -p {serving_folder_path}")
@@ -166,8 +179,5 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
 
 
 def check_telemetry(ec2_connection, container_name):
-    telemetry_cmd = "import os; assert (os.path.exists('/tmp/test_request.txt'))"
-    ec2_connection.run(
-        f'''docker exec -it {container_name} python -c {telemetry_cmd} ''',
-        hide=True, warn=True
-    )
+    ec2_connection.run(f"docker exec -i {container_name} bash -c '[ -f /tmp/test_request.txt ]'")
+    ec2_connection.run(f"docker exec -i {container_name} bash -c '[ -f /tmp/test_tag_request.txt ]'")

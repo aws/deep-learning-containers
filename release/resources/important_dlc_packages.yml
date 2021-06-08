@@ -31,6 +31,10 @@ pip_packages:
   - h5py
   - fastai
   - requests
+  - transformers
+  - tokenizers
+  - datasets
+  - tensorflow-addons
 apt_packages:
   - cuda-command-line-tools
   - cuda-cufft

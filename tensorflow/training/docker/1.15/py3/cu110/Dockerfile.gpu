@@ -24,12 +24,11 @@ ENV KMP_SETTINGS=0
 ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.7.7
-ARG OPENSSL_VERSION=1.1.1g
+ARG PYTHON_VERSION=3.7.10
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws_cuda11/20201108-110725/gpu/py37/tensorflow_gpu-1.15.4-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws/20210225-223752/gpu/cu110/py37/tensorflow_gpu-1.15.5-cp37-cp37m-manylinux2010_x86_64.whl
 
-ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r1.15_aws/20201001-204030/tensorflow_estimator-1.15.2-py2.py3-none-any.whl
+ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r1.15_aws/20210225-223752/tensorflow_estimator-1.15.2-py2.py3-none-any.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
@@ -57,6 +56,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     libtemplate-perl \
     libzmq3-dev \
     git \
+    unzip \
     wget \
     vim \
     build-essential \
@@ -141,6 +141,8 @@ RUN apt-get update \
     libsqlite3-dev \
     libssl-dev \
     tk-dev \
+    libssl1.1 \
+    openssl \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -154,28 +156,10 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
-RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt-get update \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && apt-get install -y \
-    ca-certificates \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test \
- && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-*
-
-# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
-# causing sslcertverificationerror the below steps are to fix that
-RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
-
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
-# install PyYAML==5.3.1 to avoid conflict with latest awscli
 # # python-dateutil==2.8 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
     numpy==1.19.1 \
@@ -184,7 +168,8 @@ RUN ${PIP} install --no-cache-dir -U \
     pandas==1.1 \
     Pillow==7.2.0 \
     python-dateutil==2.8.1 \
-    pyYAML==5.3.1 \
+    # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
+    "pyYAML>=5.4,<5.5" \
     requests==2.24.0 \
     "awscli<2" \
     mpi4py==3.0.3 \
@@ -216,9 +201,18 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 # Add NGC vars
 ENV TF_ADJUST_HUE_FUSED=1 TF_AUTOTUNE_THRESHOLD=2 TF_USE_CUDNN_BATCHNORM_SPATIAL_PERSISTENT=1 TF_ADJUST_SATURATION_FUSED=1 TF_ENABLE_WINOGRAD_NONFUSED=1 CUDA_CACHE_DISABLE=1
 
-ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 

@@ -3,6 +3,8 @@ import os
 import subprocess
 import random
 import re
+import boto3
+from botocore.config import Config
 from time import sleep
 
 import invoke
@@ -110,6 +112,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     docker_base_arg = "--docker-base-name"
     instance_type_arg = "--instance-type"
     accelerator_type_arg = "--accelerator-type"
+    framework_version_arg = "--framework-version"
     eia_arg = "ml.eia1.large"
     processor = "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
     py_version = re.search(r"py\d+", tag).group()
@@ -126,6 +129,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             aws_id_arg = "--registry"
             docker_base_arg = "--repo"
             instance_type_arg = "--instance-types"
+            framework_version_arg = "--versions"
             integration_path = os.path.join(integration_path, "test_tfs.py") if processor != "eia" else os.path.join(integration_path, "test_ei.py")
 
     if framework == "tensorflow" and job_type == "training":
@@ -135,16 +139,20 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     is_py3 = " python3 -m "
 
+    efa_flag = ""
+    efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
+    efa_flag = '--efa' if efa_dedicated else '-m \"not efa\"'
+
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
-        f"{sm_remote_docker_base_name} --tag {tag} --framework-version {framework_version} "
-        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} --junitxml {test_report}"
+        f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
+        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} --junitxml {test_report}"
     )
 
     if processor == "eia" :
         remote_pytest_cmd += (f" {accelerator_type_arg} {eia_arg}")
 
-    local_pytest_cmd = (f"{is_py3} pytest -v {integration_path} {docker_base_arg} "
+    local_pytest_cmd = (f"{is_py3} pytest -s -v {integration_path} {docker_base_arg} "
                         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
                         f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}")
 
@@ -236,13 +244,13 @@ def kill_background_processes_and_run_apt_get_update(ec2_conn):
     return
 
 
-def execute_local_tests(image, ec2_client):
+def execute_local_tests(image):
     """
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
-    :param ec2_client: boto3_obj
     :return: None
     """
+    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
     print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
