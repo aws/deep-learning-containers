@@ -1,6 +1,6 @@
 version: 0.2
 
-#TODO: Move all constatns to environment variables
+#TODO: Move all constatns to env variables
 phases:
   install:
     runtime-versions:
