@@ -12,8 +12,6 @@ test-pytorch-local:
 
 test-pytorch-sagemaker:
 	python3 -m pytest -s integration/sagemaker \
-	--region us-east-1 --docker-base-name ${ecr_repo_name_where_image_is_hosted} \
-	--tag ${ecr_image_tag} --framework-version 1.7.1 --aws-id {account_id_where_ecr_image_is_hosted} \
-	--instance-type ml.p3.2xlarge
-
+	--region us-east-1 --docker-base-name huggingface-inference-pytorch \
+	--tag ${ecr_image_tag} --framework-version 1.7.1 --aws-id ${account_id_where_ecr_image_is_hosted} 
 
