@@ -118,6 +118,9 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training):
     gpu_limit = "1"
     cpu_limit = str(int(cpu_limit) / 2)
 
+    if "gpu" in pytorch_training:
+        args = args + " --gpu 0"
+  
     search_replace_dict = {
         "<POD_NAME>": pod_name,
         "<CONTAINER_NAME>": pytorch_training,
