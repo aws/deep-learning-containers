@@ -115,7 +115,6 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training):
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
     cpu_limit = 96
-    gpu_limit = "1"
     cpu_limit = str(int(cpu_limit) / 2)
 
     if "gpu" in pytorch_training:
