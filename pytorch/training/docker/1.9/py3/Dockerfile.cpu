@@ -114,7 +114,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip install --no-cache-dir -U \
     "pyyaml>=5.4,<5.5" \
     "awscli<2" \
-    fastai==2.3.1 \
+    fastai==1.0.61 \
     scipy \
     click \
     "cryptography>3.2" \
@@ -142,10 +142,8 @@ RUN HOME_DIR=/root \
  && chmod +x /usr/local/bin/testOSSCompliance \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance*
-
-# Remove stray files in tmp folder
-RUN rm -rf /tmp/tmp*
+ && rm -rf ${HOME_DIR}/oss_compliance* \
+ && rm -rf /tmp/tmp*
 
 RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.9/license.txt
 

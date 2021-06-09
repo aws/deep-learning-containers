@@ -193,7 +193,7 @@ RUN pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training \
-    --no-cache-dir fastai==2.3.1 \
+    --no-cache-dir fastai==1.0.61 \
     "pyyaml>=5.4,<5.5" \
     "awscli<2" \
     psutil \
@@ -315,10 +315,8 @@ RUN HOME_DIR=/root \
  && chmod +x /usr/local/bin/testOSSCompliance \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance*
-
-# Remove stray files in tmp folder
-RUN rm -rf /tmp/tmp*
+ && rm -rf ${HOME_DIR}/oss_compliance* \
+ && rm -rf /tmp/tmp*
 
 RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.9/license.txt
 
