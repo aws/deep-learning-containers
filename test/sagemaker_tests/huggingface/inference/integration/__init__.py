@@ -14,24 +14,17 @@ from __future__ import absolute_import
 
 import os
 
-
-def load_fn(model_dir):
-    lock_file = os.path.join(model_dir, 'load_fn.lock.{}'.format(os.getpid()))
-    if os.path.exists(lock_file):
-        raise RuntimeError('load_fn called more than once (lock: {})'.format(lock_file))
-
-    open(lock_file, 'a').close()
-
-    return 'model'
+resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
 
 
-def preprocess_fn(data):
-    return "data"
+model_dir = os.path.join(resources_path, "tiny-distilbert-sst-2")
+pt_model = "pt_model.tar.gz"
+tf_model = "tf_model.tar.gz"
+# TODO: current local test, tests without custom script
+# mnist_cpu_script = oos.path.join(resources_path, 'tiny-distilbert-sst-2','inference.py')
 
 
-def predict_fn(data):
-    return "output"
+ROLE = "dummy/unused-role"
+DEFAULT_TIMEOUT = 20
 
-
-def postprocess_fn(prediction):
-    return prediction
+RESOURCE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))

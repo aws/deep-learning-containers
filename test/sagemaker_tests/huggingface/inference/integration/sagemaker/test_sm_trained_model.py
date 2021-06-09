@@ -57,8 +57,6 @@ def _test_sm_trained_model(
         path=model_dir,
         key_prefix="sagemaker-huggingface-serving/models",
     )
-    print(model_data)
-    print(ecr_image)
 
     hf_model = Model(
         model_data=f"{model_data}/model.tar.gz",

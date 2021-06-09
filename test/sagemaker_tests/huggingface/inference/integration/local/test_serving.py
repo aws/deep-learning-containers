@@ -20,7 +20,7 @@ from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 from sagemaker.deserializers import JSONDeserializer
 
-from ...integration import model_dir, ROLE
+from ...integration import model_dir, ROLE, pt_model, tf_model
 from ...utils import local_mode_utils
 
 
@@ -29,8 +29,10 @@ def _predictor(model_dir, image, framework_version, sagemaker_local_session, ins
     print("\n instance_type")
     print(instance_type)
     print("image", image)
+    model_file = pt_model if "pytorch" in image else tf_model
+
     model = Model(
-        model_data="file://{}/model.tar.gz".format(model_dir),
+        model_data=f"file://{model_dir}/{model_file}",
         role=ROLE,
         image_uri=image,
         sagemaker_session=sagemaker_local_session,
