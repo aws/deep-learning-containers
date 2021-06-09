@@ -82,7 +82,7 @@ def _run_instance_role_disabled(image_uri, ec2_client, ec2_instance, ec2_connect
     # Disable access to EC2 instance metadata
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 
-    if framework == "tensorflow" and job_type == "inference":
+    if "tensorflow" in framework and job_type == "inference":
         env_vars_list = ecs_utils.get_ecs_tensorflow_environment_variables(processor, "saved_model_half_plus_two")
         env_vars = " ".join([f"-e {entry['name']}={entry['value']}" for entry in env_vars_list])
         ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri}")
@@ -126,7 +126,7 @@ def _run_tag_success(image_uri, ec2_client, ec2_instance, ec2_connection):
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.remove_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
-    if framework == "tensorflow" and job_type == "inference":
+    if "tensorflow" in framework and job_type == "inference":
         env_vars_list = ecs_utils.get_ecs_tensorflow_environment_variables(processor, "saved_model_half_plus_two")
         env_vars = " ".join([f"-e {entry['name']}={entry['value']}" for entry in env_vars_list])
         ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri}")
