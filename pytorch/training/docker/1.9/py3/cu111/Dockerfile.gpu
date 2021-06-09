@@ -147,6 +147,12 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && conda install -y -c dglteam dgl-cuda11.1 \
  && ${CONDA_PREFIX}/bin/conda clean -ya
 
+# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
+# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
+# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
+# once conda fixes the issue
+RUN rm -rf /opt/conda/lib/libtinfo.so.6
+
 RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
@@ -188,7 +194,6 @@ RUN pip install --no-cache-dir -U \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training \
     --no-cache-dir fastai==2.3.1 \
-    pytorch-lightning==1.3.4 \
     "pyyaml>=5.4,<5.5" \
     "awscli<2" \
     psutil \
@@ -312,11 +317,10 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
+# Remove stray files in tmp folder
+RUN rm -rf /tmp/tmp*
 
 RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.9/license.txt
-
-# Remove stray files in tmp folder
-RUN rm -rf /tmp/*
 
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
