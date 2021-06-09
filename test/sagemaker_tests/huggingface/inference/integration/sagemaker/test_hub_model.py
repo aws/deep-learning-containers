@@ -26,6 +26,7 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 # TODO: remove
 os.environ["AWS_PROFILE"] = "hf-sm"  # setting aws profile for our boto3 client
+os.environ["AWS_DEFAULT_REGION"] = "us-east-1"  # current DLCs are only in us-east-1 available
 
 
 @pytest.mark.model("tiny-distilbert")

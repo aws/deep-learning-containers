@@ -58,7 +58,7 @@ def _test_sm_trained_model(
     model_file = pt_model if "pytorch" in ecr_image else tf_model
 
     hf_model = Model(
-        model_data=f"file://{model_dir}/{model_file}",
+        model_data=f"{model_data}/{model_file}",
         role="sagemaker_execution_role",  # TODO: what is the correct role name for CI-pipeline, is it "SageMakerRole"
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
