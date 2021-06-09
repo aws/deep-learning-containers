@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu20.04
+FROM nvidia/cuda:11.1.1-base-ubuntu20.04
 
 # NCCL_VERSION=2.4.7, CUDNN_VERSION=7.6.2.24
 
@@ -10,12 +10,13 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG PYTHON=python3
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.8.10
-ARG OPEN_MPI_VERSION=4.0.1
-
+ARG CUBLAS_VERSION=11.3.0.106
 ARG TS_VERSION=0.3.1
 ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3-us-west-2.amazonaws.com/r1.9.0_inference/20210608-234554/7f84708b416d0c236f959493191e860cc6039091/gpu/torch-1.9.0-cp38-cp38-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://pytorch-ei-binaries.s3-us-west-2.amazonaws.com/torchvision_build/0.10.0/gpu/torchvision-0.10.0a0%2B9d5561b-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://pytorch-ei-binaries.s3-us-west-2.amazonaws.com/torchaudio_build/0.9.0/gpu/torchaudio-0.9.0a0%2Bccc0f46-cp38-cp38-linux_x86_64.whl
+ARG OPEN_MPI_PATH=/opt/amazon/openmpi
+ARG EFA_PATH=/opt/amazon/efa
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
@@ -24,6 +25,10 @@ ENV PATH /opt/conda/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
 ENV TZ=America/New_York
+ENV CUDNN_VERSION=8.0.5.39
+ENV NCCL_VERSION=2.7.8
+ENV EFA_VERSION=1.11.2
+ENV OMPI_VERSION=4.1.1
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends software-properties-common \
@@ -33,10 +38,20 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
+    cuda-command-line-tools-11-1 \
+    cuda-cudart-11-1 \
+    cuda-libraries-11-1 \
     curl \
     emacs \
     git \
     jq \
+    libcublas-11-1=${CUBLAS_VERSION}-1 \
+    libcublas-dev-11-1=${CUBLAS_VERSION}-1 \
+    libcudnn8=$CUDNN_VERSION-1+cuda11.1 \
+    libcufft-dev-11-1 \
+    libcurand-dev-11-1 \
+    libcusolver-dev-11-1 \
+    libcusparse-dev-11-1 \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libgomp1 \
@@ -56,22 +71,32 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
+RUN cd /tmp \
+  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+  && cd nccl \
+  && make -j64 src.build BUILDDIR=/usr/local \
+  && rm -rf /tmp/nccl
+
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
-RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
- && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
- && cd openmpi-$OPEN_MPI_VERSION \
- && ./configure --prefix=/home/.openmpi \
- && make all install \
- && cd .. \
- && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
- && rm -rf openmpi-$OPEN_MPI_VERSION
+# Install OpenMPI without libfabric support
+RUN mkdir /tmp/openmpi && \
+  cd /tmp/openmpi && \
+  wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz && \
+  tar zxf openmpi-${OMPI_VERSION}.tar.gz && \
+  cd openmpi-${OMPI_VERSION} && \
+  ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH && \
+  make -j $(nproc) all && \
+  make install && \
+  ldconfig && \
+  cd / && \
+  rm -rf /tmp/openmpi
 
-ENV PATH="$PATH:/home/.openmpi/bin"
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
+ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
 # Install OpenSSH. Allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
