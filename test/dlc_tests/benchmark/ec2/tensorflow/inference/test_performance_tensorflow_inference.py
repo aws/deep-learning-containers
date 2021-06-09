@@ -55,8 +55,9 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S")
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
     log_file = f"synthetic_{commit_info}_{time_str}.log"
+    # Selecting the python version explicitly. See https://github.com/aws/deep-learning-containers/issues/1147
     ec2_connection.run(
-        f"python3 {container_test_local_dir}/bin/benchmark/tf{tf_version}_serving_perf.py "
+        f"python3.7 {container_test_local_dir}/bin/benchmark/tf{tf_version}_serving_perf.py "
         f"--processor {processor} --docker_image_name {image_uri} "
         f"--run_all_s3 --binary /usr/bin/tensorflow_model_server --get_perf --iterations {num_iterations} "
         f"2>&1 | tee {log_file}"
