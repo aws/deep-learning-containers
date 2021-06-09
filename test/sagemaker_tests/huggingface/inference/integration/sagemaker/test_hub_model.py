@@ -24,18 +24,15 @@ from sagemaker.deserializers import JSONDeserializer
 from ...integration import model_dir
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
-
+# TODO: remove
 os.environ["AWS_PROFILE"] = "hf-sm"  # setting aws profile for our boto3 client
-os.environ["AWS_DEFAULT_REGION"] = "us-east-1"  # current DLCs are only in us-east-1 available
 
 
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
 def test_sm_trained_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type):
-    # instance_type = instance_type or "ml.c4.xlarge"
-    instance_type = "ml.m5.xlarge"
-    print("ecr", ecr_image)
+    instance_type = instance_type or "ml.m5.xlarge"
     _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
 
 
@@ -43,8 +40,7 @@ def test_sm_trained_model_cpu(sagemaker_session, framework_version, ecr_image, i
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 def test_sm_trained_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type):
-    # instance_type = instance_type or "ml.p2.xlarge"
-    instance_type = "ml.p2.xlarge"
+    instance_type = instance_type or "ml.p2.xlarge"
     _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
 
 
