@@ -148,6 +148,12 @@ RUN conda install -c \
     enum-compat==0.0.3 \
     "cryptography>=3.3.2"
 
+# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
+# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
+# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
+# once conda fixes the issue
+RUN rm -rf /opt/conda/lib/libtinfo.so.6
+
 # Uninstall and re-install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
  && pip install --no-cache-dir -U $PT_INFERENCE_URL \
