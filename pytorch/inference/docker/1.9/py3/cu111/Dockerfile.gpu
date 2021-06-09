@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu18.04
+FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu20.04
 
 # NCCL_VERSION=2.4.7, CUDNN_VERSION=7.6.2.24
 
@@ -6,14 +6,16 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
+ARG DEBIAN_FRONTEND=noninteractive
 ARG PYTHON=python3
 # Add arguments to achieve the version, python and url
-ARG PYTHON_VERSION=3.6.13
+ARG PYTHON_VERSION=3.8.10
 ARG OPEN_MPI_VERSION=4.0.1
 
 ARG TS_VERSION=0.3.1
-ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3-us-west-2.amazonaws.com/r1.9.0_inference/20210527-212812/d56552945c66acd15eb7411cdc7809adad9a9164/gpu/torch-1.9.0-cp36-cp36m-manylinux1_x86_64.whl
-ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.8.1ei/gpu/torchvision-0.9.1-cp36-cp36m-linux_x86_64.whl
+ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3-us-west-2.amazonaws.com/r1.9.0_inference/20210608-234554/7f84708b416d0c236f959493191e860cc6039091/gpu/torch-1.9.0-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://pytorch-ei-binaries.s3-us-west-2.amazonaws.com/torchvision_build/0.10.0/gpu/torchvision-0.10.0a0%2B9d5561b-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://pytorch-ei-binaries.s3-us-west-2.amazonaws.com/torchaudio_build/0.9.0/gpu/torchaudio-0.9.0a0%2Bccc0f46-cp38-cp38-linux_x86_64.whl
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
@@ -21,6 +23,7 @@ ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
+ENV TZ=America/New_York
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends software-properties-common \
@@ -92,26 +95,26 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda install -y \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
-    cython==0.29.12 \
-    ipython==7.7.0 \
-    mkl-include==2019.4 \
-    mkl==2019.4 \
-    numpy==1.19.1 \
-    parso==0.8.0 \
-    scipy==1.3.0 \
-    typing==3.6.4 \
+    cython \
+    ipython \
+    mkl-include \
+    mkl \
+    numpy \
+    parso \
+    scipy \
+    typing \
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c \
     pytorch magma-cuda111 \
  && conda install -c \
     conda-forge \
-    opencv==4.0.1 \
+    opencv \
  && conda install -y \
-    scikit-learn==0.21.2 \
-    pandas==0.25.0 \
-    h5py==2.9.0 \
-    requests==2.22.0 \
+    scikit-learn \
+    pandas \
+    h5py \
+    requests \
  && conda clean -ya \
  && /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
@@ -124,7 +127,9 @@ RUN conda install -c \
 RUN pip uninstall -y torch \
  && pip install --no-cache-dir -U $PT_INFERENCE_URL \
  && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL
+ && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL \
+ && pip uninstall -y torchaudio \
+ && pip install --no-deps --no-cache-dir -U $PT_TORCHAUDIO_URL
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
 RUN pip install pillow==8.2.0 "awscli<2"
