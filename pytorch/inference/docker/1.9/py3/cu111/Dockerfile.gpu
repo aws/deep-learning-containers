@@ -9,7 +9,7 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.10
 
 ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.9.0_inference/20210610-083923/7f84708b416d0c236f959493191e860cc6039091/gpu/torch-1.9.0-cp38-cp38-manylinux1_x86_64.whl
-ARG PT_TORCHVISION_URL=https://pytorch-ei-binaries.s3-us-west-2.amazonaws.com/torchvision_build/0.10.0/gpu/torchvision-0.10.0a0%2B9d5561b-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/torchvision_build/0.10.0/gpu/torchvision-0.10.0a0%2B9d5561b-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://pytorch-ei-binaries.s3-us-west-2.amazonaws.com/torchaudio_build/0.9.0/gpu/torchaudio-0.9.0a0%2Bccc0f46-cp38-cp38-linux_x86_64.whl
 
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
