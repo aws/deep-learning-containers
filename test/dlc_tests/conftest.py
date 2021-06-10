@@ -323,6 +323,11 @@ def example_only():
 
 
 @pytest.fixture(scope="session")
+def huggingface_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def tf2_only():
     pass
 
