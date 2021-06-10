@@ -29,6 +29,7 @@ ENV CUDNN_VERSION=8.0.5.39
 ENV NCCL_VERSION=2.7.8
 ENV EFA_VERSION=1.11.2
 ENV OMPI_VERSION=4.1.1
+ENV NVML_VERSION=11.1.74
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends software-properties-common \
@@ -40,7 +41,7 @@ RUN apt-get update \
     cmake \
     cuda-command-line-tools-11-1 \
     cuda-cudart-11-1 \
-    cuda-libraries-11-1 \
+    cuda-libraries-dev-11-1 \
     curl \
     emacs \
     git \
@@ -52,6 +53,7 @@ RUN apt-get update \
     libcurand-dev-11-1 \
     libcusolver-dev-11-1 \
     libcusparse-dev-11-1 \
+    cuda-nvml-dev-11-1=${NVML_VERSION}-1 \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libgomp1 \
