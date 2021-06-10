@@ -24,10 +24,6 @@ from sagemaker.deserializers import JSONDeserializer
 from ...integration import model_dir
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
-# TODO: remove
-os.environ["AWS_PROFILE"] = "hf-sm"  # setting aws profile for our boto3 client
-os.environ["AWS_DEFAULT_REGION"] = "us-east-1"  # current DLCs are only in us-east-1 available
-
 
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("cpu")
@@ -55,7 +51,7 @@ def _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_ty
 
     hf_model = Model(
         env=env,
-        role="sagemaker_execution_role",  # TODO: what is the correct role name for CI-pipeline, is it "SageMakerRole"
+        role="SageMakerRole",
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
         predictor_cls=Predictor,
