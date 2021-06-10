@@ -194,7 +194,7 @@ def _get_remote_override_flags():
         result = s3_client.get_object(Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json")
         json_content = json.loads(result["Body"].read().decode('utf-8'))
     except ClientError as e:
-        print("ClientError when performing S3/STS operation. Exception: {}".format(e))
+        print("ClientError when performing S3/STS operation: {}".format(e))
         json_content = {}
     return json_content
 
