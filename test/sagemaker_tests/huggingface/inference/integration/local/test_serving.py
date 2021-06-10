@@ -57,7 +57,6 @@ def _assert_prediction(predictor):
 
 
 @pytest.mark.model("tiny-distilbert")
-# @pytest.mark.skip("Skipping flaky test. Will need to be run manually.")
 def test_serve_json(ecr_image, framework_version, sagemaker_local_session, instance_type):
     with _predictor(model_dir, ecr_image, framework_version, sagemaker_local_session, instance_type) as predictor:
         _assert_prediction(predictor)

@@ -46,7 +46,7 @@ def test_sm_trained_model_gpu(sagemaker_session, framework_version, ecr_image, i
 
 
 def _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None):
-    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-serving")
+    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-serving-hub-model")
 
     env = {
         "HF_MODEL_ID": "sshleifer/tiny-distilbert-base-uncased-finetuned-sst-2-english",
@@ -62,16 +62,6 @@ def _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_ty
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
-        # Use accelerator type to differentiate EI vs. CPU and GPU. Don't use processor value
-        # TODO: add when supported
-        # if accelerator_type is not None:
-        #     predictor = hf_model.deploy(
-        #         initial_instance_count=1,
-        #         instance_type=instance_type,
-        #         accelerator_type=accelerator_type,
-        #         endpoint_name=endpoint_name,
-        #     )
-        # else:
         predictor = hf_model.deploy(
             initial_instance_count=1,
             instance_type=instance_type,
