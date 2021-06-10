@@ -429,25 +429,6 @@ def pytest_collection_modifyitems(session, config, items):
         report_generator.generate_sagemaker_reports()
 
 
-def generate_tests_exceptions(lookup_keyword, image_uri):
-    """
-    Given that a lookup_keyword exists within image_uri, ensure that the image_uri is not one of the exceptions
-    for images that match the keyword. For example, EIA images have "cpu" in the image uri, but are not meant to
-    be tested with functions that test CPU images.
-
-    :param lookup_keyword: Lookup term that has a match in the image URI
-    :param image_uri: ECR Image URI for image
-    :return: bool True if image_uri is one of the exceptions for lookup_keyword, and False otherwise
-    """
-    if lookup_keyword not in image_uri:
-        return False
-
-    exception_keywords = {
-        "cpu": ["eia"],
-        "tensorflow-training": ""
-    }
-
-
 def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, values_to_generate_for_fixture):
     """
     Take a dictionary (values_to_generate_for_fixture), that maps a fixture name used in a test function to another
