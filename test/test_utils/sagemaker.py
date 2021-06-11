@@ -137,7 +137,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     test_report = os.path.join(os.getcwd(), "test", f"{job_type}_{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
-    is_py3 = " python3 -m "
+
 
     efa_flag = ""
     efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
@@ -152,7 +152,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     if processor == "eia" :
         remote_pytest_cmd += (f" {accelerator_type_arg} {eia_arg}")
 
-    local_pytest_cmd = (f"{is_py3} pytest -s -v {integration_path} {docker_base_arg} "
+    local_pytest_cmd = (f"pytest -s -v {integration_path} {docker_base_arg} "
                         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
                         f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}")
 
