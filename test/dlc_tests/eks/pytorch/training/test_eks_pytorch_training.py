@@ -93,6 +93,59 @@ def test_eks_pytorch_single_node_training(pytorch_training):
         run("kubectl delete pods {}".format(pod_name))
 
 
+@pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline")
+@pytest.mark.model("resnet18")
+@pytest.mark.integration("pt_s3_plugin")
+def test_eks_pt_s3_plugin_single_node_training(pytorch_training):
+    """
+    Function to create a pod using kubectl and given container image, and run MXNet training
+    Args:
+        :param setup_utils: environment in which EKS tools are setup
+        :param pytorch_training: the ECR URI
+    """
+
+    training_result = False
+
+    rand_int = random.randint(4001, 6000)
+
+    yaml_path = os.path.join(os.sep, "tmp", f"pytorch_s3_single_node_training_{rand_int}.yaml")
+    pod_name = f"pytorch-s3-single-node-training-{rand_int}"
+
+    args = f"git clone https://github.com/aws/amazon-s3-plugin-for-pytorch.git && python amazon-s3-plugin-for-pytorch/examples/s3_imagenet_example.py"
+
+    # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
+    cpu_limit = 96
+    cpu_limit = str(int(cpu_limit) / 2)
+
+    if "gpu" in pytorch_training:
+        args = args + " --gpu 0"
+  
+    search_replace_dict = {
+        "<POD_NAME>": pod_name,
+        "<CONTAINER_NAME>": pytorch_training,
+        "<ARGS>": args,
+        "<CPU_LIMIT>": cpu_limit,
+    }
+
+    eks_utils.write_eks_yaml_file_from_template(
+        eks_utils.SINGLE_NODE_TRAINING_TEMPLATE_PATH, yaml_path, search_replace_dict
+    )
+
+    try:
+        run("kubectl create -f {}".format(yaml_path))
+
+        if eks_utils.is_eks_training_complete(pod_name):
+            pytorch_out = run("kubectl logs {}".format(pod_name)).stdout
+            if "Acc" in pytorch_out:
+                training_result = True
+            else:
+                eks_utils.LOGGER.info("**** training output ****")
+                eks_utils.LOGGER.debug(pytorch_out)
+        assert training_result, f"Training failed"
+    finally:
+        run("kubectl delete pods {}".format(pod_name))
+
+
 @pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
