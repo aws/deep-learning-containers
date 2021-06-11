@@ -17,6 +17,7 @@ from six.moves import urllib
 opener = urllib.request.build_opener()
 opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 urllib.request.install_opener(opener)
+from packaging import version
 
 import argparse
 import logging
@@ -39,7 +40,7 @@ from torchvision import datasets, transforms
 # from torchvision 0.9.1, 2 candidate mirror website links will be added before "resources" items automatically
 # Reference PR: https://github.com/pytorch/vision/pull/3559
 TORCHVISION_VERSION = "0.9.1"
-if torchvision.__version__ < TORCHVISION_VERSION:
+if version.parse(torchvision.__version__) < version.parse(TORCHVISION_VERSION):
     datasets.MNIST.resources = [
         ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz',
          'f68b3c2dcbeaaa9fbdd348bbdeb94873'),
