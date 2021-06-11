@@ -44,7 +44,11 @@ def run_sagemaker_local_tests(images):
         return
     # Run sagemaker Local tests
     framework, _ = get_framework_and_version_from_tag(images[0])
-    sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
+    sm_tests_path = (
+        os.path.join("test", "sagemaker_tests", framework)
+        if "huggingface" not in framework
+        else os.path.join("test", "sagemaker_tests", "huggingface*")
+    )
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
 
