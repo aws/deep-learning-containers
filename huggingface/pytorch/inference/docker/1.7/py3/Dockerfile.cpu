@@ -19,7 +19,6 @@ ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.
 ARG TRANSFORMERS_VERSION
 ARG HF_INFERENCE_TOOLKIT_VERSION=0.0.1.dev0
 
-
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     LD_LIBRARY_PATH="/opt/conda/lib/:${LD_LIBRARY_PATH}:/usr/local/lib" \
@@ -40,6 +39,7 @@ RUN apt-get update \
     vim \
     wget \
     curl \
+    emacs \
     unzip \
     git \
  && apt-get clean \
@@ -102,19 +102,19 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-#################################           
+#################################
 # Hugging Face specific section #
-#################################            
+#################################
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.7/license.txt -o /license.txt
 
 # Uninstall and re-install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U $PT_INFERENCE_URL 
- 
+ && pip install --no-cache-dir -U $PT_INFERENCE_URL
+
 # install Hugging Face libraries and its dependencies
-RUN pip install --no-cache-dir \ 
-	transformers[sentencepiece]==${TRANSFORMERS_VERSION} \ 
+RUN pip install --no-cache-dir \
+	transformers[sentencepiece]==${TRANSFORMERS_VERSION} \
 	protobuf==3.12.0 \
    sagemaker-huggingface-inference-toolkit==${HF_INFERENCE_TOOLKIT_VERSION}
 

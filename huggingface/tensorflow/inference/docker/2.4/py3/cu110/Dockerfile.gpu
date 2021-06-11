@@ -16,7 +16,6 @@ ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow
 ARG TRANSFORMERS_VERSION
 ARG HF_INFERENCE_TOOLKIT_VERSION=0.0.1.dev0
 
-
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     LD_LIBRARY_PATH="/opt/conda/lib/:${LD_LIBRARY_PATH}:/usr/local/lib" \
@@ -37,6 +36,7 @@ RUN apt-get update \
     vim \
     wget \
     curl \
+    emacs \
     unzip \
     git \
     libnuma1 \
@@ -96,18 +96,18 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-#################################           
+#################################
 # Hugging Face specific section #
-#################################      
+#################################
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.4/license.txt -o /license.txt
 
 # Install TF Binary
-RUN pip install --no-cache-dir -U $TF_URL 
- 
+RUN pip install --no-cache-dir -U $TF_URL
+
 # install Hugging Face libraries and its dependencies
-RUN pip install --no-cache-dir \ 
-	transformers[sentencepiece]==${TRANSFORMERS_VERSION} \ 
+RUN pip install --no-cache-dir \
+	transformers[sentencepiece]==${TRANSFORMERS_VERSION} \
 	protobuf==3.12.0 \
    sagemaker-huggingface-inference-toolkit==${HF_INFERENCE_TOOLKIT_VERSION}
 
