@@ -31,8 +31,8 @@ P3DN_REGION = "us-east-1"
 # Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
 UBUNTU_16_BASE_DLAMI_US_WEST_2 = "ami-09b49a82b7f258d03"
 UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0743d56bc1f9aa072"
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-032a07adeddce2db8"
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-063f381b07ea97834"
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-038ad73ac55f4efcf"
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-01d7acb42d8826945"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 UL_AMI_LIST = [
@@ -411,7 +411,7 @@ def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", 
     :return:
     """
     conn_run = connection.run if connection is not None else run
-    conn_run(f"python3 {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
+    conn_run(f"/usr/bin/python3.7 {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
 def get_inference_run_command(image_uri, model_names, processor="cpu"):

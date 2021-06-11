@@ -182,7 +182,7 @@ def install_custom_python(python_version, ec2_conn):
     ec2_conn.run(f"wget https://bootstrap.pypa.io/get-pip.py && sudo python{python_version} get-pip.py")
     ec2_conn.run(f"sudo ln -sf /usr/bin/python3.6 /usr/bin/python3")
 
-
+#TODO: python needs to be configured
 def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     """
     Install sagemaker local test dependencies
@@ -193,7 +193,7 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     :return: None
     """
     # Install custom packages which need to be latest version"
-    is_py3 = " python3 -m"
+    is_py3 = " /usr/bin/python3.7 -m"
     # using virtualenv to avoid package conflicts with the current packages
     ec2_conn.run(f"sudo apt-get install virtualenv -y ")
     if framework == "tensorflow" and job_type == "inference":

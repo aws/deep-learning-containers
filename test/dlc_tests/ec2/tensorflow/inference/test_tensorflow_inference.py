@@ -137,7 +137,7 @@ def train_mnist_model(serving_folder_path, ec2_connection):
     ec2_connection.run(f"cd {serving_folder_path}")
     mnist_script_path = f"{serving_folder_path}/tensorflow_serving/example/mnist_saved_model.py"
     ec2_connection.run(
-        f"python3 {mnist_script_path} {serving_folder_path}/models/mnist", hide=True
+        f"/usr/bin/python3.7 {mnist_script_path} {serving_folder_path}/models/mnist", hide=True
     )
 
 
