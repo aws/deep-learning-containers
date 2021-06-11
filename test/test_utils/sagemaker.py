@@ -169,19 +169,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
-def install_custom_python(python_version, ec2_conn):
-    """
-    Install python 3.6 on Ubuntu 16 AMI.
-    Test files for tensorflow inference require python version > 3.6
-    :param python_version:
-    :param ec2_conn:
-    :return:
-    """
-    ec2_conn.run("sudo add-apt-repository ppa:deadsnakes/ppa -y && sudo apt-get update")
-    ec2_conn.run(f"sudo apt-get install python{python_version} -y ")
-    ec2_conn.run(f"wget https://bootstrap.pypa.io/get-pip.py && sudo python{python_version} get-pip.py")
-    ec2_conn.run(f"sudo ln -sf /usr/bin/python3.6 /usr/bin/python3")
-
 #TODO: python needs to be configured
 def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     """
@@ -193,19 +180,15 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     :return: None
     """
     # Install custom packages which need to be latest version"
-    is_py3 = " /usr/bin/python3.7 -m"
+    is_py3 = " /usr/bin/python3.7"
     # using virtualenv to avoid package conflicts with the current packages
     ec2_conn.run(f"sudo apt-get install virtualenv -y ")
-    if framework == "tensorflow" and job_type == "inference":
-        # TF inference test fail if run as soon as instance boots, even after health check pass. rootcause:
-        # sockets?/nginx startup?/?
-        install_custom_python("3.6", ec2_conn)
-    ec2_conn.run(f"virtualenv env")
+    ec2_conn.run(f"virtualenv env --python {is_py3}")
     ec2_conn.run(f"source ./env/bin/activate")
     if framework == "pytorch":
         # The following distutils package conflict with test dependencies
         ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
-    ec2_conn.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
+    ec2_conn.run(f"sudo {is_py3} -m pip install -r requirements.txt ", warn=True)
 
 
 def kill_background_processes_and_run_apt_get_update(ec2_conn):
