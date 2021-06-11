@@ -160,6 +160,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         local_pytest_cmd = f"{local_pytest_cmd} --py-version {sm_local_py_version} --region {region}"
     if framework == "tensorflow" and job_type == "training":
         path = os.path.join(os.path.dirname(path), f"{framework}{framework_major_version}_training")
+    if "huggingface" in framework and job_type == "inference":
+        path = os.path.join("test", "sagemaker_tests", "huggingface", "inference")
 
     return (
         remote_pytest_cmd if sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE else local_pytest_cmd,
