@@ -490,9 +490,11 @@ def add_ssm_access_policy(instance_role_name):
     """
 
     SSM_POLICY_ARN="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+    SSM_S3_POLICY_ARN="arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
     iam = init_iam_client() 
     try:
         iam.attach_role_policy(RoleName=instance_role_name, PolicyArn=SSM_POLICY_ARN)
+        iam.attach_role_policy(RoleName=instance_role_name, PolicyArn=SSM_S3_POLICY_ARN)
     except ClientError as e:
         LOGGER.error(f"Error: Cannot add SSM policy to EKS worker node IAM role. Full Exception:\n{e}")
 
@@ -501,9 +503,11 @@ def remove_ssm_access_policy(instance_role_name):
     """
 
     SSM_POLICY_ARN="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+    SSM_S3_POLICY_ARN="arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
     iam = init_iam_client() 
     try:
         iam.detach_role_policy(RoleName=instance_role_name, PolicyArn=SSM_POLICY_ARN)
+        iam.detach_role_policy(RoleName=instance_role_name, PolicyArn=SSM_S3_POLICY_ARN)
     except ClientError as e:
         LOGGER.error(f"Error: Cannot remove SSM policy from EKS worker node IAM role. Full Exception:\n{e}")
 
