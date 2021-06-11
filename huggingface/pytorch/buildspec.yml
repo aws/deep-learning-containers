@@ -16,16 +16,15 @@ repository_info:
     image_type: &INFERENCE_IMAGE_TYPE inference
     root: !join [ "huggingface/", *BASE_FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
     repository_name:  &REPOSITORY_NAME !join ["pr", "-", "huggingface", "-", *BASE_FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
-    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/,
-      *REPOSITORY_NAME ]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
 context:
   inference_context: &INFERENCE_CONTEXT
     mms-entrypoint:
-      source: ../build_artifacts/inference/mms-entrypoint.py
+      source: ../../build_artifacts/inference/mms-entrypoint.py
       target: mms-entrypoint.py
     config:
-      source: ../build_artifacts/inference/config.properties
+      source: ../../build_artifacts/inference/config.properties
       target: config.properties
 
 images:
@@ -42,7 +41,7 @@ images:
     datasets_version: &DATASETS_VERSION 1.6.2
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
       *CUDA_VERSION, '-', *OS_VERSION ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, 
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
       *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
   BuildHuggingFacePytorchCPUPTInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
@@ -55,7 +54,7 @@ images:
     transformers_version: &TRANSFORMERS_VERSION 4.6.1
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
       *CUDA_VERSION, '-', *OS_VERSION ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, 
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
       *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
@@ -71,7 +70,7 @@ images:
     transformers_version: &TRANSFORMERS_VERSION 4.6.1
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
       *CUDA_VERSION, '-', *OS_VERSION ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, 
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
       *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
