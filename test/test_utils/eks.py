@@ -45,15 +45,13 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
-EKS_VERSION = "1.14.6"
-EKSCTL_VERSION = "0.22.0"
+EKS_VERSION = "1.20.4"
+EKSCTL_VERSION = "0.54.0"
 KUBEFLOW_VERSION = "v0.4.1"
 KUBETAIL_VERSION = "1.6.7"
 
 EKS_NVIDIA_PLUGIN_VERSION = "0.6.0"
 
-# https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
-EKS_AMI_ID = {"cpu": "ami-03086423d09685de3", "gpu": "ami-061798711b2adafb4", "neuron": "ami-092059396c7e51f52"}
 
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
 PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"
@@ -321,21 +319,20 @@ def setup_eksctl():
 
 
 @retry(stop_max_attempt_number=2, wait_fixed=60000)
-def create_eks_cluster(eks_cluster_name, processor_type, num_nodes, volume_size,
+def create_eks_cluster(eks_cluster_name, num_nodes, volume_size,
                        instance_type, ssh_public_key_name, region=os.getenv("AWS_REGION", DEFAULT_REGION)):
     """Function to setup an EKS cluster using eksctl. The AWS credentials used to perform eks operations
     are that the user deepamiuser-beta as used in other functions. The 'deeplearning-ami-beta' public key
     will be used to access the nodes created as EC2 instances in the EKS cluster.
     Note: eksctl creates a cloudformation stack by the name of eksctl-${eks_cluster_name}-cluster.
     Args:
-        eks_cluster_name, processor_type, num_nodes, instance_type, ssh_public_key_name: str
+        eks_cluster_name, num_nodes, instance_type, ssh_public_key_name: str
     """
     setup_eksctl()
 
     delete_eks_cluster(eks_cluster_name)
 
     eksctl_create_cluster_command = f"eksctl create cluster {eks_cluster_name} " \
-                                    f"--node-ami {EKS_AMI_ID[processor_type]} " \
                                     f"--nodes {num_nodes} " \
                                     f"--node-type={instance_type} " \
                                     f"--node-volume-size={volume_size} " \
@@ -354,7 +351,7 @@ def create_eks_cluster(eks_cluster_name, processor_type, num_nodes, volume_size,
     eks_write_kubeconfig(eks_cluster_name, "us-west-2")
     
     LOGGER.info(f"EKS cluster created successfully, with the following parameters cluster_name: "
-                f"{eks_cluster_name} ami-id: {EKS_AMI_ID[processor_type]} num_nodes: {num_nodes} instance_type: "
+                f"{eks_cluster_name} num_nodes: {num_nodes} instance_type: "
                 f"{instance_type} ssh_public_key: {ssh_public_key_name}")
 
 
@@ -381,12 +378,12 @@ def eks_setup():
 
     kubectl_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
+        f"{EKS_VERSION}/2021-04-12/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
     )
 
     aws_iam_authenticator_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/aws-iam-authenticator "
+        f"{EKS_VERSION}/2021-04-12/bin/{platform.lower()}/amd64/aws-iam-authenticator "
         f"-o /usr/local/bin/aws-iam-authenticator"
     )
 
