@@ -233,6 +233,14 @@ RUN ${PIP} install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
     smclarify
 
+# Install extra packages
+RUN ${PIP} install --no-cache-dir -U \
+    bokeh \
+    imageio \
+    plotly \
+    seaborn \
+    shap
+
 ARG METIS=metis-5.1.0
 ARG RMM_VERSION=0.15.0
 
