@@ -57,6 +57,6 @@ def _assert_prediction(predictor):
 
 
 @pytest.mark.model("tiny-distilbert")
-def test_serve_json(ecr_image, framework_version, sagemaker_local_session, instance_type):
-    with _predictor(model_dir, ecr_image, framework_version, sagemaker_local_session, instance_type) as predictor:
+def test_serve_json(docker_image, framework_version, sagemaker_local_session, instance_type):
+    with _predictor(model_dir, docker_image, framework_version, sagemaker_local_session, instance_type) as predictor:
         _assert_prediction(predictor)
