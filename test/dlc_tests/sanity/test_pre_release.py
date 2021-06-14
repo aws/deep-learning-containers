@@ -138,7 +138,7 @@ def test_framework_version_cpu(image):
     if "gpu" in image:
         pytest.skip("GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
     image_repo_name = get_repository_and_tag_from_image_uri(image)
-    if re.fullmatch("(pr-|beta-|nightly-)?tensorflow-inference(-eia)?", image_repo_name):
+    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia)?", image_repo_name):
         pytest.skip(msg="TF inference for CPU/GPU/EIA does not have core tensorflow installed")
 
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
