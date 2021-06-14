@@ -9,7 +9,12 @@ from src.benchmark_metrics import (
     TENSORFLOW_INFERENCE_CPU_THRESHOLD,
     get_threshold_for_image,
 )
-from test.test_utils import get_framework_and_version_from_tag, is_pr_context, is_tf_version
+from test.test_utils import (
+    get_framework_and_version_from_tag,
+    is_pr_context, 
+    is_tf_version, 
+    get_python_invoker
+)
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
     post_process_inference,
@@ -18,24 +23,24 @@ from test.test_utils.ec2 import (
 
 @pytest.mark.model("inception, RCNN-Resnet101-kitti, resnet50_v2, mnist, SSDResnet50Coco")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.16xlarge"], indirect=True)
-def test_performance_ec2_tensorflow_inference_gpu(tensorflow_inference, ec2_connection, region, gpu_only):
+def test_performance_ec2_tensorflow_inference_gpu(tensorflow_inference, ec2_connection, ec2_instance_ami, region, gpu_only):
     _, framework_version = get_framework_and_version_from_tag(tensorflow_inference)
     threshold = get_threshold_for_image(framework_version, TENSORFLOW_INFERENCE_GPU_THRESHOLD)
-    ec2_performance_tensorflow_inference(tensorflow_inference, "gpu", ec2_connection, region, threshold)
+    ec2_performance_tensorflow_inference(tensorflow_inference, "gpu", ec2_connection, ec2_instance_ami, region, threshold)
 
 
 @pytest.mark.model("inception, RCNN-Resnet101-kitti, resnet50_v2, mnist, SSDResnet50Coco")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.18xlarge"], indirect=True)
 # TODO: Unskip this test for TF 2.4.x Inference CPU images
-def test_performance_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, region, cpu_only):
+def test_performance_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, ec2_instance_ami, region, cpu_only):
     _, framework_version = get_framework_and_version_from_tag(tensorflow_inference)
     if Version(framework_version) == Version("2.4.1"):
         pytest.skip("This test times out, and needs to be run manually.")
     threshold = get_threshold_for_image(framework_version, TENSORFLOW_INFERENCE_CPU_THRESHOLD)
-    ec2_performance_tensorflow_inference(tensorflow_inference, "cpu", ec2_connection, region, threshold)
+    ec2_performance_tensorflow_inference(tensorflow_inference, "cpu", ec2_connection, ec2_instance_ami, region, threshold)
 
 
-def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, region, threshold):
+def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, ec2_instance_ami, region, threshold):
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     tf_version = "1" if is_tf_version("1", image_uri) else "2"
@@ -55,8 +60,9 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, r
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S")
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
     log_file = f"synthetic_{commit_info}_{time_str}.log"
+    python_invoker = get_python_invoker(ec2_instance_ami)
     ec2_connection.run(
-        f"/usr/bin/python3.7 {container_test_local_dir}/bin/benchmark/tf{tf_version}_serving_perf.py "
+        f"{python_invoker} {container_test_local_dir}/bin/benchmark/tf{tf_version}_serving_perf.py "
         f"--processor {processor} --docker_image_name {image_uri} "
         f"--run_all_s3 --binary /usr/bin/tensorflow_model_server --get_perf --iterations {num_iterations} "
         f"2>&1 | tee {log_file}"
