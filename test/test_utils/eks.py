@@ -46,7 +46,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
 EKS_VERSION = "1.20.4"
-EKSCTL_VERSION = "0.54.0"
+EKSCTL_VERSION = "0.53.0"
 KUBEFLOW_VERSION = "v0.4.1"
 KUBETAIL_VERSION = "1.6.7"
 
@@ -90,17 +90,6 @@ def get_single_node_inference_template_path(framework, processor):
         f"single_node_{processor}_inference.yaml",
     )
 
-def get_device_plugin_path(framework, processor):
-
-    return os.path.join(
-        os.sep,
-        DLC_TESTS_PREFIX,
-        "eks",
-        "eks_manifest_templates",
-        framework,
-        "inference",
-        f"{processor}_device_plugin.yaml",
-    )
 
 def retry_if_value_error(exception):
     """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
