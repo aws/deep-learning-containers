@@ -76,8 +76,8 @@ def run_smclarify_bias_metrics(
         ec2_connection.run(
             f"{docker_executable} run --name {container_name} -v "
             f"{container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
-            f"\"python3 -m pip install pytest && "
-            f"python3 {test_script}\"",
+            f"\"python -m pip install pytest && "
+            f"python {test_script}\"",
             hide=True,
             timeout=300,
         )
