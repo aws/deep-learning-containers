@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import copy
-import pytest
 import os
 import logging
 import sys
@@ -14,6 +13,11 @@ from typing import Dict, Optional
 import pandas as pd
 from smclarify.bias.report import FacetColumn, LabelColumn, bias_report, StageType
 from smclarify.util.dataset import Datasets
+
+# Install and import pytest
+import subprocess
+subprocess.call([sys.executable, "-m", "pip", "install", "pytest"])
+import pytest
 
 logger = logging.getLogger(__name__)
 
