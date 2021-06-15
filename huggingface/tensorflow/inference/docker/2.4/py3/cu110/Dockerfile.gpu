@@ -104,7 +104,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.4/license.txt -o /license.txt
 
 # Install TF Binary
-RUN pip install --no-cache-dir -U $TF_URL
+# RUN pip install --no-cache-dir -U $TF_URL
+RUN pip install --no-cache-dir -U tensorflow-gpu==2.4.1
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
