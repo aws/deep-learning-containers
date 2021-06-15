@@ -170,7 +170,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
-#TODO: python needs to be configured
 def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_instance_ami):
     """
     Install sagemaker local test dependencies
