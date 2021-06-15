@@ -14,7 +14,7 @@ ARG PT_TORCHAUDIO_URL=https://pytorch-ei-binaries.s3-us-west-2.amazonaws.com/tor
 
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
-ARG TS_VERSION=0.3.1
+ARG TS_VERSION=0.4.0
 ARG CUBLAS_VERSION=11.3.0.106
 
 ARG DEBIAN_FRONTEND=noninteractive
