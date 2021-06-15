@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import copy
 import os
 import logging
 import sys
@@ -13,7 +14,48 @@ import pandas as pd
 from smclarify.bias.report import FacetColumn, LabelColumn, bias_report, StageType
 from smclarify.util.dataset import Datasets
 
+# Install and import pytest
+import subprocess
+subprocess.call([sys.executable, "-m", "pip", "install", "pytest"])
+import pytest
+
 logger = logging.getLogger(__name__)
+
+def approximate(expected, rtol=None, atol=None):
+    """
+    An enhancement of pytest.approx to support complex composite objects like a nested dict (see [1]).
+    [1] https://github.com/pytest-dev/pytest/issues/3164
+
+    :param expected: the input, it is supposed to be a complex composite object like a nested dict or list.
+    :param rtol: relative tolerance
+    :param atol: absolute tolerance
+    :return: A copy of the input but with all floating number wrapped by pytest.approx.
+    """
+    expected_copy = copy.deepcopy(expected)
+    __approximate(expected_copy, rtol, atol)
+    return expected_copy
+
+
+def __approximate(data, rtol=None, atol=None):
+    t = type(data)
+    if t == dict:
+        for key, value in data.items():
+            if type(value) == float:
+                data[key] = pytest.approx(value, rel=rtol, abs=atol)
+            elif value:
+                __approximate(value, rtol, atol)
+            else:
+                logger.info(f"Cannot convert null value for {data['name']}")
+    elif t == list:
+        for i in range(len(data)):
+            value = data[i]
+            if type(value) == float:
+                data[i] = pytest.approx(value, rel=rtol, abs=atol)
+            elif value:
+                __approximate(value, rtol, atol)
+            else:
+                logger.info(f"Cannot convert null value for  index {data}[{i}]")
+
 
 def fetch_input_data() -> pd.DataFrame:
     dataset = Datasets()
@@ -98,9 +140,9 @@ def test_bias_metrics():
     pre_training_expected_result = expected_results.get("pre_training_bias_metrics")
     post_training_expected_result = expected_results.get("post_training_bias_metrics")
 
-    if not (pre_training_metrics == pre_training_expected_result):
+    if not (pre_training_metrics == approximate(pre_training_expected_result)):
         raise AssertionError("Pre_training Bias Metrics values differ from expected Metrics")
-    if not (post_training_metrics == post_training_expected_result):
+    if not (post_training_metrics == approximate(post_training_expected_result)):
         raise AssertionError("Post_training Bias Metrics values differ from expected Metrics")
     print("Test SMClarify Bias Metrics succeeded!")
 
