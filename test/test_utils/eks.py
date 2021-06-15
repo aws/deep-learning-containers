@@ -320,9 +320,10 @@ def create_eks_cluster(eks_cluster_name, num_nodes, volume_size,
     setup_eksctl()
 
     delete_eks_cluster(eks_cluster_name)
-
+    
+    eks_short_version = re.search(r"([\d].[\d])", EKS_VERSION).groups()[0]
     eksctl_create_cluster_command = f"eksctl create cluster {eks_cluster_name} " \
-                                    f"--version {EKS_VERSION} " \
+                                    f"--version {eks_short_version} " \
                                     f"--nodes {num_nodes} " \
                                     f"--node-type={instance_type} " \
                                     f"--node-volume-size={volume_size} " \
