@@ -45,7 +45,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV MANUAL_BUILD=0
 ENV RDMAV_FORK_SAFE=1
 
-ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3-us-west-2.amazonaws.com/r1.9.0_aws_v3/20210606-211844/45295974afdd56106c95ffae92ff0ebdc5efc6ab/gpu/torch-1.9.0-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.9.0_aws_v3/20210615-181444/ba7c4b277d2664f51afae8f0bfef33ec82dd6018/gpu/torch-1.9.0-cp38-cp38-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://torchvision-build-rc.s3.us-west-2.amazonaws.com/1.9.0/gpu/torchvision-0.10.0-cp38-cp38-linux_x86_64.whl
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.9.0/build-artifacts/2021-06-14-23-47/smdistributed_modelparallel-1.4.0-cp38-cp38-linux_x86_64.whl
 ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.9.0/cu111/2021-06-09/smdistributed_dataparallel-1.2.1-cp38-cp38-linux_x86_64.whl
