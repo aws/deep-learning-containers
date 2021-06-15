@@ -46,7 +46,14 @@ FRAMEWORK_FIXTURES = (
     "mxnet_inference_eia",
     "tensorflow_inference_eia",
     "tensorflow_inference_neuron",
-    "pytorch_inference_neuron"
+    "pytorch_inference_neuron",
+    "mxnet_inference_neuron",
+    "huggingface_tensorflow_training",
+    "huggingface_pytorch_training",
+    "huggingface_mxnet_training",
+    "huggingface_tensorflow_inference",
+    "huggingface_pytorch_inference",
+    "huggingface_mxnet_inference",
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -316,6 +323,11 @@ def example_only():
 
 
 @pytest.fixture(scope="session")
+def huggingface_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def tf2_only():
     pass
 
@@ -337,6 +349,11 @@ def tf21_and_above_only():
 
 @pytest.fixture(scope="session")
 def mx18_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def pt17_and_above_only():
     pass
 
 
@@ -376,10 +393,11 @@ def framework_version_within_limit(metafunc_obj, image):
         if mx18_requirement_failed :
             return False
     if image_framework_name == "pytorch" :
+        pt17_requirement_failed = "pt17_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.7", image, "pytorch")
         pt16_requirement_failed = "pt16_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.6", image, "pytorch")
         pt15_requirement_failed = "pt15_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.5", image, "pytorch")
         pt14_requirement_failed = "pt14_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.4", image, "pytorch")
-        if pt16_requirement_failed or pt15_requirement_failed or pt14_requirement_failed:
+        if pt17_requirement_failed or pt16_requirement_failed or pt15_requirement_failed or pt14_requirement_failed:
             return False
     return True
 
@@ -480,12 +498,19 @@ def pytest_generate_tests(metafunc):
             for image in images:
                 if lookup in image:
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
-                    is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
-                    if not framework_version_within_limit(metafunc, image) :
+                    is_huggingface_lookup = "huggingface_only" in metafunc.fixturenames and "huggingface" in image
+                    is_standard_lookup = (
+                        all(
+                            fixture_name not in metafunc.fixturenames
+                            for fixture_name in ["example_only", "huggingface_only"]
+                        )
+                        and all(keyword not in image for keyword in ["example", "huggingface"])
+                    )
+                    if not framework_version_within_limit(metafunc, image):
                         continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
                         continue
-                    if is_example_lookup or is_standard_lookup:
+                    if is_example_lookup or is_huggingface_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:

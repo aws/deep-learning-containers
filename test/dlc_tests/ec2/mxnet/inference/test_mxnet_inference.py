@@ -23,8 +23,15 @@ MX_EC2_GPU_EIA_INSTANCE_TYPE = get_ec2_instance_type(
 MX_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
 )
+MX_EC2_NEURON_INSTANCE_TYPE = get_ec2_instance_type(default="inf1.xlarge", processor="neuron")
 
 MX_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_mx_dlc_telemetry_test")
+
+@pytest.mark.model("mxnet-resnet-neuron")
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", MX_EC2_NEURON_INSTANCE_TYPE, indirect=True)
+def test_ec2_mxnet_inference_neuron(mxnet_inference_neuron, ec2_connection, region, neuron_only):
+    run_ec2_mxnet_inference(mxnet_inference_neuron, "mxnet-resnet-neuron", "resnet", ec2_connection, "neuron", region, 80, 8081)
 
 
 @pytest.mark.model(SQUEEZENET_MODEL)
@@ -88,11 +95,20 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
     container_name = f"{repo_name}-{image_tag}-ec2-{container_tag}"
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     mms_inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
-    docker_run_cmd = (
-        f"{docker_cmd} run -itd --name {container_name}"
-        f" -p {target_port}:8080 -p {target_management_port}:8081"
-        f" {image_uri} {mms_inference_cmd}"
-    )
+    if processor == "neuron":
+        ec2_connection.run("sudo systemctl stop neuron-rtd")  # Stop neuron-rtd in host env for DLC to start it
+        docker_run_cmd = (
+            f"{docker_cmd} run -itd --name {container_name}"
+            f" -p {target_port}:8080 -p {target_management_port}:8081"
+            f" --device=/dev/neuron0 --cap-add IPC_LOCK"
+            f" {image_uri} {mms_inference_cmd}"
+        )
+    else:
+        docker_run_cmd = (
+            f"{docker_cmd} run -itd --name {container_name}"
+            f" -p {target_port}:8080 -p {target_management_port}:8081"
+            f" {image_uri} {mms_inference_cmd}"
+        )
     try:
         ec2_connection.run(
             f"$(aws ecr get-login --no-include-email --region {region})", hide=True
@@ -108,6 +124,10 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
                 port=target_port, connection=ec2_connection
             )
         elif model_name == RESNET_EIA_MODEL:
+            inference_result = test_utils.request_mxnet_inference(
+                port=target_port, connection=ec2_connection, model=model_name
+            )
+        elif model_name == "mxnet-resnet-neuron":
             inference_result = test_utils.request_mxnet_inference(
                 port=target_port, connection=ec2_connection, model=model_name
             )

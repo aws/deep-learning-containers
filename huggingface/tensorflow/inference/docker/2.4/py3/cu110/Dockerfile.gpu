@@ -1,0 +1,5 @@
+# https://github.com/aws/deep-learning-containers/blob/master/available_images.md
+# refer to the above page to pull latest Tensorflow image
+
+# docker image region us-west-2
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference:2.4.1-gpu-py37-cu110-ubuntu18.04
