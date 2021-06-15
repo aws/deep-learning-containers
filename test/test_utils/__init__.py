@@ -74,10 +74,7 @@ PUBLIC_DLC_REGISTRY = "763104351884"
 
 
 def get_python_invoker(ami_id):
-
-    if ami_id in DLAMI_PYTHON_MAPPING:
-        return DLAMI_PYTHON_MAPPING[ami_id]
-    return None
+    return DLAMI_PYTHON_MAPPING.get(ami_id, "/usr/bin/python3")
 
 
 def is_tf_version(required_version, image_uri):

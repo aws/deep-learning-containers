@@ -181,6 +181,9 @@ def ec2_instance(
         "tensorflow_training" in request.fixturenames
         and "gpu_only" in request.fixturenames
         and "horovod" in ec2_key_name
+    ) or (
+        "pytorch_inference" in request.fixturenames
+        and "gpu_only" in request.fixturenames
     ):
         params["BlockDeviceMappings"] = extra_volume_size_mapping
     if ei_accelerator_type:
