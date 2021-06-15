@@ -322,7 +322,7 @@ def create_eks_cluster(eks_cluster_name, num_nodes, volume_size,
     delete_eks_cluster(eks_cluster_name)
 
     eksctl_create_cluster_command = f"eksctl create cluster {eks_cluster_name} " \
-                                    f"--version {EKS_VERSION}" \
+                                    f"--version {EKS_VERSION} " \
                                     f"--nodes {num_nodes} " \
                                     f"--node-type={instance_type} " \
                                     f"--node-volume-size={volume_size} " \
