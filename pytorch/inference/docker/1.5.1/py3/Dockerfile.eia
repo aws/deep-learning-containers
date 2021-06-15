@@ -124,6 +124,8 @@ RUN wget https://amazonei-tools.s3.amazonaws.com/v${HEALTH_CHECK_VERSION}/ei_too
  && ln -s /opt/ei_tools/bin/health_check /opt/ei_health_check/bin/health_check \
  && ln -s /opt/ei_tools/lib /opt/ei_health_check/lib
 
+COPY default_inference_handler.py /opt/conda/lib/python3.6/site-packages/sagemaker_pytorch_serving_container/default_inference_handler.py
+
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]

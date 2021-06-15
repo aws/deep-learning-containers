@@ -15,7 +15,6 @@ def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
     if "neuron" not in pytorch_inference:
         pytest.skip("Skipping EKS Neuron Test for EIA and Non Neuron Images")
 
-    model = "pytorch-resnet-neuron=https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar"
     server_cmd = "/usr/local/bin/entrypoint.sh -m pytorch-resnet-neuron=https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar -t /home/model-server/config.properties"
     num_replicas = "1"
     rand_int = random.randint(4001, 6000)
@@ -38,15 +37,8 @@ def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
     eks_utils.write_eks_yaml_file_from_template(
         eks_utils.get_single_node_inference_template_path("pytorch", processor), yaml_path, search_replace_dict
     )
-    device_plugin_path = eks_utils.get_device_plugin_path("pytorch", processor)
 
     try:
-        # TODO - once eksctl gets the latest neuron device plugin this can be removed
-        run("kubectl delete -f {}".format(device_plugin_path))
-        sleep(60)
-        run("kubectl apply -f {}".format(device_plugin_path))
-        sleep(10)
-
         run("kubectl apply -f {}".format(yaml_path))
 
         port_to_forward = random.randint(49152, 65535)
@@ -54,7 +46,7 @@ def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
         if eks_utils.is_service_running(selector_name):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8080")
 
-        assert test_utils.request_pytorch_inference_densenet(port=port_to_forward, server_type=server_type)
+        assert test_utils.request_pytorch_inference_densenet(port=port_to_forward, server_type=server_type, model_name="pytorch-resnet-neuron")
     except ValueError as excp:
         run("kubectl cluster-info dump")
         eks_utils.LOGGER.error("Service is not running: %s", excp)
