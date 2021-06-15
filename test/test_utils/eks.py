@@ -625,12 +625,11 @@ def is_service_running(selector_name, namespace="default"):
 
 
 def create_eks_cluster_nodegroup(
-        eks_cluster_name, processor_type, num_nodes, instance_type, ssh_public_key_name, region=DEFAULT_REGION
+        eks_cluster_name, num_nodes, instance_type, ssh_public_key_name, region=DEFAULT_REGION
 ):
     """
     Function to create and attach a nodegroup to an existing EKS cluster.
     :param eks_cluster_name: Cluster name of the form PR_EKS_CLUSTER_NAME_TEMPLATE
-    :param processor_type: cpu/gpu
     :param num_nodes: number of nodes to create in nodegroup
     :param instance_type: instance type to use for nodegroup instances
     :param ssh_public_key_name:
@@ -640,7 +639,6 @@ def create_eks_cluster_nodegroup(
     eksctl_create_nodegroup_command = (
         f"eksctl create nodegroup "
         f"--cluster {eks_cluster_name} "
-        f"--node-ami {EKS_AMI_ID.get(processor_type)} "
         f"--nodes {num_nodes} "
         f"--node-type={instance_type} "
         f"--timeout=40m "
@@ -653,7 +651,6 @@ def create_eks_cluster_nodegroup(
 
     LOGGER.info("EKS cluster nodegroup created successfully, with the following parameters\n"
                 f"cluster_name: {eks_cluster_name}\n"
-                f"ami-id: {EKS_AMI_ID[processor_type]}\n"
                 f"num_nodes: {num_nodes}\n"
                 f"instance_type: {instance_type}\n"
                 f"ssh_public_key: {ssh_public_key_name}")
