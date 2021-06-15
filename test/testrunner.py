@@ -24,6 +24,7 @@ from test_utils import (
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
     setup_sm_benchmark_mx_train_env,
+    setup_sm_benchmark_hf_infer_env,
     get_framework_and_version_from_tag,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
@@ -230,9 +231,13 @@ def delete_eks_cluster(eks_cluster_name):
     eks_utils.manage_ssm_permissions_nodegroup(eks_cluster_name, DETACH_SSM_POLICY)
     eks_utils.delete_eks_cluster(eks_cluster_name)
 
+
 def setup_sm_benchmark_env(dlc_images, test_path):
     # The plan is to have a separate if/elif-condition for each type of image
-    if "tensorflow-training" in dlc_images:
+    if re.search(r"huggingface-(tensorflow|pytorch|mxnet)-inference", dlc_images):
+        resources_location = os.path.join(test_path, "huggingface", "inference", "resources")
+        setup_sm_benchmark_hf_infer_env(resources_location)
+    elif "tensorflow-training" in dlc_images:
         tf1_images_in_list = re.search(r"tensorflow-training:(^ )*1(\.\d+){2}", dlc_images) is not None
         tf2_images_in_list = re.search(r"tensorflow-training:(^ )*2(\.\d+){2}", dlc_images) is not None
         resources_location = os.path.join(test_path, "tensorflow", "training", "resources")
