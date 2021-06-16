@@ -36,6 +36,8 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades\
     ca-certificates \
     cuda-command-line-tools-11-2 \
+    cuda-11-1 \
+    cuda-nvrtc-11-1 \
     cuda-nvrtc-11-2 \
     cuda-nvrtc-dev-11-2 \
     cuda-cudart-dev-11-2 \
@@ -94,8 +96,6 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 RUN apt-get update \
 # nvinfer-runtime-trt-repo doesn't have a 1804-cuda10.1 version yet. see:
 # https://developer.download.nvidia.cn/compute/machine-learning/repos/ubuntu1804/x86_64/
- && apt-get install -y --no-install-recommends --allow-unauthenticated  \
-    nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0 \
  && apt-get install -y --no-install-recommends --allow-unauthenticated  \
     libnvinfer7=${TF_TENSORRT_VERSION}-1+cuda11.1 \
     libnvinfer-plugin7=${TF_TENSORRT_VERSION}-1+cuda11.1 \
