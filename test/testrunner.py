@@ -24,6 +24,7 @@ from test_utils import (
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
     setup_sm_benchmark_mx_train_env,
+    setup_sm_benchmark_hf_infer_env,
     get_framework_and_version_from_tag,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
@@ -208,9 +209,9 @@ def setup_eks_cluster(framework_name, is_neuron):
             #TODO the eks AMI used for neuron has a snapshot size of 500GB, if we pass the default 80GB the cluster
             #creation will fail. Once official EKS AMI for neuron 1.1 is released, revert this change.
             volume_size = 500
-            eks_utils.create_eks_cluster(cluster_name, "neuron", num_nodes, volume_size, "inf1.xlarge", "pytest.pem")
+            eks_utils.create_eks_cluster(cluster_name, num_nodes, volume_size, "inf1.xlarge", "pytest.pem")
         else:
-            eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, volume_size, "p3.16xlarge", "pytest.pem")
+            eks_utils.create_eks_cluster(cluster_name, num_nodes, volume_size, "p3.16xlarge", "pytest.pem")
     except Exception:
         eks_utils.delete_eks_cluster(cluster_name)
         raise
@@ -230,9 +231,13 @@ def delete_eks_cluster(eks_cluster_name):
     eks_utils.manage_ssm_permissions_nodegroup(eks_cluster_name, DETACH_SSM_POLICY)
     eks_utils.delete_eks_cluster(eks_cluster_name)
 
+
 def setup_sm_benchmark_env(dlc_images, test_path):
     # The plan is to have a separate if/elif-condition for each type of image
-    if "tensorflow-training" in dlc_images:
+    if re.search(r"huggingface-(tensorflow|pytorch|mxnet)-inference", dlc_images):
+        resources_location = os.path.join(test_path, "huggingface", "inference", "resources")
+        setup_sm_benchmark_hf_infer_env(resources_location)
+    elif "tensorflow-training" in dlc_images:
         tf1_images_in_list = re.search(r"tensorflow-training:(^ )*1(\.\d+){2}", dlc_images) is not None
         tf2_images_in_list = re.search(r"tensorflow-training:(^ )*2(\.\d+){2}", dlc_images) is not None
         resources_location = os.path.join(test_path, "tensorflow", "training", "resources")
