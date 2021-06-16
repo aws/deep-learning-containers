@@ -28,16 +28,11 @@ DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
 
-# Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
-UBUNTU_16_BASE_DLAMI_US_WEST_2 = "ami-09b49a82b7f258d03"
-UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0743d56bc1f9aa072"
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-038ad73ac55f4efcf"
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-01d7acb42d8826945"
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0eb1f97165b2ece17"
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-0e3e654c8b1971d8d"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 UL_AMI_LIST = [
-    UBUNTU_16_BASE_DLAMI_US_WEST_2,
-    UBUNTU_16_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
@@ -47,6 +42,10 @@ ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 NEURON_AL2_DLAMI = "ami-092059396c7e51f52"
 
+DLAMI_PYTHON_MAPPING = {
+    UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
+    UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7"
+}
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
@@ -72,6 +71,10 @@ SAGEMAKER_LOCAL_TEST_TYPE = "local"
 SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
+
+
+def get_python_invoker(ami_id):
+    return DLAMI_PYTHON_MAPPING.get(ami_id, "/usr/bin/python3")
 
 
 def is_tf_version(required_version, image_uri):
@@ -401,7 +404,7 @@ def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8
     return True
 
 
-def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None):
+def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None, ec2_instance_ami=None):
     """
     Method to run tensorflow inference on MNIST model using gRPC protocol
     :param script_file_path:
@@ -410,8 +413,9 @@ def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", 
     :param connection:
     :return:
     """
+    python_invoker = get_python_invoker(ec2_instance_ami)
     conn_run = connection.run if connection is not None else run
-    conn_run(f"python3 {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
+    conn_run(f"{python_invoker} {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
 def get_inference_run_command(image_uri, model_names, processor="cpu"):
@@ -441,6 +445,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
             "squeezenet": "https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model",
             "pytorch-densenet": "https://dlc-samples.s3.amazonaws.com/pytorch/multi-model-server/densenet/densenet.mar",
             "bert_sst": "https://aws-dlc-sample-models.s3.amazonaws.com/bert_sst/bert_sst.mar",
+            "mxnet-resnet-neuron": "https://aws-dlc-sample-models.s3.amazonaws.com/mxnet/Resnet50-neuron.mar",
         }
 
     if not isinstance(model_names, list):
@@ -779,6 +784,22 @@ def setup_sm_benchmark_mx_train_env(resources_location):
     venv_dir = os.path.join(resources_location, "sm_benchmark_venv")
     if not os.path.isdir(venv_dir):
         ctx.run(f"virtualenv {venv_dir}")
+        with ctx.prefix(f"source {venv_dir}/bin/activate"):
+            ctx.run("pip install sagemaker awscli boto3 botocore")
+    return venv_dir
+
+
+def setup_sm_benchmark_hf_infer_env(resources_location):
+    """
+    Create a virtual environment for benchmark tests if it doesn't already exist, and download all necessary scripts
+    :param resources_location: <str> directory in which test resources should be placed
+    :return: absolute path to the location of the virtual environment
+    """
+    ctx = Context()
+
+    venv_dir = os.path.join(resources_location, "sm_benchmark_hf_venv")
+    if not os.path.isdir(venv_dir):
+        ctx.run(f"python3 -m virtualenv {venv_dir}")
         with ctx.prefix(f"source {venv_dir}/bin/activate"):
             ctx.run("pip install sagemaker awscli boto3 botocore")
     return venv_dir

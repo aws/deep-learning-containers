@@ -8,7 +8,7 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.6.13
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.3.1
+ARG TS_VERSION=0.4.0
 ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3-us-west-2.amazonaws.com/r1.8.1_inference/20210326-045154/0cef1489a03d1f55f692c38bfb26b5f4f6ecbfa7/cpu/torch-1.8.1-cp36-cp36m-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.8.1ei/cpu/torchvision-0.9.1-cp36-cp36m-linux_x86_64.whl
 ENV LANG C.UTF-8
