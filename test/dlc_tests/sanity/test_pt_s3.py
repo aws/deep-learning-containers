@@ -2,7 +2,7 @@ import pytest
 
 from invoke.context import Context
 from packaging.version import Version
-
+from packaging.specifiers import SpecifierSet
 from test.test_utils import (
     get_container_name,
     get_framework_and_version_from_tag,
@@ -11,6 +11,13 @@ from test.test_utils import (
     start_container,
 )
 
+def can_run_s3_plugin(framework_version):
+    return Version(framework_version) in SpecifierSet(">=1.6") and \
+            Version(framework_version) != Version("1.9.0")
+
+def validate_or_skip_s3_plugin(framework_version):
+    if not can_run_s3_plugin(framework_version):
+        pytest.skip("S3 plugin is not supported on 1.9.0")
 
 @pytest.mark.integration("pt_s3_plugin_sanity")
 @pytest.mark.model("N/A")
@@ -20,6 +27,7 @@ def test_pt_s3_sanity(pytorch_training, pt16_and_above_only):
     :param pytorch_training: framework fixture for pytorch training
     """
     _, framework_version = get_framework_and_version_from_tag(pytorch_training)
+    validate_or_skip_s3_plugin(framework_version)
     ctx = Context()
     container_name = get_container_name("pt-s3", pytorch_training)
     start_container(container_name, pytorch_training, ctx)

@@ -71,6 +71,11 @@ def test_ecs_pytorch_s3_plugin_training_cpu(cpu_only, ecs_container_instance, py
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
     """
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) != Version("1.9.0"):
+        pytest.skip("S3 plugin is not supported on 1.9.0")
+
+
     instance_id, cluster_arn = ecs_container_instance
 
     ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id)
@@ -91,6 +96,10 @@ def test_ecs_pytorch_s3_plugin_training_gpu(gpu_only, ecs_container_instance, py
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
     """
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) != Version("1.9.0"):
+        pytest.skip("S3 plugin is not supported on 1.9.0")
+
     instance_id, cluster_arn = ecs_container_instance
 
     num_gpus = ec2_utils.get_instance_num_gpus(instance_id)
