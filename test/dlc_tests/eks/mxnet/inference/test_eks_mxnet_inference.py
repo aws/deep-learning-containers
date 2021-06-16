@@ -33,18 +33,12 @@ def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
 
     search_replace_dict["<NUM_INF1S>"] = "1"
 
-    device_plugin_path = eks_utils.get_device_plugin_path("mxnet", processor)
 
     eks_utils.write_eks_yaml_file_from_template(
         eks_utils.get_single_node_inference_template_path("mxnet", processor), yaml_path, search_replace_dict
     )
 
     try:
-        # TODO - once eksctl gets the latest neuron device plugin this can be removed
-        run("kubectl delete -f {}".format(device_plugin_path))
-        sleep(60)
-        run("kubectl apply -f {}".format(device_plugin_path))
-        sleep(10)
         run("kubectl apply -f {}".format(yaml_path))
 
         port_to_forward = random.randint(49152, 65535)
