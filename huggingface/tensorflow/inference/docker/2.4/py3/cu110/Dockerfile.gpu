@@ -91,6 +91,8 @@ RUN useradd -m model-server \
 COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /etc/sagemaker-mms.properties
 
+RUN echo -n "\ndefault_workers_per_model=1\n" >> /etc/sagemaker-mms.properties
+
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
