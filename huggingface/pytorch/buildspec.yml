@@ -33,18 +33,3 @@ images:
                  *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
                          *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
-  BuildHuggingFacePytorchGpuPy37Cu110InferenceDockerImage:
-    <<: *INFERENCE_REPOSITORY
-    build: &HUGGINGFACE_PYTORCH_GPU_INFERENCE_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 15000
-    device_type: &DEVICE_TYPE gpu
-    python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py36
-    cuda_version: &CUDA_VERSION cu110
-    os_version: &OS_VERSION ubuntu18.04
-    transformers_version: &TRANSFORMERS_VERSION 4.6.1
-    datasets_version: &DATASETS_VERSION 1.6.2
-    tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
-                 *CUDA_VERSION, '-', *OS_VERSION ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
-                         *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
