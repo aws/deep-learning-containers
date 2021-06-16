@@ -58,6 +58,8 @@ RUN apt-get update \
     libssl1.1 \
     openssl \
     zlib1g-dev \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
     # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0
     # adds a new list which contains libnvinfer library, so it needs another
     # 'apt-get update' to retrieve that list before it can actually install the
@@ -176,6 +178,15 @@ RUN ${PIP} install --no-cache-dir -U \
     # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
     "pyYAML>=5.4,<5.5" \
     "awscli<2"
+
+# Install extra packages
+RUN pip install --no-cache-dir -U \
+    bokeh \
+    imageio \
+    opencv-python \
+    plotly \
+    seaborn \
+    shap
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs \

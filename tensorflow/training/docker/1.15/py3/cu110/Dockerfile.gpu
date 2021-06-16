@@ -187,6 +187,13 @@ RUN ${PIP} install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
     smclarify
 
+# Install extra packages
+RUN pip install --no-cache-dir -U \
+    bokeh \
+    imageio \
+    plotly \
+    seaborn \
+    shap
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.0/targets/x86_64-linux/lib/stubs \
