@@ -18,14 +18,14 @@ repository_info:
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
 images:
-  BuildHuggingFacePytorchGpuPy37Cu110TrainingDockerImage:
+  BuildHuggingFacePytorchGpuPy37Cu111TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 15000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py36
-    cuda_version: &CUDA_VERSION cu110
+    cuda_version: &CUDA_VERSION cu111
     os_version: &OS_VERSION ubuntu18.04
     transformers_version: &TRANSFORMERS_VERSION 4.6.1
     datasets_version: &DATASETS_VERSION 1.6.2
