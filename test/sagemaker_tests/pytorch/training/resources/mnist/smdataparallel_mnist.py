@@ -20,7 +20,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torchvision
-from packaging import version
+from packaging.version import Version
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 from smdistributed.dataparallel.torch.parallel.distributed import DistributedDataParallel as DDP
@@ -30,7 +30,7 @@ dist.init_process_group()
 # from torchvision 0.9.1, 2 candidate mirror website links will be added before "resources" items automatically
 # Reference PR: https://github.com/pytorch/vision/pull/3559
 TORCHVISION_VERSION = "0.9.1"
-if version.parse(torchvision.__version__) < version.parse(TORCHVISION_VERSION):
+if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
     datasets.MNIST.resources = [
         ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz',
          'f68b3c2dcbeaaa9fbdd348bbdeb94873'),

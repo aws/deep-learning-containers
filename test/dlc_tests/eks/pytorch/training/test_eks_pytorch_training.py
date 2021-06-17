@@ -39,6 +39,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
       FILE=new_main.py &&
       echo "from __future__ import print_function" > $FILE &&
       echo "from six.moves import urllib" >> $FILE &&
+      echo "from packaging.version import Version" >> $FILE &&
       echo "opener = urllib.request.build_opener()" >> $FILE &&
       echo "opener.addheaders = [('User-agent', 'Mozilla/5.0')]" >> $FILE &&
       echo "urllib.request.install_opener(opener)" >> $FILE &&
@@ -47,7 +48,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
       echo "# from torchvision 0.9.1, 2 candidate mirror website links will be added before resources items automatically" >> $FILE &&
       echo "# Reference PR https://github.com/pytorch/vision/pull/3559" >> $FILE &&
       echo "TORCHVISION_VERSION = '0.9.1'" >> $FILE &&
-      echo "if torchvision.__version__ < TORCHVISION_VERSION:" >> $FILE &&
+      echo "if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):" >> $FILE &&
       echo "    datasets.MNIST.resources = [" >> $FILE &&
       echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz', 'f68b3c2dcbeaaa9fbdd348bbdeb94873')," >> $FILE &&
       echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-labels-idx1-ubyte.gz', 'd53e105ee54ea40749a09fcbcd1e9432')," >> $FILE &&
