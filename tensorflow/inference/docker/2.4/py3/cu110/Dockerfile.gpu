@@ -31,6 +31,11 @@ ENV MODEL_NAME=model
 # Fix for the interactive mode during an install in step 21
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
 # allow unauthenticated and allow downgrades for special libcublas library
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades\
@@ -71,6 +76,8 @@ RUN apt-get update \
     tk-dev \
     libgdbm-dev \
     libc6-dev \
+ && apt remove -y python3 \
+ && apt autoremove -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 

@@ -27,6 +27,11 @@ ENV MODEL_BASE_PATH=/models
 ENV MODEL_NAME=model
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
 # nginx + njs
 RUN apt-get update \
  && apt-get -y install --no-install-recommends \
@@ -58,6 +63,8 @@ RUN apt-get update \
  && apt-get -y install --no-install-recommends \
     nginx \
     nginx-module-njs \
+ && apt remove -y python3 \
+ && apt autoremove -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
