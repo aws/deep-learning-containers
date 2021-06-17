@@ -144,4 +144,4 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.0.1/license.txt -o /license.txt
 
-CMD ["bin/bash"]
+CMD ["/bin/bash"]
