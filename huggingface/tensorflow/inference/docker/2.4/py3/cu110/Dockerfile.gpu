@@ -107,7 +107,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.4/license.txt -o
 # RUN pip install --no-cache-dir -U $TF_URL
 RUN pip install --no-cache-dir -U tensorflow-gpu==2.4.1
 
-# We need TF_FORCE_GPU_ALLOW_GROWTH=true to prevent MMS from overusing GPU memory when loading models
+# We need TF_FORCE_GPU_ALLOW_GROWTH=true to prevent TF from overusing GPU memory when loading models
 ENV TF_FORCE_GPU_ALLOW_GROWTH=true
 
 # install Hugging Face libraries and its dependencies
