@@ -1,7 +1,5 @@
 import json
 
-from enum import IntEnum
-
 from test.test_utils import (
     get_repository_and_tag_from_image_uri,
     get_region_from_image_uri,
@@ -15,15 +13,6 @@ import os
 import boto3
 from base64 import b64decode
 import sys
-
-
-class CVESeverity(IntEnum):
-    UNDEFINED = 0
-    INFORMATIONAL = 1
-    LOW = 2
-    MEDIUM = 3
-    HIGH = 4
-    CRITICAL = 5
 
 
 class ECRScanFailedError(Exception):

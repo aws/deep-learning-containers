@@ -12,7 +12,7 @@ from invoke import Context
 
 from test.test_utils import get_account_id_from_image_uri, get_region_from_image_uri, login_to_ecr_registry
 from test.test_utils import ecr as ecr_utils
-from test.test_utils.ecr import CVESeverity
+from test.test_utils.security import CVESeverity
 
 
 @pytest.mark.model("N/A")
