@@ -213,9 +213,9 @@ def setup_eks_cluster(framework_name, is_neuron):
             #TODO the eks AMI used for neuron has a snapshot size of 500GB, if we pass the default 80GB the cluster
             #creation will fail. Once official EKS AMI for neuron 1.1 is released, revert this change.
             volume_size = 500
-            eks_utils.create_eks_cluster(cluster_name, "neuron", num_nodes, volume_size, "inf1.xlarge", "pytest.pem")
+            eks_utils.create_eks_cluster(cluster_name, num_nodes, volume_size, "inf1.xlarge", "pytest.pem")
         else:
-            eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, volume_size, "p3.16xlarge", "pytest.pem")
+            eks_utils.create_eks_cluster(cluster_name, num_nodes, volume_size, "p3.16xlarge", "pytest.pem")
     except Exception:
         eks_utils.delete_eks_cluster(cluster_name)
         raise
