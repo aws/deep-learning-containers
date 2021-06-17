@@ -146,7 +146,7 @@ def test_framework_version_cpu(image):
     # Framework name may include huggingface
     tested_framework = tested_framework.lstrip("huggingface_")
     # Module name is torch
-    if tested_framework in "pytorch":
+    if tested_framework == "pytorch":
         tested_framework = "torch"
     ctx = Context()
     container_name = get_container_name("framework-version", image)
