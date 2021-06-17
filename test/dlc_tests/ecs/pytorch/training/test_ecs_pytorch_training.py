@@ -72,7 +72,7 @@ def test_ecs_pytorch_s3_plugin_training_cpu(cpu_only, ecs_container_instance, py
     the task to be stopped before doing teardown operations of instance and cluster.
     """
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if Version(image_framework_version) != Version("1.9.0"):
+    if Version(image_framework_version) == Version("1.9.0"):
         pytest.skip("S3 plugin is not supported on 1.9.0")
 
 
@@ -97,7 +97,7 @@ def test_ecs_pytorch_s3_plugin_training_gpu(gpu_only, ecs_container_instance, py
     the task to be stopped before doing teardown operations of instance and cluster.
     """
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if Version(image_framework_version) != Version("1.9.0"):
+    if Version(image_framework_version) == Version("1.9.0"):
         pytest.skip("S3 plugin is not supported on 1.9.0")
 
     instance_id, cluster_arn = ecs_container_instance
