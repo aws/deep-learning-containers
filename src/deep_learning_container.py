@@ -76,7 +76,8 @@ def _retrieve_instance_region():
         "us-west-1",
         "us-west-2",
     ]
-
+    
+    url = "http://169.254.169.254/latest/dynamic/instance-identity/document"
     response = get_instance_metadata(url)
 
     if response is not None and not (400 <= response.status_code < 600):
