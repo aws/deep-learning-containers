@@ -64,7 +64,7 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         _, image_repo_name = image_repo_uri.split("/")
         target_image_repo_name = f"beta-{image_repo_name}"
         image = ecr_utils.reupload_image_to_test_ecr(image, target_image_repo_name, region)
-    minimum_sev_threshold = "HIGH"
+    minimum_sev_threshold = "MEDIUM"
     scan_status = None
     start_time = time()
     ecr_utils.start_ecr_image_scan(ecr_client, image)
