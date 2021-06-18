@@ -250,6 +250,7 @@ def check_instance_state(instance_id, state="running", region=DEFAULT_REGION):
     """
     instance_state = get_instance_state(instance_id, region)
     if state != instance_state:
+        terminate_instance(instance_id, region)
         raise Exception(f"Instance {instance_id} not in {state} state")
     return instance_state
 
