@@ -30,7 +30,7 @@ ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 ARG EFA_VERSION=1.11.2
 ARG OMPI_VERSION=4.1.1
-ARG BRANCH_OFI=1.1.2
+ARG BRANCH_OFI=aws
 
 ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.5_aws/20210616_055958/gpu/cu112/py37/tensorflow_gpu-2.5.0-cp37-cp37m-manylinux2010_x86_64.whl
 
@@ -38,7 +38,9 @@ ARG ESTIMATOR_URL=
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.9
+ARG SMDEBUG_VERSION=1.0.10
+
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.5.0/cu112/2015-06-16/smdistributed_dataparallel-1.2.1-cp37-cp37m-linux_x86_64.whl
 
 ARG CUDA=11.2
 ARG CUDA_DASH=11-2
@@ -293,6 +295,9 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
+
+# Install SMD DP binary
+RUN SMDATAPARALLEL_TF=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
