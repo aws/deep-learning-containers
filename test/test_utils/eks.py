@@ -279,9 +279,6 @@ def delete_eks_cluster(eks_cluster_name):
     Args:
         eks_cluster_name: str
     """
-    
-    delete_oidc_provider(eks_cluster_name)
-
     run("eksctl delete cluster {} --wait".format(eks_cluster_name), warn=True)
 
     cfn_stack_names = list_cfn_stack_names()
@@ -422,11 +419,11 @@ def get_eks_nodegroups(eks_cluster_name, region):
     
     return eks_node_groups
 
-def manage_ssm_permissions_nodegroup(eks_cluster_name, operation, region=os.getenv("AWS_REGION", DEFAULT_REGION)):
-    """Function to manage SSM permissions to EKS worker nodegroup
+def manage_iam_permissions_nodegroup(eks_cluster_name, operation, region=os.getenv("AWS_REGION", DEFAULT_REGION)):
+    """Function to manage IAM permissions to EKS worker nodegroup
        1. Retrieve active nodegroups in the EKS cluster
        2. Get the IAM instance profile for the nodegroup and the corresponding IAM role
-       3. Based on the operation, attach or detach SSM policy
+       3. Based on the operation, attach or detach IAM policy
     """
     ATTACH_IAM_POLICY="attach"
     DETACH_IAM_POLICY="detach"
@@ -438,13 +435,13 @@ def manage_ssm_permissions_nodegroup(eks_cluster_name, operation, region=os.gete
             iam_role = get_eks_nodegroup_iam_role(eks_cluster_name, node_group)
             if iam_role:
                 if operation == ATTACH_IAM_POLICY:
-                    add_ssm_access_policy(iam_role)
+                    add_iam_policy(iam_role)
                 if operation == DETACH_IAM_POLICY:
-                    remove_ssm_access_policy(iam_role)
+                    remove_iam_policy(iam_role)
             else:
-                LOGGER.info(f"No IAM role found for the EKS nodegroup {node_group}. Skipping addition of SSM policy.")
+                LOGGER.info(f"No IAM role found for the EKS nodegroup {node_group}. Skipping addition of policy.")
     else:
-        LOGGER.info(f"No Nodegroups present in the EKS cluster {eks_cluster_name}. Skipping addition of SSM policy.")
+        LOGGER.info(f"No Nodegroups present in the EKS cluster {eks_cluster_name}. Skipping addition of policy.")
             
 
 def get_eks_nodegroup_iam_role(eks_cluster_name, node_group):
@@ -473,31 +470,35 @@ def get_eks_nodegroup_iam_role(eks_cluster_name, node_group):
     except ClientError as e:
         LOGGER.error(f"Error: Cannot find IAM role corresponding to the EKS nodegroup {node_group}. Full Exception:\n{e}")
 
-def add_ssm_access_policy(instance_role_name):
-    """Function to attach SSM policy to IAM role
+def add_iam_policy(instance_role_name):
+    """Function to attach IAM policy to IAM role
     """
 
-    SSM_POLICY_ARN="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-    SSM_S3_POLICY_ARN="arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+    POLICY_ARN = [
+        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+        "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+    ]
     iam = init_iam_client() 
-    try:
-        iam.attach_role_policy(RoleName=instance_role_name, PolicyArn=SSM_POLICY_ARN)
-        iam.attach_role_policy(RoleName=instance_role_name, PolicyArn=SSM_S3_POLICY_ARN)
-    except ClientError as e:
-        LOGGER.error(f"Error: Cannot add SSM policy to EKS worker node IAM role. Full Exception:\n{e}")
+    for policy in POLICY_ARN:
+        try:
+            iam.attach_role_policy(RoleName=instance_role_name, PolicyArn=policy)
+        except ClientError as e:
+            LOGGER.error(f"Error: Cannot add IAM policy {policy} to EKS worker node IAM role. Full Exception:\n{e}")
 
-def remove_ssm_access_policy(instance_role_name):
-    """ Function to detach SSM policy from IAM role
+def remove_iam_policy(instance_role_name):
+    """ Function to detach IAM policy from IAM role
     """
 
-    SSM_POLICY_ARN="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-    SSM_S3_POLICY_ARN="arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+    POLICY_ARN = [
+        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+        "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+    ]
     iam = init_iam_client() 
-    try:
-        iam.detach_role_policy(RoleName=instance_role_name, PolicyArn=SSM_POLICY_ARN)
-        iam.detach_role_policy(RoleName=instance_role_name, PolicyArn=SSM_S3_POLICY_ARN)
-    except ClientError as e:
-        LOGGER.error(f"Error: Cannot remove SSM policy from EKS worker node IAM role. Full Exception:\n{e}")
+    for policy in POLICY_ARN:
+        try:
+            iam.detach_role_policy(RoleName=instance_role_name, PolicyArn=policy)
+        except ClientError as e:
+            LOGGER.error(f"Error: Cannot remove IAM policy {policy} from EKS worker node IAM role. Full Exception:\n{e}")
 
 def get_instance_profile_name(instance_profile_prefix):
     """ Function to retrieve the instance profile name given the instance profile prefix
