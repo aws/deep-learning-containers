@@ -268,7 +268,7 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
 RUN apt-get update && apt-get install -y autoconf
 RUN mkdir /tmp/efa-ofi-nccl \
   && cd /tmp/efa-ofi-nccl \
-  && git clone https://github.com/aws/aws-ofi-nccl.git -b v$BRANCH_OFI \
+  && git clone https://github.com/aws/aws-ofi-nccl.git -b $BRANCH_OFI \
   && cd aws-ofi-nccl \
   && ./autogen.sh \
   && ./configure --with-libfabric=/opt/amazon/efa \
