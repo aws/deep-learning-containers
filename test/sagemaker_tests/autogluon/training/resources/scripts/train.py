@@ -58,7 +58,7 @@ if __name__ == '__main__':
     train_data = TabularDataset(train_file)
 
     ag_predictor_args = config['ag_predictor_args']
-    ag_predictor_args['path'] = args.output_data_dir
+    ag_predictor_args['path'] = args.model_dir
     ag_fit_args = config['ag_fit_args']
 
     predictor = TabularPredictor(**ag_predictor_args).fit(train_data, **ag_fit_args)
