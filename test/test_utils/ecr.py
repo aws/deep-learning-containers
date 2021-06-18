@@ -1,4 +1,11 @@
 import json
+import os
+import subprocess
+import sys
+
+from base64 import b64decode
+
+import boto3
 
 from test.test_utils import (
     get_repository_and_tag_from_image_uri,
@@ -8,11 +15,7 @@ from test.test_utils import (
     get_unique_name_from_tag,
     LOGGER,
 )
-import subprocess
-import os
-import boto3
-from base64 import b64decode
-import sys
+from test.test_utils.security import CVESeverity
 
 
 class ECRScanFailedError(Exception):

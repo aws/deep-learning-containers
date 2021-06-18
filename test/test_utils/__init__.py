@@ -938,6 +938,20 @@ def get_processor_from_image_uri(image_uri):
     raise RuntimeError("Cannot find processor")
 
 
+def get_python_version_from_image_uri(image_uri):
+    """
+    Return the python version from the image URI
+
+    :param image_uri: ECR image URI
+    :return: str py36, py37, py38, etc., based information available in image URI
+    """
+    python_version_search = re.search(r"py\d+", image_uri)
+    if not python_version_search:
+        return None
+    python_version = python_version_search.group()
+    return "py36" if python_version == "py3" else python_version
+
+
 def get_container_name(prefix, image_uri):
     """
     Create a unique container name based off of a test related prefix and the image uri
