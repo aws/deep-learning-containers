@@ -2,7 +2,7 @@ version: 0.2
 
 #TODO: Move all constatns to env variables
 #Changes for the webhook check
-#Change1
+#Change2_synch
 phases:
   install:
     runtime-versions:
