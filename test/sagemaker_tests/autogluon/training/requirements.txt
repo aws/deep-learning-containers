@@ -1,5 +1,6 @@
 boto3
-awscli
+# awscli>=1.19.96
+# s3transfer<0.5.0,>=0.4.0
 sagemaker>=2.31,<3
 smdebug>=1
 coverage==4.5.3

@@ -12,11 +12,25 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os
+import boto3
+import botocore
 
-RESOURCE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
 
-MODEL_SUCCESS_FILES = {
-    'model': ['learner.pkl', 'predictor.pkl'],
-    'output': ['success'],
-}
+def _botocore_resolver():
+    """
+    Get the DNS suffix for the given region.
+    :return: endpoint object
+    """
+    loader = botocore.loaders.create_loader()
+    return botocore.regions.EndpointResolver(loader.load_data('endpoints'))
+
+
+def get_ecr_registry(account, region):
+    """
+    Get prefix of ECR image URI
+    :param account: Account ID
+    :param region: region where ECR repo exists
+    :return: AWS ECR registry
+    """
+    endpoint_data = _botocore_resolver().construct_endpoint('ecr', region)
+    return '{}.dkr.{}'.format(account, endpoint_data['hostname'])

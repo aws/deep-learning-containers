@@ -16,18 +16,18 @@ import os
 
 import pytest
 
-from ag_tools import AutoGluon
+from .ag_tools import AutoGluon
 from .local_mode_utils import assert_output_files_exist
 from .. import RESOURCE_PATH, MODEL_SUCCESS_FILES
 
 
 @pytest.mark.integration("ag_local")
 @pytest.mark.model("N/A")
-def test_linear_regression(docker_image, sagemaker_local_session, local_instance_type, framework_version, tmpdir):
+def test_autogluon_local(docker_image, sagemaker_local_session, instance_type, framework_version, tmpdir):
 
     ag = AutoGluon(
         entry_point=os.path.join(RESOURCE_PATH, 'scripts', 'train.py'),
-        role='SageMakerRole', instance_count=1, instance_type=local_instance_type,
+        role='SageMakerRole', instance_count=1, instance_type=instance_type,
         sagemaker_session=sagemaker_local_session, image_uri=docker_image,
         framework_version=framework_version, output_path='file://{}'.format(tmpdir),
     )
@@ -40,5 +40,6 @@ def test_linear_regression(docker_image, sagemaker_local_session, local_instance
 
     ag.fit({'config': config_input, 'train': train_input, 'test': eval_input})
 
+    print(tmpdir)
     for directory, files in MODEL_SUCCESS_FILES.items():
         assert_output_files_exist(str(tmpdir), directory, files)
