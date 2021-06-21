@@ -1,0 +1,316 @@
+{
+    "avahi": [
+        {
+            "name": "CVE-2021-3468",
+            "description": "A flaw was found in avahi in versions 0.6 up to 0.8. The event used to signal the termination of the client connection on the avahi Unix socket is not correctly handled in the client_work function, allowing a local attacker to trigger an infinite loop. The highest threat from this vulnerability is to the availability of the avahi service, which becomes unresponsive after this flaw is triggered.",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3468",
+            "severity": "MEDIUM",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "0.7-3.1ubuntu1.2"
+                },
+                {
+                    "key": "package_name",
+                    "value": "avahi"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:L/AC:L/Au:N/C:N/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "2.1"
+                }
+            ]
+        }
+    ],
+    "gcc-7": [
+        {
+            "name": "CVE-2020-13844",
+            "description": "Arm Armv8-A core implementations utilizing speculative execution past unconditional changes in control flow may allow unauthorized disclosure of information to an attacker with local user access via a side-channel analysis, aka \"straight-line speculation.\"",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-13844",
+            "severity": "MEDIUM",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "7.5.0-3ubuntu1~18.04"
+                },
+                {
+                    "key": "package_name",
+                    "value": "gcc-7"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:L/AC:L/Au:N/C:P/I:N/A:N"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "2.1"
+                }
+            ]
+        }
+    ],
+    "gcc-8": [
+        {
+            "name": "CVE-2020-13844",
+            "description": "Arm Armv8-A core implementations utilizing speculative execution past unconditional changes in control flow may allow unauthorized disclosure of information to an attacker with local user access via a side-channel analysis, aka \"straight-line speculation.\"",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-13844",
+            "severity": "MEDIUM",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "8.4.0-1ubuntu1~18.04"
+                },
+                {
+                    "key": "package_name",
+                    "value": "gcc-8"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:L/AC:L/Au:N/C:P/I:N/A:N"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "2.1"
+                }
+            ]
+        }
+    ],
+    "gcc-defaults": {
+        "name": "CVE-2020-13844",
+        "description": "Arm Armv8-A core implementations utilizing speculative execution past unconditional changes in control flow may allow unauthorized disclosure of information to an attacker with local user access via a side-channel analysis, aka \"straight-line speculation.\"",
+        "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-13844",
+        "severity": "MEDIUM",
+        "attributes": [
+            {
+                "key": "package_version",
+                "value": "1.176ubuntu2.3"
+            },
+            {
+                "key": "package_name",
+                "value": "gcc-defaults"
+            },
+            {
+                "key": "CVSS2_VECTOR",
+                "value": "AV:L/AC:L/Au:N/C:P/I:N/A:N"
+            },
+            {
+                "key": "CVSS2_SCORE",
+                "value": "2.1"
+            }
+        ]
+    },
+    "imagemagick": [
+        {
+            "name": "CVE-2020-27752",
+            "description": "A flaw was found in ImageMagick in MagickCore/quantum-private.h. An attacker who submits a crafted file that is processed by ImageMagick could trigger a heap buffer overflow. This would most likely lead to an impact to application availability, but could potentially lead to an impact to data integrity as well. This flaw affects ImageMagick versions prior to 7.0.9-0.",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-27752",
+            "severity": "MEDIUM",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "8:6.9.7.4+dfsg-16ubuntu6.11"
+                },
+                {
+                    "key": "package_name",
+                    "value": "imagemagick"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:N/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "5.8"
+                }
+            ]
+        },
+        {
+            "name": "CVE-2020-25664",
+            "description": "In WriteOnePNGImage() of the PNG coder at coders/png.c, an improper call to AcquireVirtualMemory() and memset() allows for an out-of-bounds write later when PopShortPixel() from MagickCore/quantum-private.h is called. The patch fixes the calls by adding 256 to rowbytes. An attacker who is able to supply a specially crafted image could affect availability with a low impact to data integrity. This flaw affects ImageMagick versions prior to 6.9.10-68 and 7.0.8-68.",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-25664",
+            "severity": "MEDIUM",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "8:6.9.7.4+dfsg-16ubuntu6.11"
+                },
+                {
+                    "key": "package_name",
+                    "value": "imagemagick"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:N/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "5.8"
+                }
+            ]
+        }
+    ],
+    "krb5": {
+        "name": "CVE-2018-20217",
+        "description": "A Reachable Assertion issue was discovered in the KDC in MIT Kerberos 5 (aka krb5) before 1.17. If an attacker can obtain a krbtgt ticket using an older encryption type (single-DES, triple-DES, or RC4), the attacker can crash the KDC by making an S4U2Self request.",
+        "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-20217",
+        "severity": "MEDIUM",
+        "attributes": [
+            {
+                "key": "package_version",
+                "value": "1.16-2ubuntu0.2"
+            },
+            {
+                "key": "package_name",
+                "value": "krb5"
+            },
+            {
+                "key": "CVSS2_VECTOR",
+                "value": "AV:N/AC:M/Au:S/C:N/I:N/A:P"
+            },
+            {
+                "key": "CVSS2_SCORE",
+                "value": "3.5"
+            }
+        ]
+    },
+    "nettle": {
+        "name": "CVE-2021-3580",
+        "description": "Remote crash in RSA decryption via manipulated ciphertext",
+        "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3580",
+        "severity": "MEDIUM",
+        "attributes": [
+            {
+                "key": "package_version",
+                "value": "3.4-1ubuntu0.1"
+            },
+            {
+                "key": "package_name",
+                "value": "nettle"
+            }
+        ]
+    },
+    "nghttp2": [
+        {
+            "name": "CVE-2019-9513",
+            "description": "Some HTTP/2 implementations are vulnerable to resource loops, potentially leading to a denial of service. The attacker creates multiple request streams and continually shuffles the priority of the streams in a way that causes substantial churn to the priority tree. This can consume excess CPU.",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2019-9513",
+            "severity": "MEDIUM",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1.30.0-1ubuntu1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "nghttp2"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:L/Au:N/C:N/I:N/A:C"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "7.8"
+                }
+            ]
+        },
+        {
+            "name": "CVE-2019-9511",
+            "description": "Some HTTP/2 implementations are vulnerable to window size manipulation and stream prioritization manipulation, potentially leading to a denial of service. The attacker requests a large amount of data from a specified resource over multiple streams. They manipulate window size and stream priority to force the server to queue the data in 1-byte chunks. Depending on how efficiently this data is queued, this can consume excess CPU, memory, or both.",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2019-9511",
+            "severity": "MEDIUM",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1.30.0-1ubuntu1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "nghttp2"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:L/Au:N/C:N/I:N/A:C"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "7.8"
+                }
+            ]
+        }
+    ],
+    "sqlite3": {
+        "name": "CVE-2020-9794",
+        "description": "An out-of-bounds read was addressed with improved bounds checking. This issue is fixed in iOS 13.5 and iPadOS 13.5, macOS Catalina 10.15.5, tvOS 13.4.5, watchOS 6.2.5, iTunes 12.10.7 for Windows, iCloud for Windows 11.2, iCloud for Windows 7.19. A malicious application may cause a denial of service or potentially disclose memory contents.",
+        "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-9794",
+        "severity": "MEDIUM",
+        "attributes": [
+            {
+                "key": "package_version",
+                "value": "3.22.0-1ubuntu0.4"
+            },
+            {
+                "key": "package_name",
+                "value": "sqlite3"
+            },
+            {
+                "key": "CVSS2_VECTOR",
+                "value": "AV:N/AC:M/Au:N/C:P/I:N/A:P"
+            },
+            {
+                "key": "CVSS2_SCORE",
+                "value": "5.8"
+            }
+        ]
+    },
+    "systemd": {
+        "name": "CVE-2020-13529",
+        "description": "An exploitable denial-of-service vulnerability exists in Systemd 245. A specially crafted DHCP FORCERENEW packet can cause a server running the DHCP client to be vulnerable to a DHCP ACK spoofing attack. An attacker can forge a pair of FORCERENEW and DCHP ACK packets to reconfigure the server.",
+        "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-13529",
+        "severity": "MEDIUM",
+        "attributes": [
+            {
+                "key": "package_version",
+                "value": "237-3ubuntu10.47"
+            },
+            {
+                "key": "package_name",
+                "value": "systemd"
+            },
+            {
+                "key": "CVSS2_VECTOR",
+                "value": "AV:A/AC:M/Au:N/C:N/I:N/A:P"
+            },
+            {
+                "key": "CVSS2_SCORE",
+                "value": "2.9"
+            }
+        ]
+    },
+    "wget": {
+        "name": "CVE-2021-31879",
+        "description": "GNU Wget through 1.21.1 does not omit the Authorization header upon a redirect to a different origin, a related issue to CVE-2018-1000007.",
+        "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-31879",
+        "severity": "MEDIUM",
+        "attributes": [
+            {
+                "key": "package_version",
+                "value": "1.19.4-1ubuntu2.2"
+            },
+            {
+                "key": "package_name",
+                "value": "wget"
+            },
+            {
+                "key": "CVSS2_VECTOR",
+                "value": "AV:N/AC:M/Au:N/C:P/I:P/A:N"
+            },
+            {
+                "key": "CVSS2_SCORE",
+                "value": "5.8"
+            }
+        ]
+    }
+}

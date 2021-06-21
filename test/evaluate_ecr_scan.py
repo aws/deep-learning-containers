@@ -42,7 +42,7 @@ def check_image_vulnerabilities(image):
     scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=minimum_sev_threshold)
     LOGGER.info(json.dumps(scan_results, indent=4))
 
-    for vulnerability in scan_results:
+    # for vulnerability in scan_results:
 
 
 
