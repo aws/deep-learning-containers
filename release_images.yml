@@ -257,8 +257,8 @@ release_images:
     framework: "huggingface_tensorflow"
     version: "2.4.1"
     hf_transformers: "4.6.1"
-    training:
-      device_types: [ "gpu" ]
+    inference:
+      device_types: ["cpu", "gpu"]
       python_versions: [ "py37" ]
       os_version: "ubuntu18.04"
       cuda_version: "cu110"
@@ -269,8 +269,8 @@ release_images:
     framework: "huggingface_pytorch"
     version: "1.7.1"
     hf_transformers: "4.6.1"
-    training:
-      device_types: [ "gpu" ]
+    inference:
+      device_types: ["cpu", "gpu"]
       python_versions: [ "py36" ]
       os_version: "ubuntu18.04"
       cuda_version: "cu110"
