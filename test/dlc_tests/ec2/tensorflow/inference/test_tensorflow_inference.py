@@ -27,59 +27,59 @@ TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURON_ACCELERATOR_TYPE, indirect=True)
 #FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_AL2_DLAMI], indirect=True)
-def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, region, neuron_only):
+def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, ec2_instance_ami, region, neuron_only):
     run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, "8500", region)
 
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_gpu(tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type):
+def test_ec2_tensorflow_inference_gpu(tensorflow_inference, ec2_connection, ec2_instance_ami, region, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
         pytest.skip(f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}")
-    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
+    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, ec2_instance_ami, "8500", region)
 
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, region, cpu_only):
-    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
+def test_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, ec2_instance_ami, region, cpu_only):
+    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, ec2_instance_ami, "8500", region)
 
 
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", TF_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_eia_cpu(tensorflow_inference_eia, ec2_connection, region, eia_only):
-    run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, "8500", region)
+def test_ec2_tensorflow_inference_eia_cpu(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, region, eia_only):
+    run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, "8500", region)
 
 
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", TF_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connection, region, eia_only, ec2_instance_type):
+def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, region, eia_only, ec2_instance_type):
     if ec2_instance_type == "p4d.24xlarge":
         pytest.skip(f"Skipping EIA GPU test for {ec2_instance_type} instance type. See https://github.com/aws/deep-learning-containers/issues/962")
-    run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, "8500", region)
+    run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, "8500", region)
 
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu_telemetry(
-        tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
+        tensorflow_inference, ec2_connection, ec2_instance_ami, region, gpu_only, ec2_instance_type
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
         pytest.skip(f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}")
-    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region, True)
+    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, ec2_instance_ami, "8500", region, True)
 
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_cpu_telemetry(tensorflow_inference, ec2_connection, region, cpu_only):
-    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region, True)
+def test_ec2_tensorflow_inference_cpu_telemetry(tensorflow_inference, ec2_connection, ec2_instance_ami, region, cpu_only):
+    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, ec2_instance_ami, "8500", region, True)
 
 
-def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, telemetry_mode=False):
+def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, grpc_port, region, telemetry_mode=False):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
     framework_version = get_tensorflow_framework_version(image_uri)
@@ -112,7 +112,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
         )
         sleep(2)
         if not is_neuron:
-            train_mnist_model(serving_folder_path, ec2_connection)
+            train_mnist_model(serving_folder_path, ec2_connection, ec2_instance_ami)
             sleep(10)
         ec2_connection.run(
             f"$(aws ecr get-login --no-include-email --region {region})", hide=True
@@ -121,7 +121,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, grpc_port, region, t
         ec2_connection.run(docker_run_cmd, hide=True)
         sleep(20)
         test_utils.request_tensorflow_inference_grpc(
-            script_file_path=mnist_client_path, port=grpc_port, connection=ec2_connection
+            script_file_path=mnist_client_path, port=grpc_port, connection=ec2_connection, ec2_instance_ami=ec2_instance_ami
         )
         if telemetry_mode:
             check_telemetry(ec2_connection, container_name)
@@ -133,11 +133,12 @@ def get_tensorflow_framework_version(image_uri):
     return re.findall(r"[1-2]\.[0-9][\d|\.]+", image_uri)[0]
 
 
-def train_mnist_model(serving_folder_path, ec2_connection):
+def train_mnist_model(serving_folder_path, ec2_connection, ec2_instance_ami):
+    python_invoker = test_utils.get_python_invoker(ec2_instance_ami)
     ec2_connection.run(f"cd {serving_folder_path}")
     mnist_script_path = f"{serving_folder_path}/tensorflow_serving/example/mnist_saved_model.py"
     ec2_connection.run(
-        f"python3 {mnist_script_path} {serving_folder_path}/models/mnist", hide=True
+        f"{python_invoker} {mnist_script_path} {serving_folder_path}/models/mnist", hide=True
     )
 
 
