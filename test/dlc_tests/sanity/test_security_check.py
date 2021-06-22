@@ -10,9 +10,11 @@ from packaging.version import Version
 from invoke import run
 from invoke import Context
 
-from test.test_utils import get_account_id_from_image_uri, get_region_from_image_uri, login_to_ecr_registry
+from test.test_utils import (
+    LOGGER, get_account_id_from_image_uri, get_dockerfile_path_for_image
+)
 from test.test_utils import ecr as ecr_utils
-from test.test_utils.security import CVESeverity
+from test.test_utils.security import CVESeverity, ScanAllowList
 
 
 @pytest.mark.model("N/A")
@@ -77,11 +79,15 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         sleep(1)
     if scan_status != "COMPLETE":
         raise TimeoutError(f"ECR Scan is still in {scan_status} state. Exiting.")
-    severity_counts = ecr_utils.get_ecr_image_scan_severity_count(ecr_client, image)
     scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=minimum_sev_threshold)
-    assert all(
-        count == 0 for sev, count in severity_counts.items() if CVESeverity[sev] >= CVESeverity[minimum_sev_threshold]
-    ), (
-        f"Found vulnerabilities in image {image}: {str(severity_counts)}\n"
-        f"Vulnerabilities: {json.dumps(scan_results, indent=4)}"
-    )
+
+    image_scan_allowlist_path = get_dockerfile_path_for_image(image) + ".os_scan_allowlist.json"
+    image_scan_allowlist = ScanAllowList(image_scan_allowlist_path)
+    reduced_vulnerabilities_list = []
+    for vulnerability in scan_results:
+        if vulnerability not in image_scan_allowlist:
+            reduced_vulnerabilities_list.append(vulnerability)
+
+    LOGGER.info(json.dumps(reduced_vulnerabilities_list, indent=4))
+
+    assert not reduced_vulnerabilities_list, json.dumps(reduced_vulnerabilities_list, indent=4)

@@ -10,7 +10,9 @@ import git
 import pytest
 
 import boto3
+
 from botocore.exceptions import ClientError
+from glob import glob
 from invoke import run
 from invoke.context import Context
 from packaging.version import LegacyVersion, Version, parse
@@ -71,6 +73,61 @@ SAGEMAKER_LOCAL_TEST_TYPE = "local"
 SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
+
+
+def get_dockerfile_path_for_image(image_uri):
+    """
+    For a given image_uri, find the path within the repository to its corresponding dockerfile
+
+    :param image_uri: str Image URI
+    :return: str Absolute path to dockerfile
+    """
+    github_repo_path = os.path.abspath(os.path.curdir).split("test", 1)[0]
+
+    framework, framework_version = get_framework_and_version_from_tag(image_uri)
+    framework_path = framework.replace("_", os.path.sep) if "huggingface" in framework else framework
+
+    job_type = get_job_type_from_image(image_uri)
+
+    short_framework_version = re.search(r"(\d+\.\d+)", image_uri).group(1)
+    long_framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
+
+    framework_version_path = os.path.join(github_repo_path, framework_path, job_type, "docker", short_framework_version)
+    if not os.path.isdir(framework_version_path):
+        framework_version_path = os.path.join(
+            github_repo_path, framework_path, job_type, "docker", long_framework_version
+        )
+    python_version = re.search(r"py\d+", image_uri).group()
+
+    python_version_path = os.path.join(framework_version_path, python_version)
+    if not os.path.isdir(python_version_path):
+        python_version_path = os.path.join(framework_version_path, "py3")
+
+    device_type = get_processor_from_image_uri(image_uri)
+    cuda_version = get_cuda_version_from_tag(image_uri)
+
+    LOGGER.info(f"python_version_path = {python_version_path}")
+
+    dockerfiles_list = [
+        path for path in glob(os.path.join(python_version_path, "**", f"Dockerfile.{device_type}"), recursive=True)
+        if "example" not in path
+    ]
+
+    if device_type in ["gpu"]:
+        if not cuda_version and len(dockerfiles_list) > 1:
+            raise LookupError(
+                f"dockerfiles_list has more than one result, and needs cuda_version to be in image_uri to "
+                f"uniquely identify the right dockerfile:\n"
+                f"{dockerfiles_list}"
+            )
+        for dockerfile_path in dockerfiles_list:
+            if cuda_version in dockerfile_path:
+                return dockerfile_path
+        raise LookupError(f"Failed to find a dockerfile path for {cuda_version} in:\n{dockerfiles_list}")
+
+    assert len(dockerfiles_list) == 1, f"No unique dockerfile path in:\n{dockerfiles_list}\nfor image: {image_uri}"
+
+    return dockerfiles_list[0]
 
 
 def get_python_invoker(ami_id):
@@ -989,3 +1046,16 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
     return context.run(
         f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
     )
+
+
+def ordered(obj):
+    if isinstance(obj, dict):
+        return sorted((k, ordered(v)) for k, v in obj.items())
+    if isinstance(obj, list):
+        return sorted(ordered(x) for x in obj)
+    else:
+        return obj
+
+
+def are_json_objects_equivalent(obj1, obj2):
+    return ordered(obj1) == ordered(obj2)

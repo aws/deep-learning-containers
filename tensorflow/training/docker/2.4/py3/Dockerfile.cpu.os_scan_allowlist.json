@@ -77,30 +77,32 @@
             ]
         }
     ],
-    "gcc-defaults": {
-        "name": "CVE-2020-13844",
-        "description": "Arm Armv8-A core implementations utilizing speculative execution past unconditional changes in control flow may allow unauthorized disclosure of information to an attacker with local user access via a side-channel analysis, aka \"straight-line speculation.\"",
-        "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-13844",
-        "severity": "MEDIUM",
-        "attributes": [
-            {
-                "key": "package_version",
-                "value": "1.176ubuntu2.3"
-            },
-            {
-                "key": "package_name",
-                "value": "gcc-defaults"
-            },
-            {
-                "key": "CVSS2_VECTOR",
-                "value": "AV:L/AC:L/Au:N/C:P/I:N/A:N"
-            },
-            {
-                "key": "CVSS2_SCORE",
-                "value": "2.1"
-            }
-        ]
-    },
+    "gcc-defaults": [
+        {
+            "name": "CVE-2020-13844",
+            "description": "Arm Armv8-A core implementations utilizing speculative execution past unconditional changes in control flow may allow unauthorized disclosure of information to an attacker with local user access via a side-channel analysis, aka \"straight-line speculation.\"",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-13844",
+            "severity": "MEDIUM",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1.176ubuntu2.3"
+                },
+                {
+                    "key": "package_name",
+                    "value": "gcc-defaults"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:L/AC:L/Au:N/C:P/I:N/A:N"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "2.1"
+                }
+            ]
+        }
+    ],
     "imagemagick": [
         {
             "name": "CVE-2020-27752",
@@ -151,46 +153,50 @@
             ]
         }
     ],
-    "krb5": {
-        "name": "CVE-2018-20217",
-        "description": "A Reachable Assertion issue was discovered in the KDC in MIT Kerberos 5 (aka krb5) before 1.17. If an attacker can obtain a krbtgt ticket using an older encryption type (single-DES, triple-DES, or RC4), the attacker can crash the KDC by making an S4U2Self request.",
-        "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-20217",
-        "severity": "MEDIUM",
-        "attributes": [
-            {
-                "key": "package_version",
-                "value": "1.16-2ubuntu0.2"
-            },
-            {
-                "key": "package_name",
-                "value": "krb5"
-            },
-            {
-                "key": "CVSS2_VECTOR",
-                "value": "AV:N/AC:M/Au:S/C:N/I:N/A:P"
-            },
-            {
-                "key": "CVSS2_SCORE",
-                "value": "3.5"
-            }
-        ]
-    },
-    "nettle": {
-        "name": "CVE-2021-3580",
-        "description": "Remote crash in RSA decryption via manipulated ciphertext",
-        "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3580",
-        "severity": "MEDIUM",
-        "attributes": [
-            {
-                "key": "package_version",
-                "value": "3.4-1ubuntu0.1"
-            },
-            {
-                "key": "package_name",
-                "value": "nettle"
-            }
-        ]
-    },
+    "krb5": [
+        {
+            "name": "CVE-2018-20217",
+            "description": "A Reachable Assertion issue was discovered in the KDC in MIT Kerberos 5 (aka krb5) before 1.17. If an attacker can obtain a krbtgt ticket using an older encryption type (single-DES, triple-DES, or RC4), the attacker can crash the KDC by making an S4U2Self request.",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-20217",
+            "severity": "MEDIUM",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1.16-2ubuntu0.2"
+                },
+                {
+                    "key": "package_name",
+                    "value": "krb5"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:S/C:N/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "3.5"
+                }
+            ]
+        }
+    ],
+    "nettle": [
+        {
+            "name": "CVE-2021-3580",
+            "description": "Remote crash in RSA decryption via manipulated ciphertext",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3580",
+            "severity": "MEDIUM",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "3.4-1ubuntu0.1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "nettle"
+                }
+            ]
+        }
+    ],
     "nghttp2": [
         {
             "name": "CVE-2019-9513",
@@ -241,76 +247,82 @@
             ]
         }
     ],
-    "sqlite3": {
-        "name": "CVE-2020-9794",
-        "description": "An out-of-bounds read was addressed with improved bounds checking. This issue is fixed in iOS 13.5 and iPadOS 13.5, macOS Catalina 10.15.5, tvOS 13.4.5, watchOS 6.2.5, iTunes 12.10.7 for Windows, iCloud for Windows 11.2, iCloud for Windows 7.19. A malicious application may cause a denial of service or potentially disclose memory contents.",
-        "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-9794",
-        "severity": "MEDIUM",
-        "attributes": [
-            {
-                "key": "package_version",
-                "value": "3.22.0-1ubuntu0.4"
-            },
-            {
-                "key": "package_name",
-                "value": "sqlite3"
-            },
-            {
-                "key": "CVSS2_VECTOR",
-                "value": "AV:N/AC:M/Au:N/C:P/I:N/A:P"
-            },
-            {
-                "key": "CVSS2_SCORE",
-                "value": "5.8"
-            }
-        ]
-    },
-    "systemd": {
-        "name": "CVE-2020-13529",
-        "description": "An exploitable denial-of-service vulnerability exists in Systemd 245. A specially crafted DHCP FORCERENEW packet can cause a server running the DHCP client to be vulnerable to a DHCP ACK spoofing attack. An attacker can forge a pair of FORCERENEW and DCHP ACK packets to reconfigure the server.",
-        "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-13529",
-        "severity": "MEDIUM",
-        "attributes": [
-            {
-                "key": "package_version",
-                "value": "237-3ubuntu10.47"
-            },
-            {
-                "key": "package_name",
-                "value": "systemd"
-            },
-            {
-                "key": "CVSS2_VECTOR",
-                "value": "AV:A/AC:M/Au:N/C:N/I:N/A:P"
-            },
-            {
-                "key": "CVSS2_SCORE",
-                "value": "2.9"
-            }
-        ]
-    },
-    "wget": {
-        "name": "CVE-2021-31879",
-        "description": "GNU Wget through 1.21.1 does not omit the Authorization header upon a redirect to a different origin, a related issue to CVE-2018-1000007.",
-        "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-31879",
-        "severity": "MEDIUM",
-        "attributes": [
-            {
-                "key": "package_version",
-                "value": "1.19.4-1ubuntu2.2"
-            },
-            {
-                "key": "package_name",
-                "value": "wget"
-            },
-            {
-                "key": "CVSS2_VECTOR",
-                "value": "AV:N/AC:M/Au:N/C:P/I:P/A:N"
-            },
-            {
-                "key": "CVSS2_SCORE",
-                "value": "5.8"
-            }
-        ]
-    }
+    "sqlite3": [
+        {
+            "name": "CVE-2020-9794",
+            "description": "An out-of-bounds read was addressed with improved bounds checking. This issue is fixed in iOS 13.5 and iPadOS 13.5, macOS Catalina 10.15.5, tvOS 13.4.5, watchOS 6.2.5, iTunes 12.10.7 for Windows, iCloud for Windows 11.2, iCloud for Windows 7.19. A malicious application may cause a denial of service or potentially disclose memory contents.",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-9794",
+            "severity": "MEDIUM",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "3.22.0-1ubuntu0.4"
+                },
+                {
+                    "key": "package_name",
+                    "value": "sqlite3"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "5.8"
+                }
+            ]
+        }
+    ],
+    "systemd": [
+        {
+            "name": "CVE-2020-13529",
+            "description": "An exploitable denial-of-service vulnerability exists in Systemd 245. A specially crafted DHCP FORCERENEW packet can cause a server running the DHCP client to be vulnerable to a DHCP ACK spoofing attack. An attacker can forge a pair of FORCERENEW and DCHP ACK packets to reconfigure the server.",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-13529",
+            "severity": "MEDIUM",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "237-3ubuntu10.48"
+                },
+                {
+                    "key": "package_name",
+                    "value": "systemd"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:A/AC:M/Au:N/C:N/I:N/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "2.9"
+                }
+            ]
+        }
+    ],
+    "wget": [
+        {
+            "name": "CVE-2021-31879",
+            "description": "GNU Wget through 1.21.1 does not omit the Authorization header upon a redirect to a different origin, a related issue to CVE-2018-1000007.",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-31879",
+            "severity": "MEDIUM",
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1.19.4-1ubuntu2.2"
+                },
+                {
+                    "key": "package_name",
+                    "value": "wget"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:N"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "5.8"
+                }
+            ]
+        }
+    ]
 }
