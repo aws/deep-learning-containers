@@ -132,10 +132,10 @@ Elastic Inference Containers
 Neuron Inference Containers
 ============================
 
-| Framework 			                    |Job Type 	 |Python Version Options    |Example URL 			                                                                                    |
-|-------------------------------------------|------------|--------------------------|-----------------------------------------------------------------------------------------------------------|
-|PyTorch 1.5.1 with Neuron Inference        |inference 	 |3.6 (py36) 	            |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-neuron:1.5.1-neuron-py36-ubuntu16.04        |
-|TensorFlow 1.15.5 with Neuron Inference    |inference 	 |3.7 (py37) 	            |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-neuron:1.15.5-neuron-py37-ubuntu18.04    |
+|Framework                                  |Job Type   |Python Version Options |Example URL                                                                                                |
+|-------------------------------------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
+|PyTorch 1.7.1 with Neuron Inference        |inference 	|3.6 (py36) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-neuron:1.7.1-neuron-py36-ubuntu16.04        |
+|TensorFlow 1.15.5 with Neuron Inference    |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-neuron:1.15.5-neuron-py37-ubuntu18.04    |
 
 
 Prior General Framework Container Versions
@@ -213,5 +213,6 @@ Prior Elastic Inference Container Versions
 
 Prior Neuron Inference Container Versions
 ==============
-| Framework 			                      |Job Type 	 |Python Version Options     |Example URL 			                                                                           |
-|---------------------------------------------|--------------|---------------------------|---------------------------------------------------------------------------------------------------|
+| Framework 			                    |Job Type 	 |Python Version Options    |Example URL 			                                                                                    |
+|-------------------------------------------|------------|--------------------------|-----------------------------------------------------------------------------------------------------------|
+|PyTorch 1.5.1 with Neuron Inference        |inference 	 |3.6 (py36) 	            |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-neuron:1.5.1-neuron-py36-ubuntu16.04        |
