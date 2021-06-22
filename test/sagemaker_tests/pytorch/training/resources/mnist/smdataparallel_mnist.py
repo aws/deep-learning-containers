@@ -41,6 +41,10 @@ if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
         ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz',
          'ec29112dd5afa0611ce80d1b7f02629c')
     ]
+else:
+    datasets.MNIST.mirrors = [
+        'https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/'
+    ]
 
 class Net(nn.Module):
     def __init__(self):
