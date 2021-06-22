@@ -24,11 +24,12 @@ from test.test_utils import (
     is_dlc_cicd_context,
     is_pr_context,
     run_cmd_on_container,
-    start_container, 
-    is_time_for_canary_safety_scan, 
+    start_container,
+    is_time_for_canary_safety_scan,
     is_mainline_context,
     is_nightly_context,
     get_repository_local_path,
+    get_repository_and_tag_from_image_uri,
 )
 
 
@@ -136,11 +137,14 @@ def test_framework_version_cpu(image):
     """
     if "gpu" in image:
         pytest.skip("GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
-    if "tensorflow-inference" in image:
-        pytest.skip(msg="TF inference does not have core tensorflow installed")
+    image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
+    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia)?", image_repo_name):
+        pytest.skip(msg="TF inference for CPU/GPU/EIA does not have core tensorflow installed")
 
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
 
+    # Framework name may include huggingface
+    tested_framework = tested_framework.lstrip("huggingface_")
     # Module name is torch
     if tested_framework == "pytorch":
         tested_framework = "torch"
@@ -172,13 +176,11 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     # Framework Version Check #
     # Skip framework version test for tensorflow-inference, since it doesn't have core TF installed
     if "tensorflow-inference" not in image:
+        # Framework name may include huggingface
+        tested_framework = tested_framework.lstrip("huggingface_")
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
-        if tested_framework == "huggingface_pytorch":
-            tested_framework = "torch"
-        if tested_framework == "huggingface_tensorflow":
-            tested_framework = "tensorflow"
         cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
 
@@ -272,9 +274,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.skipif(not (is_nightly_context() or (is_canary_context() and is_time_for_canary_safety_scan())),
-                    reason="Do not run dependency check on PR tests. "
-                           "Executing test in canaries pipeline during only a limited period of time."
+@pytest.mark.skipif((is_canary_context() and not is_time_for_canary_safety_scan()),
+                    reason="Executing test in canaries pipeline during only a limited period of time."
                     )
 def test_dependency_check_cpu(cpu, ec2_connection):
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
@@ -283,9 +284,8 @@ def test_dependency_check_cpu(cpu, ec2_connection):
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.skipif(not (is_nightly_context() or (is_canary_context() and is_time_for_canary_safety_scan())),
-                    reason="Do not run dependency check on PR tests. "
-                           "Executing test in canaries pipeline during only a limited period of time."
+@pytest.mark.skipif((is_canary_context() and not is_time_for_canary_safety_scan()),
+                    reason="Executing test in canaries pipeline during only a limited period of time."
                     )
 def test_dependency_check_gpu(gpu, ec2_connection):
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
@@ -294,9 +294,8 @@ def test_dependency_check_gpu(gpu, ec2_connection):
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
-@pytest.mark.skipif(not (is_nightly_context() or is_mainline_context() or (is_canary_context() and is_time_for_canary_safety_scan())),
-                    reason="Do not run dependency check on PR tests. "
-                           "Executing test in canaries pipeline during only a limited period of time."
+@pytest.mark.skipif((is_canary_context() and not is_time_for_canary_safety_scan()),
+                    reason="Executing test in canaries pipeline during only a limited period of time."
                     )
 def test_dependency_check_neuron(neuron, ec2_connection):
     _run_dependency_check_test(neuron, ec2_connection, "neuron")

@@ -24,8 +24,7 @@ from packaging.specifiers import SpecifierSet
 from ...integration import DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
 import sagemaker
-
-git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v4.5.0'}
+import re
 
 # configuration for running training on smdistributed Data Parallel
 distribution = {'smdistributed': {'dataparallel': {'enabled': True}}}
@@ -65,6 +64,13 @@ def can_run_smdataparallel(ecr_image):
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
     return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(image_cuda_version.strip("cu")) >= Version("110")
 
+def get_transformers_version(ecr_image):
+    transformers_version_search = re.search(r"transformers(\d+(\.\d+){1,2})", ecr_image)
+    if transformers_version_search:
+        transformers_version = transformers_version_search.group(1)
+        return transformers_version
+    else:
+        raise LookupError("HF transformers version not found in image URI")
 
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("hf_qa_smdp")
@@ -75,13 +81,24 @@ def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
+    transformers_version = get_transformers_version(ecr_image)
+    git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v'+transformers_version}
+
     validate_or_skip_smdataparallel(ecr_image)
     instance_count = 1
     instance_type = "ml.p3.16xlarge"
+    
+    source_dir = (
+        "./examples/question-answering"
+        if Version(transformers_version) < Version("4.6")
+        else "./examples/pytorch/question-answering"
+    )
+    
+    
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator = HuggingFace(
             entry_point='run_qa.py',
-            source_dir='./examples/question-answering',
+            source_dir=source_dir,
             git_config=git_config,
             metric_definitions=metric_definitions,
             role='SageMakerRole',
@@ -106,14 +123,26 @@ def test_smdp_question_answering_multinode(ecr_image, instance_type, py_version,
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
+
+    transformers_version = get_transformers_version(ecr_image)
+    git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v'+transformers_version}
+
     validate_or_skip_smdataparallel(ecr_image)
 
     instance_count = 2
     instance_type = "ml.p3.16xlarge"
+    
+    
+    source_dir = (
+        "./examples/question-answering"
+        if Version(transformers_version) < Version("4.6")
+        else "./examples/pytorch/question-answering"
+    )
+    
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator = HuggingFace(
             entry_point='run_qa.py',
-            source_dir='./examples/question-answering',
+            source_dir=source_dir,
             git_config=git_config,
             metric_definitions=metric_definitions,
             role='SageMakerRole',

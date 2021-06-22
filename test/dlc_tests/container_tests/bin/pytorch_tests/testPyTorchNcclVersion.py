@@ -9,11 +9,13 @@ import torch
 LOGGER = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
+
 def test_nccl_version():
     try:
         pt_nccl = torch.cuda.nccl.version()
         find = subprocess.Popen(['find', '/usr', '-name', 'libnccl.so*'], stdout=PIPE)
-        tail = subprocess.Popen(['head', '-n1'], stdin=find.stdout, stdout=PIPE)
+        sort = subprocess.Popen(['sort', '-r'], stdin=find.stdout, stdout=PIPE)
+        tail = subprocess.Popen(['head', '-n1'], stdin=sort.stdout, stdout=PIPE)
         result = subprocess.Popen(['sed', '-r', 's/^.*\.so\.//'], stdin=tail.stdout, stdout=PIPE)
         output, error = result.communicate()
         numbers = [int(x, 10) for x in output.decode("utf-8").strip().split('.')]
@@ -26,6 +28,7 @@ def test_nccl_version():
         LOGGER.debug("Error: check_pytorch test failed.")
         LOGGER.debug("Exception: {}".format(excp))
         raise
+
 
 if __name__ == '__main__':
     try:

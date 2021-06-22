@@ -30,7 +30,7 @@ def test_torchvision_nms_training(pytorch_training):
 
 
 @pytest.mark.model("N/A")
-def test_torchvision_nms_inference(pytorch_inference):
+def test_torchvision_nms_inference(pytorch_inference, non_huggingface_only):
     """
     Check that the internally built torchvision binary is used to resolve the missing nms issue.
     :param pytorch_inference: framework fixture for pytorch inference
