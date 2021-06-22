@@ -42,6 +42,8 @@ ARG SMDEBUG_VERSION=1.0.9
 
 ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.5.0/cu112/2015-06-16/smdistributed_dataparallel-1.2.1-cp37-cp37m-linux_x86_64.whl
 
+ARG SMMODELPARALLEL_BINARY=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/tensorflow-2.5.0/build-artifacts/2021-06-22-00-43/smdistributed_modelparallel-1.4.0-cp37-cp37m-linux_x86_64.whl
+
 ARG CUDA=11.2
 ARG CUDA_DASH=11-2
 ARG CUDNN=8.1.0.77-1
@@ -295,6 +297,9 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
+
+# Install SMD MP binary
+RUN pip install --no-cache-dir -U ${SMMODELPARALLEL_BINARY}
 
 # Install SMD DP binary
 RUN SMDATAPARALLEL_TF=1 ${PIP} install --no-cache-dir ${SMDATAPARALLEL_BINARY}
