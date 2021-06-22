@@ -152,8 +152,6 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && ln -s /usr/local/bin/pip3 /usr/bin/pip \
  && ln -s $(which ${PYTHON}) /usr/local/bin/python
 
-# MXNet requires pip 19.3.1 due to being backwards compatible
-# with python2
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
