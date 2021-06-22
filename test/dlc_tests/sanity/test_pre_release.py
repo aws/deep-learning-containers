@@ -378,6 +378,38 @@ def test_emacs(image):
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.integration("awscli")
+def test_awscli(image):
+    """
+    Ensure that awscli is installed on every image
+
+    :param image: ECR image URI
+    """
+    ctx = Context()
+    container_name = get_container_name("awscli", image)
+    start_container(container_name, image, ctx)
+
+    run_cmd_on_container(container_name, ctx, "which aws")
+    run_cmd_on_container(container_name, ctx, "aws --version")
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.integration("boto3")
+def test_boto3(mxnet_inference):
+    """
+    Ensure that boto3 is installed on every image
+
+    :param image: ECR image URI
+    """
+    image = mxnet_inference
+    ctx = Context()
+    container_name = get_container_name("boto3", image)
+    start_container(container_name, image, ctx)
+
+    run_cmd_on_container(container_name, ctx, "python -c 'import boto3'")
+
+
+@pytest.mark.model("N/A")
 @pytest.mark.integration("sagemaker python sdk")
 def test_sm_pysdk_2(training):
     """
