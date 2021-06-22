@@ -1,6 +1,6 @@
+import argparse
 import os
 from pprint import pprint
-import argparse
 
 import yaml
 from autogluon.tabular import TabularDataset, TabularPredictor
@@ -14,11 +14,13 @@ def get_input_path(path):
     filename = f'{path}/{file}'
     return filename
 
+
 def get_env_if_present(name):
     result = None
     if name in os.environ:
         result = os.environ[name]
     return result
+
 
 if __name__ == '__main__':
     # ------------------------------------------------------------ Args parsing
@@ -44,10 +46,8 @@ if __name__ == '__main__':
     with open(config_file) as f:
         config = yaml.safe_load(f)  # AutoGluon-specific config
 
-    if args.n_gpus and args.n_gpus != '0':
-        if 'ag_fit_args' not in config:
-            config['ag_fit_args'] = {}
-        config['ag_fit_args']['num_gpus'] = int(args.n_gpus)
+    if args.n_gpus:
+        config['num_gpus'] = int(args.n_gpus)
 
     print('Running training job with the config:')
     pprint(config)

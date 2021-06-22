@@ -22,9 +22,21 @@ from .. import RESOURCE_PATH, MODEL_SUCCESS_FILES
 
 
 @pytest.mark.integration("ag_local")
+@pytest.mark.processor("cpu")
 @pytest.mark.model("N/A")
-def test_autogluon_local(docker_image, sagemaker_local_session, instance_type, framework_version, tmpdir):
+def test_autogluon_local_cpu(docker_image, sagemaker_local_session, instance_type, framework_version, tmpdir):
+    _test_autogluon_local('cpu', docker_image, sagemaker_local_session, instance_type, framework_version, tmpdir)
 
+
+@pytest.mark.integration("ag_local")
+@pytest.mark.processor("gpu")
+@pytest.mark.model("N/A")
+@pytest.mark.skip_cpu
+def test_autogluon_local_gpu(docker_image, sagemaker_local_session, instance_type, framework_version, tmpdir):
+    _test_autogluon_local('gpu', docker_image, sagemaker_local_session, instance_type, framework_version, tmpdir)
+
+
+def _test_autogluon_local(device, docker_image, sagemaker_local_session, instance_type, framework_version, tmpdir):
     ag = AutoGluon(
         entry_point=os.path.join(RESOURCE_PATH, 'scripts', 'train.py'),
         role='SageMakerRole', instance_count=1, instance_type=instance_type,
@@ -34,12 +46,11 @@ def test_autogluon_local(docker_image, sagemaker_local_session, instance_type, f
 
     data_path = os.path.join(RESOURCE_PATH, 'data')
     s3_prefix = 'integ-test-data/autogluon'
-    train_input = sagemaker_local_session.upload_data(path=os.path.join(data_path, 'training', 'train.csv'), key_prefix=s3_prefix)
-    eval_input = sagemaker_local_session.upload_data(path=os.path.join(data_path, 'evaluation', 'eval.csv'), key_prefix=s3_prefix)
-    config_input = sagemaker_local_session.upload_data(path=os.path.join(data_path, 'config', 'config.yaml'), key_prefix=s3_prefix)
+    train_input = sagemaker_local_session.upload_data(path=os.path.join(data_path, 'training', f'train.{device}.csv'), key_prefix=s3_prefix)
+    eval_input = sagemaker_local_session.upload_data(path=os.path.join(data_path, 'evaluation', f'eval.{device}.csv'), key_prefix=s3_prefix)
+    config_input = sagemaker_local_session.upload_data(path=os.path.join(data_path, 'config', f'config.{device}.yaml'), key_prefix=s3_prefix)
 
     ag.fit({'config': config_input, 'train': train_input, 'test': eval_input})
 
-    print(tmpdir)
     for directory, files in MODEL_SUCCESS_FILES.items():
         assert_output_files_exist(str(tmpdir), directory, files)
