@@ -34,8 +34,6 @@ ARG BRANCH_OFI=1.1.3-aws
 
 ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.5_aws/20210617_160451/gpu/cu112/py37/tensorflow_gpu-2.5.0-cp37-cp37m-manylinux2010_x86_64.whl
 
-ARG ESTIMATOR_URL=
-
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=1.0.9
@@ -83,8 +81,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    jq \
    && apt-get update \
    && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-change-held-packages \
-   #libcublas-11-0=11.2.0.252-1 \
-   #libcublas-dev-11-0=11.2.0.252-1 \
    libcublas-dev-${CUDA_DASH} \
    libcublas-${CUDA_DASH} \
    # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0
@@ -208,17 +204,17 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 RUN ${PIP} install --no-cache-dir -U \
    pybind11 \
    cmake==3.18.2.post1 \
-   numpy==1.19.1 \
-   scipy==1.5.2 \
-   scikit-learn==0.23 \
-   pandas==1.1 \
+   numpy==1.19.2 \
+   scipy==1.7.0 \
+   scikit-learn==0.24.2 \
+   pandas==1.2.5 \
    Pillow==8.2.0 \
    python-dateutil==2.8.1 \
    pyYAML==5.3.1 \
-   requests==2.24.0 \
+   requests==2.25.1 \
    "awscli<2" \
    mpi4py==3.0.3 \
-   opencv-python==4.3.0.36 \
+   opencv-python==4.5.2.54 \
    "sagemaker>=2,<3" \
    sagemaker-experiments==0.* \
    "sagemaker-tensorflow>=2.5,<2.6" \
@@ -227,7 +223,7 @@ RUN ${PIP} install --no-cache-dir -U \
    # the library version to be overwritten
    && ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
-   ${ESTIMATOR_URL} \
+   tensorflow-estimator==2.5.0 \
    h5py==3.1.0 \
    "absl-py>=0.9,<0.11" \
    werkzeug==1.0.1 \
