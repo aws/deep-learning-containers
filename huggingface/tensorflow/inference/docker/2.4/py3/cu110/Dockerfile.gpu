@@ -104,8 +104,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.4/license.txt -o /license.txt
 
 # Install TF Binary
-# RUN pip install --no-cache-dir -U $TF_URL
-RUN pip install --no-cache-dir -U tensorflow-gpu==2.4.1
+RUN pip install --no-cache-dir -U $TF_URL
 
 # We need TF_FORCE_GPU_ALLOW_GROWTH=true to prevent TF from overusing GPU memory when loading models
 ENV TF_FORCE_GPU_ALLOW_GROWTH=true
