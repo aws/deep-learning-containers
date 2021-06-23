@@ -309,7 +309,7 @@ def main():
         sm_utils.generate_empty_report(report, test_type, "huggingface")
         return
 
-    if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary", "bai"):
+    if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary", "bai", "sm_profiler_integration"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
         # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.
