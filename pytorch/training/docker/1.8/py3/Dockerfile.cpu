@@ -32,6 +32,11 @@ ARG PT_S3_WHL=https://aws-s3-plugin.s3-us-west-2.amazonaws.com/binaries/0.0.1/93
 WORKDIR /
 
 RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/
+ 
+RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
