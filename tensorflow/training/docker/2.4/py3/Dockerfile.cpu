@@ -167,6 +167,17 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
+COPY safety ${HOME_DIR}/safety
+RUN ${PIP} install --no-cache-dir -U safety
+RUN ${PYTHON} safety/test_and_generate_safety_report.py \
+    --report-path  "/opt/aws/dlc/info/safety_test_report.json" \
+    --ignored-packages { \
+       "pycrypto": "2.6.1", \
+       "httplib2": "0.9.2" \
+    }
+RUN rm -rf ${HOME_DIR}/safety
+RUN ${PIP} uninstall -y safety
+
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.4/license.txt -o /license.txt
 
 CMD ["/bin/bash"]

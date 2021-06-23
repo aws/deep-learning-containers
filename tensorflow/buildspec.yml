@@ -26,6 +26,9 @@ context:
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
+    safety_files:
+      source: ../../src/safety
+      target: safety
   inference_context: &INFERENCE_CONTEXT
     sagemaker_package_name:
       source: docker/build_artifacts/sagemaker
