@@ -48,9 +48,6 @@ ARG CUDA=11.2
 ARG CUDA_DASH=11-2
 ARG CUDNN=8.1.0.77-1
 ARG NCCL_VERSION=2.8.4
-ARG CUDNN_MAJOR_VERSION=8
-ARG LIB_DIR_PREFIX=x86_64
-
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
    ca-certificates \

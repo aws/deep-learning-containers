@@ -154,10 +154,10 @@ def test_framework_version_cpu(image):
     output = run_cmd_on_container(
         container_name, ctx, f"import {tested_framework}; print({tested_framework}.__version__)", executable="python"
     )
-    # if is_canary_context():
-    assert tag_framework_version in output.stdout.strip()
-    # else:
-    #     assert tag_framework_version == output.stdout.strip()
+    if is_canary_context():
+        assert tag_framework_version in output.stdout.strip()
+    else:
+        assert tag_framework_version == output.stdout.strip()
 
 
 # TODO: Enable as canary once resource cleaning lambda is added
@@ -184,10 +184,10 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
 
-        # if is_canary_context():
-        assert tag_framework_version in output.stdout.strip()
-        # else:
-        #     assert tag_framework_version == output.stdout.strip()
+        if is_canary_context():
+            assert tag_framework_version in output.stdout.strip()
+        else:
+            assert tag_framework_version == output.stdout.strip()
 
     # CUDA Version Check #
     cuda_version = re.search(r"-cu(\d+)-", image).group(1)
