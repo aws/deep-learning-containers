@@ -100,7 +100,7 @@ RUN pip install -U --no-cache-dir \
     "awscli<2" \
     requests==2.22.0
 
-#CMD ["bin/bash"]
+#CMD ["/bin/bash"]
 # Expose ports
 # gRPC
 EXPOSE 8500

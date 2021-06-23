@@ -52,7 +52,7 @@ spec:
       containers:
         #Device Plugin containers are available both in us-east and us-west ecr
         #repos
-      - image: 790709498068.dkr.ecr.us-west-2.amazonaws.com/neuron-device-plugin:latest
+      - image: public.ecr.aws/neuron/neuron-device-plugin:latest
         imagePullPolicy: Always
         name: neuron-device-plugin
         env:
