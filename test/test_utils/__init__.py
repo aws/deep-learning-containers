@@ -110,7 +110,7 @@ def get_dockerfile_path_for_image(image_uri):
 
     dockerfiles_list = [
         path for path in glob(os.path.join(python_version_path, "**", f"Dockerfile.{device_type}"), recursive=True)
-        if "example" not in path
+        if ("example" not in path and "example" not in image_uri) or ("example" in path and "example" in image_uri)
     ]
 
     if device_type in ["gpu"]:
