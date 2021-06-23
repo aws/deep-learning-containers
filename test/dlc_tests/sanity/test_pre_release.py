@@ -397,7 +397,7 @@ def test_awscli(image):
 @pytest.mark.integration("boto3")
 def test_boto3(mxnet_inference):
     """
-    Ensure that boto3 is installed on every image
+    Ensure that boto3 is installed on mxnet inference
 
     :param image: ECR image URI
     """
@@ -406,7 +406,7 @@ def test_boto3(mxnet_inference):
     container_name = get_container_name("boto3", image)
     start_container(container_name, image, ctx)
 
-    run_cmd_on_container(container_name, ctx, "python -c 'import boto3'")
+    run_cmd_on_container(container_name, ctx, 'import boto3', executable="python")
 
 
 @pytest.mark.model("N/A")
