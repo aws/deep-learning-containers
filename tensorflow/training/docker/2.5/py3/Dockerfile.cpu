@@ -99,6 +99,9 @@ RUN apt-get update \
     libsqlite3-dev \
     libssl-dev \
     tk-dev \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
