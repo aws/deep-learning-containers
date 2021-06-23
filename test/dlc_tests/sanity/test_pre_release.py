@@ -385,6 +385,7 @@ def test_awscli(mxnet_inference):
 
     :param image: ECR image URI
     """
+    image = mxnet_inference
     ctx = Context()
     container_name = get_container_name("awscli", image)
     start_container(container_name, image, ctx)
