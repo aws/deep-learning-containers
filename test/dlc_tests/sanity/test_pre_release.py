@@ -376,12 +376,12 @@ def test_emacs(image):
     run_cmd_on_container(container_name, ctx, "which emacs")
     run_cmd_on_container(container_name, ctx, "emacs -version")
 
-
+# TODO: Need to be added to all DLC images in furture.
 @pytest.mark.model("N/A")
 @pytest.mark.integration("awscli")
-def test_awscli(image):
+def test_awscli(mxnet_inference):
     """
-    Ensure that awscli is installed on every image
+    Ensure that boto3 is installed on mxnet inference
 
     :param image: ECR image URI
     """
