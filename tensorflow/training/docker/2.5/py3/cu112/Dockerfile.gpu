@@ -38,7 +38,7 @@ ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=1.0.9
 
-ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.5.0/cu112/2015-06-16/smdistributed_dataparallel-1.2.1-cp37-cp37m-linux_x86_64.whl
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.5.0/cu112/2021-06-21/smdistributed_dataparallel-1.2.1-cp37-cp37m-linux_x86_64.whl
 
 ARG SMMODELPARALLEL_BINARY=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/tensorflow-2.5.0/build-artifacts/2021-06-22-00-43/smdistributed_modelparallel-1.4.0-cp37-cp37m-linux_x86_64.whl
 
