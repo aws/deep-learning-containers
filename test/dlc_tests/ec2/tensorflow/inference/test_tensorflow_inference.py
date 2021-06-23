@@ -5,6 +5,7 @@ from time import sleep
 import pytest
 
 import test.test_utils.ec2 as ec2_utils
+
 from test import test_utils
 from test.test_utils.ec2 import get_ec2_instance_type, get_ec2_accelerator_type
 from test.dlc_tests.conftest import LOGGER
