@@ -376,6 +376,39 @@ def test_emacs(image):
     run_cmd_on_container(container_name, ctx, "which emacs")
     run_cmd_on_container(container_name, ctx, "emacs -version")
 
+# TODO: Need to be added to all DLC images in furture.
+@pytest.mark.model("N/A")
+@pytest.mark.integration("awscli")
+def test_awscli(mxnet_inference):
+    """
+    Ensure that boto3 is installed on mxnet inference
+
+    :param image: ECR image URI
+    """
+    image = mxnet_inference
+    ctx = Context()
+    container_name = get_container_name("awscli", image)
+    start_container(container_name, image, ctx)
+
+    run_cmd_on_container(container_name, ctx, "which aws")
+    run_cmd_on_container(container_name, ctx, "aws --version")
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.integration("boto3")
+def test_boto3(mxnet_inference):
+    """
+    Ensure that boto3 is installed on mxnet inference
+
+    :param image: ECR image URI
+    """
+    image = mxnet_inference
+    ctx = Context()
+    container_name = get_container_name("boto3", image)
+    start_container(container_name, image, ctx)
+
+    run_cmd_on_container(container_name, ctx, 'import boto3', executable="python")
+
 
 @pytest.mark.model("N/A")
 @pytest.mark.integration("sagemaker python sdk")

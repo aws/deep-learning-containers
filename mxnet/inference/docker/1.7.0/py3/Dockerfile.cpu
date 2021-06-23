@@ -96,6 +96,8 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 WORKDIR /
 
 RUN ${PIP} install --no-cache-dir \
+   "awscli<2" \
+    boto3 \
     ${MX_URL} \
     gluonnlp==0.10.0 \
     gluoncv==0.6.0 \
