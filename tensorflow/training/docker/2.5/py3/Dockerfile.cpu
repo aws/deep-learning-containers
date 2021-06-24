@@ -143,7 +143,7 @@ RUN apt-get update && apt-get -y install protobuf-compiler
 RUN ${PIP} install --no-cache-dir -U \
     pybind11 \
     cmake==3.18.2.post1 \
-    numpy==1.19.2 \
+    numpy==1.19.5 \
     scipy==1.7.0 \
     scikit-learn==0.24.2 \
     pandas==1.2.5 \
@@ -163,7 +163,6 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    tensorflow-estimator==2.5.0 \
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
     horovod==0.21.1 \
