@@ -27,6 +27,7 @@ ENV DGLBACKEND=pytorch
 
 ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.1_aws/20210107-213753/df8e57a23cbc00d4fff51f4ea7f2ce052d1384e9/cpu/torch-1.7.1-cp36-cp36m-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.7.1/cpu/torchvision-0.8.2-cp36-cp36m-linux_x86_64.whl
+ARG PT_S3_WHL=https://aws-s3-plugin.s3-us-west-2.amazonaws.com/binaries/0.0.1/93fdaed/awsio-0.0.1-cp36-cp36m-manylinux1_x86_64.whl
 
 WORKDIR /
 
@@ -121,6 +122,10 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+
+# Install PT S3 plugin
+RUN pip install -U ${PT_S3_WHL}
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
