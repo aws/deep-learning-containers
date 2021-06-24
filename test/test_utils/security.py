@@ -21,7 +21,7 @@ class ScanVulnerabilityList:
     to allow easy comparison of any ECR Scan Vulnerabilities on an image with its corresponding allow-list file.
     """
     def __init__(self, minimum_severity=CVESeverity["MEDIUM"]):
-        self.allowlist = {}
+        self.vulnerability_list = {}
         self.minimum_severity = minimum_severity
 
     def construct_allowlist_from_file(self, file_path):
@@ -29,32 +29,32 @@ class ScanVulnerabilityList:
         Read JSON file and prepare the object with all allowed vulnerabilities
 
         :param file_path: Path to the allow-list JSON file.
-        :return: dict self.allowlist
+        :return: dict self.vulnerability_list
         """
         with open(file_path, "r") as f:
             file_allowlist = json.load(f)
         for package_name, package_vulnerability_list in file_allowlist.items():
             for vulnerability in package_vulnerability_list:
                 if CVESeverity[vulnerability["severity"]] >= self.minimum_severity:
-                    if package_name not in self.allowlist:
-                        self.allowlist[package_name] = []
-                    self.allowlist[package_name].append(vulnerability)
-        return self.allowlist
+                    if package_name not in self.vulnerability_list:
+                        self.vulnerability_list[package_name] = []
+                    self.vulnerability_list[package_name].append(vulnerability)
+        return self.vulnerability_list
 
     def construct_allowlist_from_ecr_scan_result(self, vulnerability_list):
         """
-        Read a vulnerability list and construct the allowlist
+        Read a vulnerability list and construct the vulnerability_list
 
         :param vulnerability_list: list ECR Scan Result results
-        :return: dict self.allowlist
+        :return: dict self.vulnerability_list
         """
         for vulnerability in vulnerability_list:
             package_name = get_ecr_vulnerability_package_name(vulnerability)
-            if package_name not in self.allowlist:
-                self.allowlist[package_name] = []
+            if package_name not in self.vulnerability_list:
+                self.vulnerability_list[package_name] = []
             if CVESeverity[vulnerability["severity"]] >= self.minimum_severity:
-                self.allowlist[package_name].append(vulnerability)
-        return self.allowlist
+                self.vulnerability_list[package_name].append(vulnerability)
+        return self.vulnerability_list
 
     def __contains__(self, vulnerability):
         """
@@ -64,10 +64,10 @@ class ScanVulnerabilityList:
                               presented by the ECR Scan Tool
         :return: bool True if the vulnerability is allowed on the allow-list.
         """
-        package = get_ecr_vulnerability_package_name(vulnerability)
-        if package not in self.allowlist:
+        package_name = get_ecr_vulnerability_package_name(vulnerability)
+        if package_name not in self.vulnerability_list:
             return False
-        for allowed_vulnerability in self.allowlist[package]:
+        for allowed_vulnerability in self.vulnerability_list[package_name]:
             if are_vulnerabilities_equivalent(vulnerability, allowed_vulnerability):
                 return True
         return False
@@ -79,13 +79,15 @@ class ScanVulnerabilityList:
         :param other: Another ScanVulnerabilityList object
         :return: True if equivalent, False otherwise
         """
-        if sorted(self.allowlist.keys()) != sorted(other.allowlist.keys()):
+        if sorted(self.vulnerability_list.keys()) != sorted(other.vulnerability_list.keys()):
             return False
 
-        for package_name, package_vulnerabilities in self.allowlist.items():
-            if len(self.allowlist[package_name]) != len(other.allowlist[package_name]):
+        for package_name, package_vulnerabilities in self.vulnerability_list.items():
+            if len(self.vulnerability_list[package_name]) != len(other.vulnerability_list[package_name]):
                 return False
-            for v1, v2 in zip(sorted(self.allowlist[package_name]), sorted(other.allowlist[package_name])):
+            for v1, v2 in zip(
+                sorted(self.vulnerability_list[package_name]), sorted(other.vulnerability_list[package_name])
+            ):
                 if not are_vulnerabilities_equivalent(v1, v2):
                     return False
         return True
@@ -99,7 +101,7 @@ class ScanVulnerabilityList:
         """
         missing_vulnerabilities = [
             vulnerability
-            for package_vulnerabilities in self.allowlist.values()
+            for package_vulnerabilities in self.vulnerability_list.values()
             for vulnerability in package_vulnerabilities
             if vulnerability not in other
         ]

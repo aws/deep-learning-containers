@@ -22,7 +22,8 @@
                     "key": "CVSS2_SCORE",
                     "value": "2.1"
                 }
-            ]
+            ],
+            "reason": "Fix is Deferred"
         }
     ],
     "gcc-7": [
@@ -48,7 +49,8 @@
                     "key": "CVSS2_SCORE",
                     "value": "2.1"
                 }
-            ]
+            ],
+            "reason": "Fix is Deferred"
         }
     ],
     "gcc-8": [
@@ -74,7 +76,8 @@
                     "key": "CVSS2_SCORE",
                     "value": "2.1"
                 }
-            ]
+            ],
+            "reason": "Fix is Deferred"
         }
     ],
     "gcc-defaults": [
@@ -100,7 +103,8 @@
                     "key": "CVSS2_SCORE",
                     "value": "2.1"
                 }
-            ]
+            ],
+            "reason": "Fix is Deferred"
         }
     ],
     "imagemagick": [
@@ -126,7 +130,8 @@
                     "key": "CVSS2_SCORE",
                     "value": "5.8"
                 }
-            ]
+            ],
+            "reason": "Fix is Deferred"
         },
         {
             "name": "CVE-2020-25664",
@@ -150,7 +155,8 @@
                     "key": "CVSS2_SCORE",
                     "value": "5.8"
                 }
-            ]
+            ],
+            "reason": "Fix is Deferred"
         }
     ],
     "krb5": [
@@ -176,7 +182,8 @@
                     "key": "CVSS2_SCORE",
                     "value": "3.5"
                 }
-            ]
+            ],
+            "reason": "Canonical has not updated Bionic with krb5 >1.16.2"
         }
     ],
     "nettle": [
@@ -194,7 +201,8 @@
                     "key": "package_name",
                     "value": "nettle"
                 }
-            ]
+            ],
+            "reason": "New version not available on Bionic yet for installation."
         }
     ],
     "nghttp2": [
@@ -220,7 +228,8 @@
                     "key": "CVSS2_SCORE",
                     "value": "7.8"
                 }
-            ]
+            ],
+            "reason": "Canonical has not updated Bionic with nghttp2 >1.30.0"
         },
         {
             "name": "CVE-2019-9511",
@@ -244,7 +253,8 @@
                     "key": "CVSS2_SCORE",
                     "value": "7.8"
                 }
-            ]
+            ],
+            "reason": "Canonical has not updated Bionic with nghttp2 >1.30.0"
         }
     ],
     "sqlite3": [
@@ -270,7 +280,8 @@
                     "key": "CVSS2_SCORE",
                     "value": "5.8"
                 }
-            ]
+            ],
+            "reason": "Fix is Deferred"
         }
     ],
     "systemd": [
@@ -296,7 +307,8 @@
                     "key": "CVSS2_SCORE",
                     "value": "2.9"
                 }
-            ]
+            ],
+            "reason": "Fix is Deferred"
         }
     ],
     "wget": [
@@ -322,7 +334,8 @@
                     "key": "CVSS2_SCORE",
                     "value": "5.8"
                 }
-            ]
+            ],
+            "reason": "Fix is Deferred"
         }
     ]
 }
