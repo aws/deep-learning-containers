@@ -8,6 +8,7 @@ from test.test_utils import ec2 as ec2_utils
 
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 
 PT_MNIST_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorch")
@@ -56,6 +57,15 @@ def test_ecs_pytorch_training_mnist_gpu(gpu_only, ecs_container_instance, pytorc
                                          num_gpus=num_gpus)
 
 
+def can_run_s3_plugin(framework_version):
+    return Version(framework_version) in SpecifierSet(">=1.7") and Version(framework_version) != Version("1.9.0")
+
+
+def validate_or_skip_s3_plugin(framework_version):
+    if not can_run_s3_plugin(framework_version):
+        pytest.skip("S3 plugin is not yet supported on 1.9.0")
+
+
 @pytest.mark.model("resnet18")
 @pytest.mark.integration("pt_s3_plugin")
 @pytest.mark.parametrize("training_script", [PT_S3_PLUGIN_CMD], indirect=True)
@@ -71,6 +81,9 @@ def test_ecs_pytorch_s3_plugin_training_cpu(cpu_only, ecs_container_instance, py
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
     """
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    validate_or_skip_s3_plugin(image_framework_version)
+
     instance_id, cluster_arn = ecs_container_instance
 
     ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id)
@@ -91,6 +104,9 @@ def test_ecs_pytorch_s3_plugin_training_gpu(gpu_only, ecs_container_instance, py
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
     """
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    validate_or_skip_s3_plugin(image_framework_version)
+
     instance_id, cluster_arn = ecs_container_instance
 
     num_gpus = ec2_utils.get_instance_num_gpus(instance_id)

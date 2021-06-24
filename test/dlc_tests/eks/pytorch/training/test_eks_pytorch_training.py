@@ -93,6 +93,15 @@ def test_eks_pytorch_single_node_training(pytorch_training):
         run("kubectl delete pods {}".format(pod_name))
 
 
+def can_run_s3_plugin(framework_version):
+    return Version(framework_version) in SpecifierSet(">=1.7") and \
+            Version(framework_version) != Version("1.9.0")
+
+def validate_or_skip_s3_plugin(framework_version):
+    if not can_run_s3_plugin(framework_version):
+        pytest.skip("S3 plugin is not supported on 1.9.0")
+
+
 @pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline")
 @pytest.mark.model("resnet18")
 @pytest.mark.integration("pt_s3_plugin")
@@ -103,6 +112,8 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training):
         :param setup_utils: environment in which EKS tools are setup
         :param pytorch_training: the ECR URI
     """
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    validate_or_skip_s3_plugin(image_framework_version)
 
     training_result = False
 
