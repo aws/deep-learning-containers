@@ -79,6 +79,9 @@ class ScanVulnerabilityList:
         :param other: Another ScanVulnerabilityList object
         :return: True if equivalent, False otherwise
         """
+        if not other or not other.vulnerability_list:
+            return not self.vulnerability_list
+
         if sorted(self.vulnerability_list.keys()) != sorted(other.vulnerability_list.keys()):
             return False
 
@@ -99,6 +102,10 @@ class ScanVulnerabilityList:
         :param other: Another ScanVulnerabilityList object
         :return: List of vulnerabilities that exist in self, but not in other
         """
+        if not self.vulnerability_list:
+            return None
+        if not other or not other.vulnerability_list:
+            return self
         missing_vulnerabilities = [
             vulnerability
             for package_vulnerabilities in self.vulnerability_list.values()
