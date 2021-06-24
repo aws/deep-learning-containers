@@ -15,22 +15,46 @@ class CVESeverity(IntEnum):
     CRITICAL = 5
 
 
-class ScanAllowList:
+class ScanVulnerabilityList:
     """
     ScanAllowList is a class that reads an OS vulnerability allow-list, in the format stored on the DLC repo,
     to allow easy comparison of any ECR Scan Vulnerabilities on an image with its corresponding allow-list file.
     """
-    def __init__(self, file_path):
+    def __init__(self, minimum_severity=CVESeverity["MEDIUM"]):
+        self.allowlist = {}
+        self.minimum_severity = minimum_severity
+
+    def construct_allowlist_from_file(self, file_path):
         """
         Read JSON file and prepare the object with all allowed vulnerabilities
 
         :param file_path: Path to the allow-list JSON file.
+        :return: dict self.allowlist
         """
-        if not os.path.exists(file_path):
-            self.allowlist = {}
-            return
         with open(file_path, "r") as f:
-            self.allowlist = json.load(f)
+            file_allowlist = json.load(f)
+        for package_name, package_vulnerability_list in file_allowlist.items():
+            for vulnerability in package_vulnerability_list:
+                if CVESeverity[vulnerability["severity"]] >= self.minimum_severity:
+                    if package_name not in self.allowlist:
+                        self.allowlist[package_name] = []
+                    self.allowlist[package_name].append(vulnerability)
+        return self.allowlist
+
+    def construct_allowlist_from_ecr_scan_result(self, vulnerability_list):
+        """
+        Read a vulnerability list and construct the allowlist
+
+        :param vulnerability_list: list ECR Scan Result results
+        :return: dict self.allowlist
+        """
+        for vulnerability in vulnerability_list:
+            package_name = get_ecr_vulnerability_package_name(vulnerability)
+            if package_name not in self.allowlist:
+                self.allowlist[package_name] = []
+            if CVESeverity[vulnerability["severity"]] >= self.minimum_severity:
+                self.allowlist[package_name].append(vulnerability)
+        return self.allowlist
 
     def __contains__(self, vulnerability):
         """
@@ -44,17 +68,71 @@ class ScanAllowList:
         if package not in self.allowlist:
             return False
         for allowed_vulnerability in self.allowlist[package]:
-            if (vulnerability["name"], vulnerability["severity"]) == (
-                allowed_vulnerability["name"], allowed_vulnerability["severity"]
-            ):
-                # Do not compare package_version, because this is obtained at the time the CVE was first observed
-                # on the ECR Scan.
-                if all(
-                    attribute in allowed_vulnerability["attributes"]
-                    for attribute in vulnerability["attributes"] if not attribute["key"] == "package_version"
-                ):
-                    return True
+            if are_vulnerabilities_equivalent(vulnerability, allowed_vulnerability):
+                return True
         return False
+
+    def __cmp__(self, other):
+        """
+        Compare two ScanVulnerabilityList objects for equivalence
+
+        :param other: Another ScanVulnerabilityList object
+        :return: True if equivalent, False otherwise
+        """
+        if sorted(self.allowlist.keys()) != sorted(other.allowlist.keys()):
+            return False
+
+        for package_name, package_vulnerabilities in self.allowlist.items():
+            if len(self.allowlist[package_name]) != len(other.allowlist[package_name]):
+                return False
+            for v1, v2 in zip(sorted(self.allowlist[package_name]), sorted(other.allowlist[package_name])):
+                if not are_vulnerabilities_equivalent(v1, v2):
+                    return False
+        return True
+
+    def __sub__(self, other):
+        """
+        Difference between ScanVulnerabilityList objects
+
+        :param other: Another ScanVulnerabilityList object
+        :return: List of vulnerabilities that exist in self, but not in other
+        """
+        missing_vulnerabilities = [
+            vulnerability
+            for package_vulnerabilities in self.allowlist.values()
+            for vulnerability in package_vulnerabilities
+            if vulnerability not in other
+        ]
+        if not missing_vulnerabilities:
+            return None
+
+        difference = ScanVulnerabilityList(minimum_severity=self.minimum_severity)
+        difference.construct_allowlist_from_ecr_scan_result(missing_vulnerabilities)
+        return difference
+
+
+def are_vulnerabilities_equivalent(vulnerability_1, vulnerability_2):
+    """
+    Check if two vulnerability JSON objects are equivalent
+
+    :param vulnerability_1: dict JSON object consisting of information about the vulnerability in the format
+                            presented by the ECR Scan Tool
+    :param vulnerability_2: dict JSON object consisting of information about the vulnerability in the format
+                            presented by the ECR Scan Tool
+    :return: bool True if the two input objects are equivalent, False otherwise
+    """
+    if (vulnerability_1["name"], vulnerability_1["severity"]) == (
+            vulnerability_2["name"], vulnerability_2["severity"]
+    ):
+        # Do not compare package_version, because this may have been obtained at the time the CVE was first observed
+        # on the ECR Scan, which would result in unrelated version updates causing a mismatch while the CVE still
+        # applies on both vulnerabilities.
+        if all(
+            attribute in vulnerability_2["attributes"]
+            for attribute in vulnerability_1["attributes"] if not attribute["key"] == "package_version"
+        ):
+            return True
+    return False
 
 
 def get_ecr_vulnerability_package_name(vulnerability):

@@ -1,4 +1,5 @@
 import json
+import os
 
 from datetime import datetime
 from time import sleep, time
@@ -14,7 +15,7 @@ from test.test_utils import (
     LOGGER, get_account_id_from_image_uri, get_dockerfile_path_for_image
 )
 from test.test_utils import ecr as ecr_utils
-from test.test_utils.security import CVESeverity, ScanAllowList
+from test.test_utils.security import CVESeverity, ScanVulnerabilityList
 
 
 @pytest.mark.model("N/A")
@@ -82,12 +83,26 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
     scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=minimum_sev_threshold)
 
     image_scan_allowlist_path = get_dockerfile_path_for_image(image) + ".os_scan_allowlist.json"
-    image_scan_allowlist = ScanAllowList(image_scan_allowlist_path)
-    reduced_vulnerabilities_list = []
-    for vulnerability in scan_results:
-        if vulnerability not in image_scan_allowlist:
-            reduced_vulnerabilities_list.append(vulnerability)
+    image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
+    if os.path.exists(image_scan_allowlist_path):
+        image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
 
-    LOGGER.info(json.dumps(reduced_vulnerabilities_list, indent=4))
+    image_scan_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
+    image_scan_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
 
-    assert not reduced_vulnerabilities_list, json.dumps(reduced_vulnerabilities_list, indent=4)
+    remaining_vulnerabilities = image_scan_vulnerability_list - image_scan_allowlist
+    invalid_allowlist_vulnerabilities = image_scan_allowlist - image_scan_vulnerability_list
+
+    assertion_message = ""
+    if remaining_vulnerabilities:
+        assertion_message += (
+            f"The following vulnerabilities have not been fixed on {image}:\n"
+            f"{json.dumps(remaining_vulnerabilities.allowlist, indent=4)}\n\n"
+        )
+    if invalid_allowlist_vulnerabilities:
+        assertion_message += (
+            f"The following vulnerabilities are no longer valid on {image}:\n"
+            f"{json.dumps(invalid_allowlist_vulnerabilities.allowlist, indent=4)}"
+        )
+
+    assert not remaining_vulnerabilities and not invalid_allowlist_vulnerabilities, assertion_message
