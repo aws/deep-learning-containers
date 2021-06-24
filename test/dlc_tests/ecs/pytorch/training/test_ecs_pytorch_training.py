@@ -74,6 +74,7 @@ def test_ecs_pytorch_s3_plugin_training_cpu(cpu_only, ecs_container_instance, py
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if Version(image_framework_version) < Version("1.8"):
         pytest.skip("S3 plugin is supported on PyTorch version >=1.8")
+
     instance_id, cluster_arn = ecs_container_instance
 
     ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id)
