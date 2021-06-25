@@ -161,10 +161,10 @@ RUN ${PIP} install --no-cache-dir -U safety \
  && ${PYTHON} /tmp/safety/test_and_generate_python_safety_report.py \
     --safety-key ${SAFETY_KEY} \
     --report-path  "/opt/aws/dlc/info/safety_test_report.json" \
-    --ignored-packages { \
+    --ignored-packages '{ \
        "pycrypto": "2.6.1", \
        "httplib2": "0.9.2" \
-    } \
+    }' \
  && rm -rf /tmp/safety \
  && ${PIP} uninstall -y safety
 
