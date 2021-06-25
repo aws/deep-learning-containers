@@ -1,21 +1,15 @@
 import json
 import os
 
-from datetime import datetime
 from time import sleep, time
 
 import pytest
 
-from packaging.version import Version
-
 from invoke import run
-from invoke import Context
 
-from test.test_utils import (
-    LOGGER, get_account_id_from_image_uri, get_dockerfile_path_for_image
-)
+from test.test_utils import LOGGER, get_account_id_from_image_uri, get_dockerfile_path_for_image
 from test.test_utils import ecr as ecr_utils
-from test.test_utils.security import CVESeverity, ScanVulnerabilityList
+from test.test_utils.security import CVESeverity, ScanVulnerabilityList, ECRScanFailureException
 
 
 MINIMUM_SEV_THRESHOLD = "MEDIUM"
@@ -48,7 +42,7 @@ def run_scan(ecr_client, image):
     while (time() - start_time) <= 600:
         scan_status, scan_status_description = ecr_utils.get_ecr_image_scan_status(ecr_client, image)
         if scan_status == "FAILED" or scan_status not in [None, "IN_PROGRESS", "COMPLETE"]:
-            raise RuntimeError(scan_status_description)
+            raise ECRScanFailureException(f"ECR Scan failed for {image} with description: {scan_status_description}")
         if scan_status == "COMPLETE":
             break
         sleep(1)

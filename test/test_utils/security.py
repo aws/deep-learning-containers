@@ -1,9 +1,14 @@
 import json
-import os
 
 from enum import IntEnum
 
-from test import test_utils
+
+class ECRScanFailureException(Exception):
+    """
+    Base class for other exceptions
+    """
+
+    pass
 
 
 class CVESeverity(IntEnum):
@@ -20,6 +25,7 @@ class ScanVulnerabilityList:
     ScanAllowList is a class that reads an OS vulnerability allow-list, in the format stored on the DLC repo,
     to allow easy comparison of any ECR Scan Vulnerabilities on an image with its corresponding allow-list file.
     """
+
     def __init__(self, minimum_severity=CVESeverity["MEDIUM"]):
         self.vulnerability_list = {}
         self.minimum_severity = minimum_severity
@@ -130,15 +136,14 @@ def are_vulnerabilities_equivalent(vulnerability_1, vulnerability_2):
                             presented by the ECR Scan Tool
     :return: bool True if the two input objects are equivalent, False otherwise
     """
-    if (vulnerability_1["name"], vulnerability_1["severity"]) == (
-            vulnerability_2["name"], vulnerability_2["severity"]
-    ):
+    if (vulnerability_1["name"], vulnerability_1["severity"]) == (vulnerability_2["name"], vulnerability_2["severity"]):
         # Do not compare package_version, because this may have been obtained at the time the CVE was first observed
         # on the ECR Scan, which would result in unrelated version updates causing a mismatch while the CVE still
         # applies on both vulnerabilities.
         if all(
             attribute in vulnerability_2["attributes"]
-            for attribute in vulnerability_1["attributes"] if not attribute["key"] == "package_version"
+            for attribute in vulnerability_1["attributes"]
+            if not attribute["key"] == "package_version"
         ):
             return True
     return False
