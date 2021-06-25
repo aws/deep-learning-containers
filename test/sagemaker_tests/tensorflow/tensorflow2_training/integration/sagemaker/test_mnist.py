@@ -41,9 +41,9 @@ def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
                            sagemaker_session=sagemaker_session,
                            image_uri=ecr_image,
                            framework_version=framework_version)
-    
+
     estimator = _disable_sm_profiler(sagemaker_session.boto_region_name, estimator)
-    
+
     inputs = estimator.sagemaker_session.upload_data(
         path=os.path.join(resource_path, 'mnist', 'data'),
         key_prefix='scriptmode/mnist')
@@ -213,7 +213,7 @@ def test_smdataparallel_smmodelparallel_mnist(sagemaker_session, instance_type, 
                            image_uri=ecr_image,
                            framework_version=framework_version,
                            py_version='py3')
-    
+
     estimator = _disable_sm_profiler(sagemaker_session.boto_region_name, estimator)
 
     estimator.fit()

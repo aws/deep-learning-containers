@@ -161,9 +161,9 @@ def _test_sm_trained_model(instance_type, model, task, input_data, framework, de
     predictor.serializer = JSONSerializer()
     predictor.deserializer = JSONDeserializer()
     signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(1800)  
-    latencies = [] 
-    LOGGER = logging.getLogger('timeout') 
+    signal.alarm(1800)
+    latencies = []
+    LOGGER = logging.getLogger('timeout')
     try:
         for i in range(520):
             start = time.time()

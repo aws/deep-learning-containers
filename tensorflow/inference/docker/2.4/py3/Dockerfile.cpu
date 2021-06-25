@@ -27,7 +27,7 @@ ENV MODEL_BASE_PATH=/models
 ENV MODEL_NAME=model
 ENV DEBIAN_FRONTEND=noninteractive
 
-# nginx + njs 
+# nginx + njs
 RUN apt-get update \
  && apt-get -y install --no-install-recommends \
     curl \
@@ -35,6 +35,7 @@ RUN apt-get update \
     ca-certificates \
     emacs \
     git \
+    unzip \
     wget \
     vim \
     libbz2-dev \
@@ -51,7 +52,7 @@ RUN apt-get update \
     tk-dev \
     libgdbm-dev \
     libc6-dev \
- && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \ 
+ && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
  && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
  && apt-get update \
  && apt-get -y install --no-install-recommends \
@@ -74,6 +75,7 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir \
     "awscli<2" \
+    boto3 \
     cython==0.29.21 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
@@ -110,9 +112,18 @@ RUN echo '#!/bin/bash \n\n' > /usr/bin/tf_serving_entrypoint.sh \
  && echo '/usr/bin/tensorflow_model_server --port=8500 --rest_api_port=8501 --model_name=${MODEL_NAME} --model_base_path=${MODEL_BASE_PATH}/${MODEL_NAME} "$@"' >> /usr/bin/tf_serving_entrypoint.sh \
  && chmod +x /usr/bin/tf_serving_entrypoint.sh
 
-ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.4/license.txt -o /license.txt
 

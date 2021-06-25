@@ -1,6 +1,8 @@
 import os
 import re
-
+import subprocess
+import botocore
+import boto3
 from packaging.version import Version
 
 import pytest
@@ -8,6 +10,7 @@ import requests
 
 from urllib3.util.retry import Retry
 from invoke.context import Context
+from botocore.exceptions import ClientError
 
 from src.buildspec import Buildspec
 from test.test_utils import (
@@ -22,6 +25,11 @@ from test.test_utils import (
     is_pr_context,
     run_cmd_on_container,
     start_container,
+    is_time_for_canary_safety_scan,
+    is_mainline_context,
+    is_nightly_context,
+    get_repository_local_path,
+    get_repository_and_tag_from_image_uri,
 )
 
 
@@ -129,11 +137,14 @@ def test_framework_version_cpu(image):
     """
     if "gpu" in image:
         pytest.skip("GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
-    if "tensorflow-inference" in image:
-        pytest.skip(msg="TF inference does not have core tensorflow installed")
+    image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
+    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia)?", image_repo_name):
+        pytest.skip(msg="TF inference for CPU/GPU/EIA does not have core tensorflow installed")
 
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
 
+    # Framework name may include huggingface
+    tested_framework = tested_framework.lstrip("huggingface_")
     # Module name is torch
     if tested_framework == "pytorch":
         tested_framework = "torch"
@@ -165,13 +176,11 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     # Framework Version Check #
     # Skip framework version test for tensorflow-inference, since it doesn't have core TF installed
     if "tensorflow-inference" not in image:
+        # Framework name may include huggingface
+        tested_framework = tested_framework.lstrip("huggingface_")
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
-        if tested_framework == "huggingface_pytorch":
-            tested_framework = "torch"
-        if tested_framework == "huggingface_tensorflow":
-            tested_framework = "tensorflow"
         cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
 
@@ -263,22 +272,31 @@ def _run_dependency_check_test(image, ec2_connection, processor):
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+@pytest.mark.skipif((is_canary_context() and not is_time_for_canary_safety_scan()),
+                    reason="Executing test in canaries pipeline during only a limited period of time."
+                    )
 def test_dependency_check_cpu(cpu, ec2_connection):
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+@pytest.mark.skipif((is_canary_context() and not is_time_for_canary_safety_scan()),
+                    reason="Executing test in canaries pipeline during only a limited period of time."
+                    )
 def test_dependency_check_gpu(gpu, ec2_connection):
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
 
 
 @pytest.mark.model("N/A")
+@pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
-@pytest.mark.skipif(is_pr_context(), reason="Do not run dependency check on PR tests")
+@pytest.mark.skipif((is_canary_context() and not is_time_for_canary_safety_scan()),
+                    reason="Executing test in canaries pipeline during only a limited period of time."
+                    )
 def test_dependency_check_neuron(neuron, ec2_connection):
     _run_dependency_check_test(neuron, ec2_connection, "neuron")
 
@@ -357,6 +375,39 @@ def test_emacs(image):
     # Make sure the following emacs sanity tests exit with code 0
     run_cmd_on_container(container_name, ctx, "which emacs")
     run_cmd_on_container(container_name, ctx, "emacs -version")
+
+# TODO: Need to be added to all DLC images in furture.
+@pytest.mark.model("N/A")
+@pytest.mark.integration("awscli")
+def test_awscli(mxnet_inference):
+    """
+    Ensure that boto3 is installed on mxnet inference
+
+    :param image: ECR image URI
+    """
+    image = mxnet_inference
+    ctx = Context()
+    container_name = get_container_name("awscli", image)
+    start_container(container_name, image, ctx)
+
+    run_cmd_on_container(container_name, ctx, "which aws")
+    run_cmd_on_container(container_name, ctx, "aws --version")
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.integration("boto3")
+def test_boto3(mxnet_inference):
+    """
+    Ensure that boto3 is installed on mxnet inference
+
+    :param image: ECR image URI
+    """
+    image = mxnet_inference
+    ctx = Context()
+    container_name = get_container_name("boto3", image)
+    start_container(container_name, image, ctx)
+
+    run_cmd_on_container(container_name, ctx, 'import boto3', executable="python")
 
 
 @pytest.mark.model("N/A")
@@ -479,3 +530,62 @@ def _assert_artifact_free(output, stray_artifacts):
         assert not re.search(
             artifact, output.stdout
         ), f"Matched {artifact} in {output.stdout} while running {output.command}"
+
+@pytest.mark.integration("oss_compliance")
+@pytest.mark.model("N/A")
+@pytest.mark.skipif(not is_dlc_cicd_context(), reason="We need to test OSS compliance only on PRs and pipelines")
+def test_oss_compliance(image):
+    """
+    Run oss compliance check on a container to check if license attribution files exist.
+    And upload source of third party packages to S3 bucket.
+    """
+    THIRD_PARTY_SOURCE_CODE_BUCKET = "aws-dlinfra-licenses"
+    THIRD_PARTY_SOURCE_CODE_BUCKET_PATH = "third_party_source_code"
+    file = "THIRD_PARTY_SOURCE_CODE_URLS"
+    container_name = get_container_name("oss_compliance", image)
+    context = Context()
+    local_repo_path = get_repository_local_path()
+    start_container(container_name, image, context)
+
+    # run compliance test to make sure license attribution files exists. testOSSCompliance is copied as part of Dockerfile
+    run_cmd_on_container(container_name, context, "/usr/local/bin/testOSSCompliance /root")
+
+    try:
+        context.run(f"docker cp {container_name}:/root/{file} {os.path.join(local_repo_path, file)}")
+    finally:
+        context.run(f"docker rm -f {container_name}", hide=True)
+
+    s3_resource = boto3.resource('s3')
+
+    with open(os.path.join(local_repo_path, file)) as source_code_file:
+        for line in source_code_file:
+            name, version, url = line.split(" ")
+            file_name = f"{name}_v{version}_source_code"
+            s3_object_path = f"{THIRD_PARTY_SOURCE_CODE_BUCKET_PATH}/{file_name}.tar.gz"
+            local_file_path = os.path.join(local_repo_path, file_name)
+
+            try:
+                if not os.path.isdir(local_file_path):
+                    context.run(f"git clone {url.rstrip()} {local_file_path}")
+                    context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
+            except Exception as e:
+                LOGGER.error(f"Unable to clone git repo. Error: {e}")
+                raise
+
+            try:
+                if os.path.exists(f"{local_file_path}.tar.gz"):
+                    LOGGER.info(f"Uploading package to s3 bucket: {line}")
+                    s3_resource.Object(THIRD_PARTY_SOURCE_CODE_BUCKET, s3_object_path).load()
+            except botocore.exceptions.ClientError as e:
+                if e.response['Error']['Code'] == "404":
+                    try:
+                        # using aws cli as using boto3 expects to upload folder by iterating through each file instead of entire folder.
+                        context.run(f"aws s3 cp {local_file_path}.tar.gz s3://{THIRD_PARTY_SOURCE_CODE_BUCKET}/{s3_object_path}")
+                        object = s3_resource.Bucket(THIRD_PARTY_SOURCE_CODE_BUCKET).Object(s3_object_path)
+                        object.Acl().put(ACL='public-read')
+                    except ClientError as e:
+                        LOGGER.error(f"Unable to upload source code to bucket {THIRD_PARTY_SOURCE_CODE_BUCKET}. Error: {e}")
+                        raise
+                else:
+                    LOGGER.error(f"Unable to check if source code is present on bucket {THIRD_PARTY_SOURCE_CODE_BUCKET}. Error: {e}")
+                    raise

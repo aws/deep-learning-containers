@@ -18,6 +18,7 @@ PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
 PT_APEX_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNVApex")
 PT_AMP_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchAMP")
 PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test")
+PT_S3_PLUGIN_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchS3Plugin")
 
 
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
@@ -126,6 +127,21 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
+@pytest.mark.integration("nccl")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_pytorch_nccl_version(
+    pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type, pt17_and_above_only,
+):
+    """
+    Tests nccl version
+    """
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
+        pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
+    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNcclVersion")
+    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
+
+
 @pytest.mark.integration("mpi")
 @pytest.mark.model("resnet18")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -158,6 +174,24 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only, ec2_instance_ty
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD)
+
+
+@pytest.mark.integration("pt_s3_plugin_gpu")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_pytorch_s3_plugin_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt16_and_above_only):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
+        pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_S3_PLUGIN_CMD)
+
+
+@pytest.mark.integration("pt_s3_plugin_cpu")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_pytorch_s3_plugin_cpu(pytorch_training, ec2_connection, cpu_only, ec2_instance_type, pt16_and_above_only):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
+        pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_S3_PLUGIN_CMD)
 
 
 @pytest.mark.integration("telemetry")

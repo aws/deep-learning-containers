@@ -56,6 +56,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     libtemplate-perl \
     libzmq3-dev \
     git \
+    unzip \
     wget \
     vim \
     build-essential \
@@ -200,10 +201,19 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 # Add NGC vars
 ENV TF_ADJUST_HUE_FUSED=1 TF_AUTOTUNE_THRESHOLD=2 TF_USE_CUDNN_BATCHNORM_SPATIAL_PERSISTENT=1 TF_ADJUST_SATURATION_FUSED=1 TF_ENABLE_WINOGRAD_NONFUSED=1 CUDA_CACHE_DISABLE=1
 
-ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 
-CMD ["bin/bash"]
+CMD ["/bin/bash"]

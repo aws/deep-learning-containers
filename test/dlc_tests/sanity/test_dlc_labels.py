@@ -75,8 +75,7 @@ def test_dlc_major_version_dockerfiles(image):
         reference_fw = "tensorflow2"
     else:
         reference_fw = framework
-    if processor != "eia" and (reference_fw in references 
-                               and Version(fw_version) < Version(references[reference_fw])):
+    if (reference_fw in references and Version(fw_version) < Version(references[reference_fw])):
         pytest.skip(
             f"Not enforcing new versioning scheme on old image {image}. "
             f"Started enforcing version scheme on the following: {references}"

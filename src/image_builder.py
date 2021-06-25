@@ -110,6 +110,16 @@ def image_builder(buildspec):
                 labels[var] = file_name
                 labels[f"{var}_URI"] = uri
 
+        if str(BUILDSPEC["framework"]).startswith("huggingface"):
+            if "transformers_version" in image_config:
+                extra_build_args["TRANSFORMERS_VERSION"] = image_config.get("transformers_version")
+            else:
+                raise KeyError(f"HuggingFace buildspec.yml must contain 'transformers_version' field for each image")
+            if "datasets_version" in image_config:
+                extra_build_args["DATASETS_VERSION"] = image_config.get("datasets_version")
+            elif str(image_config["image_type"]) == "training":
+                raise KeyError(f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image")
+
         ARTIFACTS.update(
             {
                 "dockerfile": {

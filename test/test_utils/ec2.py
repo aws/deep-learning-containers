@@ -42,7 +42,7 @@ def filter_not_heavy_instance_types(instance_type_list):
     return filtered_list
 
 
-def get_ec2_instance_type(default, processor, filter_function=lambda x: x):
+def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=False):
     """
     Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
     for contexts where the variable is not present (i.e. PR, Nightly, local testing)
@@ -62,7 +62,7 @@ def get_ec2_instance_type(default, processor, filter_function=lambda x: x):
             f"Aborting EC2 test run. Unrecognized processor type {processor}. "
             f"Please choose from {allowed_processors}"
         )
-    if default in HEAVY_INSTANCE_LIST:
+    if default in HEAVY_INSTANCE_LIST and not efa:
         raise RuntimeError(f"Default instance type should never be one of {HEAVY_INSTANCE_LIST}, but it is {default}")
     instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE")
     if not instance_type and is_mainline_context():
@@ -131,6 +131,7 @@ def launch_instance(
         "TagSpecifications": [
             {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": f"CI-CD {instance_name}"}],},
         ],
+        "BlockDeviceMappings": [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 70,}}]
     }
     if user_data:
         arguments_dict["UserData"] = user_data
@@ -421,6 +422,12 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
         user=user, host=get_public_ip(instance_id, region), connect_kwargs={"key_filename": [instance_pem_file]},
     )
     return conn
+
+
+def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
+    ec2_client = ec2_client or get_ec2_client(region)
+    response = ec2_client.describe_tags(Filters=[{"Name": "resource-id", "Values": [instance_id]}])
+    return {tag["Key"]: tag["Value"] for tag in response.get("Tags")}
 
 
 def execute_ec2_training_test(

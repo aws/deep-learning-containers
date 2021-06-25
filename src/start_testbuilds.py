@@ -47,7 +47,8 @@ def run_test_job(commit, codebuild_project, images_str=""):
             {"name": "PR_NUMBER", "value": pr_num, "type": "PLAINTEXT"},
             # USE_SCHEDULER is passed as an env variable here because it is more convenient to set this in
             # config/test_config, compared to having another config file under dlc/tests/.
-            {"name": "USE_SCHEDULER", "value": str(test_config.USE_SCHEDULER), "type": "PLAINTEXT"}
+            {"name": "USE_SCHEDULER", "value": str(test_config.USE_SCHEDULER), "type": "PLAINTEXT"},
+            {"name": "DISABLE_EFA_TESTS", "value": str(test_config.DISABLE_EFA_TESTS), "type": "PLAINTEXT"},
         ]
     )
     LOGGER.debug(f"env_overrides dict: {env_overrides}")
@@ -93,6 +94,9 @@ def main():
             pr_test_job = f"dlc-pr-{test_type}-test"
             images_str = " ".join(images)
             if is_test_job_enabled(test_type):
+                if "huggingface" in images_str and test_type in [constants.EC2_TESTS, constants.ECS_TESTS, constants.EKS_TESTS]:
+                    LOGGER.debug(f"Skipping huggingface {test_type} test")
+                    continue
                 run_test_job(commit, pr_test_job, images_str)
 
                 # Trigger sagemaker local test jobs when there are changes in sagemaker_tests

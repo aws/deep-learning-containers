@@ -6,9 +6,10 @@ LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 # Add arguments to achieve the version, python and url
+ARG PYTHON=python3
 ARG PYTHON_VERSION=3.6.13
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION="0.2.1=py36_0"
+ARG TS_VERSION="0.3.1"
 ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_inference/20200727-223446/b0251e7e070e57f34ee08ac59ab4710081b41918/gpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
 ARG PT_VISION_URL=https://torchvision-build.s3.amazonaws.com/1.6.0/gpu/torchvision-0.7.0-cp36-cp36m-linux_x86_64.whl
 
@@ -44,6 +45,7 @@ RUN apt-get update \
     openjdk-11-jdk \
     vim \
     wget \
+    unzip \
     zlib1g-dev
 
 
@@ -107,9 +109,7 @@ RUN conda install -c \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
-    ruamel-yaml \
- && conda install -y -c pytorch torchserve=$TS_VERSION \
- && conda install -y -c pytorch torch-model-archiver=$TS_VERSION
+    ruamel-yaml
 
 # Uninstall and re-install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
@@ -117,6 +117,10 @@ RUN pip uninstall -y torch \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U $PT_VISION_URL
 
+RUN pip uninstall -y model-archiver multi-model-server \
+ && pip install captum \
+ && pip install torchserve==$TS_VERSION \
+ && pip install torch-model-archiver==$TS_VERSION
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
@@ -136,7 +140,16 @@ RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.6.0/license.txt -o /license.txt
 
 RUN conda install -y -c conda-forge "pyyaml>5.4,<5.5"
-RUN pip install pillow==7.2.0 "awscli<2"
+RUN pip install pillow==8.2.0 "awscli<2"
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]

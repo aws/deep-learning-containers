@@ -5,10 +5,11 @@ import subprocess
 import time
 import logging
 import sys
-
+import re
 import git
 import pytest
 
+import boto3
 from botocore.exceptions import ClientError
 from invoke import run
 from invoke.context import Context
@@ -27,25 +28,26 @@ DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
 
-# Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
-UBUNTU_16_BASE_DLAMI_US_WEST_2 = "ami-09b49a82b7f258d03"
-UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0743d56bc1f9aa072"
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-032a07adeddce2db8"
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-063f381b07ea97834"
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-086d05aed23a5c297"
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-0420bc8a8d1ef5131"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
+NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0b5d270a84e753c18"
 UL_AMI_LIST = [
-    UBUNTU_16_BASE_DLAMI_US_WEST_2,
-    UBUNTU_16_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
+    NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
 ]
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 NEURON_AL2_DLAMI = "ami-092059396c7e51f52"
 
+DLAMI_PYTHON_MAPPING = {
+    UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
+    UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7"
+}
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
@@ -71,6 +73,10 @@ SAGEMAKER_LOCAL_TEST_TYPE = "local"
 SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
+
+
+def get_python_invoker(ami_id):
+    return DLAMI_PYTHON_MAPPING.get(ami_id, "/usr/bin/python3")
 
 
 def is_tf_version(required_version, image_uri):
@@ -124,7 +130,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         get_cuda_version_from_tag(image_uri).startswith("cu11") and
         ec2_instance_type in ["p2.8xlarge"]
     )
-    
+
     return image_is_cuda10_on_incompatible_p4d_instance or image_is_cuda11_on_incompatible_p2_instance_mxnet
 
 
@@ -171,6 +177,65 @@ def is_dlc_cicd_context():
 
 def is_benchmark_dev_context():
     return ENABLE_BENCHMARK_DEV_MODE
+
+
+def is_time_for_canary_safety_scan():
+    """
+    Canary tests run every 15 minutes.
+    Using a 20 minutes interval to make tests run only once a day around 9 am PST (10 am during winter time).
+    """
+    current_utc_time = time.gmtime()
+    return current_utc_time.tm_hour == 16 and (0 < current_utc_time.tm_min < 20)
+
+
+def _get_remote_override_flags():
+    try:
+        s3_client = boto3.client('s3')
+        sts_client = boto3.client('sts')
+        account_id = sts_client.get_caller_identity().get('Account')
+        result = s3_client.get_object(Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json")
+        json_content = json.loads(result["Body"].read().decode('utf-8'))
+    except ClientError as e:
+        LOGGER.error("ClientError when performing S3/STS operation. Exception: {}".format(e))
+        json_content = {}
+    return json_content
+
+
+# Now we can skip EFA tests on pipeline without making any source code change
+def are_efa_tests_disabled():
+    disable_efa_tests = is_pr_context() and os.getenv("DISABLE_EFA_TESTS", "False").lower() == "true"
+
+    remote_override_flags = _get_remote_override_flags()
+    override_disable_efa_tests = remote_override_flags.get("disable_efa_tests", "false").lower() == "true"
+
+    return disable_efa_tests or override_disable_efa_tests
+
+
+def is_test_disabled(test_name, build_name, version):
+    """
+    Expected format of remote_override_flags:
+    {
+        "CB Project Name for Test Type A": {
+            "CodeBuild Resolved Source Version": ["test_type_A_test_function_1", "test_type_A_test_function_2"]
+        },
+        "CB Project Name for Test Type B": {
+            "CodeBuild Resolved Source Version": ["test_type_B_test_function_1", "test_type_B_test_function_2"]
+        }
+    }
+
+    :param test_name: str Test Function node name (includes parametrized values in string)
+    :param build_name: str Build Project name of current execution
+    :param version: str Source Version of current execution
+    :return: bool True if test is disabled as per remote override, False otherwise
+    """
+    remote_override_flags = _get_remote_override_flags()
+    remote_override_build = remote_override_flags.get(build_name, {})
+    if version in remote_override_build:
+        return (
+            not remote_override_build[version]
+            or any([test_keyword in test_name for test_keyword in remote_override_build[version]])
+        )
+    return False
 
 
 def run_subprocess_cmd(cmd, failure="Command failed"):
@@ -286,7 +351,7 @@ def request_pytorch_inference_densenet(
         inference_output = json.loads(run_out.stdout.strip("\n"))
         if not (
                 ("neuron" in model_name and isinstance(inference_output, list) and len(inference_output) == 3)
-                or (server_type=="ts" and isinstance(inference_output, dict) and len(inference_output) == 5) 
+                or (server_type=="ts" and isinstance(inference_output, dict) and len(inference_output) == 5)
                 or (server_type=="mms" and isinstance(inference_output, list) and len(inference_output) == 5)
         ):
             return False
@@ -341,7 +406,7 @@ def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8
     return True
 
 
-def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None):
+def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None, ec2_instance_ami=None):
     """
     Method to run tensorflow inference on MNIST model using gRPC protocol
     :param script_file_path:
@@ -350,8 +415,9 @@ def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", 
     :param connection:
     :return:
     """
+    python_invoker = get_python_invoker(ec2_instance_ami)
     conn_run = connection.run if connection is not None else run
-    conn_run(f"python3 {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
+    conn_run(f"{python_invoker} {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
 def get_inference_run_command(image_uri, model_names, processor="cpu"):
@@ -381,6 +447,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
             "squeezenet": "https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model",
             "pytorch-densenet": "https://dlc-samples.s3.amazonaws.com/pytorch/multi-model-server/densenet/densenet.mar",
             "bert_sst": "https://aws-dlc-sample-models.s3.amazonaws.com/bert_sst/bert_sst.mar",
+            "mxnet-resnet-neuron": "https://aws-dlc-sample-models.s3.amazonaws.com/mxnet/Resnet50-neuron.mar",
         }
 
     if not isinstance(model_names, list):
@@ -522,7 +589,7 @@ def get_canary_default_tag_py3_version(framework, version):
     :param version: fw major.minor version, i.e. 2.2
     :return: default tag python version
     """
-    if framework == "tensorflow2":
+    if framework == "tensorflow2" or framework == "huggingface_tensorflow":
         return "py37" if Version(version) >= Version("2.2") else "py3"
 
     if framework == "mxnet":
@@ -550,6 +617,8 @@ def parse_canary_images(framework, region):
         "tensorflow2": r"tf-(2.\d+)",
         "mxnet": r"mx-(\d+.\d+)",
         "pytorch": r"pt-(\d+.\d+)",
+        "huggingface_pytorch": r"hf-pt-(\d+.\d+)",
+        "huggingface_tensorflow": r"hf-tf-(\d+.\d+)",
     }
 
     py2_deprecated = {"tensorflow1": None, "tensorflow2": "2.2", "mxnet": "1.7", "pytorch": "1.5"}
@@ -573,9 +642,11 @@ def parse_canary_images(framework, region):
             elif "inf" in tag_str:
                 versions_counter[version]["inf"] = True
 
+    # Adding huggingface here since we dont have inference HF containers now
     versions = []
     for v, inf_train in versions_counter.items():
-        if inf_train["inf"] and inf_train["tr"]:
+        if (inf_train["inf"] and inf_train["tr"])\
+                or framework.startswith("huggingface"):
             versions.append(v)
 
     # Sort ascending to descending, use lambda to ensure 2.2 < 2.15, for instance
@@ -631,9 +702,28 @@ def parse_canary_images(framework, region):
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-{py3_version}",
                 ],
             },
+            # TODO: uncomment once cpu training and inference images become available
+            "huggingface_pytorch": {
+                "py2": [],
+                "py3": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py3_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py3_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py3_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py3_version}",
+                ],
+            },
+            "huggingface_tensorflow": {
+                "py2": [],
+                "py3": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py3_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py3_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py3_version}",
+                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py3_version}",
+                ],
+            },
         }
         dlc_images += images[framework]["py3"]
-        no_py2 = py2_deprecated[framework]
+        no_py2 = py2_deprecated.get(framework)
         if no_py2 and (Version(fw_version) >= Version(no_py2)):
             continue
         else:
@@ -701,6 +791,54 @@ def setup_sm_benchmark_mx_train_env(resources_location):
     return venv_dir
 
 
+def setup_sm_benchmark_hf_infer_env(resources_location):
+    """
+    Create a virtual environment for benchmark tests if it doesn't already exist, and download all necessary scripts
+    :param resources_location: <str> directory in which test resources should be placed
+    :return: absolute path to the location of the virtual environment
+    """
+    ctx = Context()
+
+    venv_dir = os.path.join(resources_location, "sm_benchmark_hf_venv")
+    if not os.path.isdir(venv_dir):
+        ctx.run(f"python3 -m virtualenv {venv_dir}")
+        with ctx.prefix(f"source {venv_dir}/bin/activate"):
+            ctx.run("pip install sagemaker awscli boto3 botocore")
+    return venv_dir
+
+
+def get_account_id_from_image_uri(image_uri):
+    """
+    Find the account ID where the image is located
+
+    :param image_uri: <str> ECR image URI
+    :return: <str> AWS Account ID
+    """
+    return image_uri.split(".")[0]
+
+
+def get_region_from_image_uri(image_uri):
+    """
+    Find the region where the image is located
+
+    :param image_uri: <str> ECR image URI
+    :return: <str> AWS Region Name
+    """
+    region_pattern = r"(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d+"
+    region_search = re.search(region_pattern, image_uri)
+    assert region_search, f"{image_uri} must have region that matches {region_pattern}"
+    return region_search.group()
+
+
+def get_unique_name_from_tag(image_uri):
+    """
+    Return the unique from the image tag.
+    :param image_uri: ECR image URI
+    :return: unique name
+    """
+    return re.sub('[^A-Za-z0-9]+', '', image_uri)
+
+
 def get_framework_and_version_from_tag(image_uri):
     """
     Return the framework and version from the image tag.
@@ -730,6 +868,7 @@ def get_framework_from_image_uri(image_uri):
         else "tensorflow" if "tensorflow" in image_uri
         else None
     )
+
 
 def get_cuda_version_from_tag(image_uri):
     """
