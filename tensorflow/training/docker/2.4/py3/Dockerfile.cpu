@@ -158,7 +158,7 @@ RUN ${PIP} install --no-cache-dir -U \
 COPY safety /tmp/safety 
 RUN mkdir -p /opt/aws/dlc/info 
 RUN ${PIP} install --no-cache-dir -U safety \
- && ${PYTHON} /tmp/safety/test_and_generate_safety_report.py \
+ && ${PYTHON} /tmp/safety/test_and_generate_python_safety_report.py \
     --safety-key ${SAFETY_KEY} \
     --report-path  "/opt/aws/dlc/info/safety_test_report.json" \
     --ignored-packages { \
@@ -167,7 +167,7 @@ RUN ${PIP} install --no-cache-dir -U safety \
     } \
  && rm -rf /tmp/safety \
  && ${PIP} uninstall -y safety
- 
+
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
