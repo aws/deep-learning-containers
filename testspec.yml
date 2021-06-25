@@ -12,7 +12,7 @@ phases:
   build:
     commands:
       - echo Logging in to Amazon ECR...
-      - export TEST_TYPE="sm_profiler_integration"
+      - export TEST_TYPE="release_candidate_integration"
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - |
         if expr "${TEST_TYPE}" : "canary" >/dev/null; then
