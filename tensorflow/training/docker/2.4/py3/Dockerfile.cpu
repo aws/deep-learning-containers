@@ -156,7 +156,7 @@ RUN ${PIP} install --no-cache-dir -U \
     smclarify
 
 COPY safety /tmp/safety 
-RUN mkdir /opt/aws/dlc/info 
+RUN mkdir -p /opt/aws/dlc/info 
 RUN ${PIP} install --no-cache-dir -U safety \
  && ${PYTHON} /tmp/safety/test_and_generate_safety_report.py \
     --safety-key ${SAFETY_KEY} \
