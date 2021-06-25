@@ -37,7 +37,7 @@ images:
     download_artifacts:
       pytorch_binary:
         type: s3
-        URI: s3://aws-habana-pytorch-cicd-v3-binaries/r1.7.1_aws_habana/20210610-203027/25cdb4b4e75284198d6cbaeb84af961047803908/cpu/torch-1.7.1-cp37-cp37m-manylinux1_x86_64.whl
+        URI: s3://aws-habana-pytorch-cicd-v3-binaries/r1.7.1_aws_habana/20210622-172918/0cb25bd8fb68c6f044a37763a3366a1d48751a57/cpu/torch-1.7.1-cp37-cp37m-manylinux1_x86_64.whl
         VAR_IN_DOCKERFILE: PT_TRAINING_URL
     context:
       <<: *TRAINING_CONTEXT
