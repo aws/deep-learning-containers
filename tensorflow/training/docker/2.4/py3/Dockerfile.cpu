@@ -155,9 +155,9 @@ RUN ${PIP} install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
     smclarify
 
-RUN cp -r safety /tmp/safety \
- && ${PIP} install --no-cache-dir -U safety \
- && mkdir /opt/aws/dlc/info \
+COPY safety /tmp/safety 
+RUN mkdir /opt/aws/dlc/info 
+RUN ${PIP} install --no-cache-dir -U safety \
  && ${PYTHON} /tmp/safety/test_and_generate_safety_report.py \
     --safety-key ${SAFETY_KEY} \
     --report-path  "/opt/aws/dlc/info/safety_test_report.json" \
