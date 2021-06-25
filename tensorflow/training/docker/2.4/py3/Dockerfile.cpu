@@ -155,6 +155,19 @@ RUN ${PIP} install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
     smclarify
 
+RUN cp -r safety /tmp/safety \
+ && ${PIP} install --no-cache-dir -U safety \
+ && mkdir /opt/aws/dlc/info \
+ && ${PYTHON} /tmp/safety/test_and_generate_safety_report.py \
+    --safety-key ${SAFETY_KEY} \
+    --report-path  "/opt/aws/dlc/info/safety_test_report.json" \
+    --ignored-packages { \
+       "pycrypto": "2.6.1", \
+       "httplib2": "0.9.2" \
+    } \
+ && rm -rf /tmp/safety \
+ && ${PIP} uninstall -y safety
+ 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
@@ -167,18 +180,6 @@ RUN HOME_DIR=/root \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
-
-COPY safety ${HOME_DIR}/safety
-RUN ${PIP} install --no-cache-dir -U safety
-RUN ${PYTHON} ${HOME_DIR}/safety/test_and_generate_safety_report.py \
-    --safety-key ${SAFETY_KEY} \
-    --report-path  "/opt/aws/dlc/info/safety_test_report.json" \
-    --ignored-packages { \
-       "pycrypto": "2.6.1", \
-       "httplib2": "0.9.2" \
-    }
-RUN rm -rf ${HOME_DIR}/safety
-RUN ${PIP} uninstall -y safety
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.4/license.txt -o /license.txt
 
