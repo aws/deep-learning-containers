@@ -17,7 +17,6 @@ ARG OPEN_MPI_VERSION=4.0.1
 # HF ARGS
 ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.4_aws/20210127-150238/cpu/py37/tensorflow_cpu-2.4.1-cp37-cp37m-manylinux2010_x86_64.whl
 ARG TRANSFORMERS_VERSION
-ARG HF_INFERENCE_TOOLKIT_VERSION=0.1.0
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -115,7 +114,7 @@ RUN pip install --no-cache-dir -U $TF_URL
 RUN pip install --no-cache-dir \
 	transformers[sentencepiece]==${TRANSFORMERS_VERSION} \
 	protobuf==3.12.0 \
-   sagemaker-huggingface-inference-toolkit==${HF_INFERENCE_TOOLKIT_VERSION}
+   "sagemaker-huggingface-inference-toolkit<2"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
