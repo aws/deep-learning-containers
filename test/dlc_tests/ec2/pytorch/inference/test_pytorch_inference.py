@@ -25,7 +25,7 @@ PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_p
 
 
 @pytest.mark.model("resnet")
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_neuron(pytorch_inference_neuron, ec2_connection, region, neuron_only):
     ec2_pytorch_inference(pytorch_inference_neuron, "neuron", ec2_connection, region)

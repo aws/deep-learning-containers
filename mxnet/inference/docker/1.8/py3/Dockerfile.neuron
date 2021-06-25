@@ -17,7 +17,7 @@ ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.10
 ARG OPENSSL_VERSION=1.1.1k
 
-ENV DEBIAN_FRONTEND=noninteractive 
+ENV DEBIAN_FRONTEND=noninteractive
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -114,6 +114,8 @@ RUN ${PIP} install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neu
  && ${PIP} install --no-cache-dir -U \
     https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.8.0/aws_mx-1.8.0-py2.py3-none-manylinux2014_x86_64.whl \
  && ${PIP} install mx-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ # Install TF 1.15.5 to override neuron-cc[tensorflow]'s installation of tensorflow==1.15.0
+ && pip install -U tensorflow==1.15.5 \
  && ${PIP} install multi-model-server --no-deps
 
 # This is here to make our installed version of OpenCV work.
