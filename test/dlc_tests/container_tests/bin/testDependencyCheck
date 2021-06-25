@@ -6,8 +6,7 @@ JRE_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
 EOL
 
 pip install 'dependency-check<1'
-# Adding disableNodeJS flag. Refer: https://github.com/jeremylong/DependencyCheck/issues/2796
-dependency-check --disableAssembly --disableNodeJS -s / -o build
+dependency-check --disableAssembly -s / -o build
 
 
 pip install dependency-check
