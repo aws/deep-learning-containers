@@ -63,6 +63,11 @@ def image_builder(buildspec):
         extra_build_args = {}
         labels = {}
 
+        safety_key = os.getenv("SAFETY_KEY")
+
+        if safety_key:
+            extra_build_args["SAFETY_KEY"] = safety_key
+
         if image_config.get("version") is not None:
             if BUILDSPEC["version"] != image_config.get("version"):
                 continue

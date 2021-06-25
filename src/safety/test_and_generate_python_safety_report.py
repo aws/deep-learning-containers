@@ -20,8 +20,7 @@ import boto3
 from botocore.exceptions import ClientError
 import base64
 import argparse
-
-from safety_check_v2 import safety_check_v2
+import subprocess
 
 @dataclass
 class SafetyVulnerabilityAdvisory:
@@ -47,69 +46,21 @@ class SafetyPythonEnvironmentVulnerabilityReport:
     def __post_init__(self):
         self.report = [SafetyPackageVulnerabilityReport(**i) for i in self.report]
 
-def get_secret():
-    """
-    Retrieves safety api key from secrets manager
-    """
-    secret_name = "/codebuild/safety/key"
-    secret = ""
-
-    # In this sample we only handle the specific exceptions for the 'GetSecretValue' API.
-    # See https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-    # We rethrow the exception by default.
-
-    try:
-        secrets_manger_client = boto3.client("secretsmanager", region_name="us-west-2")
-        get_secret_value_response = secrets_manger_client.get_secret_value(SecretId=secret_name)
-    except ClientError as e:
-        if e.response["Error"]["Code"] == "DecryptionFailureException":
-            # Secrets Manager can't decrypt the protected secret text using the provided KMS key.
-            # Deal with the exception here, and/or rethrow at your discretion.
-            raise e
-        elif e.response["Error"]["Code"] == "InternalServiceErrorException":
-            # An error occurred on the server side.
-            # Deal with the exception here, and/or rethrow at your discretion.
-            raise e
-        elif e.response["Error"]["Code"] == "InvalidParameterException":
-            # You provided an invalid value for a parameter.
-            # Deal with the exception here, and/or rethrow at your discretion.
-            raise e
-        elif e.response["Error"]["Code"] == "InvalidRequestException":
-            # You provided a parameter value that is not valid for the current state of the resource.
-            # Deal with the exception here, and/or rethrow at your discretion.
-            raise e
-        elif e.response["Error"]["Code"] == "ResourceNotFoundException":
-            # We can't find the resource that you asked for.
-            # Deal with the exception here, and/or rethrow at your discretion.
-            raise e
-    else:
-        # Decrypts secret using the associated KMS CMK.
-        # Depending on whether the secret is a string or binary, one of these fields will be populated.
-        if "SecretString" in get_secret_value_response:
-            secret = get_secret_value_response["SecretString"]
-        else:
-            secret = base64.b64decode(get_secret_value_response["SecretBinary"])
-
-    return secret
-
-
-
 parser = argparse.ArgumentParser()
+parser.add_argument('--safety-key', type=str, help='Safety key')
 parser.add_argument('--report-path', type=str, help='Safety report path')
 parser.add_argument('--ignored-packages', type=str, help='Packages to be ignored')
 args = parser.parse_args()
 
 report_path = args.report_path
 ignored_packages = args.ignored_packages
+safety_api_key = args.safety_key
 
 # run safety check
 scan_results = []
 
-safety_api_key = get_secret()
-
-raw_scan_result = json.loads(
-        f"{safety_check_v2} --key {safety_api_key} | jq '.' | tee {report_path}",
-)
+output = subprocess.check_output(f"python3 safety_check_v2.py --key '{safety_api_key}' | jq '.' | tee '{report_path}'", shell=True, executable="/bin/bash")
+raw_scan_result = json.loads(output)
 scan_results.append(
     SafetyPythonEnvironmentVulnerabilityReport(
         report=raw_scan_result

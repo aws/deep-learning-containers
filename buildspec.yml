@@ -1,4 +1,7 @@
 version: 0.2
+env:
+  secrets-manager: 
+    SAFETY_KEY: "/codebuild/safety/key"
 
 #TODO: Move all constatns to environment variables
 phases:
