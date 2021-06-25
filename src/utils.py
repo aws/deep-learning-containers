@@ -12,7 +12,7 @@ distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 Check for commits.data in the last commit
-New branch
+Check for all the buils project names
 """
 import os
 import re
