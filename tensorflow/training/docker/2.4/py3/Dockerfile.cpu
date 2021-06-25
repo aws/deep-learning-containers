@@ -170,7 +170,7 @@ RUN HOME_DIR=/root \
 
 COPY safety ${HOME_DIR}/safety
 RUN ${PIP} install --no-cache-dir -U safety
-RUN ${PYTHON} safety/test_and_generate_safety_report.py \
+RUN ${PYTHON} ${HOME_DIR}/safety/test_and_generate_safety_report.py \
     --safety-key ${SAFETY_KEY} \
     --report-path  "/opt/aws/dlc/info/safety_test_report.json" \
     --ignored-packages { \
