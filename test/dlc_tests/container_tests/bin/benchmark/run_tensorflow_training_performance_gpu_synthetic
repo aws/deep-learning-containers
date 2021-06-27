@@ -16,7 +16,7 @@ mkdir -p ${BIN_DIR}
 mkdir -p ${LOG_DIR}
 
 set -e
-git clone https://github.com/tensorflow/benchmarks.git ${HOME_DIR}/artifacts/tensorflow/benchmarks && cd ${HOME_DIR}/artifacts/tensorflow/benchmarks && git checkout ${GIT_BRANCH} && && git checkout ${GIT_COMMIT}
+git clone https://github.com/tensorflow/benchmarks.git ${HOME_DIR}/artifacts/tensorflow/benchmarks && cd ${HOME_DIR}/artifacts/tensorflow/benchmarks && git checkout ${GIT_BRANCH} && git checkout ${GIT_COMMIT}
 TRAINING_TIME="100m"
 if [ "$PR_CONTEXT" == "1" ]
 then
