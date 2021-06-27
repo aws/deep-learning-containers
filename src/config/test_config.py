@@ -1,6 +1,6 @@
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
-ENABLE_BENCHMARK_DEV_MODE = True
+ENABLE_BENCHMARK_DEV_MODE = False
 
 # Disable the test codebuild jobs to be run
 
