@@ -45,6 +45,7 @@ RUN apt-get update \
     curl \
     emacs \
     git \
+    jq \
     libtemplate-perl \
     libssl1.1 \
     openssl \
@@ -158,6 +159,7 @@ RUN ${PIP} install --no-cache-dir -U \
 COPY safety /tmp/safety 
 RUN mkdir -p /opt/aws/dlc/info 
 RUN ${PIP} install --no-cache-dir -U safety \
+ && cd /tmp/safety \
  && ${PYTHON} /tmp/safety/test_and_generate_python_safety_report.py \
     --safety-key ${SAFETY_KEY} \
     --report-path  "/opt/aws/dlc/info/safety_test_report.json" \
