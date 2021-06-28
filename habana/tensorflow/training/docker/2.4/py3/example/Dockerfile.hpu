@@ -1,8 +1,0 @@
-# Use the Deep Learning Container as a base Image
-ARG BASE_IMAGE=""
-
-FROM $BASE_IMAGE
-
-# Add any script or repo as required
-RUN git clone -b 0.14.0 https://github.com/HabanaAI/Model-References
-WORKDIR "/"

@@ -1,4 +1,4 @@
-FROM vault.habana.ai/gaudi-docker/0.15.0/ubuntu18.04/habanalabs/tensorflow-installer-tf-cpu-2.5.0:0.15.0-420
+FROM vault.habana.ai/gaudi-docker/0.15.0/ubuntu18.04/habanalabs/tensorflow-installer-tf-cpu-2.5.0:0.15.0-547
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -25,12 +25,7 @@ ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3.7
 
-# TODO Workaround -- file not available to public yet.
-RUN mkdir -p /tmp/habana-ai/tf-whl-no-mkl/
-#COPY tensorflow_cpu-2.4.1-cp37-cp37m-manylinux2010_x86_64.whl /tmp/habana-ai/tf-whl-no-mkl/
-#ARG TF_URL=https://srajanku.s3-us-west-2.amazonaws.com/habana-ai/tf-whl-no-mkl/tensorflow_cpu-2.4.1-cp37-cp37m-manylinux2010_x86_64.whl
-#ARG TF_URL=/tmp/habana-ai/tf-whl-no-mkl/tensorflow_cpu-2.4.1-cp37-cp37m-manylinux2010_x86_64.whl
-#ARG TF_URL=/tmp/habana-ai/tf-whl-no-mkl/tensorflow_cpu-2.4.1-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.5_aws/20210613_174049/nomkl/cpu/py37/tensorflow_cpu-2.5.0-cp37-cp37m-manylinux2010_x86_64.whl
 
 
 RUN apt-get update \
@@ -110,11 +105,11 @@ RUN ${PIP} uninstall -y tensorflow-cpu \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
-    #${TF_URL} \
+    ${TF_URL} \
     h5py==2.10.0 \
     "absl-py>=0.9,<0.11" \
     werkzeug==1.0.1 \
-    psutil==5.7.2 \
+    psutil==5.7.2
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -129,6 +124,6 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.4/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.5/license.txt -o /license.txt
 
 CMD ["bin/bash"]
