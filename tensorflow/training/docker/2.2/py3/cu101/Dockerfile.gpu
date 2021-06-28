@@ -219,4 +219,4 @@ RUN HOME_DIR=/root \
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.2/license.txt -o /license.txt
 
-CMD ["bin/bash"]
+CMD ["/bin/bash"]

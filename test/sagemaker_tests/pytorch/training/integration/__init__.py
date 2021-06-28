@@ -22,6 +22,8 @@ smdataparallel_mnist_script = os.path.join(mnist_path, 'smdataparallel_mnist_scr
 fastai_path = os.path.join(resources_path, 'fastai')
 fastai_cifar_script = os.path.join(fastai_path, 'train_cifar.py')
 fastai_mnist_script = os.path.join(fastai_path, 'mnist.py')
+resnet18_path = os.path.join(resources_path, 'resnet18')
+
 data_dir = os.path.join(mnist_path, 'data')
 training_dir = os.path.join(data_dir, 'training')
 dist_operations_path = os.path.join(resources_path, 'distributed_operations.py')
