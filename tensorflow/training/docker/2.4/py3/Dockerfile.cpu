@@ -167,8 +167,8 @@ RUN ${PIP} install --no-cache-dir -U safety \
        "pycrypto": "2.6.1", \
        "httplib2": "0.9.2" \
     }' \
- && rm -rf /tmp/safety \
- && ${PIP} uninstall -y safety
+ && ${PIP} uninstall -y safety \
+ && rm -rf /tmp/safety
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
