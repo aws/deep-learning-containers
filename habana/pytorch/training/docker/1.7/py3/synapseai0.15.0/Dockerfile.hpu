@@ -1,4 +1,4 @@
-FROM vault.habana.ai/gaudi-docker/0.15.0/ubuntu18.04/habanalabs/pytorch-installer:0.15.0-420
+FROM vault.habana.ai/gaudi-docker/0.15.0/ubuntu18.04/habanalabs/pytorch-installer:0.15.0-547
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
