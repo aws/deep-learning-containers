@@ -1,15 +1,14 @@
 import json
+import logging
 import os
 import re
 import subprocess
-import time
-import logging
 import sys
-import re
-import git
-import pytest
+import time
 
 import boto3
+import git
+import pytest
 
 from botocore.exceptions import ClientError
 from glob import glob
@@ -1056,16 +1055,3 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
     return context.run(
         f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
     )
-
-
-def ordered(obj):
-    if isinstance(obj, dict):
-        return sorted((k, ordered(v)) for k, v in obj.items())
-    if isinstance(obj, list):
-        return sorted(ordered(x) for x in obj)
-    else:
-        return obj
-
-
-def are_json_objects_equivalent(obj1, obj2):
-    return ordered(obj1) == ordered(obj2)
