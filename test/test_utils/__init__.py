@@ -77,6 +77,14 @@ SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 PUBLIC_DLC_REGISTRY = "763104351884"
 
 
+class MissingPythonVersionException(Exception):
+    """
+    When the Python Version is missing from an image_uri where it is expected to exist
+    """
+
+    pass
+
+
 def get_dockerfile_path_for_image(image_uri):
     """
     For a given image_uri, find the path within the repository to its corresponding dockerfile
@@ -1006,7 +1014,7 @@ def get_python_version_from_image_uri(image_uri):
     """
     python_version_search = re.search(r"py\d+", image_uri)
     if not python_version_search:
-        return None
+        raise MissingPythonVersionException(f"{image_uri} does not have python version in the form 'py\\d+'")
     python_version = python_version_search.group()
     return "py36" if python_version == "py3" else python_version
 
