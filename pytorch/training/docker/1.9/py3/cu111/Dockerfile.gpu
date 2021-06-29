@@ -91,6 +91,12 @@ RUN apt-get update \
     jq \
  && rm -rf /var/lib/apt/lists/*
 
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test \
+  && apt-get update \
+  && apt-get install gcc-7 g++-7 \
+  && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 100 --slave /usr/bin/g++ g++ /usr/bin/g++-7 --slave /usr/bin/gcov gcov /usr/bin/gcov-7
+
+
 RUN cd /tmp \
   && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
   && cd nccl \
