@@ -192,7 +192,7 @@ def ec2_instance(
     else:
         # Using private AMI, the EBS volume size is reduced to 28GB as opposed to 50GB from public AMI. This leads to space issues on test instances
         # TODO: Revert the configuration once DLAMI is public
-        params["BlockDeviceMappings"] = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 50,}}]
+        params["BlockDeviceMappings"] = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 90,}}]
     if ei_accelerator_type:
         params["ElasticInferenceAccelerators"] = [
             {
