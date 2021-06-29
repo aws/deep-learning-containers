@@ -60,6 +60,7 @@ RUN apt-get update \
     wget \
     unzip \
     vim \
+    jq \
     build-essential \
     zlib1g-dev \
     openssl \
@@ -144,6 +145,18 @@ RUN mkdir -p ${MODEL_BASE_PATH}
 RUN echo '#!/bin/bash \n\n' > /usr/bin/tf_serving_entrypoint.sh \
  && echo '/usr/bin/tensorflow_model_server --port=8500 --rest_api_port=8501 --model_name=${MODEL_NAME} --model_base_path=${MODEL_BASE_PATH}/${MODEL_NAME} "$@"' >> /usr/bin/tf_serving_entrypoint.sh \
  && chmod +x /usr/bin/tf_serving_entrypoint.sh
+
+COPY safety /tmp/safety 
+
+RUN mkdir -p /opt/aws/dlc/info 
+
+RUN ${PIP} install --no-cache-dir -U safety \
+ && cd /tmp/safety \
+ && ${PYTHON} /tmp/safety/test_and_generate_python_safety_report.py \
+    --safety-key ${SAFETY_KEY} \
+    --report-path  "/opt/aws/dlc/info/safety_test_report.json" \
+ && ${PIP} uninstall -y safety \
+ && rm -rf /tmp/safety
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

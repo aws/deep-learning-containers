@@ -53,7 +53,7 @@ parser.add_argument('--ignored-packages', type=str, help='Packages to be ignored
 args = parser.parse_args()
 
 report_path = args.report_path
-ignored_packages = args.ignored_packages
+ignored_packages = args.ignored_packages if "ignored_packages" in args else None
 safety_api_key = args.safety_key
 
 # run safety check
