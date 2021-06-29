@@ -17,7 +17,6 @@ ARG OPEN_MPI_VERSION=4.0.1
 # HF ARGS
 ARG PT_INFERENCE_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.1_inference/20210112-183245/c1130f2829b03c0997b9813211a7c0f600fc569a/cpu/torch-1.7.1-cp36-cp36m-manylinux1_x86_64.whl
 ARG TRANSFORMERS_VERSION
-ARG HF_INFERENCE_TOOLKIT_VERSION=0.0.1.dev0
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -116,7 +115,7 @@ RUN pip uninstall -y torch \
 RUN pip install --no-cache-dir \
 	transformers[sentencepiece]==${TRANSFORMERS_VERSION} \
 	protobuf==3.12.0 \
-   sagemaker-huggingface-inference-toolkit==${HF_INFERENCE_TOOLKIT_VERSION}
+	"sagemaker-huggingface-inference-toolkit<2"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
