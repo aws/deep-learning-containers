@@ -71,4 +71,3 @@ if __name__ == '__main__':
         y_pred.to_parquet(f'{args.output_data_dir}/predictions.parquet')
     else:
         y_pred.to_csv(f'{args.output_data_dir}/predictions.csv')
-
