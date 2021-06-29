@@ -29,6 +29,7 @@ from test.test_utils import (
     is_mainline_context,
     is_nightly_context,
     get_repository_local_path,
+    get_repository_and_tag_from_image_uri,
 )
 
 
@@ -136,11 +137,14 @@ def test_framework_version_cpu(image):
     """
     if "gpu" in image:
         pytest.skip("GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
-    if "tensorflow-inference" in image:
-        pytest.skip(msg="TF inference does not have core tensorflow installed")
+    image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
+    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia)?", image_repo_name):
+        pytest.skip(msg="TF inference for CPU/GPU/EIA does not have core tensorflow installed")
 
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
 
+    # Framework name may include huggingface
+    tested_framework = tested_framework.lstrip("huggingface_")
     # Module name is torch
     if tested_framework == "pytorch":
         tested_framework = "torch"
@@ -172,13 +176,11 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     # Framework Version Check #
     # Skip framework version test for tensorflow-inference, since it doesn't have core TF installed
     if "tensorflow-inference" not in image:
+        # Framework name may include huggingface
+        tested_framework = tested_framework.lstrip("huggingface_")
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
-        if tested_framework == "huggingface_pytorch":
-            tested_framework = "torch"
-        if tested_framework == "huggingface_tensorflow":
-            tested_framework = "tensorflow"
         cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
 

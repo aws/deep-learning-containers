@@ -7,6 +7,24 @@ from invoke.context import Context
 from test import test_utils
 
 
+# TODO: Need to be added to all DLC images in furture.
+@pytest.mark.model("N/A")
+@pytest.mark.integration("awscli")
+def test_awscli(mxnet_inference):
+    """
+    Ensure that boto3 is installed on mxnet inference
+
+    :param mxnet_inference: ECR image URI
+    """
+    image = mxnet_inference
+    ctx = Context()
+    container_name = test_utils.get_container_name("awscli", image)
+    test_utils.start_container(container_name, image, ctx)
+
+    test_utils.run_cmd_on_container(container_name, ctx, "which aws")
+    test_utils.run_cmd_on_container(container_name, ctx, "aws --version")
+
+
 @pytest.mark.model("N/A")
 @pytest.mark.integration("bokeh")
 def test_bokeh(training):
@@ -24,9 +42,23 @@ def test_bokeh(training):
     package_list_cmd = "conda list" if "pytorch" in framework else "pip freeze"
 
     test_utils.run_cmd_on_container(container_name, ctx, f"{package_list_cmd} | grep -i bokeh")
-    test_utils.run_cmd_on_container(
-        container_name, ctx, "import bokeh; print(bokeh.__version__)", executable="python"
-    )
+    test_utils.run_cmd_on_container(container_name, ctx, "import bokeh; print(bokeh.__version__)", executable="python")
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.integration("boto3")
+def test_boto3(mxnet_inference):
+    """
+    Ensure that boto3 is installed on mxnet inference
+
+    :param mxnet_inference: ECR image URI
+    """
+    image = mxnet_inference
+    ctx = Context()
+    container_name = test_utils.get_container_name("boto3", image)
+    test_utils.start_container(container_name, image, ctx)
+
+    test_utils.run_cmd_on_container(container_name, ctx, 'import boto3', executable="python")
 
 
 @pytest.mark.model("N/A")
@@ -178,9 +210,7 @@ def test_seaborn(training):
     package_list_cmd = "conda list" if "pytorch" in framework else "pip freeze"
 
     test_utils.run_cmd_on_container(container_name, ctx, f"{package_list_cmd} | grep -i shap")
-    test_utils.run_cmd_on_container(
-        container_name, ctx, "import shap; print(shap.__version__)", executable="python"
-    )
+    test_utils.run_cmd_on_container(container_name, ctx, "import shap; print(shap.__version__)", executable="python")
 
 
 @pytest.mark.model("N/A")

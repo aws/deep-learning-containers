@@ -117,7 +117,7 @@ def image_builder(buildspec):
                 raise KeyError(f"HuggingFace buildspec.yml must contain 'transformers_version' field for each image")
             if "datasets_version" in image_config:
                 extra_build_args["DATASETS_VERSION"] = image_config.get("datasets_version")
-            else:
+            elif str(image_config["image_type"]) == "training":
                 raise KeyError(f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image")
 
         ARTIFACTS.update(
