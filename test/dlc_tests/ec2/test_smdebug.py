@@ -122,7 +122,7 @@ def run_smdebug_test(
         debug_stdout = debug_output.stdout
         if "All SMDebug tests succeeded!" in debug_stdout:
             LOGGER.warning(
-                f"SMDebug tests succeeded, but there is an issue with fabric. Error:\n{e}\nTest output:\n{debug_stdout}"
+                f"SMDebug tests succeeded, but there is an issue with fabric:\n{e}:\nTest output:\n{debug_stdout}"
             )
             return
         raise SMDebugTestFailure(
