@@ -3,7 +3,7 @@ import os
 from pprint import pprint
 
 import yaml
-from autogluon.vision import ImagePredictor
+from autogluon.vision import ObjectDetector
 
 
 def get_input_path(path):
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     # ---------------------------------------------------------------- Training
 
-    train_dataset, val_dataset, test_dataset = ImagePredictor.Dataset.from_folders(config['dataset'])
+    train_dataset = ObjectDetector.Dataset.from_voc(config['dataset'], splits='trainval')
 
     ag_predictor_args = config['ag_predictor_args']
     ag_predictor_args['path'] = args.model_dir
@@ -61,12 +61,13 @@ if __name__ == '__main__':
     print('Running training job with the config:')
     pprint(config)
 
-    predictor = ImagePredictor(**ag_predictor_args).fit(train_dataset, **ag_fit_args)
+    predictor = ObjectDetector(**ag_predictor_args).fit(train_dataset, **ag_fit_args)
     predictor.save(f'{args.model_dir}/predictor.pkl')
 
     # --------------------------------------------------------------- Inference
 
-    y_pred = predictor.predict_proba(test_dataset)
+    test_dataset = ObjectDetector.Dataset.from_voc(config['dataset'], splits='test')
+    y_pred = predictor.predict(test_dataset)
     if config.get('output_prediction_format', 'csv') == 'parquet':
         y_pred.to_parquet(f'{args.output_data_dir}/predictions.parquet')
     else:

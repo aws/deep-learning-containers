@@ -23,6 +23,9 @@ def get_env_if_present(name):
 
 
 if __name__ == '__main__':
+    # Disable Autotune
+    os.environ['MXNET_CUDNN_AUTOTUNE_DEFAULT'] = '0'
+
     # ------------------------------------------------------------ Args parsing
     print('Starting AG')
     parser = argparse.ArgumentParser()
