@@ -12,7 +12,7 @@ from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import CVESeverity, ScanVulnerabilityList, ECRScanFailureException
 
 
-MINIMUM_SEV_THRESHOLD = "MEDIUM"
+MINIMUM_SEV_THRESHOLD = "HIGH"
 
 
 @pytest.mark.model("N/A")
