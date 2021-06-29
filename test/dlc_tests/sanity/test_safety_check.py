@@ -176,7 +176,7 @@ def test_safety(image):
         safety_file_check = run(f"{docker_exec_cmd} test -e {SAFETY_FILE}", warn=True, hide=True)
         if safety_file_check.return_code != 0:
             run(f"{docker_exec_cmd} pip install safety yolk3k ", hide=True)
-            json_str_safety_result = "safety_check.run_safety_check_on_container(docker_exec_cmd)"
+            json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
             safety_result = json.loads(json_str_safety_result)
             for vulnerability in safety_result:
                 package, affected_versions, curr_version, _, vulnerability_id = vulnerability[:5]
@@ -190,7 +190,7 @@ def test_safety(image):
                     # gives an object that can be easily compared against a Version object.
                     # https://packaging.pypa.io/en/latest/specifiers/
                     ignore_str += f" -i {vulnerability_id}"
-            assert ("safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str) == 0"), \
+            assert (safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str) == 0), \
                 f"Safety test failed for {image}"
         else:
             LOGGER.info(f"Safety check is complete as a part of docker build and report exist at {SAFETY_FILE}")
