@@ -6,14 +6,18 @@ import datetime
 import pytest
 
 from invoke import run
-from invoke.context import Context
+from packaging.version import Version
 from retrying import retry
 
 import test.test_utils.eks as eks_utils
-from test.test_utils import is_pr_context, SKIP_PR_REASON, is_below_framework_version
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
-from packaging.version import Version
-
+from test.test_utils import (
+    SKIP_PR_REASON,
+    is_pr_context,
+    is_below_framework_version,
+    get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
+    can_run_pytorch_s3_plugin_test,
+)
 
 LOGGER = eks_utils.LOGGER
 
@@ -93,19 +97,10 @@ def test_eks_pytorch_single_node_training(pytorch_training):
         run("kubectl delete pods {}".format(pod_name))
 
 
-def can_run_s3_plugin(framework_version):
-    return Version(framework_version) in SpecifierSet(">=1.7") and \
-            Version(framework_version) != Version("1.9.0")
-
-def validate_or_skip_s3_plugin(framework_version):
-    if not can_run_s3_plugin(framework_version):
-        pytest.skip("S3 plugin is not supported on 1.9.0")
-
-
 @pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline")
 @pytest.mark.model("resnet18")
 @pytest.mark.integration("pt_s3_plugin")
-def test_eks_pt_s3_plugin_single_node_training(pytorch_training):
+def test_eks_pt_s3_plugin_single_node_training(pytorch_training, pt17_and_above_only):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
     Args:
@@ -113,7 +108,8 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training):
         :param pytorch_training: the ECR URI
     """
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    validate_or_skip_s3_plugin(image_framework_version)
+    if not can_run_pytorch_s3_plugin_test(image_framework_version):
+        pytest.skip(f"S3 plugin is not supported on {image_framework_version}")
 
     training_result = False
 
@@ -130,7 +126,7 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training):
 
     if "gpu" in pytorch_training:
         args = args + " --gpu 0"
-  
+
     search_replace_dict = {
         "<POD_NAME>": pod_name,
         "<CONTAINER_NAME>": pytorch_training,
@@ -280,7 +276,7 @@ def run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_file_pa
                                warn=True)
     if not does_namespace_exist:
         run(f"kubectl create namespace {namespace}")
-    
+
     try:
         run(f"kubectl delete -f {remote_yaml_file_path}", warn=True)
         run(f"kubectl create -f {remote_yaml_file_path} -n {namespace}")

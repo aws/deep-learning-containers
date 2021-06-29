@@ -7,7 +7,7 @@ import pytest
 import test.test_utils as test_utils
 import test.test_utils.ec2 as ec2_utils
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, get_cuda_version_from_tag
+from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, can_run_pytorch_s3_plugin_test
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -181,8 +181,8 @@ def test_pytorch_amp(pytorch_training, ec2_connection, gpu_only, ec2_instance_ty
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_s3_plugin_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt17_and_above_only):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if Version(image_framework_version) == Version("1.9.0"):
-        pytest.skip("PyTorch S3 plugin is not supported on 1.9.0 yet")
+    if not can_run_pytorch_s3_plugin_test(image_framework_version):
+        pytest.skip(f"S3 plugin is not supported on {image_framework_version}")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_S3_PLUGIN_CMD)
@@ -193,8 +193,8 @@ def test_pytorch_s3_plugin_gpu(pytorch_training, ec2_connection, gpu_only, ec2_i
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_s3_plugin_cpu(pytorch_training, ec2_connection, cpu_only, ec2_instance_type, pt17_and_above_only):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if Version(image_framework_version) == Version("1.9.0"):
-        pytest.skip("PyTorch S3 plugin is not supported on 1.9.0 yet")
+    if not can_run_pytorch_s3_plugin_test(image_framework_version):
+        pytest.skip(f"S3 plugin is not supported on {image_framework_version}")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_S3_PLUGIN_CMD)

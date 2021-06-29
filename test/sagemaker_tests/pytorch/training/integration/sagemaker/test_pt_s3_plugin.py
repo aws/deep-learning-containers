@@ -30,15 +30,14 @@ CPU_INSTANCE = 'ml.c5.4xlarge'
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 
-def can_run_s3_plugin(ecr_image):
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet(">=1.7") and \
-           Version(image_framework_version) != Version("1.9.0")
+def can_run_s3_plugin(image_framework_version):
+    return Version(image_framework_version) in SpecifierSet(">=1.7,<1.9")
 
 
 def validate_or_skip_s3_plugin(ecr_image):
-    if not can_run_s3_plugin(ecr_image):
-        pytest.skip("S3 plugin is added only on PyTorch 1.7 or higher")
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    if not can_run_s3_plugin(image_framework_version):
+        pytest.skip(f"S3 plugin is not installed on DLCs for PyTorch {image_framework_version}")
 
 
 @pytest.mark.processor("gpu")
@@ -83,4 +82,3 @@ def test_pt_s3_plugin_sm_cpu(sagemaker_session, framework_version, ecr_image):
         )
         job_name = utils.unique_name_from_base('test-pytorch-s3-plugin-cpu')
         pytorch.fit(job_name=job_name)
-

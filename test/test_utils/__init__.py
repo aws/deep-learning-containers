@@ -236,6 +236,10 @@ def is_test_disabled(test_name, build_name, version):
     return False
 
 
+def can_run_pytorch_s3_plugin_test(framework_version):
+    return Version(framework_version) in SpecifierSet(">=1.7,<1.9")
+
+
 def run_subprocess_cmd(cmd, failure="Command failed"):
     command = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
     if command.returncode:
