@@ -13,6 +13,12 @@ repository_info:
 
 context:
   training_context: &TRAINING_CONTEXT
+    changehostname:
+      source: docker/build_artifacts/changehostname.c
+      target: changehostname.c
+    start_with_right_hostname:
+      source: docker/build_artifacts/start_with_right_hostname.sh
+      target: start_with_right_hostname.sh
     dockerd-entrypoint:
       source: docker/build_artifacts/dockerd-entrypoint.py
       target: dockerd-entrypoint.py
