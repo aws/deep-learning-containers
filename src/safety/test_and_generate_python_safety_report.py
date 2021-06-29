@@ -49,11 +49,11 @@ class SafetyPythonEnvironmentVulnerabilityReport:
 parser = argparse.ArgumentParser()
 parser.add_argument('--safety-key', type=str, help='Safety key')
 parser.add_argument('--report-path', type=str, help='Safety report path')
-parser.add_argument('--ignored-packages', type=str, help='Packages to be ignored')
+parser.add_argument('--ignored-packages', type=str, default=None, help='Packages to be ignored')
 args = parser.parse_args()
 
 report_path = args.report_path
-ignored_packages = args.ignored_packages if "ignored_packages" in args else None
+ignored_packages = args.ignored_packages
 safety_api_key = args.safety_key
 
 # run safety check
