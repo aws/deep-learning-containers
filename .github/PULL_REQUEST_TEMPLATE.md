@@ -15,6 +15,7 @@ Note: If merging this PR should also close the associated Issue, please also add
 
 ## PR Checklist
 - [ ] I've prepended PR tag with frameworks/job this applies to : [mxnet, tensorflow, pytorch] | [ei/neuron] | [build] | [test] | [benchmark] | [ec2, ecs, eks, sagemaker]
+- [ ] If this PR changes existing code, the change fully backward compatible with pre-existing code. (Non backward-compatible changes need special approval.)
 - [ ] (If applicable) I've documented below the DLC image/dockerfile this relates to
 - [ ] (If applicable) I've documented below the tests I've run on the DLC image
 - [ ] (If applicable) I've reviewed the licenses of updated and new binaries and their dependencies to make sure all licenses are on the Apache Software Foundation Third Party License Policy Category A or Category B license list.  See [https://www.apache.org/legal/resolved.html](https://www.apache.org/legal/resolved.html).
