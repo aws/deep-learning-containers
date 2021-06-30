@@ -112,7 +112,7 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
     export_cmd = " && ".join(f"export {key}={val}" for key, val in spec_file_envs.items())
     export_cmd = f"{export_cmd} && export ENV_{processor.upper()}_TRAIN_IMAGE={image}"
 
-    test_results_outfile = f"{get_container_name('smprof', image)}.txt"
+    test_results_outfile = os.path.join(os.getcwd(), f"{get_container_name('smprof', image)}.txt")
     with ctx.prefix(f"cd {profiler_tests_dir}"):
         with ctx.prefix(f"cd sagemaker-tests/tests && {export_cmd}"):
             test_output = ctx.run(
