@@ -12,12 +12,11 @@ from test.test_utils import (
 )
 
 def can_run_s3_plugin(framework_version):
-    return Version(framework_version) in SpecifierSet(">=1.6") and \
-            Version(framework_version) != Version("1.9.0")
+    return Version(framework_version) in SpecifierSet(">=1.6,<1.9")
 
 def validate_or_skip_s3_plugin(framework_version):
     if not can_run_s3_plugin(framework_version):
-        pytest.skip("S3 plugin is not supported on 1.9.0")
+        pytest.skip(f"S3 plugin is not supported on {framework_version}")
 
 @pytest.mark.integration("pt_s3_plugin_sanity")
 @pytest.mark.model("N/A")
