@@ -98,9 +98,10 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
     framework, version = get_framework_and_version_from_tag(image)
     spec_file = f"buildspec_profiler_sagemaker_{framework}_{version.replace('.', '_')}_integration_tests.yml"
 
-    # Get specfile from github
+    # Get buildspec file from GitHub
+    # Note: SMDebug seems to update these in master, not necessarily in feature branches, hence using master branch
     ctx.run(
-        f"wget https://raw.githubusercontent.com/awslabs/sagemaker-debugger/{smdebug_version}/config/profiler/{spec_file}",
+        f"wget https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/{spec_file}",
         hide=True,
     )
     with open(spec_file, "w") as sf:
