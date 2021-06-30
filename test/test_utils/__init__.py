@@ -799,6 +799,7 @@ def setup_sm_benchmark_hf_infer_env(resources_location):
     """
     ctx = Context()
 
+    ctx.run("pip install -U sagemaker awscli boto3 botocore")
     venv_dir = os.path.join(resources_location, "sm_benchmark_hf_venv")
     if not os.path.isdir(venv_dir):
         ctx.run(f"python3 -m virtualenv {venv_dir}")

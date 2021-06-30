@@ -26,117 +26,151 @@ import signal
 import logging
 from test import test_utils
 
-warmup_interation = 20
+warmup_iteration = 20
+BERT_BASE_UNCASED_PT_MODEL = "s3://aws-dlc-sample-models/huggingface_models/pytorch/bert-base-uncased-pytorch.tar.gz"
+BERT_BASE_UNCASED_TF_MODEL = "s3://aws-dlc-sample-models/huggingface_models/tensorflow/bert-base-uncased-tensorflow.tar.gz"
+ROBERTA_BASE_PT_MODEL = "s3://aws-dlc-sample-models/huggingface_models/pytorch/roberta-base-pytorch.tar.gz"
+ROBERTA_BASE_TF_MODEL = "s3://aws-dlc-sample-models/huggingface_models/tensorflow/roberta-base-tensorflow.tar.gz"
+
 
 class TimeoutException(Exception):
     pass
 
+
 def timeout_handler(signum, frame):
     raise TimeoutException
 
+
 @pytest.mark.model("bert-base-uncased-pt")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_sm_pytorch_trained_model_cpu(huggingface_pytorch_inference, cpu_only):
+@pytest.mark.parametrize(
+
+)
+def test_sm_pytorch_trained_model_bert_base_uncased_cpu(huggingface_pytorch_inference, cpu_only):
     instance_type = "ml.m5.xlarge"
-    model = "s3://aws-dlc-sample-models/huggingface_models/pytorch/bert-base-uncased-pytorch.tar.gz"
+    model = BERT_BASE_UNCASED_PT_MODEL
     task = "fill-mask"
     input_data = {"inputs": "Hello I'm a [MASK] model."}
     framework = "pytorch"
     device = "cpu"
-    latencies = _test_sm_trained_model(instance_type, huggingface_pytorch_inference, model, task, input_data, framework, device)
+    latencies = _test_sm_trained_model(
+        instance_type, huggingface_pytorch_inference, model, task, input_data, framework, device
+    )
     assert np.average(latencies) <= HF_PERFORMANCE_TEST_LATENCY_THRESHOLD[framework][device]["bert-base-uncased-pt"]
+
 
 @pytest.mark.model("bert-base-uncased-pt")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_sm_pytorch_trained_model_gpu(huggingface_pytorch_inference, gpu_only):
+def test_sm_pytorch_trained_model_bert_base_uncased_gpu(huggingface_pytorch_inference, gpu_only):
     instance_type = "ml.p2.xlarge"
-    model = "s3://aws-dlc-sample-models/huggingface_models/pytorch/bert-base-uncased-pytorch.tar.gz"
+    model = BERT_BASE_UNCASED_PT_MODEL
     task = "fill-mask"
     input_data = {"inputs": "Hello I'm a [MASK] model."}
     framework = "pytorch"
     device = "gpu"
-    latencies = _test_sm_trained_model(instance_type, huggingface_pytorch_inference, model, task, input_data, framework, device)
+    latencies = _test_sm_trained_model(
+        instance_type, huggingface_pytorch_inference, model, task, input_data, framework, device
+    )
     assert np.average(latencies) <= HF_PERFORMANCE_TEST_LATENCY_THRESHOLD[framework][device]["bert-base-uncased-pt"]
+
 
 @pytest.mark.model("bert-base-uncased-tf")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_sm_tensorflow_trained_model_cpu(huggingface_pytorch_inference, cpu_only):
+def test_sm_tensorflow_trained_model_bert_base_uncased_cpu(huggingface_tensorflow_inference, cpu_only):
     instance_type = "ml.m5.xlarge"
-    model = "s3://aws-dlc-sample-models/huggingface_models/tensorflow/bert-base-uncased-tensorflow.tar.gz"
+    model = BERT_BASE_UNCASED_TF_MODEL
     task = "fill-mask"
     input_data = {"inputs": "Hello I'm a [MASK] model."}
     framework = "tensorflow"
     device = "cpu"
-    latencies = _test_sm_trained_model(instance_type, huggingface_pytorch_inference, model, task, input_data, framework, device)
+    latencies = _test_sm_trained_model(
+        instance_type, huggingface_tensorflow_inference, model, task, input_data, framework, device
+    )
     assert np.average(latencies) <= HF_PERFORMANCE_TEST_LATENCY_THRESHOLD[framework][device]["bert-base-uncased-tf"]
+
 
 @pytest.mark.model("bert-base-uncased-tf")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_sm_tensorflow_trained_model_gpu(huggingface_pytorch_inference, gpu_only):
+def test_sm_tensorflow_trained_model_bert_base_uncased_gpu(huggingface_tensorflow_inference, gpu_only):
     instance_type = "ml.p2.xlarge"
-    model = "s3://aws-dlc-sample-models/huggingface_models/tensorflow/bert-base-uncased-tensorflow.tar.gz"
+    model = BERT_BASE_UNCASED_TF_MODEL
     task = "fill-mask"
     input_data = {"inputs": "Hello I'm a [MASK] model."}
     framework = "tensorflow"
     device = "gpu"
-    latencies = _test_sm_trained_model(instance_type, huggingface_pytorch_inference, model, task, input_data, framework, device)
+    latencies = _test_sm_trained_model(
+        instance_type, huggingface_tensorflow_inference, model, task, input_data, framework, device
+    )
     assert np.average(latencies) <= HF_PERFORMANCE_TEST_LATENCY_THRESHOLD[framework][device]["bert-base-uncased-tf"]
 
+
 @pytest.mark.model("roberta-base-pt")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_sm_pytorch_trained_model_cpu(huggingface_pytorch_inference, cpu_only):
+def test_sm_pytorch_trained_model_roberta_base_cpu(huggingface_pytorch_inference, cpu_only):
     instance_type = "ml.m5.xlarge"
-    model = "s3://aws-dlc-sample-models/huggingface_models/pytorch/roberta-base-pytorch.tar.gz"
+    model = ROBERTA_BASE_PT_MODEL
     task = "fill-mask"
     input_data = {"inputs": "Hello I'm a <mask> model."}
     framework = "pytorch"
     device = "cpu"
-    latencies = _test_sm_trained_model(instance_type, huggingface_pytorch_inference, model, task, input_data, framework, device)
+    latencies = _test_sm_trained_model(
+        instance_type, huggingface_pytorch_inference, model, task, input_data, framework, device
+    )
     assert np.average(latencies) <= HF_PERFORMANCE_TEST_LATENCY_THRESHOLD[framework][device]["roberta-base-pt"]
+
 
 @pytest.mark.model("roberta-base-pt")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_sm_pytorch_trained_model_gpu(huggingface_pytorch_inference, gpu_only):
+def test_sm_pytorch_trained_model_roberta_base_gpu(huggingface_pytorch_inference, gpu_only):
     instance_type = "ml.p2.xlarge"
-    model = "s3://aws-dlc-sample-models/huggingface_models/pytorch/roberta-base-pytorch.tar.gz"
+    model = ROBERTA_BASE_PT_MODEL
     task = "fill-mask"
     input_data = {"inputs": "Hello I'm a <mask> model."}
     framework = "pytorch"
     device = "gpu"
-    latencies = _test_sm_trained_model(instance_type, huggingface_pytorch_inference, model, task, input_data, framework, device)
+    latencies = _test_sm_trained_model(
+        instance_type, huggingface_pytorch_inference, model, task, input_data, framework, device
+    )
     assert np.average(latencies) <= HF_PERFORMANCE_TEST_LATENCY_THRESHOLD[framework][device]["roberta-base-pt"]
+
 
 @pytest.mark.model("roberta-base-tf")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_sm_tensorflow_trained_model_cpu(huggingface_pytorch_inference, cpu_only):
+def test_sm_tensorflow_trained_model_roberta_base_cpu(huggingface_tensorflow_inference, cpu_only):
     instance_type = "ml.m5.xlarge"
-    model = "s3://aws-dlc-sample-models/huggingface_models/tensorflow/roberta-base-tensorflow.tar.gz"
+    model = ROBERTA_BASE_TF_MODEL
     task = "fill-mask"
     input_data = {"inputs": "Hello I'm a <mask> model."}
     framework = "tensorflow"
     device = "cpu"
-    latencies = _test_sm_trained_model(instance_type, huggingface_pytorch_inference, model, task, input_data, framework, device)
+    latencies = _test_sm_trained_model(
+        instance_type, huggingface_tensorflow_inference, model, task, input_data, framework, device
+    )
     assert np.average(latencies) <= HF_PERFORMANCE_TEST_LATENCY_THRESHOLD[framework][device]["roberta-base-tf"]
+
 
 @pytest.mark.model("roberta-base-tf")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_sm_tensorflow_trained_model_gpu(huggingface_pytorch_inference, gpu_only):
+def test_sm_tensorflow_trained_model_roberta_base_gpu(huggingface_tensorflow_inference, gpu_only):
     instance_type = "ml.p2.xlarge"
-    model = "s3://aws-dlc-sample-models/huggingface_models/tensorflow/roberta-base-tensorflow.tar.gz"
+    model = ROBERTA_BASE_TF_MODEL
     task = "fill-mask"
     input_data = {"inputs": "Hello I'm a <mask> model."}
     framework = "tensorflow"
     device = "gpu"
-    latencies = _test_sm_trained_model(instance_type, huggingface_pytorch_inference, model, task, input_data, framework, device)
+    latencies = _test_sm_trained_model(
+        instance_type, huggingface_tensorflow_inference, model, task, input_data, framework, device
+    )
     assert np.average(latencies) <= HF_PERFORMANCE_TEST_LATENCY_THRESHOLD[framework][device]["roberta-base-tf"]
+
 
 def _test_sm_trained_model(instance_type, ecr_image, model, task, input_data, framework, device, accelerator_type=None):
     hf_model = Model(
@@ -157,10 +191,10 @@ def _test_sm_trained_model(instance_type, ecr_image, model, task, input_data, fr
     signal.alarm(1800)
     latencies = []
     try:
-        for i in range(500 + warmup_interation):
+        for i in range(500 + warmup_iteration):
             start = time.time()
             predictor.predict(data)
-            if i > warmup_interation:
+            if i > warmup_iteration:
                 latencies.append((time.time() - start) * 1000)
     except TimeoutException:
         test_utils.LOGGER.error("Timeout {}, {}, {}.".format(model, framework, device))
