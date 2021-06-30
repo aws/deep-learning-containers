@@ -13,3 +13,5 @@ retrying
 gitpython
 pytz
 flaky
+sagemaker
+smdebug
