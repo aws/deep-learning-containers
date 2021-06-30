@@ -8,12 +8,17 @@ import pytest
 
 from invoke.context import Context
 
-from test.test_utils import is_mainline_context, get_container_name, get_framework_and_version_from_tag, get_processor_from_image_uri
+from test.test_utils import (
+    is_mainline_context,
+    get_container_name,
+    get_framework_and_version_from_tag,
+    get_processor_from_image_uri,
+)
 
 
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("N/A")
-#@pytest.mark.skipif(not is_mainline_context(), reason="Mainline only test")
+# @pytest.mark.skipif(not is_mainline_context(), reason="Mainline only test")
 def test_sm_profiler_pt(pytorch_training):
     processor = get_processor_from_image_uri(pytorch_training)
     if processor not in ("cpu", "gpu"):
@@ -21,16 +26,18 @@ def test_sm_profiler_pt(pytorch_training):
 
     ctx = Context()
 
-    profiler_tests_dir = os.path.join(os.getenv('CODEBUILD_SRC_DIR'), get_container_name('smprof', pytorch_training), 'smprofiler_tests')
+    profiler_tests_dir = os.path.join(
+        os.getenv("CODEBUILD_SRC_DIR"), get_container_name("smprof", pytorch_training), "smprofiler_tests"
+    )
     ctx.run(f"mkdir -p {profiler_tests_dir}")
 
     # Download sagemaker-tests zip
     sm_tests_zip = "sagemaker-tests.zip"
-    ctx.run(f'aws s3 cp s3://smprofiler-test-artifacts/{sm_tests_zip} {profiler_tests_dir}/{sm_tests_zip}')
+    ctx.run(f"aws s3 cp s3://smprofiler-test-artifacts/{sm_tests_zip} {profiler_tests_dir}/{sm_tests_zip}")
 
     # PT test setup requirements
-    with ctx.prefix(f'cd {profiler_tests_dir}'):
-        ctx.run(f'unzip {sm_tests_zip}')
+    with ctx.prefix(f"cd {profiler_tests_dir}"):
+        ctx.run(f"unzip {sm_tests_zip}")
         with ctx.prefix("cd tests/scripts/pytorch_scripts"):
             ctx.run("mkdir -p data")
             ctx.run("aws s3 cp s3://smdebug-testing/datasets/cifar-10-python.tar.gz data/cifar-10-batches-py.tar.gz")
@@ -52,48 +59,66 @@ def test_sm_profiler_tf(tensorflow_training):
 
     ctx = Context()
 
-    profiler_tests_dir = os.path.join(os.getenv('CODEBUILD_SRC_DIR'), get_container_name('smprof', tensorflow_training), 'smprofiler_tests')
+    profiler_tests_dir = os.path.join(
+        os.getenv("CODEBUILD_SRC_DIR"), get_container_name("smprof", tensorflow_training), "smprofiler_tests"
+    )
     ctx.run(f"mkdir -p {profiler_tests_dir}")
 
     # Download sagemaker-tests zip
     sm_tests_zip = "sagemaker-tests.zip"
-    ctx.run(f'aws s3 cp s3://smprofiler-test-artifacts/{sm_tests_zip} {profiler_tests_dir}/{sm_tests_zip}', hide=True)
+    ctx.run(f"aws s3 cp s3://smprofiler-test-artifacts/{sm_tests_zip} {profiler_tests_dir}/{sm_tests_zip}", hide=True)
     ctx.run(f"cd {profiler_tests_dir} && unzip {sm_tests_zip}", hide=True)
 
     # Install tf datasets
-    ctx.run(f"echo 'tensorflow-datasets==4.0.1' >> {profiler_tests_dir}/sagemaker-tests/tests/scripts/tf_scripts/requirements.txt", hide=True)
+    ctx.run(
+        f"echo 'tensorflow-datasets==4.0.1' >> {profiler_tests_dir}/sagemaker-tests/tests/scripts/tf_scripts/requirements.txt",
+        hide=True,
+    )
 
     run_sm_profiler_tests(tensorflow_training, profiler_tests_dir, "test_profiler_tensorflow.py", processor)
 
 
 def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
     ctx = Context()
-    smdebug_version = ctx.run(f"docker run {image} python -c 'import smdebug; print(smdebug.__version__)'", hide=True).stdout.strip()
+    smdebug_version = ctx.run(
+        f"docker run {image} python -c 'import smdebug; print(smdebug.__version__)'", hide=True
+    ).stdout.strip()
 
     if Version(smdebug_version) < Version("1"):
         pytest.skip(f"smdebug version {smdebug_version} is less than 1, so smprofiler not expected to be present")
 
     # Install smprofile requirements from GitHub
-    ctx.run(f"pip install -r https://raw.githubusercontent.com/awslabs/sagemaker-debugger/{smdebug_version}/config/profiler/requirements.txt", hide=True)
+    ctx.run(
+        f"pip install -r https://raw.githubusercontent.com/awslabs/sagemaker-debugger/{smdebug_version}/config/profiler/requirements.txt",
+        hide=True,
+        warn=True,
+    )
 
     # Collect env variables for tests
     framework, version = get_framework_and_version_from_tag(image)
     spec_file = f"buildspec_profiler_sagemaker_{framework}_{version.replace('.', '_')}_integration_tests.yml"
 
     # Get specfile from github
-    ctx.run(f"wget https://raw.githubusercontent.com/awslabs/sagemaker-debugger/{smdebug_version}/config/profiler/{spec_file}", hide=True)
-    with open(spec_file, 'w') as sf:
+    ctx.run(
+        f"wget https://raw.githubusercontent.com/awslabs/sagemaker-debugger/{smdebug_version}/config/profiler/{spec_file}",
+        hide=True,
+    )
+    with open(spec_file, "w") as sf:
         yml_envs = yaml.safe_load(sf)
-        spec_file_envs = yml_envs.get('env', {}).get('variables')
+        spec_file_envs = yml_envs.get("env", {}).get("variables")
 
     # Command to set all necessary environment variables
     export_cmd = " && ".join(f"export {key}={val}" for key, val in spec_file_envs.items())
     export_cmd = f"{export_cmd} && export ENV_{processor.upper()}_TRAIN_IMAGE={image}"
 
     test_results_outfile = f"{get_container_name('smprof', image)}.txt"
-    with ctx.prefix(f'cd {profiler_tests_dir}'):
+    with ctx.prefix(f"cd {profiler_tests_dir}"):
         with ctx.prefix(f"cd sagemaker-tests/tests && {export_cmd}"):
-            test_output = ctx.run(f"pytest --json-report --json-report-file={test_results_outfile} -n=auto -v -s -W=ignore {test_file}::test_{processor}_jobs", hide=True, warn=True)
+            test_output = ctx.run(
+                f"pytest --json-report --json-report-file={test_results_outfile} -n=auto -v -s -W=ignore {test_file}::test_{processor}_jobs",
+                hide=True,
+                warn=True,
+            )
         with open(test_results_outfile) as outfile:
             result_data = json.load(outfile)
         if test_output.return_code != 0:
