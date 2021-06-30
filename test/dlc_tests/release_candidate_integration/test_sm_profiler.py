@@ -89,7 +89,7 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
 
     # Install smprofile requirements from GitHub
     ctx.run(
-        f"pip install -r https://raw.githubusercontent.com/awslabs/sagemaker-debugger/{smdebug_version}/config/profiler/requirements.txt",
+        f"pip install -r https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/requirements.txt",
         hide=True,
         warn=True,
     )
