@@ -78,7 +78,7 @@ PYTORCH_INFERENCE_GPU_THRESHOLD = {
     }
 }
 
-# HF
+# HF Inference
 HF_PERFORMANCE_TEST_LATENCY_THRESHOLD = {
     "pytorch": {
         "cpu": {
