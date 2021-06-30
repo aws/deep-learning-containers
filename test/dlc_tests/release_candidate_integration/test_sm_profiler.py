@@ -104,7 +104,7 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
         f"wget https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/{spec_file}",
         hide=True,
     )
-    with open(spec_file, "w") as sf:
+    with open(spec_file, "r") as sf:
         yml_envs = yaml.safe_load(sf)
         spec_file_envs = yml_envs.get("env", {}).get("variables")
 
