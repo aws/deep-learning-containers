@@ -26,6 +26,8 @@ import signal
 import logging
 from test import test_utils
 
+warmup_interation = 20
+
 class TimeoutException(Exception):
     pass
 
@@ -155,10 +157,10 @@ def _test_sm_trained_model(instance_type, ecr_image, model, task, input_data, fr
     signal.alarm(1800)
     latencies = []
     try:
-        for i in range(520):
+        for i in range(500 + warmup_interation):
             start = time.time()
             predictor.predict(data)
-            if i > 20:  # Warmup 20 iterations
+            if i > warmup_interation:
                 latencies.append((time.time() - start) * 1000)
     except TimeoutException:
         test_utils.LOGGER.error("Timeout {}, {}, {}.".format(model, framework, device))
