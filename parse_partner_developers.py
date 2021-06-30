@@ -11,7 +11,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
-PARTNER_TOML = "partner_developers.toml"
+PARTNER_TOML = "dlc_developer_config.toml"
 
 
 def get_args():
@@ -29,9 +29,9 @@ def get_args():
 
 def parse_partner_toml(partner_toml):
     partners = toml.load(partner_toml)
-    partner_dev = partners.get('dev', {}).get('partner_developer')
+    partner_dev = partners.get("dev", {}).get("partner_developer")
     if partner_dev:
-        LOGGER.info(f"PARTNER_DEVELOPER: {partner_dev}")
+        LOGGER.info(f"PARTNER_DEVELOPER: {partner_dev.upper()}")
 
 
 def main():
