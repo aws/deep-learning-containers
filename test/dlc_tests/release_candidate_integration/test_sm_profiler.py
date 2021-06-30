@@ -63,7 +63,7 @@ def test_sm_profiler_tf(tensorflow_training):
     # Install tf datasets
     ctx.run(f"echo 'tensorflow-datasets==4.0.1' >> {profiler_tests_dir}/sagemaker-tests/tests/scripts/tf_scripts/requirements.txt", hide=True)
 
-    run_sm_profiler_tests(tensorflow_training, f"test_profiler_tensorflow.py")
+    run_sm_profiler_tests(tensorflow_training, profiler_tests_dir, "test_profiler_tensorflow.py", processor)
 
 
 def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
