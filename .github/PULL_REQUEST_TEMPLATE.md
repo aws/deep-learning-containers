@@ -1,5 +1,18 @@
 *Issue #, if available:*
 
+Note: If merging this PR should also close the associated Issue, please also add that Issue # to the Linked Issues section on the right. 
+
+### Description
+
+### Tests run
+
+### DLC image/dockerfile
+
+### Additional context
+
+## Label Checklist
+- [ ] I have added the project label for this PR (*<project_name>* or "Improvement")
+
 ## PR Checklist
 - [ ] I've prepended PR tag with frameworks/job this applies to : [mxnet, tensorflow, pytorch] | [ei/neuron] | [build] | [test] | [benchmark] | [ec2, ecs, eks, sagemaker]
 - [ ] (If applicable) I've documented below the DLC image/dockerfile this relates to
@@ -13,29 +26,4 @@
 - [ ] (If applicable) I have added the marker `@pytest.mark.multinode(<integer-num-nodes>)` to the new tests which I have added, to specify the number of nodes used on a multi-node test
 - [ ] (If applicable) I have added the marker `@pytest.mark.processor(<"cpu"/"gpu"/"eia"/"neuron">)` to the new tests which I have added, if a test is specifically applicable to only one processor type
 
-#### EIA/NEURON Checklist
-* When creating a PR:
-- [ ] I've modified `src/config/build_config.py` in my PR branch by setting `ENABLE_EI_MODE = True` or `ENABLE_NEURON_MODE = True`
-* When PR is reviewed and ready to be merged:
-- [ ] I've reverted the code change on the config file mentioned above
-#### Benchmark Checklist
-* When creating a PR:
-- [ ] I've modified `src/config/test_config.py` in my PR branch by setting `ENABLE_BENCHMARK_DEV_MODE = True`
-* When PR is reviewed and ready to be merged:
-- [ ] I've reverted the code change on the config file mentioned above
-
-## Reviewer Checklist
-* For reviewer, before merging, please cross-check:
-- [ ] I've verified the code change on the config file mentioned above has already been reverted
-
-*Description:*
-
-*Tests run:*
-
-*DLC image/dockerfile:*
-
-*Additional context:*
-
-
 By submitting this pull request, I confirm that my contribution is made under the terms of the Apache 2.0 license. I confirm that you can use, modify, copy, and redistribute this contribution, under the terms of your choice.
-
