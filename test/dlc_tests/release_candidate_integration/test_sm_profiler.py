@@ -20,6 +20,9 @@ def test_sm_profiler_pt(pytorch_training):
         pytest.skip(f"Processor {processor} not supported. Skipping test.")
 
     ctx = Context()
+
+    # TODO: add this to our CB deps
+    ctx.run("apt-get install unzip")
     profiler_tests_dir = os.path.join(os.getenv('CODEBUILD_SRC_DIR'), get_container_name('smprof', pytorch_training), 'smprofiler_tests')
     ctx.run(f"mkdir -p {profiler_tests_dir}")
 
@@ -50,6 +53,9 @@ def test_sm_profiler_tf(tensorflow_training):
         pytest.skip(f"Processor {processor} not supported. Skipping test.")
 
     ctx = Context()
+
+    # TODO: add this to our CB deps
+    ctx.run("apt-get install unzip")
     profiler_tests_dir = os.path.join(os.getenv('CODEBUILD_SRC_DIR'), get_container_name('smprof', tensorflow_training), 'smprofiler_tests')
     ctx.run(f"mkdir -p {profiler_tests_dir}")
 
