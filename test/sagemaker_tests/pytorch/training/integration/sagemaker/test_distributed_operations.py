@@ -30,15 +30,6 @@ MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 
-def validate_or_skip_fastai(ecr_image):
-    if not can_run_fastai(ecr_image):
-        pytest.skip("Fast ai is not supported on PyTorch v1.9 ")
-
-
-def can_run_fastai(ecr_image):
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    return Version(image_framework_version) != Version("1.9.0")
-
 
 def validate_or_skip_smmodelparallel(ecr_image):
     if not can_run_smmodelparallel(ecr_image):
@@ -103,7 +94,9 @@ def test_dist_operations_multi_gpu(sagemaker_session, framework_version, ecr_ima
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_dist_operations_fastai_gpu(sagemaker_session, framework_version, ecr_image):
-    validate_or_skip_fastai(ecr_image)
+    if Version(get_framework_and_version_from_tag(ecr_image)) == Version("1.9.0"):
+        pytest.skip("Fast ai is not supported on PyTorch v1.9 ")
+
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(
             entry_point='train_cifar.py',
