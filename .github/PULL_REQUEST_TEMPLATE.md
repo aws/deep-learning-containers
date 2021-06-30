@@ -27,4 +27,12 @@ Note: If merging this PR should also close the associated Issue, please also add
 - [ ] (If applicable) I have added the marker `@pytest.mark.multinode(<integer-num-nodes>)` to the new tests which I have added, to specify the number of nodes used on a multi-node test
 - [ ] (If applicable) I have added the marker `@pytest.mark.processor(<"cpu"/"gpu"/"eia"/"neuron">)` to the new tests which I have added, if a test is specifically applicable to only one processor type
 
+#### EIA/NEURON Testing Checklist
+* When creating a PR:
+- [ ] I've modified `src/config/build_config.py` in my PR branch by setting `ENABLE_EI_MODE = True` or `ENABLE_NEURON_MODE = True`
+
+#### Benchmark Testing Checklist
+* When creating a PR:
+- [ ] I've modified `src/config/test_config.py` in my PR branch by setting `ENABLE_BENCHMARK_DEV_MODE = True`
+
 By submitting this pull request, I confirm that my contribution is made under the terms of the Apache 2.0 license. I confirm that you can use, modify, copy, and redistribute this contribution, under the terms of your choice.
