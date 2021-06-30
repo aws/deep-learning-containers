@@ -78,6 +78,29 @@ PYTORCH_INFERENCE_GPU_THRESHOLD = {
     }
 }
 
+# HF
+HF_PERFORMANCE_TEST_LATENCY_THRESHOLD = {
+    "pytorch": {
+        "cpu": {
+            "bert-base-uncased-pt": 350,
+            "roberta-base-pt": 350
+        },
+        "gpu": {
+            "bert-base-uncased-pt": 350,
+            "roberta-base-pt": 350
+        }
+    },
+    "tensorflow": {
+        "cpu": {
+            "bert-base-uncased-tf": 350,
+            "roberta-base-tf": 350
+        },
+        "gpu": {
+            "bert-base-uncased-tf": 350,
+            "roberta-base-tf": 350
+        }
+    }
+}
 
 def get_threshold_for_image(framework_version, lookup_table):
     """
