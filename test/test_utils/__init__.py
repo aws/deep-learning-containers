@@ -28,25 +28,26 @@ DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
 
-# Deep Learning Base AMI (Ubuntu 16.04) Version 25.0 used for EC2 tests
-UBUNTU_16_BASE_DLAMI_US_WEST_2 = "ami-09b49a82b7f258d03"
-UBUNTU_16_BASE_DLAMI_US_EAST_1 = "ami-0743d56bc1f9aa072"
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-032a07adeddce2db8"
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-063f381b07ea97834"
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0ab8a8eaef5d56ff2"
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-01d0263a9631d8502"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
+NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0b5d270a84e753c18"
 UL_AMI_LIST = [
-    UBUNTU_16_BASE_DLAMI_US_WEST_2,
-    UBUNTU_16_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
+    NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
 ]
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 NEURON_AL2_DLAMI = "ami-092059396c7e51f52"
 
+DLAMI_PYTHON_MAPPING = {
+    UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
+    UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7"
+}
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
@@ -72,6 +73,10 @@ SAGEMAKER_LOCAL_TEST_TYPE = "local"
 SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
+
+
+def get_python_invoker(ami_id):
+    return DLAMI_PYTHON_MAPPING.get(ami_id, "/usr/bin/python3")
 
 
 def is_tf_version(required_version, image_uri):
@@ -191,7 +196,7 @@ def _get_remote_override_flags():
         result = s3_client.get_object(Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json")
         json_content = json.loads(result["Body"].read().decode('utf-8'))
     except ClientError as e:
-        LOGGER.error("ClientError when performing S3/STS operation. Exception: {}".format(e))
+        LOGGER.warning("ClientError when performing S3/STS operation: {}".format(e))
         json_content = {}
     return json_content
 
@@ -401,7 +406,7 @@ def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8
     return True
 
 
-def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None):
+def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None, ec2_instance_ami=None):
     """
     Method to run tensorflow inference on MNIST model using gRPC protocol
     :param script_file_path:
@@ -410,8 +415,9 @@ def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", 
     :param connection:
     :return:
     """
+    python_invoker = get_python_invoker(ec2_instance_ami)
     conn_run = connection.run if connection is not None else run
-    conn_run(f"python3 {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
+    conn_run(f"{python_invoker} {script_file_path} --num_tests=1000 --server={ip_address}:{port}", hide=True)
 
 
 def get_inference_run_command(image_uri, model_names, processor="cpu"):

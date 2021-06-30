@@ -45,15 +45,13 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
-EKS_VERSION = "1.14.6"
-EKSCTL_VERSION = "0.22.0"
+EKS_VERSION = "1.20.4"
+EKSCTL_VERSION = "0.53.0"
 KUBEFLOW_VERSION = "v0.4.1"
 KUBETAIL_VERSION = "1.6.7"
 
 EKS_NVIDIA_PLUGIN_VERSION = "0.6.0"
 
-# https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html
-EKS_AMI_ID = {"cpu": "ami-03086423d09685de3", "gpu": "ami-061798711b2adafb4", "neuron": "ami-092059396c7e51f52"}
 
 SSH_PUBLIC_KEY_NAME = "dlc-ec2-keypair-prod"
 PR_EKS_CLUSTER_NAME_TEMPLATE = "dlc-eks-pr-{}-test-cluster"
@@ -92,17 +90,6 @@ def get_single_node_inference_template_path(framework, processor):
         f"single_node_{processor}_inference.yaml",
     )
 
-def get_device_plugin_path(framework, processor):
-
-    return os.path.join(
-        os.sep,
-        DLC_TESTS_PREFIX,
-        "eks",
-        "eks_manifest_templates",
-        framework,
-        "inference",
-        f"{processor}_device_plugin.yaml",
-    )
 
 def retry_if_value_error(exception):
     """Return True if we should retry (in this case when it's an ValueError), False otherwise"""
@@ -292,9 +279,6 @@ def delete_eks_cluster(eks_cluster_name):
     Args:
         eks_cluster_name: str
     """
-    
-    delete_oidc_provider(eks_cluster_name)
-
     run("eksctl delete cluster {} --wait".format(eks_cluster_name), warn=True)
 
     cfn_stack_names = list_cfn_stack_names()
@@ -321,21 +305,22 @@ def setup_eksctl():
 
 
 @retry(stop_max_attempt_number=2, wait_fixed=60000)
-def create_eks_cluster(eks_cluster_name, processor_type, num_nodes, volume_size,
+def create_eks_cluster(eks_cluster_name, num_nodes, volume_size,
                        instance_type, ssh_public_key_name, region=os.getenv("AWS_REGION", DEFAULT_REGION)):
     """Function to setup an EKS cluster using eksctl. The AWS credentials used to perform eks operations
     are that the user deepamiuser-beta as used in other functions. The 'deeplearning-ami-beta' public key
     will be used to access the nodes created as EC2 instances in the EKS cluster.
     Note: eksctl creates a cloudformation stack by the name of eksctl-${eks_cluster_name}-cluster.
     Args:
-        eks_cluster_name, processor_type, num_nodes, instance_type, ssh_public_key_name: str
+        eks_cluster_name, num_nodes, instance_type, ssh_public_key_name: str
     """
     setup_eksctl()
 
     delete_eks_cluster(eks_cluster_name)
-
+    
+    eks_short_version = re.search(r"([\d].[\d]+)", EKS_VERSION).groups()[0]
     eksctl_create_cluster_command = f"eksctl create cluster {eks_cluster_name} " \
-                                    f"--node-ami {EKS_AMI_ID[processor_type]} " \
+                                    f"--version {eks_short_version} " \
                                     f"--nodes {num_nodes} " \
                                     f"--node-type={instance_type} " \
                                     f"--node-volume-size={volume_size} " \
@@ -354,7 +339,7 @@ def create_eks_cluster(eks_cluster_name, processor_type, num_nodes, volume_size,
     eks_write_kubeconfig(eks_cluster_name, "us-west-2")
     
     LOGGER.info(f"EKS cluster created successfully, with the following parameters cluster_name: "
-                f"{eks_cluster_name} ami-id: {EKS_AMI_ID[processor_type]} num_nodes: {num_nodes} instance_type: "
+                f"{eks_cluster_name} num_nodes: {num_nodes} instance_type: "
                 f"{instance_type} ssh_public_key: {ssh_public_key_name}")
 
 
@@ -381,12 +366,12 @@ def eks_setup():
 
     kubectl_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
+        f"{EKS_VERSION}/2021-04-12/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
     )
 
     aws_iam_authenticator_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2019-08-22/bin/{platform.lower()}/amd64/aws-iam-authenticator "
+        f"{EKS_VERSION}/2021-04-12/bin/{platform.lower()}/amd64/aws-iam-authenticator "
         f"-o /usr/local/bin/aws-iam-authenticator"
     )
 
@@ -434,11 +419,11 @@ def get_eks_nodegroups(eks_cluster_name, region):
     
     return eks_node_groups
 
-def manage_ssm_permissions_nodegroup(eks_cluster_name, operation, region=os.getenv("AWS_REGION", DEFAULT_REGION)):
-    """Function to manage SSM permissions to EKS worker nodegroup
+def manage_iam_permissions_nodegroup(eks_cluster_name, operation, region=os.getenv("AWS_REGION", DEFAULT_REGION)):
+    """Function to manage IAM permissions to EKS worker nodegroup
        1. Retrieve active nodegroups in the EKS cluster
        2. Get the IAM instance profile for the nodegroup and the corresponding IAM role
-       3. Based on the operation, attach or detach SSM policy
+       3. Based on the operation, attach or detach IAM policy
     """
     ATTACH_IAM_POLICY="attach"
     DETACH_IAM_POLICY="detach"
@@ -450,13 +435,13 @@ def manage_ssm_permissions_nodegroup(eks_cluster_name, operation, region=os.gete
             iam_role = get_eks_nodegroup_iam_role(eks_cluster_name, node_group)
             if iam_role:
                 if operation == ATTACH_IAM_POLICY:
-                    add_ssm_access_policy(iam_role)
+                    add_iam_policy(iam_role)
                 if operation == DETACH_IAM_POLICY:
-                    remove_ssm_access_policy(iam_role)
+                    remove_iam_policy(iam_role)
             else:
-                LOGGER.info(f"No IAM role found for the EKS nodegroup {node_group}. Skipping addition of SSM policy.")
+                LOGGER.info(f"No IAM role found for the EKS nodegroup {node_group}. Skipping addition of policy.")
     else:
-        LOGGER.info(f"No Nodegroups present in the EKS cluster {eks_cluster_name}. Skipping addition of SSM policy.")
+        LOGGER.info(f"No Nodegroups present in the EKS cluster {eks_cluster_name}. Skipping addition of policy.")
             
 
 def get_eks_nodegroup_iam_role(eks_cluster_name, node_group):
@@ -485,31 +470,35 @@ def get_eks_nodegroup_iam_role(eks_cluster_name, node_group):
     except ClientError as e:
         LOGGER.error(f"Error: Cannot find IAM role corresponding to the EKS nodegroup {node_group}. Full Exception:\n{e}")
 
-def add_ssm_access_policy(instance_role_name):
-    """Function to attach SSM policy to IAM role
+def add_iam_policy(instance_role_name):
+    """Function to attach IAM policy to IAM role
     """
 
-    SSM_POLICY_ARN="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-    SSM_S3_POLICY_ARN="arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+    POLICY_ARN = [
+        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+        "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+    ]
     iam = init_iam_client() 
-    try:
-        iam.attach_role_policy(RoleName=instance_role_name, PolicyArn=SSM_POLICY_ARN)
-        iam.attach_role_policy(RoleName=instance_role_name, PolicyArn=SSM_S3_POLICY_ARN)
-    except ClientError as e:
-        LOGGER.error(f"Error: Cannot add SSM policy to EKS worker node IAM role. Full Exception:\n{e}")
+    for policy in POLICY_ARN:
+        try:
+            iam.attach_role_policy(RoleName=instance_role_name, PolicyArn=policy)
+        except ClientError as e:
+            LOGGER.error(f"Error: Cannot add IAM policy {policy} to EKS worker node IAM role. Full Exception:\n{e}")
 
-def remove_ssm_access_policy(instance_role_name):
-    """ Function to detach SSM policy from IAM role
+def remove_iam_policy(instance_role_name):
+    """ Function to detach IAM policy from IAM role
     """
 
-    SSM_POLICY_ARN="arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-    SSM_S3_POLICY_ARN="arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+    POLICY_ARN = [
+        "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+        "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+    ]
     iam = init_iam_client() 
-    try:
-        iam.detach_role_policy(RoleName=instance_role_name, PolicyArn=SSM_POLICY_ARN)
-        iam.detach_role_policy(RoleName=instance_role_name, PolicyArn=SSM_S3_POLICY_ARN)
-    except ClientError as e:
-        LOGGER.error(f"Error: Cannot remove SSM policy from EKS worker node IAM role. Full Exception:\n{e}")
+    for policy in POLICY_ARN:
+        try:
+            iam.detach_role_policy(RoleName=instance_role_name, PolicyArn=policy)
+        except ClientError as e:
+            LOGGER.error(f"Error: Cannot remove IAM policy {policy} from EKS worker node IAM role. Full Exception:\n{e}")
 
 def get_instance_profile_name(instance_profile_prefix):
     """ Function to retrieve the instance profile name given the instance profile prefix
@@ -637,12 +626,11 @@ def is_service_running(selector_name, namespace="default"):
 
 
 def create_eks_cluster_nodegroup(
-        eks_cluster_name, processor_type, num_nodes, instance_type, ssh_public_key_name, region=DEFAULT_REGION
+        eks_cluster_name, num_nodes, instance_type, ssh_public_key_name, region=DEFAULT_REGION
 ):
     """
     Function to create and attach a nodegroup to an existing EKS cluster.
     :param eks_cluster_name: Cluster name of the form PR_EKS_CLUSTER_NAME_TEMPLATE
-    :param processor_type: cpu/gpu
     :param num_nodes: number of nodes to create in nodegroup
     :param instance_type: instance type to use for nodegroup instances
     :param ssh_public_key_name:
@@ -652,7 +640,6 @@ def create_eks_cluster_nodegroup(
     eksctl_create_nodegroup_command = (
         f"eksctl create nodegroup "
         f"--cluster {eks_cluster_name} "
-        f"--node-ami {EKS_AMI_ID.get(processor_type)} "
         f"--nodes {num_nodes} "
         f"--node-type={instance_type} "
         f"--timeout=40m "
@@ -665,7 +652,6 @@ def create_eks_cluster_nodegroup(
 
     LOGGER.info("EKS cluster nodegroup created successfully, with the following parameters\n"
                 f"cluster_name: {eks_cluster_name}\n"
-                f"ami-id: {EKS_AMI_ID[processor_type]}\n"
                 f"num_nodes: {num_nodes}\n"
                 f"instance_type: {instance_type}\n"
                 f"ssh_public_key: {ssh_public_key_name}")

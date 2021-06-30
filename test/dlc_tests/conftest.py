@@ -176,7 +176,7 @@ def ec2_instance(
         "MaxCount": 1,
         "MinCount": 1,
     }
-    extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300,}}]
+
     if (
         ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
         and (
@@ -188,7 +188,11 @@ def ec2_instance(
         and "gpu_only" in request.fixturenames
         and "horovod" in ec2_key_name
     ):
-        params["BlockDeviceMappings"] = extra_volume_size_mapping
+        params["BlockDeviceMappings"] = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300,}}]
+    else:
+        # Using private AMI, the EBS volume size is reduced to 28GB as opposed to 50GB from public AMI. This leads to space issues on test instances
+        # TODO: Revert the configuration once DLAMI is public
+        params["BlockDeviceMappings"] = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 90,}}]
     if ei_accelerator_type:
         params["ElasticInferenceAccelerators"] = [
             {
