@@ -108,15 +108,34 @@ release_images:
   8:
     framework: "mxnet"
     version: "1.8.0"
-    inference:
-      device_types: ["neuron"]
+    training:
+      device_types: ["cpu", "gpu"]
       python_versions: ["py37"]
-      os_version: "ubuntu18.04"
+      os_version: "ubuntu16.04"
       cuda_version: "cu110"
       example: False
-      disable_sm_tag: True
+      disable_sm_tag: False
+      force_release: False
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu16.04"
+      cuda_version: "cu110"
+      example: False
+      disable_sm_tag: False
       force_release: False
   9:
+    framework: "mxnet"
+    version: "1.8.0"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu16.04"
+      cuda_version: "cu110"
+      example: True
+      disable_sm_tag: False
+      force_release: False
+  10:
     framework: "mxnet"
     version: "1.7.0"
     training:
@@ -135,7 +154,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  10:
+  11:
     framework: "mxnet"
     version: "1.7.0"
     training:
@@ -145,17 +164,6 @@ release_images:
       cuda_version: "cu101"
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
-  11:
-    framework: "tensorflow"
-    version: "2.4.1"
-    training:
-      device_types: ["gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu110"
-      example: False
-      disable_sm_tag: False
       force_release: False
   12:
     framework: "tensorflow"
@@ -165,10 +173,21 @@ release_images:
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
       cuda_version: "cu110"
-      example: True
+      example: False
       disable_sm_tag: False
       force_release: False
   13:
+    framework: "tensorflow"
+    version: "2.4.1"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu110"
+      example: True
+      disable_sm_tag: False
+      force_release: False
+  14:
     framework: "pytorch"
     version: "1.8.1"
     training:
@@ -191,7 +210,7 @@ release_images:
                             # to images being published.
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
                             # has already been published. Re-released image will have minor version incremented by 1.
-  14:
+  15:
     framework: "pytorch"
     version: "1.8.1"
     training:
@@ -200,31 +219,31 @@ release_images:
       os_version: "ubuntu18.04"
       cuda_version: "cu111"
       example: True
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
-  15:
-    framework: "pytorch"
-    version: "1.5.1"
-    training:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py36"]
-      os_version: "ubuntu16.04"
-      cuda_version: "cu101"
-      example: False
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
-    inference:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py36"]
-      os_version: "ubuntu16.04"
-      cuda_version: "cu101"
-      example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
   16:
     framework: "pytorch"
     version: "1.5.1"
     training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu16.04"
+      cuda_version: "cu101"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu16.04"
+      cuda_version: "cu101"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  17:
+    framework: "pytorch"
+    version: "1.5.1"
+    training:
       device_types: ["gpu"]
       python_versions: ["py36"]
       os_version: "ubuntu16.04"
@@ -232,31 +251,31 @@ release_images:
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  17:
+  18:
     framework: "huggingface_tensorflow"
     version: "2.4.1"
     hf_transformers: "4.6.1"
-    training:
-      device_types: [ "gpu" ]
+    inference:
+      device_types: ["cpu", "gpu"]
       python_versions: [ "py37" ]
       os_version: "ubuntu18.04"
       cuda_version: "cu110"
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  18:
+  19:
     framework: "huggingface_pytorch"
     version: "1.7.1"
     hf_transformers: "4.6.1"
-    training:
-      device_types: [ "gpu" ]
+    inference:
+      device_types: ["cpu", "gpu"]
       python_versions: [ "py36" ]
       os_version: "ubuntu18.04"
       cuda_version: "cu110"
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  19:
+  20:
     framework: "pytorch"
     version: "1.5.0"
     inference:
@@ -267,7 +286,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  20:
+  21:
     framework: "pytorch"
     version: "1.6.0"
     training:
@@ -278,7 +297,7 @@ release_images:
       example: False
       disable_sm_tag: True  # [Default: False] This option is not used by Example images
       force_release: False
-  21:
+  22:
     framework: "pytorch"
     version: "1.6.0"
     training:
@@ -289,7 +308,7 @@ release_images:
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  22:
+  23:
     framework: "huggingface_pytorch"
     version: "1.6.0"
     hf_transformers: "4.6.1"
@@ -300,4 +319,48 @@ release_images:
       cuda_version: "cu110"
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  24:
+    framework: "tensorflow"
+    version: "2.5.0"
+    training:
+      device_types: ["cpu","gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  25:
+    framework: "tensorflow"
+    version: "2.5.0"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu112"
+      example: True
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  26:
+    framework: "tensorflow"
+    version: "2.5.1"
+    inference:
+      device_types: ["cpu","gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  27:
+    framework: "mxnet"
+    version: "1.8.0"
+    inference:
+      device_types: ["neuron"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu110"
+      example: False
+      disable_sm_tag: True
       force_release: False
