@@ -219,8 +219,6 @@ RUN rm /etc/apt/sources.list.d/* \
   && tar -xvf ${METIS}.tar \
   && cd ${METIS} \
   && apt-get update \
-  && apt-get install -y build-essential \
-  && apt-get install -y cmake \
   && make config shared=1 \
   && make install \
   && cd .. \
