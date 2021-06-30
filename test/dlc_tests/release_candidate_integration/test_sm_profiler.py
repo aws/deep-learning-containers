@@ -123,4 +123,4 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
         with open(test_results_outfile) as outfile:
             result_data = json.load(outfile)
         if test_output.return_code != 0:
-            pytest.fail(f"Failed SM Profiler tests. Results: {result_data}")
+            pytest.fail(f"Failed SM Profiler tests. Results: {json.dumps(result_data, indent=4)}")
