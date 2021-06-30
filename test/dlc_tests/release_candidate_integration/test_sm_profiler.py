@@ -56,6 +56,7 @@ def test_sm_profiler_tf(tensorflow_training):
     # Download sagemaker-tests zip
     sm_tests_zip = "sagemaker-tests.zip"
     ctx.run(f'aws s3 cp s3://smprofiler-test-artifacts/{sm_tests_zip} {profiler_tests_dir}/{sm_tests_zip}')
+    ctx.run(f"cd {profiler_tests_dir} && {sm_tests_zip}")
 
     # Install tf datasets
     ctx.run(f"echo 'tensorflow-datasets==4.0.1' >> {profiler_tests_dir}/sagemaker-tests/tests/scripts/tf_scripts/requirements.txt")
