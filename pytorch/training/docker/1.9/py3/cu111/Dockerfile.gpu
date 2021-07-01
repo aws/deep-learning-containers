@@ -320,26 +320,6 @@ RUN HOME_DIR=/root \
 
 RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.9/license.txt
 
-RUN pip install ninja yacs cython matplotlib tqdm opencv-python pybind11==2.5.0 'git+https://github.com/NVIDIA/dllogger'
-
-RUN pip --no-cache-dir --no-cache install 'git+https://github.com/NVIDIA/cocoapi#egg=pycocotools&subdirectory=PythonAPI'
-
-RUN     cd /root && \
-        rm -rf apex && \
-        git clone https://github.com/NVIDIA/apex && \
-        cd apex && \
-        python setup.py install --cuda_ext --cpp_ext
-
-RUN     cd /root && \
-        rm -rf DeepLearningExamples && \
-        git clone --recursive -b pt_1.9.0_debug https://github.com/mansimane/DeepLearningExamples.git && \
-        cd DeepLearningExamples/PyTorch/Segmentation/MaskRCNN/pytorch/ && \
-        python setup.py build develop
-
-RUN wget https://dl.fbaipublicfiles.com/detectron/ImageNetPretrained/MSRA/R-50.pkl
-RUN mkdir -p /root/.torch/models/
-RUN cp R-50.pkl /root/.torch/models/
-
 
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
