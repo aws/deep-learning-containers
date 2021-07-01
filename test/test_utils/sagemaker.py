@@ -140,6 +140,13 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     test_report = os.path.join(os.getcwd(), "test", f"{job_type}_{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
 
+
+    # Explanation of why we need the if-condition below:
+    # We have separate Pipeline Actions that run EFA tests, which have the env variable "EFA_DEDICATED=True" configured
+    # so that those Actions only run the EFA tests.
+    # However, there is no such dedicated CB job dedicated to EFA tests in the PR context. This means that when in the
+    # PR context, setting "DISABLE_EFA_TESTS" to True should skip EFA tests, but setting it to False should enable
+    # not just the EFA tests, but also all other tests as well.
     if is_pr_context():
         efa_tests_disabled = os.getenv("DISABLE_EFA_TESTS", "False").lower() == "true"
         efa_flag = "-m \"not efa\"" if efa_tests_disabled else ""
