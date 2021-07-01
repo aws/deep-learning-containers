@@ -66,4 +66,4 @@ def _test_dgl_training(sagemaker_session, ecr_image, instance_type):
     )
     with timeout(minutes=DEFAULT_TIMEOUT):
         job_name = utils.unique_name_from_base('test-pytorch-dgl-image')
-        # dgl.fit(job_name=job_name)
+        dgl.fit(job_name=job_name)

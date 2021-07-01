@@ -108,10 +108,10 @@ def test_dist_operations_fastai_gpu(sagemaker_session, framework_version, ecr_im
         training_input = pytorch.sagemaker_session.upload_data(
             path=os.path.join(fastai_path, 'cifar_tiny', 'training'), key_prefix='pytorch/distributed_operations'
         )
-        # pytorch.fit({'training': training_input})
+        pytorch.fit({'training': training_input})
 
-    # model_s3_url = pytorch.create_model().model_data
-    # _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
+    model_s3_url = pytorch.create_model().model_data
+    _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
 
 
 @pytest.mark.processor("gpu")
@@ -135,7 +135,7 @@ def test_mnist_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_bac
         training_input = sagemaker_session.upload_data(
             path=os.path.join(data_dir, 'training'), key_prefix='pytorch/mnist'
         )
-        # pytorch.fit({'training': training_input})
+        pytorch.fit({'training': training_input})
 
 
 
@@ -182,7 +182,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(n_virginia_ecr_image, instance
                 },
             },
         )
-        # pytorch.fit()
+        pytorch.fit()
 
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
@@ -227,7 +227,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(n_virginia_ecr_image, efa_
                 },
             },
         )
-        # pytorch.fit()
+        pytorch.fit()
 
 
 @pytest.mark.integration("smmodelparallel")
@@ -257,7 +257,7 @@ def test_sanity_efa(n_virginia_ecr_image, efa_instance_type, n_virginia_sagemake
                 },
             },
         )
-        # pytorch.fit()
+        pytorch.fit()
 
 
 def _test_dist_operations(
@@ -281,7 +281,7 @@ def _test_dist_operations(
         fake_input = pytorch.sagemaker_session.upload_data(
             path=dist_operations_path, key_prefix='pytorch/distributed_operations'
         )
-        # pytorch.fit({'required_argument': fake_input})
+        pytorch.fit({'required_argument': fake_input})
 
 
 def _assert_s3_file_exists(region, s3_url):

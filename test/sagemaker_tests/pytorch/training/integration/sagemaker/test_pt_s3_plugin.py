@@ -59,7 +59,7 @@ def test_pt_s3_plugin_sm_gpu(sagemaker_session, framework_version, ecr_image):
             framework_version=framework_version
         )
         job_name = utils.unique_name_from_base('test-pytorch-s3-plugin-gpu')
-        # pytorch.fit(job_name=job_name)
+        pytorch.fit(job_name=job_name)
 
 
 @pytest.mark.processor("cpu")
@@ -81,4 +81,4 @@ def test_pt_s3_plugin_sm_cpu(sagemaker_session, framework_version, ecr_image):
             framework_version=framework_version
         )
         job_name = utils.unique_name_from_base('test-pytorch-s3-plugin-cpu')
-        # pytorch.fit(job_name=job_name)
+        pytorch.fit(job_name=job_name)

@@ -47,7 +47,7 @@ def test_dist_operations_path_cpu(docker_image, dist_cpu_backend, sagemaker_loca
         output_path='file://{}'.format(tmpdir),
     )
 
-    # _train_and_assert_success(estimator, str(tmpdir))
+    _train_and_assert_success(estimator, str(tmpdir))
 
 
 @pytest.mark.processor("gpu")
@@ -67,7 +67,7 @@ def test_dist_operations_path_gpu_nccl(docker_image, sagemaker_local_session, tm
         output_path='file://{}'.format(tmpdir),
     )
 
-    # _train_and_assert_success(estimator, str(tmpdir))
+    _train_and_assert_success(estimator, str(tmpdir))
 
 
 @pytest.mark.processor("cpu")
@@ -87,11 +87,11 @@ def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
         output_path='file://{}'.format(tmpdir),
     )
 
-    # with pytest.raises(RuntimeError):
-    #     estimator.fit({'training': 'file://{}'.format(os.path.join(data_dir, 'training'))})
+    with pytest.raises(RuntimeError):
+        estimator.fit({'training': 'file://{}'.format(os.path.join(data_dir, 'training'))})
 
     failure_file = {'output': ['failure']}
-    # assert_files_exist(str(tmpdir), failure_file)
+    assert_files_exist(str(tmpdir), failure_file)
 
 
 @pytest.mark.processor("cpu")
@@ -114,7 +114,7 @@ def test_mnist_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpd
         'model': ['model.pth'],
         'output': ['success'],
     }
-    # _train_and_assert_success(estimator, str(tmpdir), success_files)
+    _train_and_assert_success(estimator, str(tmpdir), success_files)
 
 
 def _train_and_assert_success(estimator, output_path, output_files=MODEL_SUCCESS_FILES):

@@ -43,4 +43,4 @@ def test_training_smdebug(sagemaker_session, framework_version, ecr_image, insta
             hyperparameters=hyperparameters,
         )
         training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
-        # pytorch.fit({'training': training_input})
+        pytorch.fit({'training': training_input})
