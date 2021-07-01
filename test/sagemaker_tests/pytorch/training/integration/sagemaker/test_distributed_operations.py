@@ -110,8 +110,8 @@ def test_dist_operations_fastai_gpu(sagemaker_session, framework_version, ecr_im
         )
         # pytorch.fit({'training': training_input})
 
-    model_s3_url = pytorch.create_model().model_data
-    _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
+    # model_s3_url = pytorch.create_model().model_data
+    # _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
 
 
 @pytest.mark.processor("gpu")
