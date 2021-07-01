@@ -82,4 +82,3 @@ def test_pt_s3_plugin_sm_cpu(sagemaker_session, framework_version, ecr_image):
         )
         job_name = utils.unique_name_from_base('test-pytorch-s3-plugin-cpu')
         pytorch.fit(job_name=job_name)
-
