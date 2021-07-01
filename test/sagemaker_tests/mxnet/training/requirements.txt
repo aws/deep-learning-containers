@@ -5,8 +5,8 @@ pytest==5.3.5
 pytest-cov
 pytest-rerunfailures==9.0
 pytest-xdist
-requests==2.24
-urllib3>=1.25.10,<1.26.0
+requests==2.25.1 
+urllib3>=1.26.5
 mock
 sagemaker
 docker-compose
