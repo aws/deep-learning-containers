@@ -83,10 +83,10 @@ RUN conda install -c \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  # Torchvision wheel must be installed first, so that PyTorch-EI framework is not overwritten.
  && pip install https://download.pytorch.org/whl/cpu/torchvision-0.6.1%2Bcpu-cp36-cp36m-linux_x86_64.whl \
- && pip install http://amazonei-pytorcheia.s3.amazonaws.com/releases/v1.0.0/torcheia-1.0.0-cp36-cp36m-manylinux1_x86_64.whl \ 
+ && pip install http://amazonei-pytorcheia.s3.amazonaws.com/releases/v1.0.0/torcheia-1.0.0-cp36-cp36m-manylinux1_x86_64.whl \
  && pip install graphviz==$GRAPHVIZ_VERSION \
  && pip install multi-model-server==$MMS_VERSION \
- && pip install pillow==7.2.0 \
+ && pip install pillow==8.2.0 \
  # pyOpenSSL requires cryptography>=2.3, but all versions <3.3 have vulnerabilities
  && pip install -U "cryptography>=3.3"
 
