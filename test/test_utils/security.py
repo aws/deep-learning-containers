@@ -2,6 +2,8 @@ import json
 
 from enum import IntEnum
 
+from test import test_utils
+
 
 class ECRScanFailureException(Exception):
     """
@@ -175,3 +177,13 @@ def get_ecr_vulnerability_package_version(vulnerability):
         if attribute["key"] == "package_version":
             return attribute["value"]
     return None
+
+
+def get_ecr_scan_allowlist_path(image_uri):
+    dockerfile_location = test_utils.get_dockerfile_path_for_image(image_uri)
+    image_scan_allowlist_path = dockerfile_location + ".os_scan_allowlist.json"
+    # Each example image (tied to CUDA version/OS version/other variants) can have its own list of vulnerabilities,
+    # which means that we cannot have just a single allowlist for all example images for any framework version.
+    if "example" in image_uri:
+        image_scan_allowlist_path = dockerfile_location + ".example.os_scan_allowlist.json"
+    return image_scan_allowlist_path

@@ -7,9 +7,11 @@ import pytest
 
 from invoke import run
 
-from test.test_utils import LOGGER, get_account_id_from_image_uri, get_dockerfile_path_for_image
+from test.test_utils import LOGGER, get_account_id_from_image_uri, get_dockerfile_path_for_image, is_dlc_cicd_context
 from test.test_utils import ecr as ecr_utils
-from test.test_utils.security import CVESeverity, ScanVulnerabilityList, ECRScanFailureException
+from test.test_utils.security import (
+    CVESeverity, ScanVulnerabilityList, ECRScanFailureException, get_ecr_scan_allowlist_path
+)
 
 
 MINIMUM_SEV_THRESHOLD = "HIGH"
@@ -84,7 +86,7 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
     scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
 
     image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
-    image_scan_allowlist_path = get_dockerfile_path_for_image(image) + ".os_scan_allowlist.json"
+    image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
     if os.path.exists(image_scan_allowlist_path):
         image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
 
@@ -100,8 +102,8 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Check for packages that can be upgraded on production images.")
 @pytest.mark.integration("check OS dependencies")
+@pytest.mark.skipif(is_dlc_cicd_context(), reason="Temporarily allow slack in allowlist w.r.t. actual vulnerabilities")
 def test_is_ecr_scan_allowlist_outdated(image, ecr_client, sts_client, region):
     """
     Run ECR Scan Tool on an image being tested, and test if the vulnerabilities in the allowlist for the image
@@ -124,7 +126,7 @@ def test_is_ecr_scan_allowlist_outdated(image, ecr_client, sts_client, region):
     scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
 
     image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
-    image_scan_allowlist_path = get_dockerfile_path_for_image(image) + ".os_scan_allowlist.json"
+    image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
     if os.path.exists(image_scan_allowlist_path):
         image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
 

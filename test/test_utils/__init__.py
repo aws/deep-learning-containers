@@ -115,11 +115,10 @@ def get_dockerfile_path_for_image(image_uri):
     device_type = get_processor_from_image_uri(image_uri)
     cuda_version = get_cuda_version_from_tag(image_uri)
 
-    LOGGER.info(f"python_version_path = {python_version_path}")
-
     dockerfiles_list = [
-        path for path in glob(os.path.join(python_version_path, "**", f"Dockerfile.{device_type}"), recursive=True)
-        if ("example" not in path and "example" not in image_uri) or ("example" in path and "example" in image_uri)
+        path
+        for path in glob(os.path.join(python_version_path, "**", f"Dockerfile.{device_type}"), recursive=True)
+        if "example" not in path
     ]
 
     if device_type in ["gpu"]:
