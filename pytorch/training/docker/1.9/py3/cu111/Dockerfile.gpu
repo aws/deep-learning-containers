@@ -197,7 +197,7 @@ RUN pip install --no-cache-dir -U \
     "pyyaml>=5.4,<5.5" \
     "awscli<2" \
     psutil \
-    Pillow \
+    Pillow==8.2.0 \
     scipy \
     pybind11 \
     click \
