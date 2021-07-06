@@ -45,7 +45,7 @@ def _retrieve_instance_id():
     """
     instance_id = None
     url = "http://169.254.169.254/latest/meta-data/instance-id"
-    response = get_instance_metadata(url)
+    response = requests_helper(url, timeout=0.1)
 
     if response is not None and not (400 <= response.status_code < 600):
         instance_id = _validate_instance_id(response.text)
@@ -76,9 +76,9 @@ def _retrieve_instance_region():
         "us-west-1",
         "us-west-2",
     ]
-    
+
     url = "http://169.254.169.254/latest/dynamic/instance-identity/document"
-    response = get_instance_metadata(url)
+    response = requests_helper(url, timeout=0.1)
 
     if response is not None and not (400 <= response.status_code < 600):
         response_json = json.loads(response.text)
@@ -133,15 +133,6 @@ def requests_helper(url, timeout):
 
     return response
 
-def get_instance_metadata(url):
-    response = None
-    try:
-        token = requests.put("http://169.254.169.254/latest/api/token", headers={'X-aws-ec2-metadata-token-ttl-seconds': '600'})
-        response = requests.get(url, headers={'X-aws-ec2-metadata-token': token.text}, timeout=0.1)
-    except requests.exceptions.RequestException as e:
-        logging.error("Request exception: {}".format(e))
-
-    return response.text
 
 def parse_args():
     """
@@ -162,7 +153,7 @@ def parse_args():
 
     args, _unknown = parser.parse_known_args()
 
-    fw_version_pattern = r"\d+(\.\d+){1,2}"
+    fw_version_pattern = r"\d+(\.\d+){1,2}(-rc\d)?"
     assert re.fullmatch(fw_version_pattern, args.framework_version), (
         f"args.framework_version = {args.framework_version} does not match {fw_version_pattern}\n"
         f"Please specify framework version as X.Y.Z or X.Y."
