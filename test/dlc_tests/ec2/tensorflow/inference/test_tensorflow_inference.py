@@ -86,6 +86,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
     home_dir = ec2_connection.run("echo $HOME").stdout.strip('\n')
     serving_folder_path = os.path.join(home_dir, "serving")
     model_path = os.path.join(serving_folder_path, "models", "mnist")
+    python_invoker = test_utils.get_python_invoker(ec2_instance_ami)
     mnist_client_path = os.path.join(
         serving_folder_path, "tensorflow_serving", "example", "mnist_client.py"
     )
@@ -108,11 +109,11 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
         )
     try:
         host_setup_for_tensorflow_inference(
-            serving_folder_path, framework_version, ec2_connection, is_neuron, 'mnist'
+            serving_folder_path, framework_version, ec2_connection, is_neuron, 'mnist', python_invoker
         )
         sleep(2)
         if not is_neuron:
-            train_mnist_model(serving_folder_path, ec2_connection, ec2_instance_ami)
+            train_mnist_model(serving_folder_path, ec2_connection, python_invoker)
             sleep(10)
         ec2_connection.run(
             f"$(aws ecr get-login --no-include-email --region {region})", hide=True
@@ -133,8 +134,7 @@ def get_tensorflow_framework_version(image_uri):
     return re.findall(r"[1-2]\.[0-9][\d|\.]+", image_uri)[0]
 
 
-def train_mnist_model(serving_folder_path, ec2_connection, ec2_instance_ami):
-    python_invoker = test_utils.get_python_invoker(ec2_instance_ami)
+def train_mnist_model(serving_folder_path, ec2_connection, python_invoker):
     ec2_connection.run(f"cd {serving_folder_path}")
     mnist_script_path = f"{serving_folder_path}/tensorflow_serving/example/mnist_saved_model.py"
     ec2_connection.run(
@@ -142,11 +142,11 @@ def train_mnist_model(serving_folder_path, ec2_connection, ec2_instance_ami):
     )
 
 
-def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection, is_neuron, model_name):
+def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection, is_neuron, model_name, python_invoker):
     # Tensorflow 1.x doesn't have package with version 1.15.2 so use only 1.15
     ec2_connection.run(
         (
-            f"pip3 install --user -qq -U 'tensorflow<={framework_version}' "
+            f"{python_invoker} -m pip install --user -qq -U 'tensorflow<={framework_version}' "
             f" 'tensorflow-serving-api<={framework_version}' "
         ), hide=True
     )
