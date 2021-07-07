@@ -3,6 +3,7 @@ import re
 import subprocess
 import botocore
 import boto3
+import time
 from packaging.version import Version
 
 import pytest
@@ -578,16 +579,17 @@ def test_oss_compliance(image):
             s3_object_path = f"{THIRD_PARTY_SOURCE_CODE_BUCKET_PATH}/{file_name}.tar.gz"
             local_file_path = os.path.join(local_repo_path, file_name)
 
-            try:
-                if not os.path.isdir(local_file_path):
-                    context.run(f"git clone {url.rstrip()} {local_file_path}")
-                    context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
-            except Exception as e:
-                sleep 3
-                context.run(f"git clone {url.rstrip()} {local_file_path}")
-                context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
-                LOGGER.error(f"Unable to clone git repo. Error: {e}")
-                raise
+            for i in range(3):
+                try:
+                    if not os.path.isdir(local_file_path):
+                        context.run(f"git clone {url.rstrip()} {local_file_path}")
+                        context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
+                except Exception as e:
+                    time.sleep(3)
+                    if i==2:
+                        LOGGER.error(f"Unable to clone git repo. Error: {e}")
+                        raise
+                    continue
 
             try:
                 if os.path.exists(f"{local_file_path}.tar.gz"):
