@@ -1,11 +1,11 @@
 [dev]
 # Set to "huggingface", for example, if you are a huggingface developer
-partner_developer = ""
-# Please only set it to True if you are preparing an EI related PR
-# Do remember to revert it back to False before merging any PR (including EI dedicated PR)
+partner_developer = "huggingface"
+# Please only set it to true if you are preparing an EI related PR
+# Do remember to revert it back to false before merging any PR (including EI dedicated PR)
 ei_mode = false
-# Please only set it to True if you are preparing an NEURON related PR
-# Do remember to revert it back to False before merging any PR (including NEURON dedicated PR)
+# Please only set it to true if you are preparing a NEURON related PR
+# Do remember to revert it back to false before merging any PR (including NEURON dedicated PR)
 neuron_mode = false
 benchmark_mode = false
 
