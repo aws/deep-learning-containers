@@ -211,7 +211,7 @@ def ec2_instance(
                 if instances:
                     break
             except ClientError as e:
-                LOGGER.error(f"Failed to launch in {a_zone} with Error: {e}")
+                LOGGER.error(f"Failed to launch in {a_zone} due to {e}")
                 continue
     else:
         try:

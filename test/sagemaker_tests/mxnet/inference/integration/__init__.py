@@ -37,10 +37,12 @@ NO_P2_REGIONS = [
     "cn-northwest-1",
     "eu-south-1",
     "af-south-1",
+    "ap-northeast-3",
 ]
 NO_P3_REGIONS = [
     "ap-northeast-1",
     "ap-northeast-2",
+    "ap-northeast-3",
     "ap-southeast-1",
     "ap-southeast-2",
     "ap-south-1",
@@ -58,6 +60,7 @@ NO_P3_REGIONS = [
     "af-south-1",
 ]
 NO_P4_REGIONS = [
+    "ap-northeast-3",
     "ap-southeast-1",
     "ap-southeast-2",
     "ap-south-1",
