@@ -49,15 +49,15 @@ def test_utility_packages_using_import(training):
 
     framework, image_framework_version = test_utils.get_framework_and_version_from_tag(training)
     if "mxnet" in framework:
-        if Version(image_framework_version) <= Version("1.8.0")
+        if Version(image_framework_version) <= Version("1.8.0"):
             pytest.skip("Extra utility packages will be added going forward")
 
     if "tensorflow" in framework:
-        if Version(image_framework_version) <= Version("2.4.0") or Version(image_framework_version) == Version("1.15")
+        if Version(image_framework_version) <= Version("2.4.0") or Version(image_framework_version) == Version("1.15"):
             pytest.skip("Extra utility packages will be added going forward")
 
     if "pytorch" in framework:
-        if Version(image_framework_version) <= Version("1.8.0")
+        if Version(image_framework_version) <= Version("1.7.1"):
             pytest.skip("Extra utility packages will be added going forward")
 
     package_list_cmd = "conda list" if "pytorch" in framework else "pip freeze"

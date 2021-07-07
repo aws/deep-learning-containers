@@ -49,6 +49,8 @@ RUN apt-get update \
     unzip \
     vim \
     zlib1g-dev \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
  && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
@@ -121,6 +123,15 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+
+# Install extra packages
+RUN pip install --no-cache-dir -U \
+    bokeh \
+    imageio \
+    opencv-python \
+    plotly \
+    seaborn \
+    shap
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
