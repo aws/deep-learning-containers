@@ -1,6 +1,6 @@
 [dev]
 # Set to "huggingface", for example, if you are a huggingface developer
-partner_developer = "huggingface"
+partner_developer = false
 # Please only set it to True if you are preparing an EI related PR
 # Do remember to revert it back to False before merging any PR (including EI dedicated PR)
 ei_mode = false
