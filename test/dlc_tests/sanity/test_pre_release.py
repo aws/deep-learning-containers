@@ -211,9 +211,12 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     # Record any whitelisted medium/low severity CVEs; I.E. allowed_vulnerabilities = {CVE-1000-5555, CVE-9999-9999}
     allowed_vulnerabilities = {
         # Those vulnerabilities are fixed. Current openssl version is 1.1.1g. These are false positive
-        'CVE-2016-2109', 'CVE-2016-2177', 'CVE-2016-6303', 'CVE-2016-2182',
+        "CVE-2016-2109",
+        "CVE-2016-2177",
+        "CVE-2016-6303",
+        "CVE-2016-2182",
         # CVE-2020-13936: vulnerability found in apache velocity package which is a dependency for dependency-check package. Hence, ignoring.
-        'CVE-2020-13936',
+        "CVE-2020-13936",
     }
 
     container_name = f"dep_check_{processor}"
@@ -241,7 +244,10 @@ def _run_dependency_check_test(image, ec2_connection, processor):
                 cve_url = f"https://services.nvd.nist.gov/rest/json/cve/1.0/{vulnerability}"
 
                 session = requests.Session()
-                session.mount('https://', requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[404, 504, 502])))
+                session.mount(
+                    "https://",
+                    requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[404, 504, 502])),
+                )
                 response = session.get(cve_url)
 
                 if response.status_code == 200:
@@ -251,7 +257,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
                         .get("CVE_Items", [{}])[0]
                         .get("impact", {})
                         .get("baseMetricV2", {})
-                        .get("severity", "UNKNOWN"))
+                        .get("severity", "UNKNOWN")
+                    )
             except ConnectionError:
                 LOGGER.exception(f"Failed to load NIST data for CVE {vulnerability}")
 
@@ -274,9 +281,10 @@ def _run_dependency_check_test(image, ec2_connection, processor):
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.skipif((is_canary_context() and not is_time_for_canary_safety_scan()),
-                    reason="Executing test in canaries pipeline during only a limited period of time."
-                    )
+@pytest.mark.skipif(
+    (is_canary_context() and not is_time_for_canary_safety_scan()),
+    reason="Executing test in canaries pipeline during only a limited period of time.",
+)
 def test_dependency_check_cpu(cpu, ec2_connection):
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
@@ -284,9 +292,10 @@ def test_dependency_check_cpu(cpu, ec2_connection):
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-@pytest.mark.skipif((is_canary_context() and not is_time_for_canary_safety_scan()),
-                    reason="Executing test in canaries pipeline during only a limited period of time."
-                    )
+@pytest.mark.skipif(
+    (is_canary_context() and not is_time_for_canary_safety_scan()),
+    reason="Executing test in canaries pipeline during only a limited period of time.",
+)
 def test_dependency_check_gpu(gpu, ec2_connection):
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
 
@@ -294,9 +303,10 @@ def test_dependency_check_gpu(gpu, ec2_connection):
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
-@pytest.mark.skipif((is_canary_context() and not is_time_for_canary_safety_scan()),
-                    reason="Executing test in canaries pipeline during only a limited period of time."
-                    )
+@pytest.mark.skipif(
+    (is_canary_context() and not is_time_for_canary_safety_scan()),
+    reason="Executing test in canaries pipeline during only a limited period of time.",
+)
 def test_dependency_check_neuron(neuron, ec2_connection):
     _run_dependency_check_test(neuron, ec2_connection, "neuron")
 
@@ -328,7 +338,7 @@ def test_pip_check(image):
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not (allowed_tf_exception.match(output.stdout) or allowed_smclarify_exception.match(output.stdout)) :
+        if not (allowed_tf_exception.match(output.stdout) or allowed_smclarify_exception.match(output.stdout)):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
@@ -358,11 +368,12 @@ def test_cuda_paths(gpu):
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
-        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(cpu|gpu|neuron)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)(-example)?)", image
+        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(cpu|gpu|neuron)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)(-example)?)",
+        image,
     ).group(1)
 
     # replacing '_' by '/' to handle huggingface_<framework> case
-    framework_path = framework.replace('_', '/')
+    framework_path = framework.replace("_", "/")
     framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_version)
     if not os.path.exists(framework_version_path):
         framework_short_version = re.match(r"(\d+.\d+)", framework_version).group(1)
@@ -400,7 +411,9 @@ def test_cuda_paths(gpu):
             raise
 
     image_properties_expected_in_dockerfile_path = [
-        framework_short_version or framework_version, short_python_version or python_version, cuda_version
+        framework_short_version or framework_version,
+        short_python_version or python_version,
+        cuda_version,
     ]
     assert all(prop in dockerfile_spec_abs_path for prop in image_properties_expected_in_dockerfile_path), (
         f"Dockerfile location {dockerfile_spec_abs_path} does not contain all the image properties in "
@@ -421,6 +434,7 @@ def _assert_artifact_free(output, stray_artifacts):
         assert not re.search(
             artifact, output.stdout
         ), f"Matched {artifact} in {output.stdout} while running {output.command}"
+
 
 @pytest.mark.integration("oss_compliance")
 @pytest.mark.model("N/A")
@@ -446,7 +460,7 @@ def test_oss_compliance(image):
     finally:
         context.run(f"docker rm -f {container_name}", hide=True)
 
-    s3_resource = boto3.resource('s3')
+    s3_resource = boto3.resource("s3")
 
     with open(os.path.join(local_repo_path, file)) as source_code_file:
         for line in source_code_file:
@@ -468,15 +482,21 @@ def test_oss_compliance(image):
                     LOGGER.info(f"Uploading package to s3 bucket: {line}")
                     s3_resource.Object(THIRD_PARTY_SOURCE_CODE_BUCKET, s3_object_path).load()
             except botocore.exceptions.ClientError as e:
-                if e.response['Error']['Code'] == "404":
+                if e.response["Error"]["Code"] == "404":
                     try:
                         # using aws cli as using boto3 expects to upload folder by iterating through each file instead of entire folder.
-                        context.run(f"aws s3 cp {local_file_path}.tar.gz s3://{THIRD_PARTY_SOURCE_CODE_BUCKET}/{s3_object_path}")
+                        context.run(
+                            f"aws s3 cp {local_file_path}.tar.gz s3://{THIRD_PARTY_SOURCE_CODE_BUCKET}/{s3_object_path}"
+                        )
                         object = s3_resource.Bucket(THIRD_PARTY_SOURCE_CODE_BUCKET).Object(s3_object_path)
-                        object.Acl().put(ACL='public-read')
+                        object.Acl().put(ACL="public-read")
                     except ClientError as e:
-                        LOGGER.error(f"Unable to upload source code to bucket {THIRD_PARTY_SOURCE_CODE_BUCKET}. Error: {e}")
+                        LOGGER.error(
+                            f"Unable to upload source code to bucket {THIRD_PARTY_SOURCE_CODE_BUCKET}. Error: {e}"
+                        )
                         raise
                 else:
-                    LOGGER.error(f"Unable to check if source code is present on bucket {THIRD_PARTY_SOURCE_CODE_BUCKET}. Error: {e}")
+                    LOGGER.error(
+                        f"Unable to check if source code is present on bucket {THIRD_PARTY_SOURCE_CODE_BUCKET}. Error: {e}"
+                    )
                     raise

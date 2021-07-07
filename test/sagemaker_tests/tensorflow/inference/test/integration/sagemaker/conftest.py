@@ -24,6 +24,7 @@ from botocore.exceptions import ClientError
 
 # these regions have some p2 and p3 instances, but not enough for automated testing
 NO_P2_REGIONS = [
+    "ap-northeast-3",
     "ca-central-1",
     "eu-central-1",
     "eu-west-2",
@@ -40,6 +41,7 @@ NO_P2_REGIONS = [
 NO_P3_REGIONS = [
     "ap-northeast-1",
     "ap-northeast-2",
+    "ap-northeast-3",
     "ap-southeast-1",
     "ap-southeast-2",
     "ap-south-1",
@@ -57,6 +59,7 @@ NO_P3_REGIONS = [
     "af-south-1",
 ]
 NO_P4_REGIONS = [
+    "ap-northeast-3",
     "ap-southeast-1",
     "ap-southeast-2",
     "ap-south-1",
