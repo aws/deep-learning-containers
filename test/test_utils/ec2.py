@@ -454,11 +454,13 @@ def execute_ec2_training_test(
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
     network = '--network="host" ' if host_network else ""
+    print(f"{docker_cmd} run --name {container_name} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {shm_setting} -itd {ecr_uri})
     connection.run(
         f"{docker_cmd} run --name {container_name} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
         f" {shm_setting} -itd {ecr_uri}",
         hide=True,
     )
+    print(f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'")
     return connection.run(
         f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'", hide=True, timeout=timeout,
     )
