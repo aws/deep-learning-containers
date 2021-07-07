@@ -2,16 +2,13 @@ import argparse
 import logging
 import sys
 
-import toml
+from . import DLC_DEVELOPER_CONFIG, parse_dlc_developer_configs
 
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
-
-
-PARTNER_TOML = "dlc_developer_config.toml"
 
 
 def get_args():
@@ -21,22 +18,18 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--partner_toml",
-        default=PARTNER_TOML,
+        default=DLC_DEVELOPER_CONFIG,
         help="TOML file with partner developer information",
     )
     return parser.parse_args()
 
 
-def parse_partner_toml(partner_toml):
-    partners = toml.load(partner_toml)
-    partner_dev = partners.get("dev", {}).get("partner_developer")
-    if partner_dev:
-        LOGGER.info(f"PARTNER_DEVELOPER: {partner_dev.upper()}")
-
-
 def main():
     args = get_args()
-    parse_partner_toml(args.partner_toml)
+    partner_dev = parse_dlc_developer_configs("dev", "partner_developer", tomlfile=args.partner_toml)
+
+    if partner_dev:
+        LOGGER.info(f"PARTNER_DEVELOPER: {partner_dev.upper()}")
 
 
 if __name__ == "__main__":

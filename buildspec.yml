@@ -12,7 +12,7 @@ phases:
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - pip install -r src/requirements.txt
       - bash src/setup.sh $FRAMEWORK
-      - python parse_partner_developers.py
+      - python src/config/parse_partner_developers.py
   build:
     commands:
       - echo Build started on `date`
