@@ -583,6 +583,9 @@ def test_oss_compliance(image):
                     context.run(f"git clone {url.rstrip()} {local_file_path}")
                     context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
             except Exception as e:
+                sleep 3
+                context.run(f"git clone {url.rstrip()} {local_file_path}")
+                context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
                 LOGGER.error(f"Unable to clone git repo. Error: {e}")
                 raise
 

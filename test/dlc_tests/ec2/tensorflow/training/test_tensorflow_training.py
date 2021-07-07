@@ -84,7 +84,8 @@ def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2
         connection=ec2_connection,
         ecr_uri=tensorflow_training,
         test_cmd=test_script,
-        large_shm=bool(re.match(r"(p2\.8xlarge)|(g3\.16xlarge)", ec2_instance_type))
+        large_shm=bool(re.match(r"(p2\.8xlarge)|(g3\.16xlarge)", ec2_instance_type)),
+        host_network=True
     )
 
 
@@ -97,7 +98,7 @@ def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_on
     test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
     try:
         execute_ec2_training_test(
-            ec2_connection, tensorflow_training, test_script, container_name=container_name, timeout=1800
+            ec2_connection, tensorflow_training, test_script, container_name=container_name, timeout=1800, host_network=True
         )
     except Exception as e:
         debug_output = ec2_connection.run(f"docker logs {container_name}")
