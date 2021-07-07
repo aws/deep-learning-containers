@@ -19,7 +19,7 @@ def test_developer_configuration():
     dev_config_contents = toml.load(dev_config)
 
     # Check dev settings
-    assert _get_option(dev_config_contents, "dev", "partner_developer") is False
+    assert _get_option(dev_config_contents, "dev", "partner_developer") == ""
     assert _get_option(dev_config_contents, "dev", "ei_mode") is False
     assert _get_option(dev_config_contents, "dev", "neuron_mode") is False
     assert _get_option(dev_config_contents, "dev", "benchmark_mode") is False
