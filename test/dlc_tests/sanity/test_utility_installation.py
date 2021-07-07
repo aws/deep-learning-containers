@@ -11,7 +11,7 @@ UTILITY_PACKAGES_IMPORT = [
     "imageio",
     "plotly",
     "seaborn",
-    "shap"
+    "shap",
     "sagemaker",
     "pandas",
     "cv2"
