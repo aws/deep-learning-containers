@@ -125,11 +125,12 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \
-    bokeh \
-    imageio \
-    plotly \
-    seaborn \
-    shap
+   "bokeh>=2.3,<3" \
+   "imageio>=2.9,<3" \
+   "opencv-python>=4.3,<5" \
+   "plotly>=5.1,<6" \
+   "seaborn>=0.11,<1" \
+   "shap>=0.39,<1"
 
 # Install PT S3 plugin
 RUN pip install -U ${PT_S3_WHL}

@@ -39,7 +39,7 @@ def test_awscli(mxnet_inference):
 @pytest.mark.integration("bokeh")
 def test_utility_packages_using_import(training):
     """
-    Verify that bokeh is installed in the Training DLC image
+    Verify that utility packages are installed in the Training DLC image
 
     :param training: training ECR image URI
     """
@@ -48,23 +48,18 @@ def test_utility_packages_using_import(training):
     test_utils.start_container(container_name, training, ctx)
 
     framework, image_framework_version = test_utils.get_framework_and_version_from_tag(training)
-    if "mxnet" in framework:
-        if Version(image_framework_version) <= Version("1.8.0"):
-            pytest.skip("Extra utility packages will be added going forward")
-
-    if "tensorflow" in framework:
-        if Version(image_framework_version) <= Version("2.4.0") or Version(image_framework_version) == Version("1.15"):
-            pytest.skip("Extra utility packages will be added going forward")
-
-    if "pytorch" in framework:
-        if Version(image_framework_version) <= Version("1.7.1"):
-            pytest.skip("Extra utility packages will be added going forward")
-
-    package_list_cmd = "conda list" if "pytorch" in framework else "pip freeze"
+    utility_package_minimum_framework_version = {
+        "mxnet": "1.8",
+        "pytorch": "1.7",
+        "tensorflow2": "2.4",
+        "tensorflow1": "1.15",
+    }
+    framework, framework_version = get_framework_and_version_from_tag(image)
+    framework = "tensorflow1" if framework == "tensorflow" and framework_version.startswith("1.") else "tensorflow2"
+    if Version(framework_version) < Version(utility_package_minimum_framework_version[framework]):
+        pytest.skip("Extra utility packages will be added going forward.")
     
     for package in UTILITY_PACKAGES_IMPORT:
-        if Version(image_framework_version) == Version("1.5.0") and package == "sagemaker":
-            pytest.skip("sagemaker version < 2.0 is installed for PT 1.5.0 images")
         version = test_utils.run_cmd_on_container(container_name, ctx, f"import {package}; print({package}.__version__)", executable="python").stdout.strip()
         if package == "sagemaker":
             assert Version(version) > Version("2"), f"Sagemaker version should be > 2.0. Found version {sm_version}"
