@@ -216,7 +216,7 @@ class TestReportGenerator:
                 ctx.run(f"virtualenv {venv}")
                 with ctx.prefix(f"source {os.path.join(venv, 'bin', 'activate')}"):
                     ctx.run("pip install -r requirements.txt", warn=True)
-                    alt_root_dir = ctx.run("git rev-parse --show-toplevel", hide=True).stdout.strip()
+                    alt_root_dir = ctx.run("git rev-parse --show-toplevel", hide=True, warn=True).stdout.strip()
                     test_reqs = os.path.join(os.getenv("CODEBUILD_SRC_DIR", alt_root_dir), "test", "requirements.txt")
                     ctx.run(f"pip install -r {test_reqs}", warn=True)
 

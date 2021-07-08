@@ -7,7 +7,7 @@ from invoke.context import Context
 
 def get_dlc_developer_config_path():
     ctx = Context()
-    alt_root_dir = ctx.run("git rev-parse --show-toplevel", hide=True).stdout.strip()
+    alt_root_dir = ctx.run("git rev-parse --show-toplevel", hide=True, warn=True).stdout.strip()
 
     return os.path.join(os.getenv("CODEBUILD_SRC_DIR", alt_root_dir), "dlc_developer_config.toml")
 
