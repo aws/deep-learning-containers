@@ -1,12 +1,12 @@
 import json
 import os
 import re
-import packaging
 
 import boto3
 import pytest
 
 from test import test_utils
+from packaging.version import Version
 
 
 @pytest.mark.integration("dlc_major_version_label")
@@ -75,7 +75,7 @@ def test_dlc_major_version_dockerfiles(image):
         reference_fw = "tensorflow2"
     else:
         reference_fw = framework
-    if processor != "eia" and packaging.version.parse(fw_version) < packaging.version.parse(references[reference_fw]):
+    if (reference_fw in references and Version(fw_version) < Version(references[reference_fw])):
         pytest.skip(
             f"Not enforcing new versioning scheme on old image {image}. "
             f"Started enforcing version scheme on the following: {references}"

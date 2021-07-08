@@ -162,6 +162,10 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
     rule = re.findall(rf"{pattern}", files)
     for dockerfile in rule:
         dockerfile = dockerfile.split("/")
+        if dockerfile[0] == "huggingface":
+            # HuggingFace related files stored in huggingface/<framework> directories
+            # Joining 1 and 2 elements to get huggingface_<framework> as a first element
+            dockerfile = [f"{dockerfile[0]}_{dockerfile[1]}"]+dockerfile[2:]
         framework_change = dockerfile[0]
 
         # If the modified dockerfile belongs to a different
@@ -192,7 +196,12 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
     """
     rule = re.findall(rf"{pattern}", files)
     for buildspec in rule:
-        buildspec_framework = buildspec.split("/")[0]
+        buildspec_arr = buildspec.split("/")
+        if buildspec_arr[0] == "huggingface":
+            # HuggingFace related files stored in huggingface/<framework> directories
+            # Joining 1 and 2 elements to get huggingface_<framework> as a first element
+            buildspec_arr = [f"{buildspec_arr[0]}_{buildspec_arr[1]}"]+buildspec_arr[2:]
+        buildspec_framework = buildspec_arr[0]
         if buildspec_framework == framework:
             JobParameters.build_for_all_images()
             update_image_run_test_types(constants.ALL, constants.ALL)

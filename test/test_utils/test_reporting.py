@@ -101,7 +101,7 @@ class TestReportGenerator:
         """
 
         # Define conditions where we allow a test function to run with a single gpu instance
-        whitelist_single_gpu = False
+        allowlist_single_gpu = False
         allowed_single_gpu = self.ALLOWED_SINGLE_GPU_TESTS
 
         # Regex in order to determine the gpu instance type
@@ -114,11 +114,11 @@ class TestReportGenerator:
 
             for test in allowed_single_gpu:
                 if test in function_key:
-                    whitelist_single_gpu = True
+                    allowlist_single_gpu = True
                     break
             if num_gpus == 1:
                 processor = "single_gpu"
-                if not whitelist_single_gpu:
+                if not allowlist_single_gpu:
                     single_gpu_failure_message = (
                         f"Function uses single-gpu instance type {instance_type}. Please use multi-gpu instance type "
                         f"or add test to ALLOWED_SINGLE_GPU_TESTS. "

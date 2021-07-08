@@ -17,9 +17,10 @@ import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
 from test.test_utils import (
-    is_benchmark_dev_context, get_framework_and_version_from_tag, get_job_type_from_image, is_tf_version, is_below_tf_version,
+    is_benchmark_dev_context, get_framework_and_version_from_tag, get_job_type_from_image, is_tf_version,
+    is_below_framework_version,
     DEFAULT_REGION, P3DN_REGION, UBUNTU_18_BASE_DLAMI_US_EAST_1, UBUNTU_18_BASE_DLAMI_US_WEST_2,
-    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, KEYS_TO_DESTROY_FILE
+    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1, KEYS_TO_DESTROY_FILE, are_efa_tests_disabled
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -45,7 +46,14 @@ FRAMEWORK_FIXTURES = (
     "mxnet_inference_eia",
     "tensorflow_inference_eia",
     "tensorflow_inference_neuron",
-    "pytorch_inference_neuron"
+    "pytorch_inference_neuron",
+    "mxnet_inference_neuron",
+    "huggingface_tensorflow_training",
+    "huggingface_pytorch_training",
+    "huggingface_mxnet_training",
+    "huggingface_tensorflow_inference",
+    "huggingface_pytorch_inference",
+    "huggingface_mxnet_inference",
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -65,6 +73,9 @@ def pytest_addoption(parser):
     )
     parser.addoption(
         "--multinode", action="store_true", default=False, help="Run only multi-node tests",
+    )
+    parser.addoption(
+        "--efa", action="store_true", default=False, help="Run only efa tests",
     )
 
 
@@ -94,6 +105,11 @@ def docker_client(region):
 @pytest.fixture(scope="session")
 def ecr_client(region):
     return boto3.client("ecr", region_name=region)
+
+
+@pytest.fixture(scope="session")
+def sts_client(region):
+    return boto3.client("sts", region_name=region)
 
 
 @pytest.fixture(scope="session")
@@ -160,7 +176,7 @@ def ec2_instance(
         "MaxCount": 1,
         "MinCount": 1,
     }
-    extra_volume_size_mapping = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300,}}]
+
     if (
         ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
         and (
@@ -172,7 +188,11 @@ def ec2_instance(
         and "gpu_only" in request.fixturenames
         and "horovod" in ec2_key_name
     ):
-        params["BlockDeviceMappings"] = extra_volume_size_mapping
+        params["BlockDeviceMappings"] = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 300,}}]
+    else:
+        # Using private AMI, the EBS volume size is reduced to 28GB as opposed to 50GB from public AMI. This leads to space issues on test instances
+        # TODO: Revert the configuration once DLAMI is public
+        params["BlockDeviceMappings"] = [{"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 90,}}]
     if ei_accelerator_type:
         params["ElasticInferenceAccelerators"] = [
             {
@@ -191,7 +211,7 @@ def ec2_instance(
                 if instances:
                     break
             except ClientError as e:
-                LOGGER.error(f"Failed to launch in {a_zone} with Error: {e}")
+                LOGGER.error(f"Failed to launch in {a_zone} due to {e}")
                 continue
     else:
         try:
@@ -272,6 +292,11 @@ def pull_images(docker_client, dlc_images):
 
 
 @pytest.fixture(scope="session")
+def non_huggingface_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def cpu_only():
     pass
 
@@ -302,7 +327,17 @@ def example_only():
 
 
 @pytest.fixture(scope="session")
+def huggingface_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def tf2_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def tf23_and_above_only():
     pass
 
 
@@ -316,7 +351,32 @@ def tf21_and_above_only():
     pass
 
 
-def tf_version_within_limit(metafunc_obj, image):
+@pytest.fixture(scope="session")
+def mx18_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def pt17_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def pt16_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def pt15_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def pt14_and_above_only():
+    pass
+
+
+def framework_version_within_limit(metafunc_obj, image):
     """
     Test all pytest fixtures for TensorFlow version limits, and return True if all requirements are satisfied
 
@@ -324,11 +384,25 @@ def tf_version_within_limit(metafunc_obj, image):
     :param image: Image URI for which the validation must be performed
     :return: True if all validation succeeds, else False
     """
-    tf2_requirement_failed = "tf2_only" in metafunc_obj.fixturenames and not is_tf_version("2", image)
-    tf24_requirement_failed = "tf24_and_above_only" in metafunc_obj.fixturenames and is_below_tf_version("2.4", image)
-    tf21_requirement_failed = "tf21_and_above_only" in metafunc_obj.fixturenames and is_below_tf_version("2.1", image)
-    if tf2_requirement_failed or tf21_requirement_failed or tf24_requirement_failed:
-        return False
+    image_framework_name, _ = get_framework_and_version_from_tag(image)
+    if image_framework_name == "tensorflow" :
+        tf2_requirement_failed = "tf2_only" in metafunc_obj.fixturenames and not is_tf_version("2", image)
+        tf24_requirement_failed = "tf24_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("2.4", image, "tensorflow")
+        tf23_requirement_failed = "tf23_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("2.3", image, "tensorflow")
+        tf21_requirement_failed = "tf21_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("2.1", image, "tensorflow")
+        if tf2_requirement_failed or tf21_requirement_failed or tf24_requirement_failed or tf23_requirement_failed :
+            return False
+    if image_framework_name == "mxnet" :
+        mx18_requirement_failed = "mx18_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.8", image, "mxnet")
+        if mx18_requirement_failed :
+            return False
+    if image_framework_name == "pytorch" :
+        pt17_requirement_failed = "pt17_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.7", image, "pytorch")
+        pt16_requirement_failed = "pt16_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.6", image, "pytorch")
+        pt15_requirement_failed = "pt15_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.5", image, "pytorch")
+        pt14_requirement_failed = "pt14_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.4", image, "pytorch")
+        if pt17_requirement_failed or pt16_requirement_failed or pt15_requirement_failed or pt14_requirement_failed:
+            return False
     return True
 
 
@@ -339,6 +413,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
     config.addinivalue_line("markers", "processor(cpu/gpu/eia): explicitly mark which processor is used")
+    config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
 
 def pytest_runtest_setup(item):
@@ -350,6 +425,10 @@ def pytest_runtest_setup(item):
         multinode_opts = [mark for mark in item.iter_markers(name="multinode")]
         if not multinode_opts:
             pytest.skip("Skipping non-multinode tests")
+    if item.config.getoption("--efa"):
+        efa_tests = [mark for mark in item.iter_markers(name="efa")]
+        if not efa_tests:
+            pytest.skip("Skipping non-efa tests")
 
 
 def pytest_collection_modifyitems(session, config, items):
@@ -370,7 +449,13 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
     :return: <dict> Mapping of "Fixture to be parametrized" -> "Unique values for fixture to be parametrized"
     """
     job_type_map = {"training": "tr", "inference": "inf"}
-    framework_name_map = {"tensorflow": "tf", "mxnet": "mx", "pytorch": "pt"}
+    framework_name_map = {
+        "tensorflow": "tf",
+        "mxnet": "mx",
+        "pytorch": "pt",
+        "huggingface_pytorch": "hf-pt",
+        "huggingface_tensorflow": "hf-tf",
+    }
     fixtures_parametrized = {}
 
     if images_to_parametrize:
@@ -417,20 +502,31 @@ def pytest_generate_tests(metafunc):
             for image in images:
                 if lookup in image:
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
-                    is_standard_lookup = "example_only" not in metafunc.fixturenames and "example" not in image
-                    if not tf_version_within_limit(metafunc, image):
+                    is_huggingface_lookup = "huggingface_only" in metafunc.fixturenames and "huggingface" in image
+                    is_standard_lookup = (
+                        all(
+                            fixture_name not in metafunc.fixturenames
+                            for fixture_name in ["example_only", "huggingface_only"]
+                        )
+                        and all(keyword not in image for keyword in ["example", "huggingface"])
+                    )
+                    if not framework_version_within_limit(metafunc, image):
                         continue
-                    if is_example_lookup or is_standard_lookup:
+                    if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
+                        continue
+                    if is_example_lookup or is_huggingface_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
                         elif "eia_only" in metafunc.fixturenames and "eia" in image:
                             images_to_parametrize.append(image)
-                        elif ("cpu_only" not in metafunc.fixturenames and "gpu_only" not in metafunc.fixturenames
-                              and "eia_only" not in metafunc.fixturenames):
-                            images_to_parametrize.append(image)
                         elif "neuron_only" in metafunc.fixturenames and "neuron" in image:
+                            images_to_parametrize.append(image)
+                        elif ("cpu_only" not in metafunc.fixturenames and
+                              "gpu_only" not in metafunc.fixturenames and
+                              "eia_only" not in metafunc.fixturenames and
+                              "neuron_only" not in metafunc.fixturenames):
                             images_to_parametrize.append(image)
 
             # Remove all images tagged as "py2" if py3_only is a fixture
@@ -455,3 +551,23 @@ def pytest_generate_tests(metafunc):
     # Parametrize for framework agnostic tests, i.e. sanity
     if "image" in metafunc.fixturenames:
         metafunc.parametrize("image", images)
+
+
+@pytest.fixture(autouse=True)
+def skip_efa_tests(request):
+    efa_tests = [mark for mark in request.node.iter_markers(name="efa")]
+
+    if efa_tests and are_efa_tests_disabled():
+        pytest.skip('Skipping EFA tests as EFA tests are disabled.')
+
+
+@pytest.fixture(autouse=True)
+def disable_test(request):
+    test_name = request.node.name
+    # We do not have a regex pattern to find CB name, which means we must resort to string splitting
+    build_arn = os.getenv("CODEBUILD_BUILD_ARN")
+    build_name = build_arn.split("/")[-1].split(":")[0] if build_arn else None
+    version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+
+    if test_utils.is_test_disabled(test_name, build_name, version):
+        pytest.skip(f"Skipping {test_name} test because it has been disabled.")

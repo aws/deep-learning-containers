@@ -3,6 +3,8 @@ import os
 import subprocess
 import random
 import re
+import boto3
+from botocore.config import Config
 from time import sleep
 
 import invoke
@@ -16,7 +18,9 @@ from test_utils import (
     destroy_ssh_keypair,
     generate_ssh_keypair,
     get_framework_and_version_from_tag,
-    get_job_type_from_image
+    get_job_type_from_image,
+    get_python_invoker,
+    is_pr_context,
 )
 
 from test_utils import (
@@ -110,6 +114,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     docker_base_arg = "--docker-base-name"
     instance_type_arg = "--instance-type"
     accelerator_type_arg = "--accelerator-type"
+    framework_version_arg = "--framework-version"
     eia_arg = "ml.eia1.large"
     processor = "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
     py_version = re.search(r"py\d+", tag).group()
@@ -126,6 +131,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             aws_id_arg = "--registry"
             docker_base_arg = "--repo"
             instance_type_arg = "--instance-types"
+            framework_version_arg = "--versions"
             integration_path = os.path.join(integration_path, "test_tfs.py") if processor != "eia" else os.path.join(integration_path, "test_ei.py")
 
     if framework == "tensorflow" and job_type == "training":
@@ -133,18 +139,30 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     test_report = os.path.join(os.getcwd(), "test", f"{job_type}_{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
-    is_py3 = " python3 -m "
+
+    # Explanation of why we need the if-condition below:
+    # We have separate Pipeline Actions that run EFA tests, which have the env variable "EFA_DEDICATED=True" configured
+    # so that those Actions only run the EFA tests.
+    # However, there is no such dedicated CB job dedicated to EFA tests in the PR context. This means that when in the
+    # PR context, setting "DISABLE_EFA_TESTS" to True should skip EFA tests, but setting it to False should enable
+    # not just the EFA tests, but also all other tests as well.
+    if is_pr_context():
+        efa_tests_disabled = os.getenv("DISABLE_EFA_TESTS", "False").lower() == "true"
+        efa_flag = "-m \"not efa\"" if efa_tests_disabled else ""
+    else:
+        efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
+        efa_flag = '--efa' if efa_dedicated else '-m \"not efa\"'
 
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
-        f"{sm_remote_docker_base_name} --tag {tag} --framework-version {framework_version} "
-        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} --junitxml {test_report}"
+        f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
+        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} --junitxml {test_report}"
     )
 
     if processor == "eia" :
         remote_pytest_cmd += (f" {accelerator_type_arg} {eia_arg}")
 
-    local_pytest_cmd = (f"{is_py3} pytest -v {integration_path} {docker_base_arg} "
+    local_pytest_cmd = (f"pytest -s -v {integration_path} {docker_base_arg} "
                         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
                         f"--processor {processor} {aws_id_arg} {account_id} --junitxml {local_test_report}")
 
@@ -152,6 +170,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         local_pytest_cmd = f"{local_pytest_cmd} --py-version {sm_local_py_version} --region {region}"
     if framework == "tensorflow" and job_type == "training":
         path = os.path.join(os.path.dirname(path), f"{framework}{framework_major_version}_training")
+    if "huggingface" in framework and job_type == "inference":
+        path = os.path.join("test", "sagemaker_tests", "huggingface", "inference")
 
     return (
         remote_pytest_cmd if sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE else local_pytest_cmd,
@@ -161,21 +181,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
-def install_custom_python(python_version, ec2_conn):
-    """
-    Install python 3.6 on Ubuntu 16 AMI.
-    Test files for tensorflow inference require python version > 3.6
-    :param python_version:
-    :param ec2_conn:
-    :return:
-    """
-    ec2_conn.run("sudo add-apt-repository ppa:deadsnakes/ppa -y && sudo apt-get update")
-    ec2_conn.run(f"sudo apt-get install python{python_version} -y ")
-    ec2_conn.run(f"wget https://bootstrap.pypa.io/get-pip.py && sudo python{python_version} get-pip.py")
-    ec2_conn.run(f"sudo ln -sf /usr/bin/python3.6 /usr/bin/python3")
-
-
-def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
+def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_instance_ami):
     """
     Install sagemaker local test dependencies
     :param framework: str
@@ -184,20 +190,16 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn):
     :param ec2_conn: Fabric_obj
     :return: None
     """
+    python_invoker = get_python_invoker(ec2_instance_ami)
     # Install custom packages which need to be latest version"
-    is_py3 = " python3 -m"
     # using virtualenv to avoid package conflicts with the current packages
     ec2_conn.run(f"sudo apt-get install virtualenv -y ")
-    if framework == "tensorflow" and job_type == "inference":
-        # TF inference test fail if run as soon as instance boots, even after health check pass. rootcause:
-        # sockets?/nginx startup?/?
-        install_custom_python("3.6", ec2_conn)
-    ec2_conn.run(f"virtualenv env")
+    ec2_conn.run(f"virtualenv env --python {python_invoker}")
     ec2_conn.run(f"source ./env/bin/activate")
     if framework == "pytorch":
         # The following distutils package conflict with test dependencies
         ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
-    ec2_conn.run(f"sudo {is_py3} pip install -r requirements.txt ", warn=True)
+    ec2_conn.run(f"sudo {python_invoker} -m pip install -r requirements.txt ", warn=True)
 
 
 def kill_background_processes_and_run_apt_get_update(ec2_conn):
@@ -236,19 +238,20 @@ def kill_background_processes_and_run_apt_get_update(ec2_conn):
     return
 
 
-def execute_local_tests(image, ec2_client):
+def execute_local_tests(image):
     """
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
-    :param ec2_client: boto3_obj
     :return: None
     """
+    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
     print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
+    ec2_ami_id = UBUNTU_18_BASE_DLAMI_US_EAST_1 if region == "us-east-1" else UBUNTU_18_BASE_DLAMI_US_WEST_2
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     try:
@@ -256,7 +259,7 @@ def execute_local_tests(image, ec2_client):
         print(f"Launching new Instance for image: {image}")
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(
             image,
-            UBUNTU_18_BASE_DLAMI_US_EAST_1 if region == "us-east-1" else UBUNTU_18_BASE_DLAMI_US_WEST_2,
+            ec2_ami_id,
             ec2_key_name,
             region
         )
@@ -274,7 +277,7 @@ def execute_local_tests(image, ec2_client):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
-            install_sm_local_dependencies(framework, job_type, image, ec2_conn)
+            install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id)
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
             if framework == "mxnet" and job_type == "training" and "cpu" in image:

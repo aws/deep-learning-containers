@@ -24,6 +24,7 @@ from test_utils import (
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
     setup_sm_benchmark_mx_train_env,
+    setup_sm_benchmark_hf_infer_env,
     get_framework_and_version_from_tag,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
@@ -43,12 +44,17 @@ def run_sagemaker_local_tests(images):
         return
     # Run sagemaker Local tests
     framework, _ = get_framework_and_version_from_tag(images[0])
-    sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
+    sm_tests_path = (
+        os.path.join("test", "sagemaker_tests", framework)
+        if "huggingface" not in framework
+        else os.path.join("test", "sagemaker_tests", "huggingface*")
+    )
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
-    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
-    for image in images:
-        sm_utils.execute_local_tests(image, ec2_client)
+
+    pool_number = len(images)
+    with Pool(pool_number) as p:
+        p.map(sm_utils.execute_local_tests, images)
 
 
 def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
@@ -189,7 +195,11 @@ def pull_dlc_images(images):
 
 
 def setup_eks_cluster(framework_name, is_neuron):
-    frameworks = {"tensorflow": "tf", "pytorch": "pt", "mxnet": "mx"}
+    frameworks = {
+        "tensorflow": "tf",
+        "mxnet": "mx",
+        "pytorch": "pt",
+    }
     long_name = framework_name
     short_name = frameworks[long_name]
     codebuild_version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")[0:7]
@@ -200,21 +210,45 @@ def setup_eks_cluster(framework_name, is_neuron):
     try:
         eks_utils.eks_setup()
         if is_neuron:
-            #TODO the eks AMI used for neuron has a snapshot size of 500GB, if we pass the default 80GB the cluster 
-            #creation will fail. Once official EKS AMI for neuron 1.1 is released, revert this change.
-            volume_size = 500
-            eks_utils.create_eks_cluster(cluster_name, "neuron", num_nodes, volume_size, "inf1.xlarge", "pytest.pem")
+            eks_utils.create_eks_cluster(cluster_name, num_nodes, volume_size, "inf1.xlarge", "pytest.pem")
         else:
-            eks_utils.create_eks_cluster(cluster_name, "gpu", num_nodes, volume_size, "p3.16xlarge", "pytest.pem")
+            eks_utils.create_eks_cluster(cluster_name, num_nodes, volume_size, "p3.16xlarge", "pytest.pem")
     except Exception:
         eks_utils.delete_eks_cluster(cluster_name)
         raise
     return cluster_name
 
+def configure_eks_cluster(eks_cluster_name):
+    """ Function to configure EKS cluster
+    1. Attach IAM permissions on EKS nodegroup IAM role
+    2. Setup SSM agent on EKS cluster
+    """
+    ATTACH_IAM_POLICY="attach"
+    eks_utils.manage_iam_permissions_nodegroup(eks_cluster_name, ATTACH_IAM_POLICY)
+    eks_utils.setup_ssm_agent()
+
+def delete_eks_cluster(eks_cluster_name, is_neuron):
+    """ Function to delete EKS cluster
+    1. Detach IAM permissions from EKS nodegroup IAM role
+    2. Delete OIDC provider created by kubeflow
+    3. Delete the EKS cluster
+    """
+    DETACH_IAM_POLICY="detach"
+    eks_utils.manage_iam_permissions_nodegroup(eks_cluster_name, DETACH_IAM_POLICY)
+
+    # Delete OIDC provider on EKS cluster other than neuron as kubeflow is not being installed
+    if not is_neuron:
+        eks_utils.delete_oidc_provider(eks_cluster_name)
+
+    eks_utils.delete_eks_cluster(eks_cluster_name)
+
 
 def setup_sm_benchmark_env(dlc_images, test_path):
     # The plan is to have a separate if/elif-condition for each type of image
-    if "tensorflow-training" in dlc_images:
+    if re.search(r"huggingface-(tensorflow|pytorch|mxnet)-inference", dlc_images):
+        resources_location = os.path.join(test_path, "huggingface", "inference", "resources")
+        setup_sm_benchmark_hf_infer_env(resources_location)
+    elif "tensorflow-training" in dlc_images:
         tf1_images_in_list = re.search(r"tensorflow-training:(^ )*1(\.\d+){2}", dlc_images) is not None
         tf2_images_in_list = re.search(r"tensorflow-training:(^ )*2(\.\d+){2}", dlc_images) is not None
         resources_location = os.path.join(test_path, "tensorflow", "training", "resources")
@@ -254,6 +288,7 @@ def main():
     # Define constants
     start_time = datetime.now()
     test_type = os.getenv("TEST_TYPE")
+    efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
     LOGGER.info(f"Images tested: {dlc_images}")
@@ -265,6 +300,14 @@ def main():
     benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
+
+    # Skipping non HuggingFace specific tests to execute only sagemaker tests
+    if any("huggingface" in image_uri for image_uri in all_image_list) and \
+            specific_test_type in ("ecs", "ec2", "eks", "bai"):
+        # Creating an empty file for because codebuild job fails without it
+        report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+        sm_utils.generate_empty_report(report, test_type, "huggingface")
+        return
 
     if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary", "bai"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
@@ -294,6 +337,7 @@ def main():
             framework = frameworks_in_images[0]
             is_neuron = "neuron" in dlc_images
             eks_cluster_name = setup_eks_cluster(framework, is_neuron)
+            configure_eks_cluster(eks_cluster_name)
 
             if not is_neuron:
                 # setup kubeflow
@@ -358,6 +402,8 @@ def main():
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
+
+
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
             if all([status == 0 for status in cmd_exit_statuses]):
                 sys.exit(0)
@@ -365,20 +411,13 @@ def main():
                 raise RuntimeError(pytest_cmds)
         finally:
             if specific_test_type == "eks" and eks_cluster_name:
-                eks_utils.delete_eks_cluster(eks_cluster_name)
+                delete_eks_cluster(eks_cluster_name, is_neuron)
 
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
 
     elif specific_test_type == "sagemaker":
-        # Skipping flaky TF 2.3.1 cu11 tests. Should be reverted.
-        if "2.3.1-gpu-py37-cu110" in dlc_images:
-            LOGGER.info(f"Skipping sagemaker TF2.3.1 cu11 tests. Images: {dlc_images}")
-            # Creating an empty file for because codebuild job fails without it
-            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-            sm_utils.generate_empty_report(report, test_type, "2.3.1-gpu-py37-cu110")
-            return
         if "neuron" in dlc_images:
             LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
             # Creating an empty file for because codebuild job fails without it
@@ -391,6 +430,8 @@ def main():
 
             setup_sm_benchmark_env(dlc_images, test_path)
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
+            if not is_pr_context():
+                pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
             sys.exit(pytest.main(pytest_cmd))
 
         else:
