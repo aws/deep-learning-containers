@@ -42,7 +42,7 @@ def timeout_handler(signum, frame):
 
 
 @pytest.mark.model("bert-base-uncased-pt")
-def test_sm_pytorch_trained_model_bert_base_uncased_cpu(huggingface_pytorch_inference):
+def test_sm_pytorch_trained_model_bert_base_uncased_cpu(huggingface_pytorch_inference, huggingface_only):
     framework = "pytorch"
     device = test_utils.get_processor_from_image_uri(huggingface_pytorch_inference)
     instance_type = "ml.p2.xlarge" if device == "gpu" else "ml.m5.xlarge"
@@ -56,7 +56,7 @@ def test_sm_pytorch_trained_model_bert_base_uncased_cpu(huggingface_pytorch_infe
 
 
 @pytest.mark.model("bert-base-uncased-tf")
-def test_sm_tensorflow_trained_model_bert_base_uncased_cpu(huggingface_tensorflow_inference):
+def test_sm_tensorflow_trained_model_bert_base_uncased_cpu(huggingface_tensorflow_inference, huggingface_only):
     framework = "tensorflow"
     device = test_utils.get_processor_from_image_uri(huggingface_tensorflow_inference)
     instance_type = "ml.p2.xlarge" if device == "gpu" else "ml.m5.xlarge"
@@ -70,7 +70,7 @@ def test_sm_tensorflow_trained_model_bert_base_uncased_cpu(huggingface_tensorflo
 
 
 @pytest.mark.model("roberta-base-pt")
-def test_sm_pytorch_trained_model_roberta_base_cpu(huggingface_pytorch_inference):
+def test_sm_pytorch_trained_model_roberta_base_cpu(huggingface_pytorch_inference, huggingface_only):
     framework = "pytorch"
     device = test_utils.get_processor_from_image_uri(huggingface_pytorch_inference)
     instance_type = "ml.p2.xlarge" if device == "gpu" else "ml.m5.xlarge"
@@ -86,7 +86,7 @@ def test_sm_pytorch_trained_model_roberta_base_cpu(huggingface_pytorch_inference
 @pytest.mark.model("roberta-base-tf")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_sm_tensorflow_trained_model_roberta_base_cpu(huggingface_tensorflow_inference):
+def test_sm_tensorflow_trained_model_roberta_base_cpu(huggingface_tensorflow_inference, huggingface_only):
     framework = "tensorflow"
     device = test_utils.get_processor_from_image_uri(huggingface_tensorflow_inference)
     instance_type = "ml.p2.xlarge" if device == "gpu" else "ml.m5.xlarge"
