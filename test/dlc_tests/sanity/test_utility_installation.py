@@ -54,7 +54,7 @@ def test_utility_packages_using_import(training):
         "tensorflow2": "2.4",
         "tensorflow1": "1.15",
     }
-    framework, framework_version = get_framework_and_version_from_tag(image)
+
     framework = "tensorflow1" if framework == "tensorflow" and framework_version.startswith("1.") else "tensorflow2"
     if Version(framework_version) < Version(utility_package_minimum_framework_version[framework]):
         pytest.skip("Extra utility packages will be added going forward.")
