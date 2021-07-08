@@ -105,7 +105,7 @@ def pytest_addoption(parser):
     parser.addoption("--docker-base-name", default="huggingface_pytorch")
     parser.addoption("--region", default="us-west-2")
     parser.addoption("--framework-version", default="")
-    parser.addoption("--py-version", choices=["2", "3"], default=str(sys.version_info.major))
+    parser.addoption("--py-version", choices=["2", "3", "37", "38", "39"], default=str(sys.version_info.major))
     # Processor is still "cpu" for EIA tests
     parser.addoption("--processor", choices=["gpu", "cpu", "eia"], default="cpu")
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
