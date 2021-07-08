@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.2.1-cudnn8-runtime-ubuntu18.04
+FROM nvidia/cuda:11.2.1-cudnn8-runtime-ubuntu20.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -9,10 +9,6 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG MMS_VERSION=1.1.2
 ARG MX_URL=https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.9.0/aws_mx_cu112-1.9.0-py3-none-manylinux2014_x86_64.whl
-ARG PYTHON=python3
-ARG PIP=pip3
-ARG PYTHON_VERSION=3.8.11
-ARG OPENSSL_VERSION=1.1.1k
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -23,9 +19,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     TEMP=/home/model-server/tmp \
     DEBIAN_FRONTEND=noninteractive
 
-RUN apt update
-
-RUN apt-get -y install --no-install-recommends \
+RUN apt-get update \
+ && apt-get -y install --no-install-recommends \
     build-essential \
     ca-certificates \
     curl \
@@ -48,35 +43,26 @@ RUN apt-get -y install --no-install-recommends \
     libc6-dev \
     libbz2-dev \
     libffi-dev \
+    openssl \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# install OpenSSL
-RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && tar -xzf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make -j $(nproc) && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-* \
- && rmdir /usr/local/ssl/certs \
- && ln -s /etc/ssl/certs /usr/local/ssl/certs
-
 # install Python
-RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
- && tar -xzf Python-$PYTHON_VERSION.tgz \
- && cd Python-$PYTHON_VERSION \
- && ./configure --enable-shared --prefix=/usr/local \
- && make -j $(nproc) && make install \
- && cd .. && rm -rf ../Python-$PYTHON_VERSION* \
- && ln -s /usr/local/bin/pip3 /usr/bin/pip \
- && ln -s /usr/local/bin/$PYTHON /usr/local/bin/python \
- && ${PIP} --no-cache-dir install --upgrade \
-    pip \
-    setuptools
+RUN apt-get update \
+ && apt-get install -y software-properties-common \
+ && add-apt-repository -y ppa:deadsnakes/ppa \
+ && apt-get update \
+ && apt-get install -y python3.8-dev python3.8-distutils virtualenv \
+ && ln -sf /usr/bin/python3.8 /usr/local/bin/python3 \
+ && wget -nv https://bootstrap.pypa.io/get-pip.py \
+ && python3 get-pip.py \
+ && python3 -m pip --no-cache-dir install --upgrade \
+        pip \
+        setuptools
 
 WORKDIR /
 
-RUN ${PIP} install --no-cache-dir \
+RUN python3 -m pip install --no-cache-dir \
     "awscli<2" \
     boto3 \
     ${MX_URL} \
@@ -86,6 +72,15 @@ RUN ${PIP} install --no-cache-dir \
     numpy==1.17.4 \
     onnx==1.8.1 \
     sagemaker-mxnet-inference
+
+# Install extra packages
+RUN python3 -m pip install --no-cache-dir -U \
+    bokeh \
+    imageio \
+    opencv-python \
+    plotly \
+    seaborn \
+    shap
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
@@ -111,7 +106,7 @@ RUN HOME_DIR=/root \
  && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
  && chmod +x /usr/local/bin/testOSSCompliance \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
- && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python3 \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.9.0/license.txt -o /license.txt
