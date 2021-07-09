@@ -143,6 +143,8 @@ RUN apt-get update \
     tk-dev \
     libssl1.1 \
     openssl \
+    # Needed for open-cv to resolve error: ImportError: libGL.so.1: cannot open shared object file: No such file or directory
+    libgl1-mesa-glx \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -166,14 +168,13 @@ RUN ${PIP} install --no-cache-dir -U \
     scipy==1.5.2 \
     scikit-learn==0.23 \
     pandas==1.1 \
-    Pillow==7.2.0 \
+    Pillow==8.2.0 \
     python-dateutil==2.8.1 \
     # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
     "pyYAML>=5.4,<5.5" \
     requests==2.24.0 \
     "awscli<2" \
     mpi4py==3.0.3 \
-    opencv-python==4.3.0.36 \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=1.15,<1.16" \
@@ -187,6 +188,14 @@ RUN ${PIP} install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
     smclarify
 
+# Install extra packages
+RUN pip install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "shap>=0.39,<1"
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.0/targets/x86_64-linux/lib/stubs \

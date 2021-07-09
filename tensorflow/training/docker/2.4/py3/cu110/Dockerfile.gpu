@@ -217,7 +217,6 @@ RUN ${PIP} install --no-cache-dir -U \
     requests==2.24.0 \
     "awscli<2" \
     mpi4py==3.0.3 \
-    opencv-python==4.3.0.36 \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.4,<2.5" \
@@ -232,6 +231,15 @@ RUN ${PIP} install --no-cache-dir -U \
     werkzeug==1.0.1 \
     smdebug==${SMDEBUG_VERSION} \
     smclarify
+
+# Install extra packages
+RUN ${PIP} install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "shap>=0.39,<1"
 
 ARG METIS=metis-5.1.0
 ARG RMM_VERSION=0.15.0

@@ -123,6 +123,15 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
 
+# Install extra packages
+RUN pip install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "shap>=0.39,<1"
+
 # Install PT S3 plugin
 RUN pip install -U ${PT_S3_WHL}
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
