@@ -124,9 +124,9 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
 
 # Install PT S3 plugin
-RUN pip install -U ${PT_S3_WHL}
-RUN mkdir -p /etc/pki/tls/certs
-RUN cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+RUN pip install -U ${PT_S3_WHL} \
+ && mkdir -p /etc/pki/tls/certs \
+ && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

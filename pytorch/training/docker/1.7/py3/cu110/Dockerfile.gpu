@@ -128,7 +128,7 @@ RUN conda install -c pytorch magma-cuda110==2.5.2 \
     libgcc \
  && conda clean -ya
 
-# Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO]. 
+# Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO].
 RUN wget --quiet https://dl.bintray.com/boostorg/release/1.73.0/source/boost_1_73_0.tar.gz \
   && tar -xzf boost_1_73_0.tar.gz \
   && cd boost_1_73_0 \
@@ -147,7 +147,7 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 WORKDIR /root
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
-RUN pip install --no-cache-dir -U \ 
+RUN pip install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
@@ -246,9 +246,9 @@ RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python3.6/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"}
 
 # Install PT S3 plugin
-RUN pip install --no-cache-dir -U ${PT_S3_WHL_GPU}
-RUN mkdir -p /etc/pki/tls/certs
-RUN cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+RUN pip install --no-cache-dir -U ${PT_S3_WHL_GPU} \
+ && mkdir -p /etc/pki/tls/certs \
+ && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 WORKDIR /
 
