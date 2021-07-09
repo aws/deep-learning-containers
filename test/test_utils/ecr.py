@@ -1,6 +1,11 @@
 import json
+import os
+import subprocess
+import sys
 
-from enum import IntEnum
+from base64 import b64decode
+
+import boto3
 
 from test.test_utils import (
     get_repository_and_tag_from_image_uri,
@@ -10,20 +15,7 @@ from test.test_utils import (
     get_unique_name_from_tag,
     LOGGER,
 )
-import subprocess
-import os
-import boto3
-from base64 import b64decode
-import sys
-
-
-class CVESeverity(IntEnum):
-    UNDEFINED = 0
-    INFORMATIONAL = 1
-    LOW = 2
-    MEDIUM = 3
-    HIGH = 4
-    CRITICAL = 5
+from test.test_utils.security import CVESeverity
 
 
 class ECRScanFailedError(Exception):
