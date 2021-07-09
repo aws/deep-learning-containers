@@ -12,6 +12,3 @@ boto3
 retrying
 gitpython
 pytz
-flaky
-sagemaker
-smdebug
