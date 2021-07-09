@@ -1,16 +1,17 @@
 import json
+import logging
 import os
 import re
 import subprocess
-import time
-import logging
 import sys
-import re
+import time
+
+import boto3
 import git
 import pytest
 
-import boto3
 from botocore.exceptions import ClientError
+from glob import glob
 from invoke import run
 from invoke.context import Context
 from packaging.version import LegacyVersion, Version, parse
@@ -73,6 +74,68 @@ SAGEMAKER_LOCAL_TEST_TYPE = "local"
 SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
+
+
+class MissingPythonVersionException(Exception):
+    """
+    When the Python Version is missing from an image_uri where it is expected to exist
+    """
+
+    pass
+
+
+def get_dockerfile_path_for_image(image_uri):
+    """
+    For a given image_uri, find the path within the repository to its corresponding dockerfile
+
+    :param image_uri: str Image URI
+    :return: str Absolute path to dockerfile
+    """
+    github_repo_path = os.path.abspath(os.path.curdir).split("test", 1)[0]
+
+    framework, framework_version = get_framework_and_version_from_tag(image_uri)
+    framework_path = framework.replace("_", os.path.sep) if "huggingface" in framework else framework
+
+    job_type = get_job_type_from_image(image_uri)
+
+    short_framework_version = re.search(r"(\d+\.\d+)", image_uri).group(1)
+    long_framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
+
+    framework_version_path = os.path.join(github_repo_path, framework_path, job_type, "docker", short_framework_version)
+    if not os.path.isdir(framework_version_path):
+        framework_version_path = os.path.join(
+            github_repo_path, framework_path, job_type, "docker", long_framework_version
+        )
+    python_version = re.search(r"py\d+", image_uri).group()
+
+    python_version_path = os.path.join(framework_version_path, python_version)
+    if not os.path.isdir(python_version_path):
+        python_version_path = os.path.join(framework_version_path, "py3")
+
+    device_type = get_processor_from_image_uri(image_uri)
+    cuda_version = get_cuda_version_from_tag(image_uri)
+
+    dockerfiles_list = [
+        path
+        for path in glob(os.path.join(python_version_path, "**", f"Dockerfile.{device_type}"), recursive=True)
+        if "example" not in path
+    ]
+
+    if device_type in ["gpu"]:
+        if not cuda_version and len(dockerfiles_list) > 1:
+            raise LookupError(
+                f"dockerfiles_list has more than one result, and needs cuda_version to be in image_uri to "
+                f"uniquely identify the right dockerfile:\n"
+                f"{dockerfiles_list}"
+            )
+        for dockerfile_path in dockerfiles_list:
+            if cuda_version in dockerfile_path:
+                return dockerfile_path
+        raise LookupError(f"Failed to find a dockerfile path for {cuda_version} in:\n{dockerfiles_list}")
+
+    assert len(dockerfiles_list) == 1, f"No unique dockerfile path in:\n{dockerfiles_list}\nfor image: {image_uri}"
+
+    return dockerfiles_list[0]
 
 
 def get_python_invoker(ami_id):
@@ -938,6 +1001,20 @@ def get_processor_from_image_uri(image_uri):
         if match:
             return match.group(1)
     raise RuntimeError("Cannot find processor")
+
+
+def get_python_version_from_image_uri(image_uri):
+    """
+    Return the python version from the image URI
+
+    :param image_uri: ECR image URI
+    :return: str py36, py37, py38, etc., based information available in image URI
+    """
+    python_version_search = re.search(r"py\d+", image_uri)
+    if not python_version_search:
+        raise MissingPythonVersionException(f"{image_uri} does not have python version in the form 'py\\d+'")
+    python_version = python_version_search.group()
+    return "py36" if python_version == "py3" else python_version
 
 
 def get_container_name(prefix, image_uri):

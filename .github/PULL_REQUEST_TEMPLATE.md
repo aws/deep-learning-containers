@@ -29,10 +29,10 @@ Note: If merging this PR should also close the associated Issue, please also add
 
 #### EIA/NEURON Testing Checklist
 * When creating a PR:
-- [ ] I've modified `src/config/build_config.py` in my PR branch by setting `ENABLE_EI_MODE = True` or `ENABLE_NEURON_MODE = True`
+- [ ] I've modified `dlc_developer_config.toml` in my PR branch by setting `ei_mode = true` or `neuron_mode = true`
 
 #### Benchmark Testing Checklist
 * When creating a PR:
-- [ ] I've modified `src/config/test_config.py` in my PR branch by setting `ENABLE_BENCHMARK_DEV_MODE = True`
+- [ ] I've modified `dlc_developer_config.toml` in my PR branch by setting `benchmark_mode = true`
 
 By submitting this pull request, I confirm that my contribution is made under the terms of the Apache 2.0 license. I confirm that you can use, modify, copy, and redistribute this contribution, under the terms of your choice.
