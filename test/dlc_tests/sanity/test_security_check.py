@@ -96,7 +96,7 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
 
     assert not remaining_vulnerabilities, (
-        f"The following vulnerabilities have not been fixed on {image}:\n"
+        f"The following vulnerabilities need to be fixed on {image}:\n"
         f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
     )
 
