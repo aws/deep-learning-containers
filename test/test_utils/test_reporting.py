@@ -215,8 +215,7 @@ class TestReportGenerator:
                 venv = os.path.join(pytest_framework_path, f".{repo.replace('/', '-')}")
                 ctx.run(f"virtualenv {venv}")
                 with ctx.prefix(f"source {os.path.join(venv, 'bin', 'activate')}"):
-                    ctx.run("pip install -r requirements.txt", warn=True)
-
+                    ctx.run("pip install toml && pip install -r requirements.txt", warn=True)
                     # TF inference separates remote/local conftests, and must be handled differently
                     if framework == "tensorflow" and job_type == "inference":
                         with ctx.cd(os.path.join(pytest_framework_path, "test", "integration")):
