@@ -20,14 +20,14 @@ pytorch_tests/
 # MXNet tests and builds
 mxnet/
 
-#SMDebug
+# SMDebug
 *smdebug*
+
 # Neuron
-/neuron_tests
-Dockerfile.neuron
+*neuron*
 
 # Elastic Inference
-Dockerfile.eia
+*eia*
 
 # DGL
 dgl_tests/
