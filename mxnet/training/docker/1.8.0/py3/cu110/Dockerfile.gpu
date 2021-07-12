@@ -61,6 +61,8 @@ RUN apt-get update \
     tk-dev \
     libffi-dev \
     cmake \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -173,6 +175,15 @@ RUN ${PIP} install --no-cache --upgrade \
     sagemaker \
     awscli \
     smclarify
+
+# Install extra packages
+RUN pip install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "shap>=0.39,<1"
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.0/targets/x86_64-linux/lib/stubs \

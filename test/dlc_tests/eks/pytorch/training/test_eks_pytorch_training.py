@@ -104,6 +104,9 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training):
         :param setup_utils: environment in which EKS tools are setup
         :param pytorch_training: the ECR URI
     """
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) < Version("1.8"):
+        pytest.skip("S3 plugin is supported on PyTorch version >=1.8")
 
     training_result = False
 

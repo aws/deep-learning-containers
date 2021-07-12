@@ -62,6 +62,8 @@ RUN apt-get update \
     libssl1.1 \
     openssl \
     zlib1g-dev \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
     # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0
     # adds a new list which contains libnvinfer library, so it needs another
     # 'apt-get update' to retrieve that list before it can actually install the
@@ -139,6 +141,8 @@ RUN apt-get update \
     libsqlite3-dev \
     libssl-dev \
     tk-dev \
+    # Needed for open-cv to resolve error: ImportError: libGL.so.1: cannot open shared object file: No such file or directory
+    libgl1-mesa-glx \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -185,6 +189,14 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     smdebug==${SMDEBUG_VERSION}
 
+# Install extra packages
+RUN pip install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "shap>=0.39,<1"
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-10.0/targets/x86_64-linux/lib/stubs \
