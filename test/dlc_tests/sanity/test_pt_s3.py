@@ -2,10 +2,10 @@ import pytest
 
 from invoke.context import Context
 from packaging.version import Version
+
 from test.test_utils import (
     get_container_name,
     get_framework_and_version_from_tag,
-    get_processor_from_image_uri,
     run_cmd_on_container,
     start_container,
 )
@@ -13,7 +13,7 @@ from test.test_utils import (
 
 @pytest.mark.integration("pt_s3_plugin_sanity")
 @pytest.mark.model("N/A")
-def test_pt_s3_sanity(pytorch_training):
+def test_pt_s3_sanity(pytorch_training, pt17_and_above_only):
     """
     Check that the internally built PT S3 binary is properly installed.
     :param pytorch_training: framework fixture for pytorch training
@@ -28,4 +28,3 @@ def test_pt_s3_sanity(pytorch_training):
     run_cmd_on_container(
         container_name, ctx, f"import awsio; print(awsio.__version__); from awsio.python.lib.io.s3.s3dataset import file_exists; print(file_exists(\""+s3_path+"\"))", executable="python"
     )
-
