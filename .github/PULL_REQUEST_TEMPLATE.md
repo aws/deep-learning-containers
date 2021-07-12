@@ -1,4 +1,4 @@
-*Issue #, if available:*
+*GitHub Issue #, if available:*
 
 Note: If merging this PR should also close the associated Issue, please also add that Issue # to the Linked Issues section on the right. 
 
