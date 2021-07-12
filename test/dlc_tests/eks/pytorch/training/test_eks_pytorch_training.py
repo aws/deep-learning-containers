@@ -97,7 +97,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
 @pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline")
 @pytest.mark.model("resnet18")
 @pytest.mark.integration("pt_s3_plugin")
-def test_eks_pt_s3_plugin_single_node_training(pytorch_training):
+def test_eks_pt_s3_plugin_single_node_training(pytorch_training, pt17_and_above_only):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
     Args:
