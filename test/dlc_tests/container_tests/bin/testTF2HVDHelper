@@ -1,5 +1,6 @@
 #!/bin/bash
 
+INSTANCE_TYPE=$1
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
@@ -35,7 +36,6 @@ echo "Train a resnet model using Horovod with Tensorflow on synthetic data. You 
 if [ ${RETURN_VAL} -eq 0 ]; then
   GPU_AMOUNT=`nvidia-smi -L | wc -l`
   if [ $GPU_AMOUNT -ge 8 ]; then GPU_AMOUNT=8; fi
-  INSTANCE_TYPE=`curl http://169.254.169.254/latest/meta-data/instance-type 2>>/var/tmp/${CONDA_DEFAULT_ENV}.err`
   # We only have Ubuntu16.04 image now. The only EIA it support is etho0.
   INTERFACE=eth0
   # Train
