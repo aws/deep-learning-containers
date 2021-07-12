@@ -74,6 +74,8 @@ RUN apt-get update \
     wget \
     unzip \
     zlib1g-dev \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
  && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/libcublas-11-0_${CUBLAS_VERSION}.deb \
@@ -169,6 +171,15 @@ RUN pip install --no-cache-dir -U \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+
+# Install extra packages
+RUN pip install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "shap>=0.39,<1"
 
 # install metis
 RUN wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
