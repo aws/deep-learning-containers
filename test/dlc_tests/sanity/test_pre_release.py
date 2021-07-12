@@ -473,13 +473,13 @@ def test_oss_compliance(image):
                 try:
                     if not os.path.isdir(local_file_path):
                         context.run(f"git clone {url.rstrip()} {local_file_path}")
+                        context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
                 except Exception as e:
                     time.sleep(1)
                     if i==2:
                         LOGGER.error(f"Unable to clone git repo. Error: {e}")
                         raise
                     continue
-            context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
             try:
                 if os.path.exists(f"{local_file_path}.tar.gz"):
                     LOGGER.info(f"Uploading package to s3 bucket: {line}")

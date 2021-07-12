@@ -117,7 +117,7 @@ def test_mxnet_with_horovod_gpu(mxnet_training, ec2_connection, gpu_only, ec2_in
 @pytest.mark.integration("horovod")
 @pytest.mark.model("AlexNet")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_mxnet_with_horovod_cpu(mxnet_training, ec2_connection, cpu_only):
+def test_mxnet_with_horovod_cpu(mxnet_training, ec2_connection, cpu_only, ec2_instance_type):
     execute_ec2_training_test(ec2_connection, mxnet_training, f"{MX_HVD_CMD} {ec2_instance_type}")
 
 
