@@ -1,16 +1,19 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-# Add arguments to achieve the version, python and url
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.6.13
+# Add arguments to achieve the version, python and url
+ARG PYTHON_VERSION=3.8.10
 ARG OPEN_MPI_VERSION=4.0.1
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=1.0.9
+
+# This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -25,9 +28,9 @@ ENV PATH=/opt/conda/bin:$PATH
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV DGLBACKEND=pytorch
 
-ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7.1_aws/20210107-213753/df8e57a23cbc00d4fff51f4ea7f2ce052d1384e9/cpu/torch-1.7.1-cp36-cp36m-manylinux1_x86_64.whl
-ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.7.1/cpu/torchvision-0.8.2-cp36-cp36m-linux_x86_64.whl
-ARG PT_S3_WHL=https://aws-s3-plugin.s3-us-west-2.amazonaws.com/binaries/0.0.1/93fdaed/awsio-0.0.1-cp36-cp36m-manylinux1_x86_64.whl
+ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.9.0_aws_v3/20210621-225848/ba7c4b277d2664f51afae8f0bfef33ec82dd6018/cpu/torch-1.9.0-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://torchvision-build-rc.s3.us-west-2.amazonaws.com/1.9.0/cpu/torchvision-0.10.0-cp38-cp38-linux_x86_64.whl
+ARG PT_S3_WHL=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
 WORKDIR /
 
@@ -50,8 +53,6 @@ RUN apt-get update \
     unzip \
     vim \
     zlib1g-dev \
-    # Install dependent library for OpenCV
-    libgtk2.0-dev \
  && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
@@ -102,6 +103,12 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda clean -ya \
  && conda clean -ya
 
+# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
+# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
+# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
+# once conda fixes the issue
+RUN rm -rf /opt/conda/lib/libtinfo.so.6
+
 # The following section uninstalls torch and torchvision before installing the
 # custom versions from an S3 bucket. This will need to be removed in the future
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
@@ -110,7 +117,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "pyyaml>=5.4,<5.5" \
     "awscli<2" \
     fastai==1.0.61 \
-    scipy==1.2.2 \
+    scipy \
     click \
     "cryptography>3.2" \
     smdebug==${SMDEBUG_VERSION} \
@@ -119,27 +126,17 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     sagemaker-experiments==0.* \
     "sagemaker-pytorch-training<3" \
     psutil==5.6.7 \
-    Pillow \
+    Pillow==8.2.0 \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
 
 # Install PT S3 plugin
-RUN pip install -U ${PT_S3_WHL} \
- && mkdir -p /etc/pki/tls/certs \
- && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+RUN pip install -U ${PT_S3_WHL}
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
-# Install extra packages
-RUN pip install --no-cache-dir -U \
-    "bokeh>=2.3,<3" \
-    "imageio>=2.9,<3" \
-    "opencv-python>=4.3,<5" \
-    "plotly>=5.1,<6" \
-    "seaborn>=0.11,<1" \
-    "shap>=0.39,<1"
-
-ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
  && chmod +x /usr/local/bin/deep_learning_container.py
@@ -151,9 +148,10 @@ RUN HOME_DIR=/root \
  && chmod +x /usr/local/bin/testOSSCompliance \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance*
+ && rm -rf ${HOME_DIR}/oss_compliance* \
+ && rm -rf /tmp/tmp*
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.8/license.txt
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.9/license.txt
 
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
