@@ -218,22 +218,24 @@ def setup_eks_cluster(framework_name, is_neuron):
         raise
     return cluster_name
 
+
 def configure_eks_cluster(eks_cluster_name):
-    """ Function to configure EKS cluster
+    """Function to configure EKS cluster
     1. Attach IAM permissions on EKS nodegroup IAM role
     2. Setup SSM agent on EKS cluster
     """
-    ATTACH_IAM_POLICY="attach"
+    ATTACH_IAM_POLICY = "attach"
     eks_utils.manage_iam_permissions_nodegroup(eks_cluster_name, ATTACH_IAM_POLICY)
     eks_utils.setup_ssm_agent()
 
+
 def delete_eks_cluster(eks_cluster_name, is_neuron):
-    """ Function to delete EKS cluster
+    """Function to delete EKS cluster
     1. Detach IAM permissions from EKS nodegroup IAM role
     2. Delete OIDC provider created by kubeflow
     3. Delete the EKS cluster
     """
-    DETACH_IAM_POLICY="detach"
+    DETACH_IAM_POLICY = "detach"
     eks_utils.manage_iam_permissions_nodegroup(eks_cluster_name, DETACH_IAM_POLICY)
 
     # Delete OIDC provider on EKS cluster other than neuron as kubeflow is not being installed
@@ -302,8 +304,12 @@ def main():
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
     # Skipping non HuggingFace specific tests to execute only sagemaker tests
-    if any("huggingface" in image_uri for image_uri in all_image_list) and \
-            specific_test_type in ("ecs", "ec2", "eks", "bai"):
+    if any("huggingface" in image_uri for image_uri in all_image_list) and specific_test_type in (
+        "ecs",
+        "ec2",
+        "eks",
+        "bai",
+    ):
         # Creating an empty file for because codebuild job fails without it
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         sm_utils.generate_empty_report(report, test_type, "huggingface")
@@ -397,13 +403,13 @@ def main():
 
             pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
-        if specific_test_type == "canary":
-            pytest_cmds = [["-s", "-rA", f"--junitxml={report}", "-n=auto", "--canary", "--ignore=container_tests/"]]
+        if specific_test_type in ("canary", "quick_checks"):
+            pytest_cmds = [
+                ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
+            ]
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
-
-
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
             if all([status == 0 for status in cmd_exit_statuses]):
                 sys.exit(0)

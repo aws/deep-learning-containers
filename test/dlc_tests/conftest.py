@@ -77,6 +77,9 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
+    parser.addoption(
+        "--quick_checks", action="store_true", default=False, help="Run quick check tests",
+    )
 
 
 @pytest.fixture(scope="function")
@@ -409,6 +412,7 @@ def framework_version_within_limit(metafunc_obj, image):
 def pytest_configure(config):
     # register canary marker
     config.addinivalue_line("markers", "canary(message): mark test to run as a part of canary tests.")
+    config.addinivalue_line("markers", "quick_check(message): mark test to run as a part of quick check tests.")
     config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
@@ -417,14 +421,32 @@ def pytest_configure(config):
 
 
 def pytest_runtest_setup(item):
+    """
+    Handle custom markers and options
+    """
+    # Handle quick check tests
+    quick_checks_opts = [mark for mark in item.iter_markers(name="quick_checks")]
+    # Skip quick checks on PR sanity tests, as they will run in separate build-independent job
+    if os.getenv("TEST_TYPE") == "sanity" and os.getenv("BUILD_CONTEXT") == "PR":
+        if quick_checks_opts:
+            pytest.skip("Skipping quick check tests on PR sanity tests")
+    if item.config.getoption("--quick_checks"):
+        if not quick_checks_opts:
+            pytest.skip("Skipping non-quick-check tests")
+
+    # Handle canary test conditional skipping
     if item.config.getoption("--canary"):
         canary_opts = [mark for mark in item.iter_markers(name="canary")]
         if not canary_opts:
             pytest.skip("Skipping non-canary tests")
+
+    # Handle multinode conditional skipping
     if item.config.getoption("--multinode"):
         multinode_opts = [mark for mark in item.iter_markers(name="multinode")]
         if not multinode_opts:
             pytest.skip("Skipping non-multinode tests")
+
+    # Handle efa conditional skipping
     if item.config.getoption("--efa"):
         efa_tests = [mark for mark in item.iter_markers(name="efa")]
         if not efa_tests:
