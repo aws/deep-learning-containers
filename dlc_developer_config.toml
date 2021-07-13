@@ -19,7 +19,7 @@ do_build = false
 
 [test]
 efa_tests = false
-sanity_tests = true
+sanity_tests = false
 sagemaker_tests = false
 ecs_tests = false
 eks_tests = false
