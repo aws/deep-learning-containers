@@ -1,6 +1,11 @@
 #!/bin/bash
 
 INSTANCE_TYPE=$1
+if [ -z "$INSTANCE_TYPE" ];then
+  echo "Usage: "$0" <INSTANCE_TYPE>"
+  exit 1
+fi
+
 if [[ $INSTANCE_TYPE == g2* ]]; then
   echo "This is g2* instance. Skipped."
   exit 0

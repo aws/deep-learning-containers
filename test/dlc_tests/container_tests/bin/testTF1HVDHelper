@@ -1,6 +1,11 @@
 #!/bin/bash
 
 INSTANCE_TYPE=$1
+if [ -z "$INSTANCE_TYPE" ];then
+  echo "Usage: "$0" <INSTANCE_TYPE>"
+  exit 1
+fi
+
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
