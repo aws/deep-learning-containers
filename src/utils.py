@@ -20,7 +20,7 @@ import sys
 import boto3
 import constants
 
-from config import parse_dlc_developer_configs
+from config import parse_dlc_developer_configs, is_build_enabled
 from invoke.context import Context
 from botocore.exceptions import ClientError
 
@@ -376,7 +376,7 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
         "py_versions": constants.PYTHON_VERSIONS,
     }
     build_context = os.environ.get("BUILD_CONTEXT")
-    enable_build = parse_dlc_developer_configs("build", "do_build")
+    enable_build = is_build_enabled()
 
     if build_context == "PR":
         pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
@@ -411,8 +411,10 @@ def fetch_dlc_images_for_test_jobs(images):
     """
     DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
 
+    build_disabled = not is_build_enabled()
+
     for docker_image in images:
-        use_preexisting_images = (build_config.DISABLE_NEW_BUILDS and docker_image.build_status == constants.NOT_BUILT)
+        use_preexisting_images = (build_disabled and docker_image.build_status == constants.NOT_BUILT)
         if docker_image.build_status == constants.SUCCESS or use_preexisting_images:
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(docker_image.ecr_url)

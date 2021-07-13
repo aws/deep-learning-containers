@@ -46,7 +46,7 @@ def run_test_job(commit, codebuild_project, images_str=""):
             {"name": "DLC_IMAGES", "value": images_str, "type": "PLAINTEXT"},
             {"name": "PR_NUMBER", "value": pr_num, "type": "PLAINTEXT"},
             # USE_SCHEDULER is passed as an env variable here because it is more convenient to set this in
-            # config/test_config, compared to having another config file under dlc/tests/.
+            # dlc_developer_config, compared to having another config file under dlc/tests/.
             {
                 "name": "USE_SCHEDULER",
                 "value": str(parse_dlc_developer_configs("test", "use_scheduler")),
