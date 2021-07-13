@@ -15,3 +15,4 @@ awslogs
 requests_mock==1.7.0
 fabric
 gitpython
+toml

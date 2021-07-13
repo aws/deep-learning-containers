@@ -14,6 +14,8 @@ from __future__ import absolute_import
 
 import pytest
 import os
+
+from sagemaker import utils
 from sagemaker.pytorch import PyTorch
 
 from packaging.version import Version
@@ -78,7 +80,7 @@ def test_smdataparallel_throughput(n_virginia_sagemaker_session, framework_versi
             hyperparameters=hyperparameters,
             distribution=distribution
         )
-        pytorch.fit()
+        pytorch.fit(job_name=utils.unique_name_from_base('test-pt-smddp-throughput'))
 
 
 @pytest.mark.integration("smdataparallel")
@@ -104,7 +106,7 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_
                           sagemaker_session=sagemaker_session,
                           distribution=distribution)
 
-        pytorch.fit()
+        pytorch.fit(job_name=utils.unique_name_from_base('test-pt-smddp-mnist-script-mode'))
 
 
 @pytest.mark.processor("gpu")
@@ -132,7 +134,7 @@ def test_smdataparallel_mnist(n_virginia_sagemaker_session, framework_version, n
                           sagemaker_session=n_virginia_sagemaker_session,
                           distribution=distribution)
 
-        pytorch.fit()
+        pytorch.fit(job_name=utils.unique_name_from_base('test-pt-smddp-mnist'))
 
 
 @pytest.mark.processor("gpu")
@@ -168,4 +170,4 @@ def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, py_vers
 
         pytorch = _disable_sm_profiler(sagemaker_session.boto_region_name, pytorch)
 
-        pytorch.fit()
+        pytorch.fit(job_name=utils.unique_name_from_base('test-pt-smdmp-smddp-mnist'))

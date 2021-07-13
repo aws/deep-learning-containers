@@ -120,7 +120,7 @@ class ImageNetS3(IterableDataset):
                 yield image_np, label
 
         except StopIteration:
-            raise StopIteration
+            return
 
     def __iter__(self):
         self.s3_iter_dataset_iterator = iter(self.s3_iter_dataset)

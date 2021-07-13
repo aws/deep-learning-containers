@@ -29,6 +29,7 @@ tensorflow==2.5.0
 fabric==2.5.0
 retrying==1.3.3
 gitpython
+toml
 s3fs>=0.4.2
 datasets[s3]==1.6.2
 transformers==4.6.1
