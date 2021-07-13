@@ -20,7 +20,7 @@ import sys
 import boto3
 import constants
 
-from config import build_config
+from config import parse_dlc_developer_configs
 from invoke.context import Context
 from botocore.exceptions import ClientError
 
@@ -376,6 +376,7 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
         "py_versions": constants.PYTHON_VERSIONS,
     }
     build_context = os.environ.get("BUILD_CONTEXT")
+    enable_build = parse_dlc_developer_configs("build", "do_build")
 
     if build_context == "PR":
         pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
@@ -398,7 +399,7 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
         for image_type in to_build["image_types"]:
             for py_version in to_build["py_versions"]:
                 env_variable = f"{framework.upper()}_{device_type.upper()}_{image_type.upper()}_{py_version.upper()}"
-                if not build_config.DISABLE_NEW_BUILDS or build_context != "PR":
+                if enable_build or build_context != "PR":
                     os.environ[env_variable] = "true"
 
 

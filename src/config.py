@@ -5,7 +5,7 @@ import toml
 
 
 def get_dlc_developer_config_path():
-    root_dir_pattern = re.compile(r'^(\S+/deep-learning-containers)')
+    root_dir_pattern = re.compile(r'^(\S+deep-learning-containers)')
     pwd = os.getcwd()
     dev_config_parent_dir = os.getenv("CODEBUILD_SRC_DIR")
 
@@ -23,3 +23,7 @@ def parse_dlc_developer_configs(section, option, tomlfile=get_dlc_developer_conf
     data = toml.load(tomlfile)
 
     return data.get(section, {}).get(option)
+
+
+def is_benchmark_mode_enabled():
+    return parse_dlc_developer_configs("dev", "benchmark_mode")
