@@ -13,16 +13,16 @@ benchmark_mode = false
 # Frameworks for which you want to disable both builds and tests
 skip_frameworks = []
 # Set to false in order to remove datetime tag on PR builds
-datetime_tag = false
+datetime_tag = true
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = false
+do_build = true
 
 [test]
 efa_tests = true
 sanity_tests = true
 sagemaker_tests = true
-ecs_tests = false
-eks_tests = false
-ec2_tests = false
+ecs_tests = true
+eks_tests = true
+ec2_tests = true
 use_scheduler = false
