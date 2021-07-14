@@ -39,6 +39,7 @@ ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.7
 ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.7.1/gpu/torchvision-0.8.2%2Bcu110-cp36-cp36m-linux_x86_64.whl
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.amazonaws.com/pytorch-1.7/build-artifacts/2021-03-26-22-00/smdistributed_modelparallel-1.3.1-cp36-cp36m-linux_x86_64.whl
 ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.7.1/cu110/2021-01-26/smdistributed_dataparallel-1.0.0-cp36-cp36m-linux_x86_64.whl
+ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3-us-west-2.amazonaws.com/binaries/0.0.1/93fdaed/awsio-0.0.1-cp36-cp36m-manylinux1_x86_64.whl
 
 RUN apt-get update \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
@@ -73,6 +74,8 @@ RUN apt-get update \
     wget \
     unzip \
     zlib1g-dev \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
  && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/libcublas-11-0_${CUBLAS_VERSION}.deb \
@@ -127,7 +130,7 @@ RUN conda install -c pytorch magma-cuda110==2.5.2 \
     libgcc \
  && conda clean -ya
 
-# Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO]. 
+# Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO].
 RUN wget --quiet https://dl.bintray.com/boostorg/release/1.73.0/source/boost_1_73_0.tar.gz \
   && tar -xzf boost_1_73_0.tar.gz \
   && cd boost_1_73_0 \
@@ -146,7 +149,7 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 WORKDIR /root
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
-RUN pip install --no-cache-dir -U \ 
+RUN pip install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
@@ -168,6 +171,15 @@ RUN pip install --no-cache-dir -U \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+
+# Install extra packages
+RUN pip install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "shap>=0.39,<1"
 
 # install metis
 RUN wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
@@ -243,6 +255,11 @@ RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
 RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python3.6/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"}
+
+# Install PT S3 plugin
+RUN pip install --no-cache-dir -U ${PT_S3_WHL_GPU} \
+ && mkdir -p /etc/pki/tls/certs \
+ && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 WORKDIR /
 
