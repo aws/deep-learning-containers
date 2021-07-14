@@ -84,12 +84,15 @@ def is_test_job_enabled(test_type):
         return True
     if test_type == constants.EC2_TESTS and ec2_tests_enabled:
         return True
-    if test_type == constants.ECS_TESTS and ecs_tests_enabled and not benchmark_mode:
-        return True
-    if test_type == constants.EKS_TESTS and eks_tests_enabled and not benchmark_mode:
-        return True
-    if test_type == constants.SANITY_TESTS and sanity_tests_enabled and not benchmark_mode:
-        return True
+
+    # We have no ECS/EKS/SANITY benchmark tests
+    if not benchmark_mode:
+        if test_type == constants.ECS_TESTS and ecs_tests_enabled:
+            return True
+        if test_type == constants.EKS_TESTS and eks_tests_enabled:
+            return True
+        if test_type == constants.SANITY_TESTS and sanity_tests_enabled:
+            return True
 
     return False
 

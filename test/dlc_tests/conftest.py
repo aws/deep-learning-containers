@@ -430,6 +430,8 @@ def pytest_runtest_setup(item):
     if os.getenv("TEST_TYPE") == "sanity" and os.getenv("BUILD_CONTEXT") == "PR":
         if quick_checks_opts:
             pytest.skip("Skipping quick check tests on PR sanity tests")
+
+    # If we have enabled the quick_checks flag, we expect to only run tests marked as quick_check
     if item.config.getoption("--quick_checks"):
         if not quick_checks_opts:
             pytest.skip("Skipping non-quick-check tests")
