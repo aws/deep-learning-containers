@@ -10,7 +10,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 # https://docs.aws.amazon.com/sagemaker/latest/dg/build-multi-model-build-container.html
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
-ARG MMS_VERSION=1.1.2
+ARG MMS_VERSION=1.1.4
 ARG MX_URL=https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.9.0/aws_mx-1.9.0-py3-none-manylinux2014_x86_64.whl
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -52,16 +52,7 @@ RUN apt-get update \
 
 # install Python
 RUN apt-get update \
- && apt-get install -y software-properties-common \
- && add-apt-repository -y ppa:deadsnakes/ppa \
- && apt-get update \
- && apt-get install -y python3.8-dev python3.8-distutils virtualenv \
- && ln -sf /usr/bin/python3.8 /usr/local/bin/python3 \
- && wget -nv https://bootstrap.pypa.io/get-pip.py \
- && python3 get-pip.py \
- && python3 -m pip --no-cache-dir install --upgrade \
-        pip \
-        setuptools
+ && apt-get install -y python3 python3-pip
 
 WORKDIR /
 
@@ -75,15 +66,6 @@ RUN python3 -m pip install --no-cache-dir \
     numpy==1.17.4 \
     onnx==1.8.1 \
     sagemaker-mxnet-inference
-
-# Install extra packages
-RUN python3 -m pip install --no-cache-dir -U \
-    bokeh \
-    imageio \
-    opencv-python \
-    plotly \
-    seaborn \
-    shap
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
