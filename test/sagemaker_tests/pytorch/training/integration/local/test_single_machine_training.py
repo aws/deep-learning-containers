@@ -19,7 +19,8 @@ from sagemaker.pytorch import PyTorch
 
 from ...utils.local_mode_utils import assert_files_exist
 from ...integration import data_dir, fastai_path, fastai_mnist_script, mnist_path, mnist_script, ROLE
-
+from test.test_utils import get_framework_and_version_from_tag
+from packaging.version import Version
 
 @pytest.mark.model("mnist")
 def test_mnist(docker_image, processor, instance_type, sagemaker_local_session, tmpdir):
@@ -41,6 +42,9 @@ def test_mnist(docker_image, processor, instance_type, sagemaker_local_session, 
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
 def test_fastai_mnist(docker_image, instance_type, py_version, sagemaker_local_session, tmpdir):
+    _, image_framework_version = get_framework_and_version_from_tag(docker_image)
+    if Version(image_framework_version) == Version("1.9.0"):
+        pytest.skip("Fast AI is not supported on PT 1.9.0 DLC")
     estimator = PyTorch(
         entry_point=fastai_mnist_script,
         role=ROLE,
