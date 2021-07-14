@@ -18,8 +18,7 @@ import pytest
 from sagemaker.pytorch import PyTorch
 
 from ...utils.local_mode_utils import assert_files_exist
-from ...integration import data_dir, fastai_path, fastai_mnist_script, mnist_path, mnist_script, ROLE
-from test.test_utils import get_framework_and_version_from_tag
+from ...integration import data_dir, fastai_path, fastai_mnist_script, mnist_path, mnist_script, ROLE, get_framework_and_version_from_tag
 from packaging.version import Version
 
 @pytest.mark.model("mnist")
