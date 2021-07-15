@@ -19,7 +19,8 @@ from test_utils import (
     generate_ssh_keypair,
     get_framework_and_version_from_tag,
     get_job_type_from_image,
-    get_python_invoker
+    get_python_invoker,
+    is_pr_context,
 )
 
 from test_utils import (
@@ -28,7 +29,7 @@ from test_utils import (
     SAGEMAKER_LOCAL_TEST_TYPE,
     SAGEMAKER_REMOTE_TEST_TYPE,
     UBUNTU_HOME_DIR,
-    DEFAULT_REGION
+    DEFAULT_REGION,
 )
 
 
@@ -140,9 +141,18 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
 
 
-    efa_flag = ""
-    efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
-    efa_flag = '--efa' if efa_dedicated else '-m \"not efa\"'
+    # Explanation of why we need the if-condition below:
+    # We have separate Pipeline Actions that run EFA tests, which have the env variable "EFA_DEDICATED=True" configured
+    # so that those Actions only run the EFA tests.
+    # However, there is no such dedicated CB job dedicated to EFA tests in the PR context. This means that when in the
+    # PR context, setting "DISABLE_EFA_TESTS" to True should skip EFA tests, but setting it to False should enable
+    # not just the EFA tests, but also all other tests as well.
+    if is_pr_context():
+        efa_tests_disabled = os.getenv("DISABLE_EFA_TESTS", "False").lower() == "true"
+        efa_flag = "-m \"not efa\"" if efa_tests_disabled else ""
+    else:
+        efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
+        efa_flag = '--efa' if efa_dedicated else '-m \"not efa\"'
 
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
