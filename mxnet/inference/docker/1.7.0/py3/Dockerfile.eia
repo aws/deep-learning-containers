@@ -77,7 +77,9 @@ RUN pip install --no-cache-dir \
     keras-mxnet==2.2.4.3 \
     numpy==1.19.1 \
     onnx==1.8.1 \
-    "sagemaker-mxnet-inference<2"
+    "sagemaker-mxnet-inference<2" \
+    "awscli<2" \
+    boto3
 
 # Install openssl-1.1.1* to override default openssl-1.0.2g
 RUN wget https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
