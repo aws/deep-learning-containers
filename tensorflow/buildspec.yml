@@ -10,7 +10,7 @@ repository_info:
     repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/,
       *REPOSITORY_NAME ]
-  inference_repository: &INFERENCE_REPOSITORY
+  inference_repository:
     image_type: &INFERENCE_IMAGE_TYPE inference
     root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
     repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
@@ -21,10 +21,7 @@ context:
     dockerd-entrypoint:
       source: docker/build_artifacts/dockerd-entrypoint.py
       target: dockerd-entrypoint.py
-    deep_learning_container:
-      source: ../../src/deep_learning_container.py
-      target: deep_learning_container.py
-  inference_context: &INFERENCE_CONTEXT
+  inference_context:
     sagemaker_package_name:
       source: docker/build_artifacts/sagemaker
       target: sagemaker
@@ -34,10 +31,6 @@ context:
     dockerd-entrypoint:
       source: docker/build_artifacts/dockerd-entrypoint.py
       target: dockerd-entrypoint.py
-    deep_learning_container:
-      source: ../../src/deep_learning_container.py
-      target: deep_learning_container.py
-
 images:
   BuildTensorflowCpuPy37TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
@@ -53,7 +46,7 @@ images:
       *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowGpuPy37Cu112TrainingDockerImage:
+  BuildTensorflowGpuCu112Py37TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 7738
@@ -68,11 +61,11 @@ images:
       /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowExampleGpuPy37Cu112TrainingDockerImage:
+  BuildTensorflowExampleGpuCu112Py37TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 7738
-    base_image_name: BuildTensorflowGpuPy37Cu112TrainingDockerImage
+    base_image_name: BuildTensorflowGpuCu112Py37TrainingDockerImage
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
@@ -84,30 +77,3 @@ images:
       /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowCPUInferencePy3DockerImage:
-    <<: *INFERENCE_REPOSITORY
-    build: &TENSORFLOW_CPU_INFERENCE_PY3 false
-    image_size_baseline: 4899
-    device_type: &DEVICE_TYPE cpu
-    python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py37
-    os_version: &OS_VERSION ubuntu18.04
-    # TODO: To be reverted once TF Training 2.5.1 is released
-    tag: !join [ "2.5.1", "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
-    context:
-      <<: *INFERENCE_CONTEXT
-  BuildTensorflowGPUInferencePy3DockerImage:
-    <<: *INFERENCE_REPOSITORY
-    build: &TENSORFLOW_GPU_INFERENCE_PY3 false
-    image_size_baseline: 7738
-    device_type: &DEVICE_TYPE gpu
-    python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py37
-    cuda_version: &CUDA_VERSION cu112
-    os_version: &OS_VERSION ubuntu18.04
-    # TODO: To be reverted once TF Training 2.5.1 is released
-    tag: !join [ "2.5.1", "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
-    context:
-      <<: *INFERENCE_CONTEXT
