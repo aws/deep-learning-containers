@@ -334,14 +334,3 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  26:
-    framework: "mxnet"
-    version: "1.8.0"
-    inference:
-      device_types: ["neuron"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu110"
-      example: False
-      disable_sm_tag: True
-      force_release: False

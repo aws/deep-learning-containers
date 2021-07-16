@@ -91,7 +91,11 @@ def get_ec2_accelerator_type(default, processor):
             f"Aborting EC2 test run. Unrecognized processor type {processor}. "
             f"Please choose from {allowed_processors}"
         )
-    accelerator_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE", default)
+    accelerator_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE")
+    if not accelerator_type:
+        if is_mainline_context():
+            return []
+        return [default]
     return [accelerator_type]
 
 
