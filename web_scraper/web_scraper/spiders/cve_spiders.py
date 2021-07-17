@@ -56,6 +56,13 @@ class QuotesSpider(scrapy.Spider):
         status_table = page_divs[1].css('table.cve-table').css('tbody').css('tr')
         note_table = page_divs[2].css('table').css('tr')
         
+        processed_data = {
+            'URL':response.url,
+            'status_tables':[],
+            'notes': []
+        }
+
+        table_data = None
         for row in status_table:
             processed_tuple = self.process_row(row.css('td::text').getall())
             if processed_tuple[0] is None:
@@ -64,9 +71,18 @@ class QuotesSpider(scrapy.Spider):
                 ## If the processed_tuple is Upstream, it refers to the first row of
                 ## status_table. Its only the first row that has the package name and 
                 ## hence we extract that using the underneath commands.
+                if table_data is not None:
+                    processed_data['status_tables'].append(table_data)
+                table_data = {}
                 package_list = row.css('td')[0].css('a::text').getall()
-                print(('package_list',package_list))
-            print(processed_tuple)
+                table_data['packages'] = package_list
+            if 'release_states' not in table_data:
+                table_data['release_states'] = []
+            table_data['release_states'].append(list(processed_tuple))
         
-        ## For Note Section ##
-        print(note_table[1].css('td').css('pre::text').get())
+        if table_data is not None:
+            processed_data['status_tables'].append(table_data)
+        
+        processed_data['notes'].append(note_table[1].css('td').css('pre::text').get())
+
+        yield processed_data
