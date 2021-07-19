@@ -56,9 +56,9 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.parametrize('instance_types', ["ml.p4d.24xlarge"])
 @pytest.mark.skip_cpu
 @pytest.mark.efa()
-def test_smdataparallel_throughput(n_virginia_sagemaker_session, framework_version, n_virginia_ecr_image, instance_types, tmpdir):
+def test_smdataparallel_throughput(sagemaker_session, framework_version, ecr_image, instance_types, tmpdir):
     with timeout(minutes=DEFAULT_TIMEOUT):
-        validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
+        validate_or_skip_smdataparallel_efa(ecr_image)
         hyperparameters = {
             "size": 64,
             "num_tensors": 20,
@@ -74,8 +74,8 @@ def test_smdataparallel_throughput(n_virginia_sagemaker_session, framework_versi
             instance_count=2,
             instance_type=instance_types,
             source_dir=throughput_path,
-            sagemaker_session=n_virginia_sagemaker_session,
-            image_uri=n_virginia_ecr_image,
+            sagemaker_session=sagemaker_session,
+            image_uri=ecr_image,
             framework_version=framework_version,
             hyperparameters=hyperparameters,
             distribution=distribution
@@ -118,20 +118,20 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.efa()
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p4d.24xlarge"])
-def test_smdataparallel_mnist(n_virginia_sagemaker_session, framework_version, n_virginia_ecr_image, instance_types, tmpdir):
+def test_smdataparallel_mnist(sagemaker_session, framework_version, ecr_image, instance_types, tmpdir):
     """
     Tests smddprun command via Estimator API distribution parameter
     """
     with timeout(minutes=DEFAULT_TIMEOUT):
-        validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
+        validate_or_skip_smdataparallel_efa(ecr_image)
         distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
         pytorch = PyTorch(entry_point='smdataparallel_mnist.py',
                           role='SageMakerRole',
-                          image_uri=n_virginia_ecr_image,
+                          image_uri=ecr_image,
                           source_dir=mnist_path,
                           instance_count=2,
                           instance_type=instance_types,
-                          sagemaker_session=n_virginia_sagemaker_session,
+                          sagemaker_session=sagemaker_session,
                           distribution=distribution)
 
         pytorch.fit(job_name=utils.unique_name_from_base('test-pt-smddp-mnist'))

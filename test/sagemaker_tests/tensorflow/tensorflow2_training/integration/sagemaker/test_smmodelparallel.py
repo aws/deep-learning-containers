@@ -56,11 +56,11 @@ def can_run_smmodelparallel_efa(ecr_image):
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("tf2_conv.py", 2), ("tf2_conv_xla.py", 2), ("smmodelparallel_hvd2_conv.py", 4), ("send_receive_checkpoint.py", 2), ("tf2_checkpoint_test.py", 2)])
 @pytest.mark.efa()
-def test_smmodelparallel_efa(n_virginia_sagemaker_session, efa_instance_type, n_virginia_ecr_image, tmpdir, framework_version, test_script, num_processes):
+def test_smmodelparallel_efa(sagemaker_session, efa_instance_type, ecr_image, tmpdir, framework_version, test_script, num_processes):
     """
     Tests SM Modelparallel in sagemaker
     """
-    validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
+    validate_or_skip_smmodelparallel_efa(ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
                            role='SageMakerRole',
@@ -74,8 +74,8 @@ def test_smmodelparallel_efa(n_virginia_sagemaker_session, efa_instance_type, n_
                                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x FI_EFA_USE_DEVICE_RDMA=1 -x FI_PROVIDER=efa ",
                                 }
                            },
-                           sagemaker_session=n_virginia_sagemaker_session,
-                           image_uri=n_virginia_ecr_image,
+                           sagemaker_session=sagemaker_session,
+                           image_uri=ecr_image,
                            framework_version=framework_version,
                            py_version='py3',
                            base_job_name='smp-test1')
@@ -90,11 +90,11 @@ def test_smmodelparallel_efa(n_virginia_sagemaker_session, efa_instance_type, n_
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_hvd2_conv_multinode.py", 2)])
 @pytest.mark.efa()
-def test_smmodelparallel_multinode_efa(n_virginia_sagemaker_session, efa_instance_type, n_virginia_ecr_image, tmpdir, framework_version, test_script, num_processes):
+def test_smmodelparallel_multinode_efa(sagemaker_session, efa_instance_type, ecr_image, tmpdir, framework_version, test_script, num_processes):
     """
     Tests SM Modelparallel in sagemaker
     """
-    validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
+    validate_or_skip_smmodelparallel_efa(ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
                            role='SageMakerRole',
@@ -108,8 +108,8 @@ def test_smmodelparallel_multinode_efa(n_virginia_sagemaker_session, efa_instanc
                                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x FI_EFA_USE_DEVICE_RDMA=1 -x FI_PROVIDER=efa ",
                                 }
                            },
-                           sagemaker_session=n_virginia_sagemaker_session,
-                           image_uri=n_virginia_ecr_image,
+                           sagemaker_session=sagemaker_session,
+                           image_uri=ecr_image,
                            framework_version=framework_version,
                            py_version='py3',
                            base_job_name='smp-test2')
@@ -122,12 +122,12 @@ def test_smmodelparallel_multinode_efa(n_virginia_sagemaker_session, efa_instanc
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("tf2_conv.py", 2), ("tf2_conv_xla.py", 2), ("smmodelparallel_hvd2_conv.py", 4), ("send_receive_checkpoint.py", 2), ("tf2_checkpoint_test.py", 2)])
-def test_smmodelparallel(n_virginia_sagemaker_session, instance_type, n_virginia_ecr_image, tmpdir, framework_version, test_script, num_processes):
+def test_smmodelparallel(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version, test_script, num_processes):
     """
     Tests SM Modelparallel in sagemaker
     """
     instance_type = "ml.p3.16xlarge"
-    validate_or_skip_smmodelparallel(n_virginia_ecr_image)
+    validate_or_skip_smmodelparallel(ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
                            role='SageMakerRole',
@@ -141,8 +141,8 @@ def test_smmodelparallel(n_virginia_sagemaker_session, instance_type, n_virginia
                                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 ",
                                 }
                            },
-                           sagemaker_session=n_virginia_sagemaker_session,
-                           image_uri=n_virginia_ecr_image,
+                           sagemaker_session=sagemaker_session,
+                           image_uri=ecr_image,
                            framework_version=framework_version,
                            py_version='py3',
                            base_job_name='smp-test1')
@@ -156,12 +156,12 @@ def test_smmodelparallel(n_virginia_sagemaker_session, instance_type, n_virginia
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_hvd2_conv_multinode.py", 2)])
-def test_smmodelparallel_multinode(n_virginia_sagemaker_session, instance_type, n_virginia_ecr_image, tmpdir, framework_version, test_script, num_processes):
+def test_smmodelparallel_multinode(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version, test_script, num_processes):
     """
     Tests SM Modelparallel in sagemaker
     """
     instance_type = "ml.p3.16xlarge"
-    validate_or_skip_smmodelparallel(n_virginia_ecr_image)
+    validate_or_skip_smmodelparallel(ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
                            role='SageMakerRole',
@@ -175,8 +175,8 @@ def test_smmodelparallel_multinode(n_virginia_sagemaker_session, instance_type, 
                                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 ",
                                 }
                            },
-                           sagemaker_session=n_virginia_sagemaker_session,
-                           image_uri=n_virginia_ecr_image,
+                           sagemaker_session=sagemaker_session,
+                           image_uri=ecr_image,
                            framework_version=framework_version,
                            py_version='py3',
                            base_job_name='smp-test2')
