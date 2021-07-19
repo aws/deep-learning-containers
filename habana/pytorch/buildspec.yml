@@ -34,7 +34,7 @@ images:
     device_type: &DEVICE_TYPE hpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
-    synapseai_version: &SYNAPSEAI_VERSION synapseai0.15.1
+    synapseai_version: &SYNAPSEAI_VERSION synapseai0.15.2
     os_version: &OS_VERSION ubuntu18.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *SYNAPSEAI_VERSION,
       "-", *OS_VERSION ]
@@ -55,7 +55,7 @@ images:
     device_type: &DEVICE_TYPE hpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
-    synapseai_version: &SYNAPSEAI_VERSION synapseai0.15.1
+    synapseai_version: &SYNAPSEAI_VERSION synapseai0.15.2
     os_version: &OS_VERSION ubuntu18.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *SYNAPSEAI_VERSION,
       "-", *OS_VERSION, "-example" ]
