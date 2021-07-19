@@ -66,7 +66,10 @@ class QuotesSpider(scrapy.Spider):
             ## The td tag in each row has the important text stored in it.
             ## Sometimes, td has some text in small fonts. That text is simply appended at 
             ## the end to fetch and preserve maximum amount of data.
-            processed_tuple = self.process_row(row.css('td::text').getall() + row.css('td').css('small::text').getall())
+            row_data_list = row.css('td::text').getall()
+            if len(row.css('td')) >= 1:
+                row_data_list = row_data_list + row.css('td')[-1].css('small::text').getall()
+            processed_tuple = self.process_row(row_data_list)
             if processed_tuple[0] is None:
                 continue
             if processed_tuple[0].startswith('Upstream'):
