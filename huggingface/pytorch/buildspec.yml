@@ -69,3 +69,5 @@ images:
                  *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
                          *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
+    context:
+      <<: *INFERENCE_CONTEXT

@@ -27,7 +27,7 @@ context:
       target: config.properties
 
 images:
- BuildHuggingFaceTensorflowGpuPy37Cu110TrainingDockerImage:
+  BuildHuggingFaceTensorflowGpuPy37Cu110TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &HUGGINGFACE_TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 8489
