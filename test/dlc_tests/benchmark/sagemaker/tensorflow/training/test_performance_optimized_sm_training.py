@@ -1,6 +1,5 @@
 '''
 This testplan will currently testing XLA effectiveness for DLC TF containers.
-When Hopper containers are made available, this testplan should be skipped for DLC TF containers.
 '''
 import os
 import re
@@ -22,7 +21,7 @@ from test.test_utils import (
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.multinode(4)
 @pytest.mark.model("resnet50")
-def test_hopper_tensorflow_sagemaker_training_performance_multinode(tensorflow_training, region, gpu_only, tf25_and_above_only):
+def test_optimized_tensorflow_sagemaker_training_performance_multinode(tensorflow_training, region, gpu_only, tf25_and_above_only):
     throughput_without_xla = run_sm_perf_test(
                                 image_uri=tensorflow_training,
                                 xla=False,
@@ -41,7 +40,7 @@ def test_hopper_tensorflow_sagemaker_training_performance_multinode(tensorflow_t
     _, framework_version = get_framework_and_version_from_tag(tensorflow_training)
     py_version = "py2" if "py2" in tensorflow_training else "py37" if "py37" in tensorflow_training else "py3"
     '''
-    Uncomment when Hopper is active
+    This is a data collection effort for now.
     There is enough variation in performance to warrant putting down a THRESHOLD in terms of performance ratio
     assert throughput_with_xla > throughput_without_xla, (
         f"tensorflow {framework_version} sagemaker training gpu {py_version} imagenet 4 nodes "
@@ -52,7 +51,7 @@ def test_hopper_tensorflow_sagemaker_training_performance_multinode(tensorflow_t
 
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50")
-def test_hopper_tensorflow_sagemaker_training_performance_singlenode(tensorflow_training, region, gpu_only, tf25_and_above_only):
+def test_optimized_tensorflow_sagemaker_training_performance_singlenode(tensorflow_training, region, gpu_only, tf25_and_above_only):
     throughput_without_xla = run_sm_perf_test(
                                 image_uri=tensorflow_training,
                                 xla=False,
@@ -71,7 +70,7 @@ def test_hopper_tensorflow_sagemaker_training_performance_singlenode(tensorflow_
     _, framework_version = get_framework_and_version_from_tag(tensorflow_training)
     py_version = "py2" if "py2" in tensorflow_training else "py37" if "py37" in tensorflow_training else "py3"
     '''
-    Uncomment when Hopper is active.
+    This is a data collection effort for now.
     There is enough variation in performance to warrant putting down a THRESHOLD in terms of performance ratio
     assert throughput_with_xla > throughput_without_xla, (
         f"tensorflow {framework_version} sagemaker training gpu {py_version} imagenet 1 nodes "
@@ -109,22 +108,11 @@ def run_sm_perf_test(image_uri, xla, num_nodes, region, threshold=None):
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S")
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
     target_upload_location = os.path.join(
-        BENCHMARK_RESULTS_S3_BUCKET, "hopper", "tensorflow", framework_version, "sagemaker", "training", device_cuda_str, py_version
+        BENCHMARK_RESULTS_S3_BUCKET, "xla", "tensorflow", framework_version, "sagemaker", "training", device_cuda_str, py_version
     )
     training_job_name = (
-        f"hpr-tf{framework_version[0]}-bench-{device_cuda_str}-{num_nodes}-node-{py_version}-{commit_info[:7]}-{time_str}"
+        f"opt-tf{framework_version[0]}-bench-{device_cuda_str}-{num_nodes}-node-{py_version}-{commit_info[:7]}-{time_str}"
     )
-
-    if "hopper" in image_uri:
-        if xla:
-            LOGGER.info('Testing Hopper image with XLA enabled')
-        else:
-            LOGGER.info('Testing Hopper image with XLA disabled')
-    else:
-        if xla:
-            LOGGER.info('Testing non-Hopper image with XLA enabled')
-        else:
-            LOGGER.info('Testing non-Hopper image with XLA disabled')
 
     # Inserting random sleep because this test starts multiple training jobs around the same time, resulting in
     # a throttling error for SageMaker APIs.
@@ -137,7 +125,7 @@ def run_sm_perf_test(image_uri, xla, num_nodes, region, threshold=None):
 
     with ctx.cd(test_dir), ctx.prefix(f"source {venv_dir}/bin/activate"):
         log_file = (
-            f"results-{commit_info}-{time_str}-hopper-tf{framework_version}-{device_cuda_str}-{py_version}-{num_nodes}-node.txt"
+            f"results-{commit_info}-{time_str}-optimized-tf{framework_version}-{device_cuda_str}-{py_version}-{num_nodes}-node.txt"
         )
         run_out = ctx.run(
             f"timeout 45m python tf_sm_benchmark.py "
@@ -170,12 +158,12 @@ def run_sm_perf_test(image_uri, xla, num_nodes, region, threshold=None):
     )
 
     LOGGER.info(
-        f"hopper-tensorflow {framework_version} sagemaker training {device_cuda_str} {py_version} "
+        f"optimized-tensorflow {framework_version} sagemaker training {device_cuda_str} {py_version} "
         f"imagenet {num_nodes} nodes Throughput: {throughput} images/sec, threshold: {threshold} images/sec"
     )
     if threshold:
         assert throughput > threshold, (
-            f"hopper-tensorflow {framework_version} sagemaker training {processor} {py_version} imagenet {num_nodes} nodes "
+            f"optimized-tensorflow {framework_version} sagemaker training {processor} {py_version} imagenet {num_nodes} nodes "
             f"Regression Benchmark Result {throughput} does not reach the threshold {threshold}"
         )
     return throughput

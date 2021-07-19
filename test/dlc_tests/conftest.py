@@ -565,7 +565,7 @@ def skip_efa_tests(request):
         pytest.skip('Skipping EFA tests as EFA tests are disabled.')
 
 
-#@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def disable_test(request):
     test_name = request.node.name
     # We do not have a regex pattern to find CB name, which means we must resort to string splitting
