@@ -2,16 +2,15 @@ import scrapy
 
 
 class QuotesSpider(scrapy.Spider):
-    name = "cve"
+    name = "cve" ## Spider name should be unique
 
     def start_requests(self):
         urls = [
             'https://ubuntu.com/security/CVE-2016-1585',
             'https://ubuntu.com/security/CVE-2021-29973'
         ]
-        ## We need to make sure that the URLs are unique because spiders on each
-        ## URL work in parallel. To avoid conflicts in the future, we ensure that
-        ## the list has unique URLs.
+        ## Parse function stores the data related to each CVE in a JSON format.
+        ## For the data to be stored properly, make sure that the URLs are unique. 
         urls = list(set(urls))
         for url in urls:
             yield scrapy.Request(url=url, callback=self.parse)
@@ -52,9 +51,9 @@ class QuotesSpider(scrapy.Spider):
         return release_status
 
     def parse(self, response):
-        page_divs = response.css('div.wrapper').css('section.p-strip').css('div.row').css('div.col-9')
-        status_table = page_divs[1].css('table.cve-table').css('tbody').css('tr')
-        note_table = page_divs[2].css('table').css('tr')
+        page_divisions = response.css('div.wrapper').css('section.p-strip').css('div.row').css('div.col-9')
+        status_table = page_divisions[1].css('table.cve-table').css('tbody').css('tr')
+        note_table = page_divisions[2].css('table').css('tr')
         
         processed_data = {
             'URL':response.url,
@@ -64,7 +63,10 @@ class QuotesSpider(scrapy.Spider):
 
         table_data = None
         for row in status_table:
-            processed_tuple = self.process_row(row.css('td::text').getall())
+            ## The td tag in each row has the important text stored in it.
+            ## Sometimes, td has some text in small fonts. That text is simply appended at 
+            ## the end to fetch and preserve maximum amount of data.
+            processed_tuple = self.process_row(row.css('td::text').getall() + row.css('td').css('small::text').getall())
             if processed_tuple[0] is None:
                 continue
             if processed_tuple[0].startswith('Upstream'):
