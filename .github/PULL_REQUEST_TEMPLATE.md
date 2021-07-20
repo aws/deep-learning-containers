@@ -2,6 +2,8 @@
 
 Note: If merging this PR should also close the associated Issue, please also add that Issue # to the Linked Issues section on the right. 
 
+
+
 ### Description
 
 ### Tests run
@@ -15,6 +17,7 @@ Note: If merging this PR should also close the associated Issue, please also add
 
 ## PR Checklist
 - [ ] I've prepended PR tag with frameworks/job this applies to : [mxnet, tensorflow, pytorch] | [ei/neuron] | [build] | [test] | [benchmark] | [ec2, ecs, eks, sagemaker]
+- [ ] If the PR changes affects SM test, I've modified dlc_developer_config.toml in my PR branch by setting sagemaker_tests = true and efa_tests = true
 - [ ] If this PR changes existing code, the change fully backward compatible with pre-existing code. (Non backward-compatible changes need special approval.)
 - [ ] (If applicable) I've documented below the DLC image/dockerfile this relates to
 - [ ] (If applicable) I've documented below the tests I've run on the DLC image
