@@ -1,7 +1,5 @@
 from . import parse_dlc_developer_configs
 
-# Please only set it to True if you are preparing a Benchmark related PR
-# Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
 ENABLE_BENCHMARK_DEV_MODE = parse_dlc_developer_configs("dev", "benchmark_mode")
 
 # Disable the test codebuild jobs to be run
