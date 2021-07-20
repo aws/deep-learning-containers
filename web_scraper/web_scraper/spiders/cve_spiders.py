@@ -1,14 +1,12 @@
 import scrapy
+import os
 
 
 class QuotesSpider(scrapy.Spider):
     name = "cve" ## Spider name should be unique
 
     def start_requests(self):
-        urls = [
-            'https://ubuntu.com/security/CVE-2016-1585',
-            'https://ubuntu.com/security/CVE-2021-29973'
-        ]
+        urls = os.environ.get('SCRAPE_URL_LIST').split(' ')
         ## Parse function stores the data related to each CVE in a JSON format.
         ## For the data to be stored properly, make sure that the URLs are unique. 
         urls = list(set(urls))
@@ -88,6 +86,7 @@ class QuotesSpider(scrapy.Spider):
         if table_data is not None:
             processed_data['status_tables'].append(table_data)
         
-        processed_data['notes'].append(note_table[1].css('td').css('pre::text').get())
+        all_notes = note_table[1].css('td').css('pre::text').getall()
+        processed_data['notes'] = [note for note in all_notes]
 
         yield processed_data
