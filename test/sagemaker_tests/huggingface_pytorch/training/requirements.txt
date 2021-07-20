@@ -20,6 +20,7 @@ requests_mock==1.6.0
 fabric
 retrying
 gitpython
+toml
 s3fs==0.4.2
 datasets[s3]==1.6.2
 transformers==4.6.1

@@ -29,7 +29,7 @@ from test_utils import (
     SAGEMAKER_LOCAL_TEST_TYPE,
     SAGEMAKER_REMOTE_TEST_TYPE,
     UBUNTU_HOME_DIR,
-    DEFAULT_REGION
+    DEFAULT_REGION,
 )
 
 
@@ -139,6 +139,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     test_report = os.path.join(os.getcwd(), "test", f"{job_type}_{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
+
 
     # Explanation of why we need the if-condition below:
     # We have separate Pipeline Actions that run EFA tests, which have the env variable "EFA_DEDICATED=True" configured
