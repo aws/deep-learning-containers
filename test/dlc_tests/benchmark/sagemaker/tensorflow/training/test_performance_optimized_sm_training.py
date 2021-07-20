@@ -108,6 +108,9 @@ def run_sm_perf_test(image_uri, xla, num_nodes, region, threshold=None):
 
     processor = "xla" if xla else "gpu"
     device_cuda_str = f"{processor}-{get_cuda_version_from_tag(image_uri)}"
+    '''
+    TODO: Switch to p3.16xlarge when EC2 availability issues are resolved
+    '''
     ec2_instance_type = "p3.8xlarge"
     py_version = "py2" if "py2" in image_uri else "py37" if "py37" in image_uri else "py3"
 
