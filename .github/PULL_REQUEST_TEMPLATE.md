@@ -2,7 +2,7 @@
 
 Note: 
 - If merging this PR should also close the associated Issue, please also add that Issue # to the Linked Issues section on the right. 
-- By default SageMaker and EFA tests are disabled, request you to enable them if PR needs those tests by using dlc_developer_config.toml
+- By default SageMaker and EFA tests are disabled on PR, request you to enable them if PR needs those tests by using dlc_developer_config.toml
 
 ### Description
 
