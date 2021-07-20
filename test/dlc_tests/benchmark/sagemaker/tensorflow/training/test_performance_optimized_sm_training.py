@@ -29,6 +29,9 @@ def test_optimized_tensorflow_sagemaker_training_performance_multinode(tensorflo
                                 region=region,
                                 threshold=None
                                 )
+    '''
+    TODO: Add an absolute THRESHOLD for the XLA accelerated benchmark to guard against regression.
+    '''
     throughput_with_xla = run_sm_perf_test(
                                 image_uri=tensorflow_training,
                                 xla=True,
@@ -41,7 +44,7 @@ def test_optimized_tensorflow_sagemaker_training_performance_multinode(tensorflo
     py_version = "py2" if "py2" in tensorflow_training else "py37" if "py37" in tensorflow_training else "py3"
     '''
     This is a data collection effort for now.
-    There is enough variation in performance to warrant putting down a THRESHOLD in terms of performance ratio
+    TODO: Add a THRESHOLD in terms of performance ratio
     assert throughput_with_xla > throughput_without_xla, (
         f"tensorflow {framework_version} sagemaker training gpu {py_version} imagenet 4 nodes "
         f"XLA Benchmark Result {throughput_with_xla} does not reach the threshold {throughput_without_xla}"
@@ -59,6 +62,9 @@ def test_optimized_tensorflow_sagemaker_training_performance_singlenode(tensorfl
                                 region=region,
                                 threshold=None
                                 )
+    '''
+    TODO: Add an absolute THRESHOLD for the XLA accelerated benchmark to guard against regression.
+    '''
     throughput_with_xla = run_sm_perf_test(
                                 image_uri=tensorflow_training,
                                 xla=True,
@@ -71,7 +77,7 @@ def test_optimized_tensorflow_sagemaker_training_performance_singlenode(tensorfl
     py_version = "py2" if "py2" in tensorflow_training else "py37" if "py37" in tensorflow_training else "py3"
     '''
     This is a data collection effort for now.
-    There is enough variation in performance to warrant putting down a THRESHOLD in terms of performance ratio
+    TODO: Add a THRESHOLD in terms of performance ratio
     assert throughput_with_xla > throughput_without_xla, (
         f"tensorflow {framework_version} sagemaker training gpu {py_version} imagenet 1 nodes "
         f"XLA Benchmark Result {throughput_with_xla} does not reach the threshold {throughput_without_xla}"
@@ -158,12 +164,12 @@ def run_sm_perf_test(image_uri, xla, num_nodes, region, threshold=None):
     )
 
     LOGGER.info(
-        f"optimized-tensorflow {framework_version} sagemaker training {device_cuda_str} {py_version} "
+        f"optimized-tensorflow-{framework_version} sagemaker training {ec2_instance_type} {device_cuda_str} {py_version} "
         f"imagenet {num_nodes} nodes Throughput: {throughput} images/sec, threshold: {threshold} images/sec"
     )
     if threshold:
         assert throughput > threshold, (
-            f"optimized-tensorflow {framework_version} sagemaker training {processor} {py_version} imagenet {num_nodes} nodes "
+            f"optimized-tensorflow-{framework_version} sagemaker training {ec2_instance_type} {device_cuda_str} {py_version} imagenet {num_nodes} nodes "
             f"Regression Benchmark Result {throughput} does not reach the threshold {threshold}"
         )
     return throughput
