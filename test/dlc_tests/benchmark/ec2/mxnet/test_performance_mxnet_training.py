@@ -20,7 +20,7 @@ MX_PERFORMANCE_TRAINING_CPU_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_mxnet_training_performance_cpu"
 )
 
-MX_EC2_GPU_INSTANCE_TYPE = "p3.16xlarge"
+MX_EC2_GPU_INSTANCE_TYPE = "g4dn.12xlarge"
 MX_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
 
 

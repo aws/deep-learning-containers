@@ -26,7 +26,7 @@ def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_onl
     Run MXNet distributed training on EKS using docker images with MNIST dataset (horovod)
     """
     eks_cluster_size = "3"
-    ec2_instance_type = "p3.16xlarge"
+    ec2_instance_type = "g4dn.12xlarge"
 
     eks_gpus_per_worker = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)
     

@@ -21,7 +21,7 @@ TF_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_tensorflow_training_performance_gpu_imagenet",
 )
 
-TF_EC2_GPU_INSTANCE_TYPE = "p3.16xlarge"
+TF_EC2_GPU_INSTANCE_TYPE = "g4dn.12xlarge"
 TF_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
 
 

@@ -20,7 +20,7 @@ PT_PERFORMANCE_INFERENCE_GPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT}  --iterat
 
 
 @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.16xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["g4dn.12xlarge"], indirect=True)
 def test_performance_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gpu_only):
     _, framework_version = get_framework_and_version_from_tag(pytorch_inference)
     threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_GPU_THRESHOLD)
