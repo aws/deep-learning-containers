@@ -1,6 +1,6 @@
 # Webscraper
 
-This module helps us with the process of scraping the web. The module has been built using [scrapy](https://docs.scrapy.org/en/latest/intro/overview.html#scrapy-at-a-glance), an application framework used for crawling web sites and extracting structured data.
+The module has been built using [scrapy](https://docs.scrapy.org/en/latest/intro/overview.html#scrapy-at-a-glance), an application framework used for crawling web sites and extracting structured data.
 
 As of now, the WebScraper has just 1 spider that is used to crawl the CVE URLs. 
 
@@ -10,7 +10,7 @@ Installing [scrapy](https://docs.scrapy.org/en/latest/intro/install.html).
 ## Running the Code:
 To run the code, the following steps can be followed:
 
-**Note, all the commands given below should be run from this directory i.e. `~/deep-learning-containers/web_scraper itself.**
+**Note: all the commands given below should be run from this directory i.e. `~/deep-learning-containers/web_scraper itself.**
 
 1. Set the following environment variable:
 `export SCRAPE_URL_LIST="https://ubuntu.com/security/CVE-2016-1585 https://ubuntu.com/security/CVE-2021-29973"`
