@@ -31,7 +31,6 @@ mxnet/ @dlc-mxnet-reviewers
 # Any PR with a file with "neuron" in it will be assigned to the neuron reviewer team
 *neuron* @dlc-neuron-reviewers
 
-
 # Any PR with a file with "eia" in it will be assigned to the EI reviewer team
 *eia* @dlc-eia-reviewers
 
