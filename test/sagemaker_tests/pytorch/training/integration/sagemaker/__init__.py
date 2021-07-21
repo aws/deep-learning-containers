@@ -28,7 +28,7 @@ def invoke_pytorch_estimator(pdx_ecr_image, sagemaker_region, estimator_paramete
     #TODO: Add retry mechanism
     for region in sagemaker_region:
         sagemaker_session = get_sagemaker_session(region)
-        ecr_image = get_ecr_image(pdx_ecr_image, region) if region is not "us-west-2" else pdx_ecr_image
+        ecr_image = get_ecr_image(pdx_ecr_image, region) if region != "us-west-2" else pdx_ecr_image
         try:
             pytorch = PyTorch(
                 image_uri=ecr_image,
