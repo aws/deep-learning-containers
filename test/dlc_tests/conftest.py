@@ -345,6 +345,9 @@ def tf23_and_above_only():
 def tf24_and_above_only():
     pass
 
+@pytest.fixture(scope="session")
+def tf25_and_above_only():
+    pass
 
 @pytest.fixture(scope="session")
 def tf21_and_above_only():
@@ -387,10 +390,11 @@ def framework_version_within_limit(metafunc_obj, image):
     image_framework_name, _ = get_framework_and_version_from_tag(image)
     if image_framework_name == "tensorflow" :
         tf2_requirement_failed = "tf2_only" in metafunc_obj.fixturenames and not is_tf_version("2", image)
+        tf25_requirement_failed = "tf25_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("2.5", image, "tensorflow")
         tf24_requirement_failed = "tf24_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("2.4", image, "tensorflow")
         tf23_requirement_failed = "tf23_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("2.3", image, "tensorflow")
         tf21_requirement_failed = "tf21_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("2.1", image, "tensorflow")
-        if tf2_requirement_failed or tf21_requirement_failed or tf24_requirement_failed or tf23_requirement_failed :
+        if tf2_requirement_failed or tf21_requirement_failed or tf24_requirement_failed or tf25_requirement_failed or tf23_requirement_failed :
             return False
     if image_framework_name == "mxnet" :
         mx18_requirement_failed = "mx18_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version("1.8", image, "mxnet")
