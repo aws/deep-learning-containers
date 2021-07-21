@@ -23,6 +23,7 @@ from packaging.specifiers import SpecifierSet
 from ...integration import (DEFAULT_TIMEOUT, resnet18_path)
 from ...integration.sagemaker.timeout import timeout
 from test.test_utils import get_framework_and_version_from_tag
+from . import invoke_pytorch_estimator
 
 MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
 CPU_INSTANCE = 'ml.c5.4xlarge'
@@ -45,40 +46,36 @@ def validate_or_skip_s3_plugin(ecr_image):
 @pytest.mark.model("resnet18")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_pt_s3_plugin_sm_gpu(sagemaker_session, framework_version, ecr_image):
+def test_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_region):
     validate_or_skip_s3_plugin(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(
-            entry_point="main.py",
-            source_dir=resnet18_path,
-            image_uri=ecr_image,
-            role='SageMakerRole',
-            instance_count=1,
-            instance_type=MULTI_GPU_INSTANCE,
-            sagemaker_session=sagemaker_session,
-            framework_version=framework_version
-        )
+        estimator_parameter = {
+            'entry_point': 'main.py',
+            'role': 'SageMakerRole',
+            'source_dir': resnet18_path,
+            'instance_count': 1,
+            'instance_type': MULTI_GPU_INSTANCE,
+            'framework_version': framework_version
+        }        
+        
         job_name = utils.unique_name_from_base('test-pytorch-s3-plugin-gpu')
-        pytorch.fit(job_name=job_name)
-
+        invoke_pytorch_estimator(ecr_image, sagemaker_region, estimator_parameter, job_name=job_name)
 
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("pt_s3_plugin_cpu")
 @pytest.mark.model("resnet18")
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
-def test_pt_s3_plugin_sm_cpu(sagemaker_session, framework_version, ecr_image):
+def test_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_region):
     validate_or_skip_s3_plugin(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(
-            entry_point="main.py",
-            source_dir=resnet18_path,
-            image_uri=ecr_image,
-            role='SageMakerRole',
-            instance_count=1,
-            instance_type=CPU_INSTANCE,
-            sagemaker_session=sagemaker_session,
-            framework_version=framework_version
-        )
+        estimator_parameter = {
+            'entry_point': 'main.py',
+            'role': 'SageMakerRole',
+            'source_dir': resnet18_path,
+            'instance_count': 1,
+            'instance_type': CPU_INSTANCE,
+            'framework_version': framework_version
+        }  
         job_name = utils.unique_name_from_base('test-pytorch-s3-plugin-cpu')
-        pytorch.fit(job_name=job_name)
+        invoke_pytorch_estimator(ecr_image, sagemaker_region, estimator_parameter, job_name=job_name)

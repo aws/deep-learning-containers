@@ -18,16 +18,22 @@ from sagemaker.pytorch import PyTorch
 
 from ...integration import training_dir, mnist_script, DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
-
+from .... import invoke_pytorch_helper_function
 
 @pytest.mark.processor("cpu")
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_gpu
-def test_mnist_distributed_cpu(sagemaker_session, framework_version, ecr_image, instance_type, dist_cpu_backend):
+def test_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_region, instance_type, dist_cpu_backend):
     instance_type = instance_type or 'ml.c4.xlarge'
-    _test_mnist_distributed(sagemaker_session, framework_version, ecr_image, instance_type, dist_cpu_backend)
+    function_args = {
+            'framework_version': framework_version,
+            'instance_type': instance_type,
+            'dist_backend': dist_cpu_backend
+        }
+
+    invoke_pytorch_helper_function(ecr_image, sagemaker_region, _test_mnist_distributed, function_args)
 
 
 @pytest.mark.processor("gpu")
@@ -35,12 +41,18 @@ def test_mnist_distributed_cpu(sagemaker_session, framework_version, ecr_image, 
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
-def test_mnist_distributed_gpu(sagemaker_session, framework_version, ecr_image, instance_type, dist_gpu_backend):
+def test_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_region, instance_type, dist_gpu_backend):
     instance_type = instance_type or 'ml.p2.xlarge'
-    _test_mnist_distributed(sagemaker_session, framework_version, ecr_image, instance_type, dist_gpu_backend)
+    function_args = {
+            'framework_version': framework_version,
+            'instance_type': instance_type,
+            'dist_backend': dist_gpu_backend
+        }
+
+    invoke_pytorch_helper_function(ecr_image, sagemaker_region, _test_mnist_distributed, function_args)
 
 
-def _test_mnist_distributed(sagemaker_session, framework_version, ecr_image, instance_type, dist_backend):
+def _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, instance_type, dist_backend):
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(
             entry_point=mnist_script,
