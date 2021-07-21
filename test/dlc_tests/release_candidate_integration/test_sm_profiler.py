@@ -33,7 +33,7 @@ def test_sm_profiler_pt(pytorch_training):
 
     # Download sagemaker-tests zip
     sm_tests_zip = "sagemaker-tests.zip"
-    ctx.run(f"aws s3 cp s3://smprofiler-test-artifacts/{sm_tests_zip} {profiler_tests_dir}/{sm_tests_zip}")
+    ctx.run(f"aws s3 cp {os.getenv('SMPROFILER_TESTS_BUCKET')}/{sm_tests_zip} {profiler_tests_dir}/{sm_tests_zip}")
 
     # PT test setup requirements
     with ctx.prefix(f"cd {profiler_tests_dir}"):
