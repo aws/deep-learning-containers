@@ -35,12 +35,12 @@ DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, 'gcn.py')
 @pytest.mark.model("gcn")
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
-def test_dgl_gcn_training_cpu(ecr_image, sagemaker_region, instance_type):
+def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
     instance_type = instance_type or 'ml.c4.xlarge'
     function_args = {
             'instance_type': instance_type,
         }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_region, _test_dgl_training, function_args)
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
 
 
 @pytest.mark.integration("dgl")
@@ -48,7 +48,7 @@ def test_dgl_gcn_training_cpu(ecr_image, sagemaker_region, instance_type):
 @pytest.mark.model("gcn")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_dgl_gcn_training_gpu(ecr_image, sagemaker_region, instance_type):
+def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
 
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
@@ -59,7 +59,7 @@ def test_dgl_gcn_training_gpu(ecr_image, sagemaker_region, instance_type):
     function_args = {
             'instance_type': instance_type,
         }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_region, _test_dgl_training, function_args)
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
 
 
 def _test_dgl_training(ecr_image, sagemaker_session, instance_type):

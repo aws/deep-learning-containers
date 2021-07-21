@@ -23,7 +23,7 @@ from . import invoke_pytorch_estimator
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
-def test_training_smdebug(framework_version, ecr_image, sagemaker_region, instance_type):
+def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, instance_type):
     hyperparameters = {
         'random_seed': True,
         'num_steps': 50,
@@ -46,5 +46,5 @@ def test_training_smdebug(framework_version, ecr_image, sagemaker_region, instan
         'key_prefix': 'pytorch/mnist'
         }
         job_name=utils.unique_name_from_base('test-pt-smdebug-training')
-        invoke_pytorch_estimator(ecr_image, sagemaker_region, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)        
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)        
 

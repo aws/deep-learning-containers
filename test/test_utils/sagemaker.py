@@ -21,7 +21,7 @@ from test_utils import (
     get_job_type_from_image,
     get_python_invoker,
     is_pr_context,
-    SAGEMAKER_EXECUTION_REGION,
+    SAGEMAKER_EXECUTION_REGIONS,
 )
 
 from test_utils import (
@@ -155,7 +155,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
         efa_flag = '--efa' if efa_dedicated else '-m \"not efa\"'
 
-    region_list = ",".join(SAGEMAKER_EXECUTION_REGION)
+    region_list = ",".join(SAGEMAKER_EXECUTION_REGIONS)
 
     sagemaker_region_list = f"--sagemaker-region {region_list}"
     remote_pytest_cmd = (

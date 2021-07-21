@@ -150,10 +150,10 @@ def fixture_region(request):
 def fixture_framework_version(request):
     return request.config.getoption('--framework-version')
 
-@pytest.fixture(scope='session', name='sagemaker_region')
+@pytest.fixture(scope='session', name='sagemaker_regions')
 def fixture_sagemaker_region(request):
-    sagemaker_region = request.config.getoption('--sagemaker-region')
-    return sagemaker_region.split(",")
+    sagemaker_regions = request.config.getoption('--sagemaker-region')
+    return sagemaker_regions.split(",")
 
 @pytest.fixture(scope='session', name='py_version')
 def fixture_py_version(request):

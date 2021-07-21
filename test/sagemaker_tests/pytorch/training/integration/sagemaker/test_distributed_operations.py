@@ -62,14 +62,14 @@ def can_run_smmodelparallel_efa(ecr_image):
 @pytest.mark.skip_gpu
 @pytest.mark.deploy_test
 @pytest.mark.skip_test_in_region
-def test_dist_operations_cpu(framework_version, ecr_image, sagemaker_region, instance_type, dist_cpu_backend):
+def test_dist_operations_cpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend):
     instance_type = instance_type or 'ml.c4.xlarge'
     function_args = {
             'framework_version': framework_version,
             'instance_type': instance_type,
             'dist_backend': dist_cpu_backend,
         }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_region, _test_dist_operations, function_args)
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dist_operations, function_args)
 
 
 @pytest.mark.processor("gpu")
@@ -77,7 +77,7 @@ def test_dist_operations_cpu(framework_version, ecr_image, sagemaker_region, ins
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
 @pytest.mark.deploy_test
-def test_dist_operations_gpu(framework_version, instance_type, ecr_image, sagemaker_region, dist_gpu_backend):
+def test_dist_operations_gpu(framework_version, instance_type, ecr_image, sagemaker_regions, dist_gpu_backend):
     """
     Test is run as multinode
     """
@@ -87,12 +87,12 @@ def test_dist_operations_gpu(framework_version, instance_type, ecr_image, sagema
             'instance_type': instance_type,
             'dist_backend': dist_gpu_backend,
         }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_region, _test_dist_operations, function_args)
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dist_operations, function_args)
 
 @pytest.mark.processor("gpu")
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
-def test_dist_operations_multi_gpu(framework_version, ecr_image, sagemaker_region, dist_gpu_backend):
+def test_dist_operations_multi_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_backend):
     """
     Test is run as single node, but multi-gpu
     """
@@ -102,14 +102,14 @@ def test_dist_operations_multi_gpu(framework_version, ecr_image, sagemaker_regio
             'dist_backend': dist_gpu_backend,
             'instance_count': 1
         }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_region, _test_dist_operations, function_args)
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dist_operations, function_args)
 
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("fastai")
 @pytest.mark.model("cifar")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_region):
+def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regions):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     if Version(image_framework_version) == Version("1.9"):
         pytest.skip("Fast ai is not supported on PyTorch v1.9 ")
@@ -129,7 +129,7 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
         }
 
         job_name=utils.unique_name_from_base('test-pt-fastai')
-        pytorch, sagemaker_session = invoke_pytorch_estimator(ecr_image, sagemaker_region, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)
+        pytorch, sagemaker_session = invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)
 
     model_s3_url = pytorch.create_model().model_data
     _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
@@ -140,7 +140,7 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_mnist_gpu(framework_version, ecr_image, sagemaker_region, dist_gpu_backend):
+def test_mnist_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_backend):
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
             'entry_point': mnist_script,
@@ -155,7 +155,7 @@ def test_mnist_gpu(framework_version, ecr_image, sagemaker_region, dist_gpu_back
         'key_prefix': 'pytorch/mnist'
         }
         job_name=utils.unique_name_from_base('test-pt-mnist-gpu')
-        invoke_pytorch_estimator(ecr_image, sagemaker_region, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)
 
 
 
@@ -166,7 +166,7 @@ def test_mnist_gpu(framework_version, ecr_image, sagemaker_region, dist_gpu_back
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
-def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, sagemaker_region, test_script, num_processes):
+def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, sagemaker_regions, test_script, num_processes):
     """
     Tests pt mnist command via script mode
     """
@@ -201,7 +201,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, sage
             },
         }
         job_name=utils.unique_name_from_base('test-pt-smdmp-multinode')
-        invoke_pytorch_estimator(ecr_image, sagemaker_region, estimator_parameter, job_name=job_name)
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
@@ -211,7 +211,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, sage
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 @pytest.mark.efa()
-def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, efa_instance_type, sagemaker_region, test_script, num_processes):
+def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes):
     """
     Tests pt mnist command via script mode
     """
@@ -246,7 +246,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, efa_instance_ty
         }
         }
         job_name=utils.unique_name_from_base('test-pt-smdmp-multinode-efa')
-        invoke_pytorch_estimator(ecr_image, sagemaker_region, estimator_parameter, job_name=job_name)
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 
 @pytest.mark.integration("smmodelparallel")
@@ -255,7 +255,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, efa_instance_ty
 @pytest.mark.skip_cpu
 @pytest.mark.efa()
 @pytest.mark.skip_py2_containers
-def test_sanity_efa(ecr_image, efa_instance_type, sagemaker_region):
+def test_sanity_efa(ecr_image, efa_instance_type, sagemaker_regions):
     """
     Tests pt mnist command via script mode
     """
@@ -275,7 +275,7 @@ def test_sanity_efa(ecr_image, efa_instance_type, sagemaker_region):
             },
         }
         job_name=utils.unique_name_from_base('test-pt-efa-sanity')
-        invoke_pytorch_estimator(ecr_image, sagemaker_region, estimator_parameter, job_name=job_name)
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 
 def _test_dist_operations(

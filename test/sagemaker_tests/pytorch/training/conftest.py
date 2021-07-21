@@ -159,10 +159,10 @@ def fixture_py_version(request):
 def fixture_processor(request):
     return request.config.getoption('--processor')
 
-@pytest.fixture(scope='session', name='sagemaker_region')
+@pytest.fixture(scope='session', name='sagemaker_regions')
 def fixture_sagemaker_region(request):
-    sagemaker_region = request.config.getoption('--sagemaker-region')
-    return sagemaker_region.split(",")
+    sagemaker_regions = request.config.getoption('--sagemaker-region')
+    return sagemaker_regions.split(",")
 
 @pytest.fixture(scope='session', name='tag')
 def fixture_tag(request, framework_version, processor, py_version):

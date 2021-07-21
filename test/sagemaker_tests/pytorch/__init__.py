@@ -150,14 +150,26 @@ def get_ecr_image(ecr_image, region):
     return regional_ecr_image
 
 
-def invoke_pytorch_helper_function(pdx_ecr_image, sagemaker_region, helper_function, helper_function_args):
+def invoke_pytorch_helper_function(ecr_image, sagemaker_regions, helper_function, helper_function_args):
+    """
+    Used to invoke SM job defined in the helper functions in respective test file. The ECR image and the sagemaker session are passed explictly 
+    depending on the AWS region. 
+   This function will rerun for all SM regions after a defined wait time if capacity issues are seen.
+
+    :param ecr_image: ECR image in us-west-2 region
+    :param sagemaker_regions: List of SageMaker regions
+    :param helper_function: Function to invoke
+    :param helper_function_args: Helper function args 
+
+    :return: None
+    """
 
     RETRY = 2
     DELAY = 300
     for _ in range(RETRY):
-        for region in sagemaker_region:
+        for region in sagemaker_regions:
             sagemaker_session = get_sagemaker_session(region)
-            ecr_image = get_ecr_image(pdx_ecr_image, region) if region != "us-west-2" else pdx_ecr_image
+            ecr_image = get_ecr_image(ecr_image, region) if region != "us-west-2" else ecr_image
             try:
                 helper_function(ecr_image, sagemaker_session, **helper_function_args)
                 break

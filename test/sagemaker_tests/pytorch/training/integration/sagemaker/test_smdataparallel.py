@@ -55,7 +55,7 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.parametrize('instance_types', ["ml.p4d.24xlarge"])
 @pytest.mark.skip_cpu
 @pytest.mark.efa()
-def test_smdataparallel_throughput(framework_version, ecr_image, sagemaker_region, instance_types, tmpdir):
+def test_smdataparallel_throughput(framework_version, ecr_image, sagemaker_regions, instance_types, tmpdir):
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_smdataparallel_efa(ecr_image)
         hyperparameters = {
@@ -79,7 +79,7 @@ def test_smdataparallel_throughput(framework_version, ecr_image, sagemaker_regio
         }
 
         job_name=utils.unique_name_from_base('test-pt-smddp-throughput')
-        invoke_pytorch_estimator(ecr_image, sagemaker_region, estimator_parameter, job_name=job_name)
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 
 @pytest.mark.integration("smdataparallel")
@@ -87,7 +87,7 @@ def test_smdataparallel_throughput(framework_version, ecr_image, sagemaker_regio
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, sagemaker_region, instance_type, tmpdir):
+def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, sagemaker_regions, instance_type, tmpdir):
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
@@ -105,7 +105,7 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, sagemaker_region, 
             'distribution': distribution
         }
         job_name=utils.unique_name_from_base('test-pt-smddp-mnist-script-mode')
-        invoke_pytorch_estimator(ecr_image, sagemaker_region, estimator_parameter, job_name=job_name)
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 
 @pytest.mark.processor("gpu")
@@ -117,7 +117,7 @@ def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, sagemaker_region, 
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.efa()
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p4d.24xlarge"])
-def test_smdataparallel_mnist(ecr_image, sagemaker_region, instance_types, tmpdir):
+def test_smdataparallel_mnist(ecr_image, sagemaker_regions, instance_types, tmpdir):
     """
     Tests smddprun command via Estimator API distribution parameter
     """
@@ -134,7 +134,7 @@ def test_smdataparallel_mnist(ecr_image, sagemaker_region, instance_types, tmpdi
         }
 
         job_name=utils.unique_name_from_base('test-pt-smddp-mnist')
-        invoke_pytorch_estimator(ecr_image, sagemaker_region, estimator_parameter, job_name=job_name)
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 
 @pytest.mark.processor("gpu")
@@ -142,7 +142,7 @@ def test_smdataparallel_mnist(ecr_image, sagemaker_region, instance_types, tmpdi
 @pytest.mark.integration("smdataparallel_smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge"])
-def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, sagemaker_region, py_version, tmpdir):
+def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, sagemaker_regions, py_version, tmpdir):
     """
     Tests SM Distributed DataParallel and ModelParallel single-node via script mode
     This test has been added for SM DataParallelism and ModelParallelism tests for re:invent.
@@ -168,5 +168,5 @@ def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, sagemak
             'instance_type': instance_types,
         }
         job_name=utils.unique_name_from_base('test-pt-smdmp-smddp-mnist')
-        invoke_pytorch_estimator(ecr_image, sagemaker_region, estimator_parameter, disable_sm_profiler=True, job_name=job_name)
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, disable_sm_profiler=True, job_name=job_name)
 

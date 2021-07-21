@@ -24,23 +24,38 @@ def upload_s3_data(estimator, path, key_prefix):
         key_prefix=key_prefix)
     return inputs
 
-def invoke_pytorch_estimator(pdx_ecr_image, sagemaker_region, estimator_parameter, inputs=None, disable_sm_profiler=False, upload_s3_data_args=None, job_name=None):
+def invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, inputs=None, disable_sm_profiler=False, upload_s3_data_args=None, job_name=None):
+    """
+    Used to invoke PyTorch training job. The ECR image and the sagemaker session are used depending on the AWS region. 
+    This function will rerun for all SM regions after a defined wait time if capacity issues are seen.
 
-    RETRY = 2
-    DELAY = 300
+    :param ecr_image: ECR image in us-west-2 region
+    :param sagemaker_regions: List of SageMaker regions
+    :param estimator_parameter: Estimator paramerters for SM job.
+    :param inputs: Inputs for fit estimator call
+    :param disable_sm_profiler: Flag to disable SM profiler
+    :param upload_s3_data_args: Data to be uploded to S3 for training job
+    :param job_name: Training job name
+
+    :return: None
+    """
+
+    RETRY = 3
+    DELAY = 600
     for _ in range(RETRY):
-        for region in sagemaker_region:
+        for region in sagemaker_regions:
             sagemaker_session = get_sagemaker_session(region)
-            ecr_image = get_ecr_image(pdx_ecr_image, region) if region != "us-west-2" else pdx_ecr_image
+            ecr_image = get_ecr_image(ecr_image, region) if region != "us-west-2" else ecr_image
             try:
                 pytorch = PyTorch(
                     image_uri=ecr_image,
                     sagemaker_session=sagemaker_session,
                     **estimator_parameter
                     )
-
-                if sagemaker_session.boto_region_name in ('cn-north-1', 'cn-northwest-1'):
-                    pytorch.disable_profiler = True
+                
+                if disable_sm_profiler:
+                    if sagemaker_session.boto_region_name in ('cn-north-1', 'cn-northwest-1'):
+                        pytorch.disable_profiler = True
 
                 if upload_s3_data_args:
                     training_input = upload_s3_data(pytorch, **upload_s3_data_args)

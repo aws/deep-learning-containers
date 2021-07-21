@@ -46,7 +46,7 @@ def validate_or_skip_s3_plugin(ecr_image):
 @pytest.mark.model("resnet18")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_region):
+def test_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_regions):
     validate_or_skip_s3_plugin(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
@@ -59,14 +59,14 @@ def test_pt_s3_plugin_sm_gpu(framework_version, ecr_image, sagemaker_region):
         }        
         
         job_name = utils.unique_name_from_base('test-pytorch-s3-plugin-gpu')
-        invoke_pytorch_estimator(ecr_image, sagemaker_region, estimator_parameter, job_name=job_name)
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("pt_s3_plugin_cpu")
 @pytest.mark.model("resnet18")
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
-def test_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_region):
+def test_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_regions):
     validate_or_skip_s3_plugin(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
@@ -78,4 +78,4 @@ def test_pt_s3_plugin_sm_cpu(framework_version, ecr_image, sagemaker_region):
             'framework_version': framework_version
         }  
         job_name = utils.unique_name_from_base('test-pytorch-s3-plugin-cpu')
-        invoke_pytorch_estimator(ecr_image, sagemaker_region, estimator_parameter, job_name=job_name)
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)

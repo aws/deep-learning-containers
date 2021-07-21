@@ -25,7 +25,7 @@ from .... import invoke_pytorch_helper_function
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_gpu
-def test_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_region, instance_type, dist_cpu_backend):
+def test_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend):
     instance_type = instance_type or 'ml.c4.xlarge'
     function_args = {
             'framework_version': framework_version,
@@ -33,7 +33,7 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_region, i
             'dist_backend': dist_cpu_backend
         }
 
-    invoke_pytorch_helper_function(ecr_image, sagemaker_region, _test_mnist_distributed, function_args)
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
 
 
 @pytest.mark.processor("gpu")
@@ -41,7 +41,7 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, sagemaker_region, i
 @pytest.mark.multinode(2)
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_cpu
-def test_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_region, instance_type, dist_gpu_backend):
+def test_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend):
     instance_type = instance_type or 'ml.p2.xlarge'
     function_args = {
             'framework_version': framework_version,
@@ -49,7 +49,7 @@ def test_mnist_distributed_gpu(framework_version, ecr_image, sagemaker_region, i
             'dist_backend': dist_gpu_backend
         }
 
-    invoke_pytorch_helper_function(ecr_image, sagemaker_region, _test_mnist_distributed, function_args)
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_mnist_distributed, function_args)
 
 
 def _test_mnist_distributed(ecr_image, sagemaker_session, framework_version, instance_type, dist_backend):
