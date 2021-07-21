@@ -469,14 +469,17 @@ def test_oss_compliance(image):
             s3_object_path = f"{THIRD_PARTY_SOURCE_CODE_BUCKET_PATH}/{file_name}.tar.gz"
             local_file_path = os.path.join(local_repo_path, file_name)
 
-            try:
-                if not os.path.isdir(local_file_path):
-                    context.run(f"git clone {url.rstrip()} {local_file_path}")
-                    context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
-            except Exception as e:
-                LOGGER.error(f"Unable to clone git repo. Error: {e}")
-                raise
-
+            for i in range(3):
+                try:
+                    if not os.path.isdir(local_file_path):
+                        context.run(f"git clone {url.rstrip()} {local_file_path}")
+                        context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
+                except Exception as e:
+                    time.sleep(1)
+                    if i==2:
+                        LOGGER.error(f"Unable to clone git repo. Error: {e}")
+                        raise
+                    continue
             try:
                 if os.path.exists(f"{local_file_path}.tar.gz"):
                     LOGGER.info(f"Uploading package to s3 bucket: {line}")
