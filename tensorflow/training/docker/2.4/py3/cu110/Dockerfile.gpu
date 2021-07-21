@@ -79,6 +79,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
     zlib1g-dev \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
+    # Needed for open-cv to resolve error: ImportError: libGL.so.1: cannot open shared object file: No such file or directory
+    libgl1-mesa-glx \
     jq \
  && apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated \

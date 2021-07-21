@@ -62,7 +62,7 @@ def test_ecs_pytorch_training_mnist_gpu(gpu_only, ecs_container_instance, pytorc
 @pytest.mark.parametrize("ecs_instance_type", ["c5.9xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 def test_ecs_pytorch_s3_plugin_training_cpu(cpu_only, ecs_container_instance, pytorch_training, training_cmd,
-                                        ecs_cluster_name):
+                                        ecs_cluster_name, pt17_and_above_only):
     """
     CPU resnet18 test for PyTorch Training using S3 plugin
 
@@ -85,7 +85,7 @@ def test_ecs_pytorch_s3_plugin_training_cpu(cpu_only, ecs_container_instance, py
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_pytorch_s3_plugin_training_gpu(gpu_only, ecs_container_instance, pytorch_training, training_cmd,
-                                        ecs_cluster_name):
+                                        ecs_cluster_name, pt17_and_above_only):
     """
     GPU resnet18 test for PyTorch Training using S3 plugin
 
