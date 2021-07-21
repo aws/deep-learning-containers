@@ -32,6 +32,8 @@ RUN apt-get update \
 ARG PT_TRAINING_URL
 COPY ${PT_TRAINING_URL} .
 
+ARG PT_TORCHVISION_URL=https://torchvision-build.s3.us-west-2.amazonaws.com/1.7.1/cpu/torchvision-0.8.2-cp37-cp37m-linux_x86_64.whl
+
 # The following section uninstalls torch and torchvision before installing the
 # custom versions from an S3 bucket.
 RUN pip install --no-cache-dir -U \ 
@@ -50,7 +52,7 @@ RUN pip install --no-cache-dir -U \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U torchvision==0.8.2
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
 
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
