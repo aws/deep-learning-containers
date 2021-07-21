@@ -3,34 +3,37 @@
 
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence,
-# @global-owner1 and @global-owner2 will be requested for
+# @dl-containers will be requested for
 # review when someone opens a pull request.
 *       @dl-containers
 
-# TF tests and builds
+# Any modification to sagemaker_tests will require review from SageMaker MLF team
+sagemaker_tests/ @sagemaker-ml-frameworks
+
+# Any files modified under tensorflow/ or tensorflow_serving/ will be assigned to the tf reviewer team
 tensorflow/ @dlc-tf-reviewers
 tensorflow_serving/ @dlc-tf-reviewers
+
+# Any PR with testTF* or testTensor* file change will be assigned to the tf reviewer team
 testTF* @dlc-tf-reviewers
 testTensor* @dlc-tf-reviewers
 
-# PT tests and builds
+# Any files modified under pytorch/ or pytorch_tests/ dir will require review from pytorch reviewer team
 pytorch/ @dlc-pytorch-reviewers
 pytorch_tests/ @dlc-pytorch-reviewers
 
-# MXNet tests and builds
+# Any files modified under mxnet/ dir will require review from the mxnet reviewer team
 mxnet/ @dlc-mxnet-reviewers
 
-# SMDebug
+# Any PR with a file with "smdebug" in it will be assigned to the smdebug reviewer team
 *smdebug* @dlc-smdebug-reviewers
 
-# Neuron
+# Any PR with a file with "neuron" in it will be assigned to the neuron reviewer team
 *neuron* @dlc-neuron-reviewers
 
-# Elastic Inference
+
+# Any PR with a file with "eia" in it will be assigned to the EI reviewer team
 *eia* @dlc-eia-reviewers
 
-# DGL
+# Any file under dgl_tests dir will require review from DGL team
 dgl_tests/ @dlc-dgl-reviewers
-
-# Sagemaker
-sagemaker_tests/ @sagemaker-ml-frameworks
