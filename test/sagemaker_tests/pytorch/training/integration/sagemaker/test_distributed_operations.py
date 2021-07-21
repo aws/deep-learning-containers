@@ -95,7 +95,7 @@ def test_dist_operations_multi_gpu(sagemaker_session, framework_version, ecr_ima
 @pytest.mark.skip_py2_containers
 def test_dist_operations_fastai_gpu(sagemaker_session, framework_version, ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    if Version(image_framework_version) == Version("1.9.0"):
+    if Version(image_framework_version) == Version("1.9"):
         pytest.skip("Fast ai is not supported on PyTorch v1.9 ")
 
     with timeout(minutes=DEFAULT_TIMEOUT):

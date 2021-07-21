@@ -44,6 +44,7 @@ def _retrieve_instance_id():
     Retrieve instance ID from instance metadata service
     """
     instance_id = None
+    # We can't use IMDSv2 here which needs token, as adding it mandates docker container to add additional parameter "--network host", else it hangs.
     url = "http://169.254.169.254/latest/meta-data/instance-id"
     response = requests_helper(url, timeout=0.1)
 
@@ -76,7 +77,7 @@ def _retrieve_instance_region():
         "us-west-1",
         "us-west-2",
     ]
-
+    # We can't use IMDSv2 here which needs token, as adding it mandates docker container to add additional parameter "--network host", else it hangs.
     url = "http://169.254.169.254/latest/dynamic/instance-identity/document"
     response = requests_helper(url, timeout=0.1)
 

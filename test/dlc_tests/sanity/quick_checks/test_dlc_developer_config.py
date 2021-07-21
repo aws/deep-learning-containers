@@ -31,9 +31,9 @@ def test_developer_configuration():
     assert _get_option(dev_config_contents, "build", "do_build") is True
 
     # Check test settings
-    assert _get_option(dev_config_contents, "test", "efa_tests") is True
+    assert _get_option(dev_config_contents, "test", "efa_tests") is False
     assert _get_option(dev_config_contents, "test", "sanity_tests") is True
-    assert _get_option(dev_config_contents, "test", "sagemaker_tests") is True
+    assert _get_option(dev_config_contents, "test", "sagemaker_tests") is False
     assert _get_option(dev_config_contents, "test", "ecs_tests") is True
     assert _get_option(dev_config_contents, "test", "eks_tests") is True
     assert _get_option(dev_config_contents, "test", "ec2_tests") is True
