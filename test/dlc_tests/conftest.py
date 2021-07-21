@@ -431,7 +431,7 @@ def pytest_runtest_setup(item):
     # Handle quick check tests
     quick_checks_opts = [mark for mark in item.iter_markers(name="quick_checks")]
     # Skip quick checks on PR sanity tests, as they will run in separate build-independent job
-    if os.getenv("TEST_TYPE") == "sanity" and os.getenv("BUILD_CONTEXT") == "PR":
+    if os.getenv("TEST_TYPE") == "sanity" and test_utils.is_pr_context():
         if quick_checks_opts:
             pytest.skip("Skipping quick check tests on PR sanity tests")
 
