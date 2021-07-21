@@ -8,26 +8,29 @@
 *       @dl-containers
 
 # TF tests and builds
-tensorflow/ @aws-tensorflow
-tensorflow_serving/ @aws-tensorflow
-testTF* @aws-tensorflow
-testTensor* @aws-tensorflow
+tensorflow/ @dlc-tf-reviewers
+tensorflow_serving/ @dlc-tf-reviewers
+testTF* @dlc-tf-reviewers
+testTensor* @dlc-tf-reviewers
 
 # PT tests and builds
-pytorch/ @aws-pytorch
-pytorch_tests/ @aws-pytorch
+pytorch/ @dlc-pytorch-reviewers
+pytorch_tests/ @dlc-pytorch-reviewers
 
 # MXNet tests and builds
-mxnet/
+mxnet/ @dlc-mxnet-reviewers
 
 # SMDebug
-*smdebug*
+*smdebug* @dlc-smdebug-reviewers
 
 # Neuron
-*neuron* @neuron-sdk
+*neuron* @dlc-neuron-reviewers
 
 # Elastic Inference
-*eia*
+*eia* @dlc-eia-reviewers
 
 # DGL
-dgl_tests/ @classicsong
+dgl_tests/ @dlc-dgl-reviewers
+
+# Sagemaker
+sagemaker_tests/ @sagemaker-ml-frameworks
