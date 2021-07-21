@@ -15,6 +15,7 @@ import sagemaker
 import boto3
 import subprocess
 import re
+import time
 from sagemaker import Session
 from base64 import b64decode
 
@@ -151,15 +152,18 @@ def get_ecr_image(ecr_image, region):
 
 def invoke_pytorch_helper_function(pdx_ecr_image, sagemaker_region, helper_function, helper_function_args):
 
-    #TODO: Add retry mechanism
-    for region in sagemaker_region:
-        sagemaker_session = get_sagemaker_session(region)
-        ecr_image = get_ecr_image(pdx_ecr_image, region) if region != "us-west-2" else pdx_ecr_image
-        try:
-            helper_function(ecr_image, sagemaker_session, **helper_function_args)
-            break
-        except Exception as e:
-            if type(e) == sagemaker.exceptions.UnexpectedStatusException and "CapacityError" in str(e):
-                continue
-            else:
-                raise e
+    RETRY = 2
+    DELAY = 300
+    for _ in range(RETRY):
+        for region in sagemaker_region:
+            sagemaker_session = get_sagemaker_session(region)
+            ecr_image = get_ecr_image(pdx_ecr_image, region) if region != "us-west-2" else pdx_ecr_image
+            try:
+                helper_function(ecr_image, sagemaker_session, **helper_function_args)
+                break
+            except Exception as e:
+                if type(e) == sagemaker.exceptions.UnexpectedStatusException and "CapacityError" in str(e):
+                    continue
+                else:
+                    raise e
+        time.sleep(DELAY)

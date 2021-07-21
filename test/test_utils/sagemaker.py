@@ -157,10 +157,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     region_list = ",".join(SAGEMAKER_EXECUTION_REGION)
 
-    #TODO: Add supoort for inference, in which case the below is not needed
-    # Add multi-region support to SM training. 
-    sagemaker_region_list = f"--sagemaker-region {region_list}" if job_type == "training" else ""
-    #TODO: multiregion switch for canary/release needed?
+    sagemaker_region_list = f"--sagemaker-region {region_list}"
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
         f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "

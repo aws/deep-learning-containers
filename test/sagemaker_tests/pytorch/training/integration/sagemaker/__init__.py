@@ -14,9 +14,10 @@ from __future__ import absolute_import
 from .... import get_ecr_image, get_sagemaker_session
 import sagemaker
 from sagemaker.pytorch import PyTorch
+import time
 
 def upload_s3_data(estimator, path, key_prefix):
-    #check with PT team on this
+
     estimator.sagemaker_session.default_bucket()
     inputs = estimator.sagemaker_session.upload_data(
         path=path,
@@ -25,30 +26,33 @@ def upload_s3_data(estimator, path, key_prefix):
 
 def invoke_pytorch_estimator(pdx_ecr_image, sagemaker_region, estimator_parameter, inputs=None, disable_sm_profiler=False, upload_s3_data_args=None, job_name=None):
 
-    #TODO: Add retry mechanism
-    for region in sagemaker_region:
-        sagemaker_session = get_sagemaker_session(region)
-        ecr_image = get_ecr_image(pdx_ecr_image, region) if region != "us-west-2" else pdx_ecr_image
-        try:
-            pytorch = PyTorch(
-                image_uri=ecr_image,
-                sagemaker_session=sagemaker_session,
-                **estimator_parameter
-                )
-            
-            #TODO: check config again
-            if sagemaker_session.boto_region_name in ('cn-north-1', 'cn-northwest-1'):
-                pytorch.disable_profiler = True
+    RETRY = 2
+    DELAY = 300
+    for _ in range(RETRY):
+        for region in sagemaker_region:
+            sagemaker_session = get_sagemaker_session(region)
+            ecr_image = get_ecr_image(pdx_ecr_image, region) if region != "us-west-2" else pdx_ecr_image
+            try:
+                pytorch = PyTorch(
+                    image_uri=ecr_image,
+                    sagemaker_session=sagemaker_session,
+                    **estimator_parameter
+                    )
 
-            if upload_s3_data_args:
-                training_input = upload_s3_data(pytorch, **upload_s3_data_args)
-                inputs = {'training': training_input}
+                if sagemaker_session.boto_region_name in ('cn-north-1', 'cn-northwest-1'):
+                    pytorch.disable_profiler = True
 
-            #verify this https://sagemaker.readthedocs.io/en/stable/frameworks/pytorch/using_pytorch.html#call-the-fit-method
-            pytorch.fit(inputs=inputs, job_name=job_name)
-            return pytorch, sagemaker_session
-        except Exception as e:
-            if type(e) == sagemaker.exceptions.UnexpectedStatusException and "CapacityError" in str(e):
-                continue
-            else:
-                raise e
+                if upload_s3_data_args:
+                    training_input = upload_s3_data(pytorch, **upload_s3_data_args)
+                    inputs = {'training': training_input}
+
+                pytorch.fit(inputs=inputs, job_name=job_name)
+                return pytorch, sagemaker_session
+
+            except Exception as e:
+                if type(e) == sagemaker.exceptions.UnexpectedStatusException and "CapacityError" in str(e):
+                    continue
+                else:
+                    raise e
+
+        time.sleep(DELAY)
