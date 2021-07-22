@@ -2,8 +2,18 @@ import scrapy
 import os
 
 
-class QuotesSpider(scrapy.Spider):
+class CveSpider(scrapy.Spider):
     name = "cve" ## Spider name should be unique
+
+    ## Feed Settings required to get a beautifully arranged json format
+    custom_settings = {'FEEDS':{
+                                '../scraped_data.json': {
+                                    'format': 'json',
+                                    'encoding': 'utf8',
+                                    'indent': 4,
+                                }
+                            }
+                      }
 
     def start_requests(self):
         urls = os.environ.get('SCRAPE_URL_LIST').split(' ')
