@@ -53,6 +53,7 @@ ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch
 ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
 RUN apt-get update \
+ && apt-get -y upgrade \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
     build-essential \
     ca-certificates \
@@ -198,7 +199,7 @@ RUN pip install --no-cache-dir -U \
    "pyyaml>=5.4,<5.5" \
     "awscli<2" \
     psutil \
-    Pillow==8.2.0 \
+    Pillow==8.3.1 \
     scipy \
     pybind11 \
     click \

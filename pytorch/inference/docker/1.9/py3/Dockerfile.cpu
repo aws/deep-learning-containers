@@ -20,6 +20,7 @@ ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
 
 RUN apt-get update \
+ && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends software-properties-common \
  && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
@@ -117,7 +118,7 @@ RUN pip uninstall -y torch \
 
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
-RUN pip install pillow==8.2.0 "awscli<2"
+RUN pip install pillow==8.3.1 "awscli<2"
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
 RUN pip uninstall -y model-archiver multi-model-server \

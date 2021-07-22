@@ -32,6 +32,7 @@ ENV NVML_VERSION=11.1.74
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 
 RUN apt-get update \
+    && apt-get -y upgrade \
     && apt-get install -y --no-install-recommends software-properties-common \
     && add-apt-repository ppa:openjdk-r/ppa \
     && apt-get update \
@@ -161,7 +162,7 @@ RUN pip uninstall -y torch \
  && pip install --no-deps --no-cache-dir -U $PT_TORCHAUDIO_URL
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
-RUN pip install pillow==8.2.0 "awscli<2"
+RUN pip install pillow==8.3.1 "awscli<2"
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
