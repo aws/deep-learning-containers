@@ -137,7 +137,7 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
 RUN apt-get update \
-    && apt-get upgrade \
+    && apt-get -y upgrade \
     && apt-get -y install protobuf-compiler
 
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
