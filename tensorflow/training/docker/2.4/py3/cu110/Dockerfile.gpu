@@ -176,7 +176,7 @@ RUN mkdir -p /root/.ssh/ \
 
 WORKDIR /
 
-RUN apt-get update \
+RUN apt-get update && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends \
     libbz2-dev \
     libc6-dev \
@@ -211,7 +211,7 @@ RUN ${PIP} install --no-cache-dir -U \
     scipy==1.5.2 \
     scikit-learn==0.23 \
     pandas==1.1 \
-    Pillow==8.2.0 \
+    Pillow==8.3.1 \
     # python-dateutil==2.8.1 to satisfy botocore associated with latest awscli
     python-dateutil==2.8.1 \
     # install PyYAML>=5.4 to avoid conflict with latest awscli
