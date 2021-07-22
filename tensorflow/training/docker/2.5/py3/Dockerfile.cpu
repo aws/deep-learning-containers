@@ -136,7 +136,9 @@ RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
-RUN apt-get update && apt-get -y install protobuf-compiler
+RUN apt-get update \
+    && apt-get upgrade \
+    && apt-get -y install protobuf-compiler
 
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
@@ -147,7 +149,7 @@ RUN ${PIP} install --no-cache-dir -U \
     scipy==1.7.0 \
     scikit-learn==0.24.2 \
     pandas==1.2.5 \
-    Pillow==8.2.0 \
+    Pillow==8.3.1 \
     python-dateutil==2.8.1 \
     "pyYAML>=5.4,<5.5" \
     requests==2.24.0 \
