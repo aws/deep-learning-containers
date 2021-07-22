@@ -3,6 +3,7 @@ region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK tensorflow
 version: &VERSION 2.3.3
 short_version: &SHORT_VERSION 2.3
+
 repository_info:
   training_repository: &TRAINING_REPOSITORY
     image_type: &TRAINING_IMAGE_TYPE training
@@ -10,12 +11,13 @@ repository_info:
     repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/,
       *REPOSITORY_NAME ]
-  inference_repository:
+  inference_repository: &INFERENCE_REPOSITORY
     image_type: &INFERENCE_IMAGE_TYPE inference
     root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
     repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/,
       *REPOSITORY_NAME ]
+
 context:
   training_context: &TRAINING_CONTEXT
     dockerd-entrypoint:
@@ -97,7 +99,7 @@ images:
       "-", *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION,
       /Dockerfile., *DEVICE_TYPE ]
-    context: 
+    context:
       <<: *TRAINING_CONTEXT
   BuildTensorflowExampleGpuPy37Cu102TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
@@ -115,3 +117,30 @@ images:
       /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
+  BuildTensorflowCPUInferencePy3DockerImage:
+    <<: *INFERENCE_REPOSITORY
+    build: &TENSORFLOW_CPU_INFERENCE_PY3 false
+    image_size_baseline: 4899
+    device_type: &DEVICE_TYPE cpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py37
+    os_version: &OS_VERSION ubuntu18.04
+    # TODO: To be reverted once TF Inference 2.3.3 is released
+    tag: !join [ "2.3.2", "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+    context:
+      <<: *INFERENCE_CONTEXT
+  BuildTensorflowGPUInferencePy3DockerImage:
+    <<: *INFERENCE_REPOSITORY
+    build: &TENSORFLOW_GPU_INFERENCE_PY3 false
+    image_size_baseline: 7738
+    device_type: &DEVICE_TYPE gpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py37
+    cuda_version: &CUDA_VERSION cu102
+    os_version: &OS_VERSION ubuntu18.04
+    # TODO: To be reverted once TF Inference 2.3.3 is released
+    tag: !join [ "2.3.2", "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
+    context:
+      <<: *INFERENCE_CONTEXT
