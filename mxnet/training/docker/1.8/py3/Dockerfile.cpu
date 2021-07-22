@@ -23,6 +23,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DGLBACKEND=mxnet
 
 RUN apt-get update \
+ && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends \
     software-properties-common \
     build-essential \

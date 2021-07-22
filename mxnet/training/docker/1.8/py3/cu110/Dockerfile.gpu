@@ -26,6 +26,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     NCCL_VERSION=2.7.8-1+cuda11.0
 
 RUN apt-get update \
+ && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends \
     software-properties-common \
     build-essential \

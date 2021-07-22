@@ -26,6 +26,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     TEMP=/home/model-server/tmp
 
 RUN apt-get update \
+ && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
