@@ -288,6 +288,11 @@ def main():
     # Define constants
     start_time = datetime.now()
     test_type = os.getenv("TEST_TYPE")
+
+    # TODO: Remove this line with PR 1225
+    if test_type == "quick_checks":
+        return
+
     efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
