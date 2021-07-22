@@ -28,6 +28,7 @@ ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.10
 
 RUN apt-get update \
+ && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends --allow-unauthenticated \
     build-essential \
     ca-certificates \
@@ -74,7 +75,8 @@ RUN apt-get update \
  && rm /usr/lib/x86_64-linux-gnu/libnvcaffe_parser* \
  && rm /usr/lib/x86_64-linux-gnu/libnvparsers* \
  && rm -rf /var/lib/apt/lists/* \
- && mkdir -p /var/run/sshd
+ && mkdir -p /var/run/sshd \
+ && apt-get clean
 
 ###########################################################################
 # Horovod & its dependencies

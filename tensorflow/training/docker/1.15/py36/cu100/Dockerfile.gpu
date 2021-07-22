@@ -32,7 +32,6 @@ ARG PIP=pip3
 ARG PYTHON_VERSION=3.6.13
 
 RUN apt-get update \
-&& apt-get -y upgrade \
  && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
     cuda-command-line-tools-10-0 \
