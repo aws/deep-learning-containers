@@ -93,7 +93,8 @@ RUN apt-get update && apt-get -y upgrade && apt-get install -y --no-install-reco
    # https://developer.download.nvidia.cn/compute/machine-learning/repos/ubuntu1804/x86_64/
 
    && rm -rf /var/lib/apt/lists/* \
-   && mkdir -p /var/run/sshd
+   && mkdir -p /var/run/sshd \
+   && apt-get clean
 
 RUN cd /tmp \
   && git clone https://github.com/NVIDIA/nccl.git -b v$NCCL_VERSION-1 \
