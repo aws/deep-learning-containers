@@ -7,7 +7,7 @@ class CveSpider(scrapy.Spider):
 
     ## Feed Settings required to get a beautifully arranged json format
     custom_settings = {'FEEDS':{
-                                '../scraped_data.json': {
+                                'scraped_data.json': {
                                     'format': 'json',
                                     'encoding': 'utf8',
                                     'indent': 4,
