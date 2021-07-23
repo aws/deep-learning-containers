@@ -21,9 +21,9 @@ datetime_tag = false
 do_build = false
 
 [test]
-efa_tests = false
+efa_tests = true
 sanity_tests = false
-sagemaker_tests = true
+sagemaker_tests = false
 ecs_tests = false
 eks_tests = false
 ec2_tests = false
