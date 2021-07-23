@@ -14,13 +14,15 @@ class CveSpider(scrapy.Spider):
                                 }
                             }
                       }
+    
+    def __init__(self, url_csv_string=None, *args, **kwargs):
+        super(CveSpider, self).__init__(*args, **kwargs)
+        ## For the data to be stored properly, make sure that the URLs are unique. 
+        self.urls = list(set(url_csv_string.split(',')))
 
     def start_requests(self):
-        urls = os.environ.get('SCRAPE_URL_LIST').split(' ')
         ## Parse function stores the data related to each CVE in a JSON format.
-        ## For the data to be stored properly, make sure that the URLs are unique. 
-        urls = list(set(urls))
-        for url in urls:
+        for url in self.urls:
             yield scrapy.Request(url=url, callback=self.parse)
  
     def process_row(self, row):
