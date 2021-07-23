@@ -23,7 +23,7 @@ do_build = false
 [test]
 efa_tests = true
 sanity_tests = false
-sagemaker_tests = false
+sagemaker_tests = true
 ecs_tests = false
 eks_tests = false
 ec2_tests = false
