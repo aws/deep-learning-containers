@@ -93,7 +93,7 @@ RUN mkdir -p /root/.ssh/ \
 
 WORKDIR /
 
-RUN apt-get update && apt-get -y upgrade \
+RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     libbz2-dev \
     libc6-dev \
