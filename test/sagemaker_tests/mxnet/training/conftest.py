@@ -201,6 +201,7 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
     no_p2 = region in NO_P2_REGIONS and instance_type.startswith('ml.p2')
     no_p3 = region in NO_P3_REGIONS and instance_type.startswith('ml.p3')
     no_p4 = region in NO_P4_REGIONS and instance_type.startswith('ml.p4')
+
     if no_p2 or no_p3 or no_p4:
         pytest.skip('Skipping GPU test in region {} to avoid insufficient capacity'.format(region))
 

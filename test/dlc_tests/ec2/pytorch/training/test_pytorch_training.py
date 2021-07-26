@@ -29,7 +29,6 @@ PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 PT_EC2_MULTI_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="g3.8xlarge", processor="gpu", filter_function=ec2_utils.filter_only_multi_gpu,
 )
-PT_EC2_GPU_EFA_INSTANCE_TYPE = get_ec2_instance_type(default="p3dn.24xlarge", processor="gpu", efa=True)
 #Instance type to be updated once the EC2 Gaudi instance is available
 PT_EC2_HPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="hpu")
 
@@ -129,17 +128,6 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
     test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl")
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
-@pytest.mark.integration("nccl")
-@pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_nccl_version(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
-    """
-    Tests nccl version
-    """
-    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
-        pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNcclVersion")
-    execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 @pytest.mark.integration("nccl")
 @pytest.mark.model("N/A")
@@ -222,14 +210,6 @@ def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only, ec2_i
 def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only, pt15_and_above_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)
 
-
-# This is placeholder test for EFA
-@pytest.mark.integration("pytorch_training_efa")
-@pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_EFA_INSTANCE_TYPE, indirect=True)
-@pytest.mark.efa()
-def test_pytorch_efa_gpu(pytorch_training, ec2_connection, gpu_only):
-    pytest.skip("EFA tests are not yet implemented and will be implemented once EFA is supported.")
 
 # Placeholder for habana test
 # Instance type and AMI to be updated once the EC2 Gaudi instance is available
