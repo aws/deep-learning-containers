@@ -80,23 +80,6 @@ NO_P4_REGIONS = [
     "eu-south-1",
     "af-south-1",
 ]
-NO_P4_REGIONS = [
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-south-1",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-west-2",
-    "us-west-1",
-    "eu-west-3",
-    "eu-north-1",
-    "sa-east-1",
-    "ap-east-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-]
 
 
 def _botocore_resolver():
@@ -198,6 +181,7 @@ def get_account_id_from_image_uri(image_uri):
     :return: <str> AWS Account ID
     """
     return image_uri.split(".")[0]
+
 
 def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_region):
     """
