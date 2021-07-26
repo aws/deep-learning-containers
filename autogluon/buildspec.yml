@@ -23,7 +23,7 @@ images:
   BuildAutogluonCPUTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &AUTOGLUON_CPU_TRAINING_PY3 false
-    image_size_baseline: 3671
+    image_size_baseline: 3512
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
@@ -36,7 +36,7 @@ images:
   BuildAutogluonGPUTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &AUTOGLUON_GPU_TRAINING_PY3 false
-    image_size_baseline: 12474
+    image_size_baseline: 12466
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37

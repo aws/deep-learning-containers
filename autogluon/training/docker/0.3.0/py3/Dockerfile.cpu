@@ -11,11 +11,6 @@ ARG TORCH_VISION_VER=0.9.0+cpu
 # Update once 0.3.0 is released
 ARG AUTOGLUON_VERSION=0.2.1b20210625
 
-# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
-# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.9.4
-ARG OPENSSL_VERSION=1.1.1k
-
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8 \
@@ -27,37 +22,39 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # Install dependencies
 RUN apt-get update \
-    && apt-get -y install gcc \
-        build-essential \
-        wget \
-        curl \
-        emacs \
-        git \
-        vim \
-        unzip \
-        zlib1g-dev \
-        libssl-dev \
-        libncurses5-dev \
-        libgdbm-dev \
-        libnss3-dev \
-        libgl1-mesa-glx \
-        libffi-dev \
-        liblzma-dev \
-        libbz2-dev \
-        libsqlite3-dev \
-        tk-dev \
-        uuid-dev \
-        ca-certificates \
-        libopencv-dev \
-        openssh-client \
-        openssh-server \
-        libreadline-gplv2-dev \
-        libc6-dev \
-        cmake \
-    && apt-get autoremove -y \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
+ && apt-get -y upgrade \
+ && apt-get install -y --no-install-recommends \
+    gcc \
+    build-essential \
+    wget \
+    curl \
+    emacs \
+    git \
+    vim \
+    unzip \
+    zlib1g-dev \
+    libssl-dev \
+    libncurses5-dev \
+    libgdbm-dev \
+    libnss3-dev \
+    libgl1-mesa-glx \
+    libffi-dev \
+    liblzma-dev \
+    libbz2-dev \
+    libsqlite3-dev \
+    tk-dev \
+    uuid-dev \
+    ca-certificates \
+    libopencv-dev \
+    openssh-client \
+    openssh-server \
+    libreadline-gplv2-dev \
+    libc6-dev \
+    cmake \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+ 
 # Install Open MPI
 RUN mkdir /tmp/openmpi \
  && cd /tmp/openmpi \
@@ -80,15 +77,6 @@ RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real \
 
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PATH=/usr/local/bin:$PATH
-# install OpenSSL
-RUN wget -q https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && tar -xzf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make -j $(nproc) && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-* \
- && rmdir /usr/local/ssl/certs \
- && ln -s /etc/ssl/certs /usr/local/ssl/certs
 
 # install Python
 RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
@@ -104,11 +92,12 @@ RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VER
 
 WORKDIR /
 
-RUN pip install --no-cache-dir -U torch==${TORCH_VER} torchvision==${TORCH_VISION_VER} -f https://download.pytorch.org/whl/torch_stable.html \
+RUN pip install --no-cache-dir -U \
+    torch==${TORCH_VER} torchvision==${TORCH_VISION_VER} -f https://download.pytorch.org/whl/torch_stable.html \
     mxnet==${MXNET_VER} \
     autogluon==${AUTOGLUON_VERSION} \
     sagemaker-mxnet-training \
-    && pip uninstall -y jupyter-client jupyter-core jupyter-packaging jupyter-server jupyter-server-proxy \
+&& pip uninstall -y jupyter-client jupyter-core jupyter-packaging jupyter-server jupyter-server-proxy \
     jupyterlab jupyterlab-nvdashboard jupyterlab-pygments jupyterlab-server jupyterlab-widgets ipywidgets \
     ipython-genutils ipython ipykernel torchvision bokeh plotly notebook datashader
 
@@ -121,20 +110,16 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 RUN mkdir -p /var/run/sshd && \
   sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 
-RUN rm -rf /root/.ssh/ && \
-  mkdir -p /root/.ssh/ && \
-  ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
-  cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
-  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
+RUN rm -rf /root/.ssh/ \
+ && mkdir -p /root/.ssh/ \
+ && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
+ && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+ && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
 # TODO: Should we be installing OpenCV in our image like this? Is there another way we can fix this?
 RUN ln -s /dev/null /dev/raw1394
-
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
-RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -148,5 +133,3 @@ RUN HOME_DIR=/root \
 RUN curl -o /license.txt https://autogluon.s3.us-west-2.amazonaws.com/licenses/THIRD-PARTY-LICENSES.txt
 
 CMD ["/bin/bash"]
-
-

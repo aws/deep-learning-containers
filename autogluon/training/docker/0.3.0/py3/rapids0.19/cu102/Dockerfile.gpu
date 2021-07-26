@@ -24,22 +24,26 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     LD_LIBRARY_PATH=/opt/conda/envs/rapids/lib:/usr/local/lib:$LD_LIBRARY_PATH \
     PATH=/opt/conda/envs/rapids/bin:/usr/local/bin:$PATH 
 
-RUN apt-get update -y \
-    && apt-get install -y --no-install-recommends build-essential \
-    && apt install libgl1-mesa-glx -y \
-    && apt-get install ffmpeg libsm6 libxext6 -y \
-    && apt-get autoremove -y \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get install -y --no-install-recommends \
+    build-essential \
+    libgl1-mesa-glx \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 RUN source activate rapids \
-    && pip install --no-cache-dir -U pip \
-    && pip install --no-cache-dir -U setuptools wheel \
-    && pip install --no-cache-dir -U --no-use-pep517 mxnet-cu$(echo ${CUDA_VER} | sed 's/\.//')==${MXNET_VER} \
-    && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
-    && pip install --no-cache-dir -U sagemaker-mxnet-training \
-    && pip uninstall -y jupyter-client jupyter-core jupyter-packaging jupyter-server jupyter-server-proxy \
-    jupyterlab jupyterlab-nvdashboard jupyterlab-pygments jupyterlab-server jupyterlab-widgets ipywidgets \ 
+ && pip install --no-cache-dir -U pip \
+ && pip install --no-cache-dir -U setuptools wheel \
+ && pip install --no-cache-dir -U --no-use-pep517 mxnet-cu$(echo ${CUDA_VER} | sed 's/\.//')==${MXNET_VER} \
+ && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
+ && pip install --no-cache-dir -U sagemaker-mxnet-training \
+ && pip uninstall -y jupyter-client jupyter-core jupyter-packaging jupyter-server jupyter-server-proxy \
+    jupyterlab jupyterlab-nvdashboard jupyterlab-pygments jupyterlab-server jupyterlab-widgets ipywidgets \
     ipython-genutils ipython ipykernel torchvision bokeh plotly notebook datashader
 
 WORKDIR /
@@ -59,10 +63,6 @@ RUN rm -rf /root/.ssh/ && \
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
 # TODO: Should we be installing OpenCV in our image like this? Is there another way we can fix this?
 RUN ln -s /dev/null /dev/raw1394
-
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
-RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
