@@ -1,7 +1,7 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK autogluon
-version: &VERSION 0.3.0
+version: &VERSION 0.2.1
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
@@ -41,9 +41,8 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
     cuda_version: &CUDA_VERSION cu102
-    rapids_version: &RAPIDS_VERSION rapids0.19
     os_version: &OS_VERSION ubuntu18.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *RAPIDS_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
-    docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /, *RAPIDS_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
+    docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
