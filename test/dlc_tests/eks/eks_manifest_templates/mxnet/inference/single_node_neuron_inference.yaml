@@ -28,21 +28,25 @@ spec:
       labels:
         app: <SELECTOR_NAME>
     spec:
+      volumes:
+        - name: sock
+          emptyDir: {}
       containers:
       - name: mms-container
         image: <DOCKER_IMAGE_BUILD_ID>
         command: ["/bin/sh","-c"]
         args:
-        - "/usr/local/bin/entrypoint.sh"
-        - -m <MODELS>
-        - -t /home/model-server/config.properties
-        - --models <MODELS>
+        - <SERVER_CMD>
         ports:
         - name: mms
           containerPort: 8080
         - name: mms-management
           containerPort: 8081
         imagePullPolicy: Always
+        securityContext:
+          capabilities:
+            add:
+              - IPC_LOCK
         resources:
           limits:
             cpu: "4"
@@ -51,3 +55,8 @@ spec:
           requests:
             cpu: "1"
             memory: 1Gi
+            aws.amazon.com/neuron: <NUM_INF1S>
+        # Shared volume mount, for UDS socket
+        volumeMounts:
+          - name: sock
+            mountPath: /sock
