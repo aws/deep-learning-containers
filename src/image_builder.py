@@ -29,6 +29,8 @@ from buildspec import Buildspec
 from output import OutputFormatter
 from config import build_config
 
+FORMATTER = OutputFormatter(constants.PADDING)
+build_context = os.getenv("BUILD_CONTEXT")
 
 def _find_image_object(images_list, image_name):
     """
@@ -47,11 +49,11 @@ def _find_image_object(images_list, image_name):
 
 # TODO: Abstract away to ImageBuilder class
 def image_builder(buildspec):
-    FORMATTER = OutputFormatter(constants.PADDING)
 
     BUILDSPEC = Buildspec()
     BUILDSPEC.load(buildspec)
-    IMAGES = []
+    FIRST_STAGES_IMAGES = []
+    SECOND_STAGES_IMAGES = []
 
     if "huggingface" in str(BUILDSPEC["framework"]):
         os.system("echo login into public ECR")
@@ -63,11 +65,6 @@ def image_builder(buildspec):
         extra_build_args = {}
         labels = {}
 
-        safety_key = os.getenv("SAFETY_KEY")
-
-        if safety_key:
-            extra_build_args["SAFETY_KEY"] = safety_key
-
         if image_config.get("version") is not None:
             if BUILDSPEC["version"] != image_config.get("version"):
                 continue
@@ -75,7 +72,6 @@ def image_builder(buildspec):
         if image_config.get("context") is not None:
             ARTIFACTS.update(image_config["context"])
 
-        build_context = os.getenv("BUILD_CONTEXT")
         image_tag = (
             tag_image_with_pr_number(image_config["tag"])
             if build_context == "PR"
@@ -90,7 +86,7 @@ def image_builder(buildspec):
         )
         base_image_uri = None
         if image_config.get("base_image_name") is not None:
-            base_image_object = _find_image_object(IMAGES, image_config["base_image_name"])
+            base_image_object = _find_image_object(FIRST_STAGES_IMAGES, image_config["base_image_name"])
             base_image_uri = base_image_object.ecr_url
 
         if image_config.get("download_artifacts") is not None:
@@ -158,109 +154,177 @@ def image_builder(buildspec):
             "labels": labels,
             "extra_build_args": extra_build_args
         }
-
-        image_object = DockerImage(
+        
+        #Create first stage docker object
+        first_stage_image_object = DockerImage(
             info=info,
             dockerfile=image_config["docker_file"],
             repository=image_repo_uri,
             tag=image_tag,
             to_build=image_config["build"],
+            stage=constants.FIRST_STAGE,
             context=context,
         )
 
-        IMAGES.append(image_object)
-
-    FORMATTER.banner("DLC")
-    FORMATTER.title("Status")
-
-    THREADS = {}
-
-    # In the context of the ThreadPoolExecutor each instance of image.build submitted
-    # to it is executed concurrently in a separate thread.
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        # Standard images must be built before example images
-        # Example images will use standard images as base
-        standard_images = [image for image in IMAGES if "example" not in image.name.lower()]
-        example_images = [image for image in IMAGES if "example" in image.name.lower()]
-
-        for image in standard_images:
-            THREADS[image.name] = executor.submit(image.build)
-
-        # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
-        FORMATTER.progress(THREADS)
-
-        for image in example_images:
-            THREADS[image.name] = executor.submit(image.build)
-
-        # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
-        FORMATTER.progress(THREADS)
-
-        FORMATTER.title("Build Logs")
-
-        if not os.path.isdir("logs"):
-            os.makedirs("logs")
-
-        for image in IMAGES:
-            FORMATTER.title(image.name)
-            FORMATTER.table(image.info.items())
-            FORMATTER.separator()
-            FORMATTER.print_lines(image.log)
-            with open(f"logs/{image.name}", "w") as fp:
-                fp.write("/n".join(image.log))
-                image.summary["log"] = f"logs/{image.name}"
-
-        FORMATTER.title("Summary")
-
-        for image in IMAGES:
-            FORMATTER.title(image.name)
-            FORMATTER.table(image.summary.items())
-
-        FORMATTER.title("Errors")
-        is_any_build_failed = False
-        is_any_build_failed_size_limit = False
-        for image in IMAGES:
-            if image.build_status == constants.FAIL:
-                FORMATTER.title(image.name)
-                FORMATTER.print_lines(image.log[-10:])
-                is_any_build_failed = True
-            else:
-                if image.build_status == constants.FAIL_IMAGE_SIZE_LIMIT:
-                    is_any_build_failed_size_limit = True
-        if is_any_build_failed:
-            raise Exception("Build failed")
-        else:
-            if is_any_build_failed_size_limit:
-                FORMATTER.print("Build failed. Image size limit breached.")
-            else:
-                FORMATTER.print("No errors")
-
-        FORMATTER.title("Uploading Metrics")
-        metrics = Metrics(
-            context=constants.BUILD_CONTEXT,
-            region=BUILDSPEC["region"],
-            namespace=constants.METRICS_NAMESPACE,
-        )
-        for image in IMAGES:
-            try:
-                metrics.push_image_metrics(image)
-            except Exception as e:
-                if is_any_build_failed or is_any_build_failed_size_limit:
-                    raise Exception(f"Build failed.{e}")
-                else:
-                    raise Exception(f"Build passed. {e}")
-
-        if is_any_build_failed_size_limit:
-            raise Exception("Build failed because of file limit")
+        #Create second stage docker object
+        if "example" not in image_name.lower() and build_context == "MAINLINE":
+            second_stage_image_object = DockerImage(
+                info=info,
+                dockerfile=os.path.join(os.sep, "Dockerfile.multipart"),
+                repository=image_repo_uri,
+                tag=image_tag,
+                to_build=image_config["build"],
+                stage=constants.SECOND_STAGE,
+                context=None,
+            )
 
         FORMATTER.separator()
 
-        # Set environment variables to be consumed by test jobs
-        test_trigger_job = utils.get_codebuild_project_name()
-        utils.set_test_env(
-            IMAGES,
-            BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
-            TEST_TRIGGER=test_trigger_job,
-        )
+        FIRST_STAGES_IMAGES.append(first_stage_image_object)
+        SECOND_STAGES_IMAGES.append(second_stage_image_object)
+
+    FORMATTER.banner("DLC")
+    #FORMATTER.title("Status")
+    
+    # Standard images must be built before example images
+    # Example images will use standard images as base
+    first_stage_standard_images = [image for image in FIRST_STAGES_IMAGES if "example" not in image.name.lower()]
+    second_stage_standard_images = [image for image in SECOND_STAGES_IMAGES]
+    
+    example_images = [image for image in FIRST_STAGES_IMAGES if "example" in image.name.lower()]
+    #needs to be reconfigured
+    #ALL_IMAGES = first_stage_standard_images + second_stage_standard_images + example_images
+
+    #first stage build
+    FORMATTER.banner("First Stage Build")
+    build_images(first_stage_standard_images)
+
+    """
+    Run safety on first stage image and store the ouput file locally
+    """
+
+    FORMATTER.banner("Second Stage Build")
+    build_images(SECOND_STAGES_IMAGES)
+    
+    #second stage build
+    if second_stage_standard_images:
+        FORMATTER.banner("Second Stage Build")
+        build_images(second_stage_standard_images)
+    
+    push_images(second_stage_standard_images)
+
+    #example image build
+    build_images(example_images)
+    push_images(example_images)
+
+    #After the build, display logs/sumary for all the images.
+
+    show_build_logs(ALL_IMAGES)
+    show_build_summary(ALL_IMAGES)
+    is_any_build_failed, is_any_build_failed_size_limit = show_build_errors(ALL_IMAGES)
+
+    #change logic here. upload metrics only for the second stage image
+    upload_metrics(IMAGES, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit)
+
+    # Set environment variables to be consumed by test jobs
+    test_trigger_job = utils.get_codebuild_project_name()
+    #needs to be configured to use final built images
+    utils.set_test_env(
+        IMAGES,
+        BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
+        TEST_TRIGGER=test_trigger_job,
+    )
+    
+
+def show_build_logs(images):
+
+    FORMATTER.title("Build Logs")
+
+    if not os.path.isdir("logs"):
+        os.makedirs("logs")
+
+    for image in images:
+        image_description = f"{image.name}-{image.stage}"
+        FORMATTER.title(image_description)
+        FORMATTER.table(image.info.items())
+        FORMATTER.separator()
+        FORMATTER.print_lines(image.log)
+        with open(f"logs/{image_description}", "w") as fp:
+            fp.write("/n".join(image.log))
+            image.summary["log"] = f"logs/{image_description}"
+
+def show_build_summary(images):
+
+    FORMATTER.title("Summary")
+
+    for image in images:
+        FORMATTER.title(image.name)
+        FORMATTER.table(image.summary.items())
+
+def show_build_errors(images):
+    FORMATTER.title("Errors")
+    is_any_build_failed = False
+    is_any_build_failed_size_limit = False
+
+    for image in images:
+        if image.build_status == constants.FAIL:
+            FORMATTER.title(image.name)
+            FORMATTER.print_lines(image.log[-10:])
+            is_any_build_failed = True
+        else:
+            if image.build_status == constants.FAIL_IMAGE_SIZE_LIMIT:
+                is_any_build_failed_size_limit = True
+    if is_any_build_failed:
+        raise Exception("Build failed")
+    else:
+        if is_any_build_failed_size_limit:
+            FORMATTER.print("Build failed. Image size limit breached.")
+        else:
+            FORMATTER.print("No errors")
+    return is_any_build_failed, is_any_build_failed_size_limit
+
+def upload_metrics(images, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit):
+
+    FORMATTER.title("Uploading Metrics")
+    is_any_build_failed = False
+    is_any_build_failed_size_limit = False
+    metrics = Metrics(
+        context=constants.BUILD_CONTEXT,
+        region=BUILDSPEC["region"],
+        namespace=constants.METRICS_NAMESPACE,
+    )
+    for image in images:
+        try:
+            metrics.push_image_metrics(image)
+        except Exception as e:
+            if is_any_build_failed or is_any_build_failed_size_limit:
+                raise Exception(f"Build failed.{e}")
+            else:
+                raise Exception(f"Build passed. {e}")
+
+    if is_any_build_failed_size_limit:
+        raise Exception("Build failed because of file limit")
+
+    FORMATTER.separator()
+
+def build_images(images):
+    THREADS = {}
+    # In the context of the ThreadPoolExecutor each instance of image.build submitted
+    # to it is executed concurrently in a separate thread.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        for image in images:
+            FORMATTER.print(f"image_object.context {image.context}")
+            THREADS[image.name] = executor.submit(image.build)
+    # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
+    FORMATTER.progress(THREADS)
+
+def push_images(images):
+    THREADS = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        for image in images:
+            THREADS[image.name] = executor.submit(image.push_image)
+    FORMATTER.progress(THREADS)
+
 
 
 def tag_image_with_pr_number(image_tag):

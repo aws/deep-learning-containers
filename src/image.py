@@ -26,7 +26,7 @@ class DockerImage:
     """
 
     def __init__(
-        self, info, dockerfile, repository, tag, to_build, context=None,
+        self, info, dockerfile, repository, tag, to_build, stage, context=None,
     ):
 
         # Meta-data about the image should go to info.
@@ -36,6 +36,7 @@ class DockerImage:
         self.summary = {}
         self.build_args = {}
         self.labels = {}
+        self.stage = stage
 
         self.dockerfile = dockerfile
         self.context = context
@@ -69,11 +70,7 @@ class DockerImage:
         docker_client.containers.prune()
         return command_responses
 
-    def build(self):
-        """
-        The build function builds the specified docker image
-        """
-        self.summary["start_time"] = datetime.now()
+    def pre_build_configuration(self):
 
         if not self.to_build:
             self.log = ["Not built"]
@@ -84,19 +81,42 @@ class DockerImage:
         if self.info.get("base_image_uri"):
             self.build_args["BASE_IMAGE"] = self.info["base_image_uri"]
 
+        if self.ecr_url:
+            self.build_args["FIRST_STAGE_IMAGE"] = self.ecr_url
+
         if self.info.get("extra_build_args"):
             self.build_args.update(self.info.get("extra_build_args"))
-
+        
         if self.info.get("labels"):
             self.labels.update(self.info.get("labels"))
+        
+        print(f"self.build_args {self.build_args}")
+        print(f"self.labels {self.labels}")
 
-        with open(self.context.context_path, "rb") as context_file:
-            response = []
-
-            for line in self.client.build(
-                fileobj=context_file,
+    def build(self):
+        """
+        The build function builds the specified docker image
+        """
+        self.summary["start_time"] = datetime.now()
+        self.pre_build_configuration()
+        print(f"self.context {self.context}")
+        if self.context:
+            with open(self.context.context_path, "rb") as context_file:
+                print("within context")
+                self.docker_build(fileobj=context_file, custom_context=True)
+                self.context.remove()  
+        else:
+            print("out of context")
+            self.docker_build()
+        #check the size after image is built.
+        self.image_size_check()
+    
+    def docker_build(self, fileobj=None, custom_context=False):
+        response = []
+        for line in self.client.build(
+                fileobj=fileobj,
                 path=self.dockerfile,
-                custom_context=True,
+                custom_context=custom_context,
                 rm=True,
                 decode=True,
                 tag=self.ecr_url,
@@ -121,39 +141,51 @@ class DockerImage:
                 else:
                     response.append(str(line))
 
-            self.context.remove()
+        self.log = response
+        print(f"self.log {self.log}")
+        self.build_status = constants.SUCCESS
+        #TODO: return required?
+        return self.build_status
 
-            self.summary["image_size"] = int(
+
+    def image_size_check(self):
+        response = []
+        self.summary["image_size"] = int(
                 self.client.inspect_image(self.ecr_url)["Size"]
             ) / (1024 * 1024)
-            if self.summary["image_size"] > self.info["image_size_baseline"] * 1.20:
-                response.append("Image size baseline exceeded")
-                response.append(f"{self.summary['image_size']} > 1.2 * {self.info['image_size_baseline']}")
-                response += self.collect_installed_packages_information()
-                self.build_status = constants.FAIL_IMAGE_SIZE_LIMIT
+        if self.summary["image_size"] > self.info["image_size_baseline"] * 1.20:
+            response.append("Image size baseline exceeded")
+            response.append(f"{self.summary['image_size']} > 1.2 * {self.info['image_size_baseline']}")
+            response += self.collect_installed_packages_information()
+            self.build_status = constants.FAIL_IMAGE_SIZE_LIMIT
+        else:
+            self.build_status = constants.SUCCESS
+        self.log = response
+        print(f"self.log {self.log}")
+        #TODO: return required?
+        return self.build_status
+
+    def push_image(self):
+
+        for line in self.client.push(self.repository, self.tag, stream=True, decode=True):
+            response = []
+            if line.get("error") is not None:
+                response.append(line["error"])
+
+                self.log = response
+                self.build_status = constants.FAIL
+                self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
+                self.summary["end_time"] = datetime.now()
+
+                return self.build_status
+            if line.get("stream") is not None:
+                response.append(line["stream"])
             else:
-                self.build_status = constants.SUCCESS
+                response.append(str(line))
 
-            for line in self.client.push(
-                self.repository, self.tag, stream=True, decode=True
-            ):
-                if line.get("error") is not None:
-                    response.append(line["error"])
-
-                    self.log = response
-                    self.build_status = constants.FAIL
-                    self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
-                    self.summary["end_time"] = datetime.now()
-
-                    return self.build_status
-                if line.get("stream") is not None:
-                    response.append(line["stream"])
-                else:
-                    response.append(str(line))
-
-            self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
-            self.summary["end_time"] = datetime.now()
-            self.summary["ecr_url"] = self.ecr_url
-            self.log = response
-
-            return self.build_status
+        self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
+        self.summary["end_time"] = datetime.now()
+        self.summary["ecr_url"] = self.ecr_url
+        self.log = response
+        #TODO: return required?
+        return self.build_status

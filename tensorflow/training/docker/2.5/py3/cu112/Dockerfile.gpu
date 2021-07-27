@@ -22,7 +22,6 @@ ENV KMP_BLOCKTIME=1
 ENV KMP_SETTINGS=0
 ENV RDMAV_FORK_SAFE=1
 
-ARG SAFETY_KEY
 ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
@@ -301,18 +300,6 @@ RUN pip install --no-cache-dir -U ${SMMODELPARALLEL_BINARY}
 RUN SMDATAPARALLEL_TF=1 ${PIP} install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
 ENV LD_LIBRARY_PATH="/usr/local/lib/python3.7/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
-
-COPY safety /tmp/safety 
-
-RUN mkdir -p /opt/aws/dlc/info 
-
-RUN ${PIP} install --no-cache-dir -U safety \
- && cd /tmp/safety \
- && ${PYTHON} /tmp/safety/test_and_generate_python_safety_report.py \
-    --safety-key ${SAFETY_KEY} \
-    --report-path  "/opt/aws/dlc/info/safety_test_report.json" \
- && ${PIP} uninstall -y safety \
- && rm -rf /tmp/safety
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

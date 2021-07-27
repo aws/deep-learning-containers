@@ -31,6 +31,10 @@ FAIL_IMAGE_SIZE_LIMIT = 2
 # Left and right padding between text and margins in output
 PADDING = 1
 
+#Docker build stages
+FIRST_STAGE="first"
+SECOND_STAGE="second"
+
 # Docker connections
 DOCKER_URL = "unix://var/run/docker.sock"
 
