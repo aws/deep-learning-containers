@@ -18,7 +18,7 @@ from packaging.version import LegacyVersion, Version, parse
 from packaging.specifiers import SpecifierSet
 from retrying import retry
 
-from src.config.test_config import ENABLE_BENCHMARK_DEV_MODE
+from src.config import is_benchmark_mode_enabled
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -239,7 +239,7 @@ def is_dlc_cicd_context():
 
 
 def is_benchmark_dev_context():
-    return ENABLE_BENCHMARK_DEV_MODE
+    return is_benchmark_mode_enabled()
 
 
 def is_time_for_canary_safety_scan():
