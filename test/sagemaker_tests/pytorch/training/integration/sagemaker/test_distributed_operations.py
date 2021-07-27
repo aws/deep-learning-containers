@@ -16,8 +16,9 @@ import os
 
 import boto3
 import pytest
+from sagemaker import utils
 from sagemaker.pytorch import PyTorch
-from sagemaker import Session 
+from sagemaker import Session
 from six.moves.urllib.parse import urlparse
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
@@ -93,6 +94,10 @@ def test_dist_operations_multi_gpu(sagemaker_session, framework_version, ecr_ima
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_dist_operations_fastai_gpu(sagemaker_session, framework_version, ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    if Version(image_framework_version) == Version("1.9"):
+        pytest.skip("Fast ai is not supported on PyTorch v1.9 ")
+
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(
             entry_point='train_cifar.py',
@@ -108,7 +113,7 @@ def test_dist_operations_fastai_gpu(sagemaker_session, framework_version, ecr_im
         training_input = pytorch.sagemaker_session.upload_data(
             path=os.path.join(fastai_path, 'cifar_tiny', 'training'), key_prefix='pytorch/distributed_operations'
         )
-        pytorch.fit({'training': training_input})
+        pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-fastai'))
 
     model_s3_url = pytorch.create_model().model_data
     _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
@@ -135,8 +140,7 @@ def test_mnist_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_bac
         training_input = sagemaker_session.upload_data(
             path=os.path.join(data_dir, 'training'), key_prefix='pytorch/mnist'
         )
-        pytorch.fit({'training': training_input})
-
+        pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-mnist-gpu'))
 
 
 @pytest.mark.integration("smmodelparallel")
@@ -182,7 +186,8 @@ def test_smmodelparallel_mnist_multigpu_multinode(n_virginia_ecr_image, instance
                 },
             },
         )
-        pytorch.fit()
+        pytorch.fit(job_name=utils.unique_name_from_base('test-pt-smdmp-multinode'))
+
 
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
@@ -227,7 +232,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(n_virginia_ecr_image, efa_
                 },
             },
         )
-        pytorch.fit()
+        pytorch.fit(job_name=utils.unique_name_from_base('test-pt-smdmp-multinode-efa'))
 
 
 @pytest.mark.integration("smmodelparallel")
@@ -257,7 +262,7 @@ def test_sanity_efa(n_virginia_ecr_image, efa_instance_type, n_virginia_sagemake
                 },
             },
         )
-        pytorch.fit()
+        pytorch.fit(job_name=utils.unique_name_from_base('test-pt-efa-sanity'))
 
 
 def _test_dist_operations(
@@ -281,7 +286,7 @@ def _test_dist_operations(
         fake_input = pytorch.sagemaker_session.upload_data(
             path=dist_operations_path, key_prefix='pytorch/distributed_operations'
         )
-        pytorch.fit({'required_argument': fake_input})
+        pytorch.fit({'required_argument': fake_input}, job_name=utils.unique_name_from_base('test-pt-dist-operations'))
 
 
 def _assert_s3_file_exists(region, s3_url):

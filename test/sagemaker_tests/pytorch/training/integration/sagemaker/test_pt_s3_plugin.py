@@ -32,7 +32,7 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 def can_run_s3_plugin(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet(">=1.6")
+    return Version(image_framework_version) in SpecifierSet(">=1.7")
 
 
 def validate_or_skip_s3_plugin(ecr_image):
@@ -82,4 +82,3 @@ def test_pt_s3_plugin_sm_cpu(sagemaker_session, framework_version, ecr_image):
         )
         job_name = utils.unique_name_from_base('test-pytorch-s3-plugin-cpu')
         pytorch.fit(job_name=job_name)
-

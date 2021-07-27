@@ -27,7 +27,7 @@ from metrics import Metrics
 from image import DockerImage
 from buildspec import Buildspec
 from output import OutputFormatter
-from config import build_config
+from config import parse_dlc_developer_configs
 
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
@@ -64,6 +64,7 @@ def image_builder(buildspec):
 
         extra_build_args = {}
         labels = {}
+        enable_datetime_tag = parse_dlc_developer_configs("build", "datetime_tag")
 
         if image_config.get("version") is not None:
             if BUILDSPEC["version"] != image_config.get("version"):
@@ -77,7 +78,7 @@ def image_builder(buildspec):
             if build_context == "PR"
             else image_config["tag"]
         )
-        if not build_config.DISABLE_DATETIME_TAG or build_context != "PR":
+        if enable_datetime_tag or build_context != "PR":
             image_tag = tag_image_with_datetime(image_tag)
         image_repo_uri = (
             image_config["repository"]

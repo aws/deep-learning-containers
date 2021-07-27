@@ -39,6 +39,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
       FILE=new_main.py &&
       echo "from __future__ import print_function" > $FILE &&
       echo "from six.moves import urllib" >> $FILE &&
+      echo "from packaging.version import Version" >> $FILE &&
       echo "opener = urllib.request.build_opener()" >> $FILE &&
       echo "opener.addheaders = [('User-agent', 'Mozilla/5.0')]" >> $FILE &&
       echo "urllib.request.install_opener(opener)" >> $FILE &&
@@ -47,7 +48,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
       echo "# from torchvision 0.9.1, 2 candidate mirror website links will be added before resources items automatically" >> $FILE &&
       echo "# Reference PR https://github.com/pytorch/vision/pull/3559" >> $FILE &&
       echo "TORCHVISION_VERSION = '0.9.1'" >> $FILE &&
-      echo "if torchvision.__version__ < TORCHVISION_VERSION:" >> $FILE &&
+      echo "if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):" >> $FILE &&
       echo "    datasets.MNIST.resources = [" >> $FILE &&
       echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz', 'f68b3c2dcbeaaa9fbdd348bbdeb94873')," >> $FILE &&
       echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-labels-idx1-ubyte.gz', 'd53e105ee54ea40749a09fcbcd1e9432')," >> $FILE &&
@@ -96,13 +97,16 @@ def test_eks_pytorch_single_node_training(pytorch_training):
 @pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline")
 @pytest.mark.model("resnet18")
 @pytest.mark.integration("pt_s3_plugin")
-def test_eks_pt_s3_plugin_single_node_training(pytorch_training):
+def test_eks_pt_s3_plugin_single_node_training(pytorch_training, pt17_and_above_only):
     """
     Function to create a pod using kubectl and given container image, and run MXNet training
     Args:
         :param setup_utils: environment in which EKS tools are setup
         :param pytorch_training: the ECR URI
     """
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) < Version("1.8"):
+        pytest.skip("S3 plugin is supported on PyTorch version >=1.8")
 
     training_result = False
 

@@ -201,6 +201,15 @@ RUN pip install --no-cache-dir -U \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
 
+# Install extra packages
+RUN pip install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "shap>=0.39,<1"
+
 # install metis
 RUN wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
   && gunzip -f ${METIS}.tar.gz \
