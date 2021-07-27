@@ -339,10 +339,15 @@ def test_dataclasses_check(image):
 
     if python_version >= 37:
         start_container(container_name, image, ctx)
-        output = run_cmd_on_container(container_name, ctx, f"pip show {pip_package}")
+        output = run_cmd_on_container(
+            container_name, ctx, f"pip show {pip_package}", warn=True)
+
         if output.return_code == 0:
             pytest.fail(
                 f"{pip_package} package exists in the DLC image {image} that has py{python_version} version which is greater than py36 version")
+        else:
+            LOGGER.info(
+                f"{pip_package} package does not exists in the DLC image {image}")
     else:
         LOGGER.info(
             f"Skipping test for DLC image {image} that has py36 version as {pip_package} is not included in the python framework")
