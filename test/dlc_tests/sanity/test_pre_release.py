@@ -3,6 +3,7 @@ import re
 import subprocess
 import botocore
 import boto3
+import time
 from packaging.version import Version
 
 import pytest
@@ -136,12 +137,15 @@ def test_framework_version_cpu(image):
     :param image: ECR image URI
     """
     if "gpu" in image:
-        pytest.skip("GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
+        pytest.skip(
+            "GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia)?", image_repo_name):
-        pytest.skip(msg="TF inference for CPU/GPU/EIA does not have core tensorflow installed")
+        pytest.skip(
+            msg="TF inference for CPU/GPU/EIA does not have core tensorflow installed")
 
-    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
+    tested_framework, tag_framework_version = get_framework_and_version_from_tag(
+        image)
 
     # Framework name may include huggingface
     tested_framework = tested_framework.lstrip("huggingface_")
@@ -171,7 +175,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     :param ec2_connection: fixture to establish connection with an ec2 instance
     """
     image = gpu
-    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
+    tested_framework, tag_framework_version = get_framework_and_version_from_tag(
+        image)
 
     # Framework Version Check #
     # Skip framework version test for tensorflow-inference, since it doesn't have core TF installed
@@ -182,7 +187,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         if tested_framework == "pytorch":
             tested_framework = "torch"
         cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
-        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
+        output = ec2.execute_ec2_training_test(
+            ec2_connection, image, cmd, executable="python")
 
         if is_canary_context():
             assert tag_framework_version in output.stdout.strip()
@@ -197,7 +203,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         cuda_cmd = "readlink /usr/local/cuda"
     else:
         cuda_cmd = "nvcc --version"
-    cuda_output = ec2.execute_ec2_training_test(ec2_connection, image, cuda_cmd, container_name="cuda_version_test")
+    cuda_output = ec2.execute_ec2_training_test(
+        ec2_connection, image, cuda_cmd, container_name="cuda_version_test")
 
     # Ensure that cuda version in tag is in the container
     assert cuda_version in cuda_output.stdout.replace(".", "")
@@ -226,12 +233,15 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     test_script = os.path.join(CONTAINER_TESTS_PREFIX, "testDependencyCheck")
 
     # Execute test, copy results to s3
-    ec2.execute_ec2_training_test(ec2_connection, image, test_script, container_name=container_name)
+    ec2.execute_ec2_training_test(
+        ec2_connection, image, test_script, container_name=container_name)
     ec2_connection.run(f"docker cp {html_file} ~/{dependency_check_report}")
-    ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
+    ec2_connection.run(
+        f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
 
     # Check for any vulnerabilities not mentioned in allowed_vulnerabilities
-    html_output = ec2_connection.run(f"cat ~/{dependency_check_report}", hide=True).stdout
+    html_output = ec2_connection.run(
+        f"cat ~/{dependency_check_report}", hide=True).stdout
     cves = re.findall(r">(CVE-\d+-\d+)</a>", html_output)
     vulnerabilities = set(cves) - allowed_vulnerabilities
 
@@ -246,7 +256,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
                 session = requests.Session()
                 session.mount(
                     "https://",
-                    requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[404, 504, 502])),
+                    requests.adapters.HTTPAdapter(max_retries=Retry(
+                        total=5, status_forcelist=[404, 504, 502])),
                 )
                 response = session.get(cve_url)
 
@@ -260,7 +271,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
                         .get("severity", "UNKNOWN")
                     )
             except ConnectionError:
-                LOGGER.exception(f"Failed to load NIST data for CVE {vulnerability}")
+                LOGGER.exception(
+                    f"Failed to load NIST data for CVE {vulnerability}")
 
             if vulnerability_severity.get(severity):
                 vulnerability_severity[severity].append(vulnerability)
@@ -312,6 +324,31 @@ def test_dependency_check_neuron(neuron, ec2_connection):
 
 
 @pytest.mark.model("N/A")
+def test_dataclasses_check(image):
+    """
+    Ensure there is no dataclasses pip package is installed for python 3.7 and above version.
+    :param image: ECR image URI
+    """
+    ctx = Context()
+    pip_package = "dataclasses"
+
+    container_name = get_container_name("dataclasses-check", image)
+
+    python_version = re.findall(r'py(\d\.?\d?)', image)[0]
+    python_version = int(python_version)
+
+    if python_version >= 37:
+        start_container(container_name, image, ctx)
+        output = run_cmd_on_container(container_name, ctx, f"pip show {pip_package}")
+        if output.return_code == 0:
+            pytest.fail(
+                f"{pip_package} package exists in the DLC image {image} that has py{python_version} version which is greater than py36 version")
+    else:
+        LOGGER.info(
+            f"Skipping test for DLC image {image} that has py36 version as {pip_package} is not included in the python framework")
+
+
+@pytest.mark.model("N/A")
 @pytest.mark.canary("Run pip check test regularly on production images")
 def test_pip_check(image):
     """
@@ -336,7 +373,8 @@ def test_pip_check(image):
     )
 
     # Add null entrypoint to ensure command exits immediately
-    output = ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
+    output = ctx.run(
+        f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
         if not (allowed_tf_exception.match(output.stdout) or allowed_smclarify_exception.match(output.stdout)):
             # Rerun pip check test if this is an unexpected failure
@@ -354,7 +392,8 @@ def test_cuda_paths(gpu):
     """
     image = gpu
     if "example" in image:
-        pytest.skip("Skipping Example Dockerfiles which are not explicitly tied to a cuda version")
+        pytest.skip(
+            "Skipping Example Dockerfiles which are not explicitly tied to a cuda version")
 
     dlc_path = os.getcwd().split("/test/")[0]
     job_type = "training" if "training" in image else "inference"
@@ -374,10 +413,13 @@ def test_cuda_paths(gpu):
 
     # replacing '_' by '/' to handle huggingface_<framework> case
     framework_path = framework.replace("_", "/")
-    framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_version)
+    framework_version_path = os.path.join(
+        dlc_path, framework_path, job_type, "docker", framework_version)
     if not os.path.exists(framework_version_path):
-        framework_short_version = re.match(r"(\d+.\d+)", framework_version).group(1)
-        framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_short_version)
+        framework_short_version = re.match(
+            r"(\d+.\d+)", framework_version).group(1)
+        framework_version_path = os.path.join(
+            dlc_path, framework_path, job_type, "docker", framework_short_version)
     if not os.path.exists(os.path.join(framework_version_path, python_version)):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
         short_python_version = python_version[:3]
@@ -398,7 +440,8 @@ def test_cuda_paths(gpu):
         if image_spec["device_type"] == "gpu" and image_spec["tag"] == image_tag:
             cuda_in_buildspec = True
             dockerfile_spec_abs_path = os.path.join(
-                os.path.dirname(framework_version_path), image_spec["docker_file"].lstrip("docker/")
+                os.path.dirname(
+                    framework_version_path), image_spec["docker_file"].lstrip("docker/")
             )
             break
 
@@ -406,7 +449,8 @@ def test_cuda_paths(gpu):
         assert cuda_in_buildspec, f"Can't find {cuda_in_buildspec_ref} in {buildspec_path}"
     except AssertionError as e:
         if not is_dlc_cicd_context():
-            LOGGER.warn(f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context.")
+            LOGGER.warn(
+                f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context.")
         else:
             raise
 
@@ -420,7 +464,8 @@ def test_cuda_paths(gpu):
         f"{image_properties_expected_in_dockerfile_path}"
     )
 
-    assert os.path.exists(dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
+    assert os.path.exists(
+        dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
 
 
 def _assert_artifact_free(output, stray_artifacts):
@@ -453,10 +498,12 @@ def test_oss_compliance(image):
     start_container(container_name, image, context)
 
     # run compliance test to make sure license attribution files exists. testOSSCompliance is copied as part of Dockerfile
-    run_cmd_on_container(container_name, context, "/usr/local/bin/testOSSCompliance /root")
+    run_cmd_on_container(container_name, context,
+                         "/usr/local/bin/testOSSCompliance /root")
 
     try:
-        context.run(f"docker cp {container_name}:/root/{file} {os.path.join(local_repo_path, file)}")
+        context.run(
+            f"docker cp {container_name}:/root/{file} {os.path.join(local_repo_path, file)}")
     finally:
         context.run(f"docker rm -f {container_name}", hide=True)
 
@@ -472,18 +519,21 @@ def test_oss_compliance(image):
             for i in range(3):
                 try:
                     if not os.path.isdir(local_file_path):
-                        context.run(f"git clone {url.rstrip()} {local_file_path}")
-                        context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
+                        context.run(
+                            f"git clone {url.rstrip()} {local_file_path}")
+                        context.run(
+                            f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
                 except Exception as e:
                     time.sleep(1)
-                    if i==2:
+                    if i == 2:
                         LOGGER.error(f"Unable to clone git repo. Error: {e}")
                         raise
                     continue
             try:
                 if os.path.exists(f"{local_file_path}.tar.gz"):
                     LOGGER.info(f"Uploading package to s3 bucket: {line}")
-                    s3_resource.Object(THIRD_PARTY_SOURCE_CODE_BUCKET, s3_object_path).load()
+                    s3_resource.Object(
+                        THIRD_PARTY_SOURCE_CODE_BUCKET, s3_object_path).load()
             except botocore.exceptions.ClientError as e:
                 if e.response["Error"]["Code"] == "404":
                     try:
@@ -491,7 +541,8 @@ def test_oss_compliance(image):
                         context.run(
                             f"aws s3 cp {local_file_path}.tar.gz s3://{THIRD_PARTY_SOURCE_CODE_BUCKET}/{s3_object_path}"
                         )
-                        object = s3_resource.Bucket(THIRD_PARTY_SOURCE_CODE_BUCKET).Object(s3_object_path)
+                        object = s3_resource.Bucket(
+                            THIRD_PARTY_SOURCE_CODE_BUCKET).Object(s3_object_path)
                         object.Acl().put(ACL="public-read")
                     except ClientError as e:
                         LOGGER.error(
