@@ -316,6 +316,14 @@ def main():
         sm_utils.generate_empty_report(report, test_type, "huggingface")
         return
 
+    # Skipping non AutoGluon specific tests to execute only sagemaker tests
+    if any("autogluon" in image_uri for image_uri in all_image_list) and \
+            specific_test_type in ("ecs", "ec2", "eks", "bai"):
+        # Creating an empty file for because codebuild job fails without it
+        report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+        sm_utils.generate_empty_report(report, test_type, "autogluon")
+        return
+
     if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary", "bai", "quick_checks"):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
