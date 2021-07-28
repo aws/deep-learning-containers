@@ -175,7 +175,8 @@ def invoke_pytorch_helper_function(ecr_image, sagemaker_regions, helper_function
                 break
             except Exception as e:
                 if type(e) == sagemaker.exceptions.UnexpectedStatusException and "CapacityError" in str(e):
+                    time.sleep(DELAY)
                     continue
                 else:
                     raise e
-        time.sleep(DELAY)
+        
