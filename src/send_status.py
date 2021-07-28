@@ -87,7 +87,7 @@ def main():
     state = codebuild_statuses[args.status]
 
     # Send status for given state
-    if os.getenv("BUILD_CONTEXT") == "PR":
+    if os.getenv("BUILD_CONTEXT") == "PR" and not os.getenv("CODEBUILD_WEBHOOK_TRIGGER", "").startswith("pr/"):
         post_status(state)
 
 
