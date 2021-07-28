@@ -157,7 +157,9 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     region_list = ",".join(SAGEMAKER_EXECUTION_REGIONS)
 
-    sagemaker_region_list = f"--sagemaker-region {region_list}"
+    #Multi region functionality is added for PT currently
+    sagemaker_region_list = f"--sagemaker-region {region_list}" if framework == "pytorch" else ""
+
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
         f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
