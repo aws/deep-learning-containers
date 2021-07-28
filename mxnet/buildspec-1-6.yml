@@ -5,6 +5,7 @@
   cuda_version: &CUDA_VERSION cu101
   os_version: &OS_VERSION ubuntu16.04
 
+
   repository_info:
     training_repository: &TRAINING_REPOSITORY
       image_type: &TRAINING_IMAGE_TYPE training
