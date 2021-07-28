@@ -101,7 +101,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     pandas \
     h5py \
     requests \
- && conda install -c dglteam -y dgl \
+ && conda install -c dglteam -y dgl=0.6.1 \
  && /opt/conda/bin/conda clean -ya \
  && conda clean -ya
 
