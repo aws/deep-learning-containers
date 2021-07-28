@@ -328,6 +328,7 @@ def test_dependency_check_neuron(neuron, ec2_connection):
 def test_dataclasses_check(image):
     """
     Ensure there is no dataclasses pip package is installed for python 3.7 and above version.
+    Python version retrieved from the ecr image uri is expected in the format `py<major_verion><minor_version>`
     :param image: ECR image URI
     """
     ctx = Context()
