@@ -31,6 +31,7 @@ from test.test_utils import (
     is_nightly_context,
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
+    get_python_version_from_image_uri
 )
 
 
@@ -334,7 +335,7 @@ def test_dataclasses_check(image):
 
     container_name = get_container_name("dataclasses-check", image)
 
-    python_version = re.findall(r'py(\d\.?\d?)', image)[0]
+    python_version = get_python_version_from_image_uri(image).replace("py","")
     python_version = int(python_version)
 
     if python_version >= 37:
@@ -349,8 +350,7 @@ def test_dataclasses_check(image):
             LOGGER.info(
                 f"{pip_package} package does not exists in the DLC image {image}")
     else:
-        LOGGER.info(
-            f"Skipping test for DLC image {image} that has py36 version as {pip_package} is not included in the python framework")
+        pytest.skip(f"Skipping test for DLC image {image} that has py36 version as {pip_package} is not included in the python framework")
 
 
 @pytest.mark.model("N/A")
