@@ -28,7 +28,7 @@ ENV MODEL_NAME=model
 ENV DEBIAN_FRONTEND=noninteractive
 
 # nginx + njs
-RUN apt-get update \
+RUN apt-get update && apt-get -y upgrade \
  && apt-get -y install --no-install-recommends \
     curl \
     gnupg2 \
