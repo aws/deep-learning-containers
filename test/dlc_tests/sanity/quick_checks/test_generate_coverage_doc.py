@@ -14,6 +14,7 @@ ACCOUNT_ID = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity().g
 TEST_COVERAGE_REPORT_BUCKET = f"dlc-test-coverage-reports-{ACCOUNT_ID}"
 
 
+@pytest.mark.quick_checks
 @pytest.mark.integration("Generating this coverage doc")
 @pytest.mark.model("N/A")
 def test_generate_coverage_doc():

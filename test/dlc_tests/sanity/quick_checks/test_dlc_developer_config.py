@@ -7,6 +7,7 @@ import toml
 from test.test_utils import is_dlc_cicd_context
 
 
+@pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("dlc_developer_config")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Test relies on CB env variables and should be run on CB")
