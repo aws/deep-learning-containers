@@ -94,5 +94,5 @@ RUN HOME_DIR=/root \
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.9.0/license.txt -o /license.txt
 
 EXPOSE 8080 8081
-ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+ENTRYPOINT ["python3", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
