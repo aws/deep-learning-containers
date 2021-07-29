@@ -1,5 +1,10 @@
 #!/bin/bash
-INSTANCE_TYPE=`curl http://169.254.169.254/latest/meta-data/instance-type`
+INSTANCE_TYPE=$1
+if [ -z "$INSTANCE_TYPE" ];then
+  echo "Usage: "$0" <INSTANCE_TYPE>"
+  exit 1
+fi
+
 if [[ $INSTANCE_TYPE == g2* ]]; then
   echo "This is g2* instance. Skipped."
   exit 0
@@ -9,7 +14,7 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-${BIN_DIR}/testTF1HVDHelper || exit 1
+${BIN_DIR}/testTF1HVDHelper INSTANCE_TYPE || exit 1
 
 echo "TF HVD tests passed!"
 exit 0
