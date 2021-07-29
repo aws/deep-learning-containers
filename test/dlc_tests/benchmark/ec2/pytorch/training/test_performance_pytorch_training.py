@@ -9,6 +9,7 @@ from test.test_utils import (
     DEFAULT_REGION,
     get_framework_and_version_from_tag,
     is_pr_context,
+    HPU_AL2_DLAMI,
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_performance_test,
@@ -58,8 +59,9 @@ def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_
     )
 
 # Placeholder for habana benchmark test
-@pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.HPU_AL2_DLAMI], indirect=True)
+@pytest.mark.model('N/A')
+@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
 def test_performance_tensorflow_hpu_imagenet(pytorch_training_habana, ec2_connection):
     assert 1==1  
 

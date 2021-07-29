@@ -638,7 +638,7 @@ def pytest_generate_tests(metafunc):
             images_to_parametrize = []
             for image in images:
                 #Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
-                repo_name, _ = image.split("/")[-1].split(":")
+                repo_name = image.split("/")[-1].split(":")[0]
                 if repo_name.endswith(lookup):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_huggingface_lookup = "huggingface_only" in metafunc.fixturenames and "huggingface" in image

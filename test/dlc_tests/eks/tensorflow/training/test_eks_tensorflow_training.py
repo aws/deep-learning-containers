@@ -61,5 +61,6 @@ def test_eks_tensorflow_single_node_training(tensorflow_training):
         run("kubectl delete pods {}".format(pod_name))
 
 # Placeholder for habana test
+@pytest.mark.model('N/A')
 def test_eks_tensorflow_single_node_training_hpu(tensorflow_training_habana):
     assert 1==1

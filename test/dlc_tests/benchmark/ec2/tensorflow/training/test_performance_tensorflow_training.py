@@ -84,6 +84,7 @@ def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection
 @pytest.mark.parametrize("ec2_key_file_name", ["<ec2_key_file>"], indirect=True)
 @pytest.mark.parametrize("ec2_user_name", ["<user-name>"], indirect=True)
 @pytest.mark.parametrize("ec2_public_ip", ["public-ip-address"], indirect=True)
+@pytest.mark.model('N/A')
 def test_performance_tensorflow_hpu_imagenet(tensorflow_training_habana, existing_ec2_instance_connection):
     existing_ec2_instance_connection.run('mkdir habana')
     assert 1==1    

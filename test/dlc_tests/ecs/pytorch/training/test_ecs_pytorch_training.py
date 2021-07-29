@@ -162,5 +162,6 @@ def test_ecs_pytorch_training_dgl_gpu(gpu_only, py3_only, ecs_container_instance
 # Instance type and AMI to be updated once the EC2 Gaudi instance is available
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_HPU_USWEST2], indirect=True)
+@pytest.mark.model('N/A')
 def test_ecs_pytorch_training_hpu(ecs_container_instance, pytorch_training_habana, ecs_cluster_name):
     assert 1==1
