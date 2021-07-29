@@ -76,5 +76,6 @@ def test_ecs_tensorflow_training_fasterrcnn_gpu(gpu_only, ecs_container_instance
 # Instance type and AMI to be updated once the EC2 Gaudi instance is available
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_HPU_USWEST2], indirect=True)
+@pytest.mark.model('N/A')
 def test_ecs_tensorflow_training_hpu(ecs_container_instance, tensorflow_training_habana, ecs_cluster_name):
     assert 1==1

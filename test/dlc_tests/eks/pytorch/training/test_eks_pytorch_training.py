@@ -263,6 +263,7 @@ def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
     run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_path)
 
 # Placeholder for habana test
+@pytest.mark.model('N/A')
 def test_eks_pytorch_single_node_training_hpu(pytorch_training_habana):
     assert 1==1
 

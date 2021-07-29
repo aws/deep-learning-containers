@@ -63,6 +63,7 @@ def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
 
 
 # Placeholder for Habana SM test
+@pytest.mark.model('N/A')
 def test_dgl_training_habana(sagemaker_session,
                                       instance_type,
                                       ecr_image,
