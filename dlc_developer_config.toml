@@ -21,10 +21,10 @@ datetime_tag = true
 do_build = true
 
 [test]
-efa_tests = true
-sanity_tests = true
-sagemaker_tests = true
-ecs_tests = false
-eks_tests = false
-ec2_tests = false
+efa_tests = false
+sanity_tests = false
+sagemaker_tests = false
+ecs_tests = true
+eks_tests = true
+ec2_tests = true
 use_scheduler = false
