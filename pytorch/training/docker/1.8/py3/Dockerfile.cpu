@@ -10,7 +10,7 @@ ARG OPEN_MPI_VERSION=4.0.1
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.8
+ARG SMDEBUG_VERSION=1.0.9
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -27,6 +27,7 @@ ENV DGLBACKEND=pytorch
 
 ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.8.1_aws/20210325-012734/e1343088f0beb99438343e1e99e8d71ffb972b47/cpu/torch-1.8.1-cp36-cp36m-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.8.1/cpu/torchvision-0.9.1-cp36-cp36m-linux_x86_64.whl
+ARG PT_S3_WHL=https://aws-s3-plugin.s3-us-west-2.amazonaws.com/binaries/0.0.1/93fdaed/awsio-0.0.1-cp36-cp36m-manylinux1_x86_64.whl
 
 WORKDIR /
 
@@ -116,11 +117,24 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     sagemaker-experiments==0.* \
     "sagemaker-pytorch-training<3" \
     psutil==5.6.7 \
-    Pillow==7.1.0 \
+    Pillow==8.2.0 \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+
+# Install extra packages
+RUN pip install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "shap>=0.39,<1"
+
+# Install PT S3 plugin
+RUN pip install -U ${PT_S3_WHL}
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

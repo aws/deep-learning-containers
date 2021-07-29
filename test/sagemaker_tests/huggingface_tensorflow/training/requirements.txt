@@ -25,10 +25,11 @@ python-dateutil>=2.1,<2.8.1
 requests-mock
 # test pipemode fails for 2.x containers with module 'tensorflow' has no attribute 'train'
 # without the below package
-tensorflow==2.4.1
+tensorflow==2.5.0
 fabric==2.5.0
 retrying==1.3.3
 gitpython
+toml
 s3fs>=0.4.2
-datasets[s3]==1.5.0
-transformers==4.5.0
+datasets[s3]==1.6.2
+transformers==4.6.1

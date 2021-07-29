@@ -13,7 +13,7 @@ ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.6.13
-ARG OPENSSL_VERSION=1.1.1j
+ARG OPENSSL_VERSION=1.1.1k
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -93,6 +93,8 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 WORKDIR /
 
 RUN ${PIP} install --no-cache-dir \
+   "awscli<2" \
+    boto3 \
     ${MX_URL} \
     gluonnlp==0.10.0 \
     gluoncv==0.6.0 \

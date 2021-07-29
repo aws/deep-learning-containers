@@ -1,4 +1,5 @@
 import argparse
+from collections import defaultdict
 
 import boto3
 import sagemaker
@@ -13,13 +14,20 @@ parser.add_argument("--node-count", type=int, help="number of nodes to train", d
 parser.add_argument("--python", help="python version", default="py3")
 parser.add_argument("--region", help="region in which to run test", default="us-west-2")
 parser.add_argument("--job-name", help="SageMaker Training Job Name", default=None)
+parser.add_argument("--xla-on", help="Enable XLA acceleration", action='store_true', dest='xla', default=True)
+parser.add_argument("--xla-off", help="Disable XLA acceleration", action='store_false', dest='xla')
 
 args = parser.parse_args()
 
 source_dir = "tensorflow1" if args.framework_version.startswith("1.") else "tensorflow2"
 processor = "gpu" if "gpu" in args.image_uri else "cpu"
-entrypoint_script = f"singletrain_{processor}.sh"
-processes_per_host = 8 if processor == "gpu" else 1
+entrypoint_script = f"singletrain_{processor}{'_without_xla' if processor == 'gpu' and not args.xla else ''}.sh"
+
+processes_per_host = defaultdict(lambda:1)
+processes_per_host['ml.p3.16xlarge'] = 8
+processes_per_host['ml.p3.8xlarge'] = 4
+processes_per_host['ml.p3.2xlarge'] = 1
+
 kwargs = {"train_volume_size": 200} if processor == "gpu" else {}
 
 sagemaker_session = sagemaker.Session(boto_session=boto3.Session(region_name=args.region))
@@ -38,7 +46,7 @@ if str(sagemaker.__version__).startswith('2'):
         distribution={
             "mpi": {
               "enabled": True,
-              "processes_per_host": processes_per_host,
+              "processes_per_host": processes_per_host[args.instance_type],
               "custom_mpi_options": (
                   "-x HOROVOD_HIERARCHICAL_ALLREDUCE=1 "
                   "-x HOROVOD_FUSION_THRESHOLD=16777216 "

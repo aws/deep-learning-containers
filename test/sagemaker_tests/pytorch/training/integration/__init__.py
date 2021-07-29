@@ -13,14 +13,18 @@
 from __future__ import absolute_import
 
 import os
+import re
 
 resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'resources'))
 mnist_path = os.path.join(resources_path, 'mnist')
 mnist_script = os.path.join(mnist_path, 'mnist.py')
+throughput_path = os.path.join(resources_path, "smdataparallel")
 smdataparallel_mnist_script = os.path.join(mnist_path, 'smdataparallel_mnist_script_mode.sh')
 fastai_path = os.path.join(resources_path, 'fastai')
 fastai_cifar_script = os.path.join(fastai_path, 'train_cifar.py')
 fastai_mnist_script = os.path.join(fastai_path, 'mnist.py')
+resnet18_path = os.path.join(resources_path, 'resnet18')
+
 data_dir = os.path.join(mnist_path, 'data')
 training_dir = os.path.join(data_dir, 'training')
 dist_operations_path = os.path.join(resources_path, 'distributed_operations.py')
@@ -35,3 +39,34 @@ call_model_fn_once_script = os.path.join(resources_path, 'call_model_fn_once.py'
 
 ROLE = 'dummy/unused-role'
 DEFAULT_TIMEOUT = 20
+
+
+def get_framework_from_image_uri(image_uri):
+    return (
+        "huggingface_tensorflow" if "huggingface-tensorflow" in image_uri
+        else "huggingface_pytorch" if "huggingface-pytorch" in image_uri
+        else "mxnet" if "mxnet" in image_uri
+        else "pytorch" if "pytorch" in image_uri
+        else "tensorflow" if "tensorflow" in image_uri
+        else None
+    )
+
+
+def get_framework_and_version_from_tag(image_uri):
+    """
+    Return the framework and version from the image tag.
+
+    :param image_uri: ECR image URI
+    :return: framework name, framework version
+    """
+    tested_framework = get_framework_from_image_uri(image_uri)
+    allowed_frameworks = ("huggingface_tensorflow", "huggingface_pytorch", "tensorflow", "mxnet", "pytorch")
+
+    if not tested_framework:
+        raise RuntimeError(
+            f"Cannot find framework in image uri {image_uri} " f"from allowed frameworks {allowed_frameworks}"
+        )
+
+    tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]
+
+    return tested_framework, tag_framework_version

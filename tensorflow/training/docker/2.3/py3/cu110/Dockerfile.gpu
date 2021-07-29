@@ -28,15 +28,15 @@ ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.10
 ARG OPEN_MPI_PATH=/usr/local
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.3_aws/20210219-083152/gpu/cu110/py37/tensorflow_gpu-2.3.2-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.3_aws/20210715_184252/gpu/cu110/py37/tensorflow_gpu-2.3.3-cp37-cp37m-manylinux2010_x86_64.whl
 
-ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.3_aws/20201113-213326/tensorflow_estimator-2.3.0-py2.py3-none-any.whl
+ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.3_aws/20210715_184252/tensorflow_estimator-2.3.0-py2.py3-none-any.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.8
+ARG SMDEBUG_VERSION=1.0.9
 
-RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated \
+RUN apt-get update && apt-get -y upgrade && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
     cuda-command-line-tools-11-0 \
     cuda-cudart-dev-11-0 \
@@ -182,7 +182,7 @@ RUN ${PIP} install --no-cache-dir -U \
     scipy==1.5.2 \
     scikit-learn==0.23 \
     pandas==1.1 \
-    Pillow==7.2.0 \
+    Pillow==8.3.1 \
     python-dateutil==2.8.1 \
     # install PyYAML>=5.4.1 to avoid conflict with latest awscli
     "pyYAML>=5.4.1,<5.5" \
@@ -273,4 +273,4 @@ RUN HOME_DIR=/root \
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.3/license.txt -o /license.txt
 
-CMD ["bin/bash"]
+CMD ["/bin/bash"]

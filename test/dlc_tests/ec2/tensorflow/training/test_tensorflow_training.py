@@ -5,7 +5,12 @@ import pytest
 import test.test_utils as test_utils
 import test.test_utils.ec2 as ec2_utils
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER, is_tf_version
+from test.test_utils import (
+    CONTAINER_TESTS_PREFIX, 
+    LOGGER, 
+    is_tf_version, 
+    get_python_invoker
+)
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -78,7 +83,7 @@ def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2
     execute_ec2_training_test(
         connection=ec2_connection,
         ecr_uri=tensorflow_training,
-        test_cmd=test_script,
+        test_cmd=f"{test_script} {ec2_instance_type}",
         large_shm=bool(re.match(r"(p2\.8xlarge)|(g3\.16xlarge)", ec2_instance_type))
     )
 
@@ -87,12 +92,12 @@ def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_only, tf2_only):
+def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_only, tf2_only, ec2_instance_type):
     container_name = "tf_hvd_cpu_test"
     test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
     try:
         execute_ec2_training_test(
-            ec2_connection, tensorflow_training, test_script, container_name=container_name, timeout=1800
+            ec2_connection, tensorflow_training, f"{test_script} {ec2_instance_type}", container_name=container_name, timeout=1800
         )
     except Exception as e:
         debug_output = ec2_connection.run(f"docker logs {container_name}")
@@ -199,11 +204,12 @@ def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, tf2_only, cp
 
 
 # Helper function to test data service
-def run_data_service_test(ec2_connection, tensorflow_training, cmd):
-    ec2_connection.run('python3 -m pip install --upgrade pip')
-    ec2_connection.run('pip3 install tensorflow==2.4')
+def run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, cmd):
+    python_invoker = get_python_invoker(ec2_instance_ami)
+    ec2_connection.run(f'{python_invoker} -m pip install --upgrade pip')
+    ec2_connection.run(f'{python_invoker} -m pip install tensorflow==2.5')
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(f'cd {container_test_local_dir}/bin && screen -d -m python3 start_dataservice.py')
+    ec2_connection.run(f'cd {container_test_local_dir}/bin && screen -d -m {python_invoker} start_dataservice.py')
     execute_ec2_training_test(ec2_connection, tensorflow_training, cmd, host_network=True)
 
 
@@ -212,8 +218,8 @@ def run_data_service_test(ec2_connection, tensorflow_training, cmd):
 @pytest.mark.integration('tensorflow-dataservice-test')
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, tf24_and_above_only, cpu_only):
-    run_data_service_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD)
+def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, cpu_only):
+    run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_TEST_CMD)
 
 
 # Testing Data Service on only one GPU instance
@@ -222,11 +228,11 @@ def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, tf24_an
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_gpu(
-        tensorflow_training, ec2_connection, tf24_and_above_only, gpu_only, ec2_instance_type
+        tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, gpu_only, ec2_instance_type
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}")
-    run_data_service_test(ec2_connection, tensorflow_training, TF_DATASERVICE_TEST_CMD)
+    run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_TEST_CMD)
 
 
 # Testing Data Service Distributed mode on only one CPU instance
@@ -234,8 +240,8 @@ def test_tensorflow_dataservice_gpu(
 @pytest.mark.integration('tensorflow-dataservice-distribute-test')
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_distribute_dataservice_cpu(tensorflow_training, ec2_connection, tf24_and_above_only, cpu_only):
-    run_data_service_test(ec2_connection, tensorflow_training, TF_DATASERVICE_DISTRIBUTE_TEST_CMD)
+def test_tensorflow_distribute_dataservice_cpu(tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, cpu_only):
+    run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_DISTRIBUTE_TEST_CMD)
 
 
 # Testing Data Service Distributed mode on only one GPU instance
@@ -244,8 +250,8 @@ def test_tensorflow_distribute_dataservice_cpu(tensorflow_training, ec2_connecti
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_distribute_dataservice_gpu(
-        tensorflow_training, ec2_connection, tf24_and_above_only, gpu_only, ec2_instance_type
+        tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, gpu_only, ec2_instance_type
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}")
-    run_data_service_test(ec2_connection, tensorflow_training, TF_DATASERVICE_DISTRIBUTE_TEST_CMD)
+    run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_DISTRIBUTE_TEST_CMD)

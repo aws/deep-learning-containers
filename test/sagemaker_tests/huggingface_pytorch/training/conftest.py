@@ -12,8 +12,9 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os
+import json
 import logging
+import os
 import platform
 import shutil
 import sys
@@ -22,6 +23,7 @@ import tempfile
 import pytest
 import boto3
 
+from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
@@ -57,6 +59,8 @@ NO_P2_REGIONS = [
 ]
 NO_P3_REGIONS = [
     "ap-east-1",
+    "ap-northeast-1",
+    "ap-northeast-2",
     "ap-northeast-3",
     "ap-southeast-1",
     "ap-southeast-2",
@@ -90,6 +94,20 @@ def pytest_addoption(parser):
     parser.addoption('--tag', default=None)
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
                      help='use this option to generate test coverage doc')
+    parser.addoption(
+        "--efa", action="store_true", default=False, help="Run only efa tests",
+    )
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+
+
+def pytest_runtest_setup(item):
+    if item.config.getoption("--efa"):
+        efa_tests = [mark for mark in item.iter_markers(name="efa")]
+        if not efa_tests:
+            pytest.skip("Skipping non-efa tests")
 
 
 def pytest_collection_modifyitems(session, config, items):
@@ -248,3 +266,55 @@ def skip_py2_containers(request, tag):
     if request.node.get_closest_marker('skip_py2_containers'):
         if 'py2' in tag:
             pytest.skip('Skipping python2 container with tag {}'.format(tag))
+
+
+def _get_remote_override_flags():
+    try:
+        s3_client = boto3.client('s3')
+        sts_client = boto3.client('sts')
+        account_id = sts_client.get_caller_identity().get('Account')
+        result = s3_client.get_object(Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json")
+        json_content = json.loads(result["Body"].read().decode('utf-8'))
+    except ClientError as e:
+        logger.warning("ClientError when performing S3/STS operation: {}".format(e))
+        json_content = {}
+    return json_content
+
+
+def _is_test_disabled(test_name, build_name, version):
+    """
+    Expected format of remote_override_flags:
+    {
+        "CB Project Name for Test Type A": {
+            "CodeBuild Resolved Source Version": ["test_type_A_test_function_1", "test_type_A_test_function_2"]
+        },
+        "CB Project Name for Test Type B": {
+            "CodeBuild Resolved Source Version": ["test_type_B_test_function_1", "test_type_B_test_function_2"]
+        }
+    }
+
+    :param test_name: str Test Function node name (includes parametrized values in string)
+    :param build_name: str Build Project name of current execution
+    :param version: str Source Version of current execution
+    :return: bool True if test is disabled as per remote override, False otherwise
+    """
+    remote_override_flags = _get_remote_override_flags()
+    remote_override_build = remote_override_flags.get(build_name, {})
+    if version in remote_override_build:
+        return (
+            not remote_override_build[version]
+            or any([test_keyword in test_name for test_keyword in remote_override_build[version]])
+        )
+    return False
+
+
+@pytest.fixture(autouse=True)
+def disable_test(request):
+    test_name = request.node.name
+    # We do not have a regex pattern to find CB name, which means we must resort to string splitting
+    build_arn = os.getenv("CODEBUILD_BUILD_ARN")
+    build_name = build_arn.split("/")[-1].split(":")[0] if build_arn else None
+    version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+
+    if build_name and version and _is_test_disabled(test_name, build_name, version):
+        pytest.skip(f"Skipping {test_name} test because it has been disabled.")

@@ -1,17 +1,21 @@
 import json
+import os
+import subprocess
+import sys
 
-from enum import IntEnum
+from base64 import b64decode
 
-from test.test_utils import get_repository_and_tag_from_image_uri, LOGGER
+import boto3
 
-
-class CVESeverity(IntEnum):
-    UNDEFINED = 0
-    INFORMATIONAL = 1
-    LOW = 2
-    MEDIUM = 3
-    HIGH = 4
-    CRITICAL = 5
+from test.test_utils import (
+    get_repository_and_tag_from_image_uri,
+    get_region_from_image_uri,
+    get_account_id_from_image_uri,
+    login_to_ecr_registry,
+    get_unique_name_from_tag,
+    LOGGER,
+)
+from test.test_utils.security import CVESeverity
 
 
 class ECRScanFailedError(Exception):
@@ -115,3 +119,70 @@ def ecr_repo_exists(ecr_client, repo_name, account_id=None):
     except ecr_client.exceptions.RepositoryNotFoundException as e:
         return False
     return True
+
+
+def get_ecr_login_boto3(ecr_client, account_id, region):
+    """
+    Get ECR login using boto3
+    """
+    user_name, password = None, None
+    result = ecr_client.get_authorization_token()
+    for auth in result['authorizationData']:
+        auth_token = b64decode(auth['authorizationToken']).decode()
+        user_name, password = auth_token.split(':')
+    return user_name, password
+
+
+def save_credentials_to_file(file_path, password):
+    with open(file_path, "w") as file:
+        file.write(f"{password}")
+
+
+def delete_file(file_path):
+    subprocess.check_output(f"rm -rf {file_path}", shell=True, executable="/bin/bash")
+
+
+def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_region):
+    """
+    Helper function to reupload an image owned by a another/same account to an ECR repo in this account to given region, so that
+    this account can freely run tests without permission issues.
+
+    :param source_image_uri: str Image URI for image to be tested
+    :param target_image_repo_name: str Target image ECR repo name
+    :param target_region: str Region where test is being run
+    :return: str New image URI for re-uploaded image
+    """
+    ECR_PASSWORD_FILE_PATH = os.path.join("/tmp", f"{get_unique_name_from_tag(source_image_uri)}.txt")
+    sts_client = boto3.client("sts", region_name=target_region)
+    target_ecr_client = boto3.client("ecr", region_name=target_region)
+    target_account_id = sts_client.get_caller_identity().get("Account")
+    image_account_id = get_account_id_from_image_uri(source_image_uri)
+    image_region = get_region_from_image_uri(source_image_uri)
+    image_repo_uri, image_tag = source_image_uri.split(":")
+    _, image_repo_name = image_repo_uri.split("/")
+    if not ecr_repo_exists(target_ecr_client, target_image_repo_name):
+        raise ECRRepoDoesNotExist(
+            f"Repo named {target_image_repo_name} does not exist in {target_region} on the account {target_account_id}"
+        )
+
+    target_image_uri = (
+        source_image_uri.replace(image_region, target_region)
+        .replace(image_repo_name, target_image_repo_name)
+        .replace(image_account_id, target_account_id)
+    )
+
+    client = boto3.client('ecr', region_name = image_region)
+    username, password = get_ecr_login_boto3(client, image_account_id, image_region)
+    save_credentials_to_file(ECR_PASSWORD_FILE_PATH, password)
+
+    # using ctx.run throws error on codebuild "OSError: reading from stdin while output is captured".
+    # Also it throws more errors related to awscli if in_stream=False flag is added to ctx.run which needs more deep dive
+    subprocess.check_output(f"cat {ECR_PASSWORD_FILE_PATH} | docker login -u {username} --password-stdin https://{image_account_id}.dkr.ecr.{image_region}.amazonaws.com && docker pull {source_image_uri}", shell=True, executable="/bin/bash")
+    subprocess.check_output(f"docker tag {source_image_uri} {target_image_uri}", shell=True, executable="/bin/bash")
+    delete_file(ECR_PASSWORD_FILE_PATH)
+    username, password = get_ecr_login_boto3(target_ecr_client, target_account_id, target_region)
+    save_credentials_to_file(ECR_PASSWORD_FILE_PATH, password)
+    subprocess.check_output(f"cat {ECR_PASSWORD_FILE_PATH} | docker login -u {username} --password-stdin https://{target_account_id}.dkr.ecr.{target_region}.amazonaws.com && docker push {target_image_uri}", shell=True, executable="/bin/bash")
+    delete_file(ECR_PASSWORD_FILE_PATH)
+
+    return target_image_uri

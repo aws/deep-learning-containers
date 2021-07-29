@@ -59,9 +59,9 @@ def test_distilbert_base(docker_image, processor, instance_type, sagemaker_local
     test_dataset = test_dataset.map(tokenize, batched=True, batch_size=len(test_dataset))
 
     # set format for pytorch
-    train_dataset.rename_column_("label", "labels")
+    train_dataset =  train_dataset.rename_column("label", "labels")
     train_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
-    test_dataset.rename_column_("label", "labels")
+    test_dataset = test_dataset.rename_column("label", "labels")
     test_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
 
     # hyperparameters, which are passed into the training job

@@ -16,7 +16,9 @@ import os
 
 import boto3
 import pytest
+from sagemaker import utils
 from sagemaker.pytorch import PyTorch
+from sagemaker import Session
 from six.moves.urllib.parse import urlparse
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
@@ -26,6 +28,7 @@ from ...integration import (data_dir, dist_operations_path, fastai_path, mnist_s
 from ...integration.sagemaker.timeout import timeout
 
 MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
+RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 
 def validate_or_skip_smmodelparallel(ecr_image):
@@ -33,21 +36,22 @@ def validate_or_skip_smmodelparallel(ecr_image):
         pytest.skip("Model Parallelism is supported on CUDA 11 on PyTorch v1.6 and above")
 
 
-def validate_or_skip_smdataparallel(ecr_image):
-    if not can_run_smdataparallel(ecr_image):
-        pytest.skip("Data Parallelism is supported on CUDA 11 on PyTorch v1.6 and above")
-
-
-def can_run_smdataparallel(ecr_image):
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(image_cuda_version.strip("cu")) >= Version("110")
-
-
 def can_run_smmodelparallel(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(image_cuda_version.strip("cu")) >= Version("110")
+    return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(
+        image_cuda_version.strip("cu")) >= Version("110")
+
+
+def validate_or_skip_smmodelparallel_efa(ecr_image):
+    if not can_run_smmodelparallel_efa(ecr_image):
+        pytest.skip("EFA is only supported on CUDA 11, and on PyTorch 1.8.1 or higher")
+
+
+def can_run_smmodelparallel_efa(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    return Version(image_framework_version) in SpecifierSet(">=1.8.1") and Version(image_cuda_version.strip("cu")) >= Version("110")
 
 
 @pytest.mark.processor("cpu")
@@ -90,6 +94,10 @@ def test_dist_operations_multi_gpu(sagemaker_session, framework_version, ecr_ima
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_dist_operations_fastai_gpu(sagemaker_session, framework_version, ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    if Version(image_framework_version) == Version("1.9"):
+        pytest.skip("Fast ai is not supported on PyTorch v1.9 ")
+
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(
             entry_point='train_cifar.py',
@@ -105,7 +113,7 @@ def test_dist_operations_fastai_gpu(sagemaker_session, framework_version, ecr_im
         training_input = pytorch.sagemaker_session.upload_data(
             path=os.path.join(fastai_path, 'cifar_tiny', 'training'), key_prefix='pytorch/distributed_operations'
         )
-        pytorch.fit({'training': training_input})
+        pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-fastai'))
 
     model_s3_url = pytorch.create_model().model_data
     _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
@@ -132,8 +140,7 @@ def test_mnist_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_bac
         training_input = sagemaker_session.upload_data(
             path=os.path.join(data_dir, 'training'), key_prefix='pytorch/mnist'
         )
-        pytorch.fit({'training': training_input})
-
+        pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-mnist-gpu'))
 
 
 @pytest.mark.integration("smmodelparallel")
@@ -143,21 +150,21 @@ def test_mnist_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_bac
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
-def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_version, sagemaker_session, tmpdir, test_script, num_processes):
+def test_smmodelparallel_mnist_multigpu_multinode(n_virginia_ecr_image, instance_type, py_version, n_virginia_sagemaker_session, tmpdir, test_script, num_processes):
     """
     Tests pt mnist command via script mode
     """
     instance_type = "ml.p3.16xlarge"
-    validate_or_skip_smmodelparallel(ecr_image)
+    validate_or_skip_smmodelparallel(n_virginia_ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(
             entry_point=test_script,
             role='SageMakerRole',
-            image_uri=ecr_image,
+            image_uri=n_virginia_ecr_image,
             source_dir=mnist_path,
             instance_count=2,
             instance_type=instance_type,
-            sagemaker_session=sagemaker_session,
+            sagemaker_session=n_virginia_sagemaker_session,
             hyperparameters = {"assert-losses": 1, "amp": 1, "ddp": 1, "data-dir": "data/training", "epochs": 5},
             distribution={
                 "smdistributed": {
@@ -175,100 +182,87 @@ def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, py_v
                 "mpi": {
                     "enabled": True,
                     "processes_per_host": num_processes,
-                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none",
+                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none ",
                 },
             },
         )
-        pytorch.fit()
+        pytorch.fit(job_name=utils.unique_name_from_base('test-pt-smdmp-multinode'))
 
 
-@pytest.mark.integration("smdataparallel")
+@pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip(reason="Skipping test because it is flaky on mainline pipeline.")
-def test_smdataparallel_mnist_script_mode_multigpu(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
-    """
-    Tests SM Distributed DataParallel single-node via script mode
-    """
-    validate_or_skip_smdataparallel(ecr_image)
-
-    instance_type = "ml.p3.16xlarge"
-    with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(entry_point='smdataparallel_mnist_script_mode.sh',
-                          role='SageMakerRole',
-                          image_uri=ecr_image,
-                          source_dir=mnist_path,
-                          instance_count=1,
-                          instance_type=instance_type,
-                          sagemaker_session=sagemaker_session)
-
-        pytorch.fit()
-
-
-@pytest.mark.processor("gpu")
-@pytest.mark.skip_cpu
 @pytest.mark.multinode(2)
-@pytest.mark.integration("smdataparallel")
-@pytest.mark.model("mnist")
+@pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.flaky(reruns=2)
-# @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p3dn.24xlarge"])
-@pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge"])
-def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_session, tmpdir):
+@pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
+@pytest.mark.efa()
+def test_smmodelparallel_mnist_multigpu_multinode_efa(n_virginia_ecr_image, efa_instance_type, py_version, n_virginia_sagemaker_session, tmpdir, test_script, num_processes):
     """
-    Tests smddprun command via Estimator API distribution parameter
-    #TODO: Re-enable testing for p3dn.24xlarge instances once capacity issues are resolved.
+    Tests pt mnist command via script mode
     """
-    validate_or_skip_smdataparallel(ecr_image)
-    distribution = {"smdistributed":{"dataparallel":{"enabled":True}}}
-    estimator = PyTorch(entry_point='smdataparallel_mnist.py',
-                        role='SageMakerRole',
-                        image_uri=ecr_image,
-                        source_dir=mnist_path,
-                        instance_count=2,
-                        instance_type=instance_types,
-                        sagemaker_session=sagemaker_session,
-                        distribution=distribution)
+    validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        pytorch = PyTorch(
+            entry_point=test_script,
+            role='SageMakerRole',
+            image_uri=n_virginia_ecr_image,
+            source_dir=mnist_path,
+            instance_count=2,
+            instance_type=efa_instance_type,
+            sagemaker_session=n_virginia_sagemaker_session,
+            hyperparameters = {"assert-losses": 1, "amp": 1, "ddp": 1, "data-dir": "data/training", "epochs": 5},
+            distribution={
+                "smdistributed": {
+                    "modelparallel": {
+                        "enabled": True,
+                        "parameters": {
+                            "partitions": 2,
+                            "microbatches": 4,
+                            "optimize": "speed",
+                            "pipeline": "interleaved",
+                            "ddp": True,
+                        },
+                    }
+                },
+                "mpi": {
+                    "enabled": True,
+                    "processes_per_host": num_processes,
+                    "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none -x FI_EFA_USE_DEVICE_RDMA=1 -x FI_PROVIDER=efa ",
+                },
+            },
+        )
+        pytorch.fit(job_name=utils.unique_name_from_base('test-pt-smdmp-multinode-efa'))
 
-    estimator.fit()
 
-
+@pytest.mark.integration("smmodelparallel")
+@pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
-@pytest.mark.integration("smdataparallel_smmodelparallel")
-@pytest.mark.model("mnist")
-@pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge"])
-def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_session, tmpdir):
+@pytest.mark.efa()
+@pytest.mark.skip_py2_containers
+def test_sanity_efa(n_virginia_ecr_image, efa_instance_type, n_virginia_sagemaker_session):
     """
-    Tests SM Distributed DataParallel and ModelParallel single-node via script mode
-    This test has been added for SM DataParallelism and ModelParallelism tests for re:invent.
-    TODO: Consider reworking these tests after re:Invent releases are done
+    Tests pt mnist command via script mode
     """
-    can_run_modelparallel = can_run_smmodelparallel(ecr_image)
-    can_run_dataparallel = can_run_smdataparallel(ecr_image)
-    if can_run_dataparallel and can_run_modelparallel:
-        entry_point = 'smdataparallel_smmodelparallel_mnist_script_mode.sh'
-    elif can_run_dataparallel:
-        entry_point = 'smdataparallel_mnist_script_mode.sh'
-    elif can_run_modelparallel:
-        entry_point = 'smmodelparallel_mnist_script_mode.sh'
-    else:
-        pytest.skip("Both modelparallel and dataparallel dont support this image, nothing to run")
-
+    validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
+    efa_test_path = os.path.join(RESOURCE_PATH, 'efa', 'test_efa.sh')
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(entry_point=entry_point,
-                          role='SageMakerRole',
-                          image_uri=ecr_image,
-                          source_dir=mnist_path,
-                          instance_count=1,
-                          instance_type=instance_types,
-                          sagemaker_session=sagemaker_session)
-
-        pytorch = _disable_sm_profiler(sagemaker_session.boto_region_name, pytorch)
-
-        pytorch.fit()
+        pytorch = PyTorch(
+            entry_point=efa_test_path,
+            role='SageMakerRole',
+            image_uri=n_virginia_ecr_image,
+            instance_count=1,
+            instance_type=efa_instance_type,
+            sagemaker_session=n_virginia_sagemaker_session,
+            distribution={
+                "mpi": {
+                    "enabled": True,
+                    "processes_per_host": 1
+                },
+            },
+        )
+        pytorch.fit(job_name=utils.unique_name_from_base('test-pt-efa-sanity'))
 
 
 def _test_dist_operations(
@@ -292,7 +286,7 @@ def _test_dist_operations(
         fake_input = pytorch.sagemaker_session.upload_data(
             path=dist_operations_path, key_prefix='pytorch/distributed_operations'
         )
-        pytorch.fit({'required_argument': fake_input})
+        pytorch.fit({'required_argument': fake_input}, job_name=utils.unique_name_from_base('test-pt-dist-operations'))
 
 
 def _assert_s3_file_exists(region, s3_url):

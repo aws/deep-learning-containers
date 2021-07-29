@@ -12,7 +12,7 @@ ARG MX_URL=https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.7.0/aws_mx_cu101-1.7
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=0.9.3
-ARG OPENSSL_VERSION=1.1.1j
+ARG OPENSSL_VERSION=1.1.1k
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -152,10 +152,8 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && ln -s /usr/local/bin/pip3 /usr/bin/pip \
  && ln -s $(which ${PYTHON}) /usr/local/bin/python
 
-# MXNet requires pip 19.3.1 due to being backwards compatible
-# with python2
 RUN ${PIP} --no-cache-dir install --upgrade \
-    pip==19.3.1 \
+    pip \
     setuptools
 
 WORKDIR /

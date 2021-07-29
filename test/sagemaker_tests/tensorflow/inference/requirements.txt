@@ -7,3 +7,4 @@ requests==2.24
 fabric
 retrying
 gitpython
+toml
