@@ -172,7 +172,7 @@ def invoke_pytorch_helper_function(ecr_image, sagemaker_regions, helper_function
             ecr_image = get_ecr_image(ecr_image, region) if region != "us-west-2" else ecr_image
             try:
                 helper_function(ecr_image, sagemaker_session, **helper_function_args)
-                break
+                return
             except Exception as e:
                 if type(e) == sagemaker.exceptions.UnexpectedStatusException and "CapacityError" in str(e):
                     time.sleep(DELAY)
