@@ -323,9 +323,10 @@ class SageMakerEndpointFailure(Exception):
     pass
 
 
-def pytest_runtest_call(item):
+@pytest.fixture(autouse=True)
+def cleanup_endpoints_fixture():
     try:
-        item.runtest()
+        yield
     except UnexpectedStatusException as e:
         # Check to see if we can get more information from CloudWatchLogs
         endpoint_regex = re.compile(r"Error hosting endpoint ((\w|-)+):'")
