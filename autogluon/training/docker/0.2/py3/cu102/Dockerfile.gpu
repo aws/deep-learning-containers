@@ -5,7 +5,9 @@ ARG RAPIDS_VER=0.19
 ARG FROM_IMAGE=rapidsai/rapidsai-core
 
 FROM ${FROM_IMAGE}:${RAPIDS_VER}-cuda${CUDA_VER}-base-${LINUX_VER}-py${PYTHON_VER}
+
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
 
 ARG CUDA_VER
 

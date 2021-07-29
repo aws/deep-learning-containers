@@ -1,6 +1,8 @@
 ARG FROM_IMAGE=ubuntu:18.04
 FROM ${FROM_IMAGE}
+
 LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
 
 ARG PYTHON_VERSION=3.7.10
 ARG PYTHON=python3
