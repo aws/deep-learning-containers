@@ -127,6 +127,7 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
  && chown -R model-server /home/model-server
 
+COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
 
 RUN HOME_DIR=/root \
@@ -144,4 +145,5 @@ EXPOSE 8080 8081
 COPY entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["/usr/local/bin/entrypoint.sh"]
