@@ -30,6 +30,8 @@ ENV EFA_VERSION=1.11.2
 ENV OMPI_VERSION=4.1.1
 ENV NVML_VERSION=11.1.74
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
+# Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
+ENV MKL_THREADING_LAYER=GNU
 
 RUN apt-get update \
     && apt-get -y upgrade \
