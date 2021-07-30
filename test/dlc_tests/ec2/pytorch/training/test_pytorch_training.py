@@ -200,7 +200,6 @@ def test_pytorch_s3_plugin_cpu(pytorch_training, ec2_connection, cpu_only, ec2_i
 def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt15_and_above_only):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)
 
 
 @pytest.mark.integration("telemetry")
