@@ -44,6 +44,7 @@ class SageMakerEndpointFailure(Exception):
 
 def get_logs_from_cloudwatch(e):
     # Check to see if we can get more information from CloudWatchLogs
+    print(f"TESTING THAT THIS WORKS {e}")
     endpoint_regex = re.compile(r"Error hosting endpoint ((\w|-)+):'")
     endpoint_match = endpoint_regex.search(str(e))
     if endpoint_match:

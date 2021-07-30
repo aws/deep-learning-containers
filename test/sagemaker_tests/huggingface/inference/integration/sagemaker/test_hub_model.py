@@ -34,6 +34,7 @@ def test_sm_trained_model_cpu(sagemaker_session, framework_version, ecr_image, i
     try:
         _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
     except Exception as e:
+        print("CHECK IF WE GO INTO THIS BLOCK")
         get_logs_from_cloudwatch(e)
         raise
 
@@ -46,6 +47,7 @@ def test_sm_trained_model_gpu(sagemaker_session, framework_version, ecr_image, i
     try:
         _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
     except Exception as e:
+        print("CHECK IF WE GO INTO THIS BLOCK")
         get_logs_from_cloudwatch(e)
         raise
 
