@@ -18,20 +18,33 @@ import pytest
 
 from sagemaker import utils
 from sagemaker.mxnet.model import MXNetModel
+import numpy as np
+import json
 
 from ...integration import RESOURCE_PATH
 from ...integration.sagemaker import timeout
 
-DEFAULT_HANDLER_PATH = os.path.join(RESOURCE_PATH, 'default_handlers')
-MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model.tar.gz')
-SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'empty_module.py')
+DEFAULT_HANDLER_PATH = os.path.join(RESOURCE_PATH, 'neuron_handlers')
+MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model-neuron.tar.gz')
+SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'mnist-neuron.py')
+INPUT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'input.npy')
+OUTPUT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'output.json')
+
+@pytest.fixture(autouse=True)
+def skip_if_no_neuron(ecr_image, instance_type):
+    if 'neuron' not in ecr_image:
+        pytest.skip('Skipping neuron test for non neuron images')
+    if 'inf1' not in instance_type:
+        pytest.skip('Skipping neuron test for non inf1 instances')
 
 
-@pytest.mark.integration("hosting")
-@pytest.mark.model("linear_regression")
-@pytest.mark.skip_neuron_containers
-def test_hosting(sagemaker_session, ecr_image, instance_type, framework_version):
-    prefix = 'mxnet-serving/default-handlers'
+@pytest.mark.integration("neuron-hosting")
+@pytest.mark.model("mnist")
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_eia_containers
+@pytest.mark.skip_if_no_neuron()
+def test_neuron_hosting(sagemaker_session, ecr_image, instance_type, framework_version):
+    prefix = 'mxnet-serving/neuron-handlers'
     model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=prefix)
     model = MXNetModel(model_data,
                        'SageMakerRole',
@@ -44,5 +57,11 @@ def test_hosting(sagemaker_session, ecr_image, instance_type, framework_version)
     with timeout.timeout_and_delete_endpoint_by_name(endpoint_name, sagemaker_session):
         predictor = model.deploy(1, instance_type, endpoint_name=endpoint_name)
 
-        output = predictor.predict([[1, 2]])
-        assert [[4.9999918937683105]] == output
+        numpy_ndarray = np.load(INPUT_PATH)
+        output = predictor.predict(data=numpy_ndarray)
+        with open(OUTPUT_PATH) as outputfile:
+            expected_output = json.load(outputfile)
+        
+        assert expected_output == output
+        print(output)
+        

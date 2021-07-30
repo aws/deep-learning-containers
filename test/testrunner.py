@@ -432,13 +432,13 @@ def main():
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
 
     elif specific_test_type == "sagemaker":
-        if "neuron" in dlc_images:
-            LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
-            # Creating an empty file for because codebuild job fails without it
-            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-            sm_utils.generate_empty_report(report, test_type, "neuron")
-            return
         if benchmark_mode:
+            if "neuron" in dlc_images:
+                LOGGER.info(f"Skipping benchmark sm tests for Neuron. Images: {dlc_images}")
+                # Creating an empty file for because codebuild job fails without it
+                report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+                sm_utils.generate_empty_report(report, test_type, "neuron")
+                return
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
             os.chdir(os.path.join("test", "dlc_tests"))
 
@@ -449,9 +449,14 @@ def main():
             sys.exit(pytest.main(pytest_cmd))
 
         else:
-            run_sagemaker_remote_tests(
-                [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
-            )
+            if "neuron" in dlc_images:
+                run_sagemaker_remote_tests(
+                    [image for image in standard_images_list if ("mxnet" in image and "1.8.0" in image)]
+                )
+            else:
+                run_sagemaker_remote_tests(
+                    [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
+                )
         metrics_utils.send_test_duration_metrics(start_time)
 
     elif specific_test_type == "sagemaker-local":
