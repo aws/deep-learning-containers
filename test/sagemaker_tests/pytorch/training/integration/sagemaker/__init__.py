@@ -64,8 +64,8 @@ def invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, 
                 pytorch.fit(inputs=inputs, job_name=job_name)
                 return pytorch, sagemaker_session
 
-            except Exception as e:
-                if type(e) == sagemaker.exceptions.UnexpectedStatusException and "CapacityError" in str(e):
+            except sagemaker.exceptions.UnexpectedStatusException as e:
+                if "CapacityError" in str(e):
                     time.sleep(DELAY)
                     continue
                 else:

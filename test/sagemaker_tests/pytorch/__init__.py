@@ -141,7 +141,7 @@ def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_
 
 def get_ecr_image(ecr_image, region):
     """
-    It uploads image to n_virginia region and return image uri
+    It uploads image to the aws region and return image uri
     """
     image_repo_uri, image_tag = ecr_image.split(":")
     _, image_repo_name = image_repo_uri.split("/")
@@ -173,8 +173,8 @@ def invoke_pytorch_helper_function(ecr_image, sagemaker_regions, helper_function
             try:
                 helper_function(ecr_image, sagemaker_session, **helper_function_args)
                 return
-            except Exception as e:
-                if type(e) == sagemaker.exceptions.UnexpectedStatusException and "CapacityError" in str(e):
+            except sagemaker.exceptions.UnexpectedStatusException as e:
+                if "CapacityError" in str(e):
                     time.sleep(DELAY)
                     continue
                 else:
