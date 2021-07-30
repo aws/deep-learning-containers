@@ -38,7 +38,7 @@ model_gpu_1d_dir = os.path.join(model_gpu_dir, '1d')
 call_model_fn_once_script = os.path.join(resources_path, 'call_model_fn_once.py')
 
 ROLE = 'dummy/unused-role'
-DEFAULT_TIMEOUT = 20
+DEFAULT_TIMEOUT = 40
 
 
 def get_framework_from_image_uri(image_uri):
