@@ -40,7 +40,7 @@ def pytest_addoption(parser):
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
     parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37'])
-    parser.addoption('--processor', default='cpu', choices=['gpu', 'cpu', 'cpu,gpu', 'eia'])
+    parser.addoption('--processor', default='cpu', choices=['gpu', 'cpu', 'neuron', 'cpu,gpu', 'eia'])
     parser.addoption('--aws-id', default=None)
     parser.addoption('--instance-type', default=None)
     parser.addoption('--accelerator-type', default=None)
@@ -167,6 +167,12 @@ def skip_eia_containers(request, docker_base_name):
     if request.node.get_closest_marker('skip_eia_containers'):
         if 'eia' in docker_base_name:
             pytest.skip('Skipping eia container with tag {}'.format(docker_base_name))
+
+@pytest.fixture(autouse=True)
+def skip_neuron_containers(request, tag):
+    if request.node.get_closest_marker('skip_neuron_containers'):
+        if 'neuron' in tag:
+            pytest.skip('Skipping neuron container with tag {}'.format(tag))
 
 
 def _get_remote_override_flags():
