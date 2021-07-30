@@ -5,7 +5,7 @@ import utils
 import constants
 
 from image_builder import image_builder
-from config import build_config
+from config import parse_dlc_developer_configs
 
 
 def main():
@@ -26,24 +26,29 @@ def main():
     ei_dedicated = os.getenv("EIA_DEDICATED") == "True"
     neuron_dedicated = os.getenv("NEURON_DEDICATED") == "True"
 
+    # Get config value options
+    frameworks_to_skip = parse_dlc_developer_configs("build", "skip_frameworks")
+    ei_build_mode = parse_dlc_developer_configs("dev", "ei_mode")
+    neuron_build_mode = parse_dlc_developer_configs("dev", "neuron_mode")
+
     # A general will work if in non-EI and non-NEURON mode and its framework not been disabled
     general_builder_enabled = (
         not ei_dedicated
         and not neuron_dedicated
-        and not build_config.ENABLE_EI_MODE
-        and not build_config.ENABLE_NEURON_MODE
-        and args.framework not in build_config.DISABLE_FRAMEWORK_TESTS
+        and not ei_build_mode
+        and not neuron_build_mode
+        and args.framework not in frameworks_to_skip
     )
     # An EI dedicated builder will work if in EI mode and its framework not been disabled
     ei_builder_enabled = (
-        ei_dedicated and build_config.ENABLE_EI_MODE and args.framework not in build_config.DISABLE_FRAMEWORK_TESTS
+        ei_dedicated and ei_build_mode and args.framework not in frameworks_to_skip
     )
 
     # A NEURON dedicated builder will work if in NEURON mode and its framework has not been disabled
     neuron_builder_enabled = (
         neuron_dedicated
-        and build_config.ENABLE_NEURON_MODE
-        and args.framework not in build_config.DISABLE_FRAMEWORK_TESTS
+        and neuron_build_mode
+        and args.framework not in frameworks_to_skip
     )
 
     utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})

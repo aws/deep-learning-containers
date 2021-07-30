@@ -20,7 +20,7 @@ import sys
 import boto3
 
 import constants
-from config import test_config
+from config import parse_dlc_developer_configs, is_benchmark_mode_enabled
 
 
 LOGGER = logging.getLogger(__name__)
@@ -46,31 +46,55 @@ def run_test_job(commit, codebuild_project, images_str=""):
             {"name": "DLC_IMAGES", "value": images_str, "type": "PLAINTEXT"},
             {"name": "PR_NUMBER", "value": pr_num, "type": "PLAINTEXT"},
             # USE_SCHEDULER is passed as an env variable here because it is more convenient to set this in
-            # config/test_config, compared to having another config file under dlc/tests/.
-            {"name": "USE_SCHEDULER", "value": str(test_config.USE_SCHEDULER), "type": "PLAINTEXT"},
-            {"name": "DISABLE_EFA_TESTS", "value": str(test_config.DISABLE_EFA_TESTS), "type": "PLAINTEXT"},
+            # dlc_developer_config, compared to having another config file under dlc/tests/.
+            {
+                "name": "USE_SCHEDULER",
+                "value": str(parse_dlc_developer_configs("test", "use_scheduler")),
+                "type": "PLAINTEXT",
+            },
+            {
+                "name": "DISABLE_EFA_TESTS",
+                "value": str(not parse_dlc_developer_configs("test", "efa_tests")),
+                "type": "PLAINTEXT",
+            },
         ]
     )
     LOGGER.debug(f"env_overrides dict: {env_overrides}")
 
     client = boto3.client("codebuild")
     return client.start_build(
-        projectName=codebuild_project, environmentVariablesOverride=env_overrides, sourceVersion=commit,
+        projectName=codebuild_project,
+        environmentVariablesOverride=env_overrides,
+        sourceVersion=commit,
     )
 
 
 def is_test_job_enabled(test_type):
     # only ec2 and sagemaker benchmark tests are supported currently
-    return (
-        (test_type == constants.SAGEMAKER_TESTS and not test_config.DISABLE_SAGEMAKER_TESTS)
-        or (test_type == constants.ECS_TESTS and not test_config.DISABLE_ECS_TESTS
-            and not test_config.ENABLE_BENCHMARK_DEV_MODE)
-        or (test_type == constants.EC2_TESTS and not test_config.DISABLE_EC2_TESTS)
-        or (test_type == constants.EKS_TESTS and not test_config.DISABLE_EKS_TESTS
-            and not test_config.ENABLE_BENCHMARK_DEV_MODE)
-        or (test_type == constants.SANITY_TESTS and not test_config.DISABLE_SANITY_TESTS
-            and not test_config.ENABLE_BENCHMARK_DEV_MODE)
-    )
+    sm_tests_enabled = parse_dlc_developer_configs("test", "sagemaker_tests")
+    ec2_tests_enabled = parse_dlc_developer_configs("test", "ec2_tests")
+    ecs_tests_enabled = parse_dlc_developer_configs("test", "ecs_tests")
+    eks_tests_enabled = parse_dlc_developer_configs("test", "eks_tests")
+    sanity_tests_enabled = parse_dlc_developer_configs("test", "sanity_tests")
+
+    benchmark_mode = is_benchmark_mode_enabled()
+
+    # For each test type, see if we should run the tests
+    if test_type == constants.SAGEMAKER_TESTS and sm_tests_enabled:
+        return True
+    if test_type == constants.EC2_TESTS and ec2_tests_enabled:
+        return True
+
+    # We have no ECS/EKS/SANITY benchmark tests
+    if not benchmark_mode:
+        if test_type == constants.ECS_TESTS and ecs_tests_enabled:
+            return True
+        if test_type == constants.EKS_TESTS and eks_tests_enabled:
+            return True
+        if test_type == constants.SANITY_TESTS and sanity_tests_enabled:
+            return True
+
+    return False
 
 
 def main():
@@ -94,14 +118,18 @@ def main():
             pr_test_job = f"dlc-pr-{test_type}-test"
             images_str = " ".join(images)
             if is_test_job_enabled(test_type):
-                if "huggingface" in images_str and test_type in [constants.EC2_TESTS, constants.ECS_TESTS, constants.EKS_TESTS]:
+                if "huggingface" in images_str and test_type in [
+                    constants.EC2_TESTS,
+                    constants.ECS_TESTS,
+                    constants.EKS_TESTS,
+                ]:
                     LOGGER.debug(f"Skipping huggingface {test_type} test")
                     continue
                 run_test_job(commit, pr_test_job, images_str)
 
                 # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
                 # sagemaker local test is not supported in benchmark dev mode
-                if test_type == "sagemaker" and not test_config.ENABLE_BENCHMARK_DEV_MODE:
+                if test_type == "sagemaker" and not is_benchmark_mode_enabled():
                     test_job = f"dlc-pr-{test_type}-local-test"
                     run_test_job(commit, test_job, images_str)
 
