@@ -20,9 +20,8 @@ from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 from sagemaker.deserializers import JSONDeserializer
-from sagemaker.exceptions import UnexpectedStatusException
 
-from ...integration import model_dir, pt_model, tf_model, get_logs_from_cloudwatch
+from ...integration import model_dir, pt_model, tf_model
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
@@ -31,12 +30,7 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 @pytest.mark.cpu_test
 def test_sm_trained_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type):
     instance_type = instance_type or "ml.m5.xlarge"
-    try:
-        _test_sm_trained_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
-    except Exception as e:
-        print("CHECK IF WE GO INTO THIS BLOCK")
-        get_logs_from_cloudwatch(e)
-        raise
+    _test_sm_trained_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
 
 
 @pytest.mark.model("tiny-distilbert")
@@ -44,12 +38,7 @@ def test_sm_trained_model_cpu(sagemaker_session, framework_version, ecr_image, i
 @pytest.mark.gpu_test
 def test_sm_trained_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type):
     instance_type = instance_type or "ml.p2.xlarge"
-    try:
-        _test_sm_trained_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
-    except Exception as e:
-        print("CHECK IF WE GO INTO THIS BLOCK")
-        get_logs_from_cloudwatch(e)
-        raise
+    _test_sm_trained_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
 
 
 def _test_sm_trained_model(
