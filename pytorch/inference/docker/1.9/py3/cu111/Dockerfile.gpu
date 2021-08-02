@@ -14,7 +14,7 @@ ARG PT_TORCHVISION_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/to
 ARG PT_TORCHAUDIO_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/torchaudio_build/0.9.0/gpu/torchaudio-0.9.0-cp38-cp38-linux_x86_64.whl
 
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.4.0
+ARG TS_VERSION=0.4.2
 ARG CUBLAS_VERSION=11.3.0.106
 
 ARG DEBIAN_FRONTEND=noninteractive
