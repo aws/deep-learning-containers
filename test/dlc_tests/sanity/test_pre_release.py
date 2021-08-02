@@ -144,10 +144,13 @@ def test_framework_version_cpu(image):
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
 
     # Framework name may include huggingface
-    tested_framework = tested_framework.lstrip("huggingface_")
+    if tested_framework.startswith('huggingface_'):
+        tested_framework = tested_framework[len("huggingface_"):]
     # Module name is torch
     if tested_framework == "pytorch":
         tested_framework = "torch"
+    elif tested_framework == "autogluon":
+        tested_framework = "autogluon.core"
     ctx = Context()
     container_name = get_container_name("framework-version", image)
     start_container(container_name, image, ctx)
@@ -157,7 +160,10 @@ def test_framework_version_cpu(image):
     if is_canary_context():
         assert tag_framework_version in output.stdout.strip()
     else:
-        assert tag_framework_version == output.stdout.strip()
+        if tested_framework == "autogluon.core":
+            assert output.stdout.strip().startswith(tag_framework_version)
+        else:
+            assert tag_framework_version == output.stdout.strip()
 
 
 # TODO: Enable as canary once resource cleaning lambda is added
@@ -181,13 +187,18 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
+        elif tested_framework == "autogluon":
+            tested_framework = "autogluon.core"
         cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
 
         if is_canary_context():
             assert tag_framework_version in output.stdout.strip()
         else:
-            assert tag_framework_version == output.stdout.strip()
+            if tested_framework == "autogluon.core":
+                assert output.stdout.strip().startswith(tag_framework_version)
+            else:
+                assert tag_framework_version == output.stdout.strip()
 
     # CUDA Version Check #
     cuda_version = re.search(r"-cu(\d+)-", image).group(1)
@@ -338,9 +349,28 @@ def test_pip_check(image):
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not (allowed_tf_exception.match(output.stdout) or allowed_smclarify_exception.match(output.stdout)):
+        if not (allowed_tf_exception.match(output.stdout) or
+                allowed_smclarify_exception.match(output.stdout) or
+                _allowed_autogluon_exceptions_only(image, output)):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
+
+
+def _allowed_autogluon_exceptions_only(image, output):
+    unexpected_lines_present = True
+    if "autogluon" in image:
+        allowed_exceptions = [
+            "fastai <version> requires torchvision, which is not installed.",
+            "catboost <version> requires plotly, which is not installed.",
+        ]
+
+        lines = []
+        for line in output.stdout.splitlines():
+            if line.strip() and re.sub(r'\d+(\.\d+)*', '<version>', line.strip()) not in allowed_exceptions:
+                lines.append(line)
+
+        unexpected_lines_present = len(lines) == 0
+    return unexpected_lines_present
 
 
 @pytest.mark.model("N/A")

@@ -1,5 +1,6 @@
 ARG CUDA_VER=10.2
 ARG LINUX_VER=ubuntu18.04
+ARG PYTHON_VERSION=3.7.10
 ARG PYTHON_VER=3.7
 ARG RAPIDS_VER=0.19
 ARG FROM_IMAGE=rapidsai/rapidsai-core
@@ -11,7 +12,7 @@ LABEL dlc_major_version="1"
 
 ARG CUDA_VER
 
-ARG AUTOGLUON_VERSION=0.2.1b20210727
+ARG AUTOGLUON_VERSION=0.2.1b20210802
 
 ARG MXNET_VER=1.7.*
 
@@ -33,9 +34,11 @@ RUN apt-get update \
     ffmpeg \
     libsm6 \
     libxext6 \
+    emacs \
  && apt-get autoremove -y \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /tmp/*
 
 RUN source activate rapids \
  && pip install --no-cache-dir -U pip \
@@ -43,8 +46,10 @@ RUN source activate rapids \
  && pip install --no-cache-dir -U --no-use-pep517 mxnet-cu$(echo ${CUDA_VER} | sed 's/\.//')==${MXNET_VER} \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && pip install --no-cache-dir -U sagemaker-mxnet-training \
+ && pip install --no-cache-dir -U cupy-cuda102==9.2.0 \
  && pip uninstall -y jupyter-client jupyter-core jupyter-packaging jupyter-server jupyter-server-proxy \
     jupyterlab jupyterlab-nvdashboard jupyterlab-pygments jupyterlab-server jupyterlab-widgets ipywidgets \
+    widgetsnbextension traitlets pydeck panel nbformat nbconvert nbclient pyppeteer matplotlib-inline websockets \
     ipython-genutils ipython ipykernel torchvision bokeh plotly notebook datashader
 
 WORKDIR /

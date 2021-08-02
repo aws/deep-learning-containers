@@ -10,7 +10,7 @@ ARG MXNET_VER=1.7.*
 ARG TORCH_VER=1.8.0+cpu
 ARG TORCH_VISION_VER=0.9.0+cpu
 
-ARG AUTOGLUON_VERSION=0.2.1b20210727
+ARG AUTOGLUON_VERSION=0.2.1b20210802
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -100,6 +100,7 @@ RUN pip install --no-cache-dir -U \
     sagemaker-mxnet-training \
 && pip uninstall -y jupyter-client jupyter-core jupyter-packaging jupyter-server jupyter-server-proxy \
     jupyterlab jupyterlab-nvdashboard jupyterlab-pygments jupyterlab-server jupyterlab-widgets ipywidgets \
+    widgetsnbextension traitlets pydeck panel nbformat nbconvert nbclient pyppeteer matplotlib-inline \
     ipython-genutils ipython ipykernel torchvision bokeh plotly notebook datashader
 
 # Allow OpenSSH to talk to containers without asking for confirmation

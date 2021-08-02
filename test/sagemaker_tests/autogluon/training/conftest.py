@@ -17,7 +17,6 @@ import logging
 import os
 import platform
 import shutil
-import sys
 import tempfile
 
 import pytest
@@ -25,7 +24,6 @@ import boto3
 
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
-from sagemaker.pytorch import PyTorch
 
 from .utils import image_utils, get_ecr_registry
 
@@ -84,11 +82,11 @@ def pytest_addoption(parser):
     parser.addoption('--build-base-image', '-B', action='store_true')
     parser.addoption('--aws-id')
     parser.addoption('--instance-type')
-    parser.addoption('--docker-base-name', default='pytorch')
+    parser.addoption('--docker-base-name', default='autogluon')
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
-    parser.addoption('--py-version', choices=['2', '3'], default=str(sys.version_info.major))
-    parser.addoption('--processor', choices=['gpu', 'cpu'], default='gpu')
+    parser.addoption('--py-version', choices=['37'], default='37')
+    parser.addoption('--processor', choices=['gpu', 'cpu'], default='cpu')
 
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
