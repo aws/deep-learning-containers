@@ -26,6 +26,8 @@ from packaging.specifiers import SpecifierSet
 from ...integration import (data_dir, dist_operations_path, fastai_path, mnist_script,
                               DEFAULT_TIMEOUT, mnist_path)
 from ...integration.sagemaker.timeout import timeout
+from .... import invoke_pytorch_helper_function
+from . import invoke_pytorch_estimator
 
 MULTI_GPU_INSTANCE = 'ml.p3.8xlarge'
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
@@ -60,9 +62,14 @@ def can_run_smmodelparallel_efa(ecr_image):
 @pytest.mark.skip_gpu
 @pytest.mark.deploy_test
 @pytest.mark.skip_test_in_region
-def test_dist_operations_cpu(sagemaker_session, framework_version, ecr_image, instance_type, dist_cpu_backend):
+def test_dist_operations_cpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend):
     instance_type = instance_type or 'ml.c4.xlarge'
-    _test_dist_operations(sagemaker_session, framework_version, ecr_image, instance_type, dist_cpu_backend)
+    function_args = {
+            'framework_version': framework_version,
+            'instance_type': instance_type,
+            'dist_backend': dist_cpu_backend,
+        }
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dist_operations, function_args)
 
 
 @pytest.mark.processor("gpu")
@@ -70,50 +77,59 @@ def test_dist_operations_cpu(sagemaker_session, framework_version, ecr_image, in
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
 @pytest.mark.deploy_test
-def test_dist_operations_gpu(sagemaker_session, framework_version, instance_type, ecr_image, dist_gpu_backend):
+def test_dist_operations_gpu(framework_version, instance_type, ecr_image, sagemaker_regions, dist_gpu_backend):
     """
     Test is run as multinode
     """
     instance_type = instance_type or 'ml.p2.xlarge'
-    _test_dist_operations(sagemaker_session, framework_version, ecr_image, instance_type, dist_gpu_backend)
-
+    function_args = {
+            'framework_version': framework_version,
+            'instance_type': instance_type,
+            'dist_backend': dist_gpu_backend,
+        }
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dist_operations, function_args)
 
 @pytest.mark.processor("gpu")
 @pytest.mark.model("unknown_model")
 @pytest.mark.skip_cpu
-def test_dist_operations_multi_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_backend):
+def test_dist_operations_multi_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_backend):
     """
     Test is run as single node, but multi-gpu
     """
-    _test_dist_operations(sagemaker_session, framework_version, ecr_image, MULTI_GPU_INSTANCE, dist_gpu_backend, 1)
-
+    function_args = {
+            'framework_version': framework_version,
+            'instance_type': MULTI_GPU_INSTANCE,
+            'dist_backend': dist_gpu_backend,
+            'instance_count': 1
+        }
+    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dist_operations, function_args)
 
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("fastai")
 @pytest.mark.model("cifar")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_dist_operations_fastai_gpu(sagemaker_session, framework_version, ecr_image):
+def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regions):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     if Version(image_framework_version) == Version("1.9"):
         pytest.skip("Fast ai is not supported on PyTorch v1.9 ")
 
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(
-            entry_point='train_cifar.py',
-            source_dir=os.path.join(fastai_path, 'cifar'),
-            role='SageMakerRole',
-            instance_count=1,
-            instance_type=MULTI_GPU_INSTANCE,
-            sagemaker_session=sagemaker_session,
-            image_uri=ecr_image,
-            framework_version=framework_version,
-        )
-        pytorch.sagemaker_session.default_bucket()
-        training_input = pytorch.sagemaker_session.upload_data(
-            path=os.path.join(fastai_path, 'cifar_tiny', 'training'), key_prefix='pytorch/distributed_operations'
-        )
-        pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-fastai'))
+        estimator_parameter = {
+            'entry_point': 'train_cifar.py',
+            'source_dir': os.path.join(fastai_path, 'cifar'),
+            'role': 'SageMakerRole',
+            'instance_count': 1,
+            'instance_type': MULTI_GPU_INSTANCE,
+            'framework_version': framework_version,
+        }
+        upload_s3_data_args = {
+        'path': os.path.join(fastai_path, 'cifar_tiny', 'training'),
+        'key_prefix': 'pytorch/distributed_operations'
+        }
+
+        job_name=utils.unique_name_from_base('test-pt-fastai')
+        pytorch, sagemaker_session = invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)
 
     model_s3_url = pytorch.create_model().model_data
     _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
@@ -124,23 +140,23 @@ def test_dist_operations_fastai_gpu(sagemaker_session, framework_version, ecr_im
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_mnist_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_backend):
+def test_mnist_gpu(framework_version, ecr_image, sagemaker_regions, dist_gpu_backend):
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(
-            entry_point=mnist_script,
-            role='SageMakerRole',
-            image_uri=ecr_image,
-            instance_count=2,
-            framework_version=framework_version,
-            instance_type=MULTI_GPU_INSTANCE,
-            sagemaker_session=sagemaker_session,
-            hyperparameters={'backend': dist_gpu_backend},
-        )
+        estimator_parameter = {
+            'entry_point': mnist_script,
+            'role': 'SageMakerRole',
+            'instance_count': 2,
+            'framework_version': framework_version,
+            'instance_type': MULTI_GPU_INSTANCE,
+            'hyperparameters': {'backend': dist_gpu_backend},
+        }
+        upload_s3_data_args = {
+        'path': os.path.join(data_dir, 'training'),
+        'key_prefix': 'pytorch/mnist'
+        }
+        job_name=utils.unique_name_from_base('test-pt-mnist-gpu')
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)
 
-        training_input = sagemaker_session.upload_data(
-            path=os.path.join(data_dir, 'training'), key_prefix='pytorch/mnist'
-        )
-        pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-mnist-gpu'))
 
 
 @pytest.mark.integration("smmodelparallel")
@@ -150,23 +166,21 @@ def test_mnist_gpu(sagemaker_session, framework_version, ecr_image, dist_gpu_bac
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
-def test_smmodelparallel_mnist_multigpu_multinode(n_virginia_ecr_image, instance_type, py_version, n_virginia_sagemaker_session, tmpdir, test_script, num_processes):
+def test_smmodelparallel_mnist_multigpu_multinode(ecr_image, instance_type, sagemaker_regions, test_script, num_processes):
     """
     Tests pt mnist command via script mode
     """
     instance_type = "ml.p3.16xlarge"
-    validate_or_skip_smmodelparallel(n_virginia_ecr_image)
+    validate_or_skip_smmodelparallel(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(
-            entry_point=test_script,
-            role='SageMakerRole',
-            image_uri=n_virginia_ecr_image,
-            source_dir=mnist_path,
-            instance_count=2,
-            instance_type=instance_type,
-            sagemaker_session=n_virginia_sagemaker_session,
-            hyperparameters = {"assert-losses": 1, "amp": 1, "ddp": 1, "data-dir": "data/training", "epochs": 5},
-            distribution={
+        estimator_parameter = {
+            'entry_point': test_script,
+            'role': 'SageMakerRole',
+            'source_dir': mnist_path,
+            'instance_count': 2,
+            'instance_type': instance_type,
+            'hyperparameters': {"assert-losses": 1, "amp": 1, "ddp": 1, "data-dir": "data/training", "epochs": 5},
+            'distribution': {
                 "smdistributed": {
                     "modelparallel": {
                         "enabled": True,
@@ -185,9 +199,9 @@ def test_smmodelparallel_mnist_multigpu_multinode(n_virginia_ecr_image, instance
                     "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none ",
                 },
             },
-        )
-        pytorch.fit(job_name=utils.unique_name_from_base('test-pt-smdmp-multinode'))
-
+        }
+        job_name=utils.unique_name_from_base('test-pt-smdmp-multinode')
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
@@ -197,22 +211,21 @@ def test_smmodelparallel_mnist_multigpu_multinode(n_virginia_ecr_image, instance
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 @pytest.mark.efa()
-def test_smmodelparallel_mnist_multigpu_multinode_efa(n_virginia_ecr_image, efa_instance_type, py_version, n_virginia_sagemaker_session, tmpdir, test_script, num_processes):
+def test_smmodelparallel_mnist_multigpu_multinode_efa(ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes):
     """
     Tests pt mnist command via script mode
     """
-    validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
+    validate_or_skip_smmodelparallel_efa(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(
-            entry_point=test_script,
-            role='SageMakerRole',
-            image_uri=n_virginia_ecr_image,
-            source_dir=mnist_path,
-            instance_count=2,
-            instance_type=efa_instance_type,
-            sagemaker_session=n_virginia_sagemaker_session,
-            hyperparameters = {"assert-losses": 1, "amp": 1, "ddp": 1, "data-dir": "data/training", "epochs": 5},
-            distribution={
+
+        estimator_parameter = {
+            'entry_point': test_script,
+            'role': 'SageMakerRole',
+            'source_dir': mnist_path,
+            'instance_count': 2,
+            'instance_type': efa_instance_type,
+            'hyperparameters': {"assert-losses": 1, "amp": 1, "ddp": 1, "data-dir": "data/training", "epochs": 5},
+            'distribution': {
                 "smdistributed": {
                     "modelparallel": {
                         "enabled": True,
@@ -230,9 +243,10 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(n_virginia_ecr_image, efa_
                     "processes_per_host": num_processes,
                     "custom_mpi_options": "-verbose --mca orte_base_help_aggregate 0 -x SMDEBUG_LOG_LEVEL=error -x OMPI_MCA_btl_vader_single_copy_mechanism=none -x FI_EFA_USE_DEVICE_RDMA=1 -x FI_PROVIDER=efa ",
                 },
-            },
-        )
-        pytorch.fit(job_name=utils.unique_name_from_base('test-pt-smdmp-multinode-efa'))
+        }
+        }
+        job_name=utils.unique_name_from_base('test-pt-smdmp-multinode-efa')
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 
 @pytest.mark.integration("smmodelparallel")
@@ -241,32 +255,31 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(n_virginia_ecr_image, efa_
 @pytest.mark.skip_cpu
 @pytest.mark.efa()
 @pytest.mark.skip_py2_containers
-def test_sanity_efa(n_virginia_ecr_image, efa_instance_type, n_virginia_sagemaker_session):
+def test_sanity_efa(ecr_image, efa_instance_type, sagemaker_regions):
     """
     Tests pt mnist command via script mode
     """
-    validate_or_skip_smmodelparallel_efa(n_virginia_ecr_image)
+    validate_or_skip_smmodelparallel_efa(ecr_image)
     efa_test_path = os.path.join(RESOURCE_PATH, 'efa', 'test_efa.sh')
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(
-            entry_point=efa_test_path,
-            role='SageMakerRole',
-            image_uri=n_virginia_ecr_image,
-            instance_count=1,
-            instance_type=efa_instance_type,
-            sagemaker_session=n_virginia_sagemaker_session,
-            distribution={
+        estimator_parameter = {
+            'entry_point': efa_test_path,
+            'role': 'SageMakerRole',
+            'instance_count': 1,
+            'instance_type': efa_instance_type,
+            'distribution': {
                 "mpi": {
                     "enabled": True,
                     "processes_per_host": 1
                 },
             },
-        )
-        pytorch.fit(job_name=utils.unique_name_from_base('test-pt-efa-sanity'))
+        }
+        job_name=utils.unique_name_from_base('test-pt-efa-sanity')
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name)
 
 
 def _test_dist_operations(
-        sagemaker_session, framework_version, ecr_image, instance_type, dist_backend, instance_count=3
+        ecr_image, sagemaker_session, framework_version, instance_type, dist_backend, instance_count=3
 ):
     with timeout(minutes=DEFAULT_TIMEOUT):
         pytorch = PyTorch(

@@ -122,7 +122,7 @@ def get_account_id_from_image_uri(image_uri):
     """
     return image_uri.split(".")[0]
     
-
+#cleanup unused function
 def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_region):
     """
     Helper function to reupload an image owned by a another/same account to an ECR repo in this account to given region, so that
