@@ -19,5 +19,3 @@ requests_mock==1.6.0
 fabric
 retrying
 gitpython
-datasets[s3]==1.6.2
-autogluon==0.2.0

@@ -8,7 +8,7 @@ ag_fit_args:
   hyperparameters:
     epochs: 2
     batch_size: 4
-  hyperparamter_tune_kwargs:
+  hyperparameter_tune_kwargs:
     num_trials: 2
   nthreads_per_trial: 1
 
