@@ -47,7 +47,7 @@ ARG CUDA_DASH=11-2
 ARG CUDNN=8.1.0.77-1
 ARG NCCL_VERSION=2.8.4
 
-RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
+RUN apt-get update && apt-get -y upgrade && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
    ca-certificates \
    cuda-command-line-tools-${CUDA_DASH} \
    cuda-cudart-dev-${CUDA_DASH} \
@@ -93,7 +93,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    # https://developer.download.nvidia.cn/compute/machine-learning/repos/ubuntu1804/x86_64/
 
    && rm -rf /var/lib/apt/lists/* \
-   && mkdir -p /var/run/sshd
+   && mkdir -p /var/run/sshd \
+   && apt-get clean
 
 RUN cd /tmp \
   && git clone https://github.com/NVIDIA/nccl.git -b v$NCCL_VERSION-1 \
@@ -213,7 +214,7 @@ RUN ${PIP} install --no-cache-dir -U \
    scipy==1.7.0 \
    scikit-learn==0.24.2 \
    pandas==1.2.5 \
-   Pillow==8.2.0 \
+   Pillow==8.3.1 \
    python-dateutil==2.8.1 \
    "pyYAML>=5.4,<5.5" \
    requests==2.25.1 \
@@ -326,4 +327,4 @@ RUN HOME_DIR=/root \
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.5/license.txt -o /license.txt
 
-CMD ["bin/bash"]
+CMD ["/bin/bash"]
