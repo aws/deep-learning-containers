@@ -1,6 +1,6 @@
 [dev]
 # Set to "huggingface", for example, if you are a huggingface developer. Default is ""
-partner_developer = "huggingface"
+partner_developer = ""
 # Please only set it to true if you are preparing an EI related PR
 # Do remember to revert it back to false before merging any PR (including EI dedicated PR)
 ei_mode = false
@@ -13,9 +13,9 @@ benchmark_mode = false
 
 [build]
 # Frameworks for which you want to disable both builds and tests
-skip_frameworks = ["mxnet", "pytorch", "tensorflow"]
+skip_frameworks = []
 # Set to false in order to remove datetime tag on PR builds
-datetime_tag = false
+datetime_tag = true
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
 do_build = true
@@ -23,7 +23,7 @@ do_build = true
 [test]
 efa_tests = false
 sanity_tests = true
-sagemaker_tests = true
+sagemaker_tests = false
 ecs_tests = true
 eks_tests = true
 ec2_tests = true
