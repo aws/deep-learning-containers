@@ -40,7 +40,7 @@ images:
   BuildMXNetCPUTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &MXNET_CPU_TRAINING_PY3 false
-    image_size_baseline: 2253
+    image_size_baseline: 3000
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
