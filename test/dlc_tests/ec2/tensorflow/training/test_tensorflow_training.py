@@ -35,7 +35,7 @@ TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.16xlarge", processo
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="cpu")
 
 # TODO: tmp changes
-EC2_TEST_INSTANCE_GPU = get_ec2_instance_type(default="p4d.24xlarge", processor="gpu")
+EC2_TEST_INSTANCE_GPU = ["p4d.24xlarge"]
 
 
 class TFTrainingTestFailure(Exception):
