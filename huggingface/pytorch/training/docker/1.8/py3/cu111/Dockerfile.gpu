@@ -17,6 +17,7 @@ RUN pip install --no-cache-dir \
 	transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \ 
 	datasets==${DATASETS_VERSION}
 RUN apt-get update \
+ # TODO: Remove systemd upgrade once it is updated in base image
  && apt-get -y upgrade --only-upgrade systemd \
  && apt install -y git-lfs \
  && apt-get clean \  

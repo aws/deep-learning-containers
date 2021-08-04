@@ -42,14 +42,14 @@ class SageMakerEndpointFailure(Exception):
     pass
 
 
-def dump_logs_from_cloudwatch(e):
+def dump_logs_from_cloudwatch(e, region='us-west-2'):
     """
     Function to dump logs from cloudwatch during error handling
     """
     endpoint_regex = re.compile(r"Error hosting endpoint ((\w|-)+):")
     endpoint_match = endpoint_regex.search(str(e))
     if endpoint_match:
-        logs_client = boto3.client('logs', region_name='us-west-2')
+        logs_client = boto3.client('logs', region_name=region)
         endpoint = endpoint_match.group(1)
         log_group_name = f"/aws/sagemaker/Endpoints/{endpoint}"
         log_stream_resp = logs_client.describe_log_streams(logGroupName=log_group_name)
