@@ -56,7 +56,7 @@ def dump_logs_from_cloudwatch(e, region='us-west-2'):
         all_traffic_log_stream = ""
         for log_stream in log_stream_resp.get('logStreams', []):
             log_stream_name = log_stream.get('logStreamName')
-            # If we have AllTraffic log stream, just use that
+            # Format of AllTraffic log stream should be AllTraffic/<instance_id>
             if log_stream_name.startswith("AllTraffic"):
                 all_traffic_log_stream = log_stream_name
                 break
