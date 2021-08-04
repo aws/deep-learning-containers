@@ -22,7 +22,7 @@ ENV TEMP=/home/model-server/tmp
 ENV MKL_THREADING_LAYER=GNU
 
 RUN apt-get update \
- && apt-get -y upgrade \
+ && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends software-properties-common \
  && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
