@@ -19,7 +19,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DGLBACKEND=mxnet \
     DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get -y upgrade \
+RUN apt-get update \
+ && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends \
     software-properties-common \
     build-essential \
