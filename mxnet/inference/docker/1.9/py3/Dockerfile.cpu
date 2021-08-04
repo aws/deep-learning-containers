@@ -11,7 +11,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG MMS_VERSION=1.1.4
-ARG MX_URL=https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.9.0/aws_mx-1.9.0-py3-none-manylinux2014_x86_64.whl
+ARG MX_URL=https://aws-mx-pypi.s3.us-west-2.amazonaws.com/1.9.0/aws_mx-1.9.0.132-py3-none-manylinux2014_x86_64.whl
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -46,7 +46,6 @@ RUN apt-get update && apt-get -y upgrade \
     libbz2-dev \
     tk-dev \
     libffi-dev \
-    openssl \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
