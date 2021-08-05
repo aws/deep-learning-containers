@@ -28,4 +28,3 @@ ecs_tests = true
 eks_tests = true
 ec2_tests = true
 use_scheduler = false
-
