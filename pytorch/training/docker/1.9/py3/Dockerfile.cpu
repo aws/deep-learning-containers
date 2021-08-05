@@ -35,6 +35,7 @@ ARG PT_S3_WHL=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c
 WORKDIR /
 
 RUN apt-get update \
+ # TODO: Remove systemd upgrade once it is updated in base image
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends \
     build-essential \

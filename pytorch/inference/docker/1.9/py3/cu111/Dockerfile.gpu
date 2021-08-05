@@ -34,6 +34,7 @@ ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 ENV MKL_THREADING_LAYER=GNU
 
 RUN apt-get update \
+    # TODO: Remove systemd upgrade once it is updated in base image
     && apt-get -y upgrade --only-upgrade systemd \
     && apt-get install -y --no-install-recommends software-properties-common \
     && add-apt-repository ppa:openjdk-r/ppa \
