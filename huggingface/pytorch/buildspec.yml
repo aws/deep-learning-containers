@@ -55,7 +55,7 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
-  BuildHuggingFacePytorchGpuPy36Cu110InferenceDockerImage:
+  BuildHuggingFacePytorchGpuPy36Cu111InferenceDockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_GPU_INFERENCE_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 15000
