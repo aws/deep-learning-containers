@@ -105,12 +105,13 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
         ctx.run(
             "pip install -r "
             "https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/requirements.txt && "
+            "pip install smdebug && "
             "pip uninstall -y pytest-rerunfailures",
             hide=True,
         )
     except UnexpectedExit:
-        # Wait a minute if we get an invoke failure - since smprofiler test requirements can be flaky
-        time.sleep(60)
+        # Wait a minute and a half if we get an invoke failure - since smprofiler test requirements can be flaky
+        time.sleep(90)
     # Collect env variables for tests
     framework, version = get_framework_and_version_from_tag(image)
 
@@ -139,7 +140,7 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
         with ctx.prefix(f"cd sagemaker-tests && {export_cmd}"):
             try:
                 ctx.run(
-                    f"pip install smdebug && pytest --json-report --json-report-file={test_results_outfile} -n=auto "
+                    f"pytest --json-report --json-report-file={test_results_outfile} -n=auto "
                     f"-v -s -W=ignore tests/{test_file}::test_{processor}_jobs",
                     hide=True,
                 )
