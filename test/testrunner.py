@@ -325,7 +325,6 @@ def main():
             "pip install -r "
             "https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/requirements.txt && "
             "pip install pytest==5.3.5",
-            hide=True,
             warn=True,
         )
 
