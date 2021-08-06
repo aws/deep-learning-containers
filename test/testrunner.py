@@ -316,7 +316,22 @@ def main():
         sm_utils.generate_empty_report(report, test_type, "huggingface")
         return
 
-    if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary", "bai", "quick_checks", "release_candidate_integration"):
+    if specific_test_type == "release_candidate_integration":
+        ctx = Context()
+
+        # Install profiler requirements only once - pin pytest version, since pytest-rerunfailures has a known issue
+        # with the latest pytest https://github.com/pytest-dev/pytest-rerunfailures/issues/128
+        ctx.run(
+            f"pip install -r "
+            f"https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/requirements.txt && "
+            f"pip install pytest==5.3.5",
+            hide=True,
+            warn=True,
+        )
+
+    if specific_test_type in (
+            "sanity", "ecs", "ec2", "eks", "canary", "bai", "quick_checks", "release_candidate_integration"
+    ):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
         # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.

@@ -79,7 +79,8 @@ def test_sm_profiler_tf(tensorflow_training):
 
     # Install tf datasets
     ctx.run(
-        f"echo 'tensorflow-datasets==4.0.1' >> {profiler_tests_dir}/sagemaker-tests/tests/scripts/tf_scripts/requirements.txt",
+        f"echo 'tensorflow-datasets==4.0.1' >> "
+        f"{profiler_tests_dir}/sagemaker-tests/tests/scripts/tf_scripts/requirements.txt",
         hide=True,
     )
 
@@ -94,13 +95,6 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
     """
     Testrunner to execute SM profiler tests from DLC repo
     """
-    ctx = Context()
-    ctx.run(
-        f"pip install -r https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/requirements.txt && pip install pytest==5.3.5",
-        hide=True,
-        warn=True,
-    )
-
     # Collect env variables for tests
     framework, version = get_framework_and_version_from_tag(image)
 
@@ -111,6 +105,7 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
 
     # Get buildspec file from GitHub
     # Note: SMDebug seems to update these in master, not necessarily in feature branches, hence using master branch
+    ctx = Context()
     ctx.run(
         f"wget https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/{spec_file}",
         hide=True,
@@ -121,14 +116,16 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
 
     # Command to set all necessary environment variables
     export_cmd = " && ".join(f"export {key}={val}" for key, val in spec_file_envs.items())
-    export_cmd = f"{export_cmd} && export ENV_CPU_TRAIN_IMAGE=test && export ENV_GPU_TRAIN_IMAGE=test && export ENV_{processor.upper()}_TRAIN_IMAGE={image}"
+    export_cmd = f"{export_cmd} && export ENV_CPU_TRAIN_IMAGE=test && export ENV_GPU_TRAIN_IMAGE=test && " \
+                 f"export ENV_{processor.upper()}_TRAIN_IMAGE={image}"
 
     test_results_outfile = os.path.join(os.getcwd(), f"{get_container_name('smprof', image)}.txt")
     with ctx.prefix(f"cd {profiler_tests_dir}"):
         with ctx.prefix(f"cd sagemaker-tests && {export_cmd}"):
             try:
                 ctx.run(
-                    f"pip install smdebug && pytest --json-report --json-report-file={test_results_outfile} -n=auto -v -s -W=ignore tests/{test_file}::test_{processor}_jobs",
+                    f"pip install smdebug && pytest --json-report --json-report-file={test_results_outfile} -n=auto "
+                    f"-v -s -W=ignore tests/{test_file}::test_{processor}_jobs",
                     hide=True,
                 )
                 with open(test_results_outfile) as outfile:
