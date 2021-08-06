@@ -131,7 +131,7 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
         with ctx.prefix(f"cd sagemaker-tests/tests && {export_cmd}"):
             try:
                 ctx.run(
-                    f"pip install smdebug && pip uninstall pytest-rerunfailures && pytest --json-report --json-report-file={test_results_outfile} -n=auto -v -s -W=ignore {test_file}::test_{processor}_jobs",
+                    f"pip install smdebug && pip uninstall -y pytest-rerunfailures && pytest --json-report --json-report-file={test_results_outfile} -n=auto -v -s -W=ignore {test_file}::test_{processor}_jobs",
                     hide=True
                 )
             except Exception as e:
