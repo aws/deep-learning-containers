@@ -310,6 +310,7 @@ def main():
         "ec2",
         "eks",
         "bai",
+        "release_candidate_integration"
     ):
         # Creating an empty file for because codebuild job fails without it
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
