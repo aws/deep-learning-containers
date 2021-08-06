@@ -322,9 +322,9 @@ def main():
         # Install profiler requirements only once - pin pytest version, since pytest-rerunfailures has a known issue
         # with the latest pytest https://github.com/pytest-dev/pytest-rerunfailures/issues/128
         ctx.run(
-            f"pip install -r "
-            f"https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/requirements.txt && "
-            f"pip install pytest==5.3.5",
+            "pip install -r "
+            "https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/requirements.txt && "
+            "pip install pytest==5.3.5",
             hide=True,
             warn=True,
         )
