@@ -126,7 +126,7 @@ def test_smmodelparallel(n_virginia_sagemaker_session, instance_type, n_virginia
     """
     Tests SM Modelparallel in sagemaker
     """
-    instance_type = "ml.p3.16xlarge"
+    instance_type = "ml.g4dn.12xlarge"
     validate_or_skip_smmodelparallel(n_virginia_ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
@@ -160,7 +160,7 @@ def test_smmodelparallel_multinode(n_virginia_sagemaker_session, instance_type, 
     """
     Tests SM Modelparallel in sagemaker
     """
-    instance_type = "ml.p3.16xlarge"
+    instance_type = "ml.g4dn.12xlarge"
     validate_or_skip_smmodelparallel(n_virginia_ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,

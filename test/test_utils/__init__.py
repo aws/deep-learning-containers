@@ -18,7 +18,7 @@ from packaging.version import LegacyVersion, Version, parse
 from packaging.specifiers import SpecifierSet
 from retrying import retry
 
-from src.config.test_config import ENABLE_BENCHMARK_DEV_MODE
+from src.config import is_benchmark_mode_enabled
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -75,6 +75,7 @@ SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
 
+SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
 
 class MissingPythonVersionException(Exception):
     """
@@ -239,7 +240,7 @@ def is_dlc_cicd_context():
 
 
 def is_benchmark_dev_context():
-    return ENABLE_BENCHMARK_DEV_MODE
+    return is_benchmark_mode_enabled()
 
 
 def is_time_for_canary_safety_scan():

@@ -19,16 +19,16 @@ def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
 
     processor = "neuron"
 
-    model = "mxnet-resnet50=https://aws-dlc-sample-models.s3.amazonaws.com/mxnet/Resnet50-neuron.mar"
+    server_cmd = "/usr/local/bin/entrypoint.sh -m mxnet-resnet50=https://aws-dlc-sample-models.s3.amazonaws.com/mxnet/Resnet50-neuron.mar -t /home/model-server/config.properties"
     yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_{processor}_inference_{rand_int}.yaml")
     inference_service_name = selector_name = f"resnet50-{processor}-{rand_int}"
 
     search_replace_dict = {
-        "<MODELS>": model,
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference
+        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference,
+        "<SERVER_CMD>": server_cmd
     }
 
     search_replace_dict["<NUM_INF1S>"] = "1"

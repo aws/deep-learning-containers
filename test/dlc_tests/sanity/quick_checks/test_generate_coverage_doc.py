@@ -14,6 +14,7 @@ ACCOUNT_ID = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity().g
 TEST_COVERAGE_REPORT_BUCKET = f"dlc-test-coverage-reports-{ACCOUNT_ID}"
 
 
+@pytest.mark.quick_checks
 @pytest.mark.integration("Generating this coverage doc")
 @pytest.mark.model("N/A")
 def test_generate_coverage_doc():
@@ -25,7 +26,7 @@ def test_generate_coverage_doc():
     # Set DLC_IMAGES to 'test' to avoid image names affecting function metadata (due to parametrization)
     # Set CODEBUILD_RESOLVED_SOURCE_VERSION to test for ease of running this test locally
     ctx.run(
-        "export DLC_IMAGES='test' && export CODEBUILD_RESOLVED_SOURCE_VERSION='test' && export BUILD_CONTEXT=''"
+        "export DLC_IMAGES='' && export CODEBUILD_RESOLVED_SOURCE_VERSION='test' && export BUILD_CONTEXT=''"
         "&& pytest -s --collect-only  --generate-coverage-doc --ignore=container_tests/",
         hide=True,
     )

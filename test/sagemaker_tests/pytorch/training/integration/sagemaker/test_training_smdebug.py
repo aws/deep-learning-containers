@@ -18,12 +18,12 @@ from sagemaker.pytorch import PyTorch
 
 from ...integration import training_dir, smdebug_mnist_script, DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
-
+from . import invoke_pytorch_estimator
 
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
-def test_training_smdebug(sagemaker_session, framework_version, ecr_image, instance_type):
+def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, instance_type):
     hyperparameters = {
         'random_seed': True,
         'num_steps': 50,
@@ -33,15 +33,18 @@ def test_training_smdebug(sagemaker_session, framework_version, ecr_image, insta
     }
 
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(
-            entry_point=smdebug_mnist_script,
-            role='SageMakerRole',
-            instance_count=1,
-            instance_type=instance_type,
-            sagemaker_session=sagemaker_session,
-            image_uri=ecr_image,
-            framework_version=framework_version,
-            hyperparameters=hyperparameters,
-        )
-        training_input = pytorch.sagemaker_session.upload_data(path=training_dir, key_prefix='pytorch/mnist')
-        pytorch.fit({'training': training_input}, job_name=utils.unique_name_from_base('test-pt-smdebug-training'))
+        estimator_parameter = {
+            'entry_point': smdebug_mnist_script,
+            'role': 'SageMakerRole',
+            'instance_count': 1,
+            'instance_type': instance_type,
+            'framework_version': framework_version,
+            'hyperparameters': hyperparameters
+        }
+        upload_s3_data_args = {
+        'path': training_dir,
+        'key_prefix': 'pytorch/mnist'
+        }
+        job_name=utils.unique_name_from_base('test-pt-smdebug-training')
+        invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, upload_s3_data_args=upload_s3_data_args, job_name=job_name)        
+
