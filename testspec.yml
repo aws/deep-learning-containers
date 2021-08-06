@@ -14,8 +14,6 @@ phases:
   build:
     commands:
       - echo Logging in to Amazon ECR...
-      - export TEST_TYPE="release_candidate_integration"
-      - export SMPROFILER_TESTS_BUCKET="s3://smprofiler-test-artifacts"
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - |
         if expr "${TEST_TYPE}" : "canary" >/dev/null; then
