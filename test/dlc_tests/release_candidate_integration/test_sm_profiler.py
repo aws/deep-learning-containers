@@ -13,6 +13,7 @@ from test.test_utils import (
     get_container_name,
     get_framework_and_version_from_tag,
     get_processor_from_image_uri,
+    LOGGER
 )
 
 
@@ -99,7 +100,7 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
     # Install smprofile requirements from GitHub
     # We must install from master due to broken test reqs in prior commits
     ctx.run(
-        f"pip install -r https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/requirements.txt",
+        f"pip install -r https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/requirements.txt && pip uninstall -y pytest-rerunfailures",
         hide=True,
         warn=True,
     )
@@ -131,12 +132,15 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
         with ctx.prefix(f"cd sagemaker-tests && {export_cmd}"):
             try:
                 ctx.run(
-                    f"pip install smdebug && pip uninstall -y pytest-rerunfailures && pytest --json-report --json-report-file={test_results_outfile} -n=auto -v -s -W=ignore tests/{test_file}::test_{processor}_jobs",
+                    f"pip install smdebug && pytest --json-report --json-report-file={test_results_outfile} -n=auto -v -s -W=ignore tests/{test_file}::test_{processor}_jobs",
                     hide=True
                 )
+                with open(test_results_outfile) as outfile:
+                    result_data = json.load(outfile)
+                    LOGGER.info(f"Tests passed on {image}; Results:\n{json.dumps(result_data, indent=4)}")
             except Exception as e:
                 if os.path.exists(test_results_outfile):
                     with open(test_results_outfile) as outfile:
                         result_data = json.load(outfile)
-                    raise SMProfilerRCTestFailure(f"Failed SM Profiler tests. Results: {json.dumps(result_data, indent=4)}") from e
+                    raise SMProfilerRCTestFailure(f"Failed SM Profiler tests. Results:\n{json.dumps(result_data, indent=4)}") from e
                 raise
