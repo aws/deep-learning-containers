@@ -2,8 +2,6 @@ import os
 import json
 import yaml
 
-from packaging.version import Version
-
 import pytest
 
 from invoke.context import Context
@@ -13,13 +11,14 @@ from test.test_utils import (
     get_container_name,
     get_framework_and_version_from_tag,
     get_processor_from_image_uri,
-    LOGGER
+    is_tf_version,
+    LOGGER,
 )
 
 
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("N/A")
-#@pytest.mark.skipif(not is_mainline_context(), reason="Mainline only test")
+# @pytest.mark.skipif(not is_mainline_context(), reason="Mainline only test")
 def test_sm_profiler_pt(pytorch_training):
     processor = get_processor_from_image_uri(pytorch_training)
     if processor not in ("cpu", "gpu"):
@@ -34,14 +33,20 @@ def test_sm_profiler_pt(pytorch_training):
 
     # Download sagemaker-tests zip
     sm_tests_zip = "sagemaker-tests.zip"
-    ctx.run(f"aws s3 cp {os.getenv('SMPROFILER_TESTS_BUCKET')}/{sm_tests_zip} {profiler_tests_dir}/{sm_tests_zip}", hide=True)
+    ctx.run(
+        f"aws s3 cp {os.getenv('SMPROFILER_TESTS_BUCKET')}/{sm_tests_zip} {profiler_tests_dir}/{sm_tests_zip}",
+        hide=True,
+    )
 
     # PT test setup requirements
     with ctx.prefix(f"cd {profiler_tests_dir}"):
         ctx.run(f"unzip {sm_tests_zip}", hide=True)
         with ctx.prefix("cd sagemaker-tests/tests/scripts/pytorch_scripts"):
             ctx.run("mkdir -p data", hide=True)
-            ctx.run("aws s3 cp s3://smdebug-testing/datasets/cifar-10-python.tar.gz data/cifar-10-batches-py.tar.gz", hide=True)
+            ctx.run(
+                "aws s3 cp s3://smdebug-testing/datasets/cifar-10-python.tar.gz data/cifar-10-batches-py.tar.gz",
+                hide=True,
+            )
             ctx.run("aws s3 cp s3://smdebug-testing/datasets/MNIST_pytorch.tar.gz data/MNIST_pytorch.tar.gz", hide=True)
             with ctx.prefix("cd data"):
                 ctx.run("tar -zxf MNIST_pytorch.tar.gz", hide=True)
@@ -52,8 +57,10 @@ def test_sm_profiler_pt(pytorch_training):
 
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("N/A")
-#@pytest.mark.skipif(not is_mainline_context(), reason="Mainline only test")
+# @pytest.mark.skipif(not is_mainline_context(), reason="Mainline only test")
 def test_sm_profiler_tf(tensorflow_training):
+    if is_tf_version("1", tensorflow_training):
+        pytest.skip("Skipping test on TF1, since there are no smprofiler config files for TF1")
     processor = get_processor_from_image_uri(tensorflow_training)
     if processor not in ("cpu", "gpu"):
         pytest.skip(f"Processor {processor} not supported. Skipping test.")
@@ -88,17 +95,6 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
     Testrunner to execute SM profiler tests from DLC repo
     """
     ctx = Context()
-
-    # TODO: Re-enable or remove
-    # smdebug_version = ctx.run(
-    #     f"docker run {image} python -c 'import smdebug; print(smdebug.__version__)'", hide=True
-    # ).stdout.strip()
-
-    # if Version(smdebug_version) < Version("1"):
-    #     pytest.skip(f"smdebug version {smdebug_version} is less than 1, so smprofiler not expected to be present")
-
-    # Install smprofile requirements from GitHub
-    # We must install from master due to broken test reqs in prior commits
     ctx.run(
         f"pip install -r https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/requirements.txt && pip uninstall -y pytest-rerunfailures",
         hide=True,
@@ -133,7 +129,7 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
             try:
                 ctx.run(
                     f"pip install smdebug && pytest --json-report --json-report-file={test_results_outfile} -n=auto -v -s -W=ignore tests/{test_file}::test_{processor}_jobs",
-                    hide=True
+                    hide=True,
                 )
                 with open(test_results_outfile) as outfile:
                     result_data = json.load(outfile)
@@ -142,5 +138,7 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
                 if os.path.exists(test_results_outfile):
                     with open(test_results_outfile) as outfile:
                         result_data = json.load(outfile)
-                    raise SMProfilerRCTestFailure(f"Failed SM Profiler tests. Results:\n{json.dumps(result_data, indent=4)}") from e
+                    raise SMProfilerRCTestFailure(
+                        f"Failed SM Profiler tests. Results:\n{json.dumps(result_data, indent=4)}"
+                    ) from e
                 raise
