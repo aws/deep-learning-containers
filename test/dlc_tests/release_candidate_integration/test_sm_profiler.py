@@ -124,7 +124,7 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
 
     # Command to set all necessary environment variables
     export_cmd = " && ".join(f"export {key}={val}" for key, val in spec_file_envs.items())
-    export_cmd = f"{export_cmd} && export ENV_{processor.upper()}_TRAIN_IMAGE={image}"
+    export_cmd = f"{export_cmd} && export ENV_CPU_TRAIN_IMAGE=test && export ENV_GPU_TRAIN_IMAGE=test && export ENV_{processor.upper()}_TRAIN_IMAGE={image}"
 
     test_results_outfile = os.path.join(os.getcwd(), f"{get_container_name('smprof', image)}.txt")
     with ctx.prefix(f"cd {profiler_tests_dir}"):
