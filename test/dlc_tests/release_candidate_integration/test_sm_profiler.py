@@ -104,6 +104,10 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
 
     # Collect env variables for tests
     framework, version = get_framework_and_version_from_tag(image)
+
+    # TODO: remove when SMDebug adds a 1.9.0 pytorch specfile
+    if framework == "pytorch" and version == "1.9.0":
+        version = "1.8.0"
     spec_file = f"buildspec_profiler_sagemaker_{framework}_{version.replace('.', '_')}_integration_tests.yml"
 
     # Get buildspec file from GitHub
@@ -125,7 +129,7 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
         with ctx.prefix(f"cd sagemaker-tests/tests && {export_cmd}"):
             try:
                 ctx.run(
-                    f"pip install smdebug && pytest --json-report --json-report-file={test_results_outfile} -n=auto -v -s -W=ignore {test_file}::test_{processor}_jobs",
+                    f"pip install smdebug && pip uninstall pytest-rerunfailures && pytest --json-report --json-report-file={test_results_outfile} -n=auto -v -s -W=ignore {test_file}::test_{processor}_jobs",
                     hide=True
                 )
             except Exception as e:

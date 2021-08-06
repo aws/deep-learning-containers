@@ -18,7 +18,7 @@ skip_frameworks = ["huggingface_pytorch", "huggingface_tensorflow", "mxnet"]
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = true
+do_build = false
 
 [test]
 efa_tests = false
