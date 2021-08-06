@@ -96,7 +96,7 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
     """
     ctx = Context()
     ctx.run(
-        f"pip install -r https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/requirements.txt && pip uninstall -y pytest-rerunfailures",
+        f"pip install -r https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/requirements.txt && pip install pytest==5.3.5",
         hide=True,
         warn=True,
     )
