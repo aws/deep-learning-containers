@@ -29,22 +29,22 @@ def test_sm_profiler_pt(pytorch_training):
     profiler_tests_dir = os.path.join(
         os.getenv("CODEBUILD_SRC_DIR"), get_container_name("smprof", pytorch_training), "smprofiler_tests"
     )
-    ctx.run(f"mkdir -p {profiler_tests_dir}")
+    ctx.run(f"mkdir -p {profiler_tests_dir}", hide=True)
 
     # Download sagemaker-tests zip
     sm_tests_zip = "sagemaker-tests.zip"
-    ctx.run(f"aws s3 cp {os.getenv('SMPROFILER_TESTS_BUCKET')}/{sm_tests_zip} {profiler_tests_dir}/{sm_tests_zip}")
+    ctx.run(f"aws s3 cp {os.getenv('SMPROFILER_TESTS_BUCKET')}/{sm_tests_zip} {profiler_tests_dir}/{sm_tests_zip}", hide=True)
 
     # PT test setup requirements
     with ctx.prefix(f"cd {profiler_tests_dir}"):
-        ctx.run(f"unzip {sm_tests_zip}")
-        with ctx.prefix("cd tests/scripts/pytorch_scripts"):
-            ctx.run("mkdir -p data")
-            ctx.run("aws s3 cp s3://smdebug-testing/datasets/cifar-10-python.tar.gz data/cifar-10-batches-py.tar.gz")
-            ctx.run("aws s3 cp s3://smdebug-testing/datasets/MNIST_pytorch.tar.gz data/MNIST_pytorch.tar.gz")
+        ctx.run(f"unzip {sm_tests_zip}", hide=True)
+        with ctx.prefix("cd sagemaker-tests/tests/scripts/pytorch_scripts"):
+            ctx.run("mkdir -p data", hide=True)
+            ctx.run("aws s3 cp s3://smdebug-testing/datasets/cifar-10-python.tar.gz data/cifar-10-batches-py.tar.gz", hide=True)
+            ctx.run("aws s3 cp s3://smdebug-testing/datasets/MNIST_pytorch.tar.gz data/MNIST_pytorch.tar.gz", hide=True)
             with ctx.prefix("cd data"):
-                ctx.run("tar -zxf MNIST_pytorch.tar.gz")
-                ctx.run("tar -zxf cifar-10-batches-py.tar.gz")
+                ctx.run("tar -zxf MNIST_pytorch.tar.gz", hide=True)
+                ctx.run("tar -zxf cifar-10-batches-py.tar.gz", hide=True)
 
     run_sm_profiler_tests(pytorch_training, profiler_tests_dir, "test_profiler_pytorch.py", processor)
 
@@ -62,7 +62,7 @@ def test_sm_profiler_tf(tensorflow_training):
     profiler_tests_dir = os.path.join(
         os.getenv("CODEBUILD_SRC_DIR"), get_container_name("smprof", tensorflow_training), "smprofiler_tests"
     )
-    ctx.run(f"mkdir -p {profiler_tests_dir}")
+    ctx.run(f"mkdir -p {profiler_tests_dir}", hide=True)
 
     # Download sagemaker-tests zip
     sm_tests_zip = "sagemaker-tests.zip"
@@ -76,6 +76,10 @@ def test_sm_profiler_tf(tensorflow_training):
     )
 
     run_sm_profiler_tests(tensorflow_training, profiler_tests_dir, "test_profiler_tensorflow.py", processor)
+
+
+class SMProfilerRCTestFailure(Exception):
+    pass
 
 
 def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
@@ -119,12 +123,14 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
     test_results_outfile = os.path.join(os.getcwd(), f"{get_container_name('smprof', image)}.txt")
     with ctx.prefix(f"cd {profiler_tests_dir}"):
         with ctx.prefix(f"cd sagemaker-tests/tests && {export_cmd}"):
-            test_output = ctx.run(
-                f"pip install smdebug && pytest --json-report --json-report-file={test_results_outfile} -n=auto -v -s -W=ignore {test_file}::test_{processor}_jobs",
-                hide=True,
-                warn=True,
-            )
-        with open(test_results_outfile) as outfile:
-            result_data = json.load(outfile)
-        if test_output.return_code != 0:
-            pytest.fail(f"Failed SM Profiler tests. Results: {json.dumps(result_data, indent=4)}")
+            try:
+                ctx.run(
+                    f"pip install smdebug && pytest --json-report --json-report-file={test_results_outfile} -n=auto -v -s -W=ignore {test_file}::test_{processor}_jobs",
+                    hide=True
+                )
+            except Exception as e:
+                if os.path.exists(test_results_outfile):
+                    with open(test_results_outfile) as outfile:
+                        result_data = json.load(outfile)
+                    raise SMProfilerRCTestFailure(f"Failed SM Profiler tests. Results: {json.dumps(result_data, indent=4)}") from e
+            raise
