@@ -87,12 +87,14 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
     Testrunner to execute SM profiler tests from DLC repo
     """
     ctx = Context()
-    smdebug_version = ctx.run(
-        f"docker run {image} python -c 'import smdebug; print(smdebug.__version__)'", hide=True
-    ).stdout.strip()
 
-    if Version(smdebug_version) < Version("1"):
-        pytest.skip(f"smdebug version {smdebug_version} is less than 1, so smprofiler not expected to be present")
+    # TODO: Re-enable or remove
+    # smdebug_version = ctx.run(
+    #     f"docker run {image} python -c 'import smdebug; print(smdebug.__version__)'", hide=True
+    # ).stdout.strip()
+
+    # if Version(smdebug_version) < Version("1"):
+    #     pytest.skip(f"smdebug version {smdebug_version} is less than 1, so smprofiler not expected to be present")
 
     # Install smprofile requirements from GitHub
     # We must install from master due to broken test reqs in prior commits
