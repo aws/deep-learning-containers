@@ -1,10 +1,12 @@
 import os
 import json
 import yaml
+import time
 
 import pytest
 
 from invoke.context import Context
+from invoke.exceptions import UnexpectedExit
 
 from test.test_utils import (
     is_mainline_context,
@@ -95,6 +97,20 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
     """
     Testrunner to execute SM profiler tests from DLC repo
     """
+    ctx = Context()
+
+    # Install profiler requirements only once - pytest-rerunfailures has a known issue
+    # with the latest pytest https://github.com/pytest-dev/pytest-rerunfailures/issues/128
+    try:
+        ctx.run(
+            "pip install -r "
+            "https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/requirements.txt && "
+            "pip uninstall -y pytest-rerunfailures",
+            hide=True,
+        )
+    except UnexpectedExit:
+        # Wait a minute if we get an invoke failure - since smprofiler test requirements can be flaky
+        time.sleep(60)
     # Collect env variables for tests
     framework, version = get_framework_and_version_from_tag(image)
 
@@ -105,7 +121,6 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
 
     # Get buildspec file from GitHub
     # Note: SMDebug seems to update these in master, not necessarily in feature branches, hence using master branch
-    ctx = Context()
     ctx.run(
         f"wget https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/{spec_file}",
         hide=True,

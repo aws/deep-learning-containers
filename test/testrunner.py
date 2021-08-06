@@ -316,18 +316,6 @@ def main():
         sm_utils.generate_empty_report(report, test_type, "huggingface")
         return
 
-    if specific_test_type == "release_candidate_integration":
-        ctx = Context()
-
-        # Install profiler requirements only once - pytest-rerunfailures has a known issue
-        # with the latest pytest https://github.com/pytest-dev/pytest-rerunfailures/issues/128
-        ctx.run(
-            "pip install -r "
-            "https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/requirements.txt && "
-            "pip uninstall -y pytest-rerunfailures",
-            warn=True,
-        )
-
     if specific_test_type in (
             "sanity", "ecs", "ec2", "eks", "canary", "bai", "quick_checks", "release_candidate_integration"
     ):
