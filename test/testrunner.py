@@ -319,12 +319,12 @@ def main():
     if specific_test_type == "release_candidate_integration":
         ctx = Context()
 
-        # Install profiler requirements only once - pin pytest version, since pytest-rerunfailures has a known issue
+        # Install profiler requirements only once - pytest-rerunfailures has a known issue
         # with the latest pytest https://github.com/pytest-dev/pytest-rerunfailures/issues/128
         ctx.run(
             "pip install -r "
             "https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/requirements.txt && "
-            "pip install pytest==5.3.5",
+            "pip uninstall -y pytest-rerunfailures",
             warn=True,
         )
 
