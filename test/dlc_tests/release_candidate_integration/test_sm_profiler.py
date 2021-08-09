@@ -112,27 +112,9 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
     except UnexpectedExit:
         # Wait a minute and a half if we get an invoke failure - since smprofiler test requirements can be flaky
         time.sleep(90)
-    # Collect env variables for tests
-    framework, version = get_framework_and_version_from_tag(image)
-
-    # TODO: remove when SMDebug adds a 1.9.0 pytorch specfile
-    if framework == "pytorch" and version == "1.9.0":
-        version = "1.8.0"
-    spec_file = f"buildspec_profiler_sagemaker_{framework}_{version.replace('.', '_')}_integration_tests.yml"
-
-    # Get buildspec file from GitHub
-    # Note: SMDebug seems to update these in master, not necessarily in feature branches, hence using master branch
-    ctx.run(
-        f"wget https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/{spec_file}",
-        hide=True,
-    )
-    with open(spec_file, "r") as sf:
-        yml_envs = yaml.safe_load(sf)
-        spec_file_envs = yml_envs.get("env", {}).get("variables")
 
     # Command to set all necessary environment variables
-    export_cmd = " && ".join(f"export {key}={val}" for key, val in spec_file_envs.items())
-    export_cmd = f"{export_cmd} && export ENV_CPU_TRAIN_IMAGE=test && export ENV_GPU_TRAIN_IMAGE=test && " \
+    export_cmd = f"export ENV_CPU_TRAIN_IMAGE=test && export ENV_GPU_TRAIN_IMAGE=test && " \
                  f"export ENV_{processor.upper()}_TRAIN_IMAGE={image}"
 
     test_results_outfile = os.path.join(os.getcwd(), f"{get_container_name('smprof', image)}.txt")
