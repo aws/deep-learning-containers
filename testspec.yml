@@ -10,6 +10,7 @@ phases:
       - pip install -r src/requirements.txt
       - python src/send_status.py --status 2
       - python src/parse_partner_developers.py
+      - apt-get update && apt-get install unzip
   build:
     commands:
       - echo Logging in to Amazon ECR...
