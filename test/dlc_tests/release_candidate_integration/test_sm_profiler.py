@@ -1,6 +1,5 @@
 import os
 import json
-import yaml
 import time
 
 import pytest
@@ -11,7 +10,6 @@ from invoke.exceptions import UnexpectedExit
 from test.test_utils import (
     is_mainline_context,
     get_container_name,
-    get_framework_and_version_from_tag,
     get_processor_from_image_uri,
     is_tf_version,
     LOGGER,
