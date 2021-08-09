@@ -21,10 +21,14 @@ datetime_tag = true
 do_build = true
 
 [test]
-efa_tests = false
+# On by default
 sanity_tests = true
-sagemaker_tests = false
 ecs_tests = true
 eks_tests = true
 ec2_tests = true
+
+# Off by default
+sagemaker_tests = false
+efa_tests = false
+
 use_scheduler = false
