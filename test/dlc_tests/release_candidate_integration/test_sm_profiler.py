@@ -133,7 +133,7 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
     # Command to set all necessary environment variables
     export_cmd = " && ".join(f"export {key}={val}" for key, val in spec_file_envs.items())
     export_cmd = f"{export_cmd} && export ENV_CPU_TRAIN_IMAGE=test && export ENV_GPU_TRAIN_IMAGE=test && " \
-                 f"export ENV_{processor.upper()}_TRAIN_IMAGE=763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.8.1-gpu-py36-cu111-ubuntu18.04"
+                 f"export ENV_{processor.upper()}_TRAIN_IMAGE=763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.8.1-gpu-py36-cu111-ubuntu18.04"
 
     test_results_outfile = os.path.join(os.getcwd(), f"{get_container_name('smprof', image)}.txt")
     with ctx.prefix(f"cd {profiler_tests_dir}"):
