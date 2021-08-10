@@ -118,17 +118,23 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
         time.sleep(90)
 
     framework, version = get_framework_and_version_from_tag(image)
+
+    # Conditionally set sm data parallel tests, based on config file rules from link below:
+    # https://github.com/awslabs/sagemaker-debugger/tree/master/config/profiler
+    enable_sm_data_parallel_tests = "true"
+    if framework == "pytorch" and Version(version) < Version("1.6"):
+        enable_sm_data_parallel_tests = "false"
+    if framework == "tensorflow" and Version(version) < Version("2.3"):
+        enable_sm_data_parallel_tests = "false"
+
+    # Set SMProfiler specific environment variables
     smprof_configs = {
         "use_current_branch": "false",
-        "enable_smdataparallel_tests": "true",
+        "enable_smdataparallel_tests": enable_sm_data_parallel_tests,
         "force_run_tests": "false",
         "framework": framework,
         "build_type": "release"
     }
-    if framework == "pytorch" and Version(version) < Version("1.6"):
-        smprof_configs["enable_smdataparallel_tests"] = "false"
-    if framework == "tensorflow" and Version(version) < Version("2.3"):
-        smprof_configs["enable_smdataparallel_tests"] = "false"
 
     # Command to set all necessary environment variables
     export_cmd = " && ".join(f"export {key}={val}" for key, val in smprof_configs.items())
