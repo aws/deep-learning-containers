@@ -20,8 +20,9 @@ from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 from sagemaker.deserializers import JSONDeserializer
+from sagemaker.exceptions import UnexpectedStatusException
 
-from ...integration import model_dir
+from ...integration import model_dir, dump_logs_from_cloudwatch
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
@@ -30,7 +31,11 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 @pytest.mark.cpu_test
 def test_sm_trained_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type):
     instance_type = instance_type or "ml.m5.xlarge"
-    _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+    try:
+        _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+    except UnexpectedStatusException as e:
+        dump_logs_from_cloudwatch(e)
+        raise
 
 
 @pytest.mark.model("tiny-distilbert")
@@ -38,7 +43,11 @@ def test_sm_trained_model_cpu(sagemaker_session, framework_version, ecr_image, i
 @pytest.mark.gpu_test
 def test_sm_trained_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type):
     instance_type = instance_type or "ml.p2.xlarge"
-    _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+    try:
+        _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+    except UnexpectedStatusException as e:
+        dump_logs_from_cloudwatch(e)
+        raise
 
 
 def _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None):

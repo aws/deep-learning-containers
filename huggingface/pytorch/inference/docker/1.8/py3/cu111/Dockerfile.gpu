@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.0-cudnn8-runtime-ubuntu18.04
+FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -9,10 +9,10 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG MMS_VERSION=1.1.4
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.7.10
+ARG PYTHON_VERSION=3.6.13
 ARG OPEN_MPI_VERSION=4.0.1
 # HF ARGS
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.4_aws/20210127-150238/gpu/py37/cu110/tensorflow_gpu-2.4.1-cp37-cp37m-manylinux2010_x86_64.whl
+ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3-us-west-2.amazonaws.com/r1.8.1_inference/20210326-045154/0cef1489a03d1f55f692c38bfb26b5f4f6ecbfa7/gpu/torch-1.8.1-cp36-cp36m-manylinux1_x86_64.whl
 ARG TRANSFORMERS_VERSION
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -102,13 +102,11 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 # Hugging Face specific section #
 #################################
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.4/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.8/license.txt -o /license.txt
 
-# Install TF Binary
-RUN pip install --no-cache-dir -U $TF_URL
-
-# We need TF_FORCE_GPU_ALLOW_GROWTH=true to prevent TF from overusing GPU memory when loading models
-ENV TF_FORCE_GPU_ALLOW_GROWTH=true
+# Uninstall and re-install torch and torchvision from the PyTorch website
+RUN pip uninstall -y torch \
+ && pip install --no-cache-dir -U $PT_INFERENCE_URL
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
