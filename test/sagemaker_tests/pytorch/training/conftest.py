@@ -105,7 +105,7 @@ def pytest_addoption(parser):
     parser.addoption('--docker-base-name', default='pytorch')
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
-    parser.addoption('--py-version', choices=['2', '3'], default=str(sys.version_info.major))
+    parser.addoption('--py-version', choices=['2', '3', '37', '38'], default=str(sys.version_info.major))
     parser.addoption('--processor', choices=['gpu', 'cpu'], default='cpu')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
@@ -293,7 +293,7 @@ def skip_by_py_version(request, py_version):
     and pytest is running from py2. We can rely on this when py2 is deprecated, but for now
     we must use "skip_py2_containers"
     """
-    if request.node.get_closest_marker('skip_py2') and py_version != 'py3':
+    if request.node.get_closest_marker('skip_py2') and 'py2' in py_version:
         pytest.skip('Skipping the test because Python 2 is not supported.')
 
 
