@@ -17,7 +17,7 @@ phases:
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - export TEST_TYPE="release_candidate_integration"
       - export SMPROFILER_TESTS_BUCKET="s3://smprofiler-test-artifacts"
-      - export DLC_IMAGES='pytorch-training-gpu'
+      - export DLC_IMAGES='763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.8.1-gpu-py36-cu111-ubuntu18.04'
       - |
         if expr "${TEST_TYPE}" : "canary" >/dev/null; then
           $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION --registry-ids 763104351884)
