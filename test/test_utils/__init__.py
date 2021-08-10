@@ -683,6 +683,7 @@ def parse_canary_images(framework, region):
         "pytorch": r"pt-(\d+.\d+)",
         "huggingface_pytorch": r"hf-pt-(\d+.\d+)",
         "huggingface_tensorflow": r"hf-tf-(\d+.\d+)",
+        "autogluon": r"ag-(\d+.\d+)",
     }
 
     py2_deprecated = {"tensorflow1": None, "tensorflow2": "2.2", "mxnet": "1.7", "pytorch": "1.5"}
@@ -783,6 +784,13 @@ def parse_canary_images(framework, region):
                     # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py3_version}",
                     # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py3_version}",
                     # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py3_version}",
+                ],
+            },
+            "autogluon": {
+                "py2": [],
+                "py3": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py3_version}",
                 ],
             },
         }
@@ -911,7 +919,7 @@ def get_framework_and_version_from_tag(image_uri):
     :return: framework name, framework version
     """
     tested_framework = get_framework_from_image_uri(image_uri)
-    allowed_frameworks = ("huggingface_tensorflow", "huggingface_pytorch", "tensorflow", "mxnet", "pytorch")
+    allowed_frameworks = ("huggingface_tensorflow", "huggingface_pytorch", "tensorflow", "mxnet", "pytorch", "autogluon")
 
     if not tested_framework:
         raise RuntimeError(
@@ -930,6 +938,7 @@ def get_framework_from_image_uri(image_uri):
         else "mxnet" if "mxnet" in image_uri
         else "pytorch" if "pytorch" in image_uri
         else "tensorflow" if "tensorflow" in image_uri
+        else "autogluon" if "autogluon" in image_uri
         else None
     )
 
