@@ -2,6 +2,8 @@ import os
 import json
 import time
 
+from packaging.version import Version
+
 import pytest
 
 from invoke.context import Context
@@ -9,6 +11,7 @@ from invoke.exceptions import UnexpectedExit
 
 from test.test_utils import (
     is_mainline_context,
+    get_framework_and_version_from_tag,
     get_container_name,
     get_processor_from_image_uri,
     is_tf_version,
@@ -114,8 +117,22 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
         # Wait a minute and a half if we get an invoke failure - since smprofiler test requirements can be flaky
         time.sleep(90)
 
+    framework, version = get_framework_and_version_from_tag(image)
+    smprof_configs = {
+        "use_current_branch": "false",
+        "enable_smdataparallel_tests": "true",
+        "force_run_tests": "false",
+        "framework": framework,
+        "build_type": "release"
+    }
+    if framework == "pytorch" and Version(version) < Version("1.6"):
+        smprof_configs["enable_smdataparallel_tests"] = "false"
+    if framework == "tensorflow" and Version(version) < Version("2.3"):
+        smprof_configs["enable_smdataparallel_tests"] = "false"
+
     # Command to set all necessary environment variables
-    export_cmd = f"export ENV_CPU_TRAIN_IMAGE=test && export ENV_GPU_TRAIN_IMAGE=test && " \
+    export_cmd = " && ".join(f"export {key}={val}" for key, val in smprof_configs.items())
+    export_cmd = f"{export_cmd} && export ENV_CPU_TRAIN_IMAGE=test && export ENV_GPU_TRAIN_IMAGE=test && " \
                  f"export ENV_{processor.upper()}_TRAIN_IMAGE={image}"
 
     test_results_outfile = os.path.join(os.getcwd(), f"{get_container_name('smprof', image)}.txt")
