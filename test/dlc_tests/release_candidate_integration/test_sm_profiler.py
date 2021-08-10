@@ -23,7 +23,7 @@ from test.test_utils import (
 @pytest.mark.skipif(not is_mainline_context(), reason="Mainline only test")
 def test_sm_profiler_pt(pytorch_training):
     processor = get_processor_from_image_uri(pytorch_training)
-    if processor not in ("cpu", "gpu"):
+    if processor not in ("gpu"):
         pytest.skip(f"Processor {processor} not supported. Skipping test.")
 
     ctx = Context()
@@ -133,7 +133,7 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
     # Command to set all necessary environment variables
     export_cmd = " && ".join(f"export {key}={val}" for key, val in spec_file_envs.items())
     export_cmd = f"{export_cmd} && export ENV_CPU_TRAIN_IMAGE=test && export ENV_GPU_TRAIN_IMAGE=test && " \
-                 f"export ENV_{processor.upper()}_TRAIN_IMAGE={image}"
+                 f"export ENV_{processor.upper()}_TRAIN_IMAGE=763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.8.1-gpu-py36-cu111-ubuntu18.04"
 
     test_results_outfile = os.path.join(os.getcwd(), f"{get_container_name('smprof', image)}.txt")
     with ctx.prefix(f"cd {profiler_tests_dir}"):
