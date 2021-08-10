@@ -10,13 +10,10 @@ phases:
       - pip install -r src/requirements.txt
       - python src/send_status.py --status 2
       - python src/parse_partner_developers.py
-      - apt-get update && apt-get install unzip
   build:
     commands:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
-      - export TEST_TYPE="release_candidate_integration"
-      - export SMPROFILER_TESTS_BUCKET="s3://smprofiler-test-artifacts"
       - |
         if expr "${TEST_TYPE}" : "canary" >/dev/null; then
           $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION --registry-ids 763104351884)
