@@ -40,6 +40,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 FRAMEWORK_FIXTURES = (
     "pytorch_inference",
     "pytorch_training",
+    "autogluon_training",
     "mxnet_inference",
     "mxnet_training",
     "tensorflow_inference",
