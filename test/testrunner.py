@@ -305,12 +305,14 @@ def main():
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
     # Skipping non HuggingFace specific tests to execute only sagemaker tests
-    if any("huggingface" in image_uri for image_uri in all_image_list) and specific_test_type in (
-        "ecs",
-        "ec2",
-        "eks",
-        "bai",
-        "release_candidate_integration"
+    if any("huggingface" in image_uri for image_uri in all_image_list) or \
+            any("autogluon" in image_uri for image_uri in all_image_list) \
+            and specific_test_type in (
+            "ecs",
+            "ec2",
+            "eks",
+            "bai",
+            "release_candidate_integration"
     ):
         # Creating an empty file for because codebuild job fails without it
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
