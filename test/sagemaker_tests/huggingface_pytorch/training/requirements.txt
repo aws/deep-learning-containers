@@ -13,14 +13,9 @@ pytest-rerunfailures==8.0
 pytest-xdist==1.28.0
 PyYAML==5.4
 requests==2.24
-torch==1.6.0
-torchvision==0.7.0
 tox==3.7.0
 requests_mock==1.6.0
 fabric
 retrying
 gitpython
 toml
-s3fs==0.4.2
-datasets[s3]==1.6.2
-transformers==4.6.1
