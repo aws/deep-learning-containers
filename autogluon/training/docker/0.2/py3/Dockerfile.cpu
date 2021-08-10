@@ -101,7 +101,7 @@ RUN pip install --no-cache-dir -U \
 && pip uninstall -y jupyter-client jupyter-core jupyter-packaging jupyter-server jupyter-server-proxy \
     jupyterlab jupyterlab-nvdashboard jupyterlab-pygments jupyterlab-server jupyterlab-widgets ipywidgets \
     widgetsnbextension traitlets pydeck panel nbformat nbconvert nbclient pyppeteer matplotlib-inline \
-    ipython-genutils ipython ipykernel torchvision bokeh plotly notebook datashader
+    ipython-genutils ipython ipykernel bokeh notebook datashader
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
