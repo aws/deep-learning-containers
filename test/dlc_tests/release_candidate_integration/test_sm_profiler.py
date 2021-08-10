@@ -21,7 +21,7 @@ from test.test_utils import (
 
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("N/A")
-@pytest.mark.skipif(not is_mainline_context(), reason="Mainline only test")
+#@pytest.mark.skipif(not is_mainline_context(), reason="Mainline only test")
 def test_sm_profiler_pt(pytorch_training):
     processor = get_processor_from_image_uri(pytorch_training)
     if processor not in ("gpu"):
