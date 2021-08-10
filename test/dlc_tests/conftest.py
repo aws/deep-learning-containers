@@ -40,6 +40,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 FRAMEWORK_FIXTURES = (
     "pytorch_inference",
     "pytorch_training",
+    "autogluon_training",
     "mxnet_inference",
     "mxnet_training",
     "tensorflow_inference",
@@ -62,6 +63,7 @@ FRAMEWORK_FIXTURES = (
     "huggingface_tensorflow_inference",
     "huggingface_pytorch_inference",
     "huggingface_mxnet_inference",
+    "autogluon_training",
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -344,6 +346,11 @@ def non_huggingface_only():
 
 
 @pytest.fixture(scope="session")
+def non_autogluon_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def cpu_only():
     pass
 
@@ -617,6 +624,8 @@ def pytest_generate_tests(metafunc):
                     if not framework_version_within_limit(metafunc, image):
                         continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
+                        continue
+                    if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue
                     if is_example_lookup or is_huggingface_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
