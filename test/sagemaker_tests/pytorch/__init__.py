@@ -43,6 +43,7 @@ def get_account_id_from_image_uri(image_uri):
     """
     return image_uri.split(".")[0]
 
+
 def get_region_from_image_uri(image_uri):
     """
     Find the region where the image is located
@@ -72,8 +73,10 @@ def ecr_repo_exists(ecr_client, repo_name, account_id=None):
         return False
     return True
 
+
 def delete_file(file_path):
     subprocess.check_output(f"rm -rf {file_path}", shell=True, executable="/bin/bash")
+
 
 def get_ecr_login_boto3(ecr_client, account_id, region):
     """
@@ -91,8 +94,10 @@ def save_credentials_to_file(file_path, password):
     with open(file_path, "w") as file:
         file.write(f"{password}")
 
+
 class ECRRepoDoesNotExist(Exception):
     pass
+
 
 def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_region):
     """
@@ -139,6 +144,13 @@ def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_
 
     return target_image_uri
 
+
+def get_ecr_image_region(ecr_image):
+    ecr_registry, _ = ecr_image.split("/")
+    region_search = re.search(r"(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d+", ecr_registry)
+    return region_search.group()
+
+
 def get_ecr_image(ecr_image, region):
     """
     It uploads image to the aws region and return image uri
@@ -152,31 +164,32 @@ def get_ecr_image(ecr_image, region):
 
 def invoke_pytorch_helper_function(ecr_image, sagemaker_regions, helper_function, helper_function_args):
     """
-    Used to invoke SM job defined in the helper functions in respective test file. The ECR image and the sagemaker session are passed explictly 
-    depending on the AWS region. 
-   This function will rerun for all SM regions after a defined wait time if capacity issues are seen.
+    Used to invoke SM job defined in the helper functions in respective test file. The ECR image and the sagemaker
+    session are passed explicitly depending on the AWS region.
+    This function will rerun for all SM regions after a defined wait time if capacity issues are seen.
 
     :param ecr_image: ECR image in us-west-2 region
     :param sagemaker_regions: List of SageMaker regions
     :param helper_function: Function to invoke
-    :param helper_function_args: Helper function args 
+    :param helper_function_args: Helper function args
 
     :return: None
     """
 
-    RETRY = 2
-    DELAY = 300
-    for _ in range(RETRY):
+    num_retries = 2
+    retry_delay = 300
+    ecr_image_region = get_ecr_image_region(ecr_image)
+    for _ in range(num_retries):
         for region in sagemaker_regions:
             sagemaker_session = get_sagemaker_session(region)
-            ecr_image = get_ecr_image(ecr_image, region) if region != "us-west-2" else ecr_image
+            # Reupload the image to test region if needed
+            tested_ecr_image = get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
             try:
-                helper_function(ecr_image, sagemaker_session, **helper_function_args)
+                helper_function(tested_ecr_image, sagemaker_session, **helper_function_args)
                 return
             except sagemaker.exceptions.UnexpectedStatusException as e:
                 if "CapacityError" in str(e):
-                    time.sleep(DELAY)
+                    time.sleep(retry_delay)
                     continue
                 else:
                     raise e
-        
