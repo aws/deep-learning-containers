@@ -303,6 +303,12 @@ def main():
     eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
+
+    # In PR context, allow us to switch sagemaker tests to RC tests.
+    # Do not allow them to be both enabled due to capacity issues.
+    if specific_test_type == "sagemaker" and is_rc_test_context() and is_pr_context():
+        specific_test_type = "release_candidate_integration"
+
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
     # Skipping non HuggingFace specific tests to execute only sagemaker tests
@@ -319,11 +325,6 @@ def main():
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         sm_utils.generate_empty_report(report, test_type, "huggingface")
         return
-
-    # In PR context, allow us to switch sagemaker tests to RC tests.
-    # Do not allow them to be both enabled due to capacity issues.
-    if specific_test_type == "sagemaker" and is_rc_test_context() and is_pr_context():
-        specific_test_type = "release_candidate_integration"
 
     if specific_test_type in (
             "sanity", "ecs", "ec2", "eks", "canary", "bai", "quick_checks", "release_candidate_integration"
