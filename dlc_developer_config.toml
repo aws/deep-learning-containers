@@ -28,11 +28,11 @@ eks_tests = true
 ec2_tests = true
 
 ### Off by default
-sagemaker_tests = false
+sagemaker_tests = true
   # Setting release_candidate_tests to `true` will disable SM tests and run RC tests in SM test jobs.
   # SM local tests will still run.
   # *sagemaker_tests must be set to `true` if setting release_candidate_tests to `true`.*
-  release_candidate_tests = false
+  release_candidate_tests = true
 
 efa_tests = false
 
