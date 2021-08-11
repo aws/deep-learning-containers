@@ -29,6 +29,7 @@ mxnet/ @aws/dlc-mxnet-reviewers
 
 # Any PR with a file with "smdebug" in it will be assigned to the smdebug reviewer team
 *smdebug* @aws/dlc-smdebug-reviewers
+test_sm_profiler.py @aws/dlc-smdebug-reviewers
 
 # Any PR with a file with "neuron" in it will be assigned to the neuron reviewer team
 *neuron* @aws/dlc-neuron-reviewers
