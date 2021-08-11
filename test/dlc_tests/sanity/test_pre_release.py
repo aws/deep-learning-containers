@@ -183,7 +183,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     # Skip framework version test for tensorflow-inference, since it doesn't have core TF installed
     if "tensorflow-inference" not in image:
         # Framework name may include huggingface
-        tested_framework = tested_framework.lstrip("huggingface_")
+        if tested_framework.startswith('huggingface_'):
+            tested_framework = tested_framework[len("huggingface_"):]
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
@@ -204,7 +205,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     cuda_version = re.search(r"-cu(\d+)-", image).group(1)
 
     # MXNet inference containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
-    if "mxnet-inference" in image:
+    if "mxnet-inference" in image or "autogluon" in image:
         cuda_cmd = "readlink /usr/local/cuda"
     else:
         cuda_cmd = "nvcc --version"
