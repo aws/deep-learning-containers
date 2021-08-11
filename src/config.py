@@ -29,5 +29,9 @@ def is_benchmark_mode_enabled():
     return parse_dlc_developer_configs("dev", "benchmark_mode")
 
 
+def is_rc_test_mode_enabled():
+    return parse_dlc_developer_configs("test", "release_candidate_tests")
+
+
 def is_build_enabled():
     return parse_dlc_developer_configs("build", "do_build")

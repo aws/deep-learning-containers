@@ -21,6 +21,7 @@ from test_utils import (
     get_dlc_images,
     is_pr_context,
     is_benchmark_dev_context,
+    is_rc_test_context,
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
     setup_sm_benchmark_mx_train_env,
@@ -318,6 +319,11 @@ def main():
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         sm_utils.generate_empty_report(report, test_type, "huggingface")
         return
+
+    # In PR context, allow us to switch sagemaker tests to RC tests.
+    # Do not allow them to be both enabled due to capacity issues.
+    if specific_test_type == "sagemaker" and is_rc_test_context() and is_pr_context():
+        specific_test_type = "release_candidate_integration"
 
     if specific_test_type in (
             "sanity", "ecs", "ec2", "eks", "canary", "bai", "quick_checks", "release_candidate_integration"

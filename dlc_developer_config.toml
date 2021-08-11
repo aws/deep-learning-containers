@@ -21,14 +21,19 @@ datetime_tag = true
 do_build = true
 
 [test]
-# On by default
+### On by default
 sanity_tests = true
 ecs_tests = true
 eks_tests = true
 ec2_tests = true
 
-# Off by default
+### Off by default
 sagemaker_tests = false
+  # Setting release_candidate_tests to `true` will disable SM tests and run RC tests in SM test jobs.
+  # SM local tests will still run.
+  # *sagemaker_tests must be set to `true` if setting release_candidate_tests to `true`.*
+  release_candidate_tests = false
+
 efa_tests = false
 
 use_scheduler = false
