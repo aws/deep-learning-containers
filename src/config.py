@@ -14,7 +14,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
 def get_dlc_developer_config_path():
-    root_dir_pattern = re.compile(r'^(\S+deep-learning-containers)')
+    root_dir_pattern = re.compile(r"^(\S+deep-learning-containers)")
     pwd = os.getcwd()
     dev_config_parent_dir = os.getenv("CODEBUILD_SRC_DIR")
 
@@ -73,7 +73,7 @@ def is_scheduler_enabled():
 class AllowedSMRemoteConfigValues(Enum):
     OFF = "off"
     RC = "rc"
-    DEFAULT = "default"
+    STANDARD = "standard"
 
 
 def get_sagemaker_remote_tests_config_value():
@@ -94,7 +94,11 @@ def is_sm_remote_test_enabled():
     if isinstance(sm_remote_tests_value, str):
         sm_remote_tests_value = sm_remote_tests_value.lower().strip()
 
-    if sm_remote_tests_value in {True, AllowedSMRemoteConfigValues.DEFAULT.value, AllowedSMRemoteConfigValues.RC.value}:
+    if sm_remote_tests_value in {
+        True,
+        AllowedSMRemoteConfigValues.STANDARD.value,
+        AllowedSMRemoteConfigValues.RC.value,
+    }:
         return True
 
     if sm_remote_tests_value != AllowedSMRemoteConfigValues.OFF.value:

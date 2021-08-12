@@ -32,9 +32,9 @@ efa_tests = false
 sagemaker_local_tests = false
 
 # SM remote test valid values:
-# "off" --> do not trigger sagemaker remote tests
-# "default --> run default sagemaker remote tests
+# "off" --> do not trigger sagemaker remote tests (default)
+# "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
-sagemaker_remote_tests = "default"
+sagemaker_remote_tests = "standard"
 
 use_scheduler = false

@@ -311,17 +311,14 @@ def main():
 
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
-    # Skipping non HuggingFace specific tests to execute only sagemaker tests
-    if any("huggingface" in image_uri for image_uri in all_image_list) or \
-            any("autogluon" in image_uri for image_uri in all_image_list) \
-            and specific_test_type in (
-            "ecs",
-            "ec2",
-            "eks",
-            "bai",
-            "release_candidate_integration"
+    # Skipping non HuggingFace/AG specific tests to execute only sagemaker tests
+    is_hf_image_present = any("huggingface" in image_uri for image_uri in all_image_list)
+    is_ag_image_present = any("autogluon" in image_uri for image_uri in all_image_list)
+    if (is_hf_image_present or is_ag_image_present) and specific_test_type in (
+            "ecs", "ec2", "eks", "bai", "release_candidate_integration"
     ):
         # Creating an empty file for because codebuild job fails without it
+        LOGGER.info(f"NOTE: {specific_test_type} tests not supported on HF or AG. Skipping...")
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         sm_utils.generate_empty_report(report, test_type, "huggingface")
         return
