@@ -30,7 +30,11 @@ ec2_tests = true
 ### Off by default
 efa_tests = false
 sagemaker_local_tests = false
-# valid values are "off", "default", "rc"
-sagemaker_remote_tests = "off"
+
+# SM remote test valid values:
+# "off" --> do not trigger sagemaker remote tests
+# "default --> run default sagemaker remote tests
+# "rc" --> run release_candidate_integration tests
+sagemaker_remote_tests = "default"
 
 use_scheduler = false
