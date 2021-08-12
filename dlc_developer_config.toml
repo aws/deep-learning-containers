@@ -28,10 +28,9 @@ eks_tests = true
 ec2_tests = true
 
 ### Off by default
+efa_tests = false
 sagemaker_local_tests = false
 # valid values are "off", "default", "rc"
 sagemaker_remote_tests = "off"
-
-efa_tests = false
 
 use_scheduler = false

@@ -18,7 +18,7 @@ from packaging.version import LegacyVersion, Version, parse
 from packaging.specifiers import SpecifierSet
 from retrying import retry
 
-from src.config import is_benchmark_mode_enabled, get_sagemaker_remote_tests_config_value
+from src.config import is_benchmark_mode_enabled, get_sagemaker_remote_tests_config_value, AllowedSMRemoteConfigValues
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -76,6 +76,7 @@ SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 PUBLIC_DLC_REGISTRY = "763104351884"
 
 SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
+
 
 class MissingPythonVersionException(Exception):
     """
@@ -245,7 +246,7 @@ def is_benchmark_dev_context():
 
 def is_rc_test_context():
     sm_remote_tests_val = get_sagemaker_remote_tests_config_value()
-    return sm_remote_tests_val == "release_candidate" or sm_remote_tests_val == "rc"
+    return sm_remote_tests_val == AllowedSMRemoteConfigValues.RC.value
 
 
 def is_time_for_canary_safety_scan():
