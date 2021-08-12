@@ -28,10 +28,10 @@ eks_tests = true
 ec2_tests = true
 
 ### Off by default
-sagemaker_local_tests = false
-# valid values are "", "default", "release_candidate"
+sagemaker_local_tests = true
+# valid values are "off", "default", "release_candidate"
 # if you place any value `val` where `bool(val) == True`, we will warn you, but assume default
-sagemaker_remote_tests = "release_candidate"
+sagemaker_remote_tests = "off"
 
 efa_tests = false
 

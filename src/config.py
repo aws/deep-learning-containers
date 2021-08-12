@@ -40,11 +40,45 @@ def is_build_enabled():
     return parse_dlc_developer_configs("build", "do_build")
 
 
-def get_allowed_sagemaker_remote_tests_config_values():
+def is_ec2_test_enabled():
+    return parse_dlc_developer_configs("test", "ec2_tests")
+
+
+def is_ecs_test_enabled():
+    return parse_dlc_developer_configs("test", "ecs_tests")
+
+
+def is_eks_test_enabled():
+    return parse_dlc_developer_configs("test", "eks_tests")
+
+
+def is_sanity_test_enabled():
+    return parse_dlc_developer_configs("test", "sanity_tests")
+
+
+def is_sm_local_test_enabled():
+    return parse_dlc_developer_configs("test", "sagemaker_local_tests")
+
+
+def are_efa_tests_enabled():
+    parse_dlc_developer_configs("test", "efa_tests")
+
+
+def is_scheduler_enabled():
+    parse_dlc_developer_configs("test", "use_scheduler")
+
+
+def get_allowed_sagemaker_remote_tests_config_values(disabled_only=False, enabled_only=False):
     """
     Retrieve allowed SM remote tests config values
     """
-    return "", "default", "release_candidate"
+    disabled = ("off", "", False)
+    enabled = ("default", "release_candidate")
+    if disabled_only:
+        return disabled
+    if enabled_only:
+        return enabled
+    return enabled + disabled
 
 
 def get_sagemaker_remote_tests_config_value():
@@ -56,3 +90,27 @@ def get_sagemaker_remote_tests_config_value():
             f"Please ensure it is one of {allowed_config_values}, or your tests may not get triggered as expected."
         )
     return sm_config_value
+
+
+def is_sm_remote_test_enabled():
+    sm_remote_tests_value = get_sagemaker_remote_tests_config_value()
+    # disable SM tests if the sm_remote_tests_value is one of our 'disable' values
+    if sm_remote_tests_value in get_allowed_sagemaker_remote_tests_config_values(disabled_only=True):
+        return False
+    # enable SM tests if the sm_remote_tests_value is one of our 'enable' values
+    elif sm_remote_tests_value in get_allowed_sagemaker_remote_tests_config_values(enabled_only=True):
+        return True
+    # disable SM tests if bool(sm_remote_tests_value) == False. Warn in this case.
+    elif not sm_remote_tests_value:
+        LOGGER.warning(
+            f"Disabling the SM remote tests, but unrecognized `False` boolean {sm_remote_tests_value} "
+            f"detected for sagemaker_remote_tests config."
+        )
+        return False
+
+    # enable SM tests if bool(sm_remote_tests_value) == True and the value is unrecognized. Warn in this case.
+    LOGGER.warning(
+        f"Enabling the SM remote tests, but unrecognized `True` boolean {sm_remote_tests_value} "
+        f"detected for sagemaker_remote_tests config. Behavior may not be as expected."
+    )
+    return True
