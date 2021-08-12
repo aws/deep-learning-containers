@@ -62,11 +62,12 @@ printf "Model path: %s\n" "$MODEL_PATH"
 printf "TS_CONFIG: %s\n" "$TS_CONFIG"
 # Start the Model Server
 if [[ -z "$MODEL_PATH" ]]; then
-  torchserve --start --ts-config /home/model-server/config.properties --model-store /opt/ml/model &
+  torchserve --start --ts-config /home/model-server/config.properties --model-store /opt/ml/model
 else
-  torchserve --start --ts-config $TS_CONFIG --models $MODEL_PATH &
+  torchserve --start --ts-config $TS_CONFIG --models $MODEL_PATH
 fi
 status=$?
+ts_pid=$(<"/home/model-server/tmp/.model_server.pid")
 if [ $status -ne 0 ]; then
   echo "Failed to start TF Model Server: $status"
   exit $status
@@ -86,10 +87,10 @@ while sleep 60; do
       exit 1
     fi
   fi
-  ps aux |grep torchserve |grep -q -v grep
+  ps -p $ts_pid >/dev/null 2>&1
   MODEL_SERVER_STATUS=$?
-  # If the greps above find anything, they exit with 0 status
-  # If they are not both 0, then something is wrong
+  # If the torchserve pid exists then status would be 0
+  # If not 0, then something is wrong
   if [ $MODEL_SERVER_STATUS -ne 0 ]; then
     echo "torchserve  has already exited."
     exit 1
