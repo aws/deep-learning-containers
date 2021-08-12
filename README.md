@@ -105,6 +105,30 @@ folder structure as per above and modify the buildspec.yml file to specify the v
                        --py_versions py3
     ```
 
+### Building your image using Docker CLI
+
+To build individual dockerfiles with a much more granular look at layer builds, you can use Docker CLI commands to build DLC
+images by following these steps:
+
+1. Ensure that all build artifacts (files which are included into the dockerfile through `COPY` statements) are copied into the
+   `<framework>/<training/inference>/docker/build_artifacts/` folder. Assign this folder path to the `DLC_BUILD_CONTEXT` variable:
+   ```shell script
+   DLC_BUILD_CONTEXT=<framework>/<training/inference>/docker/build_artifacts/
+   ```
+2. Most of the build artifacts should already be located in the build_artifacts folder, with the exception of
+   `src/deep_learning_container.py`, which can be moved by running:
+   ```shell script
+   mv src/deep_learning_container.py $DLC_BUILD_CONTEXT/
+   ```
+3. Find the path to the dockerfile that must be built, and assign it to the `DLC_DOCKERFILE_PATH` variable:
+   ```shell script
+   DLC_DOCKERFILE_PATH=<framework>/<training/inference>/docker/\<version>/\<python_version>/Dockerfile.<processor>
+   ```
+4. Run the following command to build a DLC image using Docker CLI:
+   ```shell script
+   docker build -t my_dlc_<framework>_<framework_version>_image -f $DLC_DOCKERFILE_PATH $DLC_BUILD_CONTEXT
+   ```
+
 ### Upgrading the framework version
 1. Suppose, if there is a new framework version for MXNet (version 1.7.0) then this would need to be changed in the 
 buildspec.yml file for MXNet.
