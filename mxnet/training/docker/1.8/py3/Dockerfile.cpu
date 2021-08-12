@@ -185,4 +185,4 @@ LABEL dlc_major_version="1"
 
 # RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.8.0/license.txt
 
-CMD ["echo hi"]
+# CMD ["echo hi"]

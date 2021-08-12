@@ -157,7 +157,6 @@ def image_builder(buildspec):
         }
         
         #Create first stage docker object
-        print(f"[SHAN_TRIP] Image Config Dockerfile {image_config['docker_file']}")
         first_stage_image_object = DockerImage(
             info=info,
             dockerfile=image_config["docker_file"],
@@ -173,6 +172,7 @@ def image_builder(buildspec):
         # if "example" not in image_name.lower() and build_context == "MAINLINE":
         ###### UNDO THIS CHANGE ########
         if "example" not in image_name.lower():
+            conclude_stage_context = get_conclude_stage_context()
             second_stage_image_object = DockerImage(
                 info=info,
                 dockerfile=os.path.join(os.sep, os.getenv("PYTHONPATH"), "src", "Dockerfile.multipart"),
@@ -180,7 +180,7 @@ def image_builder(buildspec):
                 tag=image_tag,
                 to_build=image_config["build"],
                 stage=constants.SECOND_STAGE,
-                context=None,
+                context=conclude_stage_context,
             )
 
         FORMATTER.separator()
@@ -237,7 +237,27 @@ def image_builder(buildspec):
     #     BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
     #     TEST_TRIGGER=test_trigger_job,
     # )
+
+def get_conclude_stage_context():
+    ARTIFACTS = {}
+    ARTIFACTS.update(
+                {
+                    "safety_report": {
+                        "source": f"safety_report.json",
+                        "target": "safety_report.json"
+                    }
+                })
+    ARTIFACTS.update(
+                {
+                    "dockerfile": {
+                        "source": f"Dockerfile.multipart",
+                        "target": "Dockerfile",
+                    }
+                }
+            )
     
+    artifact_root = os.path.join(os.sep, os.getenv("PYTHONPATH"), "src") + "/"
+    return Context(ARTIFACTS, context_path=f'build/safety-json-file.tar.gz',artifact_root=artifact_root)
 
 def show_build_logs(images):
 
