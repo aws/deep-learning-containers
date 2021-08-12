@@ -356,4 +356,4 @@ release_images:
       cuda_version: "cu102"
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
+      force_release: True
