@@ -112,14 +112,13 @@ class DLCReleaseInformation:
     def imp_pip_packages(self):
         imp_pip_packages = {}
         container_pip_packages = json.loads(self.get_container_command_output("pip list --format=json"))
+        required_pip_packages = set(self.imp_packages_to_record["pip_packages"])
 
-        for pip_package in sorted(self.imp_packages_to_record["pip_packages"]):
-            for package_entry in container_pip_packages:
-                if package_entry["name"] == pip_package:
-                    imp_pip_packages[package_entry["name"]] = package_entry["version"]
-                    break
+        for package_entry in container_pip_packages:
+            if package_entry["name"] in required_pip_packages:
+                imp_pip_packages[package_entry["name"]] = package_entry["version"]
 
-        return imp_pip_packages
+        return sorted(imp_pip_packages, key=lambda package: package.name)
 
     @property
     def imp_apt_packages(self):
