@@ -10,6 +10,9 @@
 # Any modification to sagemaker_tests will require review from SageMaker MLF team
 sagemaker_tests/ @aws/sagemaker-ml-frameworks
 
+# Any files modified under autogluon/ will be assigned to the autogluon reviewer team
+autogluon/ @aws/dlc-autogluon-reviewers
+
 # Any files modified under tensorflow/ or tensorflow_serving/ will be assigned to the tf reviewer team
 tensorflow/ @aws/dlc-tf-reviewers
 tensorflow_serving/ @aws/dlc-tf-reviewers
