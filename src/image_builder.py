@@ -157,6 +157,7 @@ def image_builder(buildspec):
         }
         
         #Create first stage docker object
+        print(f"[SHAN_TRIP] Image Config Dockerfile {image_config['docker_file']}")
         first_stage_image_object = DockerImage(
             info=info,
             dockerfile=image_config["docker_file"],
@@ -168,10 +169,13 @@ def image_builder(buildspec):
         )
 
         #Create second stage docker object
-        if "example" not in image_name.lower() and build_context == "MAINLINE":
+        second_stage_image_object = None
+        # if "example" not in image_name.lower() and build_context == "MAINLINE":
+        ###### UNDO THIS CHANGE ########
+        if "example" not in image_name.lower():
             second_stage_image_object = DockerImage(
                 info=info,
-                dockerfile=os.path.join(os.sep, "Dockerfile.multipart"),
+                dockerfile=os.path.join(os.sep, os.getenv("PYTHONPATH"), "src", "Dockerfile.multipart"),
                 repository=image_repo_uri,
                 tag=image_tag,
                 to_build=image_config["build"],
@@ -182,7 +186,8 @@ def image_builder(buildspec):
         FORMATTER.separator()
 
         FIRST_STAGES_IMAGES.append(first_stage_image_object)
-        SECOND_STAGES_IMAGES.append(second_stage_image_object)
+        if second_stage_image_object is not None:
+            SECOND_STAGES_IMAGES.append(second_stage_image_object)
 
     FORMATTER.banner("DLC")
     #FORMATTER.title("Status")
@@ -194,7 +199,7 @@ def image_builder(buildspec):
     
     example_images = [image for image in FIRST_STAGES_IMAGES if "example" in image.name.lower()]
     #needs to be reconfigured
-    #ALL_IMAGES = first_stage_standard_images + second_stage_standard_images + example_images
+    ALL_IMAGES = list(set(first_stage_standard_images + second_stage_standard_images + example_images))
 
     #first stage build
     FORMATTER.banner("First Stage Build")
@@ -203,20 +208,17 @@ def image_builder(buildspec):
     """
     Run safety on first stage image and store the ouput file locally
     """
-
-    FORMATTER.banner("Second Stage Build")
-    build_images(SECOND_STAGES_IMAGES)
-    
+       
     #second stage build
-    if second_stage_standard_images:
+    if len(second_stage_standard_images) > 0:
         FORMATTER.banner("Second Stage Build")
         build_images(second_stage_standard_images)
     
-    push_images(second_stage_standard_images)
+    # push_images(second_stage_standard_images)
 
     #example image build
     build_images(example_images)
-    push_images(example_images)
+    # push_images(example_images)
 
     #After the build, display logs/sumary for all the images.
 
@@ -225,16 +227,16 @@ def image_builder(buildspec):
     is_any_build_failed, is_any_build_failed_size_limit = show_build_errors(ALL_IMAGES)
 
     #change logic here. upload metrics only for the second stage image
-    upload_metrics(IMAGES, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit)
+    # upload_metrics(ALL_IMAGES, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit)
 
     # Set environment variables to be consumed by test jobs
-    test_trigger_job = utils.get_codebuild_project_name()
+    # test_trigger_job = utils.get_codebuild_project_name()
     #needs to be configured to use final built images
-    utils.set_test_env(
-        IMAGES,
-        BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
-        TEST_TRIGGER=test_trigger_job,
-    )
+    # utils.set_test_env(
+    #     ALL_IMAGES,
+    #     BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
+    #     TEST_TRIGGER=test_trigger_job,
+    # )
     
 
 def show_build_logs(images):

@@ -105,11 +105,16 @@ class DockerImage:
                 print("within context")
                 self.docker_build(fileobj=context_file, custom_context=True)
                 self.context.remove()  
+        elif self.stage == constants.SECOND_STAGE:
+            with open(self.dockerfile, "rb") as dockerfile_obj:
+                self.docker_build(fileobj=dockerfile_obj)
         else:
             print("out of context")
             self.docker_build()
         #check the size after image is built.
         self.image_size_check()
+        ## This return is necessary. Otherwise formatter fails while displaying the status.
+        return self.build_status
     
     def docker_build(self, fileobj=None, custom_context=False):
         response = []
@@ -124,7 +129,8 @@ class DockerImage:
                 labels=self.labels
             ):
                 if line.get("error") is not None:
-                    self.context.remove()
+                    if self.context:
+                        self.context.remove()
                     response.append(line["error"])
 
                     self.log = response
