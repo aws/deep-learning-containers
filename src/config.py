@@ -73,7 +73,7 @@ def get_allowed_sagemaker_remote_tests_config_values(disabled_only=False, enable
     Retrieve allowed SM remote tests config values
     """
     disabled = ("off", "", False)
-    enabled = ("default", "release_candidate")
+    enabled = ("default", "release_candidate", "rc")
     if disabled_only:
         return disabled
     if enabled_only:
@@ -82,6 +82,9 @@ def get_allowed_sagemaker_remote_tests_config_values(disabled_only=False, enable
 
 
 def get_sagemaker_remote_tests_config_value():
+    """
+    Get the actual config option for sm remote tests
+    """
     sm_config_value = parse_dlc_developer_configs("test", "sagemaker_remote_tests")
     allowed_config_values = get_allowed_sagemaker_remote_tests_config_values()
     if sm_config_value not in allowed_config_values:
@@ -93,7 +96,12 @@ def get_sagemaker_remote_tests_config_value():
 
 
 def is_sm_remote_test_enabled():
+    """
+    Check to see if sm remote test is enabled by config
+    """
     sm_remote_tests_value = get_sagemaker_remote_tests_config_value()
+    if isinstance(sm_remote_tests_value, str):
+        sm_remote_tests_value = sm_remote_tests_value.lower().strip()
     # disable SM tests if the sm_remote_tests_value is one of our 'disable' values
     if sm_remote_tests_value in get_allowed_sagemaker_remote_tests_config_values(disabled_only=True):
         return False

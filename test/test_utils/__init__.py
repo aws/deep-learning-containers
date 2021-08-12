@@ -244,7 +244,8 @@ def is_benchmark_dev_context():
 
 
 def is_rc_test_context():
-    return get_sagemaker_remote_tests_config_value() == "release_candidate"
+    sm_remote_tests_val = get_sagemaker_remote_tests_config_value()
+    return sm_remote_tests_val == "release_candidate" or sm_remote_tests_val == "rc"
 
 
 def is_time_for_canary_safety_scan():
