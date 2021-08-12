@@ -18,7 +18,7 @@ from packaging.version import LegacyVersion, Version, parse
 from packaging.specifiers import SpecifierSet
 from retrying import retry
 
-from src.config import is_benchmark_mode_enabled, is_rc_test_mode_enabled
+from src.config import is_benchmark_mode_enabled, get_sagemaker_remote_tests_config_value
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -244,7 +244,7 @@ def is_benchmark_dev_context():
 
 
 def is_rc_test_context():
-    return is_rc_test_mode_enabled()
+    return get_sagemaker_remote_tests_config_value() == "release_candidate"
 
 
 def is_time_for_canary_safety_scan():

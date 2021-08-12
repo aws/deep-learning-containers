@@ -20,7 +20,7 @@ import sys
 import boto3
 
 import constants
-from config import parse_dlc_developer_configs, is_benchmark_mode_enabled
+from config import parse_dlc_developer_configs, is_benchmark_mode_enabled, get_sagemaker_remote_tests_config_value
 
 
 LOGGER = logging.getLogger(__name__)
@@ -70,8 +70,8 @@ def run_test_job(commit, codebuild_project, images_str=""):
 
 
 def is_test_job_enabled(test_type):
-    # only ec2 and sagemaker benchmark tests are supported currently
-    sm_tests_enabled = parse_dlc_developer_configs("test", "sagemaker_tests")
+    # For SM remote, we consider "enabled" as long as bool(config_value) == True
+    sm_remote_tests_enabled = get_sagemaker_remote_tests_config_value()
     ec2_tests_enabled = parse_dlc_developer_configs("test", "ec2_tests")
     ecs_tests_enabled = parse_dlc_developer_configs("test", "ecs_tests")
     eks_tests_enabled = parse_dlc_developer_configs("test", "eks_tests")
@@ -79,8 +79,8 @@ def is_test_job_enabled(test_type):
 
     benchmark_mode = is_benchmark_mode_enabled()
 
-    # For each test type, see if we should run the tests
-    if test_type == constants.SAGEMAKER_TESTS and sm_tests_enabled:
+    # For each test type, see if we should run the tests.
+    if test_type == constants.SAGEMAKER_TESTS and sm_remote_tests_enabled:
         return True
     if test_type == constants.EC2_TESTS and ec2_tests_enabled:
         return True
@@ -110,6 +110,8 @@ def main():
     # Run necessary PR test jobs
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
 
+    sm_local_tests_enabled = parse_dlc_developer_configs("test", "sagemaker_local_tests")
+
     for test_type, images in test_images.items():
         # only run the code build test jobs when the images are present
         LOGGER.debug(f"test_type : {test_type}")
@@ -127,11 +129,11 @@ def main():
                     continue
                 run_test_job(commit, pr_test_job, images_str)
 
-                # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
-                # sagemaker local test is not supported in benchmark dev mode
-                if test_type == "sagemaker" and not is_benchmark_mode_enabled():
-                    test_job = f"dlc-pr-{test_type}-local-test"
-                    run_test_job(commit, test_job, images_str)
+            # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
+            # sagemaker local test is not supported in benchmark dev mode
+            if test_type == "sagemaker" and not is_benchmark_mode_enabled() and sm_local_tests_enabled:
+                test_job = f"dlc-pr-{test_type}-local-test"
+                run_test_job(commit, test_job, images_str)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,14 @@
 import os
 import re
+import logging
+import sys
 
 import toml
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
 def get_dlc_developer_config_path():
@@ -29,9 +36,23 @@ def is_benchmark_mode_enabled():
     return parse_dlc_developer_configs("dev", "benchmark_mode")
 
 
-def is_rc_test_mode_enabled():
-    return parse_dlc_developer_configs("test", "release_candidate_tests")
-
-
 def is_build_enabled():
     return parse_dlc_developer_configs("build", "do_build")
+
+
+def get_allowed_sagemaker_remote_tests_config_values():
+    """
+    Retrieve allowed SM remote tests config values
+    """
+    return "", "default", "release_candidate"
+
+
+def get_sagemaker_remote_tests_config_value():
+    sm_config_value = parse_dlc_developer_configs("test", "sagemaker_remote_tests")
+    allowed_config_values = get_allowed_sagemaker_remote_tests_config_values()
+    if sm_config_value not in allowed_config_values:
+        LOGGER.warning(
+            f"Unrecognized sagemaker_remote_tests config {sm_config_value}. "
+            f"Please ensure it is one of {allowed_config_values}, or your tests may not get triggered as expected."
+        )
+    return sm_config_value
