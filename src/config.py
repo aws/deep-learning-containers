@@ -94,15 +94,12 @@ def is_sm_remote_test_enabled():
     if isinstance(sm_remote_tests_value, str):
         sm_remote_tests_value = sm_remote_tests_value.lower().strip()
 
-    if sm_remote_tests_value == AllowedSMRemoteConfigValues.OFF.value:
-        return False
-    # Support "true" so as not to break existing workflows
-    if sm_remote_tests_value is True:
+    if sm_remote_tests_value in {True, AllowedSMRemoteConfigValues.DEFAULT.value, AllowedSMRemoteConfigValues.RC.value}:
         return True
-    if sm_remote_tests_value in (AllowedSMRemoteConfigValues.DEFAULT.value, AllowedSMRemoteConfigValues.RC.value):
-        return True
-    LOGGER.warning(
-        f"Unrecognized sagemaker_remote_tests setting {sm_remote_tests_value}. Please choose one of {allowed_values}. "
-        f"Disabling sagemaker remote tests."
-    )
+
+    if sm_remote_tests_value != AllowedSMRemoteConfigValues.OFF.value:
+        LOGGER.warning(
+            f"Unrecognized sagemaker_remote_tests setting {sm_remote_tests_value}. "
+            f"Please choose one of {allowed_values}. Disabling sagemaker remote tests."
+        )
     return False
