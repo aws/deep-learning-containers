@@ -61,11 +61,11 @@ def is_sm_local_test_enabled():
 
 
 def are_efa_tests_enabled():
-    parse_dlc_developer_configs("test", "efa_tests")
+    return parse_dlc_developer_configs("test", "efa_tests")
 
 
 def is_scheduler_enabled():
-    parse_dlc_developer_configs("test", "use_scheduler")
+    return parse_dlc_developer_configs("test", "use_scheduler")
 
 
 def get_allowed_sagemaker_remote_tests_config_values(disabled_only=False, enabled_only=False):
