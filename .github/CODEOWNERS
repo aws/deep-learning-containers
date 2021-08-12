@@ -14,22 +14,25 @@ sagemaker_tests/ @aws/sagemaker-ml-frameworks
 autogluon/ @aws/dlc-autogluon-reviewers
 
 # Any files modified under tensorflow/ or tensorflow_serving/ will be assigned to the tf reviewer team
-tensorflow/ @dlc-tf-reviewers
+tensorflow/ @aws/dlc-tf-reviewers
 tensorflow_serving/ @aws/dlc-tf-reviewers
 
 # Any PR with testTF* or testTensor* file change will be assigned to the tf reviewer team
-testTF* @dlc-tf-reviewers
+testTF* @aws/dlc-tf-reviewers
 testTensor* @aws/dlc-tf-reviewers
+huggingface_tensorflow/ @aws/dlc-tf-reviewers
 
 # Any files modified under pytorch/ or pytorch_tests/ dir will require review from pytorch reviewer team
-pytorch/ @dlc-pytorch-reviewers
+pytorch/ @aws/dlc-pytorch-reviewers
 pytorch_tests/ @aws/dlc-pytorch-reviewers
+huggingface_pytorch/ @aws/dlc-pytorch-reviewers
 
 # Any files modified under mxnet/ dir will require review from the mxnet reviewer team
 mxnet/ @aws/dlc-mxnet-reviewers
 
 # Any PR with a file with "smdebug" in it will be assigned to the smdebug reviewer team
 *smdebug* @aws/dlc-smdebug-reviewers
+test_sm_profiler.py @aws/dlc-smdebug-reviewers
 
 # Any PR with a file with "neuron" in it will be assigned to the neuron reviewer team
 *neuron* @aws/dlc-neuron-reviewers
