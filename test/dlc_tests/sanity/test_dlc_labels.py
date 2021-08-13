@@ -88,7 +88,7 @@ def test_dlc_major_version_dockerfiles(image):
     fw_version_major_minor = re.match(r"(\d+\.\d+)", fw_version).group(1)
     for root, dirnames, filenames in os.walk(root_dir):
         for filename in filenames:
-            if filename == f"Dockerfile.{processor}":
+            if filename in {f"Dockerfile.{processor}", f"Dockerfile.diy.{processor}", f"Dockerfile.sagemaker.{processor}"}:
                 dockerfile_path = os.path.join(root_dir, root, filename)
                 if "example" not in dockerfile_path and f"{os.sep}{fw_version_major_minor}" in dockerfile_path:
                     dockerfiles.append(dockerfile_path)
