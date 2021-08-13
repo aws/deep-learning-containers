@@ -12,6 +12,7 @@ from test.test_utils import (
 )
 
 
+@pytest.mark.sagemaker
 @pytest.mark.model("N/A")
 def test_torchvision_nms_training(pytorch_training):
     """
@@ -29,6 +30,7 @@ def test_torchvision_nms_training(pytorch_training):
     )
 
 
+@pytest.mark.sagemaker
 @pytest.mark.model("N/A")
 def test_torchvision_nms_inference(pytorch_inference, non_huggingface_only):
     """

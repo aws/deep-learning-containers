@@ -39,7 +39,7 @@ context:
       target: deep_learning_container.py
 
 images:
-  BuildTensorflowCpuPy37TrainingDockerImage:
+  BuildTensorflowDIYCpuPy37TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_CPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 4489
@@ -47,9 +47,24 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
     os_version: &OS_VERSION ubuntu18.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-diy"
       ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.,
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.diy.,
+      *DEVICE_TYPE ]
+    context:
+      <<: *TRAINING_CONTEXT
+  BuildTensorflowSageMakerCpuPy37TrainingDockerImage:
+    <<: *TRAINING_REPOSITORY
+    build: &TENSORFLOW_GPU_TRAINING_PY3 false
+    image_size_baseline: &IMAGE_SIZE_BASELINE 7738
+    base_image_name: BuildTensorflowDIYCpuPy37TrainingDockerImage
+    device_type: &DEVICE_TYPE cpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py37
+    os_version: &OS_VERSION ubuntu18.04
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker"
+      ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.sagemaker.,
       *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT

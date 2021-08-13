@@ -447,8 +447,13 @@ def main():
             sys.exit(pytest.main(pytest_cmd))
 
         else:
+            sm_remote_images = []
+            for std_img in sm_remote_images:
+                # Do not run SM tests on DIY images
+                if "diy" not in std_img:
+                    sm_remote_images.append(std_img)
             run_sagemaker_remote_tests(
-                [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
+                [image for image in sm_remote_images if not ("tensorflow-inference" in image and "py2" in image)]
             )
         metrics_utils.send_test_duration_metrics(start_time)
 
@@ -462,7 +467,7 @@ def main():
         testing_image_list = [
             image
             for image in standard_images_list
-            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))
+            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or ("diy" in image))
         ]
         run_sagemaker_local_tests(testing_image_list)
         # for EIA Images

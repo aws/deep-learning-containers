@@ -17,7 +17,9 @@ UTILITY_PACKAGES_IMPORT = [
     "cv2"
 ]
 
+
 # TODO: Need to be added to all DLC images in furture.
+@pytest.mark.sagemaker
 @pytest.mark.model("N/A")
 @pytest.mark.integration("awscli")
 def test_awscli(mxnet_inference):
@@ -35,6 +37,7 @@ def test_awscli(mxnet_inference):
     test_utils.run_cmd_on_container(container_name, ctx, "aws --version")
 
 
+@pytest.mark.sagemaker
 @pytest.mark.model("N/A")
 @pytest.mark.integration("bokeh")
 def test_utility_packages_using_import(training):
@@ -65,6 +68,7 @@ def test_utility_packages_using_import(training):
             assert Version(version) > Version("2"), f"Sagemaker version should be > 2.0. Found version {sm_version}"
 
 
+@pytest.mark.sagemaker
 @pytest.mark.model("N/A")
 @pytest.mark.integration("boto3")
 def test_boto3(mxnet_inference):
@@ -81,6 +85,7 @@ def test_boto3(mxnet_inference):
     test_utils.run_cmd_on_container(container_name, ctx, 'import boto3', executable="python")
 
 
+@pytest.mark.sagemaker
 @pytest.mark.model("N/A")
 @pytest.mark.integration("emacs")
 def test_emacs(image):

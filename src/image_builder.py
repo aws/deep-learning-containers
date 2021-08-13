@@ -176,8 +176,8 @@ def image_builder(buildspec):
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         # Standard images must be built before example images
         # Example images will use standard images as base
-        standard_images = [image for image in IMAGES if "example" not in image.name.lower()]
-        example_images = [image for image in IMAGES if "example" in image.name.lower()]
+        standard_images = [image for image in IMAGES if not image.info.get('base_image_uri')]
+        dependent_images = [image for image in IMAGES if image.info.get('base_image_uri')]
 
         for image in standard_images:
             THREADS[image.name] = executor.submit(image.build)
@@ -185,7 +185,7 @@ def image_builder(buildspec):
         # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
         FORMATTER.progress(THREADS)
 
-        for image in example_images:
+        for image in dependent_images:
             THREADS[image.name] = executor.submit(image.build)
 
         # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
