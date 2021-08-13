@@ -107,8 +107,7 @@ folder structure as per above and modify the buildspec.yml file to specify the v
 
 ### Building your image using Docker CLI
 
-To build individual dockerfiles with a much more granular look at layer builds, you can use Docker CLI commands to build DLC
-images by following these steps:
+If you want to build your docker image directly with Docker CLI instead of using our build scripts, follow these steps below:
 
 1. Ensure that all build artifacts (files which are included into the dockerfile through `COPY` statements) are copied into the
    `<framework>/<training/inference>/docker/build_artifacts/` folder. Assign this folder path to the `DLC_BUILD_CONTEXT` variable:
