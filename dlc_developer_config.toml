@@ -9,7 +9,7 @@ ei_mode = false
 neuron_mode = false
 # Please only set it to true if you are preparing a GRAVITON related PR
 # Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
-graviton_mode = false
+graviton_mode = true
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
 benchmark_mode = false
@@ -26,9 +26,9 @@ do_build = true
 [test]
 # On by default
 sanity_tests = true
-ecs_tests = true
-eks_tests = true
-ec2_tests = true
+ecs_tests = false
+eks_tests = false
+ec2_tests = false
 
 # Off by default
 sagemaker_tests = false
