@@ -19,8 +19,6 @@ ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorf
 
 ARG SMMODELPARALLEL_BINARY=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/tensorflow-2.5.0/build-artifacts/2021-06-22-00-43/smdistributed_modelparallel-1.4.0-cp37-cp37m-linux_x86_64.whl
 
-# install PyYAML==5.1.2 to avoid conflict with latest awscli
-# # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
    "sagemaker>=2,<3" \
    sagemaker-experiments==0.* \

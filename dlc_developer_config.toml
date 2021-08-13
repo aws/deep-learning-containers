@@ -28,7 +28,7 @@ eks_tests = true
 ec2_tests = true
 
 # Off by default
-sagemaker_tests = false
+sagemaker_tests = true
 efa_tests = false
 
 use_scheduler = false
