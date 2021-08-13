@@ -17,7 +17,7 @@ from test.test_utils.security import (
 MINIMUM_SEV_THRESHOLD = "HIGH"
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run security test regularly on production images")
 def test_security(image):
@@ -53,7 +53,7 @@ def run_scan(ecr_client, image):
         raise TimeoutError(f"ECR Scan is still in {scan_status} state. Exiting.")
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run ECR Scan test regularly on production images")
 @pytest.mark.integration("check OS dependencies")
@@ -103,7 +103,7 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
     )
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("check OS dependencies")
 @pytest.mark.skipif(is_dlc_cicd_context(), reason="Temporarily allow slack in allowlist w.r.t. actual vulnerabilities")

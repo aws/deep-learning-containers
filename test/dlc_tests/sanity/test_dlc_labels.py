@@ -9,7 +9,7 @@ from test import test_utils
 from packaging.version import Version
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("dlc_major_version_label")
 @pytest.mark.model("N/A")
 def test_dlc_major_version_label(image, region):
@@ -49,7 +49,7 @@ def test_dlc_major_version_label(image, region):
     test_utils.LOGGER.info(f"{image} has 'dlc_major_version' = {major_version}")
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("dlc_major_version_label")
 @pytest.mark.model("N/A")
 def test_dlc_major_version_dockerfiles(image):

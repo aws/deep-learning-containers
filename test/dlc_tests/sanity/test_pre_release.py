@@ -35,7 +35,7 @@ from test.test_utils import (
 )
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run stray file test regularly on production images")
 def test_stray_files(image):
@@ -78,7 +78,7 @@ def test_stray_files(image):
     _assert_artifact_free(root, stray_artifacts)
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run python version test regularly on production images")
 def test_python_version(image):
@@ -107,7 +107,7 @@ def test_python_version(image):
     assert py_version in container_py_version, f"Cannot find {py_version} in {container_py_version}"
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 def test_ubuntu_version(image):
     """
@@ -131,7 +131,7 @@ def test_ubuntu_version(image):
     assert ubuntu_version in container_ubuntu_version
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run non-gpu framework version test regularly on production images")
 def test_framework_version_cpu(image):
@@ -176,7 +176,7 @@ def test_framework_version_cpu(image):
 
 
 # TODO: Enable as canary once resource cleaning lambda is added
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
@@ -307,7 +307,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         )
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
@@ -319,7 +319,7 @@ def test_dependency_check_cpu(cpu, ec2_connection):
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
@@ -331,7 +331,7 @@ def test_dependency_check_gpu(gpu, ec2_connection):
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
@@ -343,7 +343,7 @@ def test_dependency_check_neuron(neuron, ec2_connection):
     _run_dependency_check_test(neuron, ec2_connection, "neuron")
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 def test_dataclasses_check(image):
     """
@@ -374,7 +374,7 @@ def test_dataclasses_check(image):
         pytest.skip(f"Skipping test for DLC image {image} that has py36 version as {pip_package} is not included in the python framework")
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run pip check test regularly on production images")
 def test_pip_check(image):
@@ -408,7 +408,7 @@ def test_pip_check(image):
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 def test_cuda_paths(gpu):
     """
@@ -509,7 +509,7 @@ def _assert_artifact_free(output, stray_artifacts):
         ), f"Matched {artifact} in {output.stdout} while running {output.command}"
 
 
-@pytest.sagemaker
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("oss_compliance")
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="We need to test OSS compliance only on PRs and pipelines")

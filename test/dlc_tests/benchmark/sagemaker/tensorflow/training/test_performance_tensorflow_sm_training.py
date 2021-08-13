@@ -19,7 +19,7 @@ from test.test_utils import (
 )
 
 
-@pytest.sagemaker_only
+@pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.multinode(4)
@@ -28,7 +28,7 @@ def test_tensorflow_sagemaker_training_performance_multinode(tensorflow_training
     run_sm_perf_test(tensorflow_training, 4, region)
 
 
-@pytest.sagemaker_only
+@pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50")
 def test_tensorflow_sagemaker_training_performance_singlenode(tensorflow_training, region):
