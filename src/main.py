@@ -30,6 +30,7 @@ def main():
     frameworks_to_skip = parse_dlc_developer_configs("build", "skip_frameworks")
     ei_build_mode = parse_dlc_developer_configs("dev", "ei_mode")
     neuron_build_mode = parse_dlc_developer_configs("dev", "neuron_mode")
+    graviton_build_mode = parse_dlc_developer_configs("dev", "graviton_mode")
 
     # A general will work if in non-EI and non-NEURON mode and its framework not been disabled
     general_builder_enabled = (

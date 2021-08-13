@@ -23,6 +23,7 @@ def test_developer_configuration():
     assert _get_option(dev_config_contents, "dev", "partner_developer") == ""
     assert _get_option(dev_config_contents, "dev", "ei_mode") is False
     assert _get_option(dev_config_contents, "dev", "neuron_mode") is False
+    assert _get_option(dev_config_contents, "dev", "graviton_mode") is False
     assert _get_option(dev_config_contents, "dev", "benchmark_mode") is False
 
     # Check build settings
