@@ -1,0 +1,32 @@
+# Expecting base image to be the image built by Dockerfile.diy.gpu
+ARG BASE_IMAGE=""
+
+FROM $BASE_IMAGE
+
+ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
+
+# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
+# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
+ARG SMDEBUG_VERSION=1.0.9
+
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.5.0/cu112/2021-06-21/smdistributed_dataparallel-1.2.1-cp37-cp37m-linux_x86_64.whl
+
+ARG SMMODELPARALLEL_BINARY=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/tensorflow-2.5.0/build-artifacts/2021-06-22-00-43/smdistributed_modelparallel-1.4.0-cp37-cp37m-linux_x86_64.whl
+
+# install PyYAML==5.1.2 to avoid conflict with latest awscli
+# # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
+RUN ${PIP} install --no-cache-dir -U \
+   "sagemaker>=2,<3" \
+   sagemaker-experiments==0.* \
+   "sagemaker-tensorflow>=2.5,<2.6" \
+   "sagemaker-tensorflow-training>=20" \
+   smdebug==${SMDEBUG_VERSION} \
+   smclarify
+
+# Install SMD MP binary
+RUN pip install --no-cache-dir -U ${SMMODELPARALLEL_BINARY}
+
+# Install SMD DP binary
+RUN SMDATAPARALLEL_TF=1 ${PIP} install --no-cache-dir ${SMDATAPARALLEL_BINARY}
+
+ENV LD_LIBRARY_PATH="/usr/local/lib/python3.7/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"

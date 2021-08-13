@@ -1,4 +1,4 @@
-# Use the Deep Learning Container as a base Image
+# Expecting base image to be the image built by Dockerfile.diy.cpu
 ARG BASE_IMAGE=""
 
 FROM $BASE_IMAGE
