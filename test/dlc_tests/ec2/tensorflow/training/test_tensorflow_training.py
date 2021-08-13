@@ -127,6 +127,7 @@ def test_tensorflow_opencv_cpu(tensorflow_training, ec2_connection, tf2_only, cp
 
 
 # Testing Telemetry Script on only one GPU instance
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -138,6 +139,7 @@ def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only,
 
 
 # Testing Telemetry Script on only one CPU instance
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")

@@ -361,6 +361,16 @@ def gpu_only():
 
 
 @pytest.fixture(scope="session")
+def sagemaker():
+    pass
+
+
+@pytest.fixture(scope="session")
+def sagemaker_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def eia_only():
     pass
 
