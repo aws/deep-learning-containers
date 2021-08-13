@@ -116,9 +116,15 @@ def get_dockerfile_path_for_image(image_uri):
     device_type = get_processor_from_image_uri(image_uri)
     cuda_version = get_cuda_version_from_tag(image_uri)
 
+    dockerfile_name = f"Dockerfile.{device_type}"
+    if "diy" in image_uri:
+        dockerfile_name = f"Dockerfile.diy.{device_type}"
+    if "sagemaker" in image_uri:
+        dockerfile_name = f"Dockerfile.sagemaker.{device_type}"
+
     dockerfiles_list = [
         path
-        for path in glob(os.path.join(python_version_path, "**", f"Dockerfile.{device_type}"), recursive=True)
+        for path in glob(os.path.join(python_version_path, "**", dockerfile_name), recursive=True)
         if "example" not in path
     ]
 

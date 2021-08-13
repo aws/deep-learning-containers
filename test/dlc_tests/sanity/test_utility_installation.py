@@ -6,16 +6,11 @@ from invoke.context import Context
 
 from test import test_utils
 
-UTILITY_PACKAGES_IMPORT = [
-    "bokeh",
-    "imageio",
-    "plotly",
-    "seaborn",
-    "shap",
-    "sagemaker",
-    "pandas",
-    "cv2"
-]
+UTILITY_PACKAGES_IMPORT = {
+    "base": ["bokeh", "imageio", "plotly", "seaborn", "shap", "pandas", "cv2"],
+    "sagemaker_exclusive": ["sagemaker"]
+
+}
 
 
 # TODO: Need to be added to all DLC images in furture.
@@ -61,11 +56,16 @@ def test_utility_packages_using_import(training):
     framework = "tensorflow1" if framework == "tensorflow" and framework_version.startswith("1.") else "tensorflow2"
     if Version(framework_version) < Version(utility_package_minimum_framework_version[framework]):
         pytest.skip("Extra utility packages will be added going forward.")
+
+    if "diy" in training:
+        packages_to_import = UTILITY_PACKAGES_IMPORT["base"]
+    else:
+        packages_to_import = UTILITY_PACKAGES_IMPORT["base"] + UTILITY_PACKAGES_IMPORT["sagemaker_exclusive"]
     
-    for package in UTILITY_PACKAGES_IMPORT:
+    for package in packages_to_import:
         version = test_utils.run_cmd_on_container(container_name, ctx, f"import {package}; print({package}.__version__)", executable="python").stdout.strip()
         if package == "sagemaker":
-            assert Version(version) > Version("2"), f"Sagemaker version should be > 2.0. Found version {sm_version}"
+            assert Version(version) > Version("2"), f"Sagemaker version should be > 2.0. Found version {version}"
 
 
 @pytest.mark.sagemaker
