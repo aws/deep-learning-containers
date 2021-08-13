@@ -18,7 +18,7 @@ SMCLARIFY_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.2xlarge", pr
 
 # Adding separate tests to run on cpu instance for cpu image and gpu instance for gpu image.
 # But the test behavior doesn't change for cpu or gpu image type.
-@pytest.mark.sagemaker_only
+@pytest.sagemaker_only
 @pytest.mark.integration("smclarify_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", SMCLARIFY_EC2_CPU_INSTANCE_TYPE, indirect=True)
@@ -35,7 +35,7 @@ def test_smclarify_metrics_cpu(
     run_smclarify_bias_metrics(training, ec2_connection, ec2_instance_type)
 
 
-@pytest.mark.sagemaker_only
+@pytest.sagemaker_only
 @pytest.mark.integration("smclarify_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", SMCLARIFY_EC2_GPU_INSTANCE_TYPE, indirect=True)

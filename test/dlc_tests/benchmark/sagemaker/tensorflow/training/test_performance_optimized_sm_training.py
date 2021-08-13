@@ -16,7 +16,7 @@ from test.test_utils import (
 )
 
 
-@pytest.mark.sagemaker_only
+@pytest.sagemaker_only
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.multinode(4)
@@ -52,7 +52,7 @@ def test_optimized_tensorflow_sagemaker_training_performance_multinode(tensorflo
     '''
 
 
-@pytest.mark.sagemaker_only
+@pytest.sagemaker_only
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50")
 def test_optimized_tensorflow_sagemaker_training_performance_singlenode(tensorflow_training, region, gpu_only, tf25_and_above_only):
