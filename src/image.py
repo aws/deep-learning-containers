@@ -105,9 +105,6 @@ class DockerImage:
                 print("within context")
                 self.docker_build(fileobj=context_file, custom_context=True)
                 self.context.remove()  
-        elif self.stage == constants.SECOND_STAGE:
-            with open(self.dockerfile, "rb") as dockerfile_obj:
-                self.docker_build(fileobj=dockerfile_obj)
         else:
             print("out of context")
             self.docker_build()
@@ -129,8 +126,7 @@ class DockerImage:
                 labels=self.labels
             ):
                 if line.get("error") is not None:
-                    if self.context:
-                        self.context.remove()
+                    self.context.remove()
                     response.append(line["error"])
 
                     self.log = response

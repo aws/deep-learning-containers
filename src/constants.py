@@ -33,7 +33,7 @@ PADDING = 1
 
 #Docker build stages
 FIRST_STAGE="first"
-SECOND_STAGE="second"
+CONCLUSION_STAGE="second"
 
 # Docker connections
 DOCKER_URL = "unix://var/run/docker.sock"

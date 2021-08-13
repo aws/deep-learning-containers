@@ -52,8 +52,8 @@ def image_builder(buildspec):
 
     BUILDSPEC = Buildspec()
     BUILDSPEC.load(buildspec)
-    FIRST_STAGES_IMAGES = []
-    SECOND_STAGES_IMAGES = []
+    FIRST_STAGE_IMAGES = []
+    CONCLUSION_STAGE_IMAGES = []
 
     if "huggingface" in str(BUILDSPEC["framework"]):
         os.system("echo login into public ECR")
@@ -87,7 +87,7 @@ def image_builder(buildspec):
         )
         base_image_uri = None
         if image_config.get("base_image_name") is not None:
-            base_image_object = _find_image_object(FIRST_STAGES_IMAGES, image_config["base_image_name"])
+            base_image_object = _find_image_object(FIRST_STAGE_IMAGES, image_config["base_image_name"])
             base_image_uri = base_image_object.ecr_url
 
         if image_config.get("download_artifacts") is not None:
@@ -167,39 +167,39 @@ def image_builder(buildspec):
             context=context,
         )
 
-        #Create second stage docker object
-        second_stage_image_object = None
+        #Create Conclusion stage docker object
+        conclusion_stage_image_object = None
         # if "example" not in image_name.lower() and build_context == "MAINLINE":
         ###### UNDO THIS CHANGE ########
         if "example" not in image_name.lower():
             conclude_stage_context = get_conclude_stage_context()
-            second_stage_image_object = DockerImage(
+            conclusion_stage_image_object = DockerImage(
                 info=info,
                 dockerfile=os.path.join(os.sep, os.getenv("PYTHONPATH"), "src", "Dockerfile.multipart"),
                 repository=image_repo_uri,
                 tag=image_tag,
                 to_build=image_config["build"],
-                stage=constants.SECOND_STAGE,
+                stage=constants.CONCLUSION_STAGE,
                 context=conclude_stage_context,
             )
 
         FORMATTER.separator()
 
-        FIRST_STAGES_IMAGES.append(first_stage_image_object)
-        if second_stage_image_object is not None:
-            SECOND_STAGES_IMAGES.append(second_stage_image_object)
+        FIRST_STAGE_IMAGES.append(first_stage_image_object)
+        if conclusion_stage_image_object is not None:
+            CONCLUSION_STAGE_IMAGES.append(conclusion_stage_image_object)
 
     FORMATTER.banner("DLC")
     #FORMATTER.title("Status")
     
     # Standard images must be built before example images
     # Example images will use standard images as base
-    first_stage_standard_images = [image for image in FIRST_STAGES_IMAGES if "example" not in image.name.lower()]
-    second_stage_standard_images = [image for image in SECOND_STAGES_IMAGES]
+    first_stage_standard_images = [image for image in FIRST_STAGE_IMAGES if "example" not in image.name.lower()]
+    conclusion_stage_standard_images = [image for image in CONCLUSION_STAGE_IMAGES]
     
-    example_images = [image for image in FIRST_STAGES_IMAGES if "example" in image.name.lower()]
+    example_images = [image for image in FIRST_STAGE_IMAGES if "example" in image.name.lower()]
     #needs to be reconfigured
-    ALL_IMAGES = list(set(first_stage_standard_images + second_stage_standard_images + example_images))
+    ALL_IMAGES = list(set(first_stage_standard_images + conclusion_stage_standard_images + example_images))
 
     #first stage build
     FORMATTER.banner("First Stage Build")
@@ -209,12 +209,12 @@ def image_builder(buildspec):
     Run safety on first stage image and store the ouput file locally
     """
        
-    #second stage build
-    if len(second_stage_standard_images) > 0:
-        FORMATTER.banner("Second Stage Build")
-        build_images(second_stage_standard_images)
+    #Conclusion stage build
+    if len(conclusion_stage_standard_images) > 0:
+        FORMATTER.banner("Conclusion Stage Build")
+        build_images(conclusion_stage_standard_images)
     
-    # push_images(second_stage_standard_images)
+    # push_images(conclusion_stage_standard_images)
 
     #example image build
     build_images(example_images)
@@ -226,7 +226,7 @@ def image_builder(buildspec):
     show_build_summary(ALL_IMAGES)
     is_any_build_failed, is_any_build_failed_size_limit = show_build_errors(ALL_IMAGES)
 
-    #change logic here. upload metrics only for the second stage image
+    #change logic here. upload metrics only for the Conclusion stage image
     # upload_metrics(ALL_IMAGES, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit)
 
     # Set environment variables to be consumed by test jobs
