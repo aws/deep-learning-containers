@@ -448,7 +448,7 @@ def main():
 
         else:
             sm_remote_images = []
-            for std_img in sm_remote_images:
+            for std_img in standard_images_list:
                 # Do not run SM tests on DIY images
                 if "diy" not in std_img:
                     sm_remote_images.append(std_img)
