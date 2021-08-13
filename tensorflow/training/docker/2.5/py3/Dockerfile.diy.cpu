@@ -160,7 +160,7 @@ RUN ${PIP} install --no-cache-dir -U \
     "absl-py>=0.9,<0.11" \
     horovod==0.21.1 \
     werkzeug==1.0.1 \
-    psutil==5.7.2 \
+    psutil==5.7.2
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \
