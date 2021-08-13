@@ -107,7 +107,8 @@ folder structure as per above and modify the buildspec.yml file to specify the v
 
 ### Building your image using Docker CLI
 
-If you want to build your docker image directly with Docker CLI instead of using our build scripts, follow these steps below.
+If you want to build your docker image directly with Docker CLI instead of using our python-based build scripts, follow
+these steps below.
 
 Note: These steps only reproduce the build steps followed by running `main.py`. Building DLCs through Docker CLI is not
 a regularly tested operation, and might require users to follow additional steps (outside of those listed here) to
