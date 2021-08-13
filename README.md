@@ -107,7 +107,11 @@ folder structure as per above and modify the buildspec.yml file to specify the v
 
 ### Building your image using Docker CLI
 
-If you want to build your docker image directly with Docker CLI instead of using our build scripts, follow these steps below:
+If you want to build your docker image directly with Docker CLI instead of using our build scripts, follow these steps below.
+
+Note: These steps only reproduce the build steps followed by running `main.py`. Building DLCs through Docker CLI is not
+a regularly tested operation, and might require users to follow additional steps (outside of those listed here) to
+properly set the build context up for their builds.
 
 1. Ensure that all build artifacts (files which are included into the dockerfile through `COPY` statements) are copied into the
    `<framework>/<training/inference>/docker/build_artifacts/` folder. Assign this folder path to the `DLC_BUILD_CONTEXT` variable:
@@ -117,7 +121,7 @@ If you want to build your docker image directly with Docker CLI instead of using
 2. Most of the build artifacts should already be located in the build_artifacts folder, with the exception of
    `src/deep_learning_container.py`, which can be moved by running:
    ```shell script
-   mv src/deep_learning_container.py $DLC_BUILD_CONTEXT/
+   cp src/deep_learning_container.py $DLC_BUILD_CONTEXT/
    ```
 3. Find the path to the dockerfile that must be built, and assign it to the `DLC_DOCKERFILE_PATH` variable:
    ```shell script
