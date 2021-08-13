@@ -35,6 +35,6 @@ sagemaker_local_tests = false
 # "off" --> do not trigger sagemaker remote tests (default)
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
-sagemaker_remote_tests = "rc"
+sagemaker_remote_tests = "off"
 
 use_scheduler = false
