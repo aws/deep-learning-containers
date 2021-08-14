@@ -35,6 +35,23 @@ pip_packages:
   - tokenizers
   - datasets
   - tensorflow-addons
+  - autogluon
+  - autogluon-contrib-nlp
+  - autogluon.core
+  - autogluon.extra
+  - autogluon.features
+  - autogluon.mxnet
+  - autogluon.tabular
+  - autogluon.text
+  - autogluon.vision
+  - catboost
+  - gluoncv
+  - lightgbm
+  - opencv-python
+  - sagemaker-training
+  - spacy
+  - torch
+  - xgboost
 apt_packages:
   - cuda-command-line-tools
   - cuda-cufft

@@ -11,7 +11,7 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
-from .... import get_ecr_image, get_sagemaker_session
+from .... import get_ecr_image, get_ecr_image_region, get_sagemaker_session
 import sagemaker
 from sagemaker.pytorch import PyTorch
 import time
@@ -24,9 +24,10 @@ def upload_s3_data(estimator, path, key_prefix):
         key_prefix=key_prefix)
     return inputs
 
+
 def invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, inputs=None, disable_sm_profiler=False, upload_s3_data_args=None, job_name=None):
     """
-    Used to invoke PyTorch training job. The ECR image and the sagemaker session are used depending on the AWS region. 
+    Used to invoke PyTorch training job. The ECR image and the sagemaker session are used depending on the AWS region.
     This function will rerun for all SM regions after a defined wait time if capacity issues are seen.
 
     :param ecr_image: ECR image in us-west-2 region
@@ -40,19 +41,21 @@ def invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, 
     :return: None
     """
 
-    RETRY = 3
-    DELAY = 600
-    for _ in range(RETRY):
-        for region in sagemaker_regions:
-            sagemaker_session = get_sagemaker_session(region)
-            ecr_image = get_ecr_image(ecr_image, region) if region != "us-west-2" else ecr_image
+    num_retries = 3
+    retry_delay = 600
+    ecr_image_region = get_ecr_image_region(ecr_image)
+    for _ in range(num_retries):
+        for test_region in sagemaker_regions:
+            sagemaker_session = get_sagemaker_session(test_region)
+            # Reupload the image to test region if needed
+            tested_ecr_image = get_ecr_image(ecr_image, test_region) if test_region != ecr_image_region else ecr_image
             try:
                 pytorch = PyTorch(
-                    image_uri=ecr_image,
+                    image_uri=tested_ecr_image,
                     sagemaker_session=sagemaker_session,
-                    **estimator_parameter
-                    )
-                
+                    **estimator_parameter,
+                )
+
                 if disable_sm_profiler:
                     if sagemaker_session.boto_region_name in ('cn-north-1', 'cn-northwest-1'):
                         pytorch.disable_profiler = True
@@ -66,7 +69,7 @@ def invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, 
 
             except sagemaker.exceptions.UnexpectedStatusException as e:
                 if "CapacityError" in str(e):
-                    time.sleep(DELAY)
+                    time.sleep(retry_delay)
                     continue
                 else:
                     raise e
