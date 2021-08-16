@@ -23,6 +23,7 @@ import constants
 from config import parse_dlc_developer_configs, is_build_enabled
 from invoke.context import Context
 from botocore.exceptions import ClientError
+from dlc.safety_check import SafetyCheck
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -486,3 +487,38 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
 def get_codebuild_project_name():
     # Default value for codebuild project name is "local_test" when run outside of CodeBuild
     return os.getenv("CODEBUILD_BUILD_ID", "local_test").split(":")[0]
+
+def generate_safety_report_for_image(image_name, storage_file_path=None):
+    """
+    Genereate safety scan reports for an image and store it at the location specified 
+    :param image_name: str that consists of f"{image_repo}:{image_tag}"
+    :param storage_file_path: str that looks like "storage_location.json"
+    :return: safety report that looks like following
+        [
+            {
+                "package": "package",
+                "affected": "version_spec",
+                "installed": "version",
+                "vulnerabilities": [
+                    {
+                        "vid": "safety_vulnerability_id",
+                        "advisory": "description of the issue"
+                    },
+                    ...
+                ]
+            }
+            ...
+        ]
+    """
+    ctx = Context()
+    docker_run_cmd = f"docker run -itd -v $PYTHONPATH/src:/src {image_name}"
+    container_id = ctx.run(f"{docker_run_cmd}").stdout.strip()
+    install_safety_cmd = "pip install safety"
+    ctx.run(f"docker exec {container_id} {install_safety_cmd}")
+    docker_exec_cmd = f"docker exec -i {container_id}"
+    run_output = SafetyCheck().run_safety_check_script_on_container(docker_exec_cmd)
+    json_formatted_output = json.loads(run_output.strip())
+    if storage_file_path:
+        with open(storage_file_path, 'w', encoding='utf-8') as f:
+            json.dump(json_formatted_output, f, ensure_ascii=False, indent=4)
+    return json_formatted_output
