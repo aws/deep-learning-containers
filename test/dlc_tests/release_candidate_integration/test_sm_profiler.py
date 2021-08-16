@@ -1,7 +1,8 @@
 import os
 import json
-import yaml
 import time
+
+from packaging.version import Version
 
 import pytest
 
@@ -10,8 +11,9 @@ from invoke.exceptions import UnexpectedExit
 
 from test.test_utils import (
     is_mainline_context,
-    get_container_name,
+    is_rc_test_context,
     get_framework_and_version_from_tag,
+    get_container_name,
     get_processor_from_image_uri,
     is_tf_version,
     LOGGER,
@@ -20,7 +22,7 @@ from test.test_utils import (
 
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("N/A")
-@pytest.mark.skipif(not is_mainline_context(), reason="Mainline only test")
+@pytest.mark.skipif(not is_mainline_context() and not is_rc_test_context(), reason="Mainline only test")
 def test_sm_profiler_pt(pytorch_training):
     processor = get_processor_from_image_uri(pytorch_training)
     if processor not in ("cpu", "gpu"):
@@ -59,7 +61,7 @@ def test_sm_profiler_pt(pytorch_training):
 
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("N/A")
-@pytest.mark.skipif(not is_mainline_context(), reason="Mainline only test")
+@pytest.mark.skipif(not is_mainline_context() and not is_rc_test_context(), reason="Mainline only test")
 def test_sm_profiler_tf(tensorflow_training):
     if is_tf_version("1", tensorflow_training):
         pytest.skip("Skipping test on TF1, since there are no smprofiler config files for TF1")
@@ -76,7 +78,10 @@ def test_sm_profiler_tf(tensorflow_training):
 
     # Download sagemaker-tests zip
     sm_tests_zip = "sagemaker-tests.zip"
-    ctx.run(f"aws s3 cp s3://smprofiler-test-artifacts/{sm_tests_zip} {profiler_tests_dir}/{sm_tests_zip}", hide=True)
+    ctx.run(
+        f"aws s3 cp {os.getenv('SMPROFILER_TESTS_BUCKET')}/{sm_tests_zip} {profiler_tests_dir}/{sm_tests_zip}",
+        hide=True
+    )
     ctx.run(f"cd {profiler_tests_dir} && unzip {sm_tests_zip}", hide=True)
 
     # Install tf datasets
@@ -112,26 +117,28 @@ def run_sm_profiler_tests(image, profiler_tests_dir, test_file, processor):
     except UnexpectedExit:
         # Wait a minute and a half if we get an invoke failure - since smprofiler test requirements can be flaky
         time.sleep(90)
-    # Collect env variables for tests
+
     framework, version = get_framework_and_version_from_tag(image)
 
-    # TODO: remove when SMDebug adds a 1.9.0 pytorch specfile
-    if framework == "pytorch" and version == "1.9.0":
-        version = "1.8.0"
-    spec_file = f"buildspec_profiler_sagemaker_{framework}_{version.replace('.', '_')}_integration_tests.yml"
+    # Conditionally set sm data parallel tests, based on config file rules from link below:
+    # https://github.com/awslabs/sagemaker-debugger/tree/master/config/profiler
+    enable_sm_data_parallel_tests = "true"
+    if framework == "pytorch" and Version(version) < Version("1.6"):
+        enable_sm_data_parallel_tests = "false"
+    if framework == "tensorflow" and Version(version) < Version("2.3"):
+        enable_sm_data_parallel_tests = "false"
 
-    # Get buildspec file from GitHub
-    # Note: SMDebug seems to update these in master, not necessarily in feature branches, hence using master branch
-    ctx.run(
-        f"wget https://raw.githubusercontent.com/awslabs/sagemaker-debugger/master/config/profiler/{spec_file}",
-        hide=True,
-    )
-    with open(spec_file, "r") as sf:
-        yml_envs = yaml.safe_load(sf)
-        spec_file_envs = yml_envs.get("env", {}).get("variables")
+    # Set SMProfiler specific environment variables
+    smprof_configs = {
+        "use_current_branch": "false",
+        "enable_smdataparallel_tests": enable_sm_data_parallel_tests,
+        "force_run_tests": "false",
+        "framework": framework,
+        "build_type": "release"
+    }
 
     # Command to set all necessary environment variables
-    export_cmd = " && ".join(f"export {key}={val}" for key, val in spec_file_envs.items())
+    export_cmd = " && ".join(f"export {key}={val}" for key, val in smprof_configs.items())
     export_cmd = f"{export_cmd} && export ENV_CPU_TRAIN_IMAGE=test && export ENV_GPU_TRAIN_IMAGE=test && " \
                  f"export ENV_{processor.upper()}_TRAIN_IMAGE={image}"
 

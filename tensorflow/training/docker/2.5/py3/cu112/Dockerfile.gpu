@@ -47,7 +47,8 @@ ARG CUDA_DASH=11-2
 ARG CUDNN=8.1.0.77-1
 ARG NCCL_VERSION=2.8.4
 
-RUN apt-get update && apt-get -y upgrade && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
+# TODO: Remove systemd upgrade once it is updated in base image
+RUN apt-get update && apt-get -y upgrade --only-upgrade systemd && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
    ca-certificates \
    cuda-command-line-tools-${CUDA_DASH} \
    cuda-cudart-dev-${CUDA_DASH} \

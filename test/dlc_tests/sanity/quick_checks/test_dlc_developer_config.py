@@ -1,44 +1,51 @@
-import os
-
 import pytest
-import toml
 
 
-from test.test_utils import is_dlc_cicd_context
+from src import config
 
 
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("dlc_developer_config")
-@pytest.mark.skipif(not is_dlc_cicd_context(), reason="Test relies on CB env variables and should be run on CB")
 def test_developer_configuration():
     """
     Ensure that defaults are set back to normal before merge
     """
-    root_dir = os.getenv("CODEBUILD_SRC_DIR")
-    dev_config = os.path.join(root_dir, "dlc_developer_config.toml")
-    dev_config_contents = toml.load(dev_config)
-
     # Check dev settings
-    assert _get_option(dev_config_contents, "dev", "partner_developer") == ""
-    assert _get_option(dev_config_contents, "dev", "ei_mode") is False
-    assert _get_option(dev_config_contents, "dev", "neuron_mode") is False
-    assert _get_option(dev_config_contents, "dev", "benchmark_mode") is False
+    assert config.parse_dlc_developer_configs("dev", "partner_developer") == ""
+    assert config.parse_dlc_developer_configs("dev", "ei_mode") is False
+    assert config.parse_dlc_developer_configs("dev", "neuron_mode") is False
+    assert config.parse_dlc_developer_configs("dev", "benchmark_mode") is False
 
     # Check build settings
-    assert _get_option(dev_config_contents, "build", "skip_frameworks") == []
-    assert _get_option(dev_config_contents, "build", "datetime_tag") is True
-    assert _get_option(dev_config_contents, "build", "do_build") is True
+    assert config.parse_dlc_developer_configs("build", "skip_frameworks") == []
+    assert config.parse_dlc_developer_configs("build", "datetime_tag") is True
+    assert config.parse_dlc_developer_configs("build", "do_build") is True
 
     # Check test settings
-    assert _get_option(dev_config_contents, "test", "efa_tests") is False
-    assert _get_option(dev_config_contents, "test", "sanity_tests") is True
-    assert _get_option(dev_config_contents, "test", "sagemaker_tests") is False
-    assert _get_option(dev_config_contents, "test", "ecs_tests") is True
-    assert _get_option(dev_config_contents, "test", "eks_tests") is True
-    assert _get_option(dev_config_contents, "test", "ec2_tests") is True
-    assert _get_option(dev_config_contents, "test", "use_scheduler") is False
+    assert config.parse_dlc_developer_configs("test", "efa_tests") is False
+    assert config.parse_dlc_developer_configs("test", "sanity_tests") is True
+    assert config.parse_dlc_developer_configs("test", "sagemaker_remote_tests") == "off"
+    assert config.parse_dlc_developer_configs("test", "sagemaker_local_tests") is False
+    assert config.parse_dlc_developer_configs("test", "ecs_tests") is True
+    assert config.parse_dlc_developer_configs("test", "eks_tests") is True
+    assert config.parse_dlc_developer_configs("test", "ec2_tests") is True
+    assert config.parse_dlc_developer_configs("test", "use_scheduler") is False
 
 
-def _get_option(toml_contents, section, option):
-    return toml_contents.get(section, {}).get(option)
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("dlc_developer_config")
+def test_developer_config_wrappers_defaults():
+    """
+    Test defaults of config file wrappers
+    """
+    # Check test settings
+    assert config.are_efa_tests_enabled() is False
+    assert config.is_sanity_test_enabled() is True
+    assert config.is_sm_local_test_enabled() is False
+    assert config.is_sm_remote_test_enabled() is False
+    assert config.is_ecs_test_enabled() is True
+    assert config.is_eks_test_enabled() is True
+    assert config.is_ec2_test_enabled() is True
+    assert config.is_scheduler_enabled() is False

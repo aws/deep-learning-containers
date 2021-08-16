@@ -34,7 +34,8 @@ ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=1.0.9
 
-RUN apt-get update && apt-get -y upgrade && apt-get install -y --no-install-recommends \
+# TODO: Remove systemd upgrade once it is updated in base image
+RUN apt-get update && apt-get -y upgrade --only-upgrade systemd && apt-get install -y --no-install-recommends \
     build-essential \
     openssh-client \
     openssh-server \
