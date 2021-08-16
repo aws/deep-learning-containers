@@ -20,7 +20,7 @@ import sys
 import boto3
 import constants
 
-from config import parse_dlc_developer_configs, is_build_enabled
+from config import is_build_enabled
 from invoke.context import Context
 from botocore.exceptions import ClientError
 

@@ -20,7 +20,7 @@ import sys
 import boto3
 
 import constants
-from config import parse_dlc_developer_configs, is_benchmark_mode_enabled
+import config
 
 
 LOGGER = logging.getLogger(__name__)
@@ -49,12 +49,12 @@ def run_test_job(commit, codebuild_project, images_str=""):
             # dlc_developer_config, compared to having another config file under dlc/tests/.
             {
                 "name": "USE_SCHEDULER",
-                "value": str(parse_dlc_developer_configs("test", "use_scheduler")),
+                "value": str(config.is_scheduler_enabled()),
                 "type": "PLAINTEXT",
             },
             {
                 "name": "DISABLE_EFA_TESTS",
-                "value": str(not parse_dlc_developer_configs("test", "efa_tests")),
+                "value": str(not config.are_efa_tests_enabled()),
                 "type": "PLAINTEXT",
             },
         ]
@@ -70,28 +70,22 @@ def run_test_job(commit, codebuild_project, images_str=""):
 
 
 def is_test_job_enabled(test_type):
-    # only ec2 and sagemaker benchmark tests are supported currently
-    sm_tests_enabled = parse_dlc_developer_configs("test", "sagemaker_tests")
-    ec2_tests_enabled = parse_dlc_developer_configs("test", "ec2_tests")
-    ecs_tests_enabled = parse_dlc_developer_configs("test", "ecs_tests")
-    eks_tests_enabled = parse_dlc_developer_configs("test", "eks_tests")
-    sanity_tests_enabled = parse_dlc_developer_configs("test", "sanity_tests")
-
-    benchmark_mode = is_benchmark_mode_enabled()
-
-    # For each test type, see if we should run the tests
-    if test_type == constants.SAGEMAKER_TESTS and sm_tests_enabled:
+    """
+    Check to see if a test job is enabled
+    See if we should run the tests based on test types and config options.
+    """
+    if test_type == constants.SAGEMAKER_TESTS and config.is_sm_remote_test_enabled():
         return True
-    if test_type == constants.EC2_TESTS and ec2_tests_enabled:
+    if test_type == constants.EC2_TESTS and config.is_ec2_test_enabled():
         return True
 
     # We have no ECS/EKS/SANITY benchmark tests
-    if not benchmark_mode:
-        if test_type == constants.ECS_TESTS and ecs_tests_enabled:
+    if not config.is_benchmark_mode_enabled():
+        if test_type == constants.ECS_TESTS and config.is_ecs_test_enabled():
             return True
-        if test_type == constants.EKS_TESTS and eks_tests_enabled:
+        if test_type == constants.EKS_TESTS and config.is_eks_test_enabled():
             return True
-        if test_type == constants.SANITY_TESTS and sanity_tests_enabled:
+        if test_type == constants.SANITY_TESTS and config.is_eks_test_enabled():
             return True
 
     return False
@@ -127,11 +121,15 @@ def main():
                     continue
                 run_test_job(commit, pr_test_job, images_str)
 
-                # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
-                # sagemaker local test is not supported in benchmark dev mode
-                if test_type == "sagemaker" and not is_benchmark_mode_enabled():
-                    test_job = f"dlc-pr-{test_type}-local-test"
-                    run_test_job(commit, test_job, images_str)
+            # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
+            # sagemaker local test is not supported in benchmark dev mode
+            if (
+                test_type == "sagemaker"
+                and not config.is_benchmark_mode_enabled()
+                and config.is_sm_local_test_enabled()
+            ):
+                test_job = f"dlc-pr-{test_type}-local-test"
+                run_test_job(commit, test_job, images_str)
 
 
 if __name__ == "__main__":
