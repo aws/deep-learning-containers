@@ -25,7 +25,15 @@ def upload_s3_data(estimator, path, key_prefix):
     return inputs
 
 
-def invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, inputs=None, disable_sm_profiler=False, upload_s3_data_args=None, job_name=None):
+def invoke_pytorch_estimator(
+    ecr_image,
+    sagemaker_regions,
+    estimator_parameter,
+    inputs=None,
+    disable_sm_profiler=False,
+    upload_s3_data_args=None,
+    job_name=None,
+):
     """
     Used to invoke PyTorch training job. The ECR image and the sagemaker session are used depending on the AWS region.
     This function will rerun for all SM regions after a defined wait time if capacity issues are seen.
@@ -49,6 +57,10 @@ def invoke_pytorch_estimator(ecr_image, sagemaker_regions, estimator_parameter, 
             sagemaker_session = get_sagemaker_session(test_region)
             # Reupload the image to test region if needed
             tested_ecr_image = get_ecr_image(ecr_image, test_region) if test_region != ecr_image_region else ecr_image
+            if "environment" not in estimator_parameter:
+                estimator_parameter["environment"] = {"AWS_REGION": test_region}
+            else:
+                estimator_parameter["environment"]["AWS_REGION"] = test_region
             try:
                 pytorch = PyTorch(
                     image_uri=tested_ecr_image,
