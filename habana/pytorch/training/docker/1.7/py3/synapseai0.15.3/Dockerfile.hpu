@@ -44,11 +44,11 @@ RUN pip install --no-cache-dir -U \
     Pillow \
     scipy \
     pybind11 \
-    click \
     mpi4py==3.0.3 \
     cmake==3.18.2.post1 \
     torchnet \
     "cryptography>3.2" \
+ && pip install --no-cache-dir -U boto3 --upgrade \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \

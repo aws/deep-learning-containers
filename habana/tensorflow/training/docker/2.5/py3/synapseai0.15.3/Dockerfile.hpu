@@ -101,7 +101,7 @@ RUN ${PIP} uninstall -y tensorflow-cpu \
     "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.3.0.36 \
-
+ && ${PIP} install --no-cache-dir -U boto3 --upgrade \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
