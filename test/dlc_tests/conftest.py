@@ -27,6 +27,8 @@ from test.test_utils import (
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
+    AML2_GPU_DLAMI_US_WEST_2,
+    AML2_GPU_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
 )
@@ -165,7 +167,7 @@ def ec2_instance_role_name(request):
 
 
 @pytest.fixture(scope="function")
-def ec2_instance_ami(request):
+def ec2_instance_ami(request, region):
     return request.param if hasattr(request, "param") else UBUNTU_18_BASE_DLAMI_US_WEST_2
 
 
@@ -192,7 +194,11 @@ def ec2_instance(
         ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
-            ec2_instance_ami = UBUNTU_18_BASE_DLAMI_US_EAST_1
+            ec2_instance_ami = (
+                AML2_GPU_DLAMI_US_EAST_1
+                if ec2_instance_ami == AML2_GPU_DLAMI_US_WEST_2
+                else UBUNTU_18_BASE_DLAMI_US_EAST_1
+            )
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
