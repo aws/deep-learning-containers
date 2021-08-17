@@ -37,6 +37,7 @@ def main():
     general_builder_enabled = (
         not ei_dedicated
         and not neuron_dedicated
+        and not graviton_dedicated
         and not ei_build_mode
         and not neuron_build_mode
         and not graviton_build_mode
