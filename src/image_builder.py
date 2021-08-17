@@ -25,6 +25,7 @@ import utils
 from context import Context
 from metrics import Metrics
 from image import DockerImage
+from conclusion_stage_image import ConclusionStageImage
 from buildspec import Buildspec
 from output import OutputFormatter
 from config import parse_dlc_developer_configs
@@ -172,15 +173,14 @@ def image_builder(buildspec):
         # if "example" not in image_name.lower() and build_context == "MAINLINE":
         ###### UNDO THIS CHANGE ########
         if "example" not in image_name.lower():
-            conclude_stage_context = get_conclude_stage_context()
-            conclusion_stage_image_object = DockerImage(
+            conclusion_stage_image_object = ConclusionStageImage(
                 info=info,
                 dockerfile=os.path.join(os.sep, os.getenv("PYTHONPATH"), "src", "Dockerfile.multipart"),
                 repository=image_repo_uri,
                 tag=image_tag,
                 to_build=image_config["build"],
                 stage=constants.CONCLUSION_STAGE,
-                context=conclude_stage_context,
+                context=None,
             )
 
         FORMATTER.separator()
@@ -238,26 +238,6 @@ def image_builder(buildspec):
     #     TEST_TRIGGER=test_trigger_job,
     # )
 
-def get_conclude_stage_context():
-    ARTIFACTS = {}
-    ARTIFACTS.update(
-                {
-                    "safety_report": {
-                        "source": f"safety_report.json",
-                        "target": "safety_report.json"
-                    }
-                })
-    ARTIFACTS.update(
-                {
-                    "dockerfile": {
-                        "source": f"Dockerfile.multipart",
-                        "target": "Dockerfile",
-                    }
-                }
-            )
-    
-    artifact_root = os.path.join(os.sep, os.getenv("PYTHONPATH"), "src") + "/"
-    return Context(ARTIFACTS, context_path=f'build/safety-json-file.tar.gz',artifact_root=artifact_root)
 
 def show_build_logs(images):
 
