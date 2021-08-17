@@ -36,6 +36,7 @@ ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/est
 ARG SMDEBUG_VERSION=1.0.9
 
 RUN apt-get update \
+ && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends \
     build-essential \
     openssh-client \
@@ -129,7 +130,7 @@ RUN ${PIP} install --no-cache-dir -U \
     scipy==1.5.2 \
     scikit-learn==0.23 \
     pandas==1.1 \
-    Pillow \
+    Pillow>=8.3,<8.4 \
     # python-dateutil==2.8.1 to satisfy botocore associated with latest awscli
     python-dateutil==2.8.1 \
     # install PyYAML>=5.4 to avoid conflict with latest awscli
