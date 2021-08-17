@@ -32,7 +32,7 @@ ARG EFA_VERSION=1.11.2
 ARG OMPI_VERSION=4.1.1
 ARG BRANCH_OFI=1.1.3-aws
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.5_aws/20210617_160451/gpu/cu112/py37/tensorflow_gpu-2.5.0-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.5_aws/20210812_232413/gpu/cu112/py38/tensorflow_gpu-2.5.1-cp38-cp38-manylinux2010_x86_64.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
@@ -215,7 +215,7 @@ RUN ${PIP} install --no-cache-dir -U \
    scipy==1.7.0 \
    scikit-learn==0.24.2 \
    pandas==1.2.5 \
-   Pillow==8.3.1 \
+   Pillow \
    python-dateutil==2.8.1 \
    "pyYAML>=5.4,<5.5" \
    requests==2.25.1 \
