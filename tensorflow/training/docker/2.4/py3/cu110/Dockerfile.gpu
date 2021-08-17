@@ -47,7 +47,6 @@ ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorf
 ARG SMMODELPARALLEL_BINARY=https://sagemaker-distributed-model-parallel.s3.amazonaws.com/tensorflow-2.4/build-artifacts/2021-03-26-21-57/smdistributed_modelparallel-1.3.1-cp37-cp37m-linux_x86_64.whl
 
 RUN apt-get update \
- && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
     cuda-command-line-tools-11-0 \
@@ -213,7 +212,7 @@ RUN ${PIP} install --no-cache-dir -U \
     scipy==1.5.2 \
     scikit-learn==0.23 \
     pandas==1.1 \
-    Pillow==8.3.1 \
+    Pillow \
     # python-dateutil==2.8.1 to satisfy botocore associated with latest awscli
     python-dateutil==2.8.1 \
     # install PyYAML>=5.4 to avoid conflict with latest awscli
