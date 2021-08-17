@@ -1,7 +1,9 @@
 FROM ubuntu:16.04
+FROM python:3
 
-LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+
+# LABEL maintainer="Amazon AI"
+# LABEL dlc_major_version="1"
 
 # ARG PYTHON=python3
 # ARG PIP=pip3
@@ -104,85 +106,85 @@ LABEL dlc_major_version="1"
 
 # WORKDIR /
 
-# RUN ${PIP} install --no-cache --upgrade \
-#     keras-mxnet==2.2.4.2 \
-#     h5py==2.10.0 \
-#     onnx==1.6.0 \
-#     numpy==1.19.1 \
-#     pandas==0.25.1 \
-#     Pillow \
-#     requests==2.22.0 \
-#     scikit-learn==0.20.4 \
-#     dgl==0.4.* \
-#     scipy==1.2.2 \
-#     gluonnlp==0.10.0 \
-#     gluoncv==0.8.0 \
-#     # Putting a cap in versions number to avoid potential issues with a new major version
-#     "urllib3>=1.25.10,<1.26.0" \
-#     # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
-#     python-dateutil==2.8.0 \
-#     tqdm==4.39.0 \
-#     sagemaker-experiments==0.* \
-#     # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
-#     "PyYAML>=5.4,<5.5" \
-#     mpi4py==3.0.2 \
-#     sagemaker-mxnet-training \
-#     ${MX_URL} \
-#     smdebug==${SMDEBUG_VERSION} \
-#     sagemaker \
-#     awscli \
-#     smclarify
+# # RUN ${PIP} install --no-cache --upgrade \
+# #     keras-mxnet==2.2.4.2 \
+# #     h5py==2.10.0 \
+# #     onnx==1.6.0 \
+# #     numpy==1.19.1 \
+# #     pandas==0.25.1 \
+# #     Pillow \
+# #     requests==2.22.0 \
+# #     scikit-learn==0.20.4 \
+# #     dgl==0.4.* \
+# #     scipy==1.2.2 \
+# #     gluonnlp==0.10.0 \
+# #     gluoncv==0.8.0 \
+# #     # Putting a cap in versions number to avoid potential issues with a new major version
+# #     "urllib3>=1.25.10,<1.26.0" \
+# #     # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
+# #     python-dateutil==2.8.0 \
+# #     tqdm==4.39.0 \
+# #     sagemaker-experiments==0.* \
+# #     # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
+# #     "PyYAML>=5.4,<5.5" \
+# #     mpi4py==3.0.2 \
+# #     sagemaker-mxnet-training \
+# #     ${MX_URL} \
+# #     smdebug==${SMDEBUG_VERSION} \
+# #     sagemaker \
+# #     awscli \
+# #     smclarify
 
-# # Install extra packages
-# RUN pip install --no-cache-dir -U \
-#     "bokeh>=2.3,<3" \
-#     "imageio>=2.9,<3" \
-#     "opencv-python>=4.3,<5" \
-#     "plotly>=5.1,<6" \
-#     "seaborn>=0.11,<1" \
-#     "shap>=0.39,<1"
+# # # Install extra packages
+# # RUN pip install --no-cache-dir -U \
+# #     "bokeh>=2.3,<3" \
+# #     "imageio>=2.9,<3" \
+# #     "opencv-python>=4.3,<5" \
+# #     "plotly>=5.1,<6" \
+# #     "seaborn>=0.11,<1" \
+# #     "shap>=0.39,<1"
 
-# # Install Horovod
-# RUN ${PIP} install --no-cache-dir horovod==0.19.5
+# # # Install Horovod
+# # RUN ${PIP} install --no-cache-dir horovod==0.19.5
 
-# # Allow OpenSSH to talk to containers without asking for confirmation
-# RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
-#  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
-#  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
+# # # Allow OpenSSH to talk to containers without asking for confirmation
+# # RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+# #  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+# #  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
 
-# # OpenSHH config for MPI communication
-# RUN mkdir -p /var/run/sshd && \
-#   sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+# # # OpenSHH config for MPI communication
+# # RUN mkdir -p /var/run/sshd && \
+# #   sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 
-# RUN rm -rf /root/.ssh/ && \
-#   mkdir -p /root/.ssh/ && \
-#   ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
-#   cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
-#   && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
+# # RUN rm -rf /root/.ssh/ && \
+# #   mkdir -p /root/.ssh/ && \
+# #   ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
+# #   cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+# #   && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
-# # "channels first" is recommended for keras-mxnet
-# # https://github.com/awslabs/keras-apache-mxnet/blob/master/docs/mxnet_backend/performance_guide.md#channels-first-image-data-format-for-cnn
-# RUN mkdir /root/.keras \
-#  && echo '{"image_data_format": "channels_first"}' > /root/.keras/keras.json
+# # # "channels first" is recommended for keras-mxnet
+# # # https://github.com/awslabs/keras-apache-mxnet/blob/master/docs/mxnet_backend/performance_guide.md#channels-first-image-data-format-for-cnn
+# # RUN mkdir /root/.keras \
+# #  && echo '{"image_data_format": "channels_first"}' > /root/.keras/keras.json
 
-# # This is here to make our installed version of OpenCV work.
-# # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
-# # TODO: Should we be installing OpenCV in our image like this? Is there another way we can fix this?
-# RUN ln -s /dev/null /dev/raw1394
+# # # This is here to make our installed version of OpenCV work.
+# # # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
+# # # TODO: Should we be installing OpenCV in our image like this? Is there another way we can fix this?
+# # RUN ln -s /dev/null /dev/raw1394
 
-# COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+# # COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
-# RUN chmod +x /usr/local/bin/deep_learning_container.py
+# # RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-# RUN HOME_DIR=/root \
-#  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
-#  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
-#  && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
-#  && chmod +x /usr/local/bin/testOSSCompliance \
-#  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
-#  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
-#  && rm -rf ${HOME_DIR}/oss_compliance*
+# # RUN HOME_DIR=/root \
+# #  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+# #  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+# #  && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+# #  && chmod +x /usr/local/bin/testOSSCompliance \
+# #  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+# #  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+# #  && rm -rf ${HOME_DIR}/oss_compliance*
 
-# RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.8.0/license.txt
+# # RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.8.0/license.txt
 
-# CMD ["echo hi"]
+# # CMD ["echo hi"]

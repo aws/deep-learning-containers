@@ -17,7 +17,11 @@ from datetime import datetime
 from docker import APIClient
 from docker import DockerClient
 
+from utils import generate_safety_report_for_image
+from context import Context
+
 import constants
+import os
 
 
 class DockerImage:
@@ -70,6 +74,36 @@ class DockerImage:
         docker_client.containers.prune()
         return command_responses
 
+    def generate_conclude_stage_context(self, safety_report_path, tarfile_name='conclusion-stage-file'):
+        ARTIFACTS = {}
+        ARTIFACTS.update(
+                    {
+                        "safety_report": {
+                            "source": safety_report_path,
+                            "target": "safety_report.json"
+                        }
+                    })
+        ARTIFACTS.update(
+                    {
+                        "dockerfile": {
+                            "source": f"Dockerfile.multipart",
+                            "target": "Dockerfile",
+                        }
+                    }
+                )
+        
+        artifact_root = os.path.join(os.sep, os.getenv("PYTHONPATH"), "src") + "/"
+        return Context(ARTIFACTS, context_path=f'build/{tarfile_name}.tar.gz',artifact_root=artifact_root)
+
+    
+    def pre_build_configuration_for_conclsion_stage(self):
+        ## Generate safety scan report for the first stage image and add the file to artifacts
+        first_stage_image_uri = self.build_args['FIRST_STAGE_IMAGE']
+        processed_image_uri = first_stage_image_uri.replace('.','-').replace('/','-').replace(':','-')
+        storage_file_path = f"{os.getenv('PYTHONPATH')}/src/{processed_image_uri}_safety_report.json"
+        generate_safety_report_for_image(first_stage_image_uri, storage_file_path=storage_file_path)
+        self.context = self.generate_conclude_stage_context(storage_file_path, tarfile_name=processed_image_uri)
+
     def pre_build_configuration(self):
 
         if not self.to_build:
@@ -89,6 +123,9 @@ class DockerImage:
         
         if self.info.get("labels"):
             self.labels.update(self.info.get("labels"))
+
+        if self.stage == constants.CONCLUSION_STAGE:
+            self.pre_build_configuration_for_conclsion_stage()
         
         print(f"self.build_args {self.build_args}")
         print(f"self.labels {self.labels}")
