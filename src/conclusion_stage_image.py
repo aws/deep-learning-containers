@@ -33,7 +33,7 @@ class ConclusionStageImage(DockerImage):
         ## Call the pre_build_configuration steps from the parent class
         super(ConclusionStageImage, self).pre_build_configuration()
         ## Generate safety scan report for the first stage image and add the file to artifacts
-        first_stage_image_uri = self.build_args['FIRST_STAGE_IMAGE']
+        first_stage_image_uri = self.build_args['INITIAL_STAGE_IMAGE']
         processed_image_uri = first_stage_image_uri.replace('.','-').replace('/','-').replace(':','-')
         storage_file_path = f"{os.getenv('PYTHONPATH')}/src/{processed_image_uri}_safety_report.json"
         generate_safety_report_for_image(first_stage_image_uri, storage_file_path=storage_file_path)

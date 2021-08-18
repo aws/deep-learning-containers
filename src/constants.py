@@ -32,8 +32,8 @@ FAIL_IMAGE_SIZE_LIMIT = 2
 PADDING = 1
 
 #Docker build stages
-FIRST_STAGE="first"
-CONCLUSION_STAGE="second"
+INITIAL_STAGE="initial"
+CONCLUSION_STAGE="conclusion"
 
 # Docker connections
 DOCKER_URL = "unix://var/run/docker.sock"

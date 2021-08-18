@@ -1,7 +1,7 @@
 # Use the Deep Learning Container as a base Image
-ARG FIRST_STAGE_IMAGE=""
+ARG INITIAL_STAGE_IMAGE=""
 
-FROM $FIRST_STAGE_IMAGE
+FROM $INITIAL_STAGE_IMAGE
 
 # Add any script or repo as required
 COPY safety_report.json /var/safety_report.json
