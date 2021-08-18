@@ -1,4 +1,4 @@
-FROM vault.habana.ai/gaudi-docker/0.15.3/ubuntu18.04/habanalabs/tensorflow-installer-tf-cpu-2.5.0:0.15.3-31
+FROM vault.habana.ai/gaudi-docker/0.15.4/ubuntu18.04/habanalabs/tensorflow-installer-tf-cpu-2.5.0:0.15.4-75
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
