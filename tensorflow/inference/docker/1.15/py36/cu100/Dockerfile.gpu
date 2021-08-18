@@ -31,7 +31,7 @@ ENV MODEL_NAME=model
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
- && apt-get -y upgrade \
+ && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends \
     ca-certificates \
     cuda-command-line-tools-10-0 \

@@ -35,7 +35,7 @@ ARG PIP=pip3
 ARG PYTHON_VERSION=3.6.13
 
 RUN apt-get update \
- && apt-get -y upgrade \
+ && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends \
     build-essential \
     openssh-client \
