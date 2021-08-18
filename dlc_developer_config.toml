@@ -18,17 +18,23 @@ skip_frameworks = ["pytorch", "mxnet", "huggingface_pytorch", "huggingface_tenso
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = true
+do_build = false
 
 [test]
-# On by default
+### On by default
 sanity_tests = true
 ecs_tests = true
 eks_tests = true
 ec2_tests = true
 
-# Off by default
-sagemaker_tests = true
+### Off by default
 efa_tests = false
+sagemaker_local_tests = false
+
+# SM remote test valid values:
+# "off" --> do not trigger sagemaker remote tests (default)
+# "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
+# "rc" --> run release_candidate_integration tests
+sagemaker_remote_tests = "off"
 
 use_scheduler = false
