@@ -34,7 +34,7 @@ ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/est
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=0.9.4
 
-RUN apt-get update 
+RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends --allow-unauthenticated \
     ca-certificates \
