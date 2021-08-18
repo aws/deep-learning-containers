@@ -29,4 +29,4 @@ RUN HOME_DIR=/root \
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.5/license.txt -o /license.txt
 
-CMD ["/usr/bin/tf_serving_entrypoint.sh"
+CMD ["/usr/bin/tf_serving_entrypoint.sh"]
