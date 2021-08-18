@@ -156,7 +156,7 @@ RUN ${PIP} install --no-cache-dir -U \
     mpi4py==3.0.3 \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
-    "sagemaker-tensorflow>=2.5,<2.6" \
+    "sagemaker-tensorflow==2.6" \
     "sagemaker-tensorflow-training>=20" \
 
     # Let's install TensorFlow separately in the end to avoid
