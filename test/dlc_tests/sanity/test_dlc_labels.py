@@ -77,7 +77,7 @@ def test_dlc_major_version_dockerfiles(image):
         reference_fw = "tensorflow2"
     else:
         reference_fw = framework
-    if (reference_fw in references and Version(fw_version) < Version(references[reference_fw])):
+    if reference_fw in references and Version(fw_version) < Version(references[reference_fw]):
         pytest.skip(
             f"Not enforcing new versioning scheme on old image {image}. "
             f"Started enforcing version scheme on the following: {references}"
@@ -86,9 +86,16 @@ def test_dlc_major_version_dockerfiles(image):
     # Find all Dockerfile.<processor> for this framework/job_type's Major.Minor version
     dockerfiles = []
     fw_version_major_minor = re.match(r"(\d+\.\d+)", fw_version).group(1)
+    dockerfiles_of_interest = (
+        f"Dockerfile.diy.{processor}"
+        if "diy" in image
+        else f"Dockerfile.sagemaker.{processor}"
+        if "sagemaker" in image
+        else f"Dockerfile.{processor}"
+    )
     for root, dirnames, filenames in os.walk(root_dir):
         for filename in filenames:
-            if filename in {f"Dockerfile.{processor}", f"Dockerfile.diy.{processor}", f"Dockerfile.sagemaker.{processor}"}:
+            if filename == dockerfiles_of_interest:
                 dockerfile_path = os.path.join(root_dir, root, filename)
                 if "example" not in dockerfile_path and f"{os.sep}{fw_version_major_minor}" in dockerfile_path:
                     dockerfiles.append(dockerfile_path)
