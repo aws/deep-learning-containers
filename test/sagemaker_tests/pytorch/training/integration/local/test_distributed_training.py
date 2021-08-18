@@ -19,7 +19,6 @@ from sagemaker.pytorch import PyTorch
 
 from ...integration import data_dir, dist_operations_path, mnist_script, ROLE
 from ...utils.local_mode_utils import assert_files_exist
-from packaging.version import Version
 
 MODEL_SUCCESS_FILES = {
     'model': ['success'],
