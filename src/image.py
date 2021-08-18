@@ -27,7 +27,7 @@ class DockerImage:
     """
 
     def __init__(
-        self, info, dockerfile, repository, tag, to_build, stage, context=None,
+        self, info, dockerfile, repository, tag, to_build, stage, context=None, to_push=True
     ):
 
         # Meta-data about the image should go to info.
@@ -41,6 +41,7 @@ class DockerImage:
 
         self.dockerfile = dockerfile
         self.context = context
+        self.to_push = to_push
 
         # TODO: Add ability to tag image with multiple tags
         self.repository = repository

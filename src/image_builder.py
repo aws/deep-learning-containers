@@ -88,7 +88,7 @@ def image_builder(buildspec):
         )
         base_image_uri = None
         if image_config.get("base_image_name") is not None:
-            base_image_object = _find_image_object(CONCLUSION_STAGE_IMAGES, image_config["base_image_name"])
+            base_image_object = _find_image_object(FIRST_STAGE_IMAGES, image_config["base_image_name"])
             base_image_uri = base_image_object.ecr_url
 
         if image_config.get("download_artifacts") is not None:
@@ -168,20 +168,13 @@ def image_builder(buildspec):
             context=context,
         )
 
-        #Create Conclusion stage docker object
-        conclusion_stage_image_object = None
+        ##### Create Conclusion stage docker object #####
+        # If we create a conclusion stage image, then we do not push the first stage image to ECR
+        # The only image that gets pushed is the conclusion stage image
         # if "example" not in image_name.lower() and build_context == "MAINLINE":
         ###### UNDO THIS CHANGE ########
-        if "example" not in image_name.lower():
-            conclusion_stage_image_object = ConclusionStageImage(
-                info=info,
-                dockerfile=os.path.join(os.sep, os.getenv("PYTHONPATH"), "src", "Dockerfile.multipart"),
-                repository=image_repo_uri,
-                tag=image_tag,
-                to_build=image_config["build"],
-                stage=constants.CONCLUSION_STAGE,
-                context=None,
-            )
+        conclusion_stage_image_object = get_conclusion_stage_image_object(first_stage_image_object)
+        first_stage_image_object.to_push = False
 
         FORMATTER.separator()
 
@@ -194,30 +187,30 @@ def image_builder(buildspec):
     
     # Standard images must be built before example images
     # Example images will use standard images as base
-    first_stage_standard_images = [image for image in FIRST_STAGE_IMAGES if "example" not in image.name.lower()]
-    conclusion_stage_standard_images = [image for image in CONCLUSION_STAGE_IMAGES]
-    
+    # Conclusion images must be built at the end as they will consume respective standard and example images
+    standard_images = [image for image in FIRST_STAGE_IMAGES if "example" not in image.name.lower()]
     example_images = [image for image in FIRST_STAGE_IMAGES if "example" in image.name.lower()]
-    #needs to be reconfigured
-    ALL_IMAGES = list(set(first_stage_standard_images + conclusion_stage_standard_images + example_images))
+    conclusion_stage_images = [image for image in CONCLUSION_STAGE_IMAGES]
+    ALL_IMAGES = FIRST_STAGE_IMAGES + CONCLUSION_STAGE_IMAGES
+    IMAGES_TO_PUSH = [image for image in ALL_IMAGES if image.to_push]
 
     #first stage build
-    FORMATTER.banner("First Stage Build")
-    build_images(first_stage_standard_images)
+    FORMATTER.banner("Standard Images Build")
+    build_images(standard_images)
 
-    """
-    Run safety on first stage image and store the ouput file locally
-    """
+    #example image build
+    FORMATTER.banner("Example Images Build")
+    build_images(example_images)
        
     #Conclusion stage build
-    if len(conclusion_stage_standard_images) > 0:
+    if len(conclusion_stage_images) > 0:
         FORMATTER.banner("Conclusion Stage Build")
-        build_images(conclusion_stage_standard_images, make_dummy_boto_client=True)
+        build_images(conclusion_stage_images, make_dummy_boto_client=True)
     
     # push_images(conclusion_stage_standard_images)
 
     #example image build
-    build_images(example_images)
+    # build_images(example_images)
     # push_images(example_images)
 
     #After the build, display logs/sumary for all the images.
@@ -238,6 +231,17 @@ def image_builder(buildspec):
     #     TEST_TRIGGER=test_trigger_job,
     # )
 
+def get_conclusion_stage_image_object(first_stage_image_object):
+    conclusion_stage_image_object = None
+    conclusion_stage_image_object = ConclusionStageImage(
+        info=first_stage_image_object.info,
+        dockerfile=os.path.join(os.sep, os.getenv("PYTHONPATH"), "src", "Dockerfile.multipart"),
+        repository=first_stage_image_object.repository,
+        tag=first_stage_image_object.tag,
+        to_build=first_stage_image_object.to_build,
+        stage=constants.CONCLUSION_STAGE,
+    )
+    return conclusion_stage_image_object
 
 def show_build_logs(images):
 
@@ -315,7 +319,8 @@ def build_images(images, make_dummy_boto_client=False):
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
     # to it is executed concurrently in a separate thread.
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        if make_dummy_boto_client:
+        #### TODO: Remove this entire if block when https://github.com/boto/boto3/issues/1592 is resolved ####
+        if make_dummy_boto_client: 
             get_dummy_boto_client()
         for image in images:
             FORMATTER.print(f"image_object.context {image.context}")
@@ -323,6 +328,7 @@ def build_images(images, make_dummy_boto_client=False):
     # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
     FORMATTER.progress(THREADS)
 
+#### TODO: Remove this entire method when https://github.com/boto/boto3/issues/1592 is resolved ####
 def get_dummy_boto_client():
     # In absence of this method, the behaviour documented in https://github.com/boto/boto3/issues/1592 is observed.
     # If this function is not added, boto3 fails because boto3 sessions are not thread safe.
