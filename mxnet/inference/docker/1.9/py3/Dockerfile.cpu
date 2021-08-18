@@ -52,11 +52,12 @@ RUN apt-get update \
 
 # install Python
 RUN apt-get update \
- && apt-get install -y python3 python3-pip
+ && apt-get install -y python3 python3-pip \
+ && ln -s /usr/local/bin/python3 /usr/local/bin/python
 
 WORKDIR /
 
-RUN python3 -m pip install --no-cache-dir \
+RUN python -m pip install --no-cache-dir \
     "awscli<2" \
     boto3 \
     ${MX_URL} \
@@ -91,11 +92,11 @@ RUN HOME_DIR=/root \
  && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
  && chmod +x /usr/local/bin/testOSSCompliance \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
- && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python3 \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.9.0/license.txt -o /license.txt
 
 EXPOSE 8080 8081
-ENTRYPOINT ["python3", "/usr/local/bin/dockerd-entrypoint.py"]
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
