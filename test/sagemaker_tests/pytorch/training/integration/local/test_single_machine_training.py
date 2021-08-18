@@ -25,7 +25,7 @@ from packaging.version import Version
 def test_mnist(docker_image, processor, instance_type, sagemaker_local_session, tmpdir):
     _, image_framework_version = get_framework_and_version_from_tag(docker_image)
     if Version(image_framework_version) == Version("1.9"):
-        pytest.skip("Compatibility issues between PT1.9 and opencv")
+        pytest.skip("Compatibility issues between PT1.9 and opencv. Refer https://github.com/pytorch/pytorch/issues/63441")
     estimator = PyTorch(
         entry_point=mnist_script,
         role=ROLE,
