@@ -634,12 +634,12 @@ def pytest_generate_tests(metafunc):
                     if "sagemaker_only" in metafunc.fixturenames and "diy" in image:
                         LOGGER.info(f"Not running DIY image {image} on sagemaker_only test")
                         continue
-                    if (
-                            ("sagemaker_only" not in metafunc.fixturenames or "sagemaker" not in metafunc.fixturenames)
-                            and "sagemaker" in image
-                    ):
-                        LOGGER.info(f"Skipping test, as this function is not marked as 'sagemaker_only' or 'sagemaker'")
-                        continue
+                    if "sagemaker" in image:
+                        if "sagemaker_only" not in metafunc.fixturenames and "sagemaker" not in metafunc.fixturenames:
+                            LOGGER.info(
+                                f"Skipping test, as this function is not marked as 'sagemaker_only' or 'sagemaker'"
+                            )
+                            continue
                     if not framework_version_within_limit(metafunc, image):
                         continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
