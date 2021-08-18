@@ -47,10 +47,33 @@ RUN source activate rapids \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && pip install --no-cache-dir -U sagemaker-mxnet-training \
  && pip install --no-cache-dir -U cupy-cuda102==9.2.0 \
- && pip uninstall -y jupyter-client jupyter-core jupyter-packaging jupyter-server jupyter-server-proxy \
-    jupyterlab jupyterlab-nvdashboard jupyterlab-pygments jupyterlab-server jupyterlab-widgets ipywidgets \
-    widgetsnbextension traitlets pydeck panel nbformat nbconvert nbclient pyppeteer matplotlib-inline websockets \
-    ipython-genutils ipython ipykernel torchvision bokeh plotly notebook datashader
+ && pip uninstall -y \
+    datashader \
+    ipykernel \
+    ipython \
+    ipython-genutils \
+    ipywidgets \
+    jupyter-client \
+    jupyter-core \
+    jupyter-packaging \
+    jupyter-server \
+    jupyter-server-proxy \
+    jupyterlab \
+    jupyterlab-nvdashboard \
+    jupyterlab-pygments \
+    jupyterlab-server \
+    jupyterlab-widgets \
+    matplotlib-inline \
+    nbclient \
+    nbconvert \
+    nbformat \
+    notebook \
+    panel \
+    pydeck \
+    pyppeteer \
+    traitlets \
+    websockets \
+    widgetsnbextension 
 
 WORKDIR /
 

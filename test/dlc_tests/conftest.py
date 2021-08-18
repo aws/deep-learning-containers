@@ -637,6 +637,10 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
+    # Don't parametrize if there are no images to parametrize
+    if not images:
+        return
+
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
@@ -655,6 +659,8 @@ def pytest_generate_tests(metafunc):
                     if not framework_version_within_limit(metafunc, image):
                         continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
+                        continue
+                    if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue
                     if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue

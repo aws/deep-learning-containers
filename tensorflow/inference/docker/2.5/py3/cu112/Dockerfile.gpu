@@ -33,6 +33,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # allow unauthenticated and allow downgrades for special libcublas library
 RUN apt-get update \
+ # TODO: Remove systemd upgrade once it is updated in base image
+ && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades\
     ca-certificates \
     cuda-command-line-tools-11-2 \
