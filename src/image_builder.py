@@ -192,7 +192,7 @@ def image_builder(buildspec):
     example_images = [image for image in INITIAL_STAGE_IMAGES if "example" in image.name.lower()]
     conclusion_stage_images = [image for image in CONCLUSION_STAGE_IMAGES]
     ALL_IMAGES = INITIAL_STAGE_IMAGES + CONCLUSION_STAGE_IMAGES
-    IMAGES_TO_PUSH = [image for image in ALL_IMAGES if image.to_push]
+    IMAGES_TO_PUSH = [image for image in ALL_IMAGES if image.to_push and image.to_build]
 
     #initial stage standard images build
     FORMATTER.banner("Standard Images Build")
@@ -207,7 +207,7 @@ def image_builder(buildspec):
         FORMATTER.banner("Conclusion Stage Build")
         build_images(conclusion_stage_images, make_dummy_boto_client=True)
     
-    # push_images(conclusion_stage_standard_images)
+    push_images(IMAGES_TO_PUSH)
 
     #example image build
     # build_images(example_images)
