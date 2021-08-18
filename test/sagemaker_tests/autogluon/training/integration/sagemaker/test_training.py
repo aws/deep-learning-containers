@@ -19,7 +19,7 @@ from sagemaker import utils
 
 from .timeout import timeout
 from ..local.ag_tools import AutoGluon
-from ...integration import RESOURCE_PATH
+from ...integration import RESOURCE_PATH, DEFAULT_TIMEOUT
 
 
 @pytest.mark.model("autogluon")
@@ -38,7 +38,7 @@ def test_training(sagemaker_session, ecr_image, instance_type, framework_version
 
     ag = _disable_sm_profiler(sagemaker_session.boto_region_name, ag)
 
-    with timeout(minutes=15):
+    with timeout(minutes=DEFAULT_TIMEOUT):
         device = 'cpu'
         data_path = os.path.join(RESOURCE_PATH, 'data')
         s3_prefix = 'autogluon_sm/{}'.format(utils.sagemaker_timestamp())

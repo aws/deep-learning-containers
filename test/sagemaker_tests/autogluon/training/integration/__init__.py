@@ -15,3 +15,4 @@ from __future__ import absolute_import
 import os
 
 RESOURCE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
+DEFAULT_TIMEOUT = 15

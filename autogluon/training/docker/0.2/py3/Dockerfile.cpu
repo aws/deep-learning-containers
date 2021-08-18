@@ -98,10 +98,33 @@ RUN pip install --no-cache-dir -U \
     mxnet==${MXNET_VER} \
     autogluon==${AUTOGLUON_VERSION} \
     sagemaker-mxnet-training \
-&& pip uninstall -y jupyter-client jupyter-core jupyter-packaging jupyter-server jupyter-server-proxy \
-    jupyterlab jupyterlab-nvdashboard jupyterlab-pygments jupyterlab-server jupyterlab-widgets ipywidgets \
-    widgetsnbextension traitlets pydeck panel nbformat nbconvert nbclient pyppeteer matplotlib-inline \
-    ipython-genutils ipython ipykernel torchvision bokeh plotly notebook datashader
+ && pip uninstall -y \
+    datashader \
+    ipykernel \
+    ipython \
+    ipython-genutils \
+    ipywidgets \
+    jupyter-client \
+    jupyter-core \
+    jupyter-packaging \
+    jupyter-server \
+    jupyter-server-proxy \
+    jupyterlab \
+    jupyterlab-nvdashboard \
+    jupyterlab-pygments \
+    jupyterlab-server \
+    jupyterlab-widgets \
+    matplotlib-inline \
+    nbclient \
+    nbconvert \
+    nbformat \
+    notebook \
+    panel \
+    pydeck \
+    pyppeteer \
+    traitlets \
+    websockets \
+    widgetsnbextension 
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
