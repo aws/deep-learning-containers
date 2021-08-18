@@ -2,9 +2,6 @@ FROM nvidia/cuda:11.2.1-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-# Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
-# https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
-LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
@@ -23,8 +20,6 @@ ENV LANG=C.UTF-8
 ENV PYTHONDONTWRITEBYTECODE=1
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 ENV PYTHONUNBUFFERED=1
-ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
-ENV PATH="$PATH:/sagemaker"
 ENV MODEL_BASE_PATH=/models
 # The only required piece is the model name in order to differentiate endpoints
 ENV MODEL_NAME=model
@@ -129,8 +124,6 @@ RUN ${PIP} install -U --no-cache-dir \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
     tensorflow-serving-api-gpu==2.5.1
-
-COPY ./sagemaker /sagemaker
 
 RUN curl $TFS_URL -o /usr/bin/tensorflow_model_server \
  && chmod 555 /usr/bin/tensorflow_model_server
