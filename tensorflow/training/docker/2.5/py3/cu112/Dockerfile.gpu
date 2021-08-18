@@ -48,7 +48,9 @@ ARG CUDNN=8.1.0.77-1
 ARG NCCL_VERSION=2.8.4
 
 # TODO: Remove systemd upgrade once it is updated in base image
-RUN apt-get update && apt-get -y upgrade --only-upgrade systemd && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
+RUN apt-get update \
+ && apt-get -y upgrade --only-upgrade systemd \
+ && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
    ca-certificates \
    cuda-command-line-tools-${CUDA_DASH} \
    cuda-cudart-dev-${CUDA_DASH} \
@@ -215,7 +217,7 @@ RUN ${PIP} install --no-cache-dir -U \
    scipy==1.7.0 \
    scikit-learn==0.24.2 \
    pandas==1.2.5 \
-   Pillow \
+   "Pillow>=8.3,<8.4" \
    python-dateutil==2.8.1 \
    "pyYAML>=5.4,<5.5" \
    requests==2.25.1 \

@@ -35,7 +35,9 @@ ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow
 ARG SMDEBUG_VERSION=1.0.9
 
 # TODO: Remove systemd upgrade once it is updated in base image
-RUN apt-get update && apt-get -y upgrade --only-upgrade systemd && apt-get install -y --no-install-recommends \
+RUN apt-get update \
+ && apt-get -y upgrade --only-upgrade systemd \
+ && apt-get install -y --no-install-recommends \
     build-essential \
     openssh-client \
     openssh-server \
@@ -150,7 +152,7 @@ RUN ${PIP} install --no-cache-dir -U \
     scipy==1.7.0 \
     scikit-learn==0.24.2 \
     pandas==1.2.5 \
-    Pillow \
+    "Pillow>=8.3,<8.4" \
     python-dateutil==2.8.1 \
     "pyYAML>=5.4,<5.5" \
     requests==2.24.0 \
