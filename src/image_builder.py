@@ -88,7 +88,7 @@ def image_builder(buildspec):
         )
         base_image_uri = None
         if image_config.get("base_image_name") is not None:
-            base_image_object = _find_image_object(FIRST_STAGE_IMAGES, image_config["base_image_name"])
+            base_image_object = _find_image_object(CONCLUSION_STAGE_IMAGES, image_config["base_image_name"])
             base_image_uri = base_image_object.ecr_url
 
         if image_config.get("download_artifacts") is not None:
@@ -212,7 +212,7 @@ def image_builder(buildspec):
     #Conclusion stage build
     if len(conclusion_stage_standard_images) > 0:
         FORMATTER.banner("Conclusion Stage Build")
-        build_images(conclusion_stage_standard_images)
+        build_images(conclusion_stage_standard_images, make_dummy_boto_client=True)
     
     # push_images(conclusion_stage_standard_images)
 
@@ -310,16 +310,26 @@ def upload_metrics(images, BUILDSPEC, is_any_build_failed, is_any_build_failed_s
 
     FORMATTER.separator()
 
-def build_images(images):
+def build_images(images, make_dummy_boto_client=False):
     THREADS = {}
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
     # to it is executed concurrently in a separate thread.
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        if make_dummy_boto_client:
+            get_dummy_boto_client()
         for image in images:
             FORMATTER.print(f"image_object.context {image.context}")
             THREADS[image.name] = executor.submit(image.build)
     # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
     FORMATTER.progress(THREADS)
+
+def get_dummy_boto_client():
+    # In absence of this method, the behaviour documented in https://github.com/boto/boto3/issues/1592 is observed.
+    # If this function is not added, boto3 fails because boto3 sessions are not thread safe.
+    # However, once a dummy client is created, it is ensured that the calls are thread safe.
+    # If the boto3 call made in the dlc package is changed to boto3.Session().client(), even then this issue can be resolved.
+    import boto3
+    return boto3.client("secretsmanager", region_name=os.getenv('REGION'))
 
 def push_images(images):
     THREADS = {}
