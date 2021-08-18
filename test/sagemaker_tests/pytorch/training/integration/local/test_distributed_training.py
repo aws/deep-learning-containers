@@ -17,7 +17,7 @@ import os
 import pytest
 from sagemaker.pytorch import PyTorch
 
-from ...integration import data_dir, dist_operations_path, mnist_script, ROLE, get_framework_and_version_from_tag
+from ...integration import data_dir, dist_operations_path, mnist_script, ROLE
 from ...utils.local_mode_utils import assert_files_exist
 from packaging.version import Version
 
@@ -96,9 +96,6 @@ def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
 @pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
 def test_mnist_cpu(docker_image, dist_cpu_backend, sagemaker_local_session, tmpdir):
-    _, image_framework_version = get_framework_and_version_from_tag(docker_image)
-    if Version(image_framework_version) == Version("1.9"):
-        pytest.skip("Compatibility issues between PT1.9 and opencv. Refer https://github.com/pytorch/pytorch/issues/63441")
     estimator = PyTorch(
         entry_point=mnist_script,
         role=ROLE,
