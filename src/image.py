@@ -74,12 +74,6 @@ class DockerImage:
 
     def pre_build_configuration(self):
 
-        if not self.to_build:
-            self.log = ["Not built"]
-            self.build_status = constants.NOT_BUILT
-            self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
-            return self.build_status
-
         if self.info.get("base_image_uri"):
             self.build_args["BASE_IMAGE"] = self.info["base_image_uri"]
 
@@ -91,7 +85,6 @@ class DockerImage:
         
         if self.info.get("labels"):
             self.labels.update(self.info.get("labels"))
-
         
         print(f"self.build_args {self.build_args}")
         print(f"self.labels {self.labels}")
@@ -101,8 +94,19 @@ class DockerImage:
         The build function builds the specified docker image
         """
         self.summary["start_time"] = datetime.now()
+
+        ## Confirm if building the image is required or not
+        if not self.to_build:
+            self.log = ["Not built"]
+            self.build_status = constants.NOT_BUILT
+            self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
+            return self.build_status
+        
+        ## Conduct some preprocessing before building the image
         self.pre_build_configuration()
         print(f"self.context {self.context}")
+
+        ## Start building the image
         if self.context:
             with open(self.context.context_path, "rb") as context_file:
                 print("within context")
@@ -111,9 +115,11 @@ class DockerImage:
         else:
             print("out of context")
             self.docker_build()
+
         #check the size after image is built.
         self.image_size_check()
-        ## This return is necessary. Otherwise formatter fails while displaying the status.
+
+        ## This return is necessary. Otherwise FORMATTER fails while displaying the status.
         return self.build_status
     
     def docker_build(self, fileobj=None, custom_context=False):
