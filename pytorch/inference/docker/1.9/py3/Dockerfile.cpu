@@ -8,8 +8,8 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.10
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.4.0
-ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.9.0_inference/20210617-030314/46d3d4fb3c4208f6fcdf1e6aca78ed1fc9155236/cpu/torch-1.9.0-cp38-cp38-manylinux1_x86_64.whl
+ARG TS_VERSION=0.4.2
+ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.9.0_inference/20210730-020505/2dc3e2055764606a22a3c59ea955184e85ad6110/cpu/torch-1.9.0-cp38-cp38-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/torchvision_build/0.10.0/cpu/torchvision-0.10.0-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/torchaudio_build/0.9.0/cpu/torchaudio-0.9.0-cp38-cp38-linux_x86_64.whl
 
@@ -18,8 +18,12 @@ ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
+# Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
+ENV MKL_THREADING_LAYER=GNU
 
 RUN apt-get update \
+# TODO: Remove systemd upgrade once it is updated in base image
+ && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends software-properties-common \
  && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
@@ -117,7 +121,7 @@ RUN pip uninstall -y torch \
 
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
-RUN pip install pillow==8.2.0 "awscli<2"
+RUN pip install pillow==8.3.1 "awscli<2"
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
 RUN pip uninstall -y model-archiver multi-model-server \

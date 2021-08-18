@@ -16,8 +16,8 @@ language governing permissions and limitations under the License.
 import os
 
 # Environment settings
-FRAMEWORKS = {"mxnet", "tensorflow", "pytorch", "huggingface_tensorflow", "huggingface_pytorch"}
-DEVICE_TYPES = {"cpu", "gpu", "eia", "inf"}
+FRAMEWORKS = {"mxnet", "tensorflow", "pytorch", "huggingface_tensorflow", "huggingface_pytorch", "autogluon"}
+DEVICE_TYPES = {"cpu", "gpu", "eia", "inf", "graviton"}
 IMAGE_TYPES = {"training", "inference"}
 PYTHON_VERSIONS = {"py2", "py3", "py36"}
 ALL = "all"
