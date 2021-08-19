@@ -72,6 +72,7 @@ def test_dist_operations_path_gpu_nccl(docker_image, sagemaker_local_session, tm
 @pytest.mark.integration("nccl")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_gpu
+@pytest.mark.skip("Skipping as NCCL is not installed on CPU image. Refer https://github.com/aws/deep-learning-containers/issues/1289")
 def test_cpu_nccl(docker_image, sagemaker_local_session, tmpdir):
     estimator = PyTorch(
         entry_point=mnist_script,
