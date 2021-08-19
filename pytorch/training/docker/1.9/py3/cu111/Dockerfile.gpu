@@ -162,8 +162,6 @@ RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
  && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
 
 RUN conda install -c pytorch magma-cuda111==2.5.2 \
- && conda install -c conda-forge \
-    opencv \
  && conda install -y scikit-learn \
     pandas \
     h5py \
@@ -192,6 +190,7 @@ WORKDIR /root
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install --no-cache-dir -U \
+    opencv-python==4.5.2.54 \
     smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
