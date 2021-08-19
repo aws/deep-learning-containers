@@ -1,8 +1,8 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK tensorflow
-version: &VERSION 2.4.3
-short_version: &SHORT_VERSION 2.4
+version: &VERSION 2.5.0
+short_version: &SHORT_VERSION 2.5
 repository_info:
   training_repository: &TRAINING_REPOSITORY
     image_type: &TRAINING_IMAGE_TYPE training
@@ -37,6 +37,7 @@ context:
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
+
 images:
   BuildTensorflowCpuPy37TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
@@ -52,14 +53,14 @@ images:
       *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowGpuCu110Py37TrainingDockerImage:
+  BuildTensorflowGpuPy37Cu112TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 7738
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
-    cuda_version: &CUDA_VERSION cu110
+    cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu18.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
       "-", *OS_VERSION ]
@@ -67,15 +68,15 @@ images:
       /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowExampleGpuCu110Py37TrainingDockerImage:
+  BuildTensorflowExampleGpuPy37Cu112TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 7738
-    base_image_name: BuildTensorflowGpuCu110Py37TrainingDockerImage
+    base_image_name: BuildTensorflowGpuPy37Cu112TrainingDockerImage
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
-    cuda_version: &CUDA_VERSION cu110
+    cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu18.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
       "-", *OS_VERSION, "-example" ]
@@ -83,3 +84,30 @@ images:
       /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
+  BuildTensorflowCPUInferencePy3DockerImage:
+    <<: *INFERENCE_REPOSITORY
+    build: &TENSORFLOW_CPU_INFERENCE_PY3 false
+    image_size_baseline: 4899
+    device_type: &DEVICE_TYPE cpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py37
+    os_version: &OS_VERSION ubuntu18.04
+    # TODO: To be reverted once TF Training 2.5.1 is released
+    tag: !join [ "2.5.1", "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+    context:
+      <<: *INFERENCE_CONTEXT
+  BuildTensorflowGPUInferencePy3DockerImage:
+    <<: *INFERENCE_REPOSITORY
+    build: &TENSORFLOW_GPU_INFERENCE_PY3 false
+    image_size_baseline: 7738
+    device_type: &DEVICE_TYPE gpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py37
+    cuda_version: &CUDA_VERSION cu112
+    os_version: &OS_VERSION ubuntu18.04
+    # TODO: To be reverted once TF Training 2.5.1 is released
+    tag: !join [ "2.5.1", "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
+    context:
+      <<: *INFERENCE_CONTEXT
