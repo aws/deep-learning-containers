@@ -195,32 +195,30 @@ def image_builder(buildspec):
     IMAGES_TO_PUSH = [image for image in ALL_IMAGES if image.to_push and image.to_build]
 
     #initial stage standard images build
-    FORMATTER.banner("Standard Images Build")
+    FORMATTER.banner("Standard Build")
     build_images(standard_images)
 
     #initial stage example images build
-    FORMATTER.banner("Example Images Build")
+    FORMATTER.banner("Example Build")
     build_images(example_images)
        
     #Conclusion stage build
     if len(conclusion_stage_images) > 0:
-        FORMATTER.banner("Conclusion Stage Build")
+        FORMATTER.banner("Conclusion Build")
         build_images(conclusion_stage_images, make_dummy_boto_client=True)
     
     push_images(IMAGES_TO_PUSH)
 
-    #example image build
-    # build_images(example_images)
-    # push_images(example_images)
-
-    #After the build, display logs/sumary for all the images.
-
+    #After the build, display logs/summary for all the images.
     show_build_logs(ALL_IMAGES)
     show_build_summary(ALL_IMAGES)
     is_any_build_failed, is_any_build_failed_size_limit = show_build_errors(ALL_IMAGES)
 
-    #change logic here. upload metrics only for the Conclusion stage image
-    # upload_metrics(ALL_IMAGES, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit)
+    #From all images, filter the images that were supposed to be built and upload their metrics
+    BUILT_IMAGES = [image for image in ALL_IMAGES if image.to_build]
+
+    # change logic here. upload metrics only for the Conclusion stage image
+    upload_metrics(BUILT_IMAGES, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit)
 
     # Set environment variables to be consumed by test jobs
     # test_trigger_job = utils.get_codebuild_project_name()

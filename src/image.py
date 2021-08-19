@@ -116,6 +116,11 @@ class DockerImage:
             print("out of context")
             self.docker_build()
 
+        if not self.to_push:
+            ## If this image is not supposed to be pushed, in that case, we are already done
+            ## with building the image and do not need to conduct any further processing.
+            self.summary["end_time"] = datetime.now()
+
         #check the size after image is built.
         self.image_size_check()
 
