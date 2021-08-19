@@ -169,12 +169,10 @@ def image_builder(buildspec):
         )
 
         ##### Create Conclusion stage docker object #####
-        # If we create a conclusion stage image, then we do not push the initial stage image to ECR
-        # The only image that gets pushed is the conclusion stage image
-        # if "example" not in image_name.lower() and build_context == "MAINLINE":
-        ###### UNDO THIS CHANGE ########
+        # If for an initial stage image we create a conclusion stage image, then we do not push the initial stage image
+        # to the repository. Instead, we just push its conclusion stage image to the repository. Therefore,
+        # inside function get_conclusion_stage_image_object we make initial_stage_image_object non pushable.
         conclusion_stage_image_object = get_conclusion_stage_image_object(initial_stage_image_object)
-        initial_stage_image_object.to_push = False
 
         FORMATTER.separator()
 
@@ -221,15 +219,17 @@ def image_builder(buildspec):
     upload_metrics(BUILT_IMAGES, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit)
 
     # Set environment variables to be consumed by test jobs
-    # test_trigger_job = utils.get_codebuild_project_name()
-    #needs to be configured to use final built images
-    # utils.set_test_env(
-    #     ALL_IMAGES,
-    #     BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
-    #     TEST_TRIGGER=test_trigger_job,
-    # )
+    test_trigger_job = utils.get_codebuild_project_name()
+    # Tests should only run on images that were pushed to the repository
+    utils.set_test_env(
+        IMAGES_TO_PUSH,
+        BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
+        TEST_TRIGGER=test_trigger_job,
+    )
 
 def get_conclusion_stage_image_object(initial_stage_image_object):
+    # Check if this is only required for mainline
+    # if build_context == "MAINLINE":
     conclusion_stage_image_object = None
     conclusion_stage_image_object = ConclusionStageImage(
         info=initial_stage_image_object.info,
@@ -239,6 +239,7 @@ def get_conclusion_stage_image_object(initial_stage_image_object):
         to_build=initial_stage_image_object.to_build,
         stage=constants.CONCLUSION_STAGE,
     )
+    initial_stage_image_object.to_push = False
     return conclusion_stage_image_object
 
 def show_build_logs(images):
