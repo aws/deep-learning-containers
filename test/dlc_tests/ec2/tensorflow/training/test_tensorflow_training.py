@@ -203,8 +203,9 @@ def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, tf2_only, cp
 
 
 # Helper function to test data service
-def run_data_service_test(tensorflow_version, ec2_connection, ec2_instance_ami, tensorflow_training, cmd):
+def run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, cmd):
     python_invoker = get_python_invoker(ec2_instance_ami)
+    _, tensorflow_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
     ec2_connection.run(f"{python_invoker} -m pip install --upgrade pip")
     ec2_connection.run(f"{python_invoker} -m pip install tensorflow=={tensorflow_version}")
     container_test_local_dir = os.path.join("$HOME", "container_tests")
@@ -220,10 +221,7 @@ def run_data_service_test(tensorflow_version, ec2_connection, ec2_instance_ami, 
 def test_tensorflow_dataservice_cpu(
     tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, cpu_only
 ):
-    _, tensorflow_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
-    run_data_service_test(
-        tensorflow_version, ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_TEST_CMD
-    )
+    run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_TEST_CMD)
 
 
 # Testing Data Service on only one GPU instance
@@ -236,10 +234,7 @@ def test_tensorflow_dataservice_gpu(
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}")
-    _, tensorflow_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
-    run_data_service_test(
-        tensorflow_version, ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_TEST_CMD
-    )
+    run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_TEST_CMD)
 
 
 # Testing Data Service Distributed mode on only one CPU instance
@@ -250,10 +245,7 @@ def test_tensorflow_dataservice_gpu(
 def test_tensorflow_distribute_dataservice_cpu(
     tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, cpu_only
 ):
-    _, tensorflow_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
-    run_data_service_test(
-        tensorflow_version, ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_DISTRIBUTE_TEST_CMD
-    )
+    run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_DISTRIBUTE_TEST_CMD)
 
 
 # Testing Data Service Distributed mode on only one GPU instance
@@ -266,7 +258,4 @@ def test_tensorflow_distribute_dataservice_gpu(
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}")
-    _, tensorflow_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
-    run_data_service_test(
-        tensorflow_version, ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_DISTRIBUTE_TEST_CMD
-    )
+    run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_DISTRIBUTE_TEST_CMD)
