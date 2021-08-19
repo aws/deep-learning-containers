@@ -35,9 +35,11 @@ class ConclusionStageImage(DockerImage):
         ## Generate safety scan report for the first stage image and add the file to artifacts
         first_stage_image_uri = self.build_args['INITIAL_STAGE_IMAGE']
         processed_image_uri = first_stage_image_uri.replace('.','-').replace('/','-').replace(':','-')
-        storage_file_path = f"{os.getenv('PYTHONPATH')}/src/{processed_image_uri}_safety_report.json"
+        image_name = self.name
+        tarfile_name_for_context = f"{processed_image_uri}-{image_name}"
+        storage_file_path = f"{os.getenv('PYTHONPATH')}/src/{tarfile_name_for_context}_safety_report.json"
         generate_safety_report_for_image(first_stage_image_uri, storage_file_path=storage_file_path)
-        self.context = self.generate_conclude_stage_context(storage_file_path, tarfile_name=processed_image_uri)
+        self.context = self.generate_conclude_stage_context(storage_file_path, tarfile_name=tarfile_name_for_context)
 
     def generate_conclude_stage_context(self, safety_report_path, tarfile_name='conclusion-stage-file'):
         """
