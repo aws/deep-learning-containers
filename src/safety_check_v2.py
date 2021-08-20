@@ -19,6 +19,7 @@ import pkg_resources
 import safety as Safety
 from safety import safety
 
+TO_BE_DECIDED="To Be Decided"
 
 def main():
     """Return json.dumps() string of below list structure.
@@ -78,20 +79,28 @@ def main():
     # Generate output
     vulns_dict = {}
     vulns_list = []
+    ignored_vulnerability_count = {}
     # Report for unsafe packages
+    # "FAILED", "SUCCEEDED" , "IGNORED"
     for v in vulns:
         package = v.name
-        affected = v.spec
+        spec = v.spec
         installed = v.version
         advisory = v.advisory
         vid = v.vuln_id
-        vulnerability_details = {"vid": vid, "advisory": advisory, "reason_to_ignore":"N/A"}
+        vulnerability_details = {"vid": vid, "advisory": advisory, "spec": spec, "reason_to_ignore":"N/A"}
+
+        if package not in ignored_vulnerability_count:
+            ignored_vulnerability_count[package] = 0
+
         if vid in ignore_dict:
             vulnerability_details["reason_to_ignore"] = ignore_dict[vid]
+            ignored_vulnerability_count[package] += 1
+
         if package not in vulns_dict:
             vulns_dict[package] = {
                 "package": package,
-                "affected": affected,
+                "scan_status": TO_BE_DECIDED,
                 "installed": installed,
                 "vulnerabilities": [vulnerability_details],
             }
@@ -104,12 +113,17 @@ def main():
         if pkg.key not in vulns_dict:
             vulns_dict[pkg.key] = {
                 "package": pkg.key,
-                "affected": f"No known vulnerability found, PASSED_SAFETY_CHECK on {timestamp}.",
+                "scan_status": "SUCCEEDED",
                 "installed": pkg.version,
-                "vulnerabilities": [{"vid": "N/A", "advisory": "N/A", "reason_to_ignore":"N/A"}],
+                "vulnerabilities": [{"vid": "N/A", "advisory": "N/A", "reason_to_ignore":"N/A", "spec":"N/A"}],
             }
-        
+    
     for (k, v) in vulns_dict.items():
+        if v["scan_status"] == TO_BE_DECIDED:
+            if len(v["vulnerabilities"]) == ignored_vulnerability_count[k]:
+                v["scan_status"] = "IGNORED"
+            else:
+                v["scan_status"] = "FAILED"
         vulns_list.append(v)
 
     print(json.dumps(vulns_list))
