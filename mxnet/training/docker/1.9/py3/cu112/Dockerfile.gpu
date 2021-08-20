@@ -4,6 +4,7 @@ FROM nvidia/cuda:11.2.2-base-ubuntu20.04
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
+ARG PYTHON_VERSION=3.8.10
 ARG MX_URL=https://aws-mx-pypi.s3.us-west-2.amazonaws.com/1.9.0/aws_mx_cu112-1.9.0.131-py3-none-manylinux2014_x86_64.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
@@ -26,7 +27,6 @@ RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends \
     # from sources.list
-    software-properties-common \
     build-essential \
     ca-certificates \
     curl \
@@ -141,6 +141,7 @@ RUN python -m pip install --no-cache --upgrade \
     smdebug==${SMDEBUG_VERSION} \
     sagemaker \
     awscli \
+    s3fs==0.4.2 \
     smclarify
 
 # Install extra packages
