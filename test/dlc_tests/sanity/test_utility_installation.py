@@ -9,7 +9,6 @@ from test import test_utils
 UTILITY_PACKAGES_IMPORT = {
     "base": ["bokeh", "imageio", "plotly", "seaborn", "shap", "pandas", "cv2"],
     "sagemaker_exclusive": ["sagemaker"]
-
 }
 
 
