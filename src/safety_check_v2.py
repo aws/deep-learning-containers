@@ -41,10 +41,19 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--key",
-        required=True,
+        required=False,
+    )
+    parser.add_argument(
+        "--ignore_dict_str",
+        required=False,
     )
     args = parser.parse_args()
+
+
     safety_key = args.key
+    ignore_dict = {}
+    if args.ignore_dict_str is not None:
+        ignore_dict = json.loads(args.ignore_dict_str)
 
     if Safety.__version__ == "1.8.7":
         proxy_dictionary = {}
@@ -76,15 +85,18 @@ def main():
         installed = v.version
         advisory = v.advisory
         vid = v.vuln_id
+        vulnerability_details = {"vid": vid, "advisory": advisory, "reason_to_ignore":"N/A"}
+        if vid in ignore_dict:
+            vulnerability_details["reason_to_ignore"] = ignore_dict[vid]
         if package not in vulns_dict:
             vulns_dict[package] = {
                 "package": package,
                 "affected": affected,
                 "installed": installed,
-                "vulnerabilities": [{"vid": vid, "advisory": advisory}],
+                "vulnerabilities": [vulnerability_details],
             }
         else:
-            vulns_dict[package]["vulnerabilities"].append({"vid": vid, "advisory": advisory})
+            vulns_dict[package]["vulnerabilities"].append(vulnerability_details)
 
     # Report for safe packages
     timestamp = datetime.now().strftime("%d%m%Y")
@@ -94,7 +106,7 @@ def main():
                 "package": pkg.key,
                 "affected": f"No known vulnerability found, PASSED_SAFETY_CHECK on {timestamp}.",
                 "installed": pkg.version,
-                "vulnerabilities": [{"vid": "N/A", "advisory": "N/A"}],
+                "vulnerabilities": [{"vid": "N/A", "advisory": "N/A", "reason_to_ignore":"N/A"}],
             }
         
     for (k, v) in vulns_dict.items():
