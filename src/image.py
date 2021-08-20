@@ -61,7 +61,7 @@ class DockerImage:
         """
         If we require a base image URI, the image is a child image (where the base image is the parent)
         """
-        return bool(self.image.get('base_image_uri'))
+        return bool(self.info.get('base_image_uri'))
 
     def collect_installed_packages_information(self):
         """
