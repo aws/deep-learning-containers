@@ -22,6 +22,7 @@ from test_utils import (
     is_pr_context,
     is_benchmark_dev_context,
     is_rc_test_context,
+    is_diy_image,
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
     setup_sm_benchmark_mx_train_env,
@@ -322,7 +323,14 @@ def main():
         return
 
     if specific_test_type in (
-            "sanity", "ecs", "ec2", "eks", "canary", "bai", "quick_checks", "release_candidate_integration"
+        "sanity",
+        "ecs",
+        "ec2",
+        "eks",
+        "canary",
+        "bai",
+        "quick_checks",
+        "release_candidate_integration",
     ):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
@@ -449,13 +457,12 @@ def main():
             sys.exit(pytest.main(pytest_cmd))
 
         else:
-            sm_remote_images = []
-            for std_img in standard_images_list:
-                # Do not run SM tests on DIY images
-                if "diy" not in std_img:
-                    sm_remote_images.append(std_img)
             run_sagemaker_remote_tests(
-                [image for image in sm_remote_images if not ("tensorflow-inference" in image and "py2" in image)]
+                [
+                    image
+                    for image in standard_images_list
+                    if not (("tensorflow-inference" in image and "py2" in image) or is_diy_image(image))
+                ]
             )
         metrics_utils.send_test_duration_metrics(start_time)
 

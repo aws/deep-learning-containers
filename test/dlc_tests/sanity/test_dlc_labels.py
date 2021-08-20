@@ -86,13 +86,7 @@ def test_dlc_major_version_dockerfiles(image):
     # Find all Dockerfile.<processor> for this framework/job_type's Major.Minor version
     dockerfiles = []
     fw_version_major_minor = re.match(r"(\d+\.\d+)", fw_version).group(1)
-    dockerfiles_of_interest = (
-        f"Dockerfile.diy.{processor}"
-        if "diy" in image
-        else f"Dockerfile.sagemaker.{processor}"
-        if "sagemaker" in image
-        else f"Dockerfile.{processor}"
-    )
+    dockerfiles_of_interest = test_utils.get_expected_dockerfile_filename(processor, image)
     for root, dirnames, filenames in os.walk(root_dir):
         for filename in filenames:
             if filename == dockerfiles_of_interest:

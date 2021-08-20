@@ -56,6 +56,13 @@ class DockerImage:
     def __getattr__(self, name):
         return self.info[name]
 
+    @property
+    def is_child_image(self):
+        """
+        If we require a base image URI, the image is a child image (where the base image is the parent)
+        """
+        return bool(self.image.get('base_image_uri'))
+
     def collect_installed_packages_information(self):
         """
         Returns an array with outcomes of the commands listed in the 'commands' array

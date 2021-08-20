@@ -57,7 +57,7 @@ def test_utility_packages_using_import(training):
     if Version(framework_version) < Version(utility_package_minimum_framework_version[framework]):
         pytest.skip("Extra utility packages will be added going forward.")
 
-    if "diy" in training:
+    if test_utils.is_diy_image(training):
         packages_to_import = UTILITY_PACKAGES_IMPORT["base"]
     else:
         packages_to_import = UTILITY_PACKAGES_IMPORT["base"] + UTILITY_PACKAGES_IMPORT["sagemaker_exclusive"]

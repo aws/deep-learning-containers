@@ -21,10 +21,6 @@ RUN ${PIP} install --no-cache-dir -U \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.5,<2.6" \
     "sagemaker-tensorflow-training>=20" \
-
-    # Let's install TensorFlow separately in the end to avoid
-    # the library version to be overwritten
- && ${PIP} install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
     smclarify
 
