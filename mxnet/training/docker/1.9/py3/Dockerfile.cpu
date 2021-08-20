@@ -28,12 +28,12 @@ RUN apt-get update \
     curl \
     emacs \
     git \
-    libopencv-dev \
-    openssh-client \
-    openssh-server \
     vim \
     wget \
     unzip \
+    libopencv-dev \
+    openssh-client \
+    openssh-server \
     zlib1g-dev \
     libreadline-gplv2-dev \
     libncursesw5-dev \

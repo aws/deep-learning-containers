@@ -35,9 +35,6 @@ RUN apt-get update \
     vim \
     wget \
     unzip \
-    libatlas-base-dev \
-    libcurl4-openssl-dev \
-    libgomp1 \
     libopencv-dev \
     openssh-client \
     openssh-server \
