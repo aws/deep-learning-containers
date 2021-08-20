@@ -60,6 +60,9 @@ def test_mxnet_train_mnist_cpu(mxnet_training, ec2_connection, cpu_only):
 def test_mxnet_keras_gpu(mxnet_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(mxnet_training, ec2_instance_type):
         pytest.skip(f"Image {mxnet_training} is incompatible with instance type {ec2_instance_type}")
+    _, framework_version = test_utils.get_framework_and_version_from_tag(mxnet_training)
+    if framework_version in ['1.9.0']:
+        pytest.skip(f"Keras support has been deprecated MXNet 1.9.0 onwards")
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_KERAS_CMD)
 
 
@@ -67,6 +70,9 @@ def test_mxnet_keras_gpu(mxnet_training, ec2_connection, gpu_only, ec2_instance_
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_keras_cpu(mxnet_training, ec2_connection, cpu_only):
+    _, framework_version = test_utils.get_framework_and_version_from_tag(mxnet_training)
+    if framework_version in ['1.9.0']:
+        pytest.skip(f"Keras support has been deprecated MXNet 1.9.0 onwards")
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_KERAS_CMD)
 
 
@@ -76,8 +82,8 @@ def test_mxnet_keras_cpu(mxnet_training, ec2_connection, cpu_only):
 def test_mxnet_train_dgl_gpu(mxnet_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(mxnet_training, ec2_instance_type):
         pytest.skip(f"Image {mxnet_training} is incompatible with instance type {ec2_instance_type}")
-    if "cu110" in mxnet_training:
-        pytest.skip("Skipping dgl tests on cuda 11.0 until available")
+    if "cu112" in mxnet_training:
+        pytest.skip("Skipping dgl tests on cuda 11.2 until available")
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_DGL_CMD)
 
 

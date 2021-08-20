@@ -122,8 +122,8 @@ RUN python -m pip install --no-cache --upgrade \
     "Pillow>=8.3,<8.4" \
     requests==2.22.0 \
     scikit-learn \
-    # disabling DGL until a release is built for cuda 11.0
-    # dgl-cu112==0.6.1 \
+    # disabling DGL until a release is built for cuda 11.2
+    # dgl-cu112 \
     scipy==1.7.0 \
     gluonnlp==0.10.0 \
     gluoncv==0.8.0 \
