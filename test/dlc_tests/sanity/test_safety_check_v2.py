@@ -24,12 +24,14 @@ SAFETY_FILE_EXISTS = 0
 class SafetyVulnerabilityAdvisory:
     vid: str
     advisory: str
+    reason_to_ignore: str
+    spec: str
 
 
 @dataclass
 class SafetyPackageVulnerabilityReport:
     package: str
-    affected: str
+    scan_status: str
     installed: str
     vulnerabilities: List[SafetyVulnerabilityAdvisory]
 
@@ -73,30 +75,22 @@ def test_safety_file_exists(image):
             )
         )
 
-        ignored_packages = []
-
         # processing safety reports
-        report_log_template = "SAFETY_REPORT ({status}) [pkg: {pkg}] [installed: {installed}] [affected: {affected}] [reason: {reason}] [env: {env}]"
+        report_log_template = "SAFETY_REPORT ({status}) [pkg: {pkg}] [installed: {installed}] [vulnerabilities: {vulnerabilities}]"
         failed_count = 0
         for result in scan_results:
             for report_item in result.report:
-                if "PASSED_SAFETY_CHECK" not in report_item.affected:
-                    if (report_item.package not in ignored_packages) or (
-                        report_item.package in ignored_packages
-                        and report_item.installed != ignored_packages[report_item.package]
-                    ):
+                if report_item.scan_status == "FAILED": 
                         failed_count += 1
-                        print(
+                        LOGGER.info(
                             report_log_template.format(
                                 status="FAILED",
                                 pkg=report_item.package,
                                 installed=report_item.installed,
-                                affected=report_item.affected,
-                                reason=None,
-                                env=result.environment,
+                                vulnerabilities = report_item.vulnerabilities,
                             )
                         )
-        assert failed_count == 0, f"Found {failed_count} vulnerabilities. Safety check failed! for {image}"
-        LOGGER.info(f"Safety check is complete as a part of docker build and report exist at {SAFETY_FILE}")
+        assert failed_count == 0, f"{failed_count} package/s failed safety test for {image} !!!"
+        LOGGER.info(f"Safety check is successfully complete and report exists at {SAFETY_FILE}")
     finally:
         run(f"docker rm -f {container_name}", hide=True)
