@@ -260,11 +260,11 @@ def is_rc_test_context():
 
 
 def is_diy_image(image_uri):
-    return "diy" in image_uri
+    return "-diy" in image_uri
 
 
 def is_sagemaker_image(image_uri):
-    return "sagemaker" in image_uri
+    return "-sagemaker" in image_uri
 
 
 def is_time_for_canary_safety_scan():
