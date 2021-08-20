@@ -22,6 +22,8 @@ from test.test_utils import (
     get_job_type_from_image,
     is_tf_version,
     is_below_framework_version,
+    is_diy_image,
+    is_sagemaker_image,
     DEFAULT_REGION,
     P3DN_REGION,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
@@ -631,10 +633,10 @@ def pytest_generate_tests(metafunc):
                         fixture_name not in metafunc.fixturenames
                         for fixture_name in ["example_only", "huggingface_only"]
                     ) and all(keyword not in image for keyword in ["example", "huggingface"])
-                    if "sagemaker_only" in metafunc.fixturenames and "diy" in image:
+                    if "sagemaker_only" in metafunc.fixturenames and is_diy_image(image):
                         LOGGER.info(f"Not running DIY image {image} on sagemaker_only test")
                         continue
-                    if "sagemaker" in image:
+                    if is_sagemaker_image(image):
                         if "sagemaker_only" not in metafunc.fixturenames and "sagemaker" not in metafunc.fixturenames:
                             LOGGER.info(
                                 f"Skipping test, as this function is not marked as 'sagemaker_only' or 'sagemaker'"

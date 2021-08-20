@@ -461,7 +461,7 @@ def main():
                 [
                     image
                     for image in standard_images_list
-                    if not (("tensorflow-inference" in image and "py2" in image) or is_diy_image(image))
+                    if not (("tensorflow-inference" in image and "py2" in image) or (is_diy_image(image)))
                 ]
             )
         metrics_utils.send_test_duration_metrics(start_time)
@@ -476,7 +476,7 @@ def main():
         testing_image_list = [
             image
             for image in standard_images_list
-            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or ("diy" in image))
+            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or (is_diy_image(image)))
         ]
         run_sagemaker_local_tests(testing_image_list)
         # for EIA Images
