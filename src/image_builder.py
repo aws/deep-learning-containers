@@ -233,7 +233,7 @@ def get_conclusion_stage_image_object(initial_stage_image_object):
     conclusion_stage_image_object = None
     conclusion_stage_image_object = ConclusionStageImage(
         info=initial_stage_image_object.info,
-        dockerfile=os.path.join(os.sep, os.getenv("PYTHONPATH"), "src", "Dockerfile.multipart"),
+        dockerfile=os.path.join(os.sep, os.getenv("ROOT_FOLDER_PATH"), "src", "Dockerfile.multipart"),
         repository=initial_stage_image_object.repository,
         tag=initial_stage_image_object.tag,
         to_build=initial_stage_image_object.to_build,

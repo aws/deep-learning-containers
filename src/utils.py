@@ -504,7 +504,7 @@ def get_safety_ignore_dict(image_uri):
     python_version = "py2" if "py2" in image_uri else "py3"
 
     IGNORE_SAFETY_IDS = {}
-    with open(f'{os.getenv("PYTHONPATH")}/data/ignore_ids_safety_scan.json') as f:
+    with open(f'{os.getenv("ROOT_FOLDER_PATH")}/data/ignore_ids_safety_scan.json') as f:
         IGNORE_SAFETY_IDS = json.load(f)
 
     return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, {})
@@ -520,12 +520,14 @@ def generate_safety_report_for_image(image_uri, storage_file_path=None):
         [
             {
                 "package": "package",
-                "affected": "version_spec",
+                "scan_status": "SUCCEEDED/FAILED/IGNORED",
                 "installed": "version",
                 "vulnerabilities": [
                     {
                         "vid": "safety_vulnerability_id",
-                        "advisory": "description of the issue"
+                        "advisory": "description of the issue",
+                        "spec": "version_spec",
+                        "reason_to_ignore": "Either N/A or the reason fetched from data/ignore_ids_safety_scan.json"
                     },
                     ...
                 ]
@@ -534,7 +536,7 @@ def generate_safety_report_for_image(image_uri, storage_file_path=None):
         ]
     """
     ctx = Context()
-    docker_run_cmd = f"docker run -itd -v $PYTHONPATH/src:/src {image_uri}"
+    docker_run_cmd = f"docker run -itd -v $ROOT_FOLDER_PATH/src:/src {image_uri}"
     container_id = ctx.run(f"{docker_run_cmd}").stdout.strip()
     install_safety_cmd = "pip install safety"
     ctx.run(f"docker exec {container_id} {install_safety_cmd}")

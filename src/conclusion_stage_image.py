@@ -37,7 +37,7 @@ class ConclusionStageImage(DockerImage):
         processed_image_uri = first_stage_image_uri.replace('.','-').replace('/','-').replace(':','-')
         image_name = self.name
         tarfile_name_for_context = f"{processed_image_uri}-{image_name}"
-        storage_file_path = f"{os.getenv('PYTHONPATH')}/src/{tarfile_name_for_context}_safety_report.json"
+        storage_file_path = f"{os.getenv('ROOT_FOLDER_PATH')}/src/{tarfile_name_for_context}_safety_report.json"
         generate_safety_report_for_image(first_stage_image_uri, storage_file_path=storage_file_path)
         self.context = self.generate_conclude_stage_context(storage_file_path, tarfile_name=tarfile_name_for_context)
 
@@ -63,6 +63,6 @@ class ConclusionStageImage(DockerImage):
                     }
                 )
         
-        artifact_root = os.path.join(os.sep, os.getenv("PYTHONPATH"), "src") + "/"
+        artifact_root = os.path.join(os.sep, os.getenv("ROOT_FOLDER_PATH"), "src") + "/"
         return Context(ARTIFACTS, context_path=f'build/{tarfile_name}.tar.gz',artifact_root=artifact_root)
 
