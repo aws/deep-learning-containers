@@ -488,7 +488,30 @@ def get_codebuild_project_name():
     # Default value for codebuild project name is "local_test" when run outside of CodeBuild
     return os.getenv("CODEBUILD_BUILD_ID", "local_test").split(":")[0]
 
-def generate_safety_report_for_image(image_name, storage_file_path=None):
+def get_safety_ignore_dict(image_uri):
+    """
+    Get a dict of known safety check issue IDs to ignore, if specified in file ../data/ignore_ids_safety_scan.json.
+    :param image_uri:
+    :return: <list> list of safety check IDs to ignore
+    """
+    framework = ("mxnet" if "mxnet" in image_uri else
+                 "pytorch" if "pytorch" in image_uri else
+                 "tensorflow")
+    job_type = ("training" if "training" in image_uri else
+                "inference-eia" if "eia" in image_uri else
+                "inference-neuron" if "neuron" in image_uri else
+                "inference")
+    python_version = "py2" if "py2" in image_uri else "py3"
+
+    IGNORE_SAFETY_IDS = {}
+    with open(f'{os.getenv("PYTHONPATH")}/data/ignore_ids_safety_scan.json') as f:
+        IGNORE_SAFETY_IDS = json.load(f)
+
+    return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, {})
+    
+
+
+def generate_safety_report_for_image(image_uri, storage_file_path=None):
     """
     Genereate safety scan reports for an image and store it at the location specified 
     :param image_name: str that consists of f"{image_repo}:{image_tag}"
@@ -511,14 +534,15 @@ def generate_safety_report_for_image(image_name, storage_file_path=None):
         ]
     """
     ctx = Context()
-    docker_run_cmd = f"docker run -itd -v $PYTHONPATH/src:/src {image_name}"
+    docker_run_cmd = f"docker run -itd -v $PYTHONPATH/src:/src {image_uri}"
     container_id = ctx.run(f"{docker_run_cmd}").stdout.strip()
     install_safety_cmd = "pip install safety"
     ctx.run(f"docker exec {container_id} {install_safety_cmd}")
     docker_exec_cmd = f"docker exec -i {container_id}"
-    run_output = SafetyCheck().run_safety_check_script_on_container(docker_exec_cmd)
+    ignore_dict = get_safety_ignore_dict(image_uri)
+    run_output = SafetyCheck().run_safety_check_script_on_container(docker_exec_cmd, ignore_dict_str=json.dumps(ignore_dict))
     json_formatted_output = json.loads(run_output.strip())
     if storage_file_path:
         with open(storage_file_path, 'w', encoding='utf-8') as f:
-            json.dump(json_formatted_output, f, ensure_ascii=False, indent=4)
+            json.dump(json_formatted_output, f, indent=4)
     return json_formatted_output
