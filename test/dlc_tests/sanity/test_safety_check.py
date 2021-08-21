@@ -148,11 +148,17 @@ def _get_latest_package_version(package):
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run safety tests regularly on production images")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
+@pytest.mark.skipif(
+    not (is_mainline_context() or (is_canary_context() and is_time_for_canary_safety_scan())),
+    reason=(
+        "Skipping the test to decrease the number of calls to the Safety Check DB. "
+        "Test will be executed in the 'mainline' pipeline and canaries pipeline."
+    )
+)
 def test_safety(image):
     """
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
     error if an issue is fixable.
-    The function checks for the safety report to validate the safety run on the build job. If the report does not exist, the safety check is executed.
     """
     from dlc.safety_check import SafetyCheck
     safety_check = SafetyCheck()
@@ -172,27 +178,22 @@ def test_safety(image):
         f"--entrypoint='/bin/bash' "
         f"{image}", hide=True)
     try:
-        SAFETY_FILE = "/opt/aws/dlc/info/safety_test_report.json"
-        safety_file_check = run(f"{docker_exec_cmd} test -e {SAFETY_FILE}", warn=True, hide=True)
-        if safety_file_check.return_code != 0:
-            run(f"{docker_exec_cmd} pip install safety yolk3k ", hide=True)
-            json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
-            safety_result = json.loads(json_str_safety_result)
-            for vulnerability in safety_result:
-                package, affected_versions, curr_version, _, vulnerability_id = vulnerability[:5]
-                # Get the latest version of the package with vulnerability
-                latest_version = _get_latest_package_version(package)
-                # If the latest version of the package is also affected, ignore this vulnerability
-                if Version(latest_version) in SpecifierSet(affected_versions):
-                    # Version(x) gives an object that can be easily compared with another version, or with a SpecifierSet.
-                    # Comparing two versions as a string has some edge cases which require us to write more code.
-                    # SpecifierSet(x) takes a version constraint, such as "<=4.5.6", ">1.2.3", or ">=1.2,<3.4.5", and
-                    # gives an object that can be easily compared against a Version object.
-                    # https://packaging.pypa.io/en/latest/specifiers/
-                    ignore_str += f" -i {vulnerability_id}"
-            assert (safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str) == 0), \
-                f"Safety test failed for {image}"
-        else:
-            LOGGER.info(f"Safety check is complete as a part of docker build and report exist at {SAFETY_FILE}")
+        run(f"{docker_exec_cmd} pip install safety yolk3k ", hide=True)
+        json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
+        safety_result = json.loads(json_str_safety_result)
+        for vulnerability in safety_result:
+            package, affected_versions, curr_version, _, vulnerability_id = vulnerability[:5]
+            # Get the latest version of the package with vulnerability
+            latest_version = _get_latest_package_version(package)
+            # If the latest version of the package is also affected, ignore this vulnerability
+            if Version(latest_version) in SpecifierSet(affected_versions):
+                # Version(x) gives an object that can be easily compared with another version, or with a SpecifierSet.
+                # Comparing two versions as a string has some edge cases which require us to write more code.
+                # SpecifierSet(x) takes a version constraint, such as "<=4.5.6", ">1.2.3", or ">=1.2,<3.4.5", and
+                # gives an object that can be easily compared against a Version object.
+                # https://packaging.pypa.io/en/latest/specifiers/
+                ignore_str += f" -i {vulnerability_id}"
+        assert (safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str) == 0), \
+            f"Safety test failed for {image}"
     finally:
         run(f"docker rm -f {container_name}", hide=True)
