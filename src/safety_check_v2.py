@@ -26,12 +26,14 @@ def main():
     [
         {
             "package": "package",
-            "affected": "version_spec",
+            "scan_status": "SUCCEEDED/FAILED/IGNORED",
             "installed": "version",
             "vulnerabilities": [
                 {
                     "vid": "safety_vulnerability_id",
-                    "advisory": "description of the issue"
+                    "advisory": "description of the issue",
+                    "reason_to_ignore":"reason to ignore the vid",
+                    "spec": "version_spec"
                 },
                 ...
             ]
