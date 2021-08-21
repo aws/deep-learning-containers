@@ -229,7 +229,7 @@ Example:
     pytest -s ecs/mxnet/training/test_ecs_mxnet_training.py::test_ecs_mxnet_training_dgl_cpu
     ```
 
-7. To run SageMaker local mode tests, launch a cpu or gpu EC2 instance with latest Deep Learning AMI.
+7. To run SageMaker local mode tests, launch a cpu or gpu EC2 instance with the latest Deep Learning AMI.
    * Clone your github branch with changes and run the following commands
        ```shell script
        git clone https://github.com/{github_account_id}/deep-learning-containers/
@@ -258,9 +258,9 @@ Example:
      --docker-base-name ${aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference \
      --tag 1.15.2-cpu-py36-ubuntu16.04 --framework-version 1.15.2 --processor cpu
      ```
-8. To run SageMaker remote tests on your account please setup following pre-requisites
+8. To run SageMaker remote tests on your account please setup following prerequisites
 
-    * Create an IAM role with name “SageMakerRole” in the above account and add the below AWS Manged policies
+    * Create an IAM role with name “SageMakerRole” in the above account and add the below AWS Managed policies
        ```
        AmazonSageMakerFullAccess
        ```
