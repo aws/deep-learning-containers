@@ -260,8 +260,8 @@ def image_builder(buildspec):
 
 
 def tag_image_with_pr_number(image_tag):
-    pr_number = os.getenv("CODEBUILD_SOURCE_VERSION").replace("/", "-")
-    return f"{image_tag}-{pr_number}"
+    pr_number = os.getenv("PR_NUMBER")
+    return f"{image_tag}-pr-{pr_number}"
 
 
 def tag_image_with_datetime(image_tag):

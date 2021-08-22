@@ -40,7 +40,8 @@ def run_test_job(commit, codebuild_project, images_str=""):
     with open(test_env_file) as test_env_file:
         env_overrides = json.load(test_env_file)
 
-    pr_num = os.getenv("CODEBUILD_SOURCE_VERSION")
+    pr_num = os.getenv("PR_NUMBER")
+    LOGGER.debug(f"pr_num {pr_num}")
     env_overrides.extend(
         [
             {"name": "DLC_IMAGES", "value": images_str, "type": "PLAINTEXT"},
@@ -112,6 +113,7 @@ def main():
             pr_test_job = f"dlc-pr-{test_type}-test"
             images_str = " ".join(images)
             if is_test_job_enabled(test_type):
+                LOGGER.debug(f"Test job enabled for {test_type} test")
                 if "huggingface" in images_str and test_type in [
                     constants.EC2_TESTS,
                     constants.ECS_TESTS,
