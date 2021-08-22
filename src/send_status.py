@@ -71,6 +71,8 @@ def post_status(state):
         context = f"{trigger_job}_{project_name}"
     else:
         context = f"{project_name}"
+        #TODO: handle this use case
+        trigger_job = f"{project_name}"
     
     description = set_build_description(state, project_name, trigger_job)
 
