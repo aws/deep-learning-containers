@@ -62,9 +62,16 @@ def post_status(state):
         return
 
     project_name = utils.get_codebuild_project_name()
-    trigger_job = os.getenv("TEST_TRIGGER", "UNKNOWN-TEST-TRIGGER")
     target_url = get_target_url(project_name)
-    context = f"{trigger_job}_{project_name}"
+
+    test_context = os.getenv("TEST_TYPE")
+
+    if test_context:
+        trigger_job = os.getenv("TEST_TRIGGER", "UNKNOWN-TEST-TRIGGER")
+        context = f"{trigger_job}_{project_name}"
+    else:
+        context = f"{project_name}"
+    
     description = set_build_description(state, project_name, trigger_job)
 
     # Example: "https://github.com/aws/deep-learning-containers.git"
