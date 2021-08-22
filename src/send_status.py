@@ -32,21 +32,20 @@ def get_target_url(project):
            f"/log?region={region}"
 
 
-def set_build_description(state, project, trigger_job):
+def set_build_description(state, project):
     """
     Set the build description, based on the state, project name, and job that triggered the project.
 
     :param state: <str> choices are "success", "failure", "error" or "pending"
     :param project: Project name associated with the running CodeBuild job
-    :param trigger_job: The name of the CodeBuild project that triggered this build
     :return: <str> Description to be posted to the PR build
     """
     if state == "success":
-        return f"{project} succeeded for {trigger_job}."
+        return f"{project} succeeded."
     elif state == "failure" or state == "error":
-        return f"{project} is in state {state.upper()} for {trigger_job}! Check details to debug."
+        return f"{project} is in state {state.upper()}! Check details to debug."
     elif state == "pending":
-        return f"{project} is pending for {trigger_job}..."
+        return f"{project} is pending..."
     else:
         return f"Unknown state: {state}"
 
@@ -71,10 +70,8 @@ def post_status(state):
         context = f"{trigger_job}_{project_name}"
     else:
         context = f"{project_name}"
-        #TODO: handle this use case
-        trigger_job = f"{project_name}"
     
-    description = set_build_description(state, project_name, trigger_job)
+    description = set_build_description(state, project_name)
 
     # Example: "https://github.com/aws/deep-learning-containers.git"
     repo_url = os.getenv("CODEBUILD_SOURCE_REPO_URL")
