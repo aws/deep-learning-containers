@@ -543,6 +543,7 @@ def generate_safety_report_for_image(image_uri, storage_file_path=None):
     docker_exec_cmd = f"docker exec -i {container_id}"
     ignore_dict = get_safety_ignore_dict(image_uri)
     run_output = SafetyCheck().run_safety_check_script_on_container(docker_exec_cmd, ignore_dict_str=json.dumps(ignore_dict))
+    ctx.run(f"docker rm -f {container_id}")
     json_formatted_output = json.loads(run_output.strip())
     if storage_file_path:
         with open(storage_file_path, 'w', encoding='utf-8') as f:
