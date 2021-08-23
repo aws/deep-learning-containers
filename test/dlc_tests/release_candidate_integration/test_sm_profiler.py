@@ -23,7 +23,9 @@ from test.test_utils import (
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(not is_mainline_context() and not is_rc_test_context(), reason="Mainline only test")
-def test_sm_profiler_pt(pytorch_training):
+def test_sm_profiler_pt(huggingface_pytorch_training):
+    #tmp
+    pytorch_training = huggingface_pytorch_training
     processor = get_processor_from_image_uri(pytorch_training)
     if processor not in ("cpu", "gpu"):
         pytest.skip(f"Processor {processor} not supported. Skipping test.")
