@@ -386,6 +386,11 @@ def huggingface_only():
 
 
 @pytest.fixture(scope="session")
+def huggingface():
+    pass
+
+
+@pytest.fixture(scope="session")
 def tf2_only():
     pass
 
@@ -616,7 +621,10 @@ def pytest_generate_tests(metafunc):
             for image in images:
                 if lookup in image:
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
-                    is_huggingface_lookup = "huggingface_only" in metafunc.fixturenames and "huggingface" in image
+                    is_huggingface_lookup = (
+                            ("huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames)
+                            and "huggingface" in image
+                    )
                     is_standard_lookup = all(
                         fixture_name not in metafunc.fixturenames
                         for fixture_name in ["example_only", "huggingface_only"]
