@@ -223,6 +223,8 @@ def ec2_instance(
         "MinCount": 1,
     }
 
+    volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
+
     if (
         ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
         and (
@@ -236,7 +238,7 @@ def ec2_instance(
     ):
         params["BlockDeviceMappings"] = [
             {
-                "DeviceName": "/dev/sda1",
+                "DeviceName": volume_name,
                 "Ebs": {
                     "VolumeSize": 300,
                 },
@@ -247,7 +249,7 @@ def ec2_instance(
         # TODO: Revert the configuration once DLAMI is public
         params["BlockDeviceMappings"] = [
             {
-                "DeviceName": "/dev/sda1",
+                "DeviceName": volume_name,
                 "Ebs": {
                     "VolumeSize": 90,
                 },
