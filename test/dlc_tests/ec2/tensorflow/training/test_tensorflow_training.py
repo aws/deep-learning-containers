@@ -5,13 +5,7 @@ import pytest
 import test.test_utils as test_utils
 import test.test_utils.ec2 as ec2_utils
 
-from test.test_utils import (
-    CONTAINER_TESTS_PREFIX,
-    LOGGER,
-    is_tf_version,
-    get_python_invoker,
-    AML2_GPU_DLAMI_US_WEST_2,
-)
+from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER, is_tf_version, get_python_invoker, AML2_GPU_DLAMI_US_WEST_2
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -220,8 +214,9 @@ def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, tf2_only, cp
 # Helper function to test data service
 def run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, cmd):
     python_invoker = get_python_invoker(ec2_instance_ami)
+    _, tensorflow_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
     ec2_connection.run(f"{python_invoker} -m pip install --upgrade pip")
-    ec2_connection.run(f"{python_invoker} -m pip install tensorflow==2.5")
+    ec2_connection.run(f"{python_invoker} -m pip install tensorflow=={tensorflow_version}")
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(f"cd {container_test_local_dir}/bin && screen -d -m {python_invoker} start_dataservice.py")
     execute_ec2_training_test(ec2_connection, tensorflow_training, cmd, host_network=True)
