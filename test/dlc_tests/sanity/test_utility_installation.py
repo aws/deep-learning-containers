@@ -55,14 +55,16 @@ def test_utility_packages_using_import(training):
         "tensorflow1": "1.15",
     }
 
-    framework = "tensorflow1" if framework == "tensorflow" and framework_version.startswith("1.") else "tensorflow2"
+    if framework == "tensorflow":
+        framework = "tensorflow1" if framework_version.startswith("1.") else "tensorflow2"
+
     if Version(framework_version) < Version(utility_package_minimum_framework_version[framework]):
         pytest.skip("Extra utility packages will be added going forward.")
     
     for package in UTILITY_PACKAGES_IMPORT:
         version = test_utils.run_cmd_on_container(container_name, ctx, f"import {package}; print({package}.__version__)", executable="python").stdout.strip()
         if package == "sagemaker":
-            assert Version(version) > Version("2"), f"Sagemaker version should be > 2.0. Found version {sm_version}"
+            assert Version(version) > Version("2"), f"Sagemaker version should be > 2.0. Found version {version}"
 
 
 @pytest.mark.model("N/A")
