@@ -17,7 +17,7 @@ MX_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testMXNetHVD")
 MX_KERAS_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testKerasMXNet")
 MX_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_mx_dlc_telemetry_test")
 
-MX_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
+MX_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p4d.24xlarge", processor="gpu")
 MX_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 MX_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,

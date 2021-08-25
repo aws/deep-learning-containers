@@ -21,13 +21,13 @@ PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_p
 PT_S3_PLUGIN_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchS3Plugin")
 
 
-PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
+PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p4d.24xlarge", processor="gpu")
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
 )
 PT_EC2_MULTI_GPU_INSTANCE_TYPE = get_ec2_instance_type(
-    default="g3.8xlarge", processor="gpu", filter_function=ec2_utils.filter_only_multi_gpu,
+    default="p4d.24xlarge", processor="gpu", filter_function=ec2_utils.filter_only_multi_gpu,
 )
 
 

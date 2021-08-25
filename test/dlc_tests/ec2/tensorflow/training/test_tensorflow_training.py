@@ -5,7 +5,7 @@ import pytest
 import test.test_utils as test_utils
 import test.test_utils.ec2 as ec2_utils
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER, is_tf_version, get_python_invoker, AML2_GPU_DLAMI_US_WEST_2
+from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER, is_tf_version, get_python_invoker
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -36,7 +36,6 @@ class TFTrainingTestFailure(Exception):
 
 @pytest.mark.integration("tensorflow_sanity_test")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_ami", [AML2_GPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_standalone_gpu(tensorflow_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
@@ -54,7 +53,6 @@ def test_tensorflow_standalone_cpu(tensorflow_training, ec2_connection, cpu_only
 
 
 @pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_ami", [AML2_GPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
@@ -72,7 +70,6 @@ def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_onl
 # TODO: Re-enable for TF1 by removing tf2_only fixture once infrastructure issues are addressed
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
-@pytest.mark.parametrize("ec2_instance_ami", [AML2_GPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2_connection, gpu_only, tf2_only):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
@@ -114,7 +111,6 @@ def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_on
 
 @pytest.mark.integration("opencv")
 @pytest.mark.model("unknown_model")
-@pytest.mark.parametrize("ec2_instance_ami", [AML2_GPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_opencv_gpu(tensorflow_training, ec2_connection, tf2_only, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
@@ -133,7 +129,6 @@ def test_tensorflow_opencv_cpu(tensorflow_training, ec2_connection, tf2_only, cp
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_ami", [AML2_GPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
@@ -153,7 +148,6 @@ def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only)
 # Skip test for TF 2.0 and below: https://github.com/tensorflow/tensorflow/issues/33484#issuecomment-555299647
 @pytest.mark.integration("keras, horovod, automatic_mixed_precision (AMP)")
 @pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_ami", [AML2_GPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_keras_horovod_amp(
     tensorflow_training, ec2_connection, tf21_and_above_only, gpu_only, ec2_instance_type
@@ -165,7 +159,6 @@ def test_tensorflow_keras_horovod_amp(
 
 @pytest.mark.integration("keras, horovod, single_precision_floating_point (FP32)")
 @pytest.mark.model("mnist")
-@pytest.mark.parametrize("ec2_instance_ami", [AML2_GPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_keras_horovod_fp32(tensorflow_training, ec2_connection, tf2_only, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
@@ -176,7 +169,6 @@ def test_tensorflow_keras_horovod_fp32(tensorflow_training, ec2_connection, tf2_
 # Testing Tensorboard with profiling
 @pytest.mark.integration("tensorboard, keras")
 @pytest.mark.model("sequential")
-@pytest.mark.parametrize("ec2_instance_ami", [AML2_GPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_tensorboard_gpu(tensorflow_training, ec2_connection, tf2_only, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
@@ -196,7 +188,6 @@ def test_tensorflow_tensorboard_cpu(tensorflow_training, ec2_connection, tf2_onl
 # https://github.com/tensorflow/addons#python-op-compatility
 @pytest.mark.model("sequential")
 @pytest.mark.integration("tensorflow_addons, keras")
-@pytest.mark.parametrize("ec2_instance_ami", [AML2_GPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_addons_gpu(tensorflow_training, ec2_connection, tf2_only, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
@@ -237,7 +228,6 @@ def test_tensorflow_dataservice_cpu(
 # Skip test for TF 2.3 and below
 @pytest.mark.integration("tensorflow-dataservice-test")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_ami", [AML2_GPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_gpu(
     tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, gpu_only, ec2_instance_type
@@ -262,7 +252,6 @@ def test_tensorflow_distribute_dataservice_cpu(
 # Skip test for TF 2.3 and below
 @pytest.mark.integration("tensorflow-dataservice-distribute-test")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_ami", [AML2_GPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_distribute_dataservice_gpu(
     tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, gpu_only, ec2_instance_type

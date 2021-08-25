@@ -167,7 +167,7 @@ def ec2_instance_role_name(request):
 
 
 @pytest.fixture(scope="function")
-def ec2_instance_ami(request, region):
+def ec2_instance_ami(request):
     return request.param if hasattr(request, "param") else UBUNTU_18_BASE_DLAMI_US_WEST_2
 
 
