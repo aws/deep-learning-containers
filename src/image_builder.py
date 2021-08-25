@@ -342,10 +342,14 @@ def get_dummy_boto_client():
 
 def push_images(images):
     THREADS = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        for image in images:
-            THREADS[image.name] = executor.submit(image.push_image)
-    FORMATTER.progress(THREADS)
+    for image in images:
+        THREADS[image.name] = image.push_image()
+    FORMATTER.title("Completed PUSH")
+    # FORMATTER.progress(THREADS)
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    #     for image in images:
+    #         THREADS[image.name] = executor.submit(image.push_image)
+    # FORMATTER.progress(THREADS)
 
 
 
