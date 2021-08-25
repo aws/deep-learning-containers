@@ -304,7 +304,7 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 ENV TF_AUTOTUNE_THRESHOLD=2
 
 # Install SMD MP binary
-# RUN pip install --no-cache-dir -U ${SMMODELPARALLEL_BINARY}
+RUN pip install --no-cache-dir -U ${SMMODELPARALLEL_BINARY}
 
 # Install SMD DP binary
 # RUN SMDATAPARALLEL_TF=1 ${PIP} install --no-cache-dir ${SMDATAPARALLEL_BINARY}
