@@ -537,7 +537,7 @@ def generate_safety_report_for_image(image_uri, storage_file_path=None):
         ]
     """
     ctx = Context()
-    docker_run_cmd = f"docker run -itd {image_uri}"
+    docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image_uri} "
     container_id = ctx.run(f"{docker_run_cmd}", hide=True, warn=True).stdout.strip()
     install_safety_cmd = "pip install safety"
     ctx.run(f"docker exec {container_id} {install_safety_cmd}", hide=True, warn=True)
