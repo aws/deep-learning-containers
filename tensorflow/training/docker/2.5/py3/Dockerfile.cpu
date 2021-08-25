@@ -176,12 +176,14 @@ RUN ${PIP} install --no-cache-dir -U \
     smclarify
 
 # Install extra packages
+# numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
 RUN pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
     "imageio>=2.9,<3" \
     "opencv-python>=4.3,<5" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
+    "numba<0.54" \
     "shap>=0.39,<1"
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
