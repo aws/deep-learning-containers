@@ -185,6 +185,7 @@ class DockerImage:
 
         for line in self.client.push(self.repository, self.tag, stream=True, decode=True):
             response = []
+            print(f'*** [{self.repository}:{self.tag}] {line} ***')
             if line.get("error") is not None:
                 response.append(line["error"])
 
