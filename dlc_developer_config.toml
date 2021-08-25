@@ -26,9 +26,9 @@ do_build = true
 [test]
 ### On by default
 sanity_tests = true
-ecs_tests = false
-eks_tests = false
-ec2_tests = false
+ecs_tests = true
+eks_tests = true
+ec2_tests = true
 
 ### Off by default
 efa_tests = false
