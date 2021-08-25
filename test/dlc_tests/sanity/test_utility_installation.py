@@ -36,7 +36,7 @@ def test_awscli(mxnet_inference):
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.integration("bokeh")
+@pytest.mark.integration("utility pacakges")
 def test_utility_packages_using_import(training):
     """
     Verify that utility packages are installed in the Training DLC image
