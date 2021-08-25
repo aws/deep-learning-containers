@@ -23,6 +23,7 @@ import constants
 from config import parse_dlc_developer_configs, is_build_enabled
 from invoke.context import Context
 from botocore.exceptions import ClientError
+from safety_report_generator import SafetyReportGenerator
 from dlc.safety_check import SafetyCheck
 
 LOGGER = logging.getLogger(__name__)
@@ -536,16 +537,15 @@ def generate_safety_report_for_image(image_uri, storage_file_path=None):
         ]
     """
     ctx = Context()
-    docker_run_cmd = f"docker run -itd -v $ROOT_FOLDER_PATH/src:/src {image_uri}"
-    container_id = ctx.run(f"{docker_run_cmd}").stdout.strip()
+    docker_run_cmd = f"docker run -itd {image_uri}"
+    container_id = ctx.run(f"{docker_run_cmd}", hide=True, warn=True).stdout.strip()
     install_safety_cmd = "pip install safety"
-    ctx.run(f"docker exec {container_id} {install_safety_cmd}")
+    ctx.run(f"docker exec {container_id} {install_safety_cmd}", hide=True, warn=True)
     docker_exec_cmd = f"docker exec -i {container_id}"
     ignore_dict = get_safety_ignore_dict(image_uri)
-    run_output = SafetyCheck().run_safety_check_script_on_container(docker_exec_cmd, ignore_dict_str=json.dumps(ignore_dict))
-    ctx.run(f"docker rm -f {container_id}")
-    json_formatted_output = json.loads(run_output.strip())
+    safety_scan_output = SafetyReportGenerator(container_id, ignore_dict=ignore_dict).generate()
+    ctx.run(f"docker rm -f {container_id}", hide=True, warn=True)
     if storage_file_path:
         with open(storage_file_path, 'w', encoding='utf-8') as f:
-            json.dump(json_formatted_output, f, indent=4)
-    return json_formatted_output
+            json.dump(safety_scan_output, f, indent=4)
+    return safety_scan_output
