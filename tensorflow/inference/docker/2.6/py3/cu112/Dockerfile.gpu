@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.2.1-base-ubuntu20.04
+FROM nvidia/cuda:11.2.1-base-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -6,13 +6,13 @@ LABEL dlc_major_version="1"
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
-ARG PYTHON=python3.7
+ARG PYTHON=python3.8
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.7.10
+ARG PYTHON_VERSION=3.8.9
 
-ARG TFS_SHORT_VERSION=2.5
-ARG TFS_URL=https://aws-ei-tensorflow-binaries.s3-us-west-2.amazonaws.com/serving/r2.5_aws/20210517-110027/gpu/py37/tensorflow_model_server
+ARG TFS_SHORT_VERSION=2.6
+ARG TFS_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/serving/r2.6_aws/gpu/py38/tensorflow_model_server
 
 ENV NCCL_VERSION=2.8.4-1+cuda11.2
 ENV CUDNN_VERSION=8.1.0.77-1+cuda11.2
@@ -33,8 +33,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # allow unauthenticated and allow downgrades for special libcublas library
 RUN apt-get update \
- # TODO: Remove systemd upgrade once it is updated in base image
- && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades\
     ca-certificates \
     cuda-command-line-tools-11-2 \
@@ -93,8 +91,8 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 # https://docs.nvidia.com/deeplearning/tensorrt/archives/tensorrt-722/install-guide/index.html
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated  \
-    libnvinfer7=${TF_TENSORRT_VERSION}-1+cuda11.1 \
-    libnvinfer-plugin7=${TF_TENSORRT_VERSION}-1+cuda11.1 \
+    libnvinfer7=${TF_TENSORRT_VERSION}-1+cuda11.2 \
+    libnvinfer-plugin7=${TF_TENSORRT_VERSION}-1+cuda11.2 \
  && rm -rf /var/lib/apt/lists/*
 
 # Some TF tools expect a "python" binary
@@ -107,7 +105,7 @@ RUN apt-get update \
     curl \
     gnupg2 \
  && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
- && echo 'deb http://nginx.org/packages/ubuntu/ focal nginx' >> /etc/apt/sources.list \
+ && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
  && apt-get update \
  && apt-get -y install --no-install-recommends \
     nginx \
