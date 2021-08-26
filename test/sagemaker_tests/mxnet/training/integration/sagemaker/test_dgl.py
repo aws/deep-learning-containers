@@ -16,10 +16,11 @@ import os
 
 import pytest
 from sagemaker import utils
-from .... import MXNet
+from sagemaker.mxnet.estimator import MXNet
 
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
+from .... import invoke_mxnet_helper_function
 
 DGL_DATA_PATH = os.path.join(RESOURCE_PATH, 'dgl_gcn')
 DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, 'gcn.py')
@@ -30,14 +31,21 @@ DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, 'gcn.py')
 @pytest.mark.model("gcn")
 @pytest.mark.skip_py2_containers
 def test_dgl_training(sagemaker_regions, ecr_image, instance_type, framework_version):
+    estimator_parameters = {
+        'entry_point': DGL_SCRIPT_PATH,
+        'instance_type': instance_type,
+        'instance_count': 1,
+        'framework_version': framework_version,
+    }
 
-    dgl = MXNet(entry_point=DGL_SCRIPT_PATH,
-                role='SageMakerRole',
-                instance_count=1,
-                instance_type=instance_type,
-                sagemaker_regions=sagemaker_regions,
+    invoke_mxnet_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, estimator_parameters)
+
+
+def _test_dgl_training(ecr_image, sagemaker_session, **kwargs):
+    dgl = MXNet(role='SageMakerRole',
+                sagemaker_session=sagemaker_session,
                 image_uri=ecr_image,
-                framework_version=framework_version)
+                **kwargs)
 
     with timeout(minutes=15):
         job_name = utils.unique_name_from_base('test-dgl-image')
