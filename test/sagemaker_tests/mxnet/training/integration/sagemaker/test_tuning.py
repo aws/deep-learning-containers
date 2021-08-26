@@ -17,7 +17,7 @@ import os
 import pytest
 
 from sagemaker import utils
-from sagemaker.mxnet.estimator import MXNet
+from .... import MXNet
 from sagemaker.tuner import ContinuousParameter, HyperparameterTuner
 
 from ...integration import RESOURCE_PATH
