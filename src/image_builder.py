@@ -336,13 +336,14 @@ def get_dummy_boto_client():
     # In absence of this method, the behaviour documented in https://github.com/boto/boto3/issues/1592 is observed.
     # If this function is not added, boto3 fails because boto3 sessions are not thread safe.
     # However, once a dummy client is created, it is ensured that the calls are thread safe.
-    # If the boto3 call made in the dlc package is changed to boto3.Session().client(), even then this issue can be resolved.
     import boto3
     return boto3.client("secretsmanager", region_name=os.getenv('REGION'))
 
 def push_images(images):
     THREADS = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=constants.MAX_WORKER_COUNT_FOR_PUSHING_IMAGES
+    ) as executor:
         for image in images:
             THREADS[image.name] = executor.submit(image.push_image)
     FORMATTER.progress(THREADS)

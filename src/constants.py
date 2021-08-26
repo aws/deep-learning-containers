@@ -77,3 +77,4 @@ EKS_TESTS = "eks"
 ALL_TESTS = ["sagemaker", "ec2", "eks", "ecs"]
 
 API_CLIENT_TIMEOUT = 600
+MAX_WORKER_COUNT_FOR_PUSHING_IMAGES = 3
