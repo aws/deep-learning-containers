@@ -21,35 +21,45 @@ from sagemaker.mxnet import MXNet
 
 from ...integration import RESOURCE_PATH
 from ...integration.utils import unique_name_from_base
+from .... import invoke_mxnet_helper_function
 
 
 @pytest.mark.multinode(2)
 @pytest.mark.integration("horovod")
 @pytest.mark.model("mnist")
-def test_distributed_training_horovod(sagemaker_session,
+def test_distributed_training_horovod(sagemaker_regions,
                                       instance_type,
                                       ecr_image,
                                       tmpdir,
                                       framework_version):
-
     mpi_options = '-verbose -x orte_base_help_aggregate=0'
-    estimator = MXNet(
-        entry_point=os.path.join(RESOURCE_PATH, 'mnist', 'horovod_mnist.py'),
-        role='SageMakerRole',
-        instance_type=instance_type,
-        instance_count=2,
-        image_uri=ecr_image,
-        framework_version=framework_version,
-        py_version='py3',
-        hyperparameters={'sagemaker_mpi_enabled': True,
-                         'sagemaker_mpi_custom_mpi_options': mpi_options,
-                         'sagemaker_mpi_num_of_processes_per_host': 1},
-        sagemaker_session=sagemaker_session)
+    estimator_parameters = {
+        'entry_point': os.path.join(RESOURCE_PATH, 'mnist', 'horovod_mnist.py'),
+        'instance_type': instance_type,
+        'instance_count': 2,
+        'framework_version': framework_version,
+        'py_version': 'py3',
+        'hyperparameters': {
+            'sagemaker_mpi_enabled': True,
+            'sagemaker_mpi_custom_mpi_options': mpi_options,
+            'sagemaker_mpi_num_of_processes_per_host': 1},
+    }
 
-    estimator.fit(job_name=unique_name_from_base('test-mx-horovod'))
+    estimator, sagemaker_session = invoke_mxnet_helper_function(ecr_image, sagemaker_regions, _test_mpi_training,
+                                                                estimator_parameters)
 
     model_data_source = sagemaker.local.data.get_data_source_instance(
         estimator.model_data, sagemaker_session)
 
     for filename in model_data_source.get_file_list():
         assert os.path.basename(filename) == 'model.tar.gz'
+
+
+def _test_mpi_training(ecr_image, sagemaker_session, **kwargs):
+    estimator = MXNet(
+        role='SageMakerRole',
+        sagemaker_session=sagemaker_session,
+        image_uri=ecr_image,
+        **kwargs)
+
+    estimator.fit(job_name=unique_name_from_base('test-mx-horovod'))

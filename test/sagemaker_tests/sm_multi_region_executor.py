@@ -176,20 +176,19 @@ def invoke_sagemaker_test_function(ecr_image, sagemaker_regions, sm_function, sm
     :return: None
     """
 
-    num_retries = 2
-    retry_delay = 300
     ecr_image_region = get_ecr_image_region(ecr_image)
-    for _ in range(num_retries):
-        for region in sagemaker_regions:
-            sagemaker_session = get_sagemaker_session(region)
-            # Reupload the image to test region if needed
-            tested_ecr_image = get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
-            try:
-                sm_function(tested_ecr_image, sagemaker_session, **sm_function_args)
-                return
-            except sagemaker.exceptions.UnexpectedStatusException as e:
-                if "CapacityError" in str(e):
-                    time.sleep(retry_delay)
-                    continue
-                else:
-                    raise e
+    estimator = None
+    sagemaker_session = None
+    for region in sagemaker_regions:
+        sagemaker_session = get_sagemaker_session(region)
+        # Reupload the image to test region if needed
+        tested_ecr_image = get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
+        try:
+            estimator = sm_function(tested_ecr_image, sagemaker_session, **sm_function_args)
+            return
+        except sagemaker.exceptions.UnexpectedStatusException as e:
+            if "CapacityError" in str(e):
+                continue
+            else:
+                raise e
+    return estimator, sagemaker_session

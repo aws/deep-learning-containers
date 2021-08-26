@@ -13,4 +13,4 @@
 from ..sm_multi_region_executor import invoke_sagemaker_test_function
 
 def invoke_mxnet_helper_function(ecr_image, sagemaker_regions, helper_function, helper_function_args):
-    invoke_sagemaker_test_function(ecr_image, sagemaker_regions, helper_function, helper_function_args)
+    return invoke_sagemaker_test_function(ecr_image, sagemaker_regions, helper_function, helper_function_args)
