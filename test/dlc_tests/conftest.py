@@ -27,6 +27,8 @@ from test.test_utils import (
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
+    AML2_GPU_DLAMI_US_WEST_2,
+    AML2_GPU_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
 )
@@ -40,6 +42,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 FRAMEWORK_FIXTURES = (
     "pytorch_inference",
     "pytorch_training",
+    "autogluon_training",
     "mxnet_inference",
     "mxnet_training",
     "tensorflow_inference",
@@ -62,6 +65,7 @@ FRAMEWORK_FIXTURES = (
     "huggingface_tensorflow_inference",
     "huggingface_pytorch_inference",
     "huggingface_mxnet_inference",
+    "autogluon_training",
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -190,7 +194,11 @@ def ec2_instance(
         ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
-            ec2_instance_ami = UBUNTU_18_BASE_DLAMI_US_EAST_1
+            ec2_instance_ami = (
+                AML2_GPU_DLAMI_US_EAST_1
+                if ec2_instance_ami == AML2_GPU_DLAMI_US_WEST_2
+                else UBUNTU_18_BASE_DLAMI_US_EAST_1
+            )
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
@@ -215,6 +223,8 @@ def ec2_instance(
         "MinCount": 1,
     }
 
+    volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
+
     if (
         ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
         and (
@@ -228,7 +238,7 @@ def ec2_instance(
     ):
         params["BlockDeviceMappings"] = [
             {
-                "DeviceName": "/dev/sda1",
+                "DeviceName": volume_name,
                 "Ebs": {
                     "VolumeSize": 300,
                 },
@@ -239,7 +249,7 @@ def ec2_instance(
         # TODO: Revert the configuration once DLAMI is public
         params["BlockDeviceMappings"] = [
             {
-                "DeviceName": "/dev/sda1",
+                "DeviceName": volume_name,
                 "Ebs": {
                     "VolumeSize": 90,
                 },
@@ -340,6 +350,11 @@ def pull_images(docker_client, dlc_images):
 
 @pytest.fixture(scope="session")
 def non_huggingface_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def non_autogluon_only():
     pass
 
 
@@ -557,6 +572,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
         "pytorch": "pt",
         "huggingface_pytorch": "hf-pt",
         "huggingface_tensorflow": "hf-tf",
+        "autogluon": "ag",
     }
     fixtures_parametrized = {}
 
@@ -596,6 +612,10 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
+    # Don't parametrize if there are no images to parametrize
+    if not images:
+        return
+
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
@@ -612,6 +632,8 @@ def pytest_generate_tests(metafunc):
                     if not framework_version_within_limit(metafunc, image):
                         continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
+                        continue
+                    if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue
                     if is_example_lookup or is_huggingface_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:

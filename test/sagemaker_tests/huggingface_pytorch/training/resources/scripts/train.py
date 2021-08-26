@@ -1,6 +1,7 @@
 from transformers import AutoModelForSequenceClassification, Trainer, TrainingArguments
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-from datasets import load_from_disk
+from datasets import load_dataset
+from transformers import AutoTokenizer
 import random
 import logging
 import sys
@@ -24,8 +25,6 @@ if __name__ == "__main__":
     parser.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
     parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
     parser.add_argument("--n_gpus", type=str, default=os.environ["SM_NUM_GPUS"])
-    parser.add_argument("--training_dir", type=str, default=os.environ["SM_CHANNEL_TRAIN"])
-    parser.add_argument("--test_dir", type=str, default=os.environ["SM_CHANNEL_TEST"])
 
     args, _ = parser.parse_known_args()
 
@@ -37,10 +36,31 @@ if __name__ == "__main__":
         handlers=[logging.StreamHandler(sys.stdout)],
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
+    # download model from model hub
+    model = AutoModelForSequenceClassification.from_pretrained(args.model_name)
+    # download tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
-    # load datasets
-    train_dataset = load_from_disk(args.training_dir)
-    test_dataset = load_from_disk(args.test_dir)
+    # load dataset
+    dataset = load_dataset("imdb")
+
+    # tokenizer helper function
+    def tokenize(batch):
+        return tokenizer(batch["text"], padding="max_length", truncation=True)
+
+    # load dataset
+    train_dataset, test_dataset = load_dataset("imdb", split=["train", "test"])
+    test_dataset = test_dataset.shuffle().select(range(100))  # smaller the size for test dataset to 10k
+
+    # tokenize dataset
+    train_dataset = train_dataset.map(tokenize, batched=True, batch_size=len(train_dataset))
+    test_dataset = test_dataset.map(tokenize, batched=True, batch_size=len(test_dataset))
+
+    # set format for pytorch
+    train_dataset = train_dataset.rename_column("label", "labels")
+    train_dataset.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
+    test_dataset = test_dataset.rename_column("label", "labels")
+    test_dataset.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
 
     logger.info(f" loaded train_dataset length is: {len(train_dataset)}")
     logger.info(f" loaded test_dataset length is: {len(test_dataset)}")
@@ -52,9 +72,6 @@ if __name__ == "__main__":
         precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average="binary")
         acc = accuracy_score(labels, preds)
         return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
-
-    # download model from model hub
-    model = AutoModelForSequenceClassification.from_pretrained(args.model_name)
 
     # define training args
     training_args = TrainingArguments(
