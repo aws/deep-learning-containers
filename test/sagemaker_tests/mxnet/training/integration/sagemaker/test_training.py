@@ -19,6 +19,7 @@ from sagemaker import utils
 from sagemaker.mxnet.estimator import MXNet
 
 from ...integration import RESOURCE_PATH
+from .... import invoke_mxnet_helper_function
 from .timeout import timeout
 
 DATA_PATH = os.path.join(RESOURCE_PATH, 'mnist')
@@ -28,19 +29,36 @@ SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist.py')
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_test_in_region
-def test_training(sagemaker_session, ecr_image, instance_type, instance_count, framework_version):
+def test_training(sagemaker_regions, ecr_image, instance_type, instance_count, framework_version):
+
     hyperparameters = {'sagemaker_parameter_server_enabled': True} if instance_count > 1 else {}
     hyperparameters['epochs'] = 1
 
-    mx = MXNet(entry_point=SCRIPT_PATH,
-               role='SageMakerRole',
+    estimator_parameters = MXNet(entry_point=SCRIPT_PATH,
                instance_count=instance_count,
                instance_type=instance_type,
-               sagemaker_session=sagemaker_session,
-               image_uri=ecr_image,
                framework_version=framework_version,
                hyperparameters=hyperparameters)
-    
+
+    invoke_mxnet_helper_function(ecr_image, sagemaker_regions, _test_mnist_training, estimator_parameters)
+
+
+def _disable_sm_profiler(region, estimator):
+    """Disable SMProfiler feature for China regions
+    """
+
+    if region in ('cn-north-1', 'cn-northwest-1'):
+        estimator.disable_profiler = True
+    return estimator
+
+
+def _test_mnist_training(ecr_image, sagemaker_session, **kwargs):
+    mx = MXNet(
+        role='SageMakerRole',
+        sagemaker_session=sagemaker_session,
+        image_uri=ecr_image,
+        **kwargs)
+
     mx = _disable_sm_profiler(sagemaker_session.boto_region_name, mx)
 
     with timeout(minutes=15):
@@ -52,11 +70,3 @@ def test_training(sagemaker_session, ecr_image, instance_type, instance_count, f
 
         job_name = utils.unique_name_from_base('test-mxnet-image')
         mx.fit({'train': train_input, 'test': test_input}, job_name=job_name)
-
-def _disable_sm_profiler(region, estimator):
-    """Disable SMProfiler feature for China regions
-    """
-    
-    if region in ('cn-north-1', 'cn-northwest-1'):
-        estimator.disable_profiler = True
-    return estimator

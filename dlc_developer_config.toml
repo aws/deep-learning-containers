@@ -16,7 +16,7 @@ benchmark_mode = false
 
 [build]
 # Frameworks for which you want to disable both builds and tests
-skip_frameworks = ["huggingface_pytorch", "huggingface_tensorflow", "tensorflow", "autogluon"]
+skip_frameworks = ["huggingface_pytorch", "huggingface_tensorflow", "pytorch", "tensorflow", "autogluon"]
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
