@@ -114,7 +114,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
-    parser.addoption('--sagemaker-region')
+    parser.addoption('--sagemaker-regions')
 
 
 def pytest_configure(config):
@@ -160,8 +160,8 @@ def fixture_processor(request):
     return request.config.getoption('--processor')
 
 @pytest.fixture(scope='session', name='sagemaker_regions')
-def fixture_sagemaker_region(request):
-    sagemaker_regions = request.config.getoption('--sagemaker-region')
+def fixture_sagemaker_regions(request):
+    sagemaker_regions = request.config.getoption('--sagemaker-regions')
     return sagemaker_regions.split(",")
 
 @pytest.fixture(scope='session', name='tag')
