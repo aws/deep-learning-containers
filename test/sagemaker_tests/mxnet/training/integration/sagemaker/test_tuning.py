@@ -20,6 +20,7 @@ from sagemaker import utils
 from sagemaker.mxnet.estimator import MXNet
 from sagemaker.tuner import ContinuousParameter, HyperparameterTuner
 
+from .... import invoke_mxnet_helper_function
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
 
@@ -29,15 +30,26 @@ SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist.py')
 
 @pytest.mark.integration("hpo")
 @pytest.mark.model("mnist")
-def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
-    mx = MXNet(entry_point=SCRIPT_PATH,
-               role='SageMakerRole',
-               instance_count=1,
-               instance_type=instance_type,
-               sagemaker_session=sagemaker_session,
-               image_uri=ecr_image,
-               framework_version=framework_version,
-               hyperparameters={'epochs': 1})
+def test_tuning(sagemaker_regions, ecr_image, instance_type, framework_version):
+    estimator_parameters = {
+        'entry_point': SCRIPT_PATH,
+        'instance_count': 1,
+        'instance_type': instance_type,
+        'image_uri': ecr_image,
+        'framework_version': framework_version,
+        'hyperparameters': {'epochs': 1}
+    }
+
+    invoke_mxnet_helper_function(ecr_image, sagemaker_regions, _test_hpo_training, estimator_parameters)
+
+
+def _test_hpo_training(ecr_image, sagemaker_session, **kwargs):
+    mx = MXNet(
+        role='SageMakerRole',
+        sagemaker_session=sagemaker_session,
+        image_uri=ecr_image,
+        **kwargs
+    )
 
     hyperparameter_ranges = {'learning-rate': ContinuousParameter(0.01, 0.2)}
     objective_metric_name = 'Validation-accuracy'
