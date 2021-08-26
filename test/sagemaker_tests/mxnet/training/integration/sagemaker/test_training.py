@@ -34,11 +34,13 @@ def test_training(sagemaker_regions, ecr_image, instance_type, instance_count, f
     hyperparameters = {'sagemaker_parameter_server_enabled': True} if instance_count > 1 else {}
     hyperparameters['epochs'] = 1
 
-    estimator_parameters = MXNet(entry_point=SCRIPT_PATH,
-               instance_count=instance_count,
-               instance_type=instance_type,
-               framework_version=framework_version,
-               hyperparameters=hyperparameters)
+    estimator_parameters = {
+        'entry_point': SCRIPT_PATH,
+        'instance_count': instance_count,
+        'instance_type': instance_type,
+        'framework_version': framework_version,
+        'hyperparameters': hyperparameters
+    }
 
     invoke_mxnet_helper_function(ecr_image, sagemaker_regions, _test_mnist_training, estimator_parameters)
 
