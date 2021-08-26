@@ -451,7 +451,7 @@ def main():
         else:
             if "neuron" in dlc_images:
                 run_sagemaker_remote_tests(
-                    [image for image in standard_images_list if ("mxnet" in image and "1.8.0" in image)]
+                    [image for image in standard_images_list if ("mxnet" in image)]
                 )
             else:
                 run_sagemaker_remote_tests(
