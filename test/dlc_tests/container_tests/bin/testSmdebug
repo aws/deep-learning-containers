@@ -12,6 +12,10 @@ FRAMEWORK=$1
 # Not using master because there could be breaking changes in tests between versions.
 SMDEBUG_RELEASE_TAG=$(python -c "import smdebug; print(smdebug.__version__)")
 
+# We need to filter only the word from the output of the previous line because
+# import statements might contain log statements which corrupt the logic below
+SMDEBUG_RELEASE_TAG=$(echo $SMDEBUG_RELEASE_TAG |  perl -lane 'print $F[-1]')
+
 # declare -A only works with bash 4 and above, and creates an "associate array" in bash
 if [ "$(printf '%s\n' "0.8.0" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.8.0" ]; then
     declare -A ZCC_TEST_NAME=( ["mxnet"]="test_mxnet_gluon_integration.py" \
