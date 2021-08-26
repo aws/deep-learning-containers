@@ -29,12 +29,12 @@ SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist.py')
 
 @pytest.mark.integration("hpo")
 @pytest.mark.model("mnist")
-def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_tuning(sagemaker_regions, ecr_image, instance_type, framework_version):
     mx = MXNet(entry_point=SCRIPT_PATH,
                role='SageMakerRole',
                instance_count=1,
                instance_type=instance_type,
-               sagemaker_session=sagemaker_session,
+               sagemaker_regions=sagemaker_regions,
                image_uri=ecr_image,
                framework_version=framework_version,
                hyperparameters={'epochs': 1})
