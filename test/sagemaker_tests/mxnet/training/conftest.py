@@ -52,6 +52,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
+    parser.addoption('--sagemaker-regions', default='us-west-2')
 
 
 def pytest_configure(config):
@@ -178,6 +179,12 @@ def sagemaker_local_session(region):
 @pytest.fixture(scope='session')
 def local_instance_type(processor):
     return 'local' if processor == 'cpu' else 'local_gpu'
+
+
+@pytest.fixture(scope='session', name='sagemaker_regions')
+def sagemaker_regions(request):
+    sagemaker_regions = request.config.getoption('--sagemaker-regions')
+    return sagemaker_regions.split(",")
 
 
 @pytest.fixture(autouse=True)
