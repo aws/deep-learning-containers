@@ -174,6 +174,18 @@ def skip_neuron_containers(request, tag):
         if 'neuron' in tag:
             pytest.skip('Skipping neuron container with tag {}'.format(tag))
 
+def skip_if_no_neuron(ecr_image, instance_type):
+    if 'neuron' not in ecr_image:
+        pytest.skip('Skipping neuron test for non neuron images')
+    if 'inf1' not in instance_type:
+        pytest.skip('Skipping neuron test for non inf1 instances')
+
+    image_tag = ecr_image.split(":")[1]
+    framework_version = parse(image_tag.split("-")[0])
+    if framework_version < Version("1.8"):
+        pytest.skip('Skipping neuron test for mxnet version < 1.8')
+
+
 
 def _get_remote_override_flags():
     try:
