@@ -26,7 +26,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV DGLBACKEND=pytorch
 
 ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3.us-west-2.amazonaws.com/r1.8.2_aws/20210825-212029/a03b18f25379461a5a1bad48dc4fc459f659660f/cpu/torch-1.8.2-cp36-cp36m-manylinux1_x86_64.whl
-ARG PT_TORCHVISION_URL=https://torchvision-build-rc.s3.us-west-2.amazonaws.com/1.8.0/cpu/torchvision-0.9.0a0%2B761d09f-cp36-cp36m-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://torchvision-build-rc.s3.us-west-2.amazonaws.com/1.8.0/cpu/torchvision-0.9.2-cp36-cp36m-linux_x86_64.whl
 ARG PT_S3_WHL=https://aws-s3-plugin.s3-us-west-2.amazonaws.com/binaries/0.0.1/93fdaed/awsio-0.0.1-cp36-cp36m-manylinux1_x86_64.whl
 
 WORKDIR /
