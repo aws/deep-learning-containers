@@ -34,6 +34,7 @@ class SafetyPackageVulnerabilityReport:
     scan_status: str
     installed: str
     vulnerabilities: List[SafetyVulnerabilityAdvisory]
+    date: str
 
     def __post_init__(self):
         self.vulnerabilities = [SafetyVulnerabilityAdvisory(**i) for i in self.vulnerabilities]
