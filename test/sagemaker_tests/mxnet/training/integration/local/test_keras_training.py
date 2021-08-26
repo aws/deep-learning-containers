@@ -17,6 +17,7 @@ import os
 import pytest
 
 from sagemaker.mxnet import MXNet
+import test.test_utils as test_utils
 
 from ...integration.local import local_mode_utils
 from ...integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
@@ -24,8 +25,13 @@ from ...integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
 
 @pytest.mark.integration("keras")
 @pytest.mark.model("mnist")
+
 def test_keras_training(docker_image, sagemaker_local_session, local_instance_type,
                         framework_version, tmpdir):
+    _, framework_version = test_utils.get_framework_and_version_from_tag(mxnet_training)
+    if framework_version in ['1.9.0']:
+        pytest.skip(f"Keras support has been deprecated MXNet 1.9.0 onwards")
+
     keras_path = os.path.join(RESOURCE_PATH, 'keras')
     script_path = os.path.join(keras_path, 'keras_mnist.py')
 
