@@ -63,6 +63,10 @@ class DockerImage:
         """
         return bool(self.info.get('base_image_uri'))
 
+    @property
+    def is_test_enabled(self):
+        return bool(self.info.get('enable_tests'))
+
     def collect_installed_packages_information(self):
         """
         Returns an array with outcomes of the commands listed in the 'commands' array
