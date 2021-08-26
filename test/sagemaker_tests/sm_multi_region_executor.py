@@ -124,22 +124,26 @@ def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_
 
     target_image_uri = (
         source_image_uri.replace(image_region, target_region)
-        .replace(image_repo_name, target_image_repo_name)
-        .replace(image_account_id, target_account_id)
+            .replace(image_repo_name, target_image_repo_name)
+            .replace(image_account_id, target_account_id)
     )
 
-    client = boto3.client('ecr', region_name = image_region)
+    client = boto3.client('ecr', region_name=image_region)
     username, password = get_ecr_login_boto3(client, image_account_id, image_region)
     save_credentials_to_file(ECR_PASSWORD_FILE_PATH, password)
 
     # using ctx.run throws error on codebuild "OSError: reading from stdin while output is captured".
     # Also it throws more errors related to awscli if in_stream=False flag is added to ctx.run which needs more deep dive
-    subprocess.check_output(f"cat {ECR_PASSWORD_FILE_PATH} | docker login -u {username} --password-stdin https://{image_account_id}.dkr.ecr.{image_region}.amazonaws.com && docker pull {source_image_uri}", shell=True, executable="/bin/bash")
+    subprocess.check_output(
+        f"cat {ECR_PASSWORD_FILE_PATH} | docker login -u {username} --password-stdin https://{image_account_id}.dkr.ecr.{image_region}.amazonaws.com && docker pull {source_image_uri}",
+        shell=True, executable="/bin/bash")
     subprocess.check_output(f"docker tag {source_image_uri} {target_image_uri}", shell=True, executable="/bin/bash")
     delete_file(ECR_PASSWORD_FILE_PATH)
     username, password = get_ecr_login_boto3(target_ecr_client, target_account_id, target_region)
     save_credentials_to_file(ECR_PASSWORD_FILE_PATH, password)
-    subprocess.check_output(f"cat {ECR_PASSWORD_FILE_PATH} | docker login -u {username} --password-stdin https://{target_account_id}.dkr.ecr.{target_region}.amazonaws.com && docker push {target_image_uri}", shell=True, executable="/bin/bash")
+    subprocess.check_output(
+        f"cat {ECR_PASSWORD_FILE_PATH} | docker login -u {username} --password-stdin https://{target_account_id}.dkr.ecr.{target_region}.amazonaws.com && docker push {target_image_uri}",
+        shell=True, executable="/bin/bash")
     delete_file(ECR_PASSWORD_FILE_PATH)
 
     return target_image_uri
@@ -185,10 +189,9 @@ def invoke_sagemaker_test_function(ecr_image, sagemaker_regions, sm_function, sm
         tested_ecr_image = get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
         try:
             estimator = sm_function(tested_ecr_image, sagemaker_session, **sm_function_args)
-            return
+            return estimator, sagemaker_session 
         except sagemaker.exceptions.UnexpectedStatusException as e:
             if "CapacityError" in str(e):
                 continue
             else:
                 raise e
-    return estimator, sagemaker_session

@@ -35,7 +35,6 @@ def test_tuning(sagemaker_regions, ecr_image, instance_type, framework_version):
         'entry_point': SCRIPT_PATH,
         'instance_count': 1,
         'instance_type': instance_type,
-        'image_uri': ecr_image,
         'framework_version': framework_version,
         'hyperparameters': {'epochs': 1}
     }

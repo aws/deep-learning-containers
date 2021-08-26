@@ -59,7 +59,8 @@ def _test_mnist_training(ecr_image, sagemaker_session, **kwargs):
         role='SageMakerRole',
         sagemaker_session=sagemaker_session,
         image_uri=ecr_image,
-        **kwargs)
+        **kwargs
+    )
 
     mx = _disable_sm_profiler(sagemaker_session.boto_region_name, mx)
 

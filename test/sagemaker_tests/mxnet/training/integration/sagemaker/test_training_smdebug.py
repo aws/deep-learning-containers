@@ -46,8 +46,7 @@ def test_training(sagemaker_regions, ecr_image, instance_type, instance_count, f
 
 
 def _test_smd_training(ecr_image, sagemaker_session, **kwargs):
-    mx = MXNet(entry_point=SCRIPT_PATH,
-               role='SageMakerRole',
+    mx = MXNet(role='SageMakerRole',
                sagemaker_session=sagemaker_session,
                image_uri=ecr_image,
                **kwargs)
