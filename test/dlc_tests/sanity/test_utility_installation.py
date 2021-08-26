@@ -33,7 +33,7 @@ def test_awscli(mxnet_inference):
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
-@pytest.mark.integration("bokeh")
+@pytest.mark.integration("utility pacakges")
 def test_utility_packages_using_import(training):
     """
     Verify that utility packages are installed in the Training DLC image
@@ -52,7 +52,9 @@ def test_utility_packages_using_import(training):
         "tensorflow1": "1.15",
     }
 
-    framework = "tensorflow1" if framework == "tensorflow" and framework_version.startswith("1.") else "tensorflow2"
+    if framework == "tensorflow":
+        framework = "tensorflow1" if framework_version.startswith("1.") else "tensorflow2"
+
     if Version(framework_version) < Version(utility_package_minimum_framework_version[framework]):
         pytest.skip("Extra utility packages will be added going forward.")
 
