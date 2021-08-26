@@ -208,7 +208,7 @@ def image_builder(buildspec):
     FORMATTER.banner("Push Started")
     push_images(IMAGES_TO_PUSH)
 
-    FORMATTER.banner("Log Display")
+    FORMATTER.title("Log Display")
     #After the build, display logs/summary for all the images.
     show_build_logs(ALL_IMAGES)
     show_build_summary(ALL_IMAGES)
@@ -217,11 +217,11 @@ def image_builder(buildspec):
     #From all images, filter the images that were supposed to be built and upload their metrics
     BUILT_IMAGES = [image for image in ALL_IMAGES if image.to_build]
 
-    FORMATTER.banner("Upload Metrics")
+    FORMATTER.title("Upload Metrics")
     # change logic here. upload metrics only for the Conclusion stage image
     upload_metrics(BUILT_IMAGES, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit)
 
-    FORMATTER.banner("Setting Test Env")
+    FORMATTER.title("Setting Test Env")
     # Set environment variables to be consumed by test jobs
     test_trigger_job = utils.get_codebuild_project_name()
     # Tests should only run on images that were pushed to the repository

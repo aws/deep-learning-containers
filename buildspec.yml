@@ -13,8 +13,6 @@ phases:
       - pip install -r src/requirements.txt
       - bash src/setup.sh $FRAMEWORK
       - export ROOT_FOLDER_PATH=$(pwd)
-      - export DOCKER_CLIENT_TIMEOUT=720
-      - export COMPOSE_HTTP_TIMEOUT=720
       - python src/parse_partner_developers.py
   build:
     commands:
