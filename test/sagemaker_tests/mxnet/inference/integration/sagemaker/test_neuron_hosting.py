@@ -30,14 +30,6 @@ SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'mnist-neuron.
 INPUT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'input.npy')
 OUTPUT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'output.json')
 
-@pytest.fixture(autouse=True)
-def skip_if_no_neuron(ecr_image, instance_type):
-    if 'neuron' not in ecr_image:
-        pytest.skip('Skipping neuron test for non neuron images')
-    if 'inf1' not in instance_type:
-        pytest.skip('Skipping neuron test for non inf1 instances')
-
-
 @pytest.mark.integration("neuron-hosting")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
@@ -53,7 +45,7 @@ def test_neuron_hosting(sagemaker_session, ecr_image, instance_type, framework_v
                        image_uri=ecr_image,
                        sagemaker_session=sagemaker_session)
 
-    endpoint_name = utils.unique_name_from_base('test-mxnet-serving')
+    endpoint_name = utils.unique_name_from_base('test-neuron-mxnet-serving')
     with timeout.timeout_and_delete_endpoint_by_name(endpoint_name, sagemaker_session):
         predictor = model.deploy(1, instance_type, endpoint_name=endpoint_name)
 
