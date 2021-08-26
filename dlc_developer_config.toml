@@ -31,13 +31,13 @@ eks_tests = true
 ec2_tests = true
 
 ### Off by default
-efa_tests = false
-sagemaker_local_tests = false
+efa_tests = true
+sagemaker_local_tests = true
 
 # SM remote test valid values:
 # "off" --> do not trigger sagemaker remote tests (default)
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
-sagemaker_remote_tests = "off"
+sagemaker_remote_tests = "standard"
 
 use_scheduler = false
