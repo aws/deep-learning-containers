@@ -73,7 +73,7 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Install python3.7
+# Install python3.8
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
@@ -128,7 +128,7 @@ RUN ${PIP} install -U --no-cache-dir \
     protobuf==3.14.0 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api-gpu==2.5.1
+    tensorflow-serving-api-gpu==2.6
 
 COPY ./sagemaker /sagemaker
 
