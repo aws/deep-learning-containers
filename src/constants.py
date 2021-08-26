@@ -75,3 +75,5 @@ EC2_TESTS = "ec2"
 ECS_TESTS = "ecs"
 EKS_TESTS = "eks"
 ALL_TESTS = ["sagemaker", "ec2", "eks", "ecs"]
+
+API_CLIENT_TIMEOUT = 600

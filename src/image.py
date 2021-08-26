@@ -53,7 +53,7 @@ class DockerImage:
 
         self.to_build = to_build
         self.build_status = None
-        self.client = APIClient(base_url=constants.DOCKER_URL)
+        self.client = APIClient(base_url=constants.DOCKER_URL, timeout=constants.API_CLIENT_TIMEOUT)
         self.log = []
 
     def __getattr__(self, name):
@@ -182,7 +182,7 @@ class DockerImage:
         return self.build_status
 
     def push_image(self):
-
+        print(f'####### CLIENT_TIMEOUT {self.client.timeout} ####')
         for line in self.client.push(self.repository, self.tag, stream=True, decode=True):
             response = []
             print(f'*** [{self.repository}:{self.tag}] {line} ***')
