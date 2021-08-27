@@ -12,11 +12,11 @@ neuron_mode = false
 graviton_mode = false
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
-benchmark_mode = false
+benchmark_mode = true
 
 [build]
 # Frameworks for which you want to disable both builds and tests
-skip_frameworks = []
+skip_frameworks = ["tensorflow", "mxnet", "huggingface_pytorch", "huggingface_tensorflow"]
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = true
 # Note: Need to build the images at least once with datetime_tag = false
@@ -25,9 +25,9 @@ do_build = true
 
 [test]
 ### On by default
-sanity_tests = true
-ecs_tests = true
-eks_tests = true
+sanity_tests = false
+ecs_tests = false
+eks_tests = false
 ec2_tests = true
 
 ### Off by default
