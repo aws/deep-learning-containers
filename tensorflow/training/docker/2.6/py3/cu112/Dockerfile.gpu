@@ -72,6 +72,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    wget \
    libtool \
    vim \
+   libssl1.1 \
+   openssl \
    build-essential \
    openssh-client \
    openssh-server \
@@ -79,8 +81,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    # Install dependent library for OpenCV
    libgtk2.0-dev \
    jq \
-   && apt-get update \
-   && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-change-held-packages \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-change-held-packages \
    libcublas-dev-${CUDA_DASH} \
    libcublas-${CUDA_DASH} \
    # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0
@@ -91,9 +93,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    # and libnvinfer4 doesn't contain libnvinfer.a static library.
    # nvinfer-runtime-trt-repo doesn't have a 1804-cuda10.1 version yet. see:
    # https://developer.download.nvidia.cn/compute/machine-learning/repos/ubuntu1804/x86_64/
-
-   && rm -rf /var/lib/apt/lists/* \
-   && mkdir -p /var/run/sshd
+ && rm -rf /var/lib/apt/lists/* \
+ && mkdir -p /var/run/sshd
 
 RUN cd /tmp \
   && git clone https://github.com/NVIDIA/nccl.git -b v$NCCL_VERSION-1 \
@@ -225,7 +226,7 @@ RUN ${PIP} install --no-cache-dir -U \
    "sagemaker-tensorflow-training>=20" \
    # Let's install TensorFlow separately in the end to avoid
    # the library version to be overwritten
-   && ${PIP} install --no-cache-dir -U \
+ && ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
    h5py==3.1.0 \
    "absl-py>=0.9,<0.11" \

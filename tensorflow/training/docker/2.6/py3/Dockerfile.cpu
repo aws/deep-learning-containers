@@ -27,7 +27,6 @@ ARG PYTHON_VERSION=3.8.2
 
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG OPENSSL_VERSION=1.1.1g
 
 ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.6_aws/20210816_235124/cpu/py38/tensorflow_cpu-2.6.0-cp38-cp38-manylinux2010_x86_64.whl
 
@@ -44,6 +43,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     emacs \
     git \
     libtemplate-perl \
+    libssl1.1 \
+    openssl \
     unzip \
     wget \
     vim \
@@ -53,9 +54,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Open MPI
-RUN mkdir /tmp/openmpi && \
-    cd /tmp/openmpi && \
-    curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz \
+RUN mkdir /tmp/openmpi \
+ && cd /tmp/openmpi \
+ && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz \
  && tar zxf openmpi-4.0.4.tar.gz \
  && cd openmpi-4.0.4 \
  && ./configure --enable-orterun-prefix-by-default \
@@ -115,23 +116,6 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
-
-RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && apt-get update \
- && apt-get install -y \
-    ca-certificates \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test \
- && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-*
-
-# when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
-# causing sslcertverificationerror the below steps are to fix that
-RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
