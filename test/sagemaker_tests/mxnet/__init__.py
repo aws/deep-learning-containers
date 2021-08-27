@@ -26,7 +26,7 @@ class MXNet(MXNet_origin):
         super().__init__(image_uri=image_uri, **kwargs)
         self.image_uri = image_uri
         self.sagemaker_regions = sagemaker_regions
-        self.sagemaker_session = None
+        self.sagemaker_session = get_sagemaker_session(self.sagemaker_regions[0])
 
     def fit(self, inputs=None, wait=True, logs="All", job_name=None, experiment_config=None, **kwargs):
 
@@ -44,7 +44,7 @@ class MXNet(MXNet_origin):
                     experiment_config=experiment_config,
                     **kwargs
                 )
-                return self.sagemaker_session
+                return
             except sagemaker.exceptions.UnexpectedStatusException as e:
                 if "CapacityError" in str(e):
                     continue

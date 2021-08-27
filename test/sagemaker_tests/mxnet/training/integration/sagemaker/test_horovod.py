@@ -49,8 +49,8 @@ def test_distributed_training_horovod(sagemaker_regions,
 
     estimator.fit(job_name=unique_name_from_base('test-mx-horovod'))
 
-    # model_data_source = sagemaker.local.data.get_data_source_instance(
-    #     estimator.model_data, sagemaker_session)
-    # 
-    # for filename in model_data_source.get_file_list():
-    #     assert os.path.basename(filename) == 'model.tar.gz'
+    model_data_source = sagemaker.local.data.get_data_source_instance(
+        estimator.model_data, estimator.sagemaker_session)
+
+    for filename in model_data_source.get_file_list():
+        assert os.path.basename(filename) == 'model.tar.gz'
