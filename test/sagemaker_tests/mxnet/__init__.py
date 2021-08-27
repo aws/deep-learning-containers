@@ -26,11 +26,12 @@ class MXNet(MXNet_origin):
         super().__init__(image_uri, **kwargs)
         self.image_uri = image_uri
         self.sagemaker_regions = sagemaker_regions
+        self.sagemaker_session = None
 
     def fit(self, inputs=None, wait=True, logs="All", job_name=None, experiment_config=None, **kwargs):
 
         for region in self.sagemaker_regions:
-            sagemaker_session = get_sagemaker_session(region)
+            self.sagemaker_session = get_sagemaker_session(region)
             # Upload the image to test region if needed
             if region != get_ecr_image_region(self.image_uri):
                 self.image_uri = get_ecr_image(self.image_uri, region)
@@ -40,9 +41,10 @@ class MXNet(MXNet_origin):
                     wait=wait,
                     logs=logs,
                     job_name=job_name,
-                    experiment_config=experiment_config
+                    experiment_config=experiment_config,
+                    **kwargs
                 )
-                return
+                return self.sagemaker_session
             except sagemaker.exceptions.UnexpectedStatusException as e:
                 if "CapacityError" in str(e):
                     continue
