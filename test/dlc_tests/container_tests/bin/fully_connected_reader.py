@@ -113,9 +113,9 @@ def inputs(train, batch_size, num_epochs):
 
     # The map transformation takes a function and applies it to every element
     # of the dataset.
-    dataset = dataset.map(decode)
-    dataset = dataset.map(augment)
-    dataset = dataset.map(normalize)
+    dataset = dataset.map(decode,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    dataset = dataset.map(augment,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    dataset = dataset.map(normalize,num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
     # The shuffle transformation uses a finite-sized buffer to shuffle elements
     # in memory. The parameter is the number of elements in the buffer. For
