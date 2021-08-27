@@ -23,7 +23,7 @@ from base64 import b64decode
 
 class MXNet(MXNet_origin):
     def __init__(self, image_uri, sagemaker_regions, **kwargs):
-        super().__init__(image_uri, **kwargs)
+        super().__init__(image_uri=image_uri, **kwargs)
         self.image_uri = image_uri
         self.sagemaker_regions = sagemaker_regions
         self.sagemaker_session = None
