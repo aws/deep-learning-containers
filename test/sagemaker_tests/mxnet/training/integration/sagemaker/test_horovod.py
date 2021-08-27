@@ -17,7 +17,7 @@ import os
 import pytest
 
 import sagemaker
-from .... import MXNet
+from ... import MXNet
 
 from ...integration import RESOURCE_PATH
 from ...integration.utils import unique_name_from_base
