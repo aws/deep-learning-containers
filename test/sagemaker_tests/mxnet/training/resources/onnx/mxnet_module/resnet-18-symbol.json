@@ -1,0 +1,1359 @@
+{
+  "nodes": [
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "data", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "bn_data_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "bn_data_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "True", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "bn_data", 
+      "inputs": [[0, 0], [1, 0], [2, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "conv0_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(7,7)", 
+        "no_bias": "True", 
+        "num_filter": "64", 
+        "num_group": "1", 
+        "pad": "(3,3)", 
+        "stride": "(2,2)", 
+        "workspace": "512"
+      }, 
+      "name": "conv0", 
+      "inputs": [[3, 0], [4, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "bn0_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "bn0_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "bn0", 
+      "inputs": [[5, 0], [6, 0], [7, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "relu0", 
+      "inputs": [[8, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Pooling", 
+      "param": {
+        "global_pool": "False", 
+        "kernel": "(3,3)", 
+        "pad": "(1,1)", 
+        "pool_type": "max", 
+        "pooling_convention": "valid", 
+        "stride": "(2,2)"
+      }, 
+      "name": "pooling0", 
+      "inputs": [[9, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage1_unit1_bn1_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage1_unit1_bn1_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage1_unit1_bn1", 
+      "inputs": [[10, 0], [11, 0], [12, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage1_unit1_relu1", 
+      "inputs": [[13, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage1_unit1_conv1_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "64", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(1,1)", 
+        "workspace": "512"
+      }, 
+      "name": "stage1_unit1_conv1", 
+      "inputs": [[14, 0], [15, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage1_unit1_bn2_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage1_unit1_bn2_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage1_unit1_bn2", 
+      "inputs": [[16, 0], [17, 0], [18, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage1_unit1_relu2", 
+      "inputs": [[19, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage1_unit1_conv2_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "64", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(1,1)", 
+        "workspace": "512"
+      }, 
+      "name": "stage1_unit1_conv2", 
+      "inputs": [[20, 0], [21, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage1_unit1_sc_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(1,1)", 
+        "no_bias": "True", 
+        "num_filter": "64", 
+        "num_group": "1", 
+        "pad": "(0,0)", 
+        "stride": "(1,1)", 
+        "workspace": "512"
+      }, 
+      "name": "stage1_unit1_sc", 
+      "inputs": [[14, 0], [23, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "_Plus", 
+      "param": {}, 
+      "name": "_plus0", 
+      "inputs": [[22, 0], [24, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage1_unit2_bn1_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage1_unit2_bn1_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage1_unit2_bn1", 
+      "inputs": [[25, 0], [26, 0], [27, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage1_unit2_relu1", 
+      "inputs": [[28, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage1_unit2_conv1_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "64", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(1,1)", 
+        "workspace": "512"
+      }, 
+      "name": "stage1_unit2_conv1", 
+      "inputs": [[29, 0], [30, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage1_unit2_bn2_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage1_unit2_bn2_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage1_unit2_bn2", 
+      "inputs": [[31, 0], [32, 0], [33, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage1_unit2_relu2", 
+      "inputs": [[34, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage1_unit2_conv2_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "64", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(1,1)", 
+        "workspace": "512"
+      }, 
+      "name": "stage1_unit2_conv2", 
+      "inputs": [[35, 0], [36, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "_Plus", 
+      "param": {}, 
+      "name": "_plus1", 
+      "inputs": [[37, 0], [25, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage2_unit1_bn1_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage2_unit1_bn1_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage2_unit1_bn1", 
+      "inputs": [[38, 0], [39, 0], [40, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage2_unit1_relu1", 
+      "inputs": [[41, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage2_unit1_conv1_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "128", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(2,2)", 
+        "workspace": "512"
+      }, 
+      "name": "stage2_unit1_conv1", 
+      "inputs": [[42, 0], [43, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage2_unit1_bn2_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage2_unit1_bn2_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage2_unit1_bn2", 
+      "inputs": [[44, 0], [45, 0], [46, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage2_unit1_relu2", 
+      "inputs": [[47, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage2_unit1_conv2_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "128", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(1,1)", 
+        "workspace": "512"
+      }, 
+      "name": "stage2_unit1_conv2", 
+      "inputs": [[48, 0], [49, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage2_unit1_sc_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(1,1)", 
+        "no_bias": "True", 
+        "num_filter": "128", 
+        "num_group": "1", 
+        "pad": "(0,0)", 
+        "stride": "(2,2)", 
+        "workspace": "512"
+      }, 
+      "name": "stage2_unit1_sc", 
+      "inputs": [[42, 0], [51, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "_Plus", 
+      "param": {}, 
+      "name": "_plus2", 
+      "inputs": [[50, 0], [52, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage2_unit2_bn1_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage2_unit2_bn1_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage2_unit2_bn1", 
+      "inputs": [[53, 0], [54, 0], [55, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage2_unit2_relu1", 
+      "inputs": [[56, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage2_unit2_conv1_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "128", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(1,1)", 
+        "workspace": "512"
+      }, 
+      "name": "stage2_unit2_conv1", 
+      "inputs": [[57, 0], [58, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage2_unit2_bn2_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage2_unit2_bn2_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage2_unit2_bn2", 
+      "inputs": [[59, 0], [60, 0], [61, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage2_unit2_relu2", 
+      "inputs": [[62, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage2_unit2_conv2_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "128", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(1,1)", 
+        "workspace": "512"
+      }, 
+      "name": "stage2_unit2_conv2", 
+      "inputs": [[63, 0], [64, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "_Plus", 
+      "param": {}, 
+      "name": "_plus3", 
+      "inputs": [[65, 0], [53, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage3_unit1_bn1_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage3_unit1_bn1_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage3_unit1_bn1", 
+      "inputs": [[66, 0], [67, 0], [68, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage3_unit1_relu1", 
+      "inputs": [[69, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage3_unit1_conv1_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "256", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(2,2)", 
+        "workspace": "512"
+      }, 
+      "name": "stage3_unit1_conv1", 
+      "inputs": [[70, 0], [71, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage3_unit1_bn2_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage3_unit1_bn2_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage3_unit1_bn2", 
+      "inputs": [[72, 0], [73, 0], [74, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage3_unit1_relu2", 
+      "inputs": [[75, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage3_unit1_conv2_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "256", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(1,1)", 
+        "workspace": "512"
+      }, 
+      "name": "stage3_unit1_conv2", 
+      "inputs": [[76, 0], [77, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage3_unit1_sc_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(1,1)", 
+        "no_bias": "True", 
+        "num_filter": "256", 
+        "num_group": "1", 
+        "pad": "(0,0)", 
+        "stride": "(2,2)", 
+        "workspace": "512"
+      }, 
+      "name": "stage3_unit1_sc", 
+      "inputs": [[70, 0], [79, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "_Plus", 
+      "param": {}, 
+      "name": "_plus4", 
+      "inputs": [[78, 0], [80, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage3_unit2_bn1_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage3_unit2_bn1_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage3_unit2_bn1", 
+      "inputs": [[81, 0], [82, 0], [83, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage3_unit2_relu1", 
+      "inputs": [[84, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage3_unit2_conv1_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "256", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(1,1)", 
+        "workspace": "512"
+      }, 
+      "name": "stage3_unit2_conv1", 
+      "inputs": [[85, 0], [86, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage3_unit2_bn2_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage3_unit2_bn2_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage3_unit2_bn2", 
+      "inputs": [[87, 0], [88, 0], [89, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage3_unit2_relu2", 
+      "inputs": [[90, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage3_unit2_conv2_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "256", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(1,1)", 
+        "workspace": "512"
+      }, 
+      "name": "stage3_unit2_conv2", 
+      "inputs": [[91, 0], [92, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "_Plus", 
+      "param": {}, 
+      "name": "_plus5", 
+      "inputs": [[93, 0], [81, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage4_unit1_bn1_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage4_unit1_bn1_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage4_unit1_bn1", 
+      "inputs": [[94, 0], [95, 0], [96, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage4_unit1_relu1", 
+      "inputs": [[97, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage4_unit1_conv1_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "512", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(2,2)", 
+        "workspace": "512"
+      }, 
+      "name": "stage4_unit1_conv1", 
+      "inputs": [[98, 0], [99, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage4_unit1_bn2_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage4_unit1_bn2_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage4_unit1_bn2", 
+      "inputs": [[100, 0], [101, 0], [102, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage4_unit1_relu2", 
+      "inputs": [[103, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage4_unit1_conv2_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "512", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(1,1)", 
+        "workspace": "512"
+      }, 
+      "name": "stage4_unit1_conv2", 
+      "inputs": [[104, 0], [105, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage4_unit1_sc_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(1,1)", 
+        "no_bias": "True", 
+        "num_filter": "512", 
+        "num_group": "1", 
+        "pad": "(0,0)", 
+        "stride": "(2,2)", 
+        "workspace": "512"
+      }, 
+      "name": "stage4_unit1_sc", 
+      "inputs": [[98, 0], [107, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "_Plus", 
+      "param": {}, 
+      "name": "_plus6", 
+      "inputs": [[106, 0], [108, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage4_unit2_bn1_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage4_unit2_bn1_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage4_unit2_bn1", 
+      "inputs": [[109, 0], [110, 0], [111, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage4_unit2_relu1", 
+      "inputs": [[112, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage4_unit2_conv1_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "512", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(1,1)", 
+        "workspace": "512"
+      }, 
+      "name": "stage4_unit2_conv1", 
+      "inputs": [[113, 0], [114, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage4_unit2_bn2_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage4_unit2_bn2_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "stage4_unit2_bn2", 
+      "inputs": [[115, 0], [116, 0], [117, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "stage4_unit2_relu2", 
+      "inputs": [[118, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "stage4_unit2_conv2_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Convolution", 
+      "param": {
+        "cudnn_off": "False", 
+        "cudnn_tune": "limited_workspace", 
+        "dilate": "(1,1)", 
+        "kernel": "(3,3)", 
+        "no_bias": "True", 
+        "num_filter": "512", 
+        "num_group": "1", 
+        "pad": "(1,1)", 
+        "stride": "(1,1)", 
+        "workspace": "512"
+      }, 
+      "name": "stage4_unit2_conv2", 
+      "inputs": [[119, 0], [120, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "_Plus", 
+      "param": {}, 
+      "name": "_plus7", 
+      "inputs": [[121, 0], [109, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "bn1_gamma", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "bn1_beta", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "BatchNorm", 
+      "param": {
+        "eps": "2e-05", 
+        "fix_gamma": "False", 
+        "momentum": "0.9", 
+        "use_global_stats": "False"
+      }, 
+      "name": "bn1", 
+      "inputs": [[122, 0], [123, 0], [124, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Activation", 
+      "param": {"act_type": "relu"}, 
+      "name": "relu1", 
+      "inputs": [[125, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Pooling", 
+      "param": {
+        "global_pool": "True", 
+        "kernel": "(7,7)", 
+        "pad": "(0,0)", 
+        "pool_type": "avg", 
+        "pooling_convention": "valid", 
+        "stride": "(1,1)"
+      }, 
+      "name": "pool1", 
+      "inputs": [[126, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "Flatten", 
+      "param": {}, 
+      "name": "flatten0", 
+      "inputs": [[127, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "fc1_weight", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "fc1_bias", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "FullyConnected", 
+      "param": {
+        "no_bias": "False", 
+        "num_hidden": "1000"
+      }, 
+      "name": "fc1", 
+      "inputs": [[128, 0], [129, 0], [130, 0]], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "null", 
+      "param": {}, 
+      "name": "softmax_label", 
+      "inputs": [], 
+      "backward_source_id": -1
+    }, 
+    {
+      "op": "SoftmaxOutput", 
+      "param": {
+        "grad_scale": "1", 
+        "ignore_label": "-1", 
+        "multi_output": "False", 
+        "normalization": "null", 
+        "out_grad": "False", 
+        "preserve_shape": "False", 
+        "use_ignore": "False"
+      }, 
+      "name": "softmax", 
+      "inputs": [[131, 0], [132, 0]], 
+      "backward_source_id": -1
+    }
+  ], 
+  "arg_nodes": [
+    0, 
+    1, 
+    2, 
+    4, 
+    6, 
+    7, 
+    11, 
+    12, 
+    15, 
+    17, 
+    18, 
+    21, 
+    23, 
+    26, 
+    27, 
+    30, 
+    32, 
+    33, 
+    36, 
+    39, 
+    40, 
+    43, 
+    45, 
+    46, 
+    49, 
+    51, 
+    54, 
+    55, 
+    58, 
+    60, 
+    61, 
+    64, 
+    67, 
+    68, 
+    71, 
+    73, 
+    74, 
+    77, 
+    79, 
+    82, 
+    83, 
+    86, 
+    88, 
+    89, 
+    92, 
+    95, 
+    96, 
+    99, 
+    101, 
+    102, 
+    105, 
+    107, 
+    110, 
+    111, 
+    114, 
+    116, 
+    117, 
+    120, 
+    123, 
+    124, 
+    129, 
+    130, 
+    132
+  ], 
+  "heads": [[133, 0]]
+}
