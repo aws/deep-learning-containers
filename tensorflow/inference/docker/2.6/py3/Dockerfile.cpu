@@ -12,7 +12,7 @@ ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.8.9
 ARG TFS_SHORT_VERSION=2.6
-ARG TFS_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/serving/r2.6_aws/cpu/py38/tensorflow_model_server
+ARG TFS_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/serving/r2.6_aws/cpu/py3.8/tensorflow_model_server
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8

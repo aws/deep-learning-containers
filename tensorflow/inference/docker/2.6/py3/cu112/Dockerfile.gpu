@@ -12,7 +12,7 @@ ARG PIP=pip3
 ARG PYTHON_VERSION=3.8.9
 
 ARG TFS_SHORT_VERSION=2.6
-ARG TFS_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/serving/r2.6_aws/gpu/py38/tensorflow_model_server
+ARG TFS_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/serving/r2.6_aws/gpu/py3.8/tensorflow_model_server
 
 ENV NCCL_VERSION=2.8.4-1+cuda11.2
 ENV CUDNN_VERSION=8.1.0.77-1+cuda11.2
