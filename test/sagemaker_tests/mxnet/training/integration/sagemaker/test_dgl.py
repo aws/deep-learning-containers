@@ -16,7 +16,7 @@ import os
 
 import pytest
 from sagemaker import utils
-from sagemaker_tests.mxnet.training import MXNet
+from ... import MXNet
 
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
