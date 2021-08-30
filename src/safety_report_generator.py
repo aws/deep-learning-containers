@@ -1,8 +1,8 @@
-from dlc.safety_check import SafetyCheck
 from invoke.context import Context
 from datetime import datetime
 
 import json
+import os
 
 TO_BE_DECIDED="To Be Decided"
 
@@ -99,12 +99,29 @@ class SafetyReportGenerator:
                     v["scan_status"] = "FAILED"
             self.vulns_list.append(v)
 
-
+    def run_safety_check_in_non_cb_context(self):
+        print('Running in Non CodeBuild Context')
+        safety_check_command = f"{self.docker_exec_cmd} safety check --json"
+        run_out = self.ctx.run(safety_check_command, warn=True, hide=True)
+        if run_out.return_code != 0:
+            print(
+                f"safety check command returned non-zero error code. stderr printed for logging: {run_out.stderr}"
+            )
+        return run_out.stdout
+    
+    def run_safety_check_in_cb_context(self):
+        print('Running in CodeBuild Context')
+        from dlc.safety_check import SafetyCheck
+        return SafetyCheck().run_safety_check_on_container(self.docker_exec_cmd)
     
     def generate(self):
         self.timestamp = datetime.now().strftime("%d-%m-%Y")
-        # If cicd condition to be added
-        self.safety_check_output = SafetyCheck().run_safety_check_on_container(self.docker_exec_cmd)
+        if os.getenv('IS_CODEBUILD_IMAGE') is None:
+            self.safety_check_output = self.run_safety_check_in_non_cb_context()
+        elif os.getenv('IS_CODEBUILD_IMAGE').upper() == 'TRUE':
+            self.safety_check_output = self.run_safety_check_in_cb_context()
+        # In case of errors, json.loads command will fail. We want the failure to occur to ensure that
+        # build process fails in case the safety report cannot be generated properly.
         vulns = json.loads(self.safety_check_output)
         self.insert_vulnerabilites_into_report(vulns)
         packages = self.get_package_set_from_container()

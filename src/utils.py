@@ -24,7 +24,6 @@ from config import is_build_enabled
 from invoke.context import Context
 from botocore.exceptions import ClientError
 from safety_report_generator import SafetyReportGenerator
-from dlc.safety_check import SafetyCheck
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -540,8 +539,8 @@ def generate_safety_report_for_image(image_uri, storage_file_path=None):
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image_uri} "
     container_id = ctx.run(f"{docker_run_cmd}", hide=True, warn=True).stdout.strip()
     install_safety_cmd = "pip install safety"
-    ctx.run(f"docker exec {container_id} {install_safety_cmd}", hide=True, warn=True)
     docker_exec_cmd = f"docker exec -i {container_id}"
+    ctx.run(f"{docker_exec_cmd} {install_safety_cmd}", hide=True, warn=True)
     ignore_dict = get_safety_ignore_dict(image_uri)
     safety_scan_output = SafetyReportGenerator(container_id, ignore_dict=ignore_dict).generate()
     ctx.run(f"docker rm -f {container_id}", hide=True, warn=True)
