@@ -34,7 +34,4 @@ def test_onnx_export(docker_image, sagemaker_local_session, local_instance_type,
                image_uri=docker_image, framework_version=framework_version,
                output_path='file://{}'.format(tmpdir))
 
-    input_path = 'file://{}'.format(os.path.join(ONNX_PATH, 'mxnet_module'))
-    mx.fit({'train': input_path})
-
-    local_mode_utils.assert_output_files_exist(str(tmpdir), 'model', ['model.onnx'])
+    mx.fit()
