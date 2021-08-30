@@ -151,7 +151,7 @@ def image_builder(buildspec):
             "image_type": str(image_config["image_type"]),
             "image_size_baseline": int(image_config["image_size_baseline"]),
             "base_image_uri": base_image_uri,
-            "enable_tests": image_config.get("enable_tests", True),
+            "enable_test_promotion": image_config.get("enable_test_promotion", True),
             "labels": labels,
             "extra_build_args": extra_build_args
         }

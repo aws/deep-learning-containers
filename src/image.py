@@ -64,8 +64,8 @@ class DockerImage:
         return bool(self.info.get('base_image_uri'))
 
     @property
-    def is_test_enabled(self):
-        return bool(self.info.get('enable_tests'))
+    def is_test_promotion_enabled(self):
+        return bool(self.info.get('enable_test_promotion'))
 
     def collect_installed_packages_information(self):
         """
