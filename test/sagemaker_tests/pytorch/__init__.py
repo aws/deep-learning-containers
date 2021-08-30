@@ -147,7 +147,7 @@ def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_
 
 def get_ecr_image_region(ecr_image):
     ecr_registry, _ = ecr_image.split("/")
-    region_search = re.search(r"(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d+", ecr_registry)
+    region_search = re.search(r"(us(-gov)?|ap|ca|cn|eu|sa|af|me)-(central|(north|south)?(east|west)?)-\d+", ecr_registry)
     return region_search.group()
 
 
