@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import List
 
 from test.test_utils import (
-    CONTAINER_TESTS_PREFIX, is_dlc_cicd_context, is_canary_context, is_mainline_context, is_time_for_canary_safety_scan
+     is_canary_context
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -50,9 +50,11 @@ class SafetyPythonEnvironmentVulnerabilityReport:
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.canary("Run safety tests regularly on production images")
-# @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
-def test_safety_file_exists(image):
+@pytest.mark.skipif(
+    is_canary_context(), 
+    reason="Skipping test because it is not required to run it on canaries. test_safety_check.py runs on canaries."
+)
+def test_safety_file_exists_and_is_valid(image):
     repo_name, image_tag = image.split('/')[-1].split(':')
     container_name = f"{repo_name}-{image_tag}-safety"
     # Add null entrypoint to ensure command exits immediately

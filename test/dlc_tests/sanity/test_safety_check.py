@@ -149,10 +149,10 @@ def _get_latest_package_version(package):
 @pytest.mark.canary("Run safety tests regularly on production images")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
 @pytest.mark.skipif(
-    not (is_mainline_context() or (is_canary_context() and is_time_for_canary_safety_scan())),
+    not (is_canary_context() and is_time_for_canary_safety_scan()),
     reason=(
         "Skipping the test to decrease the number of calls to the Safety Check DB. "
-        "Test will be executed in the 'mainline' pipeline and canaries pipeline."
+        "Test will be executed only in canaries pipeline."
     )
 )
 def test_safety(image):
