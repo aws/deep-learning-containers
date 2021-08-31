@@ -48,6 +48,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
+    parser.addoption('--sagemaker-regions')
 
 
 def pytest_runtest_setup(item):
@@ -97,6 +98,12 @@ def sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
 
 
+@pytest.fixture(scope='session', name='sagemaker_regions')
+def fixture_sagemaker_regions(request):
+    sagemaker_regions = request.config.getoption('--sagemaker-regions')
+    return sagemaker_regions.split(",")
+
+
 @pytest.fixture(scope='session')
 def n_virginia_region(request):
     return "us-east-1"
@@ -123,6 +130,12 @@ def n_virginia_ecr_image(ecr_image, n_virginia_region):
     target_image_repo_name = f"{image_repo_name}"
     n_virginia_ecr_image = reupload_image_to_test_ecr(ecr_image, target_image_repo_name, n_virginia_region)
     return n_virginia_ecr_image
+
+
+@pytest.fixture(scope='session', name='sagemaker_regions')
+def sagemaker_regions(request):
+    sagemaker_regions = request.config.getoption('--sagemaker-regions')
+    return sagemaker_regions.split(",")
 
 
 @pytest.fixture(scope='session')
