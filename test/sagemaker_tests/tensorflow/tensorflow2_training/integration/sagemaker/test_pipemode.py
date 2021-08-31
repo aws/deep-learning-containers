@@ -17,6 +17,8 @@ import shutil
 import uuid
 
 import pytest
+
+from .... import invoke_tf_helper_function
 from .recordio_utils import build_record_file, build_single_record_file
 from sagemaker import TrainingInput
 from sagemaker.tensorflow import TensorFlow
@@ -72,7 +74,7 @@ def single_record_test_data(sagemaker_session):
     return s3_url
 
 
-def run_test(sagemaker_session, ecr_image, instance_type, framework_version, test_data,
+def run_test(ecr_image, sagemaker_session, instance_type, framework_version, test_data,
              record_wrapper_type=None):
     source_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources', 'pipemode')
     script = os.path.join(source_path, 'pipemode.py')
@@ -96,22 +98,22 @@ def run_test(sagemaker_session, ecr_image, instance_type, framework_version, tes
 
 @pytest.mark.integration("pipemode")
 @pytest.mark.model("N/A")
-def test_single_record(sagemaker_session, ecr_image, instance_type, framework_version,
+def test_single_record(ecr_image, sagemaker_regions, instance_type, framework_version,
                        single_record_test_data):
-    run_test(sagemaker_session,
-             ecr_image,
-             instance_type,
-             framework_version,
-             single_record_test_data,
-             'RecordIO')
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, run_test,
+                              instance_type,
+                              framework_version,
+                              single_record_test_data,
+                              'RecordIO'
+                              )
 
 
 @pytest.mark.integration("pipemode")
 @pytest.mark.model("N/A")
-def test_multi_records(sagemaker_session, ecr_image, instance_type, framework_version,
+def test_multi_records(sagemaker_regions, ecr_image, instance_type, framework_version,
                        multi_records_test_data):
-    run_test(sagemaker_session,
-             ecr_image,
-             instance_type,
-             framework_version,
-             multi_records_test_data)
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, run_test,
+                              instance_type,
+                              framework_version,
+                              multi_records_test_data
+                              )
