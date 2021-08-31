@@ -156,9 +156,10 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     region_list = ",".join(SAGEMAKER_EXECUTION_REGIONS)
 
-    #Multi region functionality is added for PT currently
+    # Multi region functionality is added for a few frameworks currently
     sagemaker_regions_list = f"--sagemaker-regions {region_list}" \
-        if framework == "pytorch" or framework == "mxnet" or framework == "tensorflow" else ""
+        if framework == "pytorch" or framework == "mxnet" or framework == "tensorflow" or framework == "autogluon" \
+        else ""
 
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
@@ -166,8 +167,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} {sagemaker_regions_list} --junitxml {test_report}"
     )
 
-    if processor == "eia" :
-        remote_pytest_cmd += (f" {accelerator_type_arg} {eia_arg}")
+    if processor == "eia":
+        remote_pytest_cmd += f"{accelerator_type_arg} {eia_arg}"
 
     local_pytest_cmd = (f"pytest -s -v {integration_path} {docker_base_arg} "
                         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
