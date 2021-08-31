@@ -23,7 +23,7 @@ from packaging.version import Version
 
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
-from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
+from integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from .timeout import timeout
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
@@ -31,6 +31,7 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.deploy_test
+@pytest.mark.release_test
 def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
@@ -191,6 +192,7 @@ def test_smdebug(sagemaker_session, ecr_image, instance_type, framework_version)
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.release_test
 def test_smdataparallel_smmodelparallel_mnist(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version):
     """
     Tests SM Distributed DataParallel and ModelParallel single-node via script mode

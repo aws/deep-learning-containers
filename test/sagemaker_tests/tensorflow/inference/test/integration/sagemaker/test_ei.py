@@ -21,34 +21,9 @@ EI_SUPPORTED_REGIONS = ['us-east-1', 'us-east-2', 'us-west-2',
                         'eu-west-1', 'ap-northeast-1', 'ap-northeast-2']
 
 
-@pytest.fixture(params=os.environ['TEST_EI_VERSIONS'].split(','))
-def version(request):
-    return request.param
-
-
 @pytest.fixture
-def repo(request):
-    return request.config.getoption('--repo') or 'sagemaker-tensorflow-serving-eia'
-
-
-@pytest.fixture
-def tag(request, version):
-    return request.config.getoption('--tag') or f'{version}-cpu'
-
-
-@pytest.fixture
-def image_uri(registry, region, repo, tag):
-    return util.image_uri(registry, region, repo, tag)
-
-
-@pytest.fixture(params=os.environ['TEST_EI_INSTANCE_TYPES'].split(','))
-def instance_type(request, region):
-    return request.param
-
-
-@pytest.fixture(scope='module')
-def accelerator_type(request):
-    return request.config.getoption('--accelerator-type') or 'ml.eia1.medium'
+def docker_base_name(request):
+    return request.config.getoption('--docker-base-name') or 'sagemaker-tensorflow-serving-eia'
 
 
 @pytest.fixture(scope='session')
@@ -79,6 +54,7 @@ def skip_if_non_supported_ei_region(region):
 @pytest.mark.model("resnet")
 @pytest.mark.skip_if_non_supported_ei_region()
 @pytest.mark.skip_if_no_accelerator()
+@pytest.mark.release_test
 def test_invoke_endpoint(boto_session, sagemaker_client, sagemaker_runtime_client,
                          model_name, model_data, image_uri, instance_type, accelerator_type,
                          input_data):

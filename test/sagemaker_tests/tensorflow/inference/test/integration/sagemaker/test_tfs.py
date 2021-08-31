@@ -20,45 +20,9 @@ NON_P3_REGIONS = ["ap-southeast-1", "ap-southeast-2", "ap-south-1",
                   "ca-central-1", "eu-central-1", "eu-west-2", "us-west-1"]
 
 
-@pytest.fixture(params=os.environ["TEST_VERSIONS"].split(","))
-def version(request):
-    return request.param
-
-
 @pytest.fixture(scope="session")
-def repo(request):
-    return request.config.getoption("--repo") or "sagemaker-tensorflow-serving"
-
-
-@pytest.fixture
-def processor(request, instance_type):
-    return request.config.getoption("--processor") or (
-        "gpu"
-        if instance_type.startswith("ml.p") or instance_type.startswith("ml.g")
-        else "cpu"
-    )
-
-
-@pytest.fixture
-def tag(request, version, instance_type, processor):
-    if request.config.getoption("--tag"):
-        return request.config.getoption("--tag")
-    return f"{version}-{processor}"
-
-
-@pytest.fixture
-def image_uri(registry, region, repo, tag):
-    return util.image_uri(registry, region, repo, tag)
-
-
-@pytest.fixture(params=os.environ["TEST_INSTANCE_TYPES"].split(","))
-def instance_type(request, region):
-    return request.param
-
-
-@pytest.fixture(scope="module")
-def accelerator_type():
-    return None
+def docker_base_name(request):
+    return request.config.getoption("--docker-base-name") or "sagemaker-tensorflow-serving"
 
 
 @pytest.fixture(scope="session")
@@ -83,6 +47,7 @@ def python_model_with_lib(region, boto_session):
 
 
 @pytest.mark.model("unknown_model")
+@pytest.mark.release_test
 def test_tfs_model(boto_session, sagemaker_client,
                    sagemaker_runtime_client, model_name, tfs_model,
                    image_uri, instance_type, accelerator_type):

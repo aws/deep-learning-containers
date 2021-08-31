@@ -22,7 +22,7 @@ import pytest
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
-from ..integration import NO_P2_REGIONS, NO_P3_REGIONS, NO_P4_REGIONS, get_ecr_registry, reupload_image_to_test_ecr
+from integration import NO_P2_REGIONS, NO_P3_REGIONS, NO_P4_REGIONS, get_ecr_registry, reupload_image_to_test_ecr
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
@@ -41,7 +41,7 @@ def pytest_addoption(parser):
     parser.addoption('--framework-version', default='')
     parser.addoption('--processor', default='cpu', choices=['cpu', 'gpu', 'cpu,gpu'])
     parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37'])
-    parser.addoption('--account-id', default='142577830533')
+    parser.addoption('--aws-id', default='142577830533')
     parser.addoption('--instance-type', default=None)
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
                      help='use this option to generate test coverage doc')
@@ -68,6 +68,7 @@ def pytest_configure(config):
     os.environ['TEST_PY_VERSIONS'] = config.getoption('--py-version')
     os.environ['TEST_PROCESSORS'] = config.getoption('--processor')
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+    config.addinivalue_line("markers", "release_test(): explicitly mark to run release tests")
 
 
 @pytest.fixture(scope='session')
@@ -131,8 +132,8 @@ def sagemaker_local_session(region):
 
 
 @pytest.fixture(scope='session')
-def account_id(request):
-    return request.config.getoption('--account-id')
+def aws_id(request):
+    return request.config.getoption('--aws-id')
 
 
 @pytest.fixture
@@ -142,18 +143,18 @@ def instance_type(request, processor):
     return provided_instance_type if provided_instance_type is not None else default_instance_type
 
 
-@pytest.fixture()
-def py_version():
-    if 'TEST_PY_VERSIONS' in os.environ:
-        return os.environ['TEST_PY_VERSIONS'].split(',')
-    return None
+@pytest.fixture
+def py_version(request):
+    # if 'TEST_PY_VERSIONS' in os.environ:
+    #     return os.environ['TEST_PY_VERSIONS'].split(',')
+    return request.config.getoption('--py_version')
 
 
-@pytest.fixture()
-def processor():
-    if 'TEST_PROCESSORS' in os.environ:
-        return os.environ['TEST_PROCESSORS'].split(',')
-    return None
+@pytest.fixture
+def processor(request):
+    # if 'TEST_PROCESSORS' in os.environ:
+    #     return os.environ['TEST_PROCESSORS'].split(',')
+    return request.config.getoption('--processor')
 
 
 @pytest.fixture(autouse=True)
@@ -178,8 +179,8 @@ def docker_image(docker_base_name, tag):
 
 
 @pytest.fixture
-def ecr_image(account_id, docker_base_name, tag, region):
-    registry = get_ecr_registry(account_id, region)
+def ecr_image(aws_id, docker_base_name, tag, region):
+    registry = get_ecr_registry(aws_id, region)
     return '{}/{}:{}'.format(registry, docker_base_name, tag)
 
 
