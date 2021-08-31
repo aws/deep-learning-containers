@@ -27,15 +27,16 @@ ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.10
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.4_aws/20210127-150238/cpu/py37/tensorflow_cpu-2.4.1-cp37-cp37m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.4_aws/20210813_093733/cpu/py37/tensorflow_cpu-2.4.3-cp37-cp37m-manylinux2010_x86_64.whl
 
-ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.4_aws/20210127-150238/tensorflow_estimator-2.4.0-py2.py3-none-any.whl
+ARG ESTIMATOR_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/estimator/r2.4_aws/20210813_093733/tensorflow_estimator-2.4.0-py2.py3-none-any.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=1.0.9
 
 RUN apt-get update \
+ && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends \
     build-essential \
     openssh-client \
@@ -129,7 +130,7 @@ RUN ${PIP} install --no-cache-dir -U \
     scipy==1.5.2 \
     scikit-learn==0.23 \
     pandas==1.1 \
-    Pillow==8.2.0 \
+    "Pillow>=8.3,<8.4" \
     # python-dateutil==2.8.1 to satisfy botocore associated with latest awscli
     python-dateutil==2.8.1 \
     # install PyYAML>=5.4 to avoid conflict with latest awscli
@@ -156,12 +157,14 @@ RUN ${PIP} install --no-cache-dir -U \
     smclarify
 
 # Install extra packages
+# numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
 RUN ${PIP} install --no-cache-dir -U \
    "bokeh>=2.3,<3" \
    "imageio>=2.9,<3" \
    "opencv-python>=4.3,<5" \
    "plotly>=5.1,<6" \
    "seaborn>=0.11,<1" \
+   "numba<0.54" \
    "shap>=0.39,<1"
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
