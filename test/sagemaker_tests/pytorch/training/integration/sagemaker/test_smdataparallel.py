@@ -142,6 +142,7 @@ def test_smdataparallel_mnist(ecr_image, sagemaker_regions, instance_types, tmpd
 @pytest.mark.integration("smdataparallel_smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge"])
+@pytest.mark.release_test
 def test_smmodelparallel_smdataparallel_mnist(instance_types, ecr_image, sagemaker_regions, py_version, tmpdir):
     """
     Tests SM Distributed DataParallel and ModelParallel single-node via script mode

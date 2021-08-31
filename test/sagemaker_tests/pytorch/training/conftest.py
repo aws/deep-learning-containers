@@ -109,16 +109,17 @@ def pytest_addoption(parser):
     parser.addoption('--processor', choices=['gpu', 'cpu'], default='cpu')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
+    parser.addoption('--accelerator-type', default=None)
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
                      help='use this option to generate test coverage doc')
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
-    parser.addoption('--sagemaker-region')
 
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+    config.addinivalue_line("markers", "release_test(): explicity mark to run release tests")
 
 
 def pytest_runtest_setup(item):
@@ -161,7 +162,7 @@ def fixture_processor(request):
 
 @pytest.fixture(scope='session', name='sagemaker_regions')
 def fixture_sagemaker_region(request):
-    sagemaker_regions = request.config.getoption('--sagemaker-region')
+    sagemaker_regions = request.config.getoption('--region')
     return sagemaker_regions.split(",")
 
 @pytest.fixture(scope='session', name='tag')

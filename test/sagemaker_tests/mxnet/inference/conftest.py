@@ -55,6 +55,7 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+    config.addinivalue_line("markers", "release_test(): explicity mark to run release tests")
 
 
 def pytest_runtest_setup(item):

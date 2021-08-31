@@ -27,6 +27,7 @@ from .... import invoke_pytorch_helper_function
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
+@pytest.mark.release_test
 def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = instance_type or 'ml.c4.xlarge'
     model_dir = os.path.join(model_cpu_dir, 'model_mnist.tar.gz')
@@ -44,6 +45,7 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sage
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
+@pytest.mark.release_test
 def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = instance_type or 'ml.p2.xlarge'
     model_dir = os.path.join(model_cpu_dir, 'model_mnist.tar.gz')
@@ -61,6 +63,7 @@ def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sage
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.processor("eia")
 @pytest.mark.eia_test
+@pytest.mark.release_test
 def test_mnist_eia(framework_version, ecr_image, instance_type, accelerator_type, sagemaker_regions):
     instance_type = instance_type or 'ml.c4.xlarge'
     # Scripted model is serialized with torch.jit.save().

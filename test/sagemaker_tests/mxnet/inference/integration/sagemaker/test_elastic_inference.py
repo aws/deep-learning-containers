@@ -46,6 +46,7 @@ def skip_if_non_supported_ei_region(region):
 @pytest.mark.model("linear_regression")
 @pytest.mark.skip_if_non_supported_ei_region()
 @pytest.mark.skip_if_no_accelerator()
+@pytest.mark.release_test
 def test_elastic_inference(ecr_image, sagemaker_session, instance_type, accelerator_type, framework_version):
     entry_point = DEFAULT_SCRIPT_PATH
     image_framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)

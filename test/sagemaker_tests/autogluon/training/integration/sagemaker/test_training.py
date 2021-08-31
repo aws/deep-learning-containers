@@ -25,6 +25,7 @@ from ...integration import RESOURCE_PATH, DEFAULT_TIMEOUT
 @pytest.mark.model("autogluon")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_test_in_region
+@pytest.mark.release_test
 def test_training(sagemaker_session, ecr_image, instance_type, framework_version):
     ag = AutoGluon(
         entry_point=os.path.join(RESOURCE_PATH, 'scripts', 'train_tab.py'),

@@ -88,6 +88,7 @@ def pytest_addoption(parser):
     parser.addoption("--processor")
     parser.addoption("--accelerator-type")
     parser.addoption("--tag")
+    parser.addoption("--py-version")
     parser.addoption("--generate-coverage-doc", default=False, action="store_true",
                      help="use this option to generate test coverage doc")
     parser.addoption(

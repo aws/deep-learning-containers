@@ -90,6 +90,7 @@ def pytest_addoption(parser):
 
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
+    parser.addoption('--accelerator-type', default=None)
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
                      help='use this option to generate test coverage doc')
     parser.addoption(
@@ -99,6 +100,7 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+    config.addinivalue_line("markers", "release_test(): explicitly mark to run release tests")
 
 
 def pytest_runtest_setup(item):

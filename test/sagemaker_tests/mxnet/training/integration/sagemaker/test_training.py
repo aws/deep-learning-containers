@@ -28,6 +28,7 @@ SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist.py')
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_test_in_region
+@pytest.mark.release_test
 def test_training(sagemaker_session, ecr_image, instance_type, instance_count, framework_version):
     hyperparameters = {'sagemaker_parameter_server_enabled': True} if instance_count > 1 else {}
     hyperparameters['epochs'] = 1

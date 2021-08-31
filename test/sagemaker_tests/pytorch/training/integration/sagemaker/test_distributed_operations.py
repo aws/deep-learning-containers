@@ -62,6 +62,7 @@ def can_run_smmodelparallel_efa(ecr_image):
 @pytest.mark.skip_gpu
 @pytest.mark.deploy_test
 @pytest.mark.skip_test_in_region
+@pytest.mark.release_test
 def test_dist_operations_cpu(framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend):
     instance_type = instance_type or 'ml.c4.xlarge'
     function_args = {
