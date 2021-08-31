@@ -11,6 +11,7 @@ Pillow
 h5py
 tox
 flake8
+psutil
 pytest==5.3.5
 pytest-cov
 pytest-rerunfailures==9.0
