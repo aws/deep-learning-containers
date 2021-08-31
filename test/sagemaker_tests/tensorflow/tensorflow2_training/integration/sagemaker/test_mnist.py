@@ -77,11 +77,12 @@ def test_distributed_mnist_no_ps(sagemaker_session, ecr_image, instance_type, fr
 @pytest.mark.integration("parameter server")
 def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
-    script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
+    script = os.path.join(resource_path, 'mnist', 'mnist_estimator2.py')
     estimator = TensorFlow(entry_point=script,
                            role='SageMakerRole',
                            hyperparameters={'sagemaker_parameter_server_enabled': True},
                            instance_count=2,
+                           model_dir='/opt/ml/model',
                            instance_type=instance_type,
                            sagemaker_session=sagemaker_session,
                            image_uri=ecr_image,
