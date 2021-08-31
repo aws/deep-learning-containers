@@ -132,12 +132,6 @@ def n_virginia_ecr_image(ecr_image, n_virginia_region):
     return n_virginia_ecr_image
 
 
-@pytest.fixture(scope='session', name='sagemaker_regions')
-def sagemaker_regions(request):
-    sagemaker_regions = request.config.getoption('--sagemaker-regions')
-    return sagemaker_regions.split(",")
-
-
 @pytest.fixture(scope='session')
 def sagemaker_local_session(region):
     return LocalSession(boto_session=boto3.Session(region_name=region))

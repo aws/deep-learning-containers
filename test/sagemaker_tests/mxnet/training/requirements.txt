@@ -9,6 +9,7 @@ requests==2.25.1
 urllib3>=1.26.6
 mock
 sagemaker
+psutil
 docker-compose
 boto3
 six==1.13.0
