@@ -146,7 +146,8 @@ RUN ${PIP} install --no-cache-dir -U \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
-    ${TF_URL} \
+    #${TF_URL} \
+    tensorflow==2.6 \
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
     horovod==0.22.1 \
