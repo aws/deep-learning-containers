@@ -119,7 +119,7 @@ def test_python_model_with_requirements(boto_session, sagemaker_client,
         pytest.skip("skip for p3 instance")
 
     # the python service needs to transform this to get a valid prediction
-    input_data = {"x": [1.0, 2.0, 5.0]}
+    input_data = {"instances": [1.0, 2.0, 5.0]}
     output_data = util.create_and_invoke_endpoint(boto_session, sagemaker_client,
                                                   sagemaker_runtime_client, model_name,
                                                   python_model_with_requirements, image_uri,
