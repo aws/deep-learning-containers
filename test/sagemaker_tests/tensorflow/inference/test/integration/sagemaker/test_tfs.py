@@ -72,7 +72,7 @@ def tfs_model(region, boto_session):
 def python_model_with_requirements(region, boto_session):
     return util.find_or_put_model_data(region,
                                        boto_session,
-                                       "data/python-with-requirements.tar.gz")
+                                       "data/tfs-model_greater_than_equal_to_tf26.tar.gz")
 
 
 @pytest.fixture(scope="session")
