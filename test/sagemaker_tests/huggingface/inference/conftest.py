@@ -126,6 +126,7 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+    config.addinivalue_line("markers", "release_test(): explicitly mark to run release tests")
 
 
 def pytest_runtest_setup(item):
@@ -254,7 +255,7 @@ def fixture_ecr_image(docker_registry, docker_base_name, tag):
 @pytest.fixture(autouse=True)
 def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
     is_gpu = use_gpu or instance_type[3] in ["g", "p"]
-    is_eia = accelerator_type is not None
+    is_eia = accelerator_type is not None and not is_gpu
 
     # Separate out cases for clearer logic.
     # When running GPU test, skip CPU test. When running CPU test, skip GPU test.
@@ -263,12 +264,12 @@ def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
     ):
         pytest.skip("Skipping because running on '{}' instance".format(instance_type))
 
-    # When running EIA test, skip the CPU and GPU functions
-    elif (request.node.get_closest_marker("gpu_test") or request.node.get_closest_marker("cpu_test")) and is_eia:
-        pytest.skip("Skipping because running on '{}' instance".format(instance_type))
-
     # When running CPU or GPU test, skip EIA test.
     elif request.node.get_closest_marker("eia_test") and not is_eia:
+        pytest.skip("Skipping because running on '{}' instance".format(instance_type))
+
+    # When running EIA test, skip the CPU and GPU functions
+    elif (request.node.get_closest_marker("gpu_test") or request.node.get_closest_marker("cpu_test")) and is_eia:
         pytest.skip("Skipping because running on '{}' instance".format(instance_type))
 
 
