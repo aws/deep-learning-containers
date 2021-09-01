@@ -9,6 +9,7 @@ numpy
 scipy
 sklearn
 pandas
+psutil
 Pillow
 h5py
 tox
