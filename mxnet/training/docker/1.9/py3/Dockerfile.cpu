@@ -118,6 +118,7 @@ RUN python -m pip install --no-cache --upgrade \
     "PyYAML>=5.4,<5.5" \
     mpi4py \
     sagemaker-mxnet-training \
+    psutil==5.6.7 \
     ${MX_URL} \
     smdebug==${SMDEBUG_VERSION} \
     sagemaker \
