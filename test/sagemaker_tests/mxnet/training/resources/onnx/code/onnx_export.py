@@ -44,7 +44,7 @@ def main():
 
     mx_sym = prefix + '-symbol.json'
     mx_params = prefix + '-0000.params'
-    onnx_file = prefix + '.onnx'
+    onnx_file = 'model.onnx'
     in_shapes = [in_shape]
     in_dtypes = [in_dtype]
     onnx_mxnet.export_model(mx_sym, mx_params, [in_shape], [in_dtype], onnx_file)
