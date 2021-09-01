@@ -10,6 +10,7 @@ pytest-rerunfailures==8.0
 pytest-xdist==1.28.0
 PyYAML==5.4
 sagemaker>=2,<3
+psutil
 six==1.12.0
 requests==2.24.0
 torchvision==0.5.0

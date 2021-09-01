@@ -1,6 +1,7 @@
 boto3
 awscli
 sagemaker>=2,<3
+psutil
 smdebug>=1
 coverage==4.5.3
 docker-compose==1.25.4

@@ -13,6 +13,7 @@ pytest-xdist
 requests==2.24
 mock
 sagemaker>=2,<3
+psutil
 docker-compose
 boto3
 six==1.13.0
