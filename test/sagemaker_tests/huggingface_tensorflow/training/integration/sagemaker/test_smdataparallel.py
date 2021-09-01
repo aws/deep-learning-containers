@@ -55,7 +55,7 @@ def test_hf_smdp(ecr_image, sagemaker_regions, instance_type, framework_version,
 @pytest.mark.integration("hf_smdp_multinode")
 @pytest.mark.model("hf_distilbert")
 @pytest.mark.skip_py2_containers
-@pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge"])
+@pytest.mark.parametrize('instance_type', ["ml.p3.16xlarge"])
 # Skipping `ml.p3dn.24xlarge` instance type due to capacity issue in us-west-2
 # TODO: Enable sagemaker debugger, resolve github issue after enabling.
 #  https://github.com/aws/deep-learning-containers/issues/1053
