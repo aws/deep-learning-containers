@@ -10,7 +10,6 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 # https://docs.aws.amazon.com/sagemaker/latest/dg/build-multi-model-build-container.html
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
-ARG OPENSSL_VERSION=1.1.1l
 ARG PYTHON_VERSION=3.8.10
 ARG MMS_VERSION=1.1.4
 ARG MX_URL=https://aws-mx-pypi.s3.us-west-2.amazonaws.com/1.9.0/aws_mx-1.9.0.132-py3-none-manylinux2014_x86_64.whl
@@ -51,16 +50,6 @@ RUN apt-get update \
     libffi-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
-
-# install OpenSSL
-RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && tar -xzf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make -j $(nproc) && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-* \
- && rmdir /usr/local/ssl/certs \
- && ln -s /etc/ssl/certs /usr/local/ssl/certs
 
 # install Python
 RUN apt-get update \
