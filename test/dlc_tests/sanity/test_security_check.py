@@ -124,6 +124,7 @@ def test_is_ecr_scan_allowlist_outdated(image, ecr_client, sts_client, region):
 
     run_scan(ecr_client, image)
     scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
+    scan_results = ecr_utils.populate_ecr_scan_with_web_scraper_results(image, scan_results)
 
     image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
     image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)

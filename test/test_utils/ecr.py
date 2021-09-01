@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 
 from base64 import b64decode
 
@@ -16,6 +17,8 @@ from test.test_utils import (
     LOGGER,
 )
 from test.test_utils.security import CVESeverity
+from web_scraper.test_script import run_spider
+from web_scraper.web_scraper.spiders.cve_spiders import CveSpider
 
 
 class ECRScanFailedError(Exception):
@@ -186,3 +189,46 @@ def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_
     delete_file(ECR_PASSWORD_FILE_PATH)
 
     return target_image_uri
+
+
+def process_scraped_data(scraped_data):
+    processed_data = {}
+    for scraped_webpage in scraped_data:
+        cve_id = scraped_webpage["URL"].split("/")[-1]
+        if cve_id not in processed_data:
+            processed_data[cve_id] = {}
+        for status_table in scraped_webpage["status_tables"]:
+            for package in status_table["packages"]:
+                if package not in processed_data[cve_id]:
+                    processed_data[cve_id][package] = []
+                processed_data[cve_id][package].append(
+                    {"status_table": status_table, "notes": scraped_webpage["notes"]}
+                )
+
+    return processed_data
+
+
+def populate_ecr_scan_with_web_scraper_results(
+    image_uri, ecr_scan_to_be_populated, prepend_url="https://ubuntu.com/security/"
+):
+    cve_list = list(set([cve["name"] for cve in ecr_scan_to_be_populated]))
+    url_list = [prepend_url + cve_name for cve_name in cve_list]
+    url_csv_string = ",".join(url_list)
+    simplified_image_uri = image_uri.replace(".", "-").replace("/", "-").replace(":", "-")
+    storage_file_path = os.path.join(
+        os.sep, os.getenv("ROOT_FOLDER_PATH"), "cve-data", f"cve-data-{simplified_image_uri}.json"
+    )
+    run_spider(CveSpider, storage_file_path=storage_file_path, url_csv_string=url_csv_string)
+    f = open(storage_file_path, "r")
+    scraped_data = json.load(f)
+    scraped_data = process_scraped_data(scraped_data)
+    for finding in ecr_scan_to_be_populated:
+        cve_id = finding["name"]
+        package_name = [
+            attribute["value"] for attribute in finding["attributes"] if attribute["key"] == "package_name"
+        ][0]
+        if cve_id in scraped_data and package_name in scraped_data[cve_id]:
+            finding["scraped_data"] = scraped_data[cve_id][package_name]
+        else:
+            finding["scraped_data"] = [{"_comment": "Could Not be Processed"}]
+    return ecr_scan_to_be_populated

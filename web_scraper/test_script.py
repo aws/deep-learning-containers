@@ -1,9 +1,11 @@
 import scrapy
+import time
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.project import get_project_settings
 ## crochet plays with Twisted's Reactors to avoid ReactorNotRestartable error
 from crochet import setup 
 setup()
+
 
 def get_crawler(storage_file_path=None):
     if storage_file_path is not None:
@@ -18,6 +20,8 @@ def get_crawler(storage_file_path=None):
 def run_spider(spiderClass, storage_file_path=None, *args, **kwargs):
     crawler = get_crawler(storage_file_path)
     crawler.crawl(spiderClass, *args, **kwargs)
+    crawler.join()
+    time.sleep(10)
 
 ######################## How to run #####################
 # from test_script import run_spider
