@@ -24,7 +24,6 @@ from ...integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
 
 @pytest.mark.integration("keras")
 @pytest.mark.model("mnist")
-
 def test_keras_training(docker_image, sagemaker_local_session, local_instance_type,
                         framework_version, tmpdir):
     if framework_version in ['1.9.0']:
