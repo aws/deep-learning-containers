@@ -4,6 +4,7 @@ FROM nvidia/cuda:11.2.2-base-ubuntu20.04
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
+ARG OPENSSL_VERSION=1.1.1l
 ARG PYTHON_VERSION=3.8.10
 ARG MX_URL=https://aws-mx-pypi.s3.us-west-2.amazonaws.com/1.9.0/aws_mx_cu112-1.9.0.131-py3-none-manylinux2014_x86_64.whl
 
@@ -68,6 +69,16 @@ RUN apt-get update \
     libnccl-dev=${NCCL_VERSION} \    
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+# install OpenSSL
+RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && tar -xzf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make -j $(nproc) && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-* \
+ && rmdir /usr/local/ssl/certs \
+ && ln -s /etc/ssl/certs /usr/local/ssl/certs
 
 # install Python
 RUN apt-get update \
