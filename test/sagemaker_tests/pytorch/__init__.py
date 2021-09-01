@@ -12,7 +12,6 @@
 # language governing permissions and limitations under the License.
 
 import sagemaker
-import time
 
 from .. import get_ecr_image_region, get_sagemaker_session, get_ecr_image
 
