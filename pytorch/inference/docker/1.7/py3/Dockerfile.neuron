@@ -115,6 +115,7 @@ RUN pip install --no-cache-dir -U \
     protobuf==3.16.0 \
     gast==0.2.2 \
     pillow==8.2.0 \
+    boto3 \
     "awscli<2"
 
 RUN pip install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neuron.amazonaws.com \
