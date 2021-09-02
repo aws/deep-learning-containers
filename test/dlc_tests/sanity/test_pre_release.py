@@ -172,6 +172,7 @@ def test_framework_version_cpu(image):
 
 
 # TODO: Enable as canary once resource cleaning lambda is added
+@pytest.mark.usefixtures("huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
@@ -302,6 +303,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         )
 
 
+@pytest.mark.usefixtures("huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
@@ -313,6 +315,7 @@ def test_dependency_check_cpu(cpu, ec2_connection):
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
 
+@pytest.mark.usefixtures("huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
@@ -398,6 +401,7 @@ def test_pip_check(image):
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
 
+@pytest.mark.usefixtures("huggingface")
 @pytest.mark.model("N/A")
 def test_cuda_paths(gpu):
     """
