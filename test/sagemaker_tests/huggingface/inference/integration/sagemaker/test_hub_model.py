@@ -26,7 +26,7 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_test_hub_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
+def test_hub_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
     instance_type = instance_type or "ml.m5.xlarge"
     try:
         _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
@@ -38,7 +38,7 @@ def test_test_hub_model_cpu(sagemaker_session, framework_version, ecr_image, ins
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_test_hub_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
+def test_hub_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
     instance_type = instance_type or "ml.p2.xlarge"
     try:
         _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
@@ -51,7 +51,7 @@ def _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_ty
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-serving-hub-model")
 
     env = {
-        "HF_MODEL_ID": "sshleifer/tiny-distilbert-base-uncased-finetuned-sst-2-english",
+        "HF_MODEL_ID": "philschmid/tiny-distilbert-classification",
         "HF_TASK": "text-classification",
     }
 
