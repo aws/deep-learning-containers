@@ -111,10 +111,7 @@ class DockerImage:
             with open(self.context.context_path, "rb") as context_file:
                 print("within context")
                 self.docker_build(fileobj=context_file, custom_context=True)
-                try:
-                    self.context.remove()
-                except:
-                    print("Context was already deleted")
+                self.context.remove()
         else:
             print("out of context")
             self.docker_build()
@@ -143,13 +140,14 @@ class DockerImage:
                 labels=self.labels
             ):
                 if line.get("error") is not None:
-                    self.context.remove()
                     response.append(line["error"])
 
                     self.log = response
                     self.build_status = constants.FAIL
                     self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
                     self.summary["end_time"] = datetime.now()
+                    print("******** ERROR during Docker BUILD ********")
+                    print(f"Error message received for {self.dockerfile} while docker build: {line}")
 
                     return self.build_status
 
@@ -161,7 +159,7 @@ class DockerImage:
                     response.append(str(line))
 
         self.log = response
-        print(f"self.log {self.log}")
+        # print(f"self.log {self.log}")
         self.build_status = constants.SUCCESS
         #TODO: return required?
         return self.build_status
