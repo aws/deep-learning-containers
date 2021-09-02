@@ -21,11 +21,12 @@ from copy import deepcopy
 
 import constants
 import utils
+import boto3
 
 from context import Context
 from metrics import Metrics
 from image import DockerImage
-from conclusion_stage_image import ConclusionStageImage
+from common_stage_image import CommonStageImage
 from buildspec import Buildspec
 from output import OutputFormatter
 from config import parse_dlc_developer_configs
@@ -53,8 +54,8 @@ def image_builder(buildspec):
 
     BUILDSPEC = Buildspec()
     BUILDSPEC.load(buildspec)
-    INITIAL_STAGE_IMAGES = []
-    CONCLUSION_STAGE_IMAGES = []
+    PRE_PUSH_STAGE_IMAGES = []
+    COMMON_STAGE_IMAGES = []
 
     if "huggingface" in str(BUILDSPEC["framework"]):
         os.system("echo login into public ECR")
@@ -88,7 +89,7 @@ def image_builder(buildspec):
         )
         base_image_uri = None
         if image_config.get("base_image_name") is not None:
-            base_image_object = _find_image_object(INITIAL_STAGE_IMAGES, image_config["base_image_name"])
+            base_image_object = _find_image_object(PRE_PUSH_STAGE_IMAGES, image_config["base_image_name"])
             base_image_uri = base_image_object.ecr_url
 
         if image_config.get("download_artifacts") is not None:
@@ -157,54 +158,51 @@ def image_builder(buildspec):
             "extra_build_args": extra_build_args
         }
         
-        #Create initial stage docker object
-        initial_stage_image_object = DockerImage(
+        #Create pre_push stage docker object
+        pre_push_stage_image_object = DockerImage(
             info=info,
             dockerfile=image_config["docker_file"],
             repository=image_repo_uri,
             tag=image_tag,
             to_build=image_config["build"],
-            stage=constants.INITIAL_STAGE,
+            stage=constants.PRE_PUSH_STAGE,
             context=context,
         )
 
-        ##### Create Conclusion stage docker object #####
-        # If for an initial stage image we create a conclusion stage image, then we do not push the initial stage image
-        # to the repository. Instead, we just push its conclusion stage image to the repository. Therefore,
-        # inside function get_conclusion_stage_image_object we make initial_stage_image_object non pushable.
-        conclusion_stage_image_object = get_conclusion_stage_image_object(initial_stage_image_object)
-
+        ##### Create Common stage docker object #####
+        # If for a pre_push stage image we create a common stage image, then we do not push the pre_push stage image
+        # to the repository. Instead, we just push its common stage image to the repository. Therefore,
+        # inside function get_common_stage_image_object we make pre_push_stage_image_object non pushable.
+        common_stage_image_object = get_common_stage_image_object(pre_push_stage_image_object)
+    
+        PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
+        COMMON_STAGE_IMAGES.append(common_stage_image_object)
         FORMATTER.separator()
-
-        INITIAL_STAGE_IMAGES.append(initial_stage_image_object)
-        if conclusion_stage_image_object is not None:
-            CONCLUSION_STAGE_IMAGES.append(conclusion_stage_image_object)
 
     FORMATTER.banner("DLC")
     FORMATTER.title("Status")
     
     # Standard images must be built before example images
     # Example images will use standard images as base
-    # Conclusion images must be built at the end as they will consume respective standard and example images
-    standard_images = [image for image in INITIAL_STAGE_IMAGES if "example" not in image.name.lower()]
-    example_images = [image for image in INITIAL_STAGE_IMAGES if "example" in image.name.lower()]
-    conclusion_stage_images = [image for image in CONCLUSION_STAGE_IMAGES]
-    ALL_IMAGES = INITIAL_STAGE_IMAGES + CONCLUSION_STAGE_IMAGES
+    # Common images must be built at the end as they will consume respective standard and example images
+    standard_images = [image for image in PRE_PUSH_STAGE_IMAGES if "example" not in image.name.lower()]
+    example_images = [image for image in PRE_PUSH_STAGE_IMAGES if "example" in image.name.lower()]
+    common_stage_images = [image for image in COMMON_STAGE_IMAGES]
+    ALL_IMAGES = PRE_PUSH_STAGE_IMAGES + COMMON_STAGE_IMAGES
     IMAGES_TO_PUSH = [image for image in ALL_IMAGES if image.to_push and image.to_build]
 
-    #initial stage standard images build
+    #pre_push stage standard images build
     FORMATTER.banner("Standard Build")
     build_images(standard_images)
 
-    #initial stage example images build
+    #pre_push stage example images build
     FORMATTER.banner("Example Build")
     build_images(example_images)
-       
-    #Conclusion stage build
-    if len(conclusion_stage_images) > 0:
-        FORMATTER.banner("Conclusion Build")
-        build_images(conclusion_stage_images, make_dummy_boto_client=True)
-    
+
+    #Common stage build
+    FORMATTER.banner("Common Build")
+    build_images(common_stage_images, make_dummy_boto_client=True)
+     
     FORMATTER.banner("Push Started")
     push_images(IMAGES_TO_PUSH)
 
@@ -218,7 +216,6 @@ def image_builder(buildspec):
     BUILT_IMAGES = [image for image in ALL_IMAGES if image.to_build]
 
     FORMATTER.title("Upload Metrics")
-    # change logic here. upload metrics only for the Conclusion stage image
     upload_metrics(BUILT_IMAGES, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit)
 
     FORMATTER.title("Setting Test Env")
@@ -231,20 +228,17 @@ def image_builder(buildspec):
         TEST_TRIGGER=test_trigger_job,
     )
 
-def get_conclusion_stage_image_object(initial_stage_image_object):
-    # Check if this is only required for mainline
-    # if build_context == "MAINLINE":
-    conclusion_stage_image_object = None
-    conclusion_stage_image_object = ConclusionStageImage(
-        info=initial_stage_image_object.info,
+def get_common_stage_image_object(pre_push_stage_image_object):
+    common_stage_image_object = CommonStageImage(
+        info=pre_push_stage_image_object.info,
         dockerfile=os.path.join(os.sep, os.getenv("ROOT_FOLDER_PATH"), "src", "Dockerfile.multipart"),
-        repository=initial_stage_image_object.repository,
-        tag=initial_stage_image_object.tag,
-        to_build=initial_stage_image_object.to_build,
-        stage=constants.CONCLUSION_STAGE,
+        repository=pre_push_stage_image_object.repository,
+        tag=pre_push_stage_image_object.tag,
+        to_build=pre_push_stage_image_object.to_build,
+        stage=constants.COMMON_STAGE,
     )
-    initial_stage_image_object.to_push = False
-    return conclusion_stage_image_object
+    pre_push_stage_image_object.to_push = False
+    return common_stage_image_object
 
 def show_build_logs(images):
 
@@ -336,7 +330,6 @@ def get_dummy_boto_client():
     # In absence of this method, the behaviour documented in https://github.com/boto/boto3/issues/1592 is observed.
     # If this function is not added, boto3 fails because boto3 sessions are not thread safe.
     # However, once a dummy client is created, it is ensured that the calls are thread safe.
-    import boto3
     return boto3.client("sts", region_name=os.getenv('REGION'))
 
 def push_images(images):

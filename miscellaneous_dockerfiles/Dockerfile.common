@@ -1,7 +1,7 @@
 # Use the Deep Learning Container as a base Image
-ARG INITIAL_STAGE_IMAGE=""
+ARG PRE_PUSH_IMAGE=""
 
-FROM $INITIAL_STAGE_IMAGE
+FROM $PRE_PUSH_IMAGE
 
 # Add any script or repo as required
 COPY safety_report.json /opt/aws/dlc/info/safety_report.json

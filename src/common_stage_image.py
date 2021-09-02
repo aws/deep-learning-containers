@@ -20,32 +20,36 @@ from utils import generate_safety_report_for_image
 import os
 
 
-class ConclusionStageImage(DockerImage):
+class CommonStageImage(DockerImage):
     """
-    Class designed to handle the ConclusionStageImages
+    This class is especially designed to handle the build process for CommonStageImages.
+    All the functionality - either safety scan report, ecr scan report, etc. - that is especially 
+    required to run the miscellaneous_dockerfiles/Dockerfile.common should go into this file. As of now,
+    this class takes care of generating a safety report from a pre_push_image and then uses this 
+    safety report for creating a context for Dockerfile.common 
     """
 
     def update_pre_build_configuration(self):
         """
         Conducts all the pre-build configurations from the parent class and then conducts
         Safety Scan on the images generated in previous stage builds. The safety scan generates
-        the safety_report which is then baked into the image. 
+        the safety_report which is then copied into the image. 
         """
         # Call the update_pre_build_configuration steps from the parent class
-        super(ConclusionStageImage, self).update_pre_build_configuration()
+        super(CommonStageImage, self).update_pre_build_configuration()
         # Generate safety scan report for the first stage image and add the file to artifacts
-        first_stage_image_uri = self.build_args["INITIAL_STAGE_IMAGE"]
+        first_stage_image_uri = self.build_args["PRE_PUSH_IMAGE"]
         processed_image_uri = first_stage_image_uri.replace(".", "-").replace("/", "-").replace(":", "-")
         image_name = self.name
         tarfile_name_for_context = f"{processed_image_uri}-{image_name}"
         storage_file_path = f"{os.getenv('ROOT_FOLDER_PATH')}/src/{tarfile_name_for_context}_safety_report.json"
         generate_safety_report_for_image(first_stage_image_uri, storage_file_path=storage_file_path)
-        self.context = self.generate_conclude_stage_context(storage_file_path, tarfile_name=tarfile_name_for_context)
+        self.context = self.generate_common_stage_context(storage_file_path, tarfile_name=tarfile_name_for_context)
 
-    def generate_conclude_stage_context(self, safety_report_path, tarfile_name="conclusion-stage-file"):
+    def generate_common_stage_context(self, safety_report_path, tarfile_name="common-stage-file"):
         """
-        For ConclusionStageImage, build context is built once the safety report is generated. This is because
-        the Dockerfile.multipart uses this safety report to COPY the report into the image.
+        For CommonStageImage, build context is built once the safety report is generated. This is because
+        the Dockerfile.common uses this safety report to COPY the report into the image.
         """
         artifacts = {
             "safety_report": {"source": safety_report_path, "target": "safety_report.json"},
