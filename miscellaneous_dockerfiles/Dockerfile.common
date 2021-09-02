@@ -4,4 +4,4 @@ ARG INITIAL_STAGE_IMAGE=""
 FROM $INITIAL_STAGE_IMAGE
 
 # Add any script or repo as required
-COPY safety_report.json /var/safety_report.json
+COPY safety_report.json /opt/aws/dlc/info/safety_report.json

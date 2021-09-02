@@ -19,6 +19,11 @@ from docker import DockerClient
 
 
 import constants
+import logging
+import json
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class DockerImage:
@@ -26,9 +31,7 @@ class DockerImage:
     The DockerImage class has the functions and attributes for building the dockerimage
     """
 
-    def __init__(
-        self, info, dockerfile, repository, tag, to_build, stage, context=None, to_push=True
-    ):
+    def __init__(self, info, dockerfile, repository, tag, to_build, stage, context=None, to_push=True):
 
         # Meta-data about the image should go to info.
         # All keys in info are accessible as attributes
@@ -72,7 +75,7 @@ class DockerImage:
         docker_client.containers.prune()
         return command_responses
 
-    def pre_build_configuration(self):
+    def update_pre_build_configuration(self):
 
         if self.info.get("base_image_uri"):
             self.build_args["BASE_IMAGE"] = self.info["base_image_uri"]
@@ -82,12 +85,12 @@ class DockerImage:
 
         if self.info.get("extra_build_args"):
             self.build_args.update(self.info.get("extra_build_args"))
-        
+
         if self.info.get("labels"):
             self.labels.update(self.info.get("labels"))
-        
-        print(f"self.build_args {self.build_args}")
-        print(f"self.labels {self.labels}")
+
+        LOGGER.info(f"self.build_args {json.dumps(self.build_args, indent=4)}")
+        LOGGER.info(f"self.labels {json.dumps(self.labels, indent=4)}")
 
     def build(self):
         """
@@ -95,91 +98,96 @@ class DockerImage:
         """
         self.summary["start_time"] = datetime.now()
 
-        ## Confirm if building the image is required or not
+        # Confirm if building the image is required or not
         if not self.to_build:
             self.log = ["Not built"]
             self.build_status = constants.NOT_BUILT
             self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
             return self.build_status
-        
-        ## Conduct some preprocessing before building the image
-        self.pre_build_configuration()
-        print(f"self.context {self.context}")
 
-        ## Start building the image
+        # Conduct some preprocessing before building the image
+        self.update_pre_build_configuration()
+
+        # Start building the image
         if self.context:
             with open(self.context.context_path, "rb") as context_file:
-                print("within context")
                 self.docker_build(fileobj=context_file, custom_context=True)
                 self.context.remove()
         else:
-            print("out of context")
             self.docker_build()
 
+        if self.build_status == constants.FAIL:
+            return self.build_status
+        
         if not self.to_push:
-            ## If this image is not supposed to be pushed, in that case, we are already done
-            ## with building the image and do not need to conduct any further processing.
+            # If this image is not supposed to be pushed, in that case, we are already done
+            # with building the image and do not need to conduct any further processing.
             self.summary["end_time"] = datetime.now()
 
-        #check the size after image is built.
+        # check the size after image is built.
         self.image_size_check()
 
-        ## This return is necessary. Otherwise FORMATTER fails while displaying the status.
+        # This return is necessary. Otherwise FORMATTER fails while displaying the status.
         return self.build_status
-    
+
     def docker_build(self, fileobj=None, custom_context=False):
         response = []
         for line in self.client.build(
-                fileobj=fileobj,
-                path=self.dockerfile,
-                custom_context=custom_context,
-                rm=True,
-                decode=True,
-                tag=self.ecr_url,
-                buildargs=self.build_args,
-                labels=self.labels
-            ):
-                if line.get("error") is not None:
-                    response.append(line["error"])
+            fileobj=fileobj,
+            path=self.dockerfile,
+            custom_context=custom_context,
+            rm=True,
+            decode=True,
+            tag=self.ecr_url,
+            buildargs=self.build_args,
+            labels=self.labels,
+        ):
+            if line.get("error") is not None:
+                response.append(line["error"])
+                self.log = response
+                self.build_status = constants.FAIL
+                self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
+                self.summary["end_time"] = datetime.now()
 
-                    self.log = response
-                    self.build_status = constants.FAIL
-                    self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
-                    self.summary["end_time"] = datetime.now()
-                    print("******** ERROR during Docker BUILD ********")
-                    print(f"Error message received for {self.dockerfile} while docker build: {line}")
+                pretty_logs = "\n".join(self.log[:-100])
+                LOGGER.info(f"Docker Build Logs: \n {pretty_logs}")
+                LOGGER.error("******** ERROR during Docker BUILD ********")
+                LOGGER.error(f"Error message received for {self.dockerfile} while docker build: {line}")
 
-                    return self.build_status
+                return self.build_status
 
-                if line.get("stream") is not None:
-                    response.append(line["stream"])
-                elif line.get("status") is not None:
-                    response.append(line["status"])
-                else:
-                    response.append(str(line))
+            if line.get("stream") is not None:
+                response.append(line["stream"])
+            elif line.get("status") is not None:
+                response.append(line["status"])
+            else:
+                response.append(str(line))
 
         self.log = response
-        # print(f"self.log {self.log}")
-        self.build_status = constants.SUCCESS
-        #TODO: return required?
-        return self.build_status
 
+        pretty_logs = "\n".join(self.log[-10:])
+        LOGGER.info(f"Docker Build Logs: {pretty_logs}")
+        LOGGER.info(f"Completed Build for {self.name}")
+
+        self.build_status = constants.SUCCESS
+        return self.build_status
 
     def image_size_check(self):
         response = []
-        self.summary["image_size"] = int(
-                self.client.inspect_image(self.ecr_url)["Size"]
-            ) / (1024 * 1024)
+        self.summary["image_size"] = int(self.client.inspect_image(self.ecr_url)["Size"]) / (1024 * 1024)
         if self.summary["image_size"] > self.info["image_size_baseline"] * 1.20:
             response.append("Image size baseline exceeded")
             response.append(f"{self.summary['image_size']} > 1.2 * {self.info['image_size_baseline']}")
             response += self.collect_installed_packages_information()
             self.build_status = constants.FAIL_IMAGE_SIZE_LIMIT
         else:
+            response.append(f"Image Size Check Succeeded for {self.name}")
             self.build_status = constants.SUCCESS
         self.log = response
-        print(f"self.log {self.log}")
-        #TODO: return required?
+
+        pretty_log = "\n".join(self.log)
+        LOGGER.info(f"{pretty_log}")
+
         return self.build_status
 
     def push_image(self):
@@ -187,11 +195,15 @@ class DockerImage:
             response = []
             if line.get("error") is not None:
                 response.append(line["error"])
-
                 self.log = response
                 self.build_status = constants.FAIL
                 self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
                 self.summary["end_time"] = datetime.now()
+                pretty_logs = "\n".join(self.log[:-100])
+
+                LOGGER.info(f"Docker Build Logs: \n {pretty_logs}")
+                LOGGER.error("******** ERROR during Docker PUSH ********")
+                LOGGER.error(f"Error message received for {self.dockerfile} while docker push: {line}")
 
                 return self.build_status
             if line.get("stream") is not None:
@@ -203,5 +215,9 @@ class DockerImage:
         self.summary["end_time"] = datetime.now()
         self.summary["ecr_url"] = self.ecr_url
         self.log = response
-        #TODO: return required?
+
+        pretty_logs = "\n".join(self.log[-10:])
+        LOGGER.info(f"Docker Build Logs: {pretty_logs}")
+        LOGGER.info(f"Completed Build for {self.name}")
+
         return self.build_status

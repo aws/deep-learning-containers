@@ -16,7 +16,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
-SAFETY_FILE = '/var/safety_report.json'
+SAFETY_FILE = '/opt/aws/dlc/info/safety_report.json'
 SAFETY_FILE_EXISTS = 0
 
 

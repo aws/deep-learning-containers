@@ -19,50 +19,41 @@ from utils import generate_safety_report_for_image
 
 import os
 
+
 class ConclusionStageImage(DockerImage):
     """
     Class designed to handle the ConclusionStageImages
     """
 
-    def pre_build_configuration(self):
+    def update_pre_build_configuration(self):
         """
         Conducts all the pre-build configurations from the parent class and then conducts
         Safety Scan on the images generated in previous stage builds. The safety scan generates
         the safety_report which is then baked into the image. 
         """
-        ## Call the pre_build_configuration steps from the parent class
-        super(ConclusionStageImage, self).pre_build_configuration()
-        ## Generate safety scan report for the first stage image and add the file to artifacts
-        first_stage_image_uri = self.build_args['INITIAL_STAGE_IMAGE']
-        processed_image_uri = first_stage_image_uri.replace('.','-').replace('/','-').replace(':','-')
+        # Call the update_pre_build_configuration steps from the parent class
+        super(ConclusionStageImage, self).update_pre_build_configuration()
+        # Generate safety scan report for the first stage image and add the file to artifacts
+        first_stage_image_uri = self.build_args["INITIAL_STAGE_IMAGE"]
+        processed_image_uri = first_stage_image_uri.replace(".", "-").replace("/", "-").replace(":", "-")
         image_name = self.name
         tarfile_name_for_context = f"{processed_image_uri}-{image_name}"
         storage_file_path = f"{os.getenv('ROOT_FOLDER_PATH')}/src/{tarfile_name_for_context}_safety_report.json"
         generate_safety_report_for_image(first_stage_image_uri, storage_file_path=storage_file_path)
         self.context = self.generate_conclude_stage_context(storage_file_path, tarfile_name=tarfile_name_for_context)
 
-    def generate_conclude_stage_context(self, safety_report_path, tarfile_name='conclusion-stage-file'):
+    def generate_conclude_stage_context(self, safety_report_path, tarfile_name="conclusion-stage-file"):
         """
         For ConclusionStageImage, build context is built once the safety report is generated. This is because
         the Dockerfile.multipart uses this safety report to COPY the report into the image.
         """
-        ARTIFACTS = {}
-        ARTIFACTS.update(
-                    {
-                        "safety_report": {
-                            "source": safety_report_path,
-                            "target": "safety_report.json"
-                        }
-                    })
-        ARTIFACTS.update(
-                    {
-                        "dockerfile": {
-                            "source": f"Dockerfile.multipart",
-                            "target": "Dockerfile",
-                        }
-                    }
-                )
-        
-        artifact_root = os.path.join(os.sep, os.getenv("ROOT_FOLDER_PATH"), "src") + "/"
-        return Context(ARTIFACTS, context_path=f'build/{tarfile_name}.tar.gz',artifact_root=artifact_root)
+        artifacts = {
+            "safety_report": {"source": safety_report_path, "target": "safety_report.json"},
+            "dockerfile": {
+                "source": f"{os.getenv('ROOT_FOLDER_PATH')}/miscellaneous_dockerfiles/Dockerfile.common",
+                "target": "Dockerfile",
+            },
+        }
 
+        artifact_root = os.path.join(os.sep, os.getenv("ROOT_FOLDER_PATH"), "src")
+        return Context(artifacts, context_path=f"build/{tarfile_name}.tar.gz", artifact_root=artifact_root)
