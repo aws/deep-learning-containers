@@ -74,6 +74,7 @@ def _test_hf_smdp_function(ecr_image, sagemaker_session, instance_type, framewor
     if Version(image_framework_version) < Version("2.3.1") or image_cuda_version != "cu110":
         pytest.skip("Data Parallelism is only supported on CUDA 11, and on TensorFlow 2.3.1 or higher")
 
+    instance_type = "ml.p3.16xlarge"
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
 
     estimator = HuggingFace(entry_point='train.py',
