@@ -125,9 +125,6 @@ def test_python_model_with_requirements(boto_session, sagemaker_client,
                                                   python_model_with_requirements, image_uri,
                                                   instance_type, accelerator_type, input_data)
 
-    # python service adds this to tfs response
-    assert output_data["python"] is True
-    assert output_data["pillow"] == "6.0.0"
 
 
 @pytest.mark.model("unknown_model")
