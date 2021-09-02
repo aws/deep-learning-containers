@@ -240,13 +240,14 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     }
 
     # Whitelist CVE #CVE-2021-3711 for DLCs where openssl is installed using apt-get
-    framework, fw_version = get_framework_and_version_from_tag(image)
+    framework, _ = get_framework_and_version_from_tag(image)
+    short_fw_version = re.search(r"(\d+\.\d+)", image).group(1)
 
     references = { 
-        "tensorflow2": ["2.3.4", "2.4.3", "2.6.0"], 
-        "tensorflow1": ["1.15.5"], 
-        "mxnet": ["1.9.0"], 
-        "pytorch": ["1.5.1", "1.6.0", "1.7.1", "1.8.1", "1.9.0"]
+        "tensorflow2": ["2.3", "2.4", "2.6"], 
+        "tensorflow1": ["1.15"], 
+        "mxnet": ["1.9"], 
+        "pytorch": ["1.5", "1.6", "1.7", "1.8", "1.9"]
         }
 
     if is_tf_version("1", image):
@@ -256,7 +257,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     else:
         reference_fw = framework
 
-    if (reference_fw in references and fw_version in references[reference_fw]):
+    if (reference_fw in references and short_fw_version in references[reference_fw]):
         allowed_vulnerabilities.add("CVE-2021-3711")
 
     container_name = f"dep_check_{processor}"
