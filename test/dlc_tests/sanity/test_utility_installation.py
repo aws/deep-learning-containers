@@ -34,7 +34,6 @@ def test_awscli(mxnet_inference):
 def test_utility_packages_using_import(training):
     """
     Verify that utility packages are installed in the Training DLC image
-
     :param training: training ECR image URI
     """
     ctx = Context()

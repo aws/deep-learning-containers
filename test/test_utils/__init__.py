@@ -110,7 +110,13 @@ def get_dockerfile_path_for_image(image_uri):
     github_repo_path = os.path.abspath(os.path.curdir).split("test", 1)[0]
 
     framework, framework_version = get_framework_and_version_from_tag(image_uri)
-    framework_path = framework.replace("_", os.path.sep) if "huggingface" in framework else framework
+
+    if "huggingface" in framework:
+        framework_path = framework.replace("_", os.path.sep)
+    elif "habana" in image_uri:
+        framework_path = os.path.join("habana", framework)
+    else:
+        framework_path = framework
 
     job_type = get_job_type_from_image(image_uri)
 
@@ -130,6 +136,7 @@ def get_dockerfile_path_for_image(image_uri):
 
     device_type = get_processor_from_image_uri(image_uri)
     cuda_version = get_cuda_version_from_tag(image_uri)
+    synapseai_version = get_synapseai_version_from_tag(image_uri)
 
     dockerfile_name = get_expected_dockerfile_filename(device_type, image_uri)
 
@@ -139,16 +146,27 @@ def get_dockerfile_path_for_image(image_uri):
         if "example" not in path
     ]
 
-    if device_type in ["gpu"]:
-        if not cuda_version and len(dockerfiles_list) > 1:
-            raise LookupError(
-                f"dockerfiles_list has more than one result, and needs cuda_version to be in image_uri to "
-                f"uniquely identify the right dockerfile:\n"
-                f"{dockerfiles_list}"
-            )
+    if device_type in ["gpu", "hpu"]:
+        if len(dockerfiles_list) > 1:
+            if device_type == "gpu" and not cuda_version:
+                raise LookupError(
+                    f"dockerfiles_list has more than one result, and needs cuda_version to be in image_uri to "
+                    f"uniquely identify the right dockerfile:\n"
+                    f"{dockerfiles_list}"
+                )
+            if device_type == "hpu" and not synapseai_version:
+                raise LookupError(
+                    f"dockerfiles_list has more than one result, and needs synapseai_version to be in image_uri to "
+                    f"uniquely identify the right dockerfile:\n"
+                    f"{dockerfiles_list}"
+                )
         for dockerfile_path in dockerfiles_list:
-            if cuda_version in dockerfile_path:
-                return dockerfile_path
+            if cuda_version:
+                if cuda_version in dockerfile_path:
+                    return dockerfile_path
+            elif synapseai_version:
+                if synapseai_version in dockerfile_path:
+                    return dockerfile_path
         raise LookupError(f"Failed to find a dockerfile path for {cuda_version} in:\n{dockerfiles_list}")
 
     assert len(dockerfiles_list) == 1, f"No unique dockerfile path in:\n{dockerfiles_list}\nfor image: {image_uri}"
@@ -1028,6 +1046,20 @@ def get_cuda_version_from_tag(image_uri):
         cuda_framework_version = re.search(r"(cu\d+)-", image_uri).groups()[0]
 
     return cuda_framework_version
+
+def get_synapseai_version_from_tag(image_uri):
+    """
+    Return the synapseai version from the image tag.
+    :param image_uri: ECR image URI
+    :return: synapseai version
+    """
+    synapseai_version = None
+
+    synapseai_str = ["synapseai", "hpu"]
+    if all(keyword in image_uri for keyword in synapseai_str):
+        synapseai_version = re.search(r"synapseai(\d+(\.\d+){2})", image_uri).groups()[0]
+
+    return synapseai_version
 
 
 def get_job_type_from_image(image_uri):
