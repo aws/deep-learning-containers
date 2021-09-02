@@ -337,7 +337,7 @@ def get_dummy_boto_client():
     # If this function is not added, boto3 fails because boto3 sessions are not thread safe.
     # However, once a dummy client is created, it is ensured that the calls are thread safe.
     import boto3
-    return boto3.client("secretsmanager", region_name=os.getenv('REGION'))
+    return boto3.client("sts", region_name=os.getenv('REGION'))
 
 def push_images(images):
     THREADS = {}
