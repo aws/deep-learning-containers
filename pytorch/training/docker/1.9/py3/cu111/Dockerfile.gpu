@@ -249,8 +249,11 @@ RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
   && rm -rf rmm-${RMM_VERSION}
 
 # Install Nvidia Apex
+# Use 9d86158 commit as https://github.com/NVIDIA/apex/pull/1147 breaks apex installation
+# See https://github.com/NVIDIA/apex/issues/1155
 RUN git clone https://github.com/NVIDIA/apex.git \
  && cd apex \
+ && git checkout 9d86158 \
  && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
 # Configure Open MPI and configure NCCL parameters
