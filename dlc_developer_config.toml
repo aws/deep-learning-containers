@@ -16,7 +16,7 @@ benchmark_mode = false
 
 [build]
 # Frameworks for which you want to disable both builds and tests
-skip_frameworks = []
+skip_frameworks = [ "mxnet", "pytorch", "huggingface_pytorch", "huggingface_tensorflow"]
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = true
 # Note: Need to build the images at least once with datetime_tag = false
@@ -31,7 +31,7 @@ eks_tests = true
 ec2_tests = true
 
 ### Off by default
-efa_tests = true
+efa_tests = false
 sagemaker_local_tests = true
 
 # SM remote test valid values:
