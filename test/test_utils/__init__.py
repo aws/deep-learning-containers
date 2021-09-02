@@ -662,10 +662,20 @@ def get_canary_default_tag_py3_version(framework, version):
     :return: default tag python version
     """
     if framework == "tensorflow2" or framework == "huggingface_tensorflow":
-        return "py37" if Version(version) >= Version("2.2") else "py3"
+        if Version("2.2") <= Version(version) < Version("2.6"):
+            return "py37"
+        if Version(version) >= Version("2.6"):
+            return "py38"
 
     if framework == "mxnet":
-        return "py37" if Version(version) >= Version("1.8") else "py3"
+        if Version(version) == Version("1.8"):
+            return "py37"
+        if Version(version) >= Version("1.9"):
+            return "py38"
+
+    if framework == "pytorch":
+        if Version(version) >= Version("1.9"):
+            return "py38"
 
     return "py3"
 
