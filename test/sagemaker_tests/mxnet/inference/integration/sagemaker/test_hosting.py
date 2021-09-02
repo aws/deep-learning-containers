@@ -29,6 +29,7 @@ SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'empty_module.
 
 @pytest.mark.integration("hosting")
 @pytest.mark.model("linear_regression")
+@pytest.mark.cpu_test
 @pytest.mark.release_test
 def test_hosting(sagemaker_session, ecr_image, instance_type, framework_version):
     prefix = 'mxnet-serving/default-handlers'

@@ -29,11 +29,6 @@ MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model.tar.gz')
 DEFAULT_SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'eia_module.py')
 
 
-@pytest.fixture(autouse=True)
-def skip_if_no_accelerator(accelerator_type):
-    if accelerator_type is None:
-        pytest.skip('Skipping because accelerator type was not provided')
-
 
 @pytest.fixture(autouse=True)
 def skip_if_non_supported_ei_region(region):
@@ -45,7 +40,7 @@ def skip_if_non_supported_ei_region(region):
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.model("linear_regression")
 @pytest.mark.skip_if_non_supported_ei_region()
-@pytest.mark.skip_if_no_accelerator()
+@pytest.mark.eia_test
 @pytest.mark.release_test
 def test_elastic_inference(ecr_image, sagemaker_session, instance_type, accelerator_type, framework_version):
     entry_point = DEFAULT_SCRIPT_PATH

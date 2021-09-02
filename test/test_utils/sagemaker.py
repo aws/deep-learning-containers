@@ -126,18 +126,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     else:
         integration_path = os.path.join("integration", sagemaker_test_type)
 
-    # Conditions for modifying tensorflow SageMaker pytest commands
-    if framework == "tensorflow" and sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE:
-        if job_type == "inference":
-            aws_id_arg = "--registry"
-            docker_base_arg = "--repo"
-            instance_type_arg = "--instance-types"
-            framework_version_arg = "--versions"
-            integration_path = os.path.join(integration_path, "test_tfs.py") if processor != "eia" else os.path.join(integration_path, "test_ei.py")
-
-    if framework == "tensorflow" and job_type == "training":
-        aws_id_arg = "--account-id"
-
     test_report = os.path.join(os.getcwd(), "test", f"{job_type}_{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
 

@@ -266,6 +266,7 @@ def fixture_docker_registry(aws_id, region):
 
 @pytest.fixture(name='ecr_image', scope='session')
 def fixture_ecr_image(docker_registry, docker_base_name, tag):
+    print('{}/{}:{}'.format(docker_registry, docker_base_name, tag))
     return '{}/{}:{}'.format(docker_registry, docker_base_name, tag)
 
 

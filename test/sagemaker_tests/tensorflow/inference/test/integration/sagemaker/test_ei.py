@@ -38,22 +38,47 @@ def input_data():
 
 
 @pytest.fixture
-def skip_if_no_accelerator(accelerator_type):
-    if accelerator_type is None:
-        pytest.skip('Skipping because accelerator type was not provided')
-
-
-@pytest.fixture
 def skip_if_non_supported_ei_region(region):
     if region not in EI_SUPPORTED_REGIONS:
         pytest.skip('EI is not supported in {}'.format(region))
+
+
+# @pytest.fixture(autouse=True)
+# def skip_by_device_type(accelerator_type):
+#     if accelerator_type is None:
+#         pytest.skip('Skipping because accelerator type was not provided')
+
+
+@pytest.fixture(name='use_gpu')
+def fixture_use_gpu(processor):
+    return processor == 'gpu'
+
+
+@pytest.fixture(autouse=True)
+def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
+    is_gpu = use_gpu or instance_type[3] in ['g', 'p']
+    is_eia = accelerator_type is not None
+    
+    # Separate out cases for clearer logic.
+    # When running GPU test, skip CPU test. When running CPU test, skip GPU test.
+    if (request.node.get_closest_marker('gpu_test') and not is_gpu) or \
+            (request.node.get_closest_marker('cpu_test') and is_gpu):
+        pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
+
+    # When running EIA test, skip the CPU and GPU functions
+    elif (request.node.get_closest_marker('gpu_test') or request.node.get_closest_marker('cpu_test')) and is_eia:
+        pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
+
+    # When running CPU or GPU test, skip EIA test.
+    elif request.node.get_closest_marker('eia_test') and not is_eia:
+        pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
 
 
 @pytest.mark.processor("eia")
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.model("resnet")
 @pytest.mark.skip_if_non_supported_ei_region()
-@pytest.mark.skip_if_no_accelerator()
+@pytest.mark.eia_test
 @pytest.mark.release_test
 def test_invoke_endpoint(boto_session, sagemaker_client, sagemaker_runtime_client,
                          model_name, model_data, image_uri, instance_type, accelerator_type,

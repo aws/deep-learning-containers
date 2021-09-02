@@ -23,6 +23,8 @@ from integration.sagemaker import util
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
+TFS_DOCKER_BASE_NAME = 'sagemaker-tensorflow-serving'
+
 # these regions have some p2 and p3 instances, but not enough for automated testing
 NO_P2_REGIONS = [
     "ap-northeast-3",
@@ -162,9 +164,17 @@ def aws_id(request, region):
     return sts.get_caller_identity()["Account"]
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def accelerator_type(request):
-    return request.config.getoption('--accelerator-type') or 'ml.eia1.medium'
+    return request.config.getoption('--accelerator-type')
+
+
+@pytest.fixture(scope='module')
+def runtime_config(request, processor):
+    if processor == 'gpu':
+        return '--runtime=nvidia '
+    else:
+        return ''
 
 
 @pytest.fixture

@@ -255,7 +255,7 @@ def fixture_ecr_image(docker_registry, docker_base_name, tag):
 @pytest.fixture(autouse=True)
 def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
     is_gpu = use_gpu or instance_type[3] in ["g", "p"]
-    is_eia = accelerator_type is not None and not is_gpu
+    is_eia = accelerator_type is not None
 
     # Separate out cases for clearer logic.
     # When running GPU test, skip CPU test. When running CPU test, skip GPU test.
