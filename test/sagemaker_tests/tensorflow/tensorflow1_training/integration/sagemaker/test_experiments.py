@@ -33,11 +33,11 @@ SCRIPT_PATH = os.path.join(DATA_PATH, "mnist_gluon_basic_hook_demo.py")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_py2_containers
 def test_training(ecr_image, sagemaker_regions, instance_type, framework_version, py_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_training_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_training_function,
                               instance_type, framework_version, py_version)
 
 
-def test_training_function(ecr_image, sagemaker_session, instance_type, framework_version, py_version):
+def _test_training_function(ecr_image, sagemaker_session, instance_type, framework_version, py_version):
     if py_version is None or '2' in py_version:
         pytest.skip('Skipping python2 {}'.format(py_version))
         return

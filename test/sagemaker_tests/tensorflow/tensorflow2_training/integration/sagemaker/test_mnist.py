@@ -34,11 +34,11 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 @pytest.mark.model("mnist")
 @pytest.mark.deploy_test
 def test_mnist(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_mnist_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_mnist_function,
                               instance_type, framework_version)
 
 
-def test_mnist_function(ecr_image, sagemaker_session, instance_type, framework_version):
+def _test_mnist_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
     estimator = TensorFlow(entry_point=script,
@@ -63,11 +63,11 @@ def test_mnist_function(ecr_image, sagemaker_session, instance_type, framework_v
 @pytest.mark.multinode(2)
 @pytest.mark.integration("no parameter server")
 def test_distributed_mnist_no_ps(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_distributed_mnist_no_ps_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_distributed_mnist_no_ps_function,
                               instance_type, framework_version)
 
 
-def test_distributed_mnist_no_ps_function(ecr_image, sagemaker_session, instance_type, framework_version):
+def _test_distributed_mnist_no_ps_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
     estimator = TensorFlow(entry_point=script,
@@ -89,11 +89,11 @@ def test_distributed_mnist_no_ps_function(ecr_image, sagemaker_session, instance
 @pytest.mark.integration("parameter server")
 def test_distributed_mnist_ps(ecr_image, sagemaker_regions, instance_type, framework_version):
     print('ecr image used for training', ecr_image)
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_distributed_mnist_ps_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_distributed_mnist_ps_function,
                               instance_type, framework_version)
 
 
-def test_distributed_mnist_ps_function(ecr_image, sagemaker_session, instance_type, framework_version):
+def _test_distributed_mnist_ps_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_estimator2.py')
     estimator = TensorFlow(entry_point=script,
@@ -115,11 +115,11 @@ def test_distributed_mnist_ps_function(ecr_image, sagemaker_session, instance_ty
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
 def test_s3_plugin(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_s3_plugin_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_s3_plugin_function,
                               instance_type, framework_version)
 
 
-def test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, framework_version):
+def _test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
     estimator = TensorFlow(entry_point=script,
@@ -154,11 +154,11 @@ def test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, framewo
 @pytest.mark.model("mnist")
 @pytest.mark.integration("hpo")
 def test_tuning(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_tuning_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_tuning_function,
                               instance_type, framework_version)
 
 
-def test_tuning_function(ecr_image, sagemaker_session, instance_type, framework_version):
+def _test_tuning_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
 
@@ -196,11 +196,11 @@ def test_tuning_function(ecr_image, sagemaker_session, instance_type, framework_
 @pytest.mark.integration("smdebug")
 @pytest.mark.skip_py2_containers
 def test_smdebug(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_smdebug_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_smdebug_function,
                               instance_type, framework_version)
 
 
-def test_smdebug_function(ecr_image, sagemaker_session, instance_type, framework_version):
+def _test_smdebug_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_smdebug.py')
     hyperparameters = {'smdebug_path': '/tmp/ml/output/tensors'}
@@ -230,12 +230,12 @@ def test_smdataparallel_smmodelparallel_mnist(ecr_image, sagemaker_regions, inst
     This test has been added for SM DataParallelism and ModelParallelism tests for re:invent.
     TODO: Consider reworking these tests after re:Invent releases are done
     """
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_smdataparallel_smmodelparallel_mnist_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_smdataparallel_smmodelparallel_mnist_function,
                               instance_type, tmpdir, framework_version)
 
 
-def test_smdataparallel_smmodelparallel_mnist_function(ecr_image, sagemaker_session, instance_type, tmpdir,
-                                                       framework_version):
+def _test_smdataparallel_smmodelparallel_mnist_function(ecr_image, sagemaker_session, instance_type, tmpdir,
+                                                        framework_version):
     instance_type = "ml.p3.16xlarge"
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)

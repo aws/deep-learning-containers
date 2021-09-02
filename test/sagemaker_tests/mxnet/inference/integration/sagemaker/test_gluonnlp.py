@@ -32,11 +32,11 @@ SCRIPT_PATH = os.path.join(GLUONNLP_PATH, 'bert.py')
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_eia_containers
 def test_gluonnlp(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_mxnet_helper_function(ecr_image, sagemaker_regions, test_gluonnlp_function,
+    invoke_mxnet_helper_function(ecr_image, sagemaker_regions, _test_gluonnlp_function,
                                  instance_type, framework_version)
 
 
-def test_gluonnlp_function(ecr_image, sagemaker_session, instance_type, framework_version):
+def _test_gluonnlp_function(ecr_image, sagemaker_session, instance_type, framework_version):
     import urllib.request
     tmpdir = tempfile.mkdtemp()
     tmpfile = os.path.join(tmpdir, 'bert_sst.tar.gz')

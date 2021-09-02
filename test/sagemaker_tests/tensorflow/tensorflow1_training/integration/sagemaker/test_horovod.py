@@ -33,11 +33,11 @@ def test_distributed_training_horovod(ecr_image,
                                       instance_type,
                                       tmpdir,
                                       framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_distributed_training_horovod_function,
-                              instance_type, tmpdir,framework_version)
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_distributed_training_horovod_function,
+                              instance_type, tmpdir, framework_version)
 
 
-def test_distributed_training_horovod_function(ecr_image, sagemaker_session, instance_type, tmpdir,framework_version):
+def _test_distributed_training_horovod_function(ecr_image, sagemaker_session, instance_type, tmpdir, framework_version):
     mpi_options = '-verbose -x orte_base_help_aggregate=0'
     estimator = TensorFlow(
         entry_point=os.path.join(RESOURCE_PATH, 'mnist', 'horovod_mnist.py'),
@@ -68,11 +68,12 @@ def test_distributed_training_horovod_function(ecr_image, sagemaker_session, ins
 def test_distributed_training_horovod_with_env_vars(
         ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version
 ):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_distributed_training_horovod_with_env_vars_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_distributed_training_horovod_with_env_vars_function,
                               instance_type, tmpdir, framework_version)
 
 
-def test_distributed_training_horovod_with_env_vars_function(ecr_image, sagemaker_session, instance_type, tmpdir, framework_version):
+def _test_distributed_training_horovod_with_env_vars_function(ecr_image, sagemaker_session, instance_type, tmpdir,
+                                                              framework_version):
     mpi_options = "-verbose -x orte_base_help_aggregate=0"
     estimator = TensorFlow(
         entry_point=os.path.join(RESOURCE_PATH, "hvdbasic", "train_hvd_env_vars.py"),

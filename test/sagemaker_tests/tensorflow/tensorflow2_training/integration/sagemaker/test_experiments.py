@@ -37,11 +37,11 @@ SCRIPT_PATH = os.path.join(DATA_PATH, "mnist_gluon_basic_hook_demo.py")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_py2_containers
 def test_training(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_training_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_training_function,
                               instance_type, framework_version)
 
 
-def test_training_function(ecr_image, sagemaker_session, instance_type, framework_version):
+def _test_training_function(ecr_image, sagemaker_session, instance_type, framework_version):
     sm_client = sagemaker_session.sagemaker_client
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 6000)

@@ -45,7 +45,7 @@ def test_hf_smdp(ecr_image, sagemaker_regions, instance_type, framework_version,
     """
     Tests SMDataParallel single-node command via script mode
     """
-    invoke_hf_tf_helper_function(ecr_image, sagemaker_regions, hf_smdp_function,
+    invoke_hf_tf_helper_function(ecr_image, sagemaker_regions, _test_hf_smdp_function,
                                  instance_type, framework_version, py_version, tmpdir, 1)
 
 
@@ -63,11 +63,12 @@ def test_hf_smdp_multi(ecr_image, sagemaker_regions, instance_type, framework_ve
     """
     Tests smddprun command via Estimator API distribution parameter
     """
-    invoke_hf_tf_helper_function(ecr_image, sagemaker_regions, hf_smdp_function,
+    invoke_hf_tf_helper_function(ecr_image, sagemaker_regions, _test_hf_smdp_function,
                                  instance_type, framework_version, py_version, tmpdir, 2)
 
 
-def hf_smdp_function(ecr_image, sagemaker_session, instance_type, framework_version, py_version, tmpdir, instance_count):
+def _test_hf_smdp_function(ecr_image, sagemaker_session, instance_type, framework_version, py_version, tmpdir,
+                           instance_count):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
     if Version(image_framework_version) < Version("2.3.1") or image_cuda_version != "cu110":

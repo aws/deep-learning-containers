@@ -30,11 +30,11 @@ from .timeout import timeout
 @pytest.mark.model("mnist")
 @pytest.mark.deploy_test
 def test_mnist(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_mnist_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_mnist_function,
                               instance_type, framework_version)
 
 
-def test_mnist_function(ecr_image, sagemaker_session, instance_type, framework_version):
+def _test_mnist_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
     estimator = TensorFlow(entry_point=script,
@@ -45,9 +45,9 @@ def test_mnist_function(ecr_image, sagemaker_session, instance_type, framework_v
                            image_uri=ecr_image,
                            framework_version=framework_version,
                            script_mode=True)
-    
+
     estimator = _disable_sm_profiler(sagemaker_session.boto_region_name, estimator)
-    
+
     inputs = estimator.sagemaker_session.upload_data(
         path=os.path.join(resource_path, 'mnist', 'data'),
         key_prefix='scriptmode/mnist')
@@ -60,11 +60,11 @@ def test_mnist_function(ecr_image, sagemaker_session, instance_type, framework_v
 @pytest.mark.multinode(2)
 @pytest.mark.integration("no parameter server")
 def test_distributed_mnist_no_ps(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_distributed_mnist_no_ps_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_distributed_mnist_no_ps_function,
                               instance_type, framework_version)
 
 
-def test_distributed_mnist_no_ps_function(ecr_image, sagemaker_session, instance_type, framework_version):
+def _test_distributed_mnist_no_ps_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
     estimator = TensorFlow(entry_point=script,
@@ -86,11 +86,11 @@ def test_distributed_mnist_no_ps_function(ecr_image, sagemaker_session, instance
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
 def test_distributed_mnist_ps(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_distributed_mnist_ps_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_distributed_mnist_ps_function,
                               instance_type, framework_version)
 
 
-def test_distributed_mnist_ps_function(ecr_image, sagemaker_session, instance_type, framework_version):
+def _test_distributed_mnist_ps_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
     estimator = TensorFlow(entry_point=script,
@@ -114,11 +114,11 @@ def test_distributed_mnist_ps_function(ecr_image, sagemaker_session, instance_ty
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
 def test_s3_plugin(ecr_image, sagemaker_regions, instance_type, region, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_s3_plugin_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_s3_plugin_function,
                               instance_type, region, framework_version)
 
 
-def test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, region, framework_version):
+def _test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, region, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
     estimator = TensorFlow(entry_point=script,
@@ -153,11 +153,11 @@ def test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, region,
 @pytest.mark.model("mnist")
 @pytest.mark.integration("hpo")
 def test_tuning(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_tuning_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_tuning_function,
                               instance_type, framework_version)
 
 
-def test_tuning_function(ecr_image, sagemaker_session, instance_type, framework_version):
+def _test_tuning_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
 
@@ -195,11 +195,11 @@ def test_tuning_function(ecr_image, sagemaker_session, instance_type, framework_
 @pytest.mark.integration("smdebug")
 @pytest.mark.skip_py2_containers
 def test_tf1x_smdebug(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, test_tf1x_smdebug_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_tf1x_smdebug_function,
                               instance_type, framework_version)
 
 
-def test_tf1x_smdebug_function(ecr_image, sagemaker_session, instance_type, framework_version):
+def _test_tf1x_smdebug_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'tf1x_mnist_smdebug.py')
     hyperparameters = {'smdebug_path': '/tmp/ml/output/tensors'}

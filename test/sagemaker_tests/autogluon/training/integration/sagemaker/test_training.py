@@ -27,11 +27,11 @@ from ...integration import RESOURCE_PATH, DEFAULT_TIMEOUT
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_test_in_region
 def test_training(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_autogluon_helper_function(ecr_image, sagemaker_regions, test_training_function,
+    invoke_autogluon_helper_function(ecr_image, sagemaker_regions, _test_training_function,
                                      instance_type, framework_version)
 
 
-def test_training_function(ecr_image, sagemaker_session, instance_type, framework_version):
+def _test_training_function(ecr_image, sagemaker_session, instance_type, framework_version):
     ag = AutoGluon(
         entry_point=os.path.join(RESOURCE_PATH, 'scripts', 'train_tab.py'),
         role='SageMakerRole',

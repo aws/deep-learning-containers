@@ -37,11 +37,11 @@ DATA_PATH = os.path.join(MNIST_PATH, 'images', DATA_FILE)
 @pytest.mark.integration("batch_transform")
 @pytest.mark.model("mnist")
 def test_batch_transform(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_mxnet_helper_function(ecr_image, sagemaker_regions, test_batch_transform_function,
-                              instance_type, framework_version)
+    invoke_mxnet_helper_function(ecr_image, sagemaker_regions, _test_batch_transform_function,
+                                 instance_type, framework_version)
 
 
-def test_batch_transform_function(ecr_image, sagemaker_session, instance_type, framework_version):
+def _test_batch_transform_function(ecr_image, sagemaker_session, instance_type, framework_version):
     s3_prefix = 'mxnet-serving/mnist'
     model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=s3_prefix)
     model = MXNetModel(model_data,
