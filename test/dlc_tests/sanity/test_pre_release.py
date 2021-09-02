@@ -31,7 +31,8 @@ from test.test_utils import (
     is_nightly_context,
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
-    get_python_version_from_image_uri
+    get_python_version_from_image_uri,
+    is_tf_version
 )
 
 
@@ -237,6 +238,26 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         # CVE-2020-13936: vulnerability found in apache velocity package which is a dependency for dependency-check package. Hence, ignoring.
         "CVE-2020-13936",
     }
+
+    # Whitelist CVE #CVE-2021-3711 for DLCs where openssl is installed using apt-get
+    framework, fw_version = get_framework_and_version_from_tag(image)
+
+    references = { 
+        "tensorflow2": ["2.3.4", "2.4.3", "2.6.0"], 
+        "tensorflow1": ["1.15.5"], 
+        "mxnet": ["1.9.0"], 
+        "pytorch": ["1.5.1", "1.6.0", "1.7.1", "1.8.1", "1.9.0"]
+        }
+
+    if is_tf_version("1", image):
+        reference_fw = "tensorflow1"
+    elif is_tf_version("2", image):
+        reference_fw = "tensorflow2"
+    else:
+        reference_fw = framework
+
+    if (reference_fw in references and fw_version in references[reference_fw]):
+        allowed_vulnerabilities.add("CVE-2021-3711")
 
     container_name = f"dep_check_{processor}"
     report_addon = get_container_name("depcheck-report", image)
