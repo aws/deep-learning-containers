@@ -47,7 +47,7 @@ def dump_logs_from_cloudwatch(e, region='us-west-2'):
     Function to dump logs from cloudwatch during error handling
     """
     error_hosting_endpoint_regex = re.compile(r"Error hosting endpoint ((\w|-)+):")
-    endpoint_url_regex = re.compile(r"group=/aws/sagemaker/Endpoints/(\S+)")
+    endpoint_url_regex = re.compile(r"/aws/sagemaker/Endpoints/((\w|-)+)")
     endpoint_match = error_hosting_endpoint_regex.search(str(e)) or endpoint_url_regex.search(str(e))
     if endpoint_match:
         logs_client = boto3.client('logs', region_name=region)
