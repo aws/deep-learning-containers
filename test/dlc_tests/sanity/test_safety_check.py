@@ -12,7 +12,12 @@ import requests
 from invoke import run
 
 from test.test_utils import (
-    CONTAINER_TESTS_PREFIX, is_dlc_cicd_context, is_canary_context, is_mainline_context, is_time_for_canary_safety_scan
+    CONTAINER_TESTS_PREFIX,
+    is_dlc_cicd_context,
+    is_canary_context,
+    is_mainline_context,
+    is_time_for_canary_safety_scan,
+    is_safety_test_context,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -29,30 +34,42 @@ IGNORE_SAFETY_IDS = {
         "training": {
             "py2": [
                 # for shipping pillow<=6.2.2 - the last available version for py2
-                '38449', '38450', '38451', '38452',
+                "38449",
+                "38450",
+                "38451",
+                "38452",
                 # for shipping pycrypto<=2.6.1 - the last available version for py2
-                '35015'
+                "35015",
             ],
-            "py3": []
+            "py3": [],
         },
         "inference": {
             "py2": [
                 # for shipping pillow<=6.2.2 - the last available version for py2
-                '38449', '38450', '38451', '38452'
+                "38449",
+                "38450",
+                "38451",
+                "38452",
             ],
-            "py3": []
+            "py3": [],
         },
         "inference-eia": {
             "py2": [
                 # for shipping pillow<=6.2.2 - the last available version for py2
-                '38449', '38450', '38451', '38452'
+                "38449",
+                "38450",
+                "38451",
+                "38452",
             ],
-            "py3": []
+            "py3": [],
         },
         "inference-neuron": {
             "py3": [
                 # TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches
-                '39409', '39408', '39407', '39406'
+                "39409",
+                "39408",
+                "39407",
+                "39406",
             ],
         },
     },
@@ -60,56 +77,72 @@ IGNORE_SAFETY_IDS = {
         "inference-eia": {
             "py2": [
                 # numpy<=1.16.0 -- This has to only be here while we publish MXNet 1.4.1 EI DLC v1.0
-                '36810',
+                "36810",
                 # for shipping pillow<=6.2.2 - the last available version for py2
-                '38449', '38450', '38451', '38452'
+                "38449",
+                "38450",
+                "38451",
+                "38452",
             ],
-            "py3": []
+            "py3": [],
         },
         "inference": {
             "py2": [
                 # for shipping pillow<=6.2.2 - the last available version for py2
-                '38449', '38450', '38451', '38452'
+                "38449",
+                "38450",
+                "38451",
+                "38452",
             ],
-            "py3": []
+            "py3": [],
         },
         "training": {
             "py2": [
                 # for shipping pillow<=6.2.2 - the last available version for py2
-                '38449', '38450', '38451', '38452'
+                "38449",
+                "38450",
+                "38451",
+                "38452",
             ],
-            "py3": []
+            "py3": [],
         },
         "inference-neuron": {
             "py3": [
                 # for shipping tensorflow 1.15.5
-                "40673", "40675", "40676", "40794", "40795", "40796"
+                "40673",
+                "40675",
+                "40676",
+                "40794",
+                "40795",
+                "40796",
             ]
-        }
+        },
     },
     "pytorch": {
         "training": {
             "py2": [
                 # astropy<3.0.1
-                '35810',
+                "35810",
                 # for shipping pillow<=6.2.2 - the last available version for py2
-                '38449', '38450', '38451', '38452'
+                "38449",
+                "38450",
+                "38451",
+                "38452",
             ],
-            "py3": []
+            "py3": [],
         },
-        "inference": {
-            "py3": []
-        },
-        "inference-eia": {
-            "py3": []
-        },
+        "inference": {"py3": []},
+        "inference-eia": {"py3": []},
         "inference-neuron": {
             "py3": [
                 # 39409, 39408, 39407, 39406: TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches
-                '39409', '39408', '39407', '39406'
+                "39409",
+                "39408",
+                "39407",
+                "39406",
             ]
-        }
-    }
+        },
+    },
 }
 
 
@@ -119,13 +152,16 @@ def _get_safety_ignore_list(image_uri):
     :param image_uri:
     :return: <list> list of safety check IDs to ignore
     """
-    framework = ("mxnet" if "mxnet" in image_uri else
-                 "pytorch" if "pytorch" in image_uri else
-                 "tensorflow")
-    job_type = ("training" if "training" in image_uri else
-                "inference-eia" if "eia" in image_uri else
-                "inference-neuron" if "neuron" in image_uri else
-                "inference")
+    framework = "mxnet" if "mxnet" in image_uri else "pytorch" if "pytorch" in image_uri else "tensorflow"
+    job_type = (
+        "training"
+        if "training" in image_uri
+        else "inference-eia"
+        if "eia" in image_uri
+        else "inference-neuron"
+        if "neuron" in image_uri
+        else "inference"
+    )
     python_version = "py2" if "py2" in image_uri else "py3"
 
     return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, [])
@@ -149,11 +185,13 @@ def _get_latest_package_version(package):
 @pytest.mark.canary("Run safety tests regularly on production images")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
 @pytest.mark.skipif(
-    not (is_mainline_context() or (is_canary_context() and is_time_for_canary_safety_scan())),
+    not (
+        is_mainline_context() or is_safety_test_context() or (is_canary_context() and is_time_for_canary_safety_scan())
+    ),
     reason=(
         "Skipping the test to decrease the number of calls to the Safety Check DB. "
         "Test will be executed in the 'mainline' pipeline and canaries pipeline."
-    )
+    ),
 )
 def test_safety(image):
     """
@@ -161,9 +199,10 @@ def test_safety(image):
     error if an issue is fixable.
     """
     from dlc.safety_check import SafetyCheck
+
     safety_check = SafetyCheck()
 
-    repo_name, image_tag = image.split('/')[-1].split(':')
+    repo_name, image_tag = image.split("/")[-1].split(":")
     ignore_ids_list = _get_safety_ignore_list(image)
     sep = " -i "
     ignore_str = "" if not ignore_ids_list else f"{sep}{sep.join(ignore_ids_list)}"
@@ -172,11 +211,14 @@ def test_safety(image):
     docker_exec_cmd = f"docker exec -i {container_name}"
     test_file_path = os.path.join(CONTAINER_TESTS_PREFIX, "testSafety")
     # Add null entrypoint to ensure command exits immediately
-    run(f"docker run -id "
+    run(
+        f"docker run -id "
         f"--name {container_name} "
         f"--mount type=bind,src=$(pwd)/container_tests,target=/test "
         f"--entrypoint='/bin/bash' "
-        f"{image}", hide=True)
+        f"{image}",
+        hide=True,
+    )
     try:
         run(f"{docker_exec_cmd} pip install safety yolk3k ", hide=True)
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
@@ -193,7 +235,8 @@ def test_safety(image):
                 # gives an object that can be easily compared against a Version object.
                 # https://packaging.pypa.io/en/latest/specifiers/
                 ignore_str += f" -i {vulnerability_id}"
-        assert (safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str) == 0), \
-            f"Safety test failed for {image}"
+        assert (
+            safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str) == 0
+        ), f"Safety test failed for {image}"
     finally:
         run(f"docker rm -f {container_name}", hide=True)
