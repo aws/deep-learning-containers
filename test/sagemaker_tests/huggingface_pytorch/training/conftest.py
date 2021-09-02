@@ -97,6 +97,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
+    parser.addoption('--sagemaker-regions', default='us-west-2')
 
 
 def pytest_configure(config):
@@ -189,6 +190,12 @@ def fixture_build_base_image(request, framework_version, py_version, processor, 
 @pytest.fixture(scope='session', name='sagemaker_session')
 def fixture_sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
+
+
+@pytest.fixture(scope='session', name='sagemaker_regions')
+def sagemaker_regions(request):
+    fixture_sagemaker_regions = request.config.getoption('--sagemaker-regions')
+    return sagemaker_regions.split(",")
 
 
 @pytest.fixture(scope='session', name='sagemaker_local_session')

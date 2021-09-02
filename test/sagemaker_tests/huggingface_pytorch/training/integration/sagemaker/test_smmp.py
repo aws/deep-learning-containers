@@ -15,6 +15,8 @@ from __future__ import absolute_import
 import os
 import re
 import pytest
+
+from .... import invoke_hf_pt_helper_function
 from ...integration import DEFAULT_TIMEOUT
 from sagemaker.huggingface import HuggingFace
 from ...integration.sagemaker.timeout import timeout
@@ -67,10 +69,24 @@ def get_transformers_version(ecr_image):
 @pytest.mark.model("hf_qa_smmp")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type, py_version, dist_gpu_backend):
-    # instance configurations
+def test_smmp_gpu(ecr_image, sagemaker_regions, instance_type, framework_version, py_version, dist_gpu_backend):
+    invoke_hf_pt_helper_function(ecr_image, sagemaker_regions, _test_smmp_gpu_function, py_version, 1)
+
+
+@pytest.mark.processor("gpu")
+@pytest.mark.integration("smmp")
+@pytest.mark.model("hf_qa_smmp_multi")
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.multinode(2)
+def test_smmp_gpu_multinode(ecr_image, sagemaker_regions, instance_type, framework_version, py_version,
+                            dist_gpu_backend):
+    invoke_hf_pt_helper_function(ecr_image, sagemaker_regions, _test_smmp_gpu_function, py_version, 2)
+
+
+def _test_smmp_gpu_function(ecr_image, sagemaker_session, py_version, instances_quantity):
     instance_type = "ml.p3.16xlarge"
-    instance_count = 1
+    instance_count = instances_quantity
     volume_size = 400
 
     transformers_version = get_transformers_version(ecr_image)
@@ -91,36 +107,3 @@ def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type
         sagemaker_session=sagemaker_session,
     )
     huggingface_estimator.fit(job_name=sagemaker.utils.unique_name_from_base("test-hf-pt-qa-smmp"))
-
-
-@pytest.mark.processor("gpu")
-@pytest.mark.integration("smmp")
-@pytest.mark.model("hf_qa_smmp_multi")
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.multinode(2)
-def test_smmp_gpu_multinode(
-    sagemaker_session, framework_version, ecr_image, instance_type, py_version, dist_gpu_backend
-):
-    instance_type = "ml.p3.16xlarge"
-    instance_count = 2
-    volume_size = 400
-
-    transformers_version = get_transformers_version(ecr_image)
-    git_config = {"repo": "https://github.com/huggingface/transformers.git", "branch": "v" + transformers_version}
-
-    huggingface_estimator = HuggingFace(
-        entry_point="run_glue.py",
-        source_dir="./examples/pytorch/text-classification",
-        git_config=git_config,
-        instance_type=instance_type,
-        instance_count=instance_count,
-        volume_size=volume_size,
-        role="SageMakerRole",
-        image_uri=ecr_image,
-        distribution=distribution,
-        py_version=py_version,
-        hyperparameters=hyperparameters,
-        sagemaker_session=sagemaker_session,
-    )
-    huggingface_estimator.fit(job_name=sagemaker.utils.unique_name_from_base("test-hf-pt-qa-smmp-multi"))
