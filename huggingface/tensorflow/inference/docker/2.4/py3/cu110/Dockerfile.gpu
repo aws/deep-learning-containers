@@ -13,7 +13,6 @@ ARG PYTHON_VERSION=3.7.10
 ARG OPEN_MPI_VERSION=4.0.1
 # HF ARGS
 ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.4_aws/20210813_093733/gpu/cu110/py37/tensorflow_gpu-2.4.3-cp37-cp37m-manylinux2010_x86_64.whl
-
 ARG TRANSFORMERS_VERSION
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
