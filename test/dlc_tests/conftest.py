@@ -51,6 +51,7 @@ FRAMEWORK_FIXTURES = (
     "cpu",
     "eia",
     "neuron",
+    "hpu",
     "pytorch_inference_eia",
     "mxnet_inference_eia",
     "tensorflow_inference_eia",
@@ -530,7 +531,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
-    config.addinivalue_line("markers", "processor(cpu/gpu/eia): explicitly mark which processor is used")
+    config.addinivalue_line("markers", "processor(cpu/gpu/eia/hpu): explicitly mark which processor is used")
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
 
@@ -608,7 +609,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                 for index, image in enumerate(images_to_parametrize):
 
                     # Tag fixtures with EC2 instance types if env variable is present
-                    allowed_processors = ("gpu", "cpu", "eia", "neuron")
+                    allowed_processors = ("gpu", "cpu", "eia", "neuron", "hpu")
                     instance_tag = ""
                     for processor in allowed_processors:
                         if processor in image:
@@ -634,6 +635,25 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
     return fixtures_parametrized
 
 
+def lookup_condition(lookup, image):
+    """
+    Return true if the ECR repo name ends with the lookup or lookup contains job type or device type part of the image uri.
+    """
+    #Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
+    repo_name = image.split("/")[-1].split(":")[0]
+
+    job_type = ("training", "inference",)
+    device_type = ("cpu", "gpu", "eia", "neuron", "hpu")
+
+    if not repo_name.endswith(lookup):
+        if (lookup in job_type or lookup in device_type) and lookup in image:
+            return True
+        else:
+            return False
+    else:
+        return True
+
+
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
@@ -647,9 +667,7 @@ def pytest_generate_tests(metafunc):
             lookup = fixture.replace("_", "-")
             images_to_parametrize = []
             for image in images:
-                #Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
-                repo_name = image.split("/")[-1].split(":")[0]
-                if repo_name.endswith(lookup):
+                if lookup_condition(lookup, image):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_huggingface_lookup = "huggingface_only" in metafunc.fixturenames and "huggingface" in image
                     is_standard_lookup = all(
