@@ -247,7 +247,9 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         "tensorflow2": ["2.3", "2.4", "2.6"], 
         "tensorflow1": ["1.15"], 
         "mxnet": ["1.9"], 
-        "pytorch": ["1.5", "1.6", "1.7", "1.8", "1.9"]
+        "pytorch": ["1.5", "1.6", "1.7", "1.8", "1.9"],
+        "huggingface_pytorch": ["1.6", "1.7", "1.8"],
+        "huggingface_tensorflow": ["2.3", "2.4"]
         }
 
     if is_tf_version("1", image):
