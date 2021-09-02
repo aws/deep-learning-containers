@@ -111,7 +111,10 @@ class DockerImage:
             with open(self.context.context_path, "rb") as context_file:
                 print("within context")
                 self.docker_build(fileobj=context_file, custom_context=True)
-                self.context.remove()  
+                try:
+                    self.context.remove()
+                except:
+                    print("Context was already deleted")
         else:
             print("out of context")
             self.docker_build()
