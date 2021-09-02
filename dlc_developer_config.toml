@@ -1,6 +1,6 @@
 [dev]
 # Set to "huggingface", for example, if you are a huggingface developer. Default is ""
-partner_developer = "huggingface"
+partner_developer = ""
 # Please only set it to true if you are preparing an EI related PR
 # Do remember to revert it back to false before merging any PR (including EI dedicated PR)
 ei_mode = false
@@ -16,12 +16,12 @@ benchmark_mode = false
 
 [build]
 # Frameworks for which you want to disable both builds and tests
-skip_frameworks = ['mxnet', 'pytorch', 'tensorflow']
+skip_frameworks = []
 # Set to false in order to remove datetime tag on PR builds
-datetime_tag = false
+datetime_tag = true
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = false
+do_build = true
 
 [test]
 ### On by default
@@ -32,12 +32,12 @@ ec2_tests = true
 
 ### Off by default
 efa_tests = false
-sagemaker_local_tests = true
+sagemaker_local_tests = false
 
 # SM remote test valid values:
 # "off" --> do not trigger sagemaker remote tests (default)
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
-sagemaker_remote_tests = "standard"
+sagemaker_remote_tests = "off"
 
 use_scheduler = false
