@@ -4,7 +4,7 @@ fabric==2.5.0
 pyfiglet==0.8.post1
 reprint==0.5.2
 ruamel.yaml==0.16.7
-boto3==1.11.11
+boto3
 black==19.10b0
 junit-xml==1.9
 toml==0.10.2

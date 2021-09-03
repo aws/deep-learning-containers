@@ -10,6 +10,7 @@ phases:
       - start-dockerd
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - pip install -U awscli boto3 botocore
       - pip install -r src/requirements.txt
       - bash src/setup.sh $FRAMEWORK
       - python src/parse_partner_developers.py
