@@ -115,7 +115,8 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
-    setuptools
+    setuptools \
+    wheel
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \

@@ -199,7 +199,8 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 
 RUN ${PIP} --no-cache-dir install --upgrade \
    pip \
-   setuptools
+   setuptools \
+   wheel
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
@@ -228,22 +229,22 @@ RUN ${PIP} install --no-cache-dir -U \
    # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
+   tensorflow-io \
    h5py==3.1.0 \
    "absl-py>=0.9,<0.11" \
    werkzeug==1.0.1 \
    smdebug==${SMDEBUG_VERSION} \
-   smclarify \
-   tensorflow-io \
+   smclarify
 
 # Install extra packages
-RUN pip install --no-cache-dir -U \
+RUN ${PIP} install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
     "imageio>=2.9,<3" \
     "opencv-python>=4.3,<5" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
     "shap>=0.39,<1"
-
+    
 ARG METIS=metis-5.1.0
 ARG RMM_VERSION=0.15.0
 
