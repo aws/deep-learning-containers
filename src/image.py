@@ -76,7 +76,9 @@ class DockerImage:
         return command_responses
 
     def update_pre_build_configuration(self):
-
+        """
+        Updates image configuration before the docker client starts building the image.
+        """
         if self.info.get("base_image_uri"):
             self.build_args["BASE_IMAGE"] = self.info["base_image_uri"]
 
@@ -94,7 +96,9 @@ class DockerImage:
 
     def build(self):
         """
-        The build function builds the specified docker image
+        The build function sets the stage for starting the docker build process for a given image. 
+
+        :return: int, Build Status 
         """
         self.summary["start_time"] = datetime.now()
 
@@ -131,6 +135,13 @@ class DockerImage:
         return self.build_status
 
     def docker_build(self, fileobj=None, custom_context=False):
+        """
+        Uses low level Docker API Client to actually start the process of building the image.
+
+        :param fileobj: FileObject, a readable file-like object pointing to the context tarfile.
+        :param custom_context: bool
+        :return: int, Build Status
+        """
         response = [f"Starting the Build Process for {self.name}"]
         for line in self.client.build(
             fileobj=fileobj,
@@ -151,7 +162,7 @@ class DockerImage:
 
                 pretty_logs = "\n".join(self.log[-1][:-100])
                 LOGGER.info(f"Docker Build Logs: \n {pretty_logs}")
-                LOGGER.error("******** ERROR during Docker BUILD ********")
+                LOGGER.error("ERROR during Docker BUILD")
                 LOGGER.error(f"Error message received for {self.dockerfile} while docker build: {line}")
 
                 return self.build_status
@@ -166,13 +177,18 @@ class DockerImage:
         self.log.append(response)
 
         pretty_logs = "\n".join(self.log[-1][-10:])
-        LOGGER.info(f"Docker Build Logs: {pretty_logs}")
+        LOGGER.info(f"DOCKER BUILD LOGS: \n{pretty_logs}")
         LOGGER.info(f"Completed Build for {self.name}")
 
         self.build_status = constants.SUCCESS
         return self.build_status
 
     def image_size_check(self):
+        """
+        Checks if the size of the image is not greater than the baseline.
+
+        :return: int, Build Status
+        """
         response = [f"Starting image size check for {self.name}"]
         self.summary["image_size"] = int(self.client.inspect_image(self.ecr_url)["Size"]) / (1024 * 1024)
         if self.summary["image_size"] > self.info["image_size_baseline"] * 1.20:
@@ -191,6 +207,11 @@ class DockerImage:
         return self.build_status
 
     def push_image(self):
+        """
+        Pushes the Docker image to ECR using Docker low-level API client for docker.
+        
+        :return: int, states if the Push was successful or not
+        """
         response = [f"Starting image Push for {self.name}"]
         for line in self.client.push(self.repository, self.tag, stream=True, decode=True):
             if line.get("error") is not None:
@@ -202,7 +223,7 @@ class DockerImage:
                 pretty_logs = "\n".join(self.log[:-100])
 
                 LOGGER.info(f"Docker Build Logs: \n {pretty_logs}")
-                LOGGER.error("******** ERROR during Docker PUSH ********")
+                LOGGER.error("ERROR during Docker PUSH")
                 LOGGER.error(f"Error message received for {self.dockerfile} while docker push: {line}")
 
                 return self.build_status
@@ -217,7 +238,7 @@ class DockerImage:
         self.log.append(response)
 
         pretty_logs = "\n".join(self.log[-1][-10:])
-        LOGGER.info(f"Docker Build Logs: {pretty_logs}")
-        LOGGER.info(f"Completed Build for {self.name}")
+        LOGGER.info(f"DOCKER PUSH LOGS: \n {pretty_logs}")
+        LOGGER.info(f"Completed Push for {self.name}")
 
         return self.build_status

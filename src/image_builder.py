@@ -181,7 +181,6 @@ def image_builder(buildspec):
         FORMATTER.separator()
 
     FORMATTER.banner("DLC")
-    FORMATTER.title("Status")
 
     # Standard images must be built before example images
     # Example images will use standard images as base
@@ -274,7 +273,7 @@ def show_build_logs(images):
 
 def show_build_summary(images):
     """
-    Display and save the build logs for a list of input images.
+    Display the summary for a list of input images.
 
     :param images: list[DockerImage]
     """
@@ -284,6 +283,12 @@ def show_build_summary(images):
         FORMATTER.table(image.summary.items())
 
 def show_build_errors(images):
+    """
+    Iterates through each image to check if there is any image that has a failed status. In case
+    an image with a failed status is found, it raises an exception.
+
+    :param images: list[DockerImage]
+    """
     is_any_build_failed = False
     is_any_build_failed_size_limit = False
 
@@ -305,9 +310,14 @@ def show_build_errors(images):
     return is_any_build_failed, is_any_build_failed_size_limit
 
 def upload_metrics(images, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit):
+    """
+    Uploads Metrics for a list of images.
 
-    is_any_build_failed = False
-    is_any_build_failed_size_limit = False
+    :param images: list[DockerImage]
+    :param BUILDSPEC: Buildspec
+    :param is_any_build_failed: bool
+    :param is_any_build_failed_size_limit: bool
+    """
     metrics = Metrics(
         context=constants.BUILD_CONTEXT,
         region=BUILDSPEC["region"],
@@ -328,27 +338,43 @@ def upload_metrics(images, BUILDSPEC, is_any_build_failed, is_any_build_failed_s
     FORMATTER.separator()
 
 def build_images(images, make_dummy_boto_client=False):
+    """
+    Takes a list of images and executes their build process concurrently. 
+
+    :param images: list[DockerImage]
+    :param make_dummy_boto_client: bool, specifies if a dummy client should be declared or not.
+
+    TODO: The parameter make_dummy_boto_client should be removed when get_dummy_boto_client method is removed.
+    """
     THREADS = {}
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
     # to it is executed concurrently in a separate thread.
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        #### TODO: Remove this entire if block when https://github.com/boto/boto3/issues/1592 is resolved ####
+        #### TODO: Remove this entire if block when get_dummy_boto_client is removed ####
         if make_dummy_boto_client:
             get_dummy_boto_client()
         for image in images:
-            FORMATTER.print(f"image_object.context {image.context}")
             THREADS[image.name] = executor.submit(image.build)
     # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
     FORMATTER.progress(THREADS)
 
 #### TODO: Remove this entire method when https://github.com/boto/boto3/issues/1592 is resolved ####
 def get_dummy_boto_client():
-    # In absence of this method, the behaviour documented in https://github.com/boto/boto3/issues/1592 is observed.
-    # If this function is not added, boto3 fails because boto3 sessions are not thread safe.
-    # However, once a dummy client is created, it is ensured that the calls are thread safe.
+    """
+    Makes a dummy boto3 client to ensure that boto3 clients behave in a thread safe manner.
+    In absence of this method, the behaviour documented in https://github.com/boto/boto3/issues/1592 is observed.
+    Once https://github.com/boto/boto3/issues/1592 is resolved, this method can be removed.
+
+    :return: BotocoreClientSTS
+    """
     return boto3.client("sts", region_name=os.getenv("REGION"))
 
 def push_images(images):
+    """
+    Takes a list of images and PUSHES them to ECR concurrently. 
+
+    :param images: list[DockerImage]
+    """
     THREADS = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=constants.MAX_WORKER_COUNT_FOR_PUSHING_IMAGES) as executor:
         for image in images:
