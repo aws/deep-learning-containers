@@ -15,6 +15,7 @@ import numpy as np
 import os
 import json
 import tensorflow as tf
+import tensorflow_io as tfio
 from tensorflow.keras.layers import Conv2D, BatchNormalization, Dense, Flatten
 
 # define a model
