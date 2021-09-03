@@ -310,7 +310,7 @@ RUN pip install --no-cache-dir -U ${SMMODELPARALLEL_BINARY}
 # Install SMD DP binary
 RUN SMDATAPARALLEL_TF=1 ${PIP} install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
-ENV LD_LIBRARY_PATH="/usr/local/lib/python3.7/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
+ENV LD_LIBRARY_PATH="/usr/local/lib/python3.8/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
