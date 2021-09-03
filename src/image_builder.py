@@ -22,6 +22,7 @@ from copy import deepcopy
 import constants
 import utils
 import boto3
+import itertools
 
 from context import Context
 from metrics import Metrics
@@ -206,18 +207,23 @@ def image_builder(buildspec):
     FORMATTER.banner("Push Started")
     push_images(IMAGES_TO_PUSH)
 
-    FORMATTER.banner("Logs/Summary")
     # After the build, display logs/summary for all the images.
+    FORMATTER.banner("Build Logs")
     show_build_logs(ALL_IMAGES)
+
+    FORMATTER.banner("Summary")
     show_build_summary(ALL_IMAGES)
+
+    FORMATTER.banner("Errors")
     is_any_build_failed, is_any_build_failed_size_limit = show_build_errors(ALL_IMAGES)
 
     # From all images, filter the images that were supposed to be built and upload their metrics
     BUILT_IMAGES = [image for image in ALL_IMAGES if image.to_build]
 
+    FORMATTER.banner("Upload Metrics")
     upload_metrics(BUILT_IMAGES, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit)
 
-    FORMATTER.title("Setting Test Env")
+    FORMATTER.banner("Test Env")
     # Set environment variables to be consumed by test jobs
     test_trigger_job = utils.get_codebuild_project_name()
     # Tests should only run on images that were pushed to the repository
@@ -226,9 +232,17 @@ def image_builder(buildspec):
     )
 
 def get_common_stage_image_object(pre_push_stage_image_object):
+    """
+    Creates a common stage image object for a pre_push stage image. If for a pre_push stage image we create a common 
+    stage image, then we do not push the pre_push stage image to the repository. Instead, we just push its common stage 
+    image to the repository. Therefore, inside the function pre_push_stage_image_object is made NON-PUSHABLE.
+
+    :param pre_push_stage_image_object: DockerImage, an object of class DockerImage
+    :return: CommonStageImage, an object of class CommonStageImage. CommonStageImage inherits DockerImage.
+    """
     common_stage_image_object = CommonStageImage(
         info=pre_push_stage_image_object.info,
-        dockerfile=os.path.join(os.sep, utils.get_root_folder_path(), "src", "Dockerfile.multipart"),
+        dockerfile=os.path.join(os.sep, utils.get_root_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.common"),
         repository=pre_push_stage_image_object.repository,
         tag=pre_push_stage_image_object.tag,
         to_build=pre_push_stage_image_object.to_build,
@@ -238,8 +252,11 @@ def get_common_stage_image_object(pre_push_stage_image_object):
     return common_stage_image_object
 
 def show_build_logs(images):
+    """
+    Display and save the build logs for a list of input images.
 
-    FORMATTER.title("Build Logs")
+    :param images: list[DockerImage]
+    """
 
     if not os.path.isdir("logs"):
         os.makedirs("logs")
@@ -248,29 +265,32 @@ def show_build_logs(images):
         image_description = f"{image.name}-{image.stage}"
         FORMATTER.title(image_description)
         FORMATTER.table(image.info.items())
-        FORMATTER.separator()
-        FORMATTER.print_lines(image.log)
+        FORMATTER.title(f'Ending Logs for {image_description}')
+        FORMATTER.print_lines(image.log[-1][-2:])
+        flattened_logs = list(itertools.chain(*image.log))
         with open(f"logs/{image_description}", "w") as fp:
-            fp.write("/n".join(image.log))
+            fp.write("/n".join(flattened_logs))
             image.summary["log"] = f"logs/{image_description}"
 
 def show_build_summary(images):
+    """
+    Display and save the build logs for a list of input images.
 
-    FORMATTER.title("Summary")
+    :param images: list[DockerImage]
+    """
 
     for image in images:
         FORMATTER.title(image.name)
         FORMATTER.table(image.summary.items())
 
 def show_build_errors(images):
-    FORMATTER.title("Errors")
     is_any_build_failed = False
     is_any_build_failed_size_limit = False
 
     for image in images:
         if image.build_status == constants.FAIL:
             FORMATTER.title(image.name)
-            FORMATTER.print_lines(image.log[-10:])
+            FORMATTER.print_lines(image.log[-1][-10:])
             is_any_build_failed = True
         else:
             if image.build_status == constants.FAIL_IMAGE_SIZE_LIMIT:
@@ -286,7 +306,6 @@ def show_build_errors(images):
 
 def upload_metrics(images, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit):
 
-    FORMATTER.title("Uploading Metrics")
     is_any_build_failed = False
     is_any_build_failed_size_limit = False
     metrics = Metrics(
