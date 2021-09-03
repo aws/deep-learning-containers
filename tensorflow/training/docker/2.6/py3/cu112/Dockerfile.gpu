@@ -287,8 +287,6 @@ RUN mkdir /tmp/efa-ofi-nccl \
   && make install \
   && rm -rf /tmp/efa-ofi-nccl
 
-ENV CPATH="/usr/local/lib/python3.7/dist-packages/pybind11/include/"
-
 RUN apt-get update && apt-get -y install  protobuf-compiler
 
 # Install Horovod, temporarily using CUDA stubs
