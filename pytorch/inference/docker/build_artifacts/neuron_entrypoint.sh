@@ -59,34 +59,39 @@ if [[ ! -z "${NEURON_MONITOR_CW_REGION}" ]]; then
   neuron_monitor_running=1
 fi
 
-MODEL_STORE=/opt/ml/model
-TS_CONFIG=/home/model-server/config.properties
-MODEL_PATH=""
-
-while getopts ":m:t:" opt; do
-  case $opt in
-    m) MODEL_PATH="$OPTARG"
-    ;;
-    t) TS_CONFIG="$OPTARG"
-    ;;
-    \?) echo "Invalid option -$OPTARG" >&2
-    ;;
-  esac
-done
-
-printf "Model path: %s\n" "$MODEL_PATH"
-printf "TS_CONFIG: %s\n" "$TS_CONFIG"
-# Start the Model Server
-if [[ -z "$MODEL_PATH" ]]; then
-  torchserve --start --ts-config /home/model-server/config.properties --model-store /opt/ml/model
+sagemaker_serve_running=0
+if [[ ! -z $1 ]] && [[ $1 == "serve" ]]; then
+  python /usr/local/bin/neuron-sm-torchserve.py $1 2>&1 &
 else
-  torchserve --start --ts-config $TS_CONFIG --models $MODEL_PATH
-fi
-status=$?
-ts_pid=$(<"/home/model-server/tmp/.model_server.pid")
-if [ $status -ne 0 ]; then
-  echo "Failed to start TF Model Server: $status"
-  exit $status
+  MODEL_STORE=/opt/ml/model
+  TS_CONFIG=/home/model-server/config.properties
+  MODEL_PATH=""
+
+  while getopts ":m:t:" opt; do
+    case $opt in
+      m) MODEL_PATH="$OPTARG"
+      ;;
+      t) TS_CONFIG="$OPTARG"
+      ;;
+      \?) echo "Invalid option -$OPTARG" >&2
+      ;;
+    esac
+  done
+
+  printf "Model path: %s\n" "$MODEL_PATH"
+  printf "TS_CONFIG: %s\n" "$TS_CONFIG"
+  # Start the Model Server
+  if [[ -z "$MODEL_PATH" ]]; then
+    torchserve --start --ts-config /home/model-server/config.properties --model-store /opt/ml/model
+  else
+    torchserve --start --ts-config $TS_CONFIG --models $MODEL_PATH
+  fi
+  status=$?
+  ts_pid=$(<"/home/model-server/tmp/.model_server.pid")
+  if [ $status -ne 0 ]; then
+    echo "Failed to start TF Model Server: $status"
+    exit $status
+  fi
 fi
 
 # more than one service in a container. The container exits with an error
@@ -103,13 +108,21 @@ while sleep 60; do
       exit 1
     fi
   fi
-  ps -p $ts_pid >/dev/null 2>&1
-  MODEL_SERVER_STATUS=$?
-  # If the torchserve pid exists then status would be 0
-  # If not 0, then something is wrong
-  if [ $MODEL_SERVER_STATUS -ne 0 ]; then
-    echo "torchserve  has already exited."
-    exit 1
+  if [ $sagemaker_serve_running -ne 0 ]; then
+    ps -p $ts_pid >/dev/null 2>&1
+    MODEL_SERVER_STATUS=$?
+    # If the torchserve pid exists then status would be 0
+    # If not 0, then something is wrong
+    if [ $MODEL_SERVER_STATUS -ne 0 ]; then
+      echo "torchserve  has already exited."
+      exit 1
+    fi
+  fi
+  if [ $neuron_monitor_running -ne 0 ]; then
+    if [ ! -d "/proc/${nm_pid}" ]; then
+      echo "neuron-monitor is not running."
+      cat /tmp/nm.log
+    fi
   fi
   if [ $neuron_monitor_running -ne 0 ]; then
     if [ ! -d "/proc/${nm_pid}" ]; then

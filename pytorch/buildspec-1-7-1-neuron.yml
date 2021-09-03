@@ -14,10 +14,10 @@ repository_info:
 context:
   inference_context: &INFERENCE_CONTEXT
     torchserve-entrypoint:
-      source: docker/build_artifacts/torchserve-entrypoint.py
-      target: torchserve-entrypoint.py
+      source: docker/build_artifacts/neuron-sm-torchserve.py
+      target: neuron-sm-torchserve.py
     dockerd-entrypoint:
-      source: docker/build_artifacts/entrypoint.sh
+      source: docker/build_artifacts/neuron_entrypoint.sh
       target: entrypoint.sh
     config:
       source: docker/build_artifacts/config.properties
