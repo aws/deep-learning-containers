@@ -43,12 +43,8 @@ class SafetyReportGenerator:
         """
         Takes the list of vulnerabilites produced by safety scan as the input and iterates through the list to insert
         the vulnerabilites into the vulnerability_dict.
-
-        Parameters:
-            scanned_vulnerabilities: list[list]
-
-        Returns:
-            None
+        
+        :param scanned_vulnerabilities: list[list], consists of a list of Vulnerabilities. Each vulnerability is a list itself.
         """
         for vulnerability in scanned_vulnerabilities:
             package, spec, installed, advisory, vulnerability_id = vulnerability[:5]
@@ -80,6 +76,8 @@ class SafetyReportGenerator:
     def get_package_set_from_container(self):
         """
         Extracts package set of a container.
+
+        :return: list[dict], each dict is structured like {'key': package_name, 'version':package_version}
         """
         python_cmd_to_extract_package_set = """ python -c "import pkg_resources; \
                 import json; \
@@ -95,6 +93,7 @@ class SafetyReportGenerator:
         """
         Takes the list of all the packages existing in a container and inserts safe packages into the
         vulnerability_dict.
+        
         :param packages: list[dict], each dict looks like {"key":package_name, "version":package_version}
         """
         for pkg in packages:
@@ -138,6 +137,8 @@ class SafetyReportGenerator:
     def run_safety_check_in_cb_context(self):
         """
         Runs the safety check on the container in CodeBuild Context
+
+        :return: string, A JSON formatted string containing vulnerabilities found in the container
         """
         from dlc.safety_check import SafetyCheck
 
@@ -147,6 +148,7 @@ class SafetyReportGenerator:
         """
         Acts as a driver function for this class that initiates the entire process of running safety check and returing
         the vulnerability_list
+        
         :return: list[dict], the output follows the same format as mentioned in the description of the class
         """
         self.timestamp = datetime.now().strftime("%d-%m-%Y")

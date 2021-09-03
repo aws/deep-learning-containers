@@ -22,7 +22,7 @@ SAFETY_FILE_EXISTS = 0
 
 @dataclass
 class SafetyVulnerabilityAdvisory:
-    vid: str
+    vulnerability_id: str
     advisory: str
     reason_to_ignore: str
     spec: str
