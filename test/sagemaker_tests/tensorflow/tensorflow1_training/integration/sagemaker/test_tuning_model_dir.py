@@ -30,8 +30,7 @@ def test_model_dir_with_training_job_name(ecr_image, sagemaker_regions, instance
                               instance_type, framework_version)
 
 
-def _test_model_dir_with_training_job_name_function(ecr_image, sagemaker_session, instance_type, tmpdir,
-                                                    framework_version):
+def _test_model_dir_with_training_job_name_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '../..', 'resources')
     script = os.path.join(resource_path, 'tuning_model_dir', 'entry.py')
 
