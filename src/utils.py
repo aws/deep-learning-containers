@@ -488,6 +488,11 @@ def get_codebuild_project_name():
     # Default value for codebuild project name is "local_test" when run outside of CodeBuild
     return os.getenv("CODEBUILD_BUILD_ID", "local_test").split(":")[0]
 
+def get_root_folder_path():
+    root_dir_pattern = re.compile(r"^(\S+deep-learning-containers)")
+    pwd = os.getcwd()
+    return os.getenv("CODEBUILD_SRC_DIR", root_dir_pattern.match(pwd).group(1))
+
 def get_safety_ignore_dict(image_uri):
     """
     Get a dict of known safety check issue IDs to ignore, if specified in file ../data/ignore_ids_safety_scan.json.
@@ -504,7 +509,8 @@ def get_safety_ignore_dict(image_uri):
     python_version = "py2" if "py2" in image_uri else "py3"
 
     IGNORE_SAFETY_IDS = {}
-    with open(f'{os.getenv("ROOT_FOLDER_PATH")}/data/ignore_ids_safety_scan.json') as f:
+    ignore_data_file = os.path.join(os.sep, get_root_folder_path(), "data", "ignore_ids_safety_scan.json")
+    with open(ignore_data_file) as f:
         IGNORE_SAFETY_IDS = json.load(f)
 
     return IGNORE_SAFETY_IDS.get(framework, {}).get(job_type, {}).get(python_version, {})

@@ -15,7 +15,7 @@ language governing permissions and limitations under the License.
 
 from image import DockerImage
 from context import Context
-from utils import generate_safety_report_for_image
+from utils import generate_safety_report_for_image, get_root_folder_path
 
 import os
 
@@ -42,7 +42,9 @@ class CommonStageImage(DockerImage):
         processed_image_uri = first_stage_image_uri.replace(".", "-").replace("/", "-").replace(":", "-")
         image_name = self.name
         tarfile_name_for_context = f"{processed_image_uri}-{image_name}"
-        storage_file_path = f"{os.getenv('ROOT_FOLDER_PATH')}/src/{tarfile_name_for_context}_safety_report.json"
+        storage_file_path = os.path.join(
+            os.sep, get_root_folder_path(), "src", f"{tarfile_name_for_context}_safety_report.json"
+        )
         generate_safety_report_for_image(first_stage_image_uri, storage_file_path=storage_file_path)
         self.context = self.generate_common_stage_context(storage_file_path, tarfile_name=tarfile_name_for_context)
 
@@ -54,10 +56,12 @@ class CommonStageImage(DockerImage):
         artifacts = {
             "safety_report": {"source": safety_report_path, "target": "safety_report.json"},
             "dockerfile": {
-                "source": f"{os.getenv('ROOT_FOLDER_PATH')}/miscellaneous_dockerfiles/Dockerfile.common",
+                "source": os.path.join(
+                    os.sep, get_root_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.common"
+                ),
                 "target": "Dockerfile",
             },
         }
 
-        artifact_root = os.path.join(os.sep, os.getenv("ROOT_FOLDER_PATH"), "src")
+        artifact_root = os.path.join(os.sep, get_root_folder_path(), "src")
         return Context(artifacts, context_path=f"build/{tarfile_name}.tar.gz", artifact_root=artifact_root)

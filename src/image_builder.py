@@ -158,7 +158,7 @@ def image_builder(buildspec):
             "extra_build_args": extra_build_args
         }
         
-        #Create pre_push stage docker object
+        # Create pre_push stage docker object
         pre_push_stage_image_object = DockerImage(
             info=info,
             dockerfile=image_config["docker_file"],
@@ -174,14 +174,14 @@ def image_builder(buildspec):
         # to the repository. Instead, we just push its common stage image to the repository. Therefore,
         # inside function get_common_stage_image_object we make pre_push_stage_image_object non pushable.
         common_stage_image_object = get_common_stage_image_object(pre_push_stage_image_object)
-    
+
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         COMMON_STAGE_IMAGES.append(common_stage_image_object)
         FORMATTER.separator()
 
     FORMATTER.banner("DLC")
     FORMATTER.title("Status")
-    
+
     # Standard images must be built before example images
     # Example images will use standard images as base
     # Common images must be built at the end as they will consume respective standard and example images
@@ -191,31 +191,30 @@ def image_builder(buildspec):
     ALL_IMAGES = PRE_PUSH_STAGE_IMAGES + COMMON_STAGE_IMAGES
     IMAGES_TO_PUSH = [image for image in ALL_IMAGES if image.to_push and image.to_build]
 
-    #pre_push stage standard images build
+    # pre_push stage standard images build
     FORMATTER.banner("Standard Build")
     build_images(standard_images)
 
-    #pre_push stage example images build
+    # pre_push stage example images build
     FORMATTER.banner("Example Build")
     build_images(example_images)
 
-    #Common stage build
+    # Common stage build
     FORMATTER.banner("Common Build")
     build_images(common_stage_images, make_dummy_boto_client=True)
-     
+
     FORMATTER.banner("Push Started")
     push_images(IMAGES_TO_PUSH)
 
-    FORMATTER.title("Log Display")
-    #After the build, display logs/summary for all the images.
+    FORMATTER.banner("Logs/Summary")
+    # After the build, display logs/summary for all the images.
     show_build_logs(ALL_IMAGES)
     show_build_summary(ALL_IMAGES)
     is_any_build_failed, is_any_build_failed_size_limit = show_build_errors(ALL_IMAGES)
 
-    #From all images, filter the images that were supposed to be built and upload their metrics
+    # From all images, filter the images that were supposed to be built and upload their metrics
     BUILT_IMAGES = [image for image in ALL_IMAGES if image.to_build]
 
-    FORMATTER.title("Upload Metrics")
     upload_metrics(BUILT_IMAGES, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit)
 
     FORMATTER.title("Setting Test Env")
@@ -223,15 +222,13 @@ def image_builder(buildspec):
     test_trigger_job = utils.get_codebuild_project_name()
     # Tests should only run on images that were pushed to the repository
     utils.set_test_env(
-        IMAGES_TO_PUSH,
-        BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"),
-        TEST_TRIGGER=test_trigger_job,
+        IMAGES_TO_PUSH, BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"), TEST_TRIGGER=test_trigger_job,
     )
 
 def get_common_stage_image_object(pre_push_stage_image_object):
     common_stage_image_object = CommonStageImage(
         info=pre_push_stage_image_object.info,
-        dockerfile=os.path.join(os.sep, os.getenv("ROOT_FOLDER_PATH"), "src", "Dockerfile.multipart"),
+        dockerfile=os.path.join(os.sep, utils.get_root_folder_path(), "src", "Dockerfile.multipart"),
         repository=pre_push_stage_image_object.repository,
         tag=pre_push_stage_image_object.tag,
         to_build=pre_push_stage_image_object.to_build,
@@ -317,7 +314,7 @@ def build_images(images, make_dummy_boto_client=False):
     # to it is executed concurrently in a separate thread.
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         #### TODO: Remove this entire if block when https://github.com/boto/boto3/issues/1592 is resolved ####
-        if make_dummy_boto_client: 
+        if make_dummy_boto_client:
             get_dummy_boto_client()
         for image in images:
             FORMATTER.print(f"image_object.context {image.context}")
@@ -330,13 +327,11 @@ def get_dummy_boto_client():
     # In absence of this method, the behaviour documented in https://github.com/boto/boto3/issues/1592 is observed.
     # If this function is not added, boto3 fails because boto3 sessions are not thread safe.
     # However, once a dummy client is created, it is ensured that the calls are thread safe.
-    return boto3.client("sts", region_name=os.getenv('REGION'))
+    return boto3.client("sts", region_name=os.getenv("REGION"))
 
 def push_images(images):
     THREADS = {}
-    with concurrent.futures.ThreadPoolExecutor(
-        max_workers=constants.MAX_WORKER_COUNT_FOR_PUSHING_IMAGES
-    ) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=constants.MAX_WORKER_COUNT_FOR_PUSHING_IMAGES) as executor:
         for image in images:
             THREADS[image.name] = executor.submit(image.push_image)
     FORMATTER.progress(THREADS)
