@@ -52,8 +52,10 @@ def test_utility_packages_using_import(training):
     utility_package_minimum_framework_version = {
         "mxnet": "1.8",
         "pytorch": "1.7",
+        "huggingface_pytorch": "1.7",
         "tensorflow2": "2.4",
         "tensorflow1": "1.15",
+        "huggingface_tensorflow": "2.4",
     }
 
     if framework == "tensorflow":
