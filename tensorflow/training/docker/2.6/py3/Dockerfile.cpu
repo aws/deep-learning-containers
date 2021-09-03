@@ -142,6 +142,7 @@ RUN ${PIP} install --no-cache-dir -U \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.6,<2.7" \
     "sagemaker-tensorflow-training>=20" \
+    tensorflow-io \
 
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
