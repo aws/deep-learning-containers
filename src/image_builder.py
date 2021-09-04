@@ -335,7 +335,7 @@ def upload_metrics(images, BUILDSPEC, is_any_build_failed, is_any_build_failed_s
     if is_any_build_failed_size_limit:
         raise Exception("Build failed because of file limit")
 
-    FORMATTER.separator()
+    FORMATTER.print("Metrics Uploaded")
 
 def build_images(images, make_dummy_boto_client=False):
     """
