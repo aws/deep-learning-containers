@@ -244,23 +244,15 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     framework, _ = get_framework_and_version_from_tag(image)
     short_fw_version = re.search(r"(\d+\.\d+)", image).group(1)
 
-    references = { 
-        "tensorflow2": ["2.3", "2.4", "2.6"], 
-        "tensorflow1": ["1.15"], 
-        "mxnet": ["1.9"], 
+    allow_openssl_cve_fw_versions = {
+        "tensorflow": ["1.15", "2.3", "2.4", "2.6"],
+        "mxnet": ["1.9"],
         "pytorch": [],
-        "huggingface_pytorch": [],
-        "huggingface_tensorflow": []
+        "huggingface_pytorch": ["1.8"],
+        "huggingface_tensorflow": ["2.4"]
         }
 
-    if is_tf_version("1", image):
-        reference_fw = "tensorflow1"
-    elif is_tf_version("2", image):
-        reference_fw = "tensorflow2"
-    else:
-        reference_fw = framework
-
-    if (reference_fw in references and short_fw_version in references[reference_fw]):
+    if short_fw_version in allow_openssl_cve_fw_versions.get(framework, []):
         allowed_vulnerabilities.add("CVE-2021-3711")
 
     container_name = f"dep_check_{processor}"
