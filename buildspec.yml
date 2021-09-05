@@ -12,7 +12,6 @@ phases:
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - pip install -r src/requirements.txt
       - bash src/setup.sh $FRAMEWORK
-      - export ROOT_FOLDER_PATH=$(pwd)
       - python src/parse_partner_developers.py
   build:
     commands:

@@ -8,9 +8,6 @@ from invoke import run
 from dataclasses import dataclass
 from typing import List
 
-from test.test_utils import (
-     is_canary_context
-)
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
