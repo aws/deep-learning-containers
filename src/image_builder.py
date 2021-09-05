@@ -230,6 +230,7 @@ def image_builder(buildspec):
         IMAGES_TO_PUSH, BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"), TEST_TRIGGER=test_trigger_job,
     )
 
+
 def get_common_stage_image_object(pre_push_stage_image_object):
     """
     Creates a common stage image object for a pre_push stage image. If for a pre_push stage image we create a common 
@@ -250,6 +251,7 @@ def get_common_stage_image_object(pre_push_stage_image_object):
     pre_push_stage_image_object.to_push = False
     return common_stage_image_object
 
+
 def show_build_logs(images):
     """
     Display and save the build logs for a list of input images.
@@ -264,16 +266,17 @@ def show_build_logs(images):
         image_description = f"{image.name}-{image.stage}"
         FORMATTER.title(image_description)
         FORMATTER.table(image.info.items())
-        FORMATTER.title(f'Ending Logs for {image_description}')
+        FORMATTER.title(f"Ending Logs for {image_description}")
         FORMATTER.print_lines(image.log[-1][-2:])
         flattened_logs = list(itertools.chain(*image.log))
         with open(f"logs/{image_description}", "w") as fp:
             fp.write("/n".join(flattened_logs))
             image.summary["log"] = f"logs/{image_description}"
 
+
 def show_build_summary(images):
     """
-    Display the summary for a list of input images.
+    Display the build summary for a list of input images.
 
     :param images: list[DockerImage]
     """
@@ -281,6 +284,7 @@ def show_build_summary(images):
     for image in images:
         FORMATTER.title(image.name)
         FORMATTER.table(image.summary.items())
+
 
 def show_build_errors(images):
     """
@@ -309,6 +313,7 @@ def show_build_errors(images):
             FORMATTER.print("No errors")
     return is_any_build_failed, is_any_build_failed_size_limit
 
+
 def upload_metrics(images, BUILDSPEC, is_any_build_failed, is_any_build_failed_size_limit):
     """
     Uploads Metrics for a list of images.
@@ -319,9 +324,7 @@ def upload_metrics(images, BUILDSPEC, is_any_build_failed, is_any_build_failed_s
     :param is_any_build_failed_size_limit: bool
     """
     metrics = Metrics(
-        context=constants.BUILD_CONTEXT,
-        region=BUILDSPEC["region"],
-        namespace=constants.METRICS_NAMESPACE,
+        context=constants.BUILD_CONTEXT, region=BUILDSPEC["region"], namespace=constants.METRICS_NAMESPACE,
     )
     for image in images:
         try:
@@ -336,6 +339,7 @@ def upload_metrics(images, BUILDSPEC, is_any_build_failed, is_any_build_failed_s
         raise Exception("Build failed because of file limit")
 
     FORMATTER.print("Metrics Uploaded")
+
 
 def build_images(images, make_dummy_boto_client=False):
     """
@@ -358,6 +362,7 @@ def build_images(images, make_dummy_boto_client=False):
     # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
     FORMATTER.progress(THREADS)
 
+
 #### TODO: Remove this entire method when https://github.com/boto/boto3/issues/1592 is resolved ####
 def get_dummy_boto_client():
     """
@@ -368,6 +373,7 @@ def get_dummy_boto_client():
     :return: BotocoreClientSTS
     """
     return boto3.client("sts", region_name=os.getenv("REGION"))
+
 
 def push_images(images):
     """
@@ -380,7 +386,6 @@ def push_images(images):
         for image in images:
             THREADS[image.name] = executor.submit(image.push_image)
     FORMATTER.progress(THREADS)
-
 
 
 def tag_image_with_pr_number(image_tag):

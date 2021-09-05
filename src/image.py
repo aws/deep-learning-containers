@@ -74,7 +74,7 @@ class DockerImage:
             command_responses.append(bytes.decode(docker_client.containers.run(self.ecr_url, command)))
         docker_client.containers.prune()
         return command_responses
-    
+
     def get_tail_logs_in_pretty_format(self, number_of_lines=10):
         """
         Displays the tail of the logs.
@@ -83,7 +83,6 @@ class DockerImage:
         :return: str, last number_of_lines of the logs concatenated with a new line
         """
         return "\n".join(self.log[-1][-number_of_lines:])
-
 
     def update_pre_build_configuration(self):
         """
@@ -132,7 +131,7 @@ class DockerImage:
 
         if self.build_status == constants.FAIL:
             return self.build_status
-        
+
         if not self.to_push:
             # If this image is not supposed to be pushed, in that case, we are already done
             # with building the image and do not need to conduct any further processing.

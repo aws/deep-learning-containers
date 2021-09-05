@@ -31,7 +31,7 @@ FAIL_IMAGE_SIZE_LIMIT = 2
 # Left and right padding between text and margins in output
 PADDING = 1
 
-#Docker build stages
+# Docker build stages
 PRE_PUSH_STAGE = "pre_push"
 COMMON_STAGE = "common"
 

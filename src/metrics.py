@@ -41,7 +41,7 @@ class Metrics(object):
             "python_version": image.python_version,
             "image_type": image.image_type,
             "image_stage": image.stage,
-            "push_required": str(image.to_push)
+            "push_required": str(image.to_push),
         }
         if image.build_status == constants.NOT_BUILT:
             return None
