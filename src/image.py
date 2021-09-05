@@ -74,6 +74,16 @@ class DockerImage:
             command_responses.append(bytes.decode(docker_client.containers.run(self.ecr_url, command)))
         docker_client.containers.prune()
         return command_responses
+    
+    def get_tail_logs_in_pretty_format(self, number_of_lines=10):
+        """
+        Displays the tail of the logs.
+
+        :param number_of_lines: int, number of ending lines to be printed
+        :return: str, last number_of_lines of the logs concatenated with a new line
+        """
+        return "\n".join(self.log[-1][-number_of_lines:])
+
 
     def update_pre_build_configuration(self):
         """
@@ -160,8 +170,7 @@ class DockerImage:
                 self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
                 self.summary["end_time"] = datetime.now()
 
-                pretty_logs = "\n".join(self.log[-1][:-100])
-                LOGGER.info(f"Docker Build Logs: \n {pretty_logs}")
+                LOGGER.info(f"Docker Build Logs: \n {self.get_tail_logs_in_pretty_format(100)}")
                 LOGGER.error("ERROR during Docker BUILD")
                 LOGGER.error(f"Error message received for {self.dockerfile} while docker build: {line}")
 
@@ -176,8 +185,7 @@ class DockerImage:
 
         self.log.append(response)
 
-        pretty_logs = "\n".join(self.log[-1][-10:])
-        LOGGER.info(f"DOCKER BUILD LOGS: \n{pretty_logs}")
+        LOGGER.info(f"DOCKER BUILD LOGS: \n{self.get_tail_logs_in_pretty_format()}")
         LOGGER.info(f"Completed Build for {self.name}")
 
         self.build_status = constants.SUCCESS
@@ -201,8 +209,7 @@ class DockerImage:
             self.build_status = constants.SUCCESS
         self.log.append(response)
 
-        pretty_log = "\n".join(self.log[-1])
-        LOGGER.info(f"{pretty_log}")
+        LOGGER.info(f"{self.get_tail_logs_in_pretty_format()}")
 
         return self.build_status
 
@@ -220,9 +227,8 @@ class DockerImage:
                 self.build_status = constants.FAIL
                 self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
                 self.summary["end_time"] = datetime.now()
-                pretty_logs = "\n".join(self.log[:-100])
 
-                LOGGER.info(f"Docker Build Logs: \n {pretty_logs}")
+                LOGGER.info(f"Docker Build Logs: \n {self.get_tail_logs_in_pretty_format(100)}")
                 LOGGER.error("ERROR during Docker PUSH")
                 LOGGER.error(f"Error message received for {self.dockerfile} while docker push: {line}")
 
@@ -237,8 +243,7 @@ class DockerImage:
         self.summary["ecr_url"] = self.ecr_url
         self.log.append(response)
 
-        pretty_logs = "\n".join(self.log[-1][-10:])
-        LOGGER.info(f"DOCKER PUSH LOGS: \n {pretty_logs}")
+        LOGGER.info(f"DOCKER PUSH LOGS: \n {self.get_tail_logs_in_pretty_format(2)}")
         LOGGER.info(f"Completed Push for {self.name}")
 
         return self.build_status
