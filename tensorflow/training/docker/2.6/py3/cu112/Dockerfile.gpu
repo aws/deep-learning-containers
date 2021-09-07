@@ -47,7 +47,8 @@ ARG CUDA_DASH=11-2
 ARG CUDNN=8.1.0.77-1
 ARG NCCL_VERSION=2.8.4
 
-RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
+RUN apt-get update \ 
+  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
    ca-certificates \
    cuda-command-line-tools-${CUDA_DASH} \
    cuda-cudart-dev-${CUDA_DASH} \
@@ -94,6 +95,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    # nvinfer-runtime-trt-repo doesn't have a 1804-cuda10.1 version yet. see:
    # https://developer.download.nvidia.cn/compute/machine-learning/repos/ubuntu1804/x86_64/
  && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean \
  && mkdir -p /var/run/sshd
 
 RUN cd /tmp \
