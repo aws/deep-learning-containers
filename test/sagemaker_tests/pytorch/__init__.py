@@ -11,10 +11,11 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
-
 import sagemaker
 
-from test.test_utils.sagemaker import get_ecr_image_region, get_sagemaker_session, get_ecr_image
+from test_utils.sagemaker import get_ecr_image_region, get_sagemaker_session, get_ecr_image
+import sys
+sys.path.append('...')
 
 
 def invoke_pytorch_helper_function(ecr_image, sagemaker_regions, helper_function, helper_function_args):
