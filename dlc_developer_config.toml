@@ -25,7 +25,7 @@ do_build = false
 
 [test]
 ### On by default
-sanity_tests = true
+sanity_tests = false
 ecs_tests = false
 eks_tests = false
 ec2_tests = false
