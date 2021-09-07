@@ -17,7 +17,6 @@ from datetime import datetime
 from docker import APIClient
 from docker import DockerClient
 
-
 import constants
 import logging
 import json
@@ -99,9 +98,6 @@ class DockerImage:
 
         if self.info.get("labels"):
             self.labels.update(self.info.get("labels"))
-
-        LOGGER.info(f"self.build_args {json.dumps(self.build_args, indent=4)}")
-        LOGGER.info(f"self.labels {json.dumps(self.labels, indent=4)}")
 
     def build(self):
         """

@@ -96,6 +96,6 @@ def test_safety_file_exists_and_is_valid(image):
                     )
                 )
         assert failed_count == 0, f"{failed_count} package/s failed safety test for {image} !!!"
-        LOGGER.info(f"Safety check is successfully complete and report exists at {SAFETY_FILE}")
+        LOGGER.info(f"Safety report file validation is successfully complete and report exists at {SAFETY_FILE}")
     finally:
         run(f"docker rm -f {container_name}", hide=True, warn=True)
