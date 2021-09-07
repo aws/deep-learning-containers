@@ -13,7 +13,7 @@
 from __future__ import absolute_import
 import sagemaker
 
-from ... import get_ecr_image_region, get_sagemaker_session, get_ecr_image
+from test.sagemaker_tests import get_ecr_image_region, get_sagemaker_session, get_ecr_image
 
 
 def invoke_autogluon_helper_function(ecr_image, sagemaker_regions, helper_function, *helper_function_args):
