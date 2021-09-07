@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import sagemaker
 
-from test.sagemaker_tests import get_ecr_image_region, get_sagemaker_session, get_ecr_image
+from test.test_utils.sagemaker import get_ecr_image_region, get_sagemaker_session, get_ecr_image
 
 
 def invoke_hf_tf_helper_function(ecr_image, sagemaker_regions, helper_function, *helper_function_args):

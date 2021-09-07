@@ -14,7 +14,7 @@ from __future__ import absolute_import
 
 import sagemaker
 from sagemaker.mxnet.estimator import MXNet as MXNet_origin
-from test.sagemaker_tests import get_ecr_image_region, get_sagemaker_session, get_ecr_image
+from test.test_utils.sagemaker import get_ecr_image_region, get_sagemaker_session, get_ecr_image
 
 
 class MXNet(MXNet_origin):
