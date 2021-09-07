@@ -107,6 +107,7 @@ def pytest_addoption(parser):
     parser.addoption('--framework-version', default='')
     parser.addoption('--py-version', choices=['2', '3', '37', '38'], default=str(sys.version_info.major))
     parser.addoption('--processor', choices=['gpu', 'cpu'], default='cpu')
+    parser.addoption('--sagemaker-region', default='us-west-2')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
     parser.addoption('--accelerator-type', default=None)
