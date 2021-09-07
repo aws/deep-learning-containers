@@ -16,6 +16,8 @@ import shlex
 import subprocess
 import sys
 
+neuron_cmd = "/usr/local/bin/neuron-start.sh"
+subprocess.check_call(shlex.split(neuron_cmd))
 
 if sys.argv[1] == 'serve':
     from sagemaker_pytorch_serving_container import serving
