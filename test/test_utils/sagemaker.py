@@ -119,7 +119,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     eia_arg = "ml.eia1.large"
     processor = "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
     py_version = re.search(r"py\d+", tag).group()
-    sm_local_py_version = "37" if py_version == "py37" else "2" if py_version == "py27" else "3"
+    sm_local_py_version = "37" if py_version == "py37" else "38" if py_version == "py38" else "2" if py_version == "py27" else "3"
     if framework == "tensorflow" and job_type == "inference":
         # Tf Inference tests have an additional sub directory with test
         integration_path = os.path.join("test", "integration", sagemaker_test_type)
