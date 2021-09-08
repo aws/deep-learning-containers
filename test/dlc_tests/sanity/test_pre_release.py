@@ -329,7 +329,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
 )
 def test_dependency_check_cpu(cpu, ec2_connection):
     # TODO: Fix test on HF inference
-    if "huggingface-tensorflow-inference" in cpu or "huggingface-pytorch-inference":
+    if "huggingface-tensorflow-inference" in cpu or "huggingface-pytorch-inference" in cpu:
         pytest.skip("Temporarily skipping HF inference images due to test flakiness")
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
@@ -344,7 +344,7 @@ def test_dependency_check_cpu(cpu, ec2_connection):
 )
 def test_dependency_check_gpu(gpu, ec2_connection):
     # TODO: Fix test on HF inference
-    if "huggingface-tensorflow-inference" in cpu or "huggingface-pytorch-inference":
+    if "huggingface-tensorflow-inference" in gpu or "huggingface-pytorch-inference" in gpu:
         pytest.skip("Temporarily skipping HF inference images due to test flakiness")
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
 
