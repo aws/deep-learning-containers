@@ -90,9 +90,6 @@ class DockerImage:
         if self.info.get("base_image_uri"):
             self.build_args["BASE_IMAGE"] = self.info["base_image_uri"]
 
-        if self.ecr_url:
-            self.build_args["PRE_PUSH_IMAGE"] = self.ecr_url
-
         if self.info.get("extra_build_args"):
             self.build_args.update(self.info.get("extra_build_args"))
 

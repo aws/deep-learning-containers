@@ -240,11 +240,15 @@ def get_common_stage_image_object(pre_push_stage_image_object):
     :param pre_push_stage_image_object: DockerImage, an object of class DockerImage
     :return: CommonStageImage, an object of class CommonStageImage. CommonStageImage inherits DockerImage.
     """
+    common_stage_info = deepcopy(pre_push_stage_image_object.info)
+    common_stage_info["extra_build_args"].update(
+        {"PRE_PUSH_IMAGE": pre_push_stage_image_object.ecr_url,}
+    )
     common_stage_image_object = CommonStageImage(
-        info=pre_push_stage_image_object.info,
+        info=common_stage_info,
         dockerfile=os.path.join(os.sep, utils.get_root_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.common"),
         repository=pre_push_stage_image_object.repository,
-        tag=pre_push_stage_image_object.tag,
+        tag=tag_image_with_multistage_common(pre_push_stage_image_object.tag),
         to_build=pre_push_stage_image_object.to_build,
         stage=constants.COMMON_STAGE,
     )
@@ -396,6 +400,17 @@ def tag_image_with_pr_number(image_tag):
 def tag_image_with_datetime(image_tag):
     datetime_suffix = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     return f"{image_tag}-{datetime_suffix}"
+
+
+def tag_image_with_multistage_common(image_tag):
+    """
+    Appends multistage-common tag to the image
+
+    :param image_tag: str
+    :return: str, image tag appended with multistage-common
+    """
+    append_tag = "multistage.common"
+    return f"{image_tag}-{append_tag}"
 
 
 def modify_repository_name_for_context(image_repo_uri, build_context):
