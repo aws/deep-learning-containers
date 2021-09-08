@@ -14,8 +14,10 @@ def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
     server_type = test_utils.get_inference_server_type(pytorch_inference)
     if "neuron" not in pytorch_inference:
         pytest.skip("Skipping EKS Neuron Test for EIA and Non Neuron Images")
+    else:
+        model = "pytorch-resnet-neuron=https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar"
+        server_cmd = "torchserve"
 
-    server_cmd = "torchserve --start --models pytorch-resnet-neuron=https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar --ts-config /home/model-server/config.properties"
     num_replicas = "1"
     rand_int = random.randint(4001, 6000)
     processor = "neuron"
@@ -24,6 +26,7 @@ def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
     inference_service_name = selector_name = f"resnet-{processor}-{rand_int}"
 
     search_replace_dict = {
+        "<MODELS>": model,
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
