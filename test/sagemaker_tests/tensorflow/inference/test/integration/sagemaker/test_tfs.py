@@ -15,9 +15,6 @@ import os
 import pytest
 
 from ..sagemaker import util
-from test.test_utils import get_framework_and_version_from_tag
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
 
 NON_P3_REGIONS = ["ap-southeast-1", "ap-southeast-2", "ap-south-1",
                   "ca-central-1", "eu-central-1", "eu-west-2", "us-west-1"]
@@ -75,13 +72,6 @@ def tfs_model(region, boto_session):
 def python_model_with_requirements(region, boto_session):
     return util.find_or_put_model_data(region,
                                        boto_session,
-                                       "data/tfs-model.tar.gz")
-
-
-@pytest.fixture(scope="session")
-def python_model_with_requirements_greater_than_equal_to_tf26(region, boto_session):
-    return util.find_or_put_model_data(region,
-                                       boto_session,
                                        "data/tfs-model_greater_than_equal_to_tf26.tar.gz")
 
 
@@ -128,10 +118,6 @@ def test_python_model_with_requirements(boto_session, sagemaker_client,
     if "p3" in instance_type:
         pytest.skip("skip for p3 instance")
 
-    _, image_framework_version = get_framework_and_version_from_tag(image_uri)
-    if Version(image_framework_version) in SpecifierSet(">=2.6"):
-        pytest.skip("skip as TensorFlow version >= 2.6 ")
-
     # the python service needs to transform this to get a valid prediction
     input_data = {"instances": [[1.0, 2.0, 5.0]]}
     output_data = util.create_and_invoke_endpoint(boto_session, sagemaker_client,
@@ -139,26 +125,6 @@ def test_python_model_with_requirements(boto_session, sagemaker_client,
                                                   python_model_with_requirements, image_uri,
                                                   instance_type, accelerator_type, input_data)
 
-
-@pytest.mark.model("unknown_model")
-def test_python_model_with_requirements_greater_than_equal_to_tf26(boto_session, sagemaker_client,
-                                        sagemaker_runtime_client, model_name,
-                                        python_model_with_requirements_greater_than_equal_to_tf26, image_uri, instance_type,
-                                        accelerator_type):
-
-    if "p3" in instance_type:
-        pytest.skip("skip for p3 instance")
-
-    _, image_framework_version = get_framework_and_version_from_tag(image_uri)
-    if Version(image_framework_version) in SpecifierSet("<2.6"):
-        pytest.skip("skip as TensorFlow version < 2.6 ")
-
-    # the python service needs to transform this to get a valid prediction
-    input_data = {"instances": [[1.0, 2.0, 5.0]]}
-    output_data = util.create_and_invoke_endpoint(boto_session, sagemaker_client,
-                                                  sagemaker_runtime_client, model_name,
-                                                  python_model_with_requirements_greater_than_equal_to_tf26, image_uri,
-                                                  instance_type, accelerator_type, input_data)
 
 
 @pytest.mark.model("unknown_model")
