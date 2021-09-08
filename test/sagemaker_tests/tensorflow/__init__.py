@@ -30,7 +30,7 @@ def invoke_tf_helper_function(ecr_image, sagemaker_regions, helper_function, *he
 
     :return: None
     """
-    from sagemaker_tests import get_ecr_image_region, get_sagemaker_session, get_ecr_image
+    from .. import get_ecr_image_region, get_sagemaker_session, get_ecr_image
 
     ecr_image_region = get_ecr_image_region(ecr_image)
     for region in sagemaker_regions:
