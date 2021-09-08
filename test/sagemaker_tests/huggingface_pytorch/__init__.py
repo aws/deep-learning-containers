@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 import sagemaker
 
-from test.test_utils.sagemaker import get_ecr_image_region, get_sagemaker_session, get_ecr_image
 
 
 def invoke_hf_pt_helper_function(ecr_image, sagemaker_regions, helper_function, *helper_function_args):
@@ -17,6 +16,7 @@ def invoke_hf_pt_helper_function(ecr_image, sagemaker_regions, helper_function, 
 
     :return: None
     """
+    from sagemaker_tests import get_ecr_image_region, get_sagemaker_session, get_ecr_image
 
     ecr_image_region = get_ecr_image_region(ecr_image)
     for region in sagemaker_regions:
