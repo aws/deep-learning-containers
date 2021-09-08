@@ -126,7 +126,7 @@ RUN ${PIP} install --no-cache --upgrade \
     numpy==1.19.1 \
     pandas==0.25.1 \
     Pillow \
-    "requests==2.22.0 \
+    requests==2.22.0 \
     scikit-learn==0.20.4 \
     dgl==0.4.* \
     scipy==1.2.2 \
