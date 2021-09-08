@@ -114,6 +114,7 @@ RUN ${PIP} install --no-cache --upgrade \
     "requests>=2.18.4,<=2.22.0" \
     scikit-learn \
     dgl==0.4.* \
+    "scipy>=1.2.2,<=1.4.1" \
     gluonnlp==0.10.0 \
     gluoncv==0.8.0 \
     # Putting a cap in versions number to avoid potential issues with a new major version
