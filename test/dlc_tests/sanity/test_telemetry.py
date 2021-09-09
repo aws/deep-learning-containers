@@ -7,6 +7,7 @@ from test.test_utils import ec2 as ec2_utils
 from test.test_utils import ecs as ecs_utils
 
 
+@pytest.mark.usefixtures("huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
@@ -15,6 +16,7 @@ def test_telemetry_instance_role_disabled_gpu(gpu, ec2_client, ec2_instance, ec2
     _run_instance_role_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
+@pytest.mark.usefixtures("huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
