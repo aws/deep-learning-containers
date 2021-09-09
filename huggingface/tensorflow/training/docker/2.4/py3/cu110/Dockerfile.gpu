@@ -2,7 +2,7 @@
 # refer to the above page to pull latest Tensorflow image
 
 # docker image region us-west-2
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training:2.4.1-gpu-py37-cu110-ubuntu18.04
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training:2.4.3-gpu-py37-cu110-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -19,8 +19,8 @@ RUN pip install --no-cache-dir \
     tensorflow-addons==0.12.0 \
     psutil
 RUN apt-get update \
- # TODO: Remove systemd upgrade once it is updated in base image
- && apt-get -y upgrade --only-upgrade systemd \
+ # TODO: Remove upgrade statements once packages are updated in base image
+ && apt-get -y upgrade --only-upgrade systemd openssl \
  && apt install -y git-lfs \
  && apt-get clean \  
  && rm -rf /var/lib/apt/lists/*
