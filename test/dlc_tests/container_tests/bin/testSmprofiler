@@ -15,6 +15,11 @@ LOG_DIR=${HOME_DIR}/logs
 
 echo "Verify whether smdebug with profiler is installed correctly."
 SMDEBUG_RELEASE_TAG=$(python -c "import smdebug; print(smdebug.__version__)")
+
+# import statements might contain log statements which corrupt the logic below
+# We need to filter only the word from the output of the previous line because
+SMDEBUG_RELEASE_TAG=$(echo $SMDEBUG_RELEASE_TAG |  perl -lane 'print $F[-1]')
+
 echo "Cloning git repo for release tag $SMDEBUG_RELEASE_TAG"
 git clone -b ${SMDEBUG_RELEASE_TAG} https://github.com/awslabs/sagemaker-debugger.git sagemaker-debugger || exit 1
 
