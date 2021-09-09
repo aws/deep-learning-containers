@@ -8,6 +8,7 @@ pip_packages:
   - tensorflow-serving-api
   - tensorflow-serving-api-gpu
   - smdebug
+  - smdebug-rulesconfig
   - sagemaker
   - sagemaker-experiments
   - sagemaker-tensorflow
@@ -22,6 +23,8 @@ pip_packages:
   - multi-model-server
   - dgl
   - awscli
+  - boto3
+  - botocore
   - numpy
   - horovod
   - scipy
@@ -51,7 +54,18 @@ pip_packages:
   - sagemaker-training
   - spacy
   - torch
+  - torchnet
+  - torchvision
+  - torchaudio
   - xgboost
+  - awsio
+  - smclarify
+  - smdistributed-dataparallel
+  - smdistributed-modelparallel
+  - apex
+  - s3fs
+  - s3transfer
+  - seaborn
 apt_packages:
   - cuda-command-line-tools
   - cuda-cufft
