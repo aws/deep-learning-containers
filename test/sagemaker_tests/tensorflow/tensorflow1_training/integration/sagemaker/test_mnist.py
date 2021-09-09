@@ -94,7 +94,6 @@ def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, frame
     _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
 def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framework_version):
