@@ -115,7 +115,7 @@ class DLCReleaseInformation:
 
         for pip_package in sorted(self.imp_packages_to_record["pip_packages"]):
             for package_entry in container_pip_packages:
-                if package_entry["name"] == pip_package:
+                if package_entry["name"].lower() == pip_package.lower():
                     imp_pip_packages[package_entry["name"]] = package_entry["version"]
                     break
 
