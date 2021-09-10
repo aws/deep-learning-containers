@@ -16,6 +16,7 @@ ARG PYTHON=python3
 RUN pip install --no-cache-dir \ 
 	transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \ 
 	datasets==${DATASETS_VERSION}
+	
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
  && apt-get -y upgrade --only-upgrade systemd openssl \
