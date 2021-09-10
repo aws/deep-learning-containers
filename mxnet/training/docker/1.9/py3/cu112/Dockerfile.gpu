@@ -19,7 +19,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     LC_ALL=C.UTF-8 \
     SAGEMAKER_TRAINING_MODULE=sagemaker_mxnet_container.training:main \
     DGLBACKEND=mxnet \
-    CUDNN_VERSION=8.1.1.33-1+cuda11.2 \
+    CUDNN_VERSION=8.1.0.77-1+cuda11.2 \
     NCCL_VERSION=2.8.3-1+cuda11.2 \
     DEBIAN_FRONTEND=noninteractive
 
