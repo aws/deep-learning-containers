@@ -32,7 +32,7 @@ def test_ecs_mxnet_training_mnist_cpu(cpu_only, ecs_container_instance, mxnet_tr
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("training_script", [MX_MNIST_TRAINING_SCRIPT], indirect=True)
-@pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_mxnet_training_mnist_gpu(gpu_only, ecs_container_instance, mxnet_training, training_cmd, ecs_cluster_name):
     """
@@ -128,7 +128,7 @@ def test_ecs_mxnet_training_gluonnlp_cpu(cpu_only, py3_only, ecs_container_insta
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("TextCNN")
 @pytest.mark.parametrize("training_script", [MX_GLUON_NLP_TRAINING_SCRIPT], indirect=True)
-@pytest.mark.parametrize("ecs_instance_type", ["p2.16xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["p3.16xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_mxnet_training_gluonnlp_gpu(gpu_only, py3_only, ecs_container_instance, mxnet_training, training_cmd,
                                          ecs_cluster_name):
