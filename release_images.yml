@@ -380,46 +380,46 @@ release_images:
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  28:
-    framework: "pytorch"
-    version: "1.7.1"
-    synapseai_version: "0.15.4"
-    training:
-      device_types: [ "hpu" ]
-      python_versions: [ "py37" ]
-      os_version: "ubuntu18.04"
-      example: False
-      disable_sm_tag: True  # [Default: False] This option is not used by Example images
-      force_release: False
   29:
     framework: "pytorch"
     version: "1.7.1"
-    synapseai_version: "0.15.4"
     training:
       device_types: [ "hpu" ]
       python_versions: [ "py37" ]
+      synapseai_version: "0.15.4"
       os_version: "ubuntu18.04"
-      example: True
+      example: False
       disable_sm_tag: True  # [Default: False] This option is not used by Example images
       force_release: False
   30:
-    framework: "tensorflow"
-    version: "2.5.0"
-    synapseai_version: "0.15.4"
+    framework: "pytorch"
+    version: "1.7.1"
     training:
       device_types: [ "hpu" ]
       python_versions: [ "py37" ]
+      synapseai_version: "0.15.4"
       os_version: "ubuntu18.04"
-      example: False
+      example: True
       disable_sm_tag: True  # [Default: False] This option is not used by Example images
       force_release: False
   31:
     framework: "tensorflow"
     version: "2.5.0"
-    synapseai_version: "0.15.4"
     training:
       device_types: [ "hpu" ]
       python_versions: [ "py37" ]
+      synapseai_version: "0.15.4"
+      os_version: "ubuntu18.04"
+      example: False
+      disable_sm_tag: True  # [Default: False] This option is not used by Example images
+      force_release: False
+  32:
+    framework: "tensorflow"
+    version: "2.5.0"
+    training:
+      device_types: [ "hpu" ]
+      python_versions: [ "py37" ]
+      synapseai_version: "0.15.4"
       os_version: "ubuntu18.04"
       example: True
       disable_sm_tag: True  # [Default: False] This option is not used by Example images
