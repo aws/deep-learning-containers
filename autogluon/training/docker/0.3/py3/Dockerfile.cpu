@@ -10,7 +10,7 @@ ARG MXNET_VER=1.7.*
 ARG TORCH_VER=1.8.0+cpu
 ARG TORCH_VISION_VER=0.9.0+cpu
 
-ARG AUTOGLUON_VERSION=0.3.0
+ARG AUTOGLUON_VERSION=0.3.1
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -88,7 +88,7 @@ RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VER
  && cd .. && rm -rf ../Python-$PYTHON_VERSION* \
  && ln -s /usr/local/bin/pip3 /usr/bin/pip \
  && ln -s /usr/local/bin/$PYTHON /usr/local/bin/python \
- && pip --no-cache-dir install --upgrade pip \
+ && pip --no-cache-dir install --upgrade --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip --no-cache-dir install --upgrade wheel setuptools
 
 WORKDIR /
