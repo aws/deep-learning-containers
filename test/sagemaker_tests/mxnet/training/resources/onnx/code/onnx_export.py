@@ -48,6 +48,7 @@ def main():
     in_shapes = [in_shape]
     in_dtypes = [in_dtype]
     onnx_mxnet.export_model(mx_sym, mx_params, [in_shape], [in_dtype], onnx_file)
+    assert os.path.isfile('model.onnx')
     _assert_onnx_validity(onnx_file)
 
 
