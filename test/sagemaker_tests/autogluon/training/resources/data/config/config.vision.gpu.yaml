@@ -7,6 +7,8 @@ ag_predictor_args: {}
 ag_fit_args:
   hyperparameters:
     epochs: 2
+    batch_size: 1
+  nthreads_per_trial: 1
 
 output_prediction_format: csv  # predictions output format: csv or parquet
 
