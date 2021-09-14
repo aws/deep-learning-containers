@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir \
     psutil \
 	# TODO: Remove upgrade statements once packages are updated in base image
 	"Pillow>=8.3.2"
-
+    
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
  && apt-get -y upgrade --only-upgrade systemd openssl \
