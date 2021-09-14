@@ -97,7 +97,7 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 RUN apt-get update
 
 RUN apt-get install -y \
-    tensorflow-model-server-neuron \
+    tensorflow-model-server-neuron=1.15.* \
     aws-neuron-runtime \
     aws-neuron-tools
 
@@ -171,7 +171,11 @@ RUN HOME_DIR=/root \
  
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 
-COPY entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY neuron-start.sh /usr/local/bin/neuron-start.sh
 
-CMD ["/usr/local/bin/entrypoint.sh"]
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+RUN chmod +x /usr/local/bin/neuron-start.sh
+
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["/usr/bin/tf_serving_entrypoint.sh"]
