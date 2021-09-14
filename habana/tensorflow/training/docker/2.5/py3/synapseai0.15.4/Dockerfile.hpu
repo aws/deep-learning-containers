@@ -104,6 +104,7 @@ RUN ${PIP} uninstall -y tensorflow-cpu \
     mpi4py==3.0.3 \
     opencv-python==4.3.0.36 \
  && ${PIP} uninstall -y typing \
+ && ${PIP} uninstall -y keras \
  && ${PIP} install --no-cache-dir -U boto3 --upgrade \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
