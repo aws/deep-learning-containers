@@ -449,13 +449,19 @@ def main():
             sys.exit(pytest.main(pytest_cmd))
 
         else:
-            if "neuron" in dlc_images:
-                run_sagemaker_remote_tests(
-                    [image for image in standard_images_list if ("mxnet" in image)]
-                )
+            if all("neuron" in image and "mxnet" not in image for image in standard_images_list):
+                report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+                sm_utils.generate_empty_report(report, test_type, "neuron")
             else:
                 run_sagemaker_remote_tests(
-                    [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
+                    [
+                        image
+                        for image in standard_images_list
+                        if not (
+                            ("tensorflow-inference" in image and "py2" in image)
+                            or ("neuron" in image and "mxnet" not in image)
+                        )
+                    ]
                 )
         metrics_utils.send_test_duration_metrics(start_time)
 

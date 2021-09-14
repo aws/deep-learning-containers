@@ -24,28 +24,30 @@ import json
 from ...integration import RESOURCE_PATH
 from ...integration.sagemaker import timeout
 
-DEFAULT_HANDLER_PATH = os.path.join(RESOURCE_PATH, 'neuron_handlers')
-MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model-neuron.tar.gz')
-SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'mnist-neuron.py')
-INPUT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'input.npy')
-OUTPUT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'output.json')
+MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, "model-neuron.tar.gz")
+SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, "model", "code", "mnist-neuron.py")
+INPUT_PATH = os.path.join(DEFAULT_HANDLER_PATH, "model", "input.npy")
+OUTPUT_PATH = os.path.join(DEFAULT_HANDLER_PATH, "model", "output.json")
+
 
 @pytest.mark.integration("neuron-hosting")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_eia_containers
-@pytest.mark.skip_if_no_neuron()
+@pytest.mark.skip_if_no_neuron
 def test_neuron_hosting(sagemaker_session, ecr_image, instance_type, framework_version):
-    prefix = 'mxnet-serving/neuron-handlers'
+    prefix = "mxnet-serving/neuron-handlers"
     model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=prefix)
-    model = MXNetModel(model_data,
-                       'SageMakerRole',
-                       SCRIPT_PATH,
-                       framework_version=framework_version,
-                       image_uri=ecr_image,
-                       sagemaker_session=sagemaker_session)
+    model = MXNetModel(
+        model_data,
+        "SageMakerRole",
+        SCRIPT_PATH,
+        framework_version=framework_version,
+        image_uri=ecr_image,
+        sagemaker_session=sagemaker_session,
+    )
 
-    endpoint_name = utils.unique_name_from_base('test-neuron-mxnet-serving')
+    endpoint_name = utils.unique_name_from_base("test-neuron-mxnet-serving")
     with timeout.timeout_and_delete_endpoint_by_name(endpoint_name, sagemaker_session):
         predictor = model.deploy(1, instance_type, endpoint_name=endpoint_name)
 
@@ -53,7 +55,6 @@ def test_neuron_hosting(sagemaker_session, ecr_image, instance_type, framework_v
         output = predictor.predict(data=numpy_ndarray)
         with open(OUTPUT_PATH) as outputfile:
             expected_output = json.load(outputfile)
-        
+
         assert expected_output == output
         print(output)
-        
