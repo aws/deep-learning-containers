@@ -72,7 +72,8 @@ def test_mnist_cpu(sagemaker_local_session, docker_image, tmpdir, framework_vers
                     output_path=output_path,
                     training_data_path='file://{}'.format(
                         os.path.join(RESOURCE_PATH, 'mnist', 'data')))
-    _assert_files_exist_in_tar(output_path, ['my_model.h5'])
+    _assert_checkpoint_exists_v2(output_path)
+    # _assert_files_exist_in_tar(output_path, ['my_model.h5'])
 
 
 @pytest.mark.processor("gpu")
@@ -169,3 +170,17 @@ def _assert_files_exist_in_tar(output_path, files):
     with tarfile.open(model_file) as tar:
         for f in files:
             tar.getmember(f)
+
+def _assert_checkpoint_exists_v2(s3_model_dir):
+    """
+    s3_model_dir: S3 url of the checkpoint
+        e.g. 's3://sagemaker-us-west-2-578276202366/tensorflow-training-2021-09-03-02-49-44-067/model'
+    """
+    bucket, *prefix = re.sub('s3://', '', s3_model_dir).split('/')
+    prefix = '/'.join(prefix)
+
+    ckpt_content = boto3.client('s3').list_objects(
+        Bucket=bucket, Prefix=prefix
+    )['Contents']
+    assert len(ckpt_content) > 0, "checkpoint directory is emptry"
+    print(ckpt_content)
