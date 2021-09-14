@@ -48,7 +48,8 @@ def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
         path=os.path.join(resource_path, 'mnist', 'data'),
         key_prefix='scriptmode/mnist')
     estimator.fit(inputs, job_name=unique_name_from_base('test-sagemaker-mnist'))
-    _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
+    # _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
+    _assert_checkpoint_exists_v2(estimator.model_dir)
 
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
@@ -69,7 +70,8 @@ def test_distributed_mnist_no_ps(sagemaker_session, ecr_image, instance_type, fr
         path=os.path.join(resource_path, 'mnist', 'data'),
         key_prefix='scriptmode/mnist')
     estimator.fit(inputs, job_name=unique_name_from_base('test-tf-sm-distributed-mnist'))
-    _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
+    _assert_checkpoint_exists_v2(estimator.model_dir)
+    # _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 
 @pytest.mark.model("mnist")
@@ -81,10 +83,10 @@ def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, frame
     script = os.path.join(resource_path, 'mnist', 'mnist_estimator2.py')
     estimator = TensorFlow(entry_point=script,
                            role='SageMakerRole',
-                           #hyperparameters={'sagemaker_parameter_server_enabled': True},
+                           hyperparameters={'sagemaker_parameter_server_enabled': True},
                            instance_count=1,
                            instance_type=instance_type,
-                           #sagemaker_session=sagemaker_session,
+                           sagemaker_session=sagemaker_session,
                            image_uri=ecr_image,
                            framework_version=framework_version)
     inputs = estimator.sagemaker_session.upload_data(
@@ -99,7 +101,7 @@ def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, frame
 @pytest.mark.integration("s3 plugin")
 def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
-    script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
+    script = os.path.join(resource_path, 'mnist', 'mnist_estimator2.py')
     estimator = TensorFlow(entry_point=script,
                            role='SageMakerRole',
                            hyperparameters={
@@ -121,11 +123,16 @@ def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framewor
                            sagemaker_session=sagemaker_session,
                            image_uri=ecr_image,
                            framework_version=framework_version)
-    estimator.fit('s3://sagemaker-sample-data-{}/tensorflow/mnist'.format(region),
-                  job_name=unique_name_from_base('test-tf-sm-s3-mnist'))
-    _assert_s3_file_exists(region, estimator.model_data)
-    _assert_checkpoint_exists(region, estimator.model_dir, 200)
 
+    inputs = estimator.sagemaker_session.upload_data(
+        path=os.path.join(resource_path, 'mnist', 'data-distributed'),
+        key_prefix='scriptmode/mnist-distributed')
+    estimator.fit(inputs,job_name=unique_name_from_base('test-tf-sm-s3-mnist'))
+    print("=========== Model data location ===============")
+    print(estimator.model_data)
+    print("=========== Model dir           ===============")
+    print(estimator.model_dir)
+    _assert_checkpoint_exists_v2(estimator.model_dir)
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
@@ -183,7 +190,8 @@ def test_smdebug(sagemaker_session, ecr_image, instance_type, framework_version)
         path=os.path.join(resource_path, 'mnist', 'data'),
         key_prefix='scriptmode/mnist_smdebug')
     estimator.fit(inputs, job_name=unique_name_from_base('test-sagemaker-mnist-smdebug'))
-    _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
+    # _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
+    _assert_checkpoint_exists_v2(estimator.model_dir)
 
 
 @pytest.mark.integration("smdataparallel_smmodelparallel")

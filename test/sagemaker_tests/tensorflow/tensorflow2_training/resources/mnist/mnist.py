@@ -53,4 +53,4 @@ model.fit(x_train, y_train, epochs=args.epochs)
 model.evaluate(x_test, y_test)
 
 if args.current_host == args.hosts[0]:
-    model.save(os.path.join('/opt/ml/model', 'my_model.h5'))
+    model.save(args.model_dir)
