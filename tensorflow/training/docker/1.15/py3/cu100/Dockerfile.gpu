@@ -175,6 +175,7 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
+    keras==2.6.0 \
     h5py==2.10.0 \
  && ${PIP} install --no-cache-dir -U \
     # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli

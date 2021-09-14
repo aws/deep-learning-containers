@@ -136,6 +136,7 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --force-reinstall --no-cache-dir -U \
     ${TF_URL} \
+    keras==2.6.0 \
     h5py==2.10.0 \
  && ${PIP} install --force-reinstall --no-cache-dir -U \
     horovod==0.19.5 \
