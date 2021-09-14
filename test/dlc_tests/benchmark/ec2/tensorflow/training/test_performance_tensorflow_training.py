@@ -2,15 +2,13 @@ import os
 import re
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf_version
+from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag
 from test.test_utils.ec2 import execute_ec2_training_performance_test
 from src.benchmark_metrics import (
-    TENSORFLOW2_TRAINING_CPU_SYNTHETIC_THRESHOLD,
-    TENSORFLOW2_TRAINING_GPU_SYNTHETIC_THRESHOLD,
-    TENSORFLOW2_TRAINING_GPU_IMAGENET_THRESHOLD,
-    TENSORFLOW1_TRAINING_CPU_SYNTHETIC_THRESHOLD,
-    TENSORFLOW1_TRAINING_GPU_SYNTHETIC_THRESHOLD,
-    TENSORFLOW1_TRAINING_GPU_IMAGENET_THRESHOLD,
+    get_threshold_for_image,
+    TENSORFLOW_TRAINING_CPU_SYNTHETIC_THRESHOLD,
+    TENSORFLOW_TRAINING_GPU_SYNTHETIC_THRESHOLD,
+    TENSORFLOW_TRAINING_GPU_IMAGENET_THRESHOLD,
 )
 
 TF_PERFORMANCE_TRAINING_CPU_SYNTHETIC_CMD = os.path.join(
@@ -31,11 +29,8 @@ TF_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_CPU_INSTANCE_TYPE], indirect=True)
 def test_performance_tensorflow_cpu(tensorflow_training, ec2_connection, cpu_only):
-    threshold = (
-        TENSORFLOW2_TRAINING_CPU_SYNTHETIC_THRESHOLD
-        if is_tf_version("2", tensorflow_training)
-        else TENSORFLOW1_TRAINING_CPU_SYNTHETIC_THRESHOLD
-    )
+    _, framework_version = get_framework_and_version_from_tag(tensorflow_training)
+    threshold = get_threshold_for_image(framework_version, TENSORFLOW_TRAINING_CPU_SYNTHETIC_THRESHOLD)
     execute_ec2_training_performance_test(
         ec2_connection,
         tensorflow_training,
@@ -51,11 +46,8 @@ def test_performance_tensorflow_cpu(tensorflow_training, ec2_connection, cpu_onl
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_performance_tensorflow_gpu_synthetic(tensorflow_training, ec2_connection, gpu_only, tf2_only):
-    threshold = (
-        TENSORFLOW2_TRAINING_GPU_SYNTHETIC_THRESHOLD
-        if is_tf_version("2", tensorflow_training)
-        else TENSORFLOW1_TRAINING_GPU_SYNTHETIC_THRESHOLD
-    )
+    _, framework_version = get_framework_and_version_from_tag(tensorflow_training)
+    threshold = get_threshold_for_image(framework_version, TENSORFLOW_TRAINING_GPU_SYNTHETIC_THRESHOLD)
     execute_ec2_training_performance_test(
         ec2_connection,
         tensorflow_training,
@@ -71,11 +63,8 @@ def test_performance_tensorflow_gpu_synthetic(tensorflow_training, ec2_connectio
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_GPU_INSTANCE_TYPE], indirect=True)
 def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection, gpu_only, tf2_only):
-    threshold = (
-        TENSORFLOW2_TRAINING_GPU_IMAGENET_THRESHOLD
-        if is_tf_version("2", tensorflow_training)
-        else TENSORFLOW1_TRAINING_GPU_IMAGENET_THRESHOLD
-    )
+    _, framework_version = get_framework_and_version_from_tag(tensorflow_training)
+    threshold = get_threshold_for_image(framework_version, TENSORFLOW_TRAINING_GPU_IMAGENET_THRESHOLD)
     execute_ec2_training_performance_test(
         ec2_connection,
         tensorflow_training,

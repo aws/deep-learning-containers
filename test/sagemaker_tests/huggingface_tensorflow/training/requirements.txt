@@ -1,0 +1,33 @@
+boto3
+botocore
+awscli
+junit-xml
+sagemaker>=2.31,<3
+smdebug>=1
+sagemaker-experiments
+numpy
+scipy
+sklearn
+pandas
+Pillow
+h5py
+tox
+flake8
+pytest==5.3.5
+pytest-cov
+pytest-rerunfailures==9.0
+pytest-xdist==1.34.0
+requests==2.24
+mock
+docker-compose
+six==1.15.0
+python-dateutil>=2.1,<2.8.1
+requests-mock
+# test pipemode fails for 2.x containers with module 'tensorflow' has no attribute 'train'
+# without the below package
+tensorflow==2.5.1
+fabric==2.5.0
+retrying==1.3.3
+gitpython
+toml
+

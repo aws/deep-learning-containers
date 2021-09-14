@@ -2,8 +2,12 @@ import os
 
 import pytest
 
+from packaging.version import Version
+
 from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER
-from test.test_utils import get_cuda_version_from_tag
+from test.test_utils import (
+    get_account_id_from_image_uri, get_cuda_version_from_tag, get_region_from_image_uri, login_to_ecr_registry,
+)
 from test.test_utils.ec2 import get_ec2_instance_type
 
 SMCLARIFY_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "test_smclarify_bias_metrics.py")
@@ -11,24 +15,42 @@ SMCLARIFY_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "test_smclarify_bias_met
 SMCLARIFY_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu")
 SMCLARIFY_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.2xlarge", processor="cpu")
 
-# Adding seperate tests to run on cpu instance for cpu image and gpu instance for gpu image.
+
+# Adding separate tests to run on cpu instance for cpu image and gpu instance for gpu image.
 # But the test behavior doesn't change for cpu or gpu image type.
 @pytest.mark.integration("smclarify_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", SMCLARIFY_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_smclarify_metrics_cpu(training, ec2_connection, region, ec2_instance_type, cpu_only, py3_only):
-    run_smclarify_bias_metrics(training, ec2_connection, region, ec2_instance_type)
+def test_smclarify_metrics_cpu(
+    training,
+    ec2_connection,
+    ec2_instance_type,
+    cpu_only,
+    py3_only,
+    tf23_and_above_only,
+    mx18_and_above_only,
+    pt16_and_above_only,
+):
+    run_smclarify_bias_metrics(training, ec2_connection, ec2_instance_type)
 
 
 @pytest.mark.integration("smclarify_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", SMCLARIFY_EC2_GPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.skip(reason="Skipping test because it is flaky on mainline pipeline.")
-def test_smclarify_metrics_gpu(training, ec2_connection, region, ec2_instance_type, gpu_only, py3_only):
+def test_smclarify_metrics_gpu(
+    training,
+    ec2_connection,
+    ec2_instance_type,
+    gpu_only,
+    py3_only,
+    tf23_and_above_only,
+    mx18_and_above_only,
+    pt16_and_above_only,
+):
     image_cuda_version = get_cuda_version_from_tag(training)
-    if image_cuda_version != "cu110":
-        pytest.skip("SmClarify is currently installed in cuda 11 gpu images")
-    run_smclarify_bias_metrics(training, ec2_connection, region, ec2_instance_type)
+    if Version(image_cuda_version.strip("cu")) < Version("110"):
+        pytest.skip("SmClarify is currently installed in cuda 11 gpu images and above")
+    run_smclarify_bias_metrics(training, ec2_connection, ec2_instance_type, docker_executable="nvidia-docker")
 
 
 class SMClarifyTestFailure(Exception):
@@ -38,14 +60,17 @@ class SMClarifyTestFailure(Exception):
 def run_smclarify_bias_metrics(
     image_uri,
     ec2_connection,
-    region,
     ec2_instance_type,
     docker_executable="docker",
     container_name="smclarify",
     test_script=SMCLARIFY_SCRIPT,
 ):
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(image_uri)
+    region = get_region_from_image_uri(image_uri)
+
+    login_to_ecr_registry(ec2_connection, account_id, region)
+    ec2_connection.run(f"docker pull -q {image_uri}")
 
     try:
         ec2_connection.run(

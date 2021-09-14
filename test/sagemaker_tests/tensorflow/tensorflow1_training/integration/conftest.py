@@ -12,15 +12,17 @@
 #  permissions and limitations under the License.
 from __future__ import absolute_import
 
+import json
 import logging
 import os
 
 import boto3
 import pytest
+
+from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
-
-from ..integration import NO_P2_REGIONS, NO_P3_REGIONS, get_ecr_registry
+from ..integration import NO_P2_REGIONS, NO_P3_REGIONS, NO_P4_REGIONS, get_ecr_registry, reupload_image_to_test_ecr
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
@@ -43,6 +45,16 @@ def pytest_addoption(parser):
     parser.addoption('--instance-type', default=None)
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
                      help='use this option to generate test coverage doc')
+    parser.addoption(
+        "--efa", action="store_true", default=False, help="Run only efa tests",
+    )
+
+
+def pytest_runtest_setup(item):
+    if item.config.getoption("--efa"):
+        efa_tests = [mark for mark in item.iter_markers(name="efa")]
+        if not efa_tests:
+            pytest.skip("Skipping non-efa tests")
 
 
 def pytest_collection_modifyitems(session, config, items):
@@ -55,6 +67,7 @@ def pytest_collection_modifyitems(session, config, items):
 def pytest_configure(config):
     os.environ['TEST_PY_VERSIONS'] = config.getoption('--py-version')
     os.environ['TEST_PROCESSORS'] = config.getoption('--processor')
+    config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
 
 @pytest.fixture(scope='session')
@@ -82,6 +95,34 @@ def tag(request, framework_version, processor, py_version):
 @pytest.fixture(scope='session')
 def sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
+
+
+@pytest.fixture(scope='session')
+def n_virginia_region(request):
+    return "us-east-1"
+
+
+@pytest.fixture(scope='session')
+def n_virginia_sagemaker_session(n_virginia_region):
+    return Session(boto_session=boto3.Session(region_name=n_virginia_region))
+
+
+@pytest.fixture
+def efa_instance_type():
+    default_instance_type = "ml.p3dn.24xlarge"
+    return default_instance_type
+
+
+@pytest.fixture
+def n_virginia_ecr_image(ecr_image, n_virginia_region):
+    """
+    It uploads image to n_virginia region and return image uri
+    """
+    image_repo_uri, image_tag = ecr_image.split(":")
+    _, image_repo_name = image_repo_uri.split("/")
+    target_image_repo_name = f"{image_repo_name}"
+    n_virginia_ecr_image = reupload_image_to_test_ecr(ecr_image, target_image_repo_name, n_virginia_region)
+    return n_virginia_ecr_image
 
 
 @pytest.fixture(scope='session')
@@ -125,9 +166,10 @@ def skip_by_device_type(request, processor):
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-    if (region in NO_P2_REGIONS and instance_type.startswith('ml.p2')) or \
-            (region in NO_P3_REGIONS and instance_type.startswith('ml.p3')):
-        pytest.skip('Skipping GPU test in region {}'.format(region))
+    if ((region in NO_P2_REGIONS and instance_type.startswith('ml.p2'))
+        or (region in NO_P3_REGIONS and instance_type.startswith('ml.p3'))
+            or (region in NO_P4_REGIONS and instance_type.startswith('ml.p4'))):
+                pytest.skip('Skipping GPU test in region {}'.format(region))
 
 
 @pytest.fixture
@@ -146,3 +188,55 @@ def skip_py2_containers(request, tag):
 def ecr_image(account_id, docker_base_name, tag, region):
     registry = get_ecr_registry(account_id, region)
     return '{}/{}:{}'.format(registry, docker_base_name, tag)
+
+
+def _get_remote_override_flags():
+    try:
+        s3_client = boto3.client('s3')
+        sts_client = boto3.client('sts')
+        account_id = sts_client.get_caller_identity().get('Account')
+        result = s3_client.get_object(Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json")
+        json_content = json.loads(result["Body"].read().decode('utf-8'))
+    except ClientError as e:
+        logger.warning("ClientError when performing S3/STS operation: {}".format(e))
+        json_content = {}
+    return json_content
+
+
+def _is_test_disabled(test_name, build_name, version):
+    """
+    Expected format of remote_override_flags:
+    {
+        "CB Project Name for Test Type A": {
+            "CodeBuild Resolved Source Version": ["test_type_A_test_function_1", "test_type_A_test_function_2"]
+        },
+        "CB Project Name for Test Type B": {
+            "CodeBuild Resolved Source Version": ["test_type_B_test_function_1", "test_type_B_test_function_2"]
+        }
+    }
+
+    :param test_name: str Test Function node name (includes parametrized values in string)
+    :param build_name: str Build Project name of current execution
+    :param version: str Source Version of current execution
+    :return: bool True if test is disabled as per remote override, False otherwise
+    """
+    remote_override_flags = _get_remote_override_flags()
+    remote_override_build = remote_override_flags.get(build_name, {})
+    if version in remote_override_build:
+        return (
+            not remote_override_build[version]
+            or any([test_keyword in test_name for test_keyword in remote_override_build[version]])
+        )
+    return False
+
+
+@pytest.fixture(autouse=True)
+def disable_test(request):
+    test_name = request.node.name
+    # We do not have a regex pattern to find CB name, which means we must resort to string splitting
+    build_arn = os.getenv("CODEBUILD_BUILD_ARN")
+    build_name = build_arn.split("/")[-1].split(":")[0] if build_arn else None
+    version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+
+    if build_name and version and _is_test_disabled(test_name, build_name, version):
+        pytest.skip(f"Skipping {test_name} test because it has been disabled.")

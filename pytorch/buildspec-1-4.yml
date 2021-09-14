@@ -25,6 +25,9 @@
       start_with_right_hostname:
         source: docker/build_artifacts/start_with_right_hostname.sh
         target: start_with_right_hostname.sh
+      example_mnist_file:
+        source: docker/build_artifacts/mnist.py
+        target: mnist.py
     inference_context: &INFERENCE_CONTEXT
       mms-entrypoint:
         source: docker/build_artifacts/mms-entrypoint.py

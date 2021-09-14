@@ -12,15 +12,18 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import boto3
-import os
+import json
 import logging
+import os
 import platform
-import pytest
 import shutil
 import sys
 import tempfile
 
+import boto3
+import pytest
+
+from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
@@ -56,6 +59,26 @@ NO_P2_REGIONS = [
 NO_P3_REGIONS = [
     "af-south-1",
     "ap-east-1",
+    "ap-northeast-1",
+    "ap-northeast-2",
+    "ap-northeast-3",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ap-south-1",
+    "ca-central-1",
+    "eu-central-1",
+    "eu-north-1",
+    "eu-west-2",
+    "eu-west-3",
+    "eu-south-1",
+    "me-south-1",
+    "sa-east-1",
+    "us-west-1",
+    "cn-northwest-1",
+]
+NO_P4_REGIONS = [
+    "af-south-1",
+    "ap-east-1",
     "ap-northeast-3",
     "ap-southeast-1",
     "ap-southeast-2",
@@ -82,13 +105,28 @@ def pytest_addoption(parser):
     parser.addoption('--docker-base-name', default='pytorch')
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
-    parser.addoption('--py-version', choices=['2', '3'], default=str(sys.version_info.major))
+    parser.addoption('--py-version', choices=['2', '3', '37', '38'], default=str(sys.version_info.major))
     # Processor is still "cpu" for EIA tests
     parser.addoption('--processor', choices=['gpu', 'cpu', 'eia'], default='cpu')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
                      help='use this option to generate test coverage doc')
+    parser.addoption(
+        "--efa", action="store_true", default=False, help="Run only efa tests",
+    )
+    parser.addoption('--sagemaker-region')
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+
+
+def pytest_runtest_setup(item):
+    if item.config.getoption("--efa"):
+        efa_tests = [mark for mark in item.iter_markers(name="efa")]
+        if not efa_tests:
+            pytest.skip("Skipping non-efa tests")
 
 
 def pytest_collection_modifyitems(session, config, items):
@@ -112,6 +150,10 @@ def fixture_region(request):
 def fixture_framework_version(request):
     return request.config.getoption('--framework-version')
 
+@pytest.fixture(scope='session', name='sagemaker_regions')
+def fixture_sagemaker_region(request):
+    sagemaker_regions = request.config.getoption('--sagemaker-region')
+    return sagemaker_regions.split(",")
 
 @pytest.fixture(scope='session', name='py_version')
 def fixture_py_version(request):
@@ -226,20 +268,73 @@ def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
 
 @pytest.fixture(autouse=True)
 def skip_by_py_version(request, py_version):
-    if request.node.get_closest_marker('skip_py2') and py_version != 'py3':
+    if request.node.get_closest_marker('skip_py2') and 'py2' in py_version:
         pytest.skip('Skipping the test because Python 2 is not supported.')
 
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-    if (region in NO_P2_REGIONS and instance_type.startswith('ml.p2')) \
-       or (region in NO_P3_REGIONS and instance_type.startswith('ml.p3')):
-        pytest.skip('Skipping GPU test in region {}'.format(region))
+    if ((region in NO_P2_REGIONS and instance_type.startswith('ml.p2'))
+        or (region in NO_P3_REGIONS and instance_type.startswith('ml.p3'))
+            or (region in NO_P4_REGIONS and instance_type.startswith('ml.p4'))):
+                pytest.skip('Skipping GPU test in region {}'.format(region))
 
 
 @pytest.fixture(autouse=True)
 def skip_gpu_py2(request, use_gpu, instance_type, py_version, framework_version):
     is_gpu = use_gpu or instance_type[3] in ['g', 'p']
-    if request.node.get_closest_marker('skip_gpu_py2') and is_gpu and py_version != 'py3' \
+    if request.node.get_closest_marker('skip_gpu_py2') and is_gpu and 'py2' in py_version \
             and framework_version == '1.4.0':
         pytest.skip('Skipping the test until mms issue resolved.')
+
+
+def _get_remote_override_flags():
+    try:
+        s3_client = boto3.client('s3')
+        sts_client = boto3.client('sts')
+        account_id = sts_client.get_caller_identity().get('Account')
+        result = s3_client.get_object(Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json")
+        json_content = json.loads(result["Body"].read().decode('utf-8'))
+    except ClientError as e:
+        logger.warning("ClientError when performing S3/STS operation: {}".format(e))
+        json_content = {}
+    return json_content
+
+
+def _is_test_disabled(test_name, build_name, version):
+    """
+    Expected format of remote_override_flags:
+    {
+        "CB Project Name for Test Type A": {
+            "CodeBuild Resolved Source Version": ["test_type_A_test_function_1", "test_type_A_test_function_2"]
+        },
+        "CB Project Name for Test Type B": {
+            "CodeBuild Resolved Source Version": ["test_type_B_test_function_1", "test_type_B_test_function_2"]
+        }
+    }
+
+    :param test_name: str Test Function node name (includes parametrized values in string)
+    :param build_name: str Build Project name of current execution
+    :param version: str Source Version of current execution
+    :return: bool True if test is disabled as per remote override, False otherwise
+    """
+    remote_override_flags = _get_remote_override_flags()
+    remote_override_build = remote_override_flags.get(build_name, {})
+    if version in remote_override_build:
+        return (
+            not remote_override_build[version]
+            or any([test_keyword in test_name for test_keyword in remote_override_build[version]])
+        )
+    return False
+
+
+@pytest.fixture(autouse=True)
+def disable_test(request):
+    test_name = request.node.name
+    # We do not have a regex pattern to find CB name, which means we must resort to string splitting
+    build_arn = os.getenv("CODEBUILD_BUILD_ARN")
+    build_name = build_arn.split("/")[-1].split(":")[0] if build_arn else None
+    version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+
+    if build_name and version and _is_test_disabled(test_name, build_name, version):
+        pytest.skip(f"Skipping {test_name} test because it has been disabled.")

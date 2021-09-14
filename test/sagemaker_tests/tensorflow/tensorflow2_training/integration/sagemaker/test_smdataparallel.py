@@ -18,6 +18,7 @@ import pytest
 import sagemaker
 
 from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 from sagemaker.tensorflow import TensorFlow
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
@@ -25,6 +26,30 @@ from test.test_utils import get_framework_and_version_from_tag, get_cuda_version
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 MNIST_PATH = os.path.join(RESOURCE_PATH, 'mnist')
+THROUGHPUT_PATH = os.path.join(RESOURCE_PATH, 'smdataparallel')
+
+
+def validate_or_skip_smdataparallel(ecr_image):
+    if not can_run_smdataparallel(ecr_image):
+        pytest.skip("Data Parallelism is supported on CUDA 11 on TensorFlow 2.3.1 and above")
+
+
+def can_run_smdataparallel(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    return Version(image_framework_version) in SpecifierSet(">=2.3.1") and Version(
+        image_cuda_version.strip("cu")) >= Version("110")
+
+
+def validate_or_skip_smdataparallel_efa(ecr_image):
+    if not can_run_smdataparallel_efa(ecr_image):
+        pytest.skip("EFA is only supported on CUDA 11, and on TensorFlow 2.4.1 or higher")
+
+
+def can_run_smdataparallel_efa(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+    return Version(image_framework_version) in SpecifierSet(">=2.4.1") and Version(image_cuda_version.strip("cu")) >= Version("110")
 
 
 @pytest.mark.integration("smdataparallel")
@@ -33,29 +58,25 @@ MNIST_PATH = os.path.join(RESOURCE_PATH, 'mnist')
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_distributed_training_smdataparallel_script_mode(
-    sagemaker_session, instance_type, ecr_image, tmpdir, framework_version
+    n_virginia_sagemaker_session, instance_type, n_virginia_ecr_image, tmpdir, framework_version
 ):
     """
     Tests SMDataParallel single-node command via script mode
-
-    TODO: Enable debugger_hook_config post smdebug support for smdataparallel
     """
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if Version(image_framework_version) != Version("2.3.1") or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on TensorFlow 2.3")
+    validate_or_skip_smdataparallel(n_virginia_ecr_image)
     instance_type = "ml.p3.16xlarge"
+    distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
     estimator = TensorFlow(
         entry_point='smdataparallel_mnist_script_mode.sh',
         source_dir=MNIST_PATH,
         role='SageMakerRole',
         instance_type=instance_type,
         instance_count=1,
-        image_uri=ecr_image,
+        image_uri=n_virginia_ecr_image,
         framework_version=framework_version,
         py_version='py3',
-        debugger_hook_config=False,
-        sagemaker_session=sagemaker_session)
+        sagemaker_session=n_virginia_sagemaker_session,
+        distribution=distribution)
 
     estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel'))
 
@@ -66,24 +87,57 @@ def test_distributed_training_smdataparallel_script_mode(
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
-@pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p3dn.24xlarge"])
-def test_smdataparallel_mnist(instance_types, ecr_image, py_version, sagemaker_session, tmpdir):
+@pytest.mark.efa()
+@pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p4d.24xlarge"])
+def test_smdataparallel_mnist(instance_types, n_virginia_ecr_image, py_version, n_virginia_sagemaker_session, tmpdir):
     """
     Tests smddprun command via Estimator API distribution parameter
     """
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if Version(image_framework_version) != Version("2.3.1") or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on TensorFlow 2.3")
+    validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
+
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
     estimator = TensorFlow(entry_point='smdataparallel_mnist.py',
                            role='SageMakerRole',
-                           image_uri=ecr_image,
+                           image_uri=n_virginia_ecr_image,
                            source_dir=MNIST_PATH,
                            instance_count=2,
                            instance_type=instance_types,
-                           sagemaker_session=sagemaker_session,
-                           debugger_hook_config=False,
+                           sagemaker_session=n_virginia_sagemaker_session,
                            distribution=distribution)
 
+    estimator.fit(job_name=unique_name_from_base('test-tf-smdataparallel-multi'))
+
+
+@pytest.mark.processor("gpu")
+@pytest.mark.skip_cpu
+@pytest.mark.multinode(2)
+@pytest.mark.integration("smdataparallel")
+@pytest.mark.model("N/A")
+@pytest.mark.skip_py2_containers
+@pytest.mark.efa()
+@pytest.mark.parametrize('instance_types', ["ml.p4d.24xlarge"])
+def test_smdataparallel_throughput(instance_types, n_virginia_ecr_image, py_version, n_virginia_sagemaker_session, tmpdir):
+    """
+    Tests smddprun throughput
+    """
+    validate_or_skip_smdataparallel_efa(n_virginia_ecr_image)
+    hyperparameters = {
+        "size": 64,
+        "num_tensors": 20,
+        "iterations": 100,
+        "warmup": 10,
+        "bucket_size": 25,
+        "info": "TF-{}-N{}".format(instance_types, 2)
+    }
+
+    distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
+    estimator = TensorFlow(entry_point='smdataparallel_throughput.py',
+                           role='SageMakerRole',
+                           image_uri=n_virginia_ecr_image,
+                           source_dir=THROUGHPUT_PATH,
+                           instance_count=2,
+                           instance_type=instance_types,
+                           sagemaker_session=n_virginia_sagemaker_session,
+                           hyperparameters=hyperparameters,
+                           distribution=distribution)
     estimator.fit()

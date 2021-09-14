@@ -22,7 +22,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 # Define framework-related package sources
 ARG TF_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.3/AmazonLinux/gpu/final/tensorflow_gpu-1.15.3-cp27-cp27mu-manylinux2010_x86_64.whl
 
-ARG OPENSSL_VERSION=1.1.1g
+ARG OPENSSL_VERSION=1.1.1k
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated \
@@ -182,4 +182,4 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 
-CMD ["bin/bash"]
+CMD ["/bin/bash"]

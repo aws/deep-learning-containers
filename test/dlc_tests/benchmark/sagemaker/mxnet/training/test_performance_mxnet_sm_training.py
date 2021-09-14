@@ -1,13 +1,17 @@
-import random
 import os
-import re
 import time
 
 import pytest
 
 from invoke.context import Context
-from src.benchmark_metrics import MXNET_TRAINING_GPU_IMAGENET_ACCURACY_THRESHOLD, MXNET_TRAINING_GPU_IMAGENET_LATENCY_THRESHOLD
-from test.test_utils import BENCHMARK_RESULTS_S3_BUCKET, LOGGER
+from src.benchmark_metrics import (
+    MXNET_TRAINING_GPU_IMAGENET_ACCURACY_THRESHOLD,
+    MXNET_TRAINING_GPU_IMAGENET_LATENCY_THRESHOLD,
+    get_threshold_for_image,
+)
+from test.test_utils import (
+    BENCHMARK_RESULTS_S3_BUCKET, LOGGER, get_framework_and_version_from_tag, get_cuda_version_from_tag,
+)
 
 
 # This test can also be performed for 1 node, but it takes a very long time, and CodeBuild job may expire before the
@@ -18,7 +22,7 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
     """
     Run MX sagemaker training performance test
 
-    Additonal context: Setup for this function is performed by 'setup_sm_benchmark_mx_train_env' -- this installs
+    Additional context: Setup for this function is performed by 'setup_sm_benchmark_mx_train_env' -- this installs
     some prerequisite packages, pulls required script, and creates a virtualenv called sm_benchmark_venv.
 
     The training script mxnet_imagenet_resnet50.py is invoked via a shell script smtrain-resnet50-imagenet.sh
@@ -32,16 +36,17 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
     :param num_nodes: Number of nodes to run on
     :param region: AWS region
     """
-    framework_version = re.search(r"\d+(\.\d+){2}", mxnet_training).group()
+    _, framework_version = get_framework_and_version_from_tag(mxnet_training)
+    device_cuda_str = f"gpu-{get_cuda_version_from_tag(mxnet_training)}"
     py_version = "py37" if "py37" in mxnet_training else "py2" if "py2" in mxnet_training else "py3"
     ec2_instance_type = "p3.16xlarge"
 
     time_str = time.strftime('%Y-%m-%d-%H-%M-%S')
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "manual")
     target_upload_location = os.path.join(
-        BENCHMARK_RESULTS_S3_BUCKET, "mxnet", framework_version, "sagemaker", "training", "gpu", py_version
+        BENCHMARK_RESULTS_S3_BUCKET, "mxnet", framework_version, "sagemaker", "training", device_cuda_str, py_version
     )
-    training_job_name = f"mx-tr-bench-gpu-{num_nodes}-node-{py_version}-{commit_info[:7]}-{time_str}"
+    training_job_name = f"mx-tr-bench-{device_cuda_str}-{num_nodes}-node-{py_version}-{commit_info[:7]}-{time_str}"
 
     test_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "resources")
     venv_dir = os.path.join(test_dir, "sm_benchmark_venv")
@@ -77,13 +82,13 @@ def test_mxnet_sagemaker_training_performance(mxnet_training, num_nodes, region,
 
     result_statement, time_val, accuracy = _print_results_of_test(os.path.join(test_dir, log_file))
 
-    accuracy_threshold = MXNET_TRAINING_GPU_IMAGENET_ACCURACY_THRESHOLD
+    accuracy_threshold = get_threshold_for_image(framework_version, MXNET_TRAINING_GPU_IMAGENET_ACCURACY_THRESHOLD)
     assert accuracy > accuracy_threshold, (
         f"mxnet {framework_version} sagemaker training {py_version} imagenet {num_nodes} nodes "
         f"Benchmark Result {accuracy} does not reach the threshold accuracy {accuracy_threshold}"
     )
 
-    time_threshold = MXNET_TRAINING_GPU_IMAGENET_LATENCY_THRESHOLD
+    time_threshold = get_threshold_for_image(framework_version, MXNET_TRAINING_GPU_IMAGENET_LATENCY_THRESHOLD)
     assert time_val < time_threshold, (
         f"mxnet {framework_version} sagemaker training {py_version} imagenet {num_nodes} nodes "
         f"Benchmark Result {time_val} does not reach the threshold latency {time_threshold}"

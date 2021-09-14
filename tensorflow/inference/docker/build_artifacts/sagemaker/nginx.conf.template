@@ -18,7 +18,7 @@ http {
   js_include tensorflow-serving.js;
 
   upstream tfs_upstream {
-    server localhost:%TFS_REST_PORT%;
+    %TFS_UPSTREAM%;
   }
 
   upstream gunicorn_upstream {

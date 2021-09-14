@@ -10,7 +10,7 @@ from invoke.context import Context
 from retrying import retry
 
 import test.test_utils.eks as eks_utils
-from test.test_utils import is_pr_context, SKIP_PR_REASON
+from test.test_utils import is_pr_context, SKIP_PR_REASON, is_below_framework_version
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 
@@ -34,8 +34,35 @@ def test_eks_pytorch_single_node_training(pytorch_training):
 
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-{rand_int}"
+    # Workaround for https://github.com/pytorch/vision/issues/1938 and https://github.com/pytorch/vision/issues/3549
+    mnist_dataset_download_config = '''
+      FILE=new_main.py &&
+      echo "from __future__ import print_function" > $FILE &&
+      echo "from six.moves import urllib" >> $FILE &&
+      echo "from packaging.version import Version" >> $FILE &&
+      echo "opener = urllib.request.build_opener()" >> $FILE &&
+      echo "opener.addheaders = [('User-agent', 'Mozilla/5.0')]" >> $FILE &&
+      echo "urllib.request.install_opener(opener)" >> $FILE &&
+      echo "import torchvision" >> $FILE &&
+      echo "from torchvision import datasets, transforms" >> $FILE &&
+      echo "# from torchvision 0.9.1, 2 candidate mirror website links will be added before resources items automatically" >> $FILE &&
+      echo "# Reference PR https://github.com/pytorch/vision/pull/3559" >> $FILE &&
+      echo "TORCHVISION_VERSION = '0.9.1'" >> $FILE &&
+      echo "if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):" >> $FILE &&
+      echo "    datasets.MNIST.resources = [" >> $FILE &&
+      echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz', 'f68b3c2dcbeaaa9fbdd348bbdeb94873')," >> $FILE &&
+      echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-labels-idx1-ubyte.gz', 'd53e105ee54ea40749a09fcbcd1e9432')," >> $FILE &&
+      echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz', '9fb629c4189551a2d022fa330f9573f3')," >> $FILE &&
+      echo "          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz', 'ec29112dd5afa0611ce80d1b7f02629c')" >> $FILE &&
+      echo "          ]" >> $FILE &&
+      sed -i '1d' examples/mnist/main.py &&
+      sed -i '6d' examples/mnist/main.py &&
+      cat examples/mnist/main.py >> $FILE &&
+      rm examples/mnist/main.py &&
+      mv $FILE examples/mnist/main.py
+    '''
 
-    args = "git clone https://github.com/pytorch/examples.git && python examples/mnist/main.py"
+    args = f"git clone https://github.com/pytorch/examples.git && {mnist_dataset_download_config}  && python examples/mnist/main.py"
 
     # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
     cpu_limit = 72
@@ -67,6 +94,62 @@ def test_eks_pytorch_single_node_training(pytorch_training):
         run("kubectl delete pods {}".format(pod_name))
 
 
+@pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline")
+@pytest.mark.model("resnet18")
+@pytest.mark.integration("pt_s3_plugin")
+def test_eks_pt_s3_plugin_single_node_training(pytorch_training, pt17_and_above_only):
+    """
+    Function to create a pod using kubectl and given container image, and run MXNet training
+    Args:
+        :param setup_utils: environment in which EKS tools are setup
+        :param pytorch_training: the ECR URI
+    """
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    if Version(image_framework_version) < Version("1.8"):
+        pytest.skip("S3 plugin is supported on PyTorch version >=1.8")
+
+    training_result = False
+
+    rand_int = random.randint(4001, 6000)
+
+    yaml_path = os.path.join(os.sep, "tmp", f"pytorch_s3_single_node_training_{rand_int}.yaml")
+    pod_name = f"pytorch-s3-single-node-training-{rand_int}"
+
+    args = f"git clone https://github.com/aws/amazon-s3-plugin-for-pytorch.git && python amazon-s3-plugin-for-pytorch/examples/s3_imagenet_example.py"
+
+    # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
+    cpu_limit = 96
+    cpu_limit = str(int(cpu_limit) / 2)
+
+    if "gpu" in pytorch_training:
+        args = args + " --gpu 0"
+  
+    search_replace_dict = {
+        "<POD_NAME>": pod_name,
+        "<CONTAINER_NAME>": pytorch_training,
+        "<ARGS>": args,
+        "<CPU_LIMIT>": cpu_limit,
+    }
+
+    eks_utils.write_eks_yaml_file_from_template(
+        eks_utils.SINGLE_NODE_TRAINING_TEMPLATE_PATH, yaml_path, search_replace_dict
+    )
+
+    try:
+        run("kubectl create -f {}".format(yaml_path))
+
+        if eks_utils.is_eks_training_complete(pod_name):
+            pytorch_out = run("kubectl logs {}".format(pod_name)).stdout
+            if "Acc" in pytorch_out:
+                training_result = True
+            else:
+                eks_utils.LOGGER.info("**** training output ****")
+                eks_utils.LOGGER.debug(pytorch_out)
+        assert training_result, f"Training failed"
+    finally:
+        run("kubectl delete pods {}".format(pod_name))
+
+
 @pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
@@ -89,7 +172,10 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"pytorch-single-node-training-dgl-{rand_int}"
 
-    dgl_branch = "0.5.x"
+    if is_below_framework_version("1.7", pytorch_training, "pytorch"):
+        dgl_branch = "0.4.x"
+    else:
+        dgl_branch = "0.5.x"
 
     args = (
         f"git clone -b {dgl_branch} https://github.com/dmlc/dgl.git && "

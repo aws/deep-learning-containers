@@ -7,17 +7,44 @@
 # or in the "LICENSE.txt" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 from __future__ import print_function
+# Hack to add mnist dataset download https://github.com/pytorch/vision/issues/3497
+from six.moves import urllib
+opener = urllib.request.build_opener()
+opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+urllib.request.install_opener(opener)
+
 import argparse
 import time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import torchvision
+from packaging.version import Version
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 from smdistributed.dataparallel.torch.parallel.distributed import DistributedDataParallel as DDP
 import smdistributed.dataparallel.torch.distributed as dist
 dist.init_process_group()
+
+# from torchvision 0.9.1, 2 candidate mirror website links will be added before "resources" items automatically
+# Reference PR: https://github.com/pytorch/vision/pull/3559
+TORCHVISION_VERSION = "0.9.1"
+if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
+    datasets.MNIST.resources = [
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz',
+         'f68b3c2dcbeaaa9fbdd348bbdeb94873'),
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-labels-idx1-ubyte.gz',
+         'd53e105ee54ea40749a09fcbcd1e9432'),
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz',
+         '9fb629c4189551a2d022fa330f9573f3'),
+        ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz',
+         'ec29112dd5afa0611ce80d1b7f02629c')
+    ]
+else:
+    datasets.MNIST.mirrors = [
+        'https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/'
+    ]
 
 class Net(nn.Module):
     def __init__(self):
@@ -125,19 +152,26 @@ def main():
 
     device = torch.device("cuda")
 
-    if local_rank == 0:
-        train_dataset = datasets.MNIST(data_path, train=True, download=True,
-                       transform=transforms.Compose([
-                           transforms.ToTensor(),
-                           transforms.Normalize((0.1307,), (0.3081,))
-                       ]))
-    else:
-        time.sleep(8)
-        train_dataset = datasets.MNIST(data_path, train=True, download=False,
-                       transform=transforms.Compose([
-                           transforms.ToTensor(),
-                           transforms.Normalize((0.1307,), (0.3081,))
-                       ]))
+    is_first_local_rank = (local_rank == 0)
+    if is_first_local_rank:
+        train_dataset = datasets.MNIST(data_path,
+                                       train=True,
+                                       download=True,
+                                       transform=transforms.Compose([
+                                           transforms.ToTensor(),
+                                           transforms.Normalize((0.1307, ),
+                                                                (0.3081, ))
+                                       ]))
+    dist.barrier()  # prevent other ranks from accessing the data early
+    if not is_first_local_rank:
+        train_dataset = datasets.MNIST(data_path,
+                                       train=True,
+                                       download=False,
+                                       transform=transforms.Compose([
+                                           transforms.ToTensor(),
+                                           transforms.Normalize((0.1307, ),
+                                                                (0.3081, ))
+                                       ]))
 
     train_sampler = torch.utils.data.distributed.DistributedSampler(
             train_dataset,

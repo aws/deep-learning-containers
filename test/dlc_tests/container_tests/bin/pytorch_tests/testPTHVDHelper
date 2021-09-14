@@ -12,7 +12,39 @@ TRAINING_LOG=${LOG_DIR}/pytorch_train_mnist_with_horovod.log
 
 echo "Training mnist using PyTorch with Horovod... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
 set +e
-python examples/pytorch_mnist.py >$TRAINING_LOG 2>&1
+
+cd examples
+# ============================================================
+# Workaround for https://github.com/pytorch/vision/issues/1938
+FILE=new_pytorch_mnist.py
+cat <<EOT >> $FILE
+from __future__ import print_function
+from six.moves import urllib
+opener = urllib.request.build_opener()
+opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+urllib.request.install_opener(opener)
+import torchvision
+from torchvision import datasets, transforms
+from packaging.version import Version
+
+# from torchvision 0.9.1, 2 candidate mirror website links will be added before resources items automatically
+# Reference PR: https://github.com/pytorch/vision/pull/3559
+TORCHVISION_VERSION = "0.9.1"
+if Version(torchvision.__version__) < Version(TORCHVISION_VERSION):
+    datasets.MNIST.resources = [
+          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-images-idx3-ubyte.gz', 'f68b3c2dcbeaaa9fbdd348bbdeb94873'),
+          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/train-labels-idx1-ubyte.gz', 'd53e105ee54ea40749a09fcbcd1e9432'),
+          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-images-idx3-ubyte.gz', '9fb629c4189551a2d022fa330f9573f3'),
+          ('https://dlinfra-mnist-dataset.s3-us-west-2.amazonaws.com/mnist/t10k-labels-idx1-ubyte.gz', 'ec29112dd5afa0611ce80d1b7f02629c')
+          ]
+EOT
+sed -i '1d' pytorch_mnist.py
+sed -i '5d' pytorch_mnist.py
+cat pytorch_mnist.py >> $FILE
+rm pytorch_mnist.py
+mv $FILE pytorch_mnist.py
+
+python pytorch_mnist.py >$TRAINING_LOG 2>&1
 RETURN_VAL=`echo $?`
 set -e
 
@@ -28,7 +60,7 @@ TRAINING_LOG=${LOG_DIR}/pytorch_test_synthetic_benchmark.log
 
 echo "Testing synthetic benchmark using PyTorch with Horovod... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
 set +e
-python examples/pytorch_synthetic_benchmark.py >$TRAINING_LOG 2>&1
+python pytorch_synthetic_benchmark.py >$TRAINING_LOG 2>&1
 RETURN_VAL=`echo $?`
 set -e
 
