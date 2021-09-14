@@ -76,8 +76,7 @@ function create_node_group(){
     --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=inf,k8s.io/cluster-autoscaler/node-template/resources/aws.amazon.com/neuron=1" \
     --asg-access \
     --ssh-access \
-    --ssh-public-key "${3}" \
-    --install-neuron-plugin=false
+    --ssh-public-key "${3}"
 
 }
 
