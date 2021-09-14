@@ -87,10 +87,6 @@ RUN apt-get update \
     unzip \
     zlib1g-dev \
     jq \
-    # PyHive Dependencies
-    && apt-get install -y -qq libsasl2-dev libsasl2-modules \
-    # EMR connection - kerberos case
-    && apt-get install -y -qq krb5-user \
  && rm -rf /var/lib/apt/lists/*
 
 RUN cd /tmp \
@@ -200,14 +196,6 @@ RUN pip install --no-cache-dir -U \
     cmake==3.18.2.post1 \
     torchnet \
     "cryptography>3.2" \
-    # Install PyHive, Sparkmagic and Astra libraries
-    "boto3>1.0<2.0" \
-    "sasl<1" \
-    "thrift_sasl<1" \
-    "PyHive<1"
-    "sparkmagic<1" \
-    "sagemaker-studio-sparkmagic-lib<1" \
-    "sagemaker-studio-analytics-extension<1" \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
