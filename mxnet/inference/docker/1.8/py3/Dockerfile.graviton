@@ -98,14 +98,14 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
  && chown -R model-server /home/model-server
 
-COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-COPY config.properties /home/model-server
+# COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+# COPY config.properties /home/model-server
 
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+# RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+# COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
-RUN chmod +x /usr/local/bin/deep_learning_container.py
+# RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -119,6 +119,6 @@ RUN HOME_DIR=/root \
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.8.0/license.txt -o /license.txt
 
 EXPOSE 8080 8081
-ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
+# ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+# CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
 
