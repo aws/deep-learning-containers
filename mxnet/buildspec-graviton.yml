@@ -20,11 +20,14 @@
       entrypoint:
         source: docker/artifacts/entrypoint.sh
         target:  entrypoint.sh
+      deep_learning_container:
+      source: ../../src/deep_learning_container.py
+      target: deep_learning_container.py
 
   images:
     BuildGravitonMXNetInferencePy3DockerImage:
       <<: *INFERENCE_REPOSITORY
-      build: &MXNET_INF_INFERENCE_PY3 false
+      build: &MXNET_GRAVITON_INFERENCE_PY3 false
       image_size_baseline: 10000
       device_type: &DEVICE_TYPE graviton
       python_version: &DOCKER_PYTHON_VERSION py3
