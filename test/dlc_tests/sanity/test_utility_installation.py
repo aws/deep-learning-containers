@@ -35,6 +35,7 @@ def test_awscli(mxnet_inference):
     test_utils.run_cmd_on_container(container_name, ctx, "aws --version")
 
 
+@pytest.mark.usefixtures("huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("utility pacakges")
 def test_utility_packages_using_import(training):
@@ -51,8 +52,10 @@ def test_utility_packages_using_import(training):
     utility_package_minimum_framework_version = {
         "mxnet": "1.8",
         "pytorch": "1.7",
+        "huggingface_pytorch": "1.7",
         "tensorflow2": "2.4",
         "tensorflow1": "1.15",
+        "huggingface_tensorflow": "2.4",
     }
 
     if framework == "tensorflow":
