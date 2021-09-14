@@ -16,7 +16,7 @@ ARG PYTHON=python3
 RUN pip install --no-cache-dir \ 
 	transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \ 
 	datasets==${DATASETS_VERSION} \
-	 # TODO: Remove upgrade statements once packages are updated in base image
+	# TODO: Remove upgrade statements once packages are updated in base image
 	"Pillow>=8.3.2"
 	
 RUN apt-get update \
