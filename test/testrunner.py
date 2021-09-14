@@ -21,9 +21,11 @@ from test_utils import (
     get_dlc_images,
     is_pr_context,
     is_benchmark_dev_context,
+    is_rc_test_context,
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
     setup_sm_benchmark_mx_train_env,
+    setup_sm_benchmark_hf_infer_env,
     get_framework_and_version_from_tag,
     get_build_context
 )
@@ -44,12 +46,17 @@ def run_sagemaker_local_tests(images):
         return
     # Run sagemaker Local tests
     framework, _ = get_framework_and_version_from_tag(images[0])
-    sm_tests_path = os.path.join("test", "sagemaker_tests", framework)
+    sm_tests_path = (
+        os.path.join("test", "sagemaker_tests", framework)
+        if "huggingface" not in framework
+        else os.path.join("test", "sagemaker_tests", "huggingface*")
+    )
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
-    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
-    for image in images:
-        sm_utils.execute_local_tests(image, ec2_client)
+
+    pool_number = len(images)
+    with Pool(pool_number) as p:
+        p.map(sm_utils.execute_local_tests, images)
 
 
 def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
@@ -190,7 +197,10 @@ def pull_dlc_images(images):
 
 def setup_sm_benchmark_env(dlc_images, test_path):
     # The plan is to have a separate if/elif-condition for each type of image
-    if "tensorflow-training" in dlc_images:
+    if re.search(r"huggingface-(tensorflow|pytorch|mxnet)-inference", dlc_images):
+        resources_location = os.path.join(test_path, "huggingface", "inference", "resources")
+        setup_sm_benchmark_hf_infer_env(resources_location)
+    elif "tensorflow-training" in dlc_images:
         tf1_images_in_list = re.search(r"tensorflow-training:(^ )*1(\.\d+){2}", dlc_images) is not None
         tf2_images_in_list = re.search(r"tensorflow-training:(^ )*2(\.\d+){2}", dlc_images) is not None
         resources_location = os.path.join(test_path, "tensorflow", "training", "resources")
@@ -230,6 +240,8 @@ def main():
     # Define constants
     start_time = datetime.now()
     test_type = os.getenv("TEST_TYPE")
+
+    efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
     LOGGER.info(f"Images tested: {dlc_images}")
@@ -240,9 +252,27 @@ def main():
     eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
+
+    # In PR context, allow us to switch sagemaker tests to RC tests.
+    # Do not allow them to be both enabled due to capacity issues.
+    if specific_test_type == "sagemaker" and is_rc_test_context() and is_pr_context():
+        specific_test_type = "release_candidate_integration"
+
     test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
-    if specific_test_type in ("sanity", "ecs", "ec2", "eks", "canary", "bai"):
+    # Skipping non HuggingFace/AG specific tests to execute only sagemaker tests
+    is_hf_image_present = any("huggingface" in image_uri for image_uri in all_image_list)
+    is_ag_image_present = any("autogluon" in image_uri for image_uri in all_image_list)
+    if (is_hf_image_present or is_ag_image_present) and specific_test_type in ("ecs", "ec2", "eks", "bai"):
+        # Creating an empty file for because codebuild job fails without it
+        LOGGER.info(f"NOTE: {specific_test_type} tests not supported on HF or AG. Skipping...")
+        report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+        sm_utils.generate_empty_report(report, test_type, "huggingface")
+        return
+
+    if specific_test_type in (
+            "sanity", "ecs", "ec2", "eks", "canary", "bai", "quick_checks", "release_candidate_integration"
+    ):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
         # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.
@@ -331,8 +361,10 @@ def main():
 
             pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
-        if specific_test_type == "canary":
-            pytest_cmds = [["-s", "-rA", f"--junitxml={report}", "-n=auto", "--canary", "--ignore=container_tests/"]]
+        if specific_test_type in ("canary", "quick_checks"):
+            pytest_cmds = [
+                ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
+            ]
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
@@ -354,6 +386,8 @@ def main():
 
             setup_sm_benchmark_env(dlc_images, test_path)
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
+            if not is_pr_context():
+                pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
             sys.exit(pytest.main(pytest_cmd))
 
         else:

@@ -4,7 +4,8 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL dlc_major_version="1"
 
 # Add arguments to achieve the version, python and url
-ARG PYTHON_VERSION=3.6.6
+ARG PYTHON=python3
+ARG PYTHON_VERSION=3.6.13
 ARG PYTORCH_VERSION=1.5.1
 ARG TORCHVISION_VERSION=0.6.1
 ARG GRAPHVIZ_VERSION=0.13.2
@@ -37,6 +38,7 @@ RUN apt-get update \
     openjdk-8-jdk-headless \
     vim \
     wget \
+    unzip \
     zlib1g-dev
 
 # Install OpenSSH. Allow OpenSSH to talk to containers without asking for confirmation
@@ -53,8 +55,12 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
  && /opt/conda/bin/conda update conda \
- && /opt/conda/bin/conda install -y \
+ && /opt/conda/bin/conda install -c \
+    conda-forge \
     python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -y \
+    # conda 4.9.2 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.100 \
     cython==0.29.12 \
     ipython==7.7.0 \
     numpy==1.19.1 \
@@ -77,10 +83,10 @@ RUN conda install -c \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  # Torchvision wheel must be installed first, so that PyTorch-EI framework is not overwritten.
  && pip install https://download.pytorch.org/whl/cpu/torchvision-0.6.1%2Bcpu-cp36-cp36m-linux_x86_64.whl \
- && pip install http://amazonei-pytorcheia.s3.amazonaws.com/releases/v1.0.0/torcheia-1.0.0-cp36-cp36m-manylinux1_x86_64.whl \ 
+ && pip install http://amazonei-pytorcheia.s3.amazonaws.com/releases/v1.0.0/torcheia-1.0.0-cp36-cp36m-manylinux1_x86_64.whl \
  && pip install graphviz==$GRAPHVIZ_VERSION \
  && pip install multi-model-server==$MMS_VERSION \
- && pip install pillow==7.2.0 \
+ && pip install pillow==8.2.0 \
  # pyOpenSSL requires cryptography>=2.3, but all versions <3.3 have vulnerabilities
  && pip install -U "cryptography>=3.3"
 
@@ -95,9 +101,18 @@ RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference<2"
 
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.1/license.txt -o /license.txt
 
-RUN conda install -y -c conda-forge pyyaml==5.3.1 \
+RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5" \
  && pip install -U \
     "awscli<2"
 
@@ -108,6 +123,8 @@ RUN wget https://amazonei-tools.s3.amazonaws.com/v${HEALTH_CHECK_VERSION}/ei_too
  && mkdir -p /opt/ei_health_check/bin \
  && ln -s /opt/ei_tools/bin/health_check /opt/ei_health_check/bin/health_check \
  && ln -s /opt/ei_tools/lib /opt/ei_health_check/lib
+
+COPY default_inference_handler.py /opt/conda/lib/python3.6/site-packages/sagemaker_pytorch_serving_container/default_inference_handler.py
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]

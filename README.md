@@ -237,7 +237,7 @@ Example:
        ```
    * Login into the ECR repo where the new docker images built exist
        ```shell script
-       $(aws ecr get-login --no-include-email --registry-ids {aws_id} --region {aws_region})
+       $(aws ecr get-login --no-include-email --registry-ids ${aws_id} --region ${aws_region})
        ```
    * Change to the appropriate directory (sagemaker_tests/{framework}/{job_type}) based on framework and job type of the image being tested.
        The example below refers to testing mxnet_training images
@@ -248,14 +248,14 @@ Example:
    * To run the SageMaker local integration tests (aside from tensorflow_inference), use the pytest command below:
        ```shell script
        python3 -m pytest -v integration/local --region us-west-2 \
-       --docker-base-name {aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/beta-mxnet-inference \
+       --docker-base-name ${aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/mxnet-inference \
         --tag 1.6.0-cpu-py36-ubuntu18.04 --framework-version 1.6.0 --processor cpu \
         --py-version 3
        ```
    * To test tensorflow_inference py3 images, run the command below:
      ```shell script
      python3 -m  pytest -v integration/local \
-     --docker-base-name {aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference \
+     --docker-base-name ${aws_account_id}.dkr.ecr.us-west-2.amazonaws.com/tensorflow-inference \
      --tag 1.15.2-cpu-py36-ubuntu16.04 --framework-version 1.15.2 --processor cpu
      ```
 8. To run SageMaker remote tests on your account please setup following pre-requisites
@@ -274,14 +274,14 @@ Example:
        ```shell script
        pytest integration/sagemaker/test_mnist.py \
        --region us-west-2 --docker-base-name mxnet-training \
-       --tag training-gpu-py3-1.6.0 --aws-id {aws_id} \
+       --tag training-gpu-py3-1.6.0 --framework-version 1.6.0 --aws-id {aws_id} \
        --instance-type ml.p3.8xlarge
        ```
    * For tensorflow_inference py3 images run the below command
       ```shell script
       python3 -m pytest test/integration/sagemaker/test_tfs. --registry {aws_account_id} \
       --region us-west-2  --repo tensorflow-inference --instance-types ml.c5.18xlarge \
-      --tag 1.15.2-py3-cpu-build
+      --tag 1.15.2-py3-cpu-build --versions 1.15.2
       ```
 9. To run SageMaker benchmark tests on your account please perform the following steps:
     * Create a file named `sm_benchmark_env_settings.config` in the deep-learning-containers/ folder

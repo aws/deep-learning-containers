@@ -1,46 +1,81 @@
 ---
 pip_packages:
+  - apex
+  - autogluon
+  - autogluon-contrib-nlp
+  - autogluon.core
+  - autogluon.extra
+  - autogluon.features
+  - autogluon.mxnet
+  - autogluon.tabular
+  - autogluon.text
+  - autogluon.vision
+  - awscli
+  - awsio
+  - boto3
+  - botocore
+  - catboost
+  - datasets
+  - dgl
+  - fastai
+  - gluoncv
+  - h5py
+  - horovod
+  - lightgbm
+  - multi-model-server
   - mxnet
-  - tensorflow
-  - tensorflow-gpu
+  - mxnet-model-server
+  - numpy
+  - opencv-python
+  - pandas
+  - pillow
   - pytorch
+  - requests
+  - s3fs
+  - s3transfer
+  - sagemaker
+  - sagemaker-experiments
+  - sagemaker-inference
+  - sagemaker-mxnet-inference
+  - sagemaker-mxnet-training
+  - sagemaker-pytorch-inference
+  - sagemaker-pytorch-training
+  - sagemaker-tensorflow
+  - sagemaker-tensorflow-inference
+  - sagemaker-tensorflow-training
+  - sagemaker-training
+  - scikit-learn
+  - scipy
+  - seaborn
+  - smclarify
+  - smdebug
+  - smdebug-rulesconfig
+  - smdistributed-dataparallel
+  - smdistributed-modelparallel
+  - spacy
+  - tensorflow
+  - tensorflow-addons
+  - tensorflow-gpu
   - tensorflow-library
   - tensorflow-serving-api
   - tensorflow-serving-api-gpu
-  - smdebug
-  - sagemaker
-  - sagemaker-experiments
-  - sagemaker-tensorflow
-  - sagemaker-mxnet-training
-  - sagemaker-tensorflow-training
-  - sagemaker-pytorch-training
-  - sagemaker-inference
-  - sagemaker-mxnet-inference
-  - sagemaker-tensorflow-inference
-  - sagemaker-pytorch-inference
-  - mxnet-model-server
-  - multi-model-server
-  - dgl
-  - awscli
-  - numpy
-  - horovod
-  - scipy
-  - scikit-learn
-  - pandas
-  - pillow
-  - h5py
-  - fastai
-  - requests
+  - tokenizers
+  - torch
+  - torchaudio
+  - torchnet
+  - torchvision
+  - transformers
+  - xgboost
 apt_packages:
   - cuda-command-line-tools
   - cuda-cufft
   - cuda-curand
   - cuda-cusolver
   - cuda-cuparse
+  - emacs
+  - libcublas
   - libcudnn
+  - libgcc
   - libnccl
   - libnccl-dev
-  - libcublas
   - libstdc++
-  - libgcc
-  - emacs

@@ -13,7 +13,7 @@
 from __future__ import absolute_import
 
 import os
-
+import re
 import boto3
 import pytest
 from sagemaker.tensorflow import TensorFlow
@@ -41,9 +41,9 @@ def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
                            sagemaker_session=sagemaker_session,
                            image_uri=ecr_image,
                            framework_version=framework_version)
-    
+
     estimator = _disable_sm_profiler(sagemaker_session.boto_region_name, estimator)
-    
+
     inputs = estimator.sagemaker_session.upload_data(
         path=os.path.join(resource_path, 'mnist', 'data'),
         key_prefix='scriptmode/mnist')
@@ -76,22 +76,22 @@ def test_distributed_mnist_no_ps(sagemaker_session, ecr_image, instance_type, fr
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
 def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, framework_version):
+    print('ecr image used for training', ecr_image)
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
-    script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
+    script = os.path.join(resource_path, 'mnist', 'mnist_estimator2.py')
     estimator = TensorFlow(entry_point=script,
                            role='SageMakerRole',
-                           hyperparameters={'sagemaker_parameter_server_enabled': True},
-                           instance_count=2,
+                           #hyperparameters={'sagemaker_parameter_server_enabled': True},
+                           instance_count=1,
                            instance_type=instance_type,
-                           sagemaker_session=sagemaker_session,
+                           #sagemaker_session=sagemaker_session,
                            image_uri=ecr_image,
                            framework_version=framework_version)
     inputs = estimator.sagemaker_session.upload_data(
         path=os.path.join(resource_path, 'mnist', 'data-distributed'),
         key_prefix='scriptmode/mnist-distributed')
     estimator.fit(inputs, job_name=unique_name_from_base('test-tf-sm-distributed-mnist'))
-    _assert_checkpoint_exists(sagemaker_session.boto_region_name, estimator.model_dir, 0)
-    _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
+    _assert_checkpoint_exists_v2(estimator.model_dir)
 
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
@@ -200,8 +200,8 @@ def test_smdataparallel_smmodelparallel_mnist(sagemaker_session, instance_type, 
     instance_type = "ml.p3.16xlarge"
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    if Version(image_framework_version) != Version("2.3.1") or image_cuda_version != "cu110":
-        pytest.skip("Model Parallelism only supports CUDA 11 on TensorFlow 2.3")
+    if Version(image_framework_version) < Version("2.3.1") or image_cuda_version != "cu110":
+        pytest.skip("SMD Model and Data Parallelism are only supported on CUDA 11, and on TensorFlow 2.3.1 or higher")
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     test_script = "smdataparallel_smmodelparallel_mnist_script_mode.sh"
     estimator = TensorFlow(entry_point=test_script,
@@ -213,11 +213,25 @@ def test_smdataparallel_smmodelparallel_mnist(sagemaker_session, instance_type, 
                            image_uri=ecr_image,
                            framework_version=framework_version,
                            py_version='py3')
-    
+
     estimator = _disable_sm_profiler(sagemaker_session.boto_region_name, estimator)
 
     estimator.fit()
 
+
+def _assert_checkpoint_exists_v2(s3_model_dir):
+    """
+    s3_model_dir: S3 url of the checkpoint 
+        e.g. 's3://sagemaker-us-west-2-578276202366/tensorflow-training-2021-09-03-02-49-44-067/model'
+    """
+    bucket, *prefix = re.sub('s3://', '', s3_model_dir).split('/')
+    prefix = '/'.join(prefix)
+    
+    ckpt_content = boto3.client('s3').list_objects(
+        Bucket=bucket, Prefix=prefix
+    )['Contents']
+    assert len(ckpt_content) > 0, "checkpoint directory is emptry"
+    print(ckpt_content)
 
 def _assert_checkpoint_exists(region, model_dir, checkpoint_number):
     _assert_s3_file_exists(region, os.path.join(model_dir, 'graph.pbtxt'))

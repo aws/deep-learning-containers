@@ -61,7 +61,7 @@ ARG PIP=pip
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-ARG OPENSSL_VERSION=1.1.1g
+ARG OPENSSL_VERSION=1.1.1k
 
 RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
  && apt-get update \
@@ -99,7 +99,7 @@ RUN pip install -U --no-cache-dir \
     "awscli<2" \
     requests==2.22.0
 
-#CMD ["bin/bash"]
+#CMD ["/bin/bash"]
 # Expose ports
 # gRPC
 EXPOSE 8500

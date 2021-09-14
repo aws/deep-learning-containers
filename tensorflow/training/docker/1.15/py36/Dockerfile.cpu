@@ -23,51 +23,34 @@ ENV LC_ALL=C.UTF-8
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
 
 # Define framework-related package sources
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws/20201014-122550/cpu/tensorflow_cpu-1.15.4-cp36-cp36m-manylinux2010_x86_64.whl
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws/20210225-214219/cpu/py36/tensorflow_cpu-1.15.5-cp36-cp36m-manylinux2010_x86_64.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=0.9.4
 
-ARG OPENSSL_VERSION=1.1.1g
+ARG PYTHON=python3
+ARG PYTHON_PIP=python3-pip
+ARG PIP=pip3
+ARG PYTHON_VERSION=3.6.13
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-    software-properties-common \
     build-essential \
     openssh-client \
     openssh-server \
+    libssl1.1 \
+    openssl \
     ca-certificates \
     curl \
     emacs \
     git \
+    unzip \
     wget \
     vim \
     zlib1g-dev \
- && rm -rf /var/lib/apt/lists/*
-
-RUN wget -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && apt-get update \
- && apt remove -y --purge openssl \
- && rm -rf /usr/include/openssl \
- && apt-get install -y \
-    ca-certificates \
- && tar -xzvf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make && make test \
- && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-*
-
- # when we remove previous openssl, the ca-certificates pkgs and its symlinks gets deleted
-# causing sslcertverificationerror the below steps are to fix that
-RUN ln -s /etc/ssl/certs/*.* /usr/local/ssl/certs/
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-    python3-dev \
-    python3-pip \
-    python3-setuptools \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Open MPI
@@ -106,13 +89,36 @@ RUN mkdir -p /root/.ssh/ \
 
 WORKDIR /
 
-RUN pip3 --no-cache-dir install --upgrade \
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    libbz2-dev \
+    libc6-dev \
+    libffi-dev \
+    libgdbm-dev \
+    libncursesw5-dev \
+    liblzma-dev \
+    libreadline-gplv2-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    tk-dev \
+    # Needed for open-cv to resolve error: ImportError: libGL.so.1: cannot open shared object file: No such file or directory
+    libgl1-mesa-glx \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xvf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure && make && make install \
+ && rm -rf ../Python-$PYTHON_VERSION*
+
+RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
 # Some TF tools expect a "python" binary
-RUN ln -s $(which python3) /usr/local/bin/python \
- && ln -s $(which pip3) /usr/bin/pip
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
+ && ln -s $(which ${PIP}) /usr/bin/pip
 
 RUN pip install --no-cache-dir -U \
     numpy==1.18.5 \
@@ -138,13 +144,36 @@ RUN pip install --no-cache-dir -U \
  && pip install --force-reinstall --no-cache-dir -U \
     horovod==0.19.5 \
  && pip install --no-cache-dir -U \
+    # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
+    "pyYAML>=5.4,<5.5" \
     "awscli<2" \
-    smdebug==${SMDEBUG_VERSION}
+    smdebug==${SMDEBUG_VERSION} \
+    smclarify
 
-ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+# Install extra packages
+# numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
+RUN pip install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "numba<0.54" \
+    "shap>=0.39,<1"
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 
-CMD ["bin/bash"]
+CMD ["/bin/bash"]

@@ -4,8 +4,9 @@ import pytest
 from src.benchmark_metrics import (
     PYTORCH_INFERENCE_GPU_THRESHOLD,
     PYTORCH_INFERENCE_CPU_THRESHOLD,
+    get_threshold_for_image,
 )
-from test.test_utils import CONTAINER_TESTS_PREFIX
+from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
     post_process_inference,
@@ -21,26 +22,30 @@ PT_PERFORMANCE_INFERENCE_GPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT}  --iterat
 @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.16xlarge"], indirect=True)
 def test_performance_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gpu_only):
+    _, framework_version = get_framework_and_version_from_tag(pytorch_inference)
+    threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_GPU_THRESHOLD)
     ec2_performance_pytorch_inference(
         pytorch_inference,
         "gpu",
         ec2_connection,
         region,
         PT_PERFORMANCE_INFERENCE_GPU_CMD,
-        PYTORCH_INFERENCE_GPU_THRESHOLD,
+        threshold,
     )
 
 
 @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.18xlarge"], indirect=True)
 def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cpu_only):
+    _, framework_version = get_framework_and_version_from_tag(pytorch_inference)
+    threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_CPU_THRESHOLD)
     ec2_performance_pytorch_inference(
         pytorch_inference,
         "cpu",
         ec2_connection,
         region,
         PT_PERFORMANCE_INFERENCE_CPU_CMD,
-        PYTORCH_INFERENCE_CPU_THRESHOLD,
+        threshold,
     )
 
 

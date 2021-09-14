@@ -27,7 +27,7 @@ from metrics import Metrics
 from image import DockerImage
 from buildspec import Buildspec
 from output import OutputFormatter
-from config import build_config
+from config import parse_dlc_developer_configs
 
 
 def _find_image_object(images_list, image_name):
@@ -53,11 +53,16 @@ def image_builder(buildspec):
     BUILDSPEC.load(buildspec)
     IMAGES = []
 
+    if "huggingface" in str(BUILDSPEC["framework"]) or "autogluon" in str(BUILDSPEC["framework"]):
+        os.system("echo login into public ECR")
+        os.system("aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com")
+
     for image_name, image_config in BUILDSPEC["images"].items():
-        ARTIFACTS = deepcopy(BUILDSPEC["context"])
+        ARTIFACTS = deepcopy(BUILDSPEC["context"]) if BUILDSPEC.get("context") else {}
 
         extra_build_args = {}
         labels = {}
+        enable_datetime_tag = parse_dlc_developer_configs("build", "datetime_tag")
 
         if image_config.get("version") is not None:
             if BUILDSPEC["version"] != image_config.get("version"):
@@ -72,7 +77,7 @@ def image_builder(buildspec):
             if build_context == "PR"
             else image_config["tag"]
         )
-        if not build_config.DISABLE_DATETIME_TAG or build_context != "PR":
+        if enable_datetime_tag or build_context != "PR":
             image_tag = tag_image_with_datetime(image_tag)
         image_repo_uri = (
             image_config["repository"]
@@ -106,6 +111,16 @@ def image_builder(buildspec):
                 labels[var] = file_name
                 labels[f"{var}_URI"] = uri
 
+        if str(BUILDSPEC["framework"]).startswith("huggingface"):
+            if "transformers_version" in image_config:
+                extra_build_args["TRANSFORMERS_VERSION"] = image_config.get("transformers_version")
+            else:
+                raise KeyError(f"HuggingFace buildspec.yml must contain 'transformers_version' field for each image")
+            if "datasets_version" in image_config:
+                extra_build_args["DATASETS_VERSION"] = image_config.get("datasets_version")
+            elif str(image_config["image_type"]) == "training":
+                raise KeyError(f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image")
+
         ARTIFACTS.update(
             {
                 "dockerfile": {
@@ -116,6 +131,9 @@ def image_builder(buildspec):
         )
 
         context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
+
+        if "labels" in image_config:
+            labels.update(image_config.get("labels"))
 
         """
         Override parameters from parent in child.

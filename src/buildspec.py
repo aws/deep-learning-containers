@@ -105,6 +105,23 @@ class Buildspec:
             seq.anchor.value = node.anchor
         return seq
 
+    def get(self, name, default=None):
+        """
+        Returns default if there's no such key in the buildspec.
+
+        Parameters:
+            name: str
+            default: str - default value to return
+
+        Returns:
+            object of if object is None - default
+
+        """
+        try:
+            return self._buildspec[name]
+        except KeyError:
+            return default
+
     def __getitem__(self, name):
         """
         This method adds dictionary style access to an object of the
