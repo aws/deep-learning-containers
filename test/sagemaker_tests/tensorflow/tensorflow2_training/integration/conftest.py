@@ -104,32 +104,10 @@ def sagemaker_regions(request):
     return sagemaker_regions.split(",")
 
 
-@pytest.fixture(scope='session')
-def n_virginia_region(request):
-    return "us-east-1"
-
-
-@pytest.fixture(scope='session')
-def n_virginia_sagemaker_session(n_virginia_region):
-    return Session(boto_session=boto3.Session(region_name=n_virginia_region))
-
-
 @pytest.fixture
 def efa_instance_type():
     default_instance_type = "ml.p3dn.24xlarge"
     return default_instance_type
-
-
-@pytest.fixture
-def n_virginia_ecr_image(ecr_image, n_virginia_region):
-    """
-    It uploads image to n_virginia region and return image uri
-    """
-    image_repo_uri, image_tag = ecr_image.split(":")
-    _, image_repo_name = image_repo_uri.split("/")
-    target_image_repo_name = f"{image_repo_name}"
-    n_virginia_ecr_image = reupload_image_to_test_ecr(ecr_image, target_image_repo_name, n_virginia_region)
-    return n_virginia_ecr_image
 
 
 @pytest.fixture(scope='session')
