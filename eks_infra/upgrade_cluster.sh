@@ -190,11 +190,6 @@ if [ -z "${AWS_REGION}" ]; then
   exit 1
 fi
 
-if [ -z "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
-  echo "EKS cluster management role not set"
-  exit 1
-fi
-
 CLUSTER=${1}
 EKS_VERSION=${2}
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=${3}
@@ -212,8 +207,9 @@ else
   fi
 fi
 
-
-update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
+if [ -z "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
+  update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
+fi
 
 #scale to 0 to avoid unwanted scaling
 scale_cluster_autoscalar 0

@@ -12,7 +12,7 @@ aws sts get-caller-identity
 
 # install aws-iam-authenticator
 if ! [ -x "$(command -v aws-iam-authenticator)" ]; then
-    curl --silent --location https://amazon-eks.s3.us-west-2.amazonaws.com/1.20.4/2021-04-12/bin/linux/amd64/aws-iam-authenticator -o /usr/local/bin/aws-iam-authenticator
+    curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/1.20.4/2021-04-12/bin/linux/amd64/aws-iam-authenticator -o /usr/local/bin/aws-iam-authenticator
     chmod +x /usr/local/bin/aws-iam-authenticator
 fi
 

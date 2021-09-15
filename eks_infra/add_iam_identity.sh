@@ -43,14 +43,18 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
-# Check for IAM role environment variables
-if [ -z "${EKS_CLUSTER_MANAGER_ROLE}" ] || [ -z "${EKS_TEST_ROLE}" ]; then
-  echo "One or more IAM role is not set"
-  exit 1
-fi
-
 CLUSTER=${1}
 
-add_cluster_manager_identity ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE}
-create_rbac_rules
-add_test_build_role ${CLUSTER} ${EKS_TEST_ROLE}
+# Check for IAM role environment variables
+if [ -n "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
+  add_cluster_manager_identity ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE}
+fi
+
+# Check for IAM role environment variables
+if [ -n "${EKS_TEST_ROLE}" ]; then
+  add_test_build_role ${CLUSTER} ${EKS_TEST_ROLE}
+fi
+
+if [ -n "${EKS_CLUSTER_MANAGER_ROLE}" ] && [ -n "${EKS_TEST_ROLE}" ]; then
+  create_rbac_rules
+fi

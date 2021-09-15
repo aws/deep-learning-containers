@@ -11,7 +11,7 @@ function create_ec2_key_pair() {
     aws ec2 create-key-pair \
     --key-name ${1} \
     --query 'KeyMaterial' \
-    --output text > ./${1}-KeyPair.pem
+    --output text > ./${1}.pem
 }
 
 # Function to create EKS cluster using eksctl. 

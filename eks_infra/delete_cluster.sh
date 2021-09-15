@@ -76,13 +76,11 @@ if [ -z "${AWS_REGION}" ]; then
   exit 1
 fi
 
-if [ -z "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
-  echo "EKS cluster management role not set"
-  exit 1
+if [ -n "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
+  update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
 fi
 
 CLUSTER=${1}
 
-update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
 remove_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}
 delete_cluster ${CLUSTER} ${AWS_REGION}
