@@ -74,8 +74,11 @@ def test_mnist_cpu(sagemaker_local_session, docker_image, tmpdir, framework_vers
                     output_path=output_path,
                     training_data_path='file://{}'.format(
                         os.path.join(RESOURCE_PATH, 'mnist', 'data')))
-    _assert_checkpoint_exists_v2(output_path)
-    # _assert_files_exist_in_tar(output_path, ['my_model.h5'])
+    # _assert_checkpoint_exists_v2(output_path)
+    ############################################################################
+    #######TODO: This is something that needs to be confirmed from TF2.6 #######
+    _assert_files_exist_in_tar(output_path, ['saved_model.pb'])
+    ############################################################################
 
 
 @pytest.mark.processor("gpu")
