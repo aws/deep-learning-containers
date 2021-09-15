@@ -75,6 +75,8 @@ def test_mnist_cpu(sagemaker_local_session, docker_image, tmpdir, framework_vers
                     training_data_path='file://{}'.format(
                         os.path.join(RESOURCE_PATH, 'mnist', 'data')))
     _assert_files_exist_in_tar(output_path, [])
+    file_count = _get_file_count_in_tar(output_path)
+    assert file_count >= 1, "The tar is empty!!"
 
 
 @pytest.mark.processor("gpu")
@@ -172,16 +174,18 @@ def _assert_files_exist_in_tar(output_path, files):
         for f in files:
             tar.getmember(f)
 
-def _assert_checkpoint_exists_v2(s3_model_dir):
+def _get_file_count_in_tar(output_path):
     """
-    s3_model_dir: S3 url of the checkpoint
-        e.g. 's3://sagemaker-us-west-2-578276202366/tensorflow-training-2021-09-03-02-49-44-067/model'
-    """
-    bucket, *prefix = re.sub('s3://', '', s3_model_dir).split('/')
-    prefix = '/'.join(prefix)
+    Untars the provided model.tar.gz tar file at output_path and returns the number of files within the
+    untar folder. Empty folders are not included in the count. Only the files within all the non-empty folders
+    are included in the count.
 
-    ckpt_content = boto3.client('s3').list_objects(
-        Bucket=bucket, Prefix=prefix
-    )['Contents']
-    assert len(ckpt_content) > 0, "checkpoint directory is empty"
-    print(ckpt_content)
+    :param output_path: str
+    :return: int
+    """
+    if output_path.startswith('file://'):
+        output_path = output_path[7:]
+    model_file = os.path.join(output_path, 'model.tar.gz')
+    with tarfile.open(model_file) as tar:
+        count = sum(1 for member in tar if member.isreg())
+    return count
