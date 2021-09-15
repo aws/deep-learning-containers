@@ -15,7 +15,7 @@
   context:
     inference_context: &INFERENCE_CONTEXT
       sagemaker_package_name:
-        source: docker/build_artifacts/sagemaker
+        source: docker/build_artifacts/sagemaker_neuron
         target: sagemaker
       init:
         source: docker/build_artifacts/__init__.py

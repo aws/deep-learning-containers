@@ -1,0 +1,64 @@
+load_module modules/ngx_http_js_module.so;
+
+worker_processes auto;
+daemon off;
+pid /tmp/nginx.pid;
+error_log  /dev/stderr %NGINX_LOG_LEVEL%;
+
+worker_rlimit_nofile 4096;
+
+events {
+  worker_connections 2048;
+}
+
+http {
+  include /etc/nginx/mime.types;
+  default_type application/json;
+  access_log /dev/stdout combined;
+  js_include tensorflow-serving.js;
+
+  upstream tfs_upstream {
+    server localhost:%TFS_REST_PORT%;
+  }
+
+  upstream gunicorn_upstream {
+    server unix:/tmp/gunicorn.sock fail_timeout=1;
+  }
+
+  server {
+    listen %NGINX_HTTP_PORT% deferred;
+    client_max_body_size 0;
+    client_body_buffer_size 100m;
+    subrequest_output_buffer_size 100m;
+
+    set $tfs_version %TFS_VERSION%;
+    set $default_tfs_model %TFS_DEFAULT_MODEL_NAME%;
+
+    location /tfs {
+        rewrite ^/tfs/(.*) /$1  break;
+        proxy_redirect off;
+        proxy_pass_request_headers off;
+        proxy_set_header Content-Type 'application/json';
+        proxy_set_header Accept 'application/json';
+        proxy_pass http://tfs_upstream;
+    }
+
+    location /ping {
+        %FORWARD_PING_REQUESTS%;
+    }
+
+    location /invocations {
+        %FORWARD_INVOCATION_REQUESTS%;
+    }
+
+    location /models {
+        proxy_pass http://gunicorn_upstream/models;
+    }
+
+    location / {
+        return 404 '{"error": "Not Found"}';
+    }
+
+    keepalive_timeout 3;
+  }
+}
