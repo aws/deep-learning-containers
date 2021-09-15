@@ -17,7 +17,7 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON
 LOGGER = eks_utils.LOGGER
 
 
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+#@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.integration("horovod")
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(3)
