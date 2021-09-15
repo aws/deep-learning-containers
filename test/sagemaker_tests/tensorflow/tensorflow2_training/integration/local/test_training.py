@@ -14,6 +14,8 @@ from __future__ import absolute_import
 
 import os
 import tarfile
+import re
+import boto3
 
 import pytest
 from sagemaker.tensorflow import TensorFlow
@@ -182,5 +184,5 @@ def _assert_checkpoint_exists_v2(s3_model_dir):
     ckpt_content = boto3.client('s3').list_objects(
         Bucket=bucket, Prefix=prefix
     )['Contents']
-    assert len(ckpt_content) > 0, "checkpoint directory is emptry"
+    assert len(ckpt_content) > 0, "checkpoint directory is empty"
     print(ckpt_content)
