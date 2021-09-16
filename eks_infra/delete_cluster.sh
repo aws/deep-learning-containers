@@ -25,8 +25,8 @@ function update_kubeconfig(){
     kubectl config get-contexts
 }
 
-# Detach S3 policy from nodegroup IAM role
-function remove_s3_access_policy(){
+# Get IAM role attached to the nodegroup
+function get_eks_nodegroup_iam_role(){
   NODE_GROUP_NAME=${1}
   REGION=${2}
 
@@ -35,19 +35,38 @@ function remove_s3_access_policy(){
   if [ -n "${INSTANCE_PROFILE_PREFIX}" ]; then
     INSTANCE_PROFILE_NAME=$(aws iam list-instance-profiles --region ${REGION} | jq -r '.InstanceProfiles[].InstanceProfileName' | grep $INSTANCE_PROFILE_PREFIX)
     if [ -n "${INSTANCE_PROFILE_NAME}" ]; then
-      S3_POLICY_ARN="arn:aws:iam::aws:policy/AmazonS3FullAccess"
       ROLE_NAME=$(aws iam get-instance-profile --instance-profile-name $INSTANCE_PROFILE_NAME --region ${REGION} | jq -r '.InstanceProfile.Roles[] | .RoleName')
-      
-      aws iam detach-role-policy \
-      --role-name $ROLE_NAME \
-      --policy-arn $S3_POLICY_ARN \
-      --region ${REGION}
+      echo ${ROLE_NAME}
     else  
       echo "Instance Profile $INSTANCE_PROFILE_NAME does not exist for the $NODE_GROUP_NAME nodegroup"
+      exit 1
     fi
   else
     echo "CloudFormation stack for $NODE_GROUP_NAME nodegroup does not exist"
+    exit 1
   fi
+
+}
+
+# Detach IAM policy from nodegroup IAM role
+function remove_iam_policy(){
+
+  NODE_GROUP_NAME=${1}
+  REGION=${2}
+
+  ROLE_NAME=$(get_eks_nodegroup_iam_role ${NODE_GROUP_NAME} ${REGION})
+
+  declare -a POLICY_ARN=("arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+                          "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+                        )
+
+  for policy in ${POLICY_ARN[@]}; do
+    aws iam detach-role-policy \
+    --role-name $ROLE_NAME \
+    --policy-arn $policy \
+    --region ${REGION}
+  done
+
 }
 
 function remove_iam_permissions_nodegroup(){
@@ -57,7 +76,7 @@ function remove_iam_permissions_nodegroup(){
 
   if [ -n "${LIST_NODE_GROUPS}" ]; then
     for NODEGROUP in ${LIST_NODE_GROUPS}; do
-      remove_s3_access_policy ${NODEGROUP} ${REGION}
+      remove_iam_policy ${NODEGROUP} ${REGION}
     done
   else
     echo "No Nodegroups present in the EKS cluster ${CLUSTER_NAME}"
