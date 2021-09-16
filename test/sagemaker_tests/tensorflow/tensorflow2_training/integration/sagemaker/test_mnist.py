@@ -16,6 +16,7 @@ import os
 import re
 import boto3
 import pytest
+from packaging.specifiers import SpecifierSet
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 from six.moves.urllib.parse import urlparse
@@ -25,6 +26,15 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from .timeout import timeout
+
+def can_run_mnist_estimator(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    return Version(image_framework_version) in SpecifierSet("<2.6")
+
+
+def validate_or_skip_test(ecr_image):
+    if not can_run_mnist_estimator(ecr_image):
+        pytest.skip("Mnist Estimator related scripts can only run for versions < 2.6")
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
@@ -76,8 +86,8 @@ def test_distributed_mnist_no_ps(sagemaker_session, ecr_image, instance_type, fr
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
 def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, framework_version):
+    validate_or_skip_test(ecr_image=ecr_image)
     print('ecr image used for training', ecr_image)
-    ## Should only run for 2.5 and less
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
     estimator = TensorFlow(entry_point=script,
@@ -97,7 +107,7 @@ def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, frame
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
-def test_distributed_mnist_custom_ps(sagemaker_session, ecr_image, instance_type, framework_version, tf26_and_above_only):
+def test_distributed_mnist_custom_ps(sagemaker_session, ecr_image, instance_type, framework_version):
     print('ecr image used for training', ecr_image)
     ## Should only run for 2.6 and above
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
