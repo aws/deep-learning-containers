@@ -222,7 +222,6 @@ def test_smdataparallel_smmodelparallel_mnist(sagemaker_session, instance_type, 
 def _assert_checkpoint_exists_v2(s3_model_dir):
     """
     s3_model_dir: S3 url of the checkpoint 
-        e.g. 's3://sagemaker-us-west-2-578276202366/tensorflow-training-2021-09-03-02-49-44-067/model'
     """
     bucket, *prefix = re.sub('s3://', '', s3_model_dir).split('/')
     prefix = '/'.join(prefix)
