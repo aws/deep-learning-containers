@@ -11,6 +11,7 @@ from test.test_utils import (
 )
 
 
+@pytest.mark.usefixtures("huggingface")
 @pytest.mark.integration("pt_s3_plugin_sanity")
 @pytest.mark.model("N/A")
 def test_pt_s3_sanity(pytorch_training, pt17_and_above_only):
