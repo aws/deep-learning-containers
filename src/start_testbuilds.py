@@ -111,7 +111,7 @@ def main():
         if images:
             pr_test_job = f"dlc-pr-{test_type}-test"
             images_str = " ".join(images)
-            if "graviton" in images_str:
+            if "graviton" in images_str and test_type == "sanity":
                 pr_test_job += "-graviton"
             if is_test_job_enabled(test_type):
                 if "huggingface" in images_str and test_type in [
