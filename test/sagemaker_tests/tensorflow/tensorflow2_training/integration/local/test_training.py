@@ -14,8 +14,6 @@ from __future__ import absolute_import
 
 import os
 import tarfile
-import re
-import boto3
 
 import pytest
 from sagemaker.tensorflow import TensorFlow
@@ -74,9 +72,7 @@ def test_mnist_cpu(sagemaker_local_session, docker_image, tmpdir, framework_vers
                     output_path=output_path,
                     training_data_path='file://{}'.format(
                         os.path.join(RESOURCE_PATH, 'mnist', 'data')))
-    _assert_files_exist_in_tar(output_path, [])
-    file_count = _get_file_count_in_tar(output_path)
-    assert file_count >= 1, "The tar is empty!!"
+    _assert_files_exist_in_tar(output_path, ['my_model.h5'])
 
 
 @pytest.mark.processor("gpu")
@@ -173,19 +169,3 @@ def _assert_files_exist_in_tar(output_path, files):
     with tarfile.open(model_file) as tar:
         for f in files:
             tar.getmember(f)
-
-def _get_file_count_in_tar(output_path):
-    """
-    Untars the provided model.tar.gz tar file at output_path and returns the number of files within the
-    untar folder. Empty folders are not included in the count. Only the files within all the non-empty folders
-    are included in the count.
-
-    :param output_path: str
-    :return: int
-    """
-    if output_path.startswith('file://'):
-        output_path = output_path[7:]
-    model_file = os.path.join(output_path, 'model.tar.gz')
-    with tarfile.open(model_file) as tar:
-        count = sum(1 for member in tar if member.isreg())
-    return count
