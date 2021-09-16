@@ -92,12 +92,12 @@ def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, frame
         path=os.path.join(resource_path, 'mnist', 'data-distributed'),
         key_prefix='scriptmode/mnist-distributed')
     estimator.fit(inputs, job_name=unique_name_from_base('test-tf-sm-distributed-mnist'))
-    _assert_checkpoint_exists(sagemaker_session.boto_region_name, estimator.model_dir, 0)
+    _assert_checkpoint_exists(sagemaker_session.boto_region_name, estimator.model_dir, 200)
 
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
-def test_distributed_mnist_custom_ps(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_distributed_mnist_custom_ps(sagemaker_session, ecr_image, instance_type, framework_version, tf26_and_above_only):
     print('ecr image used for training', ecr_image)
     ## Should only run for 2.6 and above
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
