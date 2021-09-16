@@ -112,7 +112,7 @@ def main():
             pr_test_job = f"dlc-pr-{test_type}-test"
             images_str = " ".join(images)
             if "graviton" in images_str:
-                pr_test_job += "graviton"
+                pr_test_job += "-graviton"
             if is_test_job_enabled(test_type):
                 if "huggingface" in images_str and test_type in [
                     constants.EC2_TESTS,
