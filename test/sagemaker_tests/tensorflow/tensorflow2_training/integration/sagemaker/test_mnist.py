@@ -109,7 +109,6 @@ def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, frame
 @pytest.mark.integration("parameter server")
 def test_distributed_mnist_custom_ps(sagemaker_session, ecr_image, instance_type, framework_version):
     print('ecr image used for training', ecr_image)
-    ## Should only run for 2.6 and above
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_custom.py')
     estimator = TensorFlow(entry_point=script,
@@ -165,10 +164,9 @@ def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framewor
     print(estimator.model_dir)
     _assert_checkpoint_exists_v2(sagemaker_session.boto_region_name, estimator.model_dir, 10)
 
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+# @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.integration("hpo")
-# @pytest.mark.skip("Temporary skip")
 def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
@@ -206,7 +204,6 @@ def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smdebug")
 @pytest.mark.skip_py2_containers
-# @pytest.mark.skip("Temporary skip")
 def test_smdebug(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_smdebug.py')
@@ -231,7 +228,6 @@ def test_smdebug(sagemaker_session, ecr_image, instance_type, framework_version)
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-# @pytest.mark.skip("Temporary skip")
 def test_smdataparallel_smmodelparallel_mnist(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version):
     """
     Tests SM Distributed DataParallel and ModelParallel single-node via script mode
@@ -268,13 +264,6 @@ def _assert_checkpoint_exists_v2(region, model_dir, checkpoint_number):
     _assert_s3_file_exists(region,
                            os.path.join(model_dir, 'model.ckpt-{}.index'.format(checkpoint_number)))
 
-    # bucket, *prefix = re.sub('s3://', '', s3_model_dir).split('/')
-    # prefix = '/'.join(prefix)
-
-    # ckpt_content = boto3.client('s3').list_objects(
-    #     Bucket=bucket, Prefix=prefix
-    # )['Contents']
-    # assert len(ckpt_content) > 0, "checkpoint directory is empty"
 
 def _assert_checkpoint_exists(region, model_dir, checkpoint_number):
     """
