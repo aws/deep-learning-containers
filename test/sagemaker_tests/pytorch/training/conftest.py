@@ -114,7 +114,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
-    parser.addoption('--sagemaker-regions')
+    parser.addoption('--sagemaker-regions', default="us-west-2")
 
 
 def pytest_configure(config):

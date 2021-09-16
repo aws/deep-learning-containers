@@ -13,10 +13,10 @@
 from __future__ import absolute_import
 
 import sagemaker
-from sagemaker.mxnet.estimator import MXNet as MXNet_origin
+from sagemaker.mxnet.estimator import MXNet as MXNet
 
 
-class MXNet(MXNet_origin):
+class MXNetWrapper(MXNet):
     def __init__(self, image_uri, sagemaker_regions, **kwargs):
         from ... import get_sagemaker_session
         super().__init__(image_uri=image_uri, **kwargs)

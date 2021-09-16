@@ -110,7 +110,7 @@ def test_single_record(ecr_image, sagemaker_regions, instance_type, framework_ve
 
 @pytest.mark.integration("pipemode")
 @pytest.mark.model("N/A")
-def test_multi_records(sagemaker_regions, ecr_image, instance_type, framework_version,
+def test_multi_records(ecr_image, sagemaker_regions, instance_type, framework_version,
                        multi_records_test_data):
     invoke_tf_helper_function(ecr_image, sagemaker_regions, run_test,
                               instance_type,

@@ -156,7 +156,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     region_list = ",".join(SAGEMAKER_EXECUTION_REGIONS)
 
-    # Multi region functionality is added for a few frameworks currently
     sagemaker_regions_list = f"--sagemaker-regions {region_list}"
 
     remote_pytest_cmd = (
