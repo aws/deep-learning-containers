@@ -49,7 +49,6 @@ def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
         key_prefix='scriptmode/mnist')
     estimator.fit(inputs, job_name=unique_name_from_base('test-sagemaker-mnist'))
     _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
-    # _assert_checkpoint_exists_v2(estimator.model_dir)
 
 
 # @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
@@ -70,22 +69,21 @@ def test_distributed_mnist_no_ps(sagemaker_session, ecr_image, instance_type, fr
         path=os.path.join(resource_path, 'mnist', 'data'),
         key_prefix='scriptmode/mnist')
     estimator.fit(inputs, job_name=unique_name_from_base('test-tf-sm-distributed-mnist'))
-    # _assert_checkpoint_exists_v2(estimator.model_dir)
     _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
-# @pytest.mark.skip("Temporary skip")
 def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, framework_version):
     print('ecr image used for training', ecr_image)
+    ## Should only run for 2.5 and less
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
-    script = os.path.join(resource_path, 'mnist', 'mnist_estimator2.py')
+    script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
     estimator = TensorFlow(entry_point=script,
                            role='SageMakerRole',
                            hyperparameters={'sagemaker_parameter_server_enabled': True},
-                           instance_count=1,
+                           instance_count=2,
                            instance_type=instance_type,
                            sagemaker_session=sagemaker_session,
                            image_uri=ecr_image,
@@ -94,7 +92,29 @@ def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, frame
         path=os.path.join(resource_path, 'mnist', 'data-distributed'),
         key_prefix='scriptmode/mnist-distributed')
     estimator.fit(inputs, job_name=unique_name_from_base('test-tf-sm-distributed-mnist'))
-    _assert_checkpoint_exists_v2(estimator.model_dir)
+    _assert_checkpoint_exists(sagemaker_session.boto_region_name, estimator.model_dir, 0)
+
+@pytest.mark.model("mnist")
+@pytest.mark.multinode(2)
+@pytest.mark.integration("parameter server")
+def test_distributed_mnist_custom_ps(sagemaker_session, ecr_image, instance_type, framework_version):
+    print('ecr image used for training', ecr_image)
+    ## Should only run for 2.6 and above
+    resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
+    script = os.path.join(resource_path, 'mnist', 'mnist_custom.py')
+    estimator = TensorFlow(entry_point=script,
+                           role='SageMakerRole',
+                           hyperparameters={'sagemaker_parameter_server_enabled': True},
+                           instance_count=2,
+                           instance_type=instance_type,
+                           sagemaker_session=sagemaker_session,
+                           image_uri=ecr_image,
+                           framework_version=framework_version)
+    inputs = estimator.sagemaker_session.upload_data(
+        path=os.path.join(resource_path, 'mnist', 'data-distributed'),
+        key_prefix='scriptmode/mnist-distributed')
+    estimator.fit(inputs, job_name=unique_name_from_base('test-tf-sm-distributed-mnist'))
+    _assert_checkpoint_exists_v2(sagemaker_session.boto_region_name, estimator.model_dir, 10)
 
 
 # @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
@@ -102,7 +122,7 @@ def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, frame
 @pytest.mark.integration("s3 plugin")
 def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
-    script = os.path.join(resource_path, 'mnist', 'mnist_estimator2.py')
+    script = os.path.join(resource_path, 'mnist', 'mnist_custom.py')
     estimator = TensorFlow(entry_point=script,
                            role='SageMakerRole',
                            hyperparameters={
@@ -133,12 +153,12 @@ def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framewor
     print(estimator.model_data)
     print("=========== Model dir           ===============")
     print(estimator.model_dir)
-    _assert_checkpoint_exists_v2(estimator.model_dir)
+    _assert_checkpoint_exists_v2(sagemaker_session.boto_region_name, estimator.model_dir, 10)
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.integration("hpo")
-@pytest.mark.skip("Temporary skip")
+# @pytest.mark.skip("Temporary skip")
 def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
@@ -176,7 +196,7 @@ def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smdebug")
 @pytest.mark.skip_py2_containers
-@pytest.mark.skip("Temporary skip")
+# @pytest.mark.skip("Temporary skip")
 def test_smdebug(sagemaker_session, ecr_image, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_smdebug.py')
@@ -193,8 +213,7 @@ def test_smdebug(sagemaker_session, ecr_image, instance_type, framework_version)
         path=os.path.join(resource_path, 'mnist', 'data'),
         key_prefix='scriptmode/mnist_smdebug')
     estimator.fit(inputs, job_name=unique_name_from_base('test-sagemaker-mnist-smdebug'))
-    # _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
-    _assert_checkpoint_exists_v2(estimator.model_dir)
+    _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 
 @pytest.mark.integration("smdataparallel_smmodelparallel")
@@ -202,7 +221,7 @@ def test_smdebug(sagemaker_session, ecr_image, instance_type, framework_version)
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.skip("Temporary skip")
+# @pytest.mark.skip("Temporary skip")
 def test_smdataparallel_smmodelparallel_mnist(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version):
     """
     Tests SM Distributed DataParallel and ModelParallel single-node via script mode
@@ -231,20 +250,26 @@ def test_smdataparallel_smmodelparallel_mnist(sagemaker_session, instance_type, 
     estimator.fit()
 
 
-def _assert_checkpoint_exists_v2(s3_model_dir):
+def _assert_checkpoint_exists_v2(region, model_dir, checkpoint_number):
     """
-    s3_model_dir: S3 url of the checkpoint
+    Checking for v2 style checkpoints i.e. checkpoint and .index files
     """
-    bucket, *prefix = re.sub('s3://', '', s3_model_dir).split('/')
-    prefix = '/'.join(prefix)
+    _assert_s3_file_exists(region, os.path.join(model_dir, 'checkpoint'))
+    _assert_s3_file_exists(region,
+                           os.path.join(model_dir, 'model.ckpt-{}.index'.format(checkpoint_number)))
 
-    ckpt_content = boto3.client('s3').list_objects(
-        Bucket=bucket, Prefix=prefix
-    )['Contents']
-    print(f" ***** {s3_model_dir} ******")
-    assert len(ckpt_content) > 0, "checkpoint directory is emptry"
+    # bucket, *prefix = re.sub('s3://', '', s3_model_dir).split('/')
+    # prefix = '/'.join(prefix)
+
+    # ckpt_content = boto3.client('s3').list_objects(
+    #     Bucket=bucket, Prefix=prefix
+    # )['Contents']
+    # assert len(ckpt_content) > 0, "checkpoint directory is empty"
 
 def _assert_checkpoint_exists(region, model_dir, checkpoint_number):
+    """
+    Checking for v1 style checkpoints i.e. graph.pbtxt, .index files and meta
+    """
     _assert_s3_file_exists(region, os.path.join(model_dir, 'graph.pbtxt'))
     _assert_s3_file_exists(region,
                            os.path.join(model_dir, 'model.ckpt-{}.index'.format(checkpoint_number)))
