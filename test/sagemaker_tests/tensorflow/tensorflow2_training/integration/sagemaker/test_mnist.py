@@ -28,7 +28,7 @@ from .timeout import timeout
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+# @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.deploy_test
 def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
@@ -52,7 +52,7 @@ def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
     # _assert_checkpoint_exists_v2(estimator.model_dir)
 
 
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+# @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("no parameter server")
