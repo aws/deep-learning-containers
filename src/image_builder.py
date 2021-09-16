@@ -53,7 +53,7 @@ def image_builder(buildspec):
     BUILDSPEC.load(buildspec)
     IMAGES = []
 
-    if "huggingface" in str(BUILDSPEC["framework"]):
+    if "huggingface" in str(BUILDSPEC["framework"]) or "autogluon" in str(BUILDSPEC["framework"]):
         os.system("echo login into public ECR")
         os.system("aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com")
 

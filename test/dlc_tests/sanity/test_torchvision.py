@@ -12,7 +12,7 @@ from test.test_utils import (
 )
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 def test_torchvision_nms_training(pytorch_training):
     """

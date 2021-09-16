@@ -31,7 +31,8 @@ from test.test_utils import (
     is_nightly_context,
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
-    get_python_version_from_image_uri
+    get_python_version_from_image_uri,
+    is_tf_version
 )
 
 
@@ -176,7 +177,7 @@ def test_framework_version_cpu(image):
 
 
 # TODO: Enable as canary once resource cleaning lambda is added
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
@@ -215,8 +216,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     # CUDA Version Check #
     cuda_version = re.search(r"-cu(\d+)-", image).group(1)
 
-    # MXNet inference and Autogluon containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
-    if "mxnet-inference" in image or "autogluon" in image:
+    # MXNet inference/HF tensorflow inference and Autogluon containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
+    if "mxnet-inference" in image or "autogluon" in image or "huggingface-tensorflow-inference" in image:
         cuda_cmd = "readlink /usr/local/cuda"
     else:
         cuda_cmd = "nvcc --version"
@@ -242,6 +243,21 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         # CVE-2020-13936: vulnerability found in apache velocity package which is a dependency for dependency-check package. Hence, ignoring.
         "CVE-2020-13936",
     }
+
+    # Whitelist CVE #CVE-2021-3711 for DLCs where openssl is installed using apt-get
+    framework, _ = get_framework_and_version_from_tag(image)
+    short_fw_version = re.search(r"(\d+\.\d+)", image).group(1)
+
+    allow_openssl_cve_fw_versions = {
+        "tensorflow": ["1.15", "2.3", "2.4", "2.5", "2.6"],
+        "mxnet": ["1.9"],
+        "pytorch": [],
+        "huggingface_pytorch": ["1.8"],
+        "huggingface_tensorflow": ["2.4"]
+    }
+
+    if short_fw_version in allow_openssl_cve_fw_versions.get(framework, []):
+        allowed_vulnerabilities.add("CVE-2021-3711")
 
     container_name = f"dep_check_{processor}"
     report_addon = get_container_name("depcheck-report", image)
@@ -307,7 +323,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         )
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
@@ -316,10 +332,13 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
 def test_dependency_check_cpu(cpu, ec2_connection):
+    # TODO: Fix test on HF inference
+    if "huggingface-tensorflow-inference" in cpu or "huggingface-pytorch-inference" in cpu:
+        pytest.skip("Temporarily skipping HF inference images due to test flakiness")
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
@@ -328,6 +347,9 @@ def test_dependency_check_cpu(cpu, ec2_connection):
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
 def test_dependency_check_gpu(gpu, ec2_connection):
+    # TODO: Fix test on HF inference
+    if "huggingface-tensorflow-inference" in gpu or "huggingface-pytorch-inference" in gpu:
+        pytest.skip("Temporarily skipping HF inference images due to test flakiness")
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
 
 
@@ -408,7 +430,7 @@ def test_pip_check(image):
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 def test_cuda_paths(gpu):
     """
