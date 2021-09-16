@@ -1,9 +1,9 @@
 #!/bin/bash
-#/ Usage: ./env_setup.sh 
+#/ Usage: ./env_setup.sh
 
 set -ex
 
-function install_kubectl_client(){
+function install_kubectl_client() {
     curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/1.20.4/2021-04-12/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl
     chmod +x /usr/local/bin/kubectl
 }
@@ -28,7 +28,7 @@ else
     CURRENT_KUBECTL_CLIENT_VERSION=$(echo "$KUBECTL_VERSION" | jq -r '.clientVersion.major').$(echo "$KUBECTL_VERSION" | jq -r '.clientVersion.minor')
     LATEST_KUBECTL_CLIENT_VERSION=1.20
 
-    if (( $(echo "$CURRENT_KUBECTL_CLIENT_VERSION < $LATEST_KUBECTL_CLIENT_VERSION" |bc -l) )); then
+    if (($(echo "$CURRENT_KUBECTL_CLIENT_VERSION < $LATEST_KUBECTL_CLIENT_VERSION" | bc -l))); then
         install_kubectl_client
     fi
 fi
@@ -37,7 +37,6 @@ fi
 kubectl version --short --client
 
 # install eksctl
-
 
 # "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz"
 if ! [ -x "$(command -v eksctl)" ]; then

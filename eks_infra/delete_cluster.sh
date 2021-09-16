@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#/ Usage: 
+#/ Usage:
 #/ export AWS_REGION=<AWS-Region>
 #/ export EKS_CLUSTER_MANAGER_ROLE=<ARN-of-IAM-role>
 #/ ./delete.sh eks_cluster_name
@@ -8,25 +8,25 @@
 set -ex
 
 # Function to delete EKS cluster
-function delete_cluster(){
-    eksctl delete cluster \
+function delete_cluster() {
+  eksctl delete cluster \
     --name ${1} \
     --region ${2}
 }
 
 # Function to update kubeconfig at ~/.kube/config
-function update_kubeconfig(){
+function update_kubeconfig() {
 
-    eksctl utils write-kubeconfig \
+  eksctl utils write-kubeconfig \
     --cluster ${1} \
     --authenticator-role-arn ${2} \
     --region ${3}
 
-    kubectl config get-contexts
+  kubectl config get-contexts
 }
 
 # Get IAM role attached to the nodegroup
-function get_eks_nodegroup_iam_role(){
+function get_eks_nodegroup_iam_role() {
   NODE_GROUP_NAME=${1}
   REGION=${2}
 
@@ -37,7 +37,7 @@ function get_eks_nodegroup_iam_role(){
     if [ -n "${INSTANCE_PROFILE_NAME}" ]; then
       ROLE_NAME=$(aws iam get-instance-profile --instance-profile-name $INSTANCE_PROFILE_NAME --region ${REGION} | jq -r '.InstanceProfile.Roles[] | .RoleName')
       echo ${ROLE_NAME}
-    else  
+    else
       echo "Instance Profile $INSTANCE_PROFILE_NAME does not exist for the $NODE_GROUP_NAME nodegroup"
       exit 1
     fi
@@ -49,7 +49,7 @@ function get_eks_nodegroup_iam_role(){
 }
 
 # Detach IAM policy from nodegroup IAM role
-function remove_iam_policy(){
+function remove_iam_policy() {
 
   NODE_GROUP_NAME=${1}
   REGION=${2}
@@ -62,14 +62,14 @@ function remove_iam_policy(){
 
   for policy in ${POLICY_ARN[@]}; do
     aws iam detach-role-policy \
-    --role-name $ROLE_NAME \
-    --policy-arn $policy \
-    --region ${REGION}
+      --role-name $ROLE_NAME \
+      --policy-arn $policy \
+      --region ${REGION}
   done
 
 }
 
-function remove_iam_permissions_nodegroup(){
+function remove_iam_permissions_nodegroup() {
   CLUSTER_NAME=${1}
   REGION=${2}
   LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${CLUSTER_NAME} --region ${REGION} -o json | jq -r '.[].Name')
@@ -85,8 +85,8 @@ function remove_iam_permissions_nodegroup(){
 
 # Check for input arguments
 if [ $# -ne 1 ]; then
-    echo "usage: ./${0} eks_cluster_name"
-    exit 1
+  echo "usage: ./${0} eks_cluster_name"
+  exit 1
 fi
 
 # Check for environment variables

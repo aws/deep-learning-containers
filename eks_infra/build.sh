@@ -1,5 +1,5 @@
 #!/bin/bash
-#/ Usage: ./build.sh 
+#/ Usage: ./build.sh
 
 set -ex
 
@@ -13,12 +13,12 @@ CLUSTER_AUTOSCALAR_IMAGE_VERSION=$(jq -r '.cluster_autoscalar_image_version' eks
 # Create operation function
 #
 # Invokes create_cluster.sh script to create EKS cluster nodegroups and namespaces.
-# Invokes add_iam_identity.sh script to create RBAC rules for test IAM role. Add cluster manager IAM role 
+# Invokes add_iam_identity.sh script to create RBAC rules for test IAM role. Add cluster manager IAM role
 # and test IAM role authentication to the cluster.
 # Invokes install_cluster_components.sh script to install cluster autoscalar and kubeflow components in the cluster.
-function create_cluster(){
+function create_cluster() {
   cd eks_infra
-  
+
   for CONTEXT in "${CONTEXTS[@]}"; do
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
       CLUSTER_NAME=${CLUSTER}-${CONTEXT}
@@ -44,8 +44,8 @@ function create_cluster(){
 #    ii) Create nodegroups with updated configuration
 #
 # 4. Upgrade core k8s components
-# 5. Scale cluster autoscalar back to 1 
-function upgrade_cluster(){
+# 5. Scale cluster autoscalar back to 1
+function upgrade_cluster() {
 
   cd eks_infra
 
@@ -59,13 +59,13 @@ function upgrade_cluster(){
       fi
     done
   done
-  
+
 }
 
 # Delete operation function
 #
 # Invokes delete_cluster.sh script to delete EKS cluster, nodegroups and other related components
-function delete_cluster(){
+function delete_cluster() {
 
   cd eks_infra
   for CONTEXT in "${CONTEXTS[@]}"; do
@@ -78,27 +78,27 @@ function delete_cluster(){
       fi
     done
   done
-  
+
 }
 
-function check_cluster_status(){
-    aws eks describe-cluster --name ${1} --region ${AWS_REGION} --query cluster.status --out text | grep -q ACTIVE
+function check_cluster_status() {
+  aws eks describe-cluster --name ${1} --region ${AWS_REGION} --query cluster.status --out text | grep -q ACTIVE
 }
 
-case ${OPERATION} in 
-  
-  create)
-    create_cluster
+case ${OPERATION} in
+
+create)
+  create_cluster
   ;;
 
-  upgrade)
-    upgrade_cluster
+upgrade)
+  upgrade_cluster
   ;;
 
-  delete)
-    delete_cluster
+delete)
+  delete_cluster
   ;;
-  *)
-    echo "Specify valid operation"
+*)
+  echo "Specify valid operation"
   ;;
-esac 
+esac
