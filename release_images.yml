@@ -242,8 +242,8 @@ release_images:
       force_release: False
   17:
     framework: "huggingface_tensorflow"
-    version: "2.4.1"
-    hf_transformers: "4.6.1"
+    version: "2.4.3"
+    hf_transformers: "4.10.2"
     inference:
       device_types: ["cpu", "gpu"]
       python_versions: [ "py37" ]
@@ -408,6 +408,18 @@ release_images:
       python_versions: [ "py36" ]
       os_version: "ubuntu18.04"
       cuda_version: "cu111"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  31:
+    framework: "huggingface_tensorflow"
+    version: "2.4.3"
+    hf_transformers: "4.10.2"
+    training:
+      device_types: [ "gpu" ]
+      python_versions: [ "py37" ]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu110"
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False

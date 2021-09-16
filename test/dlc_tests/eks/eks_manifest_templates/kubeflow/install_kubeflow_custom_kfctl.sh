@@ -36,8 +36,8 @@ setup_kubeflow(){
 
 # Function to install mpi operator in EKS cluster
 install_mpi_operator() {
-
-    MPI_OPERATOR_URL=https://raw.githubusercontent.com/kubeflow/mpi-operator/v0.2.3/deploy/v1alpha2/mpi-operator.yaml
+    #install mpi operator in EKS cluster
+    MPI_OPERATOR_URL=https://raw.githubusercontent.com/kubeflow/mpi-operator/v0.3.0/deploy/v1alpha2/mpi-operator.yaml
     wget -O mpi-operator.yaml ${MPI_OPERATOR_URL}
     kubectl create -f mpi-operator.yaml
 }

@@ -245,12 +245,12 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     short_fw_version = re.search(r"(\d+\.\d+)", image).group(1)
 
     allow_openssl_cve_fw_versions = {
-        "tensorflow": ["1.15", "2.3", "2.4", "2.6"],
+        "tensorflow": ["1.15", "2.3", "2.4", "2.5", "2.6"],
         "mxnet": ["1.9"],
         "pytorch": [],
         "huggingface_pytorch": ["1.8"],
         "huggingface_tensorflow": ["2.4"]
-        }
+    }
 
     if short_fw_version in allow_openssl_cve_fw_versions.get(framework, []):
         allowed_vulnerabilities.add("CVE-2021-3711")
