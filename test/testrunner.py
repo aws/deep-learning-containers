@@ -373,6 +373,10 @@ def main():
                 sys.exit(0)
         except:
             raise RuntimeError(pytest_cmds)
+        finally:
+            # Delete dangling EC2 KeyPairs
+            if os.path.exists(KEYS_TO_DESTROY_FILE):
+                delete_key_pairs(KEYS_TO_DESTROY_FILE)
     elif specific_test_type == "sagemaker":
         if "neuron" in dlc_images:
             LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
