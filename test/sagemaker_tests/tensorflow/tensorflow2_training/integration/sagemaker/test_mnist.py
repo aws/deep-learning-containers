@@ -70,14 +70,14 @@ def test_distributed_mnist_no_ps(sagemaker_session, ecr_image, instance_type, fr
         path=os.path.join(resource_path, 'mnist', 'data'),
         key_prefix='scriptmode/mnist')
     estimator.fit(inputs, job_name=unique_name_from_base('test-tf-sm-distributed-mnist'))
-    _assert_checkpoint_exists_v2(estimator.model_dir)
-    # _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
+    # _assert_checkpoint_exists_v2(estimator.model_dir)
+    _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
-@pytest.mark.skip("Temporary skip")
+# @pytest.mark.skip("Temporary skip")
 def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, framework_version):
     print('ecr image used for training', ecr_image)
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
@@ -234,7 +234,6 @@ def test_smdataparallel_smmodelparallel_mnist(sagemaker_session, instance_type, 
 def _assert_checkpoint_exists_v2(s3_model_dir):
     """
     s3_model_dir: S3 url of the checkpoint
-        e.g. 's3://sagemaker-us-west-2-578276202366/tensorflow-training-2021-09-03-02-49-44-067/model'
     """
     bucket, *prefix = re.sub('s3://', '', s3_model_dir).split('/')
     prefix = '/'.join(prefix)
@@ -242,8 +241,8 @@ def _assert_checkpoint_exists_v2(s3_model_dir):
     ckpt_content = boto3.client('s3').list_objects(
         Bucket=bucket, Prefix=prefix
     )['Contents']
+    print(f" ***** {s3_model_dir} ******")
     assert len(ckpt_content) > 0, "checkpoint directory is emptry"
-    print(ckpt_content)
 
 def _assert_checkpoint_exists(region, model_dir, checkpoint_number):
     _assert_s3_file_exists(region, os.path.join(model_dir, 'graph.pbtxt'))
