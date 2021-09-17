@@ -31,7 +31,7 @@ eks_tests = true
 ec2_tests = true
 
 ### Off by default
-efa_tests = true
+efa_tests = false
 sagemaker_local_tests = true
 
 # SM remote test valid values:
