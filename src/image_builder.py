@@ -45,6 +45,17 @@ def _find_image_object(images_list, image_name):
     return ret_image_object
 
 
+def is_private_artifact_label_required(artifact_uri, image_repo_uri):
+    """
+    Determine whether labels for private artifacts should be skipped on a particular image type
+
+    :param artifact_uri: str Build artifact URI
+    :param image_repo_uri: str Image ECR repo URI
+    :return: bool True if label should be skipped, else False
+    """
+    return not ("s3://" in artifact_uri.lower() and any(keyword in image_repo_uri.lower() for keyword in ["hopper"]))
+
+
 # TODO: Abstract away to ImageBuilder class
 def image_builder(buildspec):
     FORMATTER = OutputFormatter(constants.PADDING)
@@ -52,10 +63,6 @@ def image_builder(buildspec):
     BUILDSPEC = Buildspec()
     BUILDSPEC.load(buildspec)
     IMAGES = []
-
-    if "huggingface" in str(BUILDSPEC["framework"]):
-        os.system("echo login into public ECR")
-        os.system("aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com")
 
     for image_name, image_config in BUILDSPEC["images"].items():
         ARTIFACTS = deepcopy(BUILDSPEC["context"]) if BUILDSPEC.get("context") else {}
@@ -108,10 +115,11 @@ def image_builder(buildspec):
                 })
 
                 extra_build_args[var] = file_name
-                labels[var] = file_name
-                labels[f"{var}_URI"] = uri
+                if is_private_artifact_label_required(uri, image_repo_uri):
+                    labels[var] = file_name
+                    labels[f"{var}_URI"] = uri
 
-        if str(BUILDSPEC["framework"]).startswith("huggingface"):
+        if any(str(BUILDSPEC["framework"]).startswith(keyword) for keyword in ["huggingface", "hopper"]):
             if "transformers_version" in image_config:
                 extra_build_args["TRANSFORMERS_VERSION"] = image_config.get("transformers_version")
             else:

@@ -10,6 +10,7 @@ phases:
       - start-dockerd
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin 763104351884.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
       - pip install -r src/requirements.txt
       - bash src/setup.sh $FRAMEWORK
       - python src/parse_partner_developers.py
@@ -39,6 +40,12 @@ phases:
             # to create a correct path to buildspec files
             PATH_TO_BULDSPEC=$(echo "$FRAMEWORK" | tr _ /)
             python src/main.py --buildspec $PATH_TO_BULDSPEC/buildspec.yml --framework $FRAMEWORK
+          elif expr "${CODEBUILD_BUILD_ARN}" : ".*hopper.*" >/dev/null; then
+            # In Hopper case FRAMEWORK looks like "hopper_<framework_name>".
+            # Converting "hopper_<framework_name>" into huggingface/<framework_name> to create a correct path to
+            # buildspec files.
+            PATH_TO_BULDSPEC=$(echo "$FRAMEWORK" | sed "s/hopper/huggingface/g" | tr _ /)
+            python src/main.py --buildspec $PATH_TO_BULDSPEC/buildspec-hopper.yml --framework $FRAMEWORK
           elif expr "${CODEBUILD_BUILD_ARN}" : ".*habana.*" >/dev/null; then
             python src/main.py --buildspec habana/$FRAMEWORK/buildspec.yml --framework $FRAMEWORK
           else
