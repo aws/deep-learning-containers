@@ -84,7 +84,6 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
             f" -p 80:8080 -p 8081:8081"
             f" --device=/dev/neuron0 --cap-add IPC_LOCK"
             f" --env NEURON_MONITOR_CW_REGION={region}"
-            f" --env NEURON_MONITOR_CW_NAMESPACE=EC2-PYTORCH-NEURON-MONITOR"
             f" {image_uri} {inference_cmd}"
         )
     else:
