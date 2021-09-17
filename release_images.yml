@@ -345,7 +345,7 @@ release_images:
   26:
     framework: "huggingface_pytorch"
     version: "1.8.1"
-    hf_transformers: "4.6.1"
+    hf_transformers: "4.10.2"
     training:
       device_types: ["gpu"]
       python_versions: [ "py36" ]
@@ -402,7 +402,7 @@ release_images:
   30:
     framework: "huggingface_pytorch"
     version: "1.8.1"
-    hf_transformers: "4.6.1"
+    hf_transformers: "4.10.2"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py36" ]
