@@ -6,7 +6,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.10
+ARG PYTHON_VERSION=3.8.12
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.3.1
 ENV LANG C.UTF-8
@@ -99,7 +99,7 @@ RUN conda install -c \
 RUN pip install torch torchvision
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
-RUN pip install pillow==8.2.0 "awscli<2"
+RUN pip install pillow==8.3.2 "awscli<2"
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
 RUN pip uninstall -y model-archiver multi-model-server \
@@ -132,7 +132,7 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.8/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.9/license.txt -o /license.txt
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
