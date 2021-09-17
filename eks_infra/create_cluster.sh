@@ -80,39 +80,16 @@ function create_node_group() {
 
 }
 
-# Get IAM role attached to the nodegroup
-function get_eks_nodegroup_iam_role() {
-  NODE_GROUP_NAME=${1}
-  REGION=${2}
-
-  INSTANCE_PROFILE_PREFIX=$(aws cloudformation describe-stacks --region ${REGION} | jq -r '.Stacks[].StackName' | grep ${NODE_GROUP_NAME})
-
-  if [ -n "${INSTANCE_PROFILE_PREFIX}" ]; then
-    INSTANCE_PROFILE_NAME=$(aws iam list-instance-profiles --region ${REGION} | jq -r '.InstanceProfiles[].InstanceProfileName' | grep $INSTANCE_PROFILE_PREFIX)
-    if [ -n "${INSTANCE_PROFILE_NAME}" ]; then
-      ROLE_NAME=$(aws iam get-instance-profile --instance-profile-name $INSTANCE_PROFILE_NAME --region ${REGION} | jq -r '.InstanceProfile.Roles[] | .RoleName')
-      echo ${ROLE_NAME}
-    else
-      echo "Instance Profile $INSTANCE_PROFILE_NAME does not exist for the $NODE_GROUP_NAME nodegroup"
-      exit 1
-    fi
-  else
-    echo "CloudFormation stack for $NODE_GROUP_NAME nodegroup does not exist"
-    exit 1
-  fi
-
-}
-
 # Attach IAM policy to nodegroup IAM role
 function add_iam_policy() {
   NODE_GROUP_NAME=${1}
-  REGION=${2}
+  CLUSTER_NAME=${2}
+  REGION=${3}
 
-  ROLE_NAME=$(get_eks_nodegroup_iam_role ${NODE_GROUP_NAME} ${REGION})
+  ROLE_ARN=$(aws eks describe-nodegroup --nodegroup-name ${NODE_GROUP_NAME} --cluster-name ${CLUSTER_NAME} --region ${REGION} | jq -r '.nodegroup.nodeRole')
+  ROLE_NAME=$(echo ${ROLE_ARN} | grep -oP 'arn:aws:iam::\d+:role/\K\S+')
 
-  declare -a POLICY_ARN=("arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-                          "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
-                        )
+  declare -a POLICY_ARN=("arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess")
 
   for policy in ${POLICY_ARN[@]}; do
     aws iam attach-role-policy \
@@ -130,7 +107,7 @@ function add_iam_permissions_nodegroup() {
 
   if [ -n "${LIST_NODE_GROUPS}" ]; then
     for NODEGROUP in ${LIST_NODE_GROUPS}; do
-      add_iam_policy ${NODEGROUP} ${REGION}
+      add_iam_policy ${NODEGROUP} ${CLUSTER_NAME} ${REGION}
     done
   else
     echo "No Nodegroups present in the EKS cluster ${CLUSTER_NAME}"

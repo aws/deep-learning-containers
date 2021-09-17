@@ -15,12 +15,6 @@ function install_cluster_autoscalar() {
 
 }
 
-# Function to setup ssm agent on EKS worker nodes
-function install_ssm_agent() {
-  kubectl create -f ../test/dlc_tests/eks/eks_manifest_templates/ssm/install_ssm.yaml
-  kubectl get ds
-}
-
 # Check for input arguments
 if [ $# -ne 2 ]; then
   echo "usage: ./${0} eks_cluster_name cluster_autoscalar_image_version"
@@ -36,7 +30,6 @@ fi
 CLUSTER_NAME=${1}
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=${2}
 
-install_ssm_agent
 install_cluster_autoscalar ${CLUSTER_NAME} ${CLUSTER_AUTOSCALAR_IMAGE_VERSION}
 
 # install kubeflow

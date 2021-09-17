@@ -40,7 +40,7 @@ kubectl version --short --client
 
 # "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz"
 if ! [ -x "$(command -v eksctl)" ]; then
-    curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/0.53.0/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+    curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
     mv /tmp/eksctl /usr/local/bin
 fi
 
