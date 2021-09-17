@@ -114,9 +114,30 @@ function add_iam_permissions_nodegroup() {
   fi
 }
 
-# Function to create namespaces in EKS cluster
-function create_namespaces() {
-  kubectl create -f namespace.yaml
+#/ Tags added to the nodegroup do not propogate to the underlying Auto Scaling Group.
+#/ Hence adding the tags explicitly as it is required for cluster autoscalar functionality
+#/ See https://github.com/aws/containers-roadmap/issues/608
+function add_tags_asg() {
+
+  CLUSTER_NAME=${1}
+  REGION=${2}
+
+  for details in $(eksctl get nodegroup --cluster ${CLUSTER_NAME} --region ${REGION} -o json | jq -c '.[]'); do
+    nodegroup_name=$(echo $details | jq -r '.Name')
+    asg_name=$(echo $details | jq -r '.AutoScalingGroupName')
+
+    if [[ ${nodegroup_name} == *"gpu"* ]]; then
+      aws autoscaling create-or-update-tags \
+        --tags ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/test_type,Value=gpu,PropagateAtLaunch=true
+    fi
+
+    if [[ ${nodegroup_name} == *"inf"* ]]; then
+      aws autoscaling create-or-update-tags \
+        --tags ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/test_type,Value=inf,PropagateAtLaunch=true
+    fi
+
+  done
+
 }
 
 # Check for input arguments
@@ -150,5 +171,5 @@ fi
 
 create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
 create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
+add_tags_asg ${CLUSTER}
 add_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}
-create_namespaces
