@@ -16,8 +16,10 @@ import os
 import json
 import tensorflow as tf
 
+from packaging.version import Version 
+
 tf_major, tf_minor, _ = tf.__version__.split('.')
-if int(tf_major) > 2 or (int(tf_major) == 2 and int(tf_minor) >= 6):
+if Version(tf.__version__) >= Version("2.6.0"):
     import tensorflow_io as tfio
 from tensorflow.keras.layers import Conv2D, BatchNormalization, Dense, Flatten
 
