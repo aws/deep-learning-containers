@@ -119,9 +119,11 @@ def get_dockerfile_path_for_image(image_uri):
     device_type = get_processor_from_image_uri(image_uri)
     cuda_version = get_cuda_version_from_tag(image_uri)
 
+    dockerfile_name = get_expected_dockerfile_filename(device_type, image_uri)
+
     dockerfiles_list = [
         path
-        for path in glob(os.path.join(python_version_path, "**", f"Dockerfile.{device_type}"), recursive=True)
+        for path in glob(os.path.join(python_version_path, "**", dockerfile_name), recursive=True)
         if "example" not in path
     ]
 
@@ -140,6 +142,14 @@ def get_dockerfile_path_for_image(image_uri):
     assert len(dockerfiles_list) == 1, f"No unique dockerfile path in:\n{dockerfiles_list}\nfor image: {image_uri}"
 
     return dockerfiles_list[0]
+
+
+def get_expected_dockerfile_filename(device_type, image_uri):
+    if is_diy_image(image_uri):
+        return f"Dockerfile.diy.{device_type}"
+    if is_sagemaker_image(image_uri):
+        return f"Dockerfile.sagemaker.{device_type}"
+    return f"Dockerfile.{device_type}"
 
 
 def get_python_invoker(ami_id):
@@ -249,6 +259,14 @@ def is_benchmark_dev_context():
 def is_rc_test_context():
     sm_remote_tests_val = get_sagemaker_remote_tests_config_value()
     return sm_remote_tests_val == AllowedSMRemoteConfigValues.RC.value
+
+
+def is_diy_image(image_uri):
+    return "-diy" in image_uri
+
+
+def is_sagemaker_image(image_uri):
+    return "-sagemaker" in image_uri
 
 
 def is_time_for_canary_safety_scan():
