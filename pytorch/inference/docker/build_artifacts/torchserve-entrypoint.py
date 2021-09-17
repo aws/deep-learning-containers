@@ -23,4 +23,5 @@ if sys.argv[1] == 'serve':
 else:
     subprocess.check_call(shlex.split(' '.join(sys.argv[1:])))
 
-# this will be called from neuron entrypoint and that will take care of docker not exiting
+# prevent docker exit
+subprocess.call(['tail', '-f', '/dev/null'])
