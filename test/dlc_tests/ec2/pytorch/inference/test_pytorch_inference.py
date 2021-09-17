@@ -26,67 +26,11 @@ PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 
 PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test")
 
-def read_neuron_monitor_cw_metrics(region, namespace):
-    metric_name = "InferencesCompleted"
-    metric_found = False
-    client = boto3.client('cloudwatch', region)
-    now = datetime.now()
-    now_30 = now - timedelta(minutes=30)
-
-    try:
-        for i in range(30):
-            query = MetricDataQueries=[
-                {
-                    'Id': 'myrequest',
-                    'MetricStat': {
-                        'Metric': {
-                            'Namespace' : namespace,
-                            'MetricName': metric_name,
-                        },
-                        'Period': 5,
-                        'Stat': 'Sum',
-                        'Unit': 'Count'
-                    }
-                },
-            ]
-            response = client.get_metric_data(
-                MetricDataQueries=[
-                    {
-                        'Id': 'myrequest',
-                        'MetricStat': {
-                            'Metric': {
-                                'Namespace' : namespace,
-                                'MetricName': metric_name,
-                            },
-                            'Period': 5,
-                            'Stat': 'Sum',
-                            'Unit': 'Count'
-                        }
-                    },
-                ],
-                StartTime=now_30,
-                EndTime=now,)
-            print("Response for ge_metric {} in namespace {} is  {}".format(metric_name, namespace, response))
-            metric_results = response['MetricDataResults']
-            if len(metric_results) != 0:
-                metric_data = metric_results[0]
-                if metric_data['Label'] == 'InferencesCompleted' and len(metric_data['Values']) != 0:
-                    metric_found = True
-                    break
-            time.sleep(60)
-    except Exception as exc:
-        print('Unable to get data {}: {}'.format(exc))
-
-    return metric_found
-
-
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_neuron(pytorch_inference_neuron, ec2_connection, region, neuron_only):
     ec2_pytorch_inference(pytorch_inference_neuron, "neuron", ec2_connection, region)
-    metric_found = read_neuron_monitor_cw_metrics(region, "EC2-PYTORCH-NEURON-MONITOR")
-    assert metric_found == True
 
 
 @pytest.mark.model("densenet")
