@@ -12,7 +12,7 @@ neuron_mode = false
 graviton_mode = false
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
-benchmark_mode = false
+benchmark_mode = true
 
 [build]
 # Frameworks for which you want to disable both builds and tests
@@ -28,7 +28,7 @@ do_build = false
 sanity_tests = false
 ecs_tests = false
 eks_tests = false
-ec2_tests = false
+ec2_tests = true
 
 ### Off by default
 efa_tests = false
