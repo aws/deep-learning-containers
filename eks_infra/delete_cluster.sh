@@ -57,7 +57,7 @@ function remove_iam_policy() {
   ROLE_NAME=$(get_eks_nodegroup_iam_role ${NODE_GROUP_NAME} ${REGION})
 
   declare -a POLICY_ARN=("arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-                          "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+                         "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
                         )
 
   for policy in ${POLICY_ARN[@]}; do
@@ -83,6 +83,39 @@ function remove_iam_permissions_nodegroup() {
   fi
 }
 
+# Function to delete OIDC provider
+function delete_oidc_provider() {
+  CLUSTER_NAME=${1}
+
+  account_id=$(aws sts get-caller-identity | jq -r '.Account')
+  oidc_issuer=$(aws eks describe-cluster --name ${CLUSTER_NAME} | jq -r '.cluster.identity.oidc.issuer')
+  oidc_url=$(echo $oidc_issuer | grep -oP 'https://\K\S+')
+  oidc_provider_arn="arn:aws:iam::${account_id}:oidc-provider/${oidc_url}"
+
+  if [ -n "${oidc_provider_arn}" ]; then
+    echo "Deleting OICD provider ${oidc_provider_arn} attached to EKS cluster ${CLUSTER_NAME}"
+    aws iam delete-open-id-connect-provider --open-id-connect-provider-arn ${oidc_provider_arn}
+  fi
+
+}
+
+# Function to delete IAM roles related to OIDC
+function delete_oidc_iam_roles() {
+  CLUSTER_NAME=${1}
+
+  declare -a OIDC_ROLE_LIST=("kf-admin-${CLUSTER_NAME}"
+    "kf-user-${CLUSTER_NAME}"
+  )
+
+  for role in ${OIDC_ROLE_LIST[@]}; do
+    role_policies=$(aws iam list-role-policies --role-name ${role} | jq -r '.PolicyNames[]')
+    for policy in ${role_policies[@]}; do
+      aws iam delete-role-policy --role-name ${role} --policy-name ${policy}
+    done
+    aws iam delete-role --role-name ${role}
+  done
+
+}
 # Check for input arguments
 if [ $# -ne 1 ]; then
   echo "usage: ./${0} eks_cluster_name"
@@ -102,4 +135,6 @@ fi
 CLUSTER=${1}
 
 remove_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}
+delete_oidc_provider ${CLUSTER}
+delete_oidc_iam_roles ${CLUSTER}
 delete_cluster ${CLUSTER} ${AWS_REGION}

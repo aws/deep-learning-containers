@@ -8,11 +8,17 @@ set -ex
 
 # Function to install cluster autoscalar
 function install_cluster_autoscalar() {
-  kubectl apply -f cluster-autoscalar-autodiscover.yaml
+  kubectl create -f cluster-autoscalar-autodiscover.yaml
   kubectl -n kube-system annotate deployment.apps/cluster-autoscaler cluster-autoscaler.kubernetes.io/safe-to-evict="false"
   sed -e 's/<CLUSTER_NAME>/'"${1}"'/g;s/<VERSION>/'"${2}"'/g' cluster-autoscalar-autodiscover.yaml >/tmp/cluster-autoscalar-autodiscover-${1}.yaml &&
     kubectl replace -f /tmp/cluster-autoscalar-autodiscover-${1}.yaml
 
+}
+
+# Function to setup ssm agent on EKS worker nodes
+function install_ssm_agent() {
+  kubectl create -f ../test/dlc_tests/eks/eks_manifest_templates/ssm/install_ssm.yaml
+  kubectl get ds
 }
 
 # Check for input arguments
@@ -30,6 +36,7 @@ fi
 CLUSTER_NAME=${1}
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=${2}
 
+install_ssm_agent
 install_cluster_autoscalar ${CLUSTER_NAME} ${CLUSTER_AUTOSCALAR_IMAGE_VERSION}
 
 # install kubeflow
