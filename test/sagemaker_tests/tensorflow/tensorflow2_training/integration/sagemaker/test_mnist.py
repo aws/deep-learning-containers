@@ -38,7 +38,7 @@ def validate_or_skip_test(ecr_image):
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
-# @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.deploy_test
 def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
@@ -61,7 +61,7 @@ def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
     _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
 
 
-# @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("no parameter server")
@@ -126,7 +126,7 @@ def test_distributed_mnist_custom_ps(sagemaker_session, ecr_image, instance_type
     _assert_checkpoint_exists_v2(sagemaker_session.boto_region_name, estimator.model_dir, 10)
 
 
-# @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
 def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framework_version):
@@ -164,7 +164,7 @@ def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framewor
     print(estimator.model_dir)
     _assert_checkpoint_exists_v2(sagemaker_session.boto_region_name, estimator.model_dir, 10)
 
-# @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.integration("hpo")
 def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):

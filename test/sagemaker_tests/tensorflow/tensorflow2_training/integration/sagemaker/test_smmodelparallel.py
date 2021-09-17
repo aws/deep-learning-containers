@@ -56,7 +56,6 @@ def can_run_smmodelparallel_efa(ecr_image):
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("tf2_conv.py", 2), ("tf2_conv_xla.py", 2), ("smmodelparallel_hvd2_conv.py", 4), ("send_receive_checkpoint.py", 2), ("tf2_checkpoint_test.py", 2)])
 @pytest.mark.efa()
-@pytest.mark.skip("Temporary skip")
 def test_smmodelparallel_efa(n_virginia_sagemaker_session, efa_instance_type, n_virginia_ecr_image, tmpdir, framework_version, test_script, num_processes):
     """
     Tests SM Modelparallel in sagemaker
@@ -91,7 +90,6 @@ def test_smmodelparallel_efa(n_virginia_sagemaker_session, efa_instance_type, n_
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_hvd2_conv_multinode.py", 2)])
 @pytest.mark.efa()
-@pytest.mark.skip("Temporary skip")
 def test_smmodelparallel_multinode_efa(n_virginia_sagemaker_session, efa_instance_type, n_virginia_ecr_image, tmpdir, framework_version, test_script, num_processes):
     """
     Tests SM Modelparallel in sagemaker
@@ -118,7 +116,6 @@ def test_smmodelparallel_multinode_efa(n_virginia_sagemaker_session, efa_instanc
     estimator.fit()
 
 
-@pytest.mark.skip("Temporary skip")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.processor("gpu")
 @pytest.mark.model("mnist")
@@ -152,7 +149,6 @@ def test_smmodelparallel(n_virginia_sagemaker_session, instance_type, n_virginia
     estimator.fit()
 
 
-@pytest.mark.skip("Temporary skip")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.processor("gpu")
 @pytest.mark.model("mnist")

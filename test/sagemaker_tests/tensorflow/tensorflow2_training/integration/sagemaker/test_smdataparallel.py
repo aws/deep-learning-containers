@@ -57,7 +57,6 @@ def can_run_smdataparallel_efa(ecr_image):
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.skip("Temporary skip")
 def test_distributed_training_smdataparallel_script_mode(
     n_virginia_sagemaker_session, instance_type, n_virginia_ecr_image, tmpdir, framework_version
 ):
@@ -90,7 +89,6 @@ def test_distributed_training_smdataparallel_script_mode(
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p4d.24xlarge"])
-@pytest.mark.skip("Temporary skip")
 def test_smdataparallel_mnist(instance_types, n_virginia_ecr_image, py_version, n_virginia_sagemaker_session, tmpdir):
     """
     Tests smddprun command via Estimator API distribution parameter
@@ -118,7 +116,6 @@ def test_smdataparallel_mnist(instance_types, n_virginia_ecr_image, py_version, 
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
 @pytest.mark.parametrize('instance_types', ["ml.p4d.24xlarge"])
-@pytest.mark.skip("Temporary skip")
 def test_smdataparallel_throughput(instance_types, n_virginia_ecr_image, py_version, n_virginia_sagemaker_session, tmpdir):
     """
     Tests smddprun throughput
