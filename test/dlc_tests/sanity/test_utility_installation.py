@@ -6,10 +6,7 @@ from invoke.context import Context
 
 from test import test_utils
 
-UTILITY_PACKAGES_IMPORT = {
-    "base": ["bokeh", "imageio", "plotly", "seaborn", "shap", "pandas", "cv2"],
-    "sagemaker_exclusive": ["sagemaker"]
-}
+UTILITY_PACKAGES_IMPORT = ["bokeh", "imageio", "plotly", "seaborn", "shap", "pandas", "cv2", "sagemaker"]
 
 
 # TODO: Need to be added to all DLC images in furture.
@@ -31,7 +28,7 @@ def test_awscli(mxnet_inference):
     test_utils.run_cmd_on_container(container_name, ctx, "aws --version")
 
 
-@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.usefixtures("sagemaker_only", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("utility pacakges")
 def test_utility_packages_using_import(training):
@@ -60,10 +57,7 @@ def test_utility_packages_using_import(training):
     if Version(framework_version) < Version(utility_package_minimum_framework_version[framework]):
         pytest.skip("Extra utility packages will be added going forward.")
 
-    if test_utils.is_diy_image(training):
-        packages_to_import = UTILITY_PACKAGES_IMPORT["base"]
-    else:
-        packages_to_import = UTILITY_PACKAGES_IMPORT["base"] + UTILITY_PACKAGES_IMPORT["sagemaker_exclusive"]
+    packages_to_import = UTILITY_PACKAGES_IMPORT
 
     for package in packages_to_import:
         version = test_utils.run_cmd_on_container(container_name, ctx, f"import {package}; print({package}.__version__)", executable="python").stdout.strip()
