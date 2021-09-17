@@ -11,6 +11,16 @@ ARG MMS_VERSION=1.1.4
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.10
 ARG OPEN_MPI_VERSION=4.0.1
+ENV CUDNN_VERSION=8.0.5.39
+ARG CUBLAS_VERSION=11.3.0.106
+ENV NCCL_VERSION=2.7.8
+ENV EFA_VERSION=1.11.2
+ENV OMPI_VERSION=4.1.1
+ENV NVML_VERSION=11.1.74
+ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
+# Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
+ENV MKL_THREADING_LAYER=GNU
+
 # HF ARGS
 ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.9.0_inference/20210730-020505/2dc3e2055764606a22a3c59ea955184e85ad6110/gpu/torch-1.9.0-cp38-cp38-manylinux1_x86_64.whl
 ARG TRANSFORMERS_VERSION
@@ -27,23 +37,55 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 ENV PATH /opt/conda/bin:$PATH
 
 RUN apt-get update \
- # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl \
- && apt-get install -y --no-install-recommends \
-    ca-certificates \
+    # TODO: Remove systemd upgrade once it is updated in base image
+    && apt-get -y upgrade --only-upgrade systemd \
+    && apt-get install -y --no-install-recommends software-properties-common \
+    && add-apt-repository ppa:openjdk-r/ppa \
+    && apt-get update \
+    && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
     build-essential \
-    libssl1.1 \
-    openssl \
-    openjdk-8-jdk-headless \
-    vim \
-    wget \
+    ca-certificates \
+    cmake \
+    cuda-command-line-tools-11-1 \
+    cuda-cudart-11-1 \
+    cuda-libraries-dev-11-1 \
     curl \
     emacs \
-    unzip \
     git \
+    jq \
+    libcublas-11-1=${CUBLAS_VERSION}-1 \
+    libcublas-dev-11-1=${CUBLAS_VERSION}-1 \
+    libcudnn8=$CUDNN_VERSION-1+cuda11.1 \
+    libcufft-dev-11-1 \
+    libcurand-dev-11-1 \
+    libcusolver-dev-11-1 \
+    libcusparse-dev-11-1 \
+    cuda-nvml-dev-11-1=${NVML_VERSION}-1 \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libgomp1 \
+    libibverbs-dev \
     libnuma1 \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    libnuma-dev \
+    libsm6 \
+    libssl1.1 \
+    libxext6 \
+    libxrender-dev \
+    openjdk-8-jdk-headless \
+    openssl \
+    vim \
+    wget \
+    unzip \
+    zlib1g-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+RUN cd /tmp \
+  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+  && cd nccl \
+  && make -j64 src.build BUILDDIR=/usr/local \
+  && rm -rf /tmp/nccl
+
 
 RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
