@@ -1,0 +1,35 @@
+account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+region: &REGION <set-$REGION-in-environment>
+base_framework: &BASE_FRAMEWORK tensorflow
+framework: &FRAMEWORK !join [ "hopper_", *BASE_FRAMEWORK]
+version: &VERSION 2.4.1
+short_version: &SHORT_VERSION 2.4
+
+repository_info:
+  training_repository: &TRAINING_REPOSITORY
+    image_type: &TRAINING_IMAGE_TYPE training
+    root: !join [ "huggingface/", *BASE_FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
+    repository_name: &REPOSITORY_NAME !join ["pr", "-", "hopper", "-", *BASE_FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+
+images:
+  BuildHuggingFaceTensorflowGpuPy37Cu110TrainingDockerImage:
+    <<: *TRAINING_REPOSITORY
+    build: &HOPPER_TENSORFLOW_GPU_TRAINING_PY3 false
+    image_size_baseline: &IMAGE_SIZE_BASELINE 8489
+    device_type: &DEVICE_TYPE gpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py37
+    cuda_version: &CUDA_VERSION cu110
+    os_version: &OS_VERSION ubuntu18.04
+    transformers_version: &TRANSFORMERS_VERSION 4.6.1
+    datasets_version: &DATASETS_VERSION 1.6.2
+    tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
+                 *CUDA_VERSION, '-', *OS_VERSION ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
+                         *CUDA_VERSION, /Dockerfile.hopper., *DEVICE_TYPE ]
+    download_artifacts:
+      custom_artifact:
+        type: s3
+        URI: s3://dlc-test-coverage-reports-501576597925/test_coverage_report-aws-deep-learning-containers-2020-09-25.csv
+        VAR_IN_DOCKERFILE: CUSTOM_ARTIFACT_LOCATION_IN_BUILD_CONTEXT
