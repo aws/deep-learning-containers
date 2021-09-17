@@ -6,18 +6,11 @@ from invoke.context import Context
 
 from test import test_utils
 
-UTILITY_PACKAGES_IMPORT = [
-    "bokeh",
-    "imageio",
-    "plotly",
-    "seaborn",
-    "shap",
-    "sagemaker",
-    "pandas",
-    "cv2"
-]
+UTILITY_PACKAGES_IMPORT = ["bokeh", "imageio", "plotly", "seaborn", "shap", "pandas", "cv2", "sagemaker"]
+
 
 # TODO: Need to be added to all DLC images in furture.
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("awscli")
 def test_awscli(mxnet_inference):
@@ -35,7 +28,7 @@ def test_awscli(mxnet_inference):
     test_utils.run_cmd_on_container(container_name, ctx, "aws --version")
 
 
-@pytest.mark.usefixtures("huggingface")
+@pytest.mark.usefixtures("sagemaker_only", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("utility pacakges")
 def test_utility_packages_using_import(training):
@@ -63,13 +56,16 @@ def test_utility_packages_using_import(training):
 
     if Version(framework_version) < Version(utility_package_minimum_framework_version[framework]):
         pytest.skip("Extra utility packages will be added going forward.")
-    
-    for package in UTILITY_PACKAGES_IMPORT:
+
+    packages_to_import = UTILITY_PACKAGES_IMPORT
+
+    for package in packages_to_import:
         version = test_utils.run_cmd_on_container(container_name, ctx, f"import {package}; print({package}.__version__)", executable="python").stdout.strip()
         if package == "sagemaker":
             assert Version(version) > Version("2"), f"Sagemaker version should be > 2.0. Found version {version}"
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("boto3")
 def test_boto3(mxnet_inference):
@@ -86,6 +82,7 @@ def test_boto3(mxnet_inference):
     test_utils.run_cmd_on_container(container_name, ctx, 'import boto3', executable="python")
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("emacs")
 def test_emacs(image):
