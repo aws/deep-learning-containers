@@ -63,7 +63,8 @@ def is_sm_local_test_enabled():
 
 
 def are_efa_tests_enabled():
-    return parse_dlc_developer_configs("test", "efa_tests")
+    sm_remote_value = get_sagemaker_remote_tests_config_value()
+    return sm_remote_value == "efa"
 
 
 def is_scheduler_enabled():
@@ -74,6 +75,7 @@ class AllowedSMRemoteConfigValues(Enum):
     OFF = "off"
     RC = "rc"
     STANDARD = "standard"
+    EFA = "efa"
 
 
 def get_sagemaker_remote_tests_config_value():
