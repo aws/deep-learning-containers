@@ -53,6 +53,7 @@ RUN apt-get update \
     libsqlite3-dev \
     tk-dev \
     libgdbm-dev \
+    libcap-dev \
     libc6-dev \
  && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
  && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
