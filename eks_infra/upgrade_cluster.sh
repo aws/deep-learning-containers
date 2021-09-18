@@ -22,6 +22,7 @@ function upgrade_eks_control_plane() {
   eksctl upgrade cluster \
     --name ${1} \
     --version ${2} \
+    --timeout 180m \
     --approve
 }
 
@@ -52,6 +53,7 @@ function upgrade_nodegroups() {
         --name ${NODEGROUP} \
         --cluster ${CLUSTER} \
         --kubernetes-version ${EKS_VERSION} \
+        --timeout 90m \
         --region ${REGION}
     done
   else
