@@ -73,7 +73,7 @@ function create_node_group() {
     --nodes-max 100 \
     --node-volume-size 500 \
     --node-labels "test_type=inf" \
-    --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=inf,k8s.io/cluster-autoscaler/node-template/resources/aws.amazon.com/neuron=1" \
+    --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=inf,k8s.io/cluster-autoscaler/node-template/resources/aws.amazon.com/neuron=1,k8s.io/cluster-autoscaler/node-template/resources/hugepages-2Mi=256Mi" \
     --asg-access \
     --ssh-access \
     --ssh-public-key "${3}"
@@ -134,7 +134,8 @@ function add_tags_asg() {
     if [[ ${nodegroup_name} == *"inf"* ]]; then
       aws autoscaling create-or-update-tags \
         --tags ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/test_type,Value=inf,PropagateAtLaunch=true \
-        ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/resources/aws.amazon.com/neuron,Value=1,PropagateAtLaunch=true
+        ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/resources/aws.amazon.com/neuron,Value=1,PropagateAtLaunch=true \
+        ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/resources/hugepages-2Mi,Value=256Mi,PropagateAtLaunch=true
     fi
 
   done
