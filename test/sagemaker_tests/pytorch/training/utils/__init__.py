@@ -18,6 +18,7 @@ import os
 import re
 from base64 import b64decode
 import subprocess
+from dlc.ecr_handler import EcrHandler
 
 
 def _botocore_resolver():
@@ -38,27 +39,6 @@ def get_ecr_registry(account, region):
     """
     endpoint_data = _botocore_resolver().construct_endpoint('ecr', region)
     return '{}.dkr.{}'.format(account, endpoint_data['hostname'])
-
-
-def get_ecr_login_boto3(ecr_client, account_id, region):
-    """
-    Get ECR login using boto3
-    """
-    user_name, password = None, None
-    result = ecr_client.get_authorization_token()
-    for auth in result['authorizationData']:
-        auth_token = b64decode(auth['authorizationToken']).decode()
-        user_name, password = auth_token.split(':')
-    return user_name, password
-
-
-def save_credentials_to_file(file_path, password):
-    with open(file_path, "w") as file:
-        file.write(f"{password}")
-
-
-def delete_file(file_path):
-    subprocess.check_output(f"rm -rf {file_path}", shell=True, executable="/bin/bash")
 
 
 def get_repository_and_tag_from_image_uri(image_uri):
@@ -121,8 +101,9 @@ def get_account_id_from_image_uri(image_uri):
     :return: <str> AWS Account ID
     """
     return image_uri.split(".")[0]
-    
-#cleanup unused function
+
+
+# cleanup unused function
 def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_region):
     """
     Helper function to reupload an image owned by a another/same account to an ECR repo in this account to given region, so that
@@ -133,7 +114,7 @@ def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_
     :param target_region: str Region where test is being run
     :return: str New image URI for re-uploaded image
     """
-    ECR_PASSWORD_FILE_PATH = os.path.join("/tmp", f"{get_unique_name_from_tag(source_image_uri)}.txt")
+    ecr_handler = EcrHandler()
     sts_client = boto3.client("sts", region_name=target_region)
     target_ecr_client = boto3.client("ecr", region_name=target_region)
     target_account_id = sts_client.get_caller_identity().get("Account")
@@ -141,6 +122,7 @@ def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_
     image_region = get_region_from_image_uri(source_image_uri)
     image_repo_uri, image_tag = source_image_uri.split(":")
     _, image_repo_name = image_repo_uri.split("/")
+    client = boto3.client('ecr', region_name = image_region)
     if not ecr_repo_exists(target_ecr_client, target_image_repo_name):
         raise ECRRepoDoesNotExist(
             f"Repo named {target_image_repo_name} does not exist in {target_region} on the account {target_account_id}"
@@ -152,18 +134,13 @@ def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_
         .replace(image_account_id, target_account_id)
     )
 
-    client = boto3.client('ecr', region_name = image_region)
-    username, password = get_ecr_login_boto3(client, image_account_id, image_region)
-    save_credentials_to_file(ECR_PASSWORD_FILE_PATH, password)
 
     # using ctx.run throws error on codebuild "OSError: reading from stdin while output is captured".
     # Also it throws more errors related to awscli if in_stream=False flag is added to ctx.run which needs more deep dive
-    subprocess.check_output(f"cat {ECR_PASSWORD_FILE_PATH} | docker login -u {username} --password-stdin https://{image_account_id}.dkr.ecr.{image_region}.amazonaws.com && docker pull {source_image_uri}", shell=True, executable="/bin/bash")
-    subprocess.check_output(f"docker tag {source_image_uri} {target_image_uri}", shell=True, executable="/bin/bash")
-    delete_file(ECR_PASSWORD_FILE_PATH)
-    username, password = get_ecr_login_boto3(target_ecr_client, target_account_id, target_region)
-    save_credentials_to_file(ECR_PASSWORD_FILE_PATH, password)
-    subprocess.check_output(f"cat {ECR_PASSWORD_FILE_PATH} | docker login -u {username} --password-stdin https://{target_account_id}.dkr.ecr.{target_region}.amazonaws.com && docker push {target_image_uri}", shell=True, executable="/bin/bash")
-    delete_file(ECR_PASSWORD_FILE_PATH)
+    ecr_handler.login_into_ecr(client, image_account_id, image_region)
+    subprocess.check_output(f"docker pull {source_image_uri} && docker tag {source_image_uri} {target_image_uri}", shell=True, executable="/bin/bash")
+
+    ecr_handler.login_into_ecr(target_ecr_client, target_account_id, target_region)
+    subprocess.check_output(f"docker push {target_image_uri}", shell=True, executable="/bin/bash")
 
     return target_image_uri
