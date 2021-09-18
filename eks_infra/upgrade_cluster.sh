@@ -25,6 +25,12 @@ function upgrade_eks_control_plane() {
     --approve
 }
 
+# Function to control scaling of cluster autoscalar
+function scale_cluster_autoscalar() {
+  kubectl scale deployments/cluster-autoscaler \
+    --replicas=${1} \
+    -n kube-system
+}
 # Function to upgrade autoscalar image
 function upgrade_autoscalar_image() {
   kubectl -n kube-system \
@@ -34,7 +40,8 @@ function upgrade_autoscalar_image() {
 # Function to upgrade nodegroups
 function upgrade_nodegroups() {
   CLUSTER=${1}
-  REGION=${2}
+  EKS_VERSION=${2}
+  REGION=${3}
 
   LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${CLUSTER} -o json | jq -r '.[].Name')
 
@@ -44,6 +51,7 @@ function upgrade_nodegroups() {
       eksctl upgrade nodegroup \
         --name ${NODEGROUP} \
         --cluster ${CLUSTER} \
+        --kubernetes-version ${EKS_VERSION} \
         --region ${REGION}
     done
   else
@@ -87,7 +95,12 @@ if [ -n "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
   update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
 fi
 
+#scale to 0 to avoid unwanted scaling
+scale_cluster_autoscalar 0
 upgrade_autoscalar_image ${CLUSTER_AUTOSCALAR_IMAGE_VERSION}
 upgrade_eks_control_plane ${CLUSTER} ${EKS_VERSION}
-upgrade_nodegroups ${CLUSTER} ${AWS_REGION}
+upgrade_nodegroups ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
 update_eksctl_utils ${CLUSTER} ${AWS_REGION}
+
+#scale back to 1
+scale_cluster_autoscalar 1
