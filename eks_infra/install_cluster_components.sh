@@ -15,11 +15,6 @@ function install_cluster_autoscalar() {
 
 }
 
-# Function to create namespaces in EKS cluster
-function create_namespaces() {
-  kubectl create -f namespace.yaml
-}
-
 # Check for input arguments
 if [ $# -ne 2 ]; then
   echo "usage: ./${0} eks_cluster_name cluster_autoscalar_image_version"
@@ -35,7 +30,6 @@ fi
 CLUSTER_NAME=${1}
 CLUSTER_AUTOSCALAR_IMAGE_VERSION=${2}
 
-create_namespaces
 install_cluster_autoscalar ${CLUSTER_NAME} ${CLUSTER_AUTOSCALAR_IMAGE_VERSION}
 
 # install kubeflow

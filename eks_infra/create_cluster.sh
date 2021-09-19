@@ -100,6 +100,11 @@ function add_iam_policy() {
 
 }
 
+# Function to create namespaces in EKS cluster
+function create_namespaces() {
+  kubectl create -f namespace.yaml
+}
+
 function add_iam_permissions_nodegroup() {
   CLUSTER_NAME=${1}
   REGION=${2}
@@ -175,3 +180,4 @@ create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
 create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
 add_tags_asg ${CLUSTER} ${AWS_REGION}
 add_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}
+create_namespaces
