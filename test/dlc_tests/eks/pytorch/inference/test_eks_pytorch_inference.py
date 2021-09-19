@@ -47,9 +47,6 @@ def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8080")
 
         assert test_utils.request_pytorch_inference_densenet(port=port_to_forward, server_type=server_type, model_name="pytorch-resnet-neuron")
-    except ValueError as excp:
-        run("kubectl cluster-info dump")
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
@@ -103,8 +100,6 @@ def test_eks_pytorch_densenet_inference(pytorch_inference):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8080")
 
         assert test_utils.request_pytorch_inference_densenet(port=port_to_forward, server_type=server_type)
-    except ValueError as excp:
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")

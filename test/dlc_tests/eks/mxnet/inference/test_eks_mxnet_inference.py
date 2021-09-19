@@ -47,8 +47,6 @@ def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8080")
 
         assert test_utils.request_mxnet_inference(port=port_to_forward, model="mxnet-resnet50")
-    except ValueError as excp:
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
     finally:
         run("kubectl cluster-info dump")
         run(f"kubectl delete deployment {selector_name}")
@@ -92,8 +90,6 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8080")
 
         assert test_utils.request_mxnet_inference(port=port_to_forward)
-    except ValueError as excp:
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
@@ -139,8 +135,6 @@ def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8080")
 
         assert test_utils.request_mxnet_inference_gluonnlp(port=port_to_forward)
-    except ValueError as excp:
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")

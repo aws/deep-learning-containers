@@ -307,50 +307,11 @@ def main():
             else:
                 raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
             
-            # Change 1: Split training and inference, and run one after the other, to prevent scheduling issues
-            # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in
-            # pods timing-out while they were in the Pending state. Scheduling 4 tests (and hence, 4 pods) at once
-            # seems to be an optimal configuration.
-            # Change 2: Separate multi-node EKS tests from single-node tests in execution to prevent resource contention
-            if not is_neuron:
-                pytest_cmds = [
-                    [
-                        "-s",
-                        "-rA",
-                        os.path.join(test_path, framework, "training"),
-                        f"--junitxml={report_train}",
-                        "-n=4",
-                        "-m",
-                        "not multinode",
-                    ],
-                    [
-                        "-s",
-                        "-rA",
-                        os.path.join(test_path, framework, "inference"),
-                        f"--junitxml={report_infer}",
-                        "-n=4",
-                        "-m",
-                        "not multinode",
-                    ],
-                    ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
-                ]
-            else:
-                pytest_cmds = [
-                    [
-                        "-s",
-                        "-rA",
-                        os.path.join(test_path, framework, "inference"),
-                        f"--junitxml={report_infer}",
-                        "-n=4",
-                        "-m",
-                        "not multinode",
-                    ],
-                    ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
-                ]
-
+            pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
             if is_pr_context():
-                for cmd in pytest_cmds:
+                for cmd in pytest_cmd:
                     cmd.append("--timeout=2340")
+            pytest_cmds = [pytest_cmd]
         else:
             # Execute dlc_tests pytest command
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]

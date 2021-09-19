@@ -48,9 +48,6 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8501")
 
         assert test_utils.request_tensorflow_inference(model_name=model_name, port=port_to_forward)
-    except ValueError as excp:
-        run("kubectl cluster-info dump")
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
@@ -95,8 +92,6 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8500")
 
         assert test_utils.request_tensorflow_inference(model_name=model_name, port=port_to_forward)
-    except ValueError as excp:
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
@@ -142,8 +137,6 @@ def test_eks_tensorflow_albert(tensorflow_inference):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8501")
 
         assert test_utils.request_tensorflow_inference_nlp(model_name=model_name, port=port_to_forward)
-    except ValueError as excp:
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
