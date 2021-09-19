@@ -309,8 +309,7 @@ def main():
             
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
             if is_pr_context():
-                for cmd in pytest_cmd:
-                    cmd.append("--timeout=2340")
+                pytest_cmd.append("--timeout=2340")
             pytest_cmds = [pytest_cmd]
         else:
             # Execute dlc_tests pytest command
