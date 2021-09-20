@@ -80,7 +80,7 @@ RUN source activate rapids \
 
 # Catboost 0.26 updates version of scala 2.11 for security reasons
 # https://github.com/catboost/catboost/issues/1632
-pip install --no-cache-dir -U catboost==0.26.1
+RUN pip install --no-cache-dir -U catboost==0.26.1
 
 WORKDIR /
 
