@@ -49,6 +49,7 @@ def test_utility_packages_using_import(training):
         "tensorflow2": "2.4",
         "tensorflow1": "1.15",
         "huggingface_tensorflow": "2.4",
+        "autogluon": "0.2.1",
     }
 
     if framework == "tensorflow":
