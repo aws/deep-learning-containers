@@ -16,7 +16,7 @@ Note: If merging this PR should also close the associated Issue, please also add
 - [ ] I have added the project label for this PR (*<project_name>* or "Improvement")
 
 ## PR Checklist
-- [ ] I've prepended PR tag with frameworks/job this applies to : [mxnet, tensorflow, pytorch] | [ei/neuron] | [build] | [test] | [benchmark] | [ec2, ecs, eks, sagemaker]
+- [ ] I've prepended PR tag with frameworks/job this applies to : [mxnet, tensorflow, pytorch] | [ei/neuron/graviton] | [build] | [test] | [benchmark] | [ec2, ecs, eks, sagemaker]
 - [ ] If the PR changes affects SM test, I've modified dlc_developer_config.toml in my PR branch by setting sagemaker_tests = true and efa_tests = true
 - [ ] If this PR changes existing code, the change fully backward compatible with pre-existing code. (Non backward-compatible changes need special approval.)
 - [ ] (If applicable) I've documented below the DLC image/dockerfile this relates to
@@ -32,7 +32,7 @@ Note: If merging this PR should also close the associated Issue, please also add
 
 #### EIA/NEURON Testing Checklist
 * When creating a PR:
-- [ ] I've modified `dlc_developer_config.toml` in my PR branch by setting `ei_mode = true` or `neuron_mode = true`
+- [ ] I've modified `dlc_developer_config.toml` in my PR branch by setting `ei_mode = true`, `neuron_mode = true` or `graviton_mode = true`
 
 #### Benchmark Testing Checklist
 * When creating a PR:
