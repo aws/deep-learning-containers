@@ -126,6 +126,10 @@ RUN pip install --no-cache-dir -U \
     websockets \
     widgetsnbextension 
 
+# Catboost 0.26 updates version of scala 2.11 for security reasons
+# https://github.com/catboost/catboost/issues/1632
+pip install --no-cache-dir -U catboost==0.26.1
+
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \

@@ -30,6 +30,10 @@ RUN pip --no-cache-dir install --upgrade --trusted-host pypi.org --trusted-host 
     numpy==${NUMPY_VER} \
     autogluon==${AUTOGLUON_VERSION}
 
+# Catboost 0.26 updates version of scala 2.11 for security reasons
+# https://github.com/catboost/catboost/issues/1632
+pip install --no-cache-dir -U catboost==0.26.1
+
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["multi-model-server" "--start" "--mms-config" "/home/model-server/config.properties"]
