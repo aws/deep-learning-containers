@@ -175,7 +175,7 @@ def image_builder(buildspec):
         # If for a pre_push stage image we create a common stage image, then we do not push the pre_push stage image
         # to the repository. Instead, we just push its common stage image to the repository. Therefore,
         # inside function get_common_stage_image_object we make pre_push_stage_image_object non pushable.
-        common_stage_image_object = get_common_stage_image_object(pre_push_stage_image_object)
+        common_stage_image_object = generate_common_stage_image_object(pre_push_stage_image_object)
 
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         COMMON_STAGE_IMAGES.append(common_stage_image_object)
@@ -188,24 +188,14 @@ def image_builder(buildspec):
     # Common images must be built at the end as they will consume respective standard and example images
     standard_images = [image for image in PRE_PUSH_STAGE_IMAGES if "example" not in image.name.lower()]
     example_images = [image for image in PRE_PUSH_STAGE_IMAGES if "example" in image.name.lower()]
-    common_stage_images = [image for image in COMMON_STAGE_IMAGES]
     ALL_IMAGES = PRE_PUSH_STAGE_IMAGES + COMMON_STAGE_IMAGES
     IMAGES_TO_PUSH = [image for image in ALL_IMAGES if image.to_push and image.to_build]
 
-    # pre_push stage standard images build
-    FORMATTER.banner("Standard Build")
-    build_images(standard_images)
+    pushed_images = []
+    pushed_images += process_images(standard_images, "Standard")
+    pushed_images += process_images(example_images, "Example")
 
-    # pre_push stage example images build
-    FORMATTER.banner("Example Build")
-    build_images(example_images)
-
-    # Common stage build
-    FORMATTER.banner("Common Build")
-    build_images(common_stage_images, make_dummy_boto_client=True)
-
-    FORMATTER.banner("Push Started")
-    push_images(IMAGES_TO_PUSH)
+    assert all(image in pushed_images for image in IMAGES_TO_PUSH), "Few images could not be pushed."
 
     # After the build, display logs/summary for all the images.
     FORMATTER.banner("Build Logs")
@@ -232,7 +222,37 @@ def image_builder(buildspec):
     )
 
 
-def get_common_stage_image_object(pre_push_stage_image_object):
+def process_images(pre_push_image_list, pre_push_image_type="Pre-push"):
+    """
+    Handles all the tasks related to a particular type of Pre Push images. It takes in the list of
+    pre push images and then builds it. After the pre-push images have been built, it extracts the 
+    corresponding common stage images for the pre-push images and builds those common stage images.
+    After the common stage images have been built, it finds outs the docker images that need to be 
+    pushed and pushes them according.
+
+    :param pre_push_image_list: list[DockerImage], list of pre-push images
+    :param pre_push_image_type: str, used to display the message on the logs
+    :return: list[DockerImage], images that were supposed to be pushed.
+    """
+    FORMATTER.banner(f"{pre_push_image_type} Build")
+    build_images(pre_push_image_list)
+
+    FORMATTER.banner(f"{pre_push_image_type} Common Build")
+    common_stage_image_list = [
+        image.corresponding_common_stage_image
+        for image in pre_push_image_list
+        if image.corresponding_common_stage_image is not None
+    ]
+    build_images(common_stage_image_list, make_dummy_boto_client=True)
+
+    FORMATTER.banner(f"{pre_push_image_type} Push Images")
+    all_images = pre_push_image_list + common_stage_image_list
+    images_to_push =  [image for image in all_images if image.to_push and image.to_build]
+    push_images(images_to_push)
+    return images_to_push
+
+
+def generate_common_stage_image_object(pre_push_stage_image_object):
     """
     Creates a common stage image object for a pre_push stage image. If for a pre_push stage image we create a common 
     stage image, then we do not push the pre_push stage image to the repository. Instead, we just push its common stage 
@@ -254,6 +274,7 @@ def get_common_stage_image_object(pre_push_stage_image_object):
         stage=constants.COMMON_STAGE,
     )
     pre_push_stage_image_object.to_push = False
+    pre_push_stage_image_object.corresponding_common_stage_image = common_stage_image_object
     return common_stage_image_object
 
 
@@ -410,7 +431,7 @@ def tag_image_with_multistage_common(image_tag):
     :param image_tag: str
     :return: str, image tag appended with multistage-common
     """
-    append_tag = "multistage.common"
+    append_tag = "multistage-common"
     return f"{image_tag}-{append_tag}"
 
 

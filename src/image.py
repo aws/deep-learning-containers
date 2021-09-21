@@ -57,6 +57,7 @@ class DockerImage:
         self.build_status = None
         self.client = APIClient(base_url=constants.DOCKER_URL, timeout=constants.API_CLIENT_TIMEOUT)
         self.log = []
+        self._corresponding_common_stage_image = None
 
     def __getattr__(self, name):
         return self.info[name]
@@ -71,6 +72,22 @@ class DockerImage:
     @property
     def is_test_promotion_enabled(self):
         return bool(self.info.get('enable_test_promotion'))
+
+    @property
+    def corresponding_common_stage_image(self):
+        """
+        Retrieve the corresponding common stage image for a given image.
+        """
+        return self._corresponding_common_stage_image
+
+    @corresponding_common_stage_image.setter
+    def corresponding_common_stage_image(self, docker_image_object):
+        """
+        Sets the value for the corresponding_common_stage_image variable.
+        """
+        if self.to_push:
+            raise ValueError("Corresponding common stage image can only exist if the image is non-pushable")
+        self._corresponding_common_stage_image = docker_image_object
 
     def collect_installed_packages_information(self):
         """
