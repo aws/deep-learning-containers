@@ -28,9 +28,9 @@ Note: If merging this PR should also close the associated Issue, please also add
 - [ ] (If applicable) I have added the marker `@pytest.mark.model("<model-type>")` to the new tests which I have added, to specify the Deep Learning model that is used in the test (use `"N/A"` if the test doesn't use a model)
 - [ ] (If applicable) I have added the marker `@pytest.mark.integration("<feature-being-tested>")` to the new tests which I have added, to specify the feature that will be tested
 - [ ] (If applicable) I have added the marker `@pytest.mark.multinode(<integer-num-nodes>)` to the new tests which I have added, to specify the number of nodes used on a multi-node test
-- [ ] (If applicable) I have added the marker `@pytest.mark.processor(<"cpu"/"gpu"/"eia"/"neuron">)` to the new tests which I have added, if a test is specifically applicable to only one processor type
+- [ ] (If applicable) I have added the marker `@pytest.mark.processor(<"cpu"/"gpu"/"eia"/"neuron"/"graviton">)` to the new tests which I have added, if a test is specifically applicable to only one processor type
 
-#### EIA/NEURON Testing Checklist
+#### EIA/NEURON/GRAVITON Testing Checklist
 * When creating a PR:
 - [ ] I've modified `dlc_developer_config.toml` in my PR branch by setting `ei_mode = true`, `neuron_mode = true` or `graviton_mode = true`
 
