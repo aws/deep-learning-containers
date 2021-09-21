@@ -60,6 +60,10 @@ def test_utility_packages_using_import(training):
 
     packages_to_import = UTILITY_PACKAGES_IMPORT
 
+    # Skip check for AutoGluon
+    if framework == "autogluon":
+        packages_to_import = []
+
     for package in packages_to_import:
         version = test_utils.run_cmd_on_container(container_name, ctx, f"import {package}; print({package}.__version__)", executable="python").stdout.strip()
         if package == "sagemaker":
