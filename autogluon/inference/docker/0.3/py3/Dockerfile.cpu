@@ -36,4 +36,4 @@ RUN pip install --no-cache-dir -U catboost==0.26.1
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["multi-model-server" "--start" "--mms-config" "/home/model-server/config.properties"]
+CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
