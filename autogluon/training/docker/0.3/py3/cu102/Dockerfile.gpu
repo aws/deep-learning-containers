@@ -12,7 +12,7 @@ LABEL dlc_major_version="1"
 
 ARG CUDA_VER
 
-ARG AUTOGLUON_VERSION=0.3.0
+ARG AUTOGLUON_VERSION=0.3.1
 
 ARG MXNET_VER=1.7.*
 
@@ -35,13 +35,16 @@ RUN apt-get update \
     libsm6 \
     libxext6 \
     emacs \
+    vim \
  && apt-get autoremove -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/*
 
 RUN source activate rapids \
- && pip install --no-cache-dir -U pip \
+ && conda update --all -y \
+ && conda clean --all -y \
+ && pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools wheel \
  && pip install --no-cache-dir -U --no-use-pep517 mxnet-cu$(echo ${CUDA_VER} | sed 's/\.//')==${MXNET_VER} \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
