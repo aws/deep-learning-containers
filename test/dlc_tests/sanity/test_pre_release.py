@@ -268,7 +268,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
 
     # Execute test, copy results to s3
     ec2.execute_ec2_training_test(
-        ec2_connection, image, test_script, container_name=container_name)
+        ec2_connection, image, test_script, container_name=container_name, override_entrypoint=True)
     ec2_connection.run(f"docker cp {html_file} ~/{dependency_check_report}")
     ec2_connection.run(
         f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
