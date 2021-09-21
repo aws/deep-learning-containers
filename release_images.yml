@@ -345,7 +345,7 @@ release_images:
   26:
     framework: "huggingface_pytorch"
     version: "1.8.1"
-    hf_transformers: "4.6.1"
+    hf_transformers: "4.10.2"
     training:
       device_types: ["gpu"]
       python_versions: [ "py36" ]
@@ -402,7 +402,7 @@ release_images:
   30:
     framework: "huggingface_pytorch"
     version: "1.8.1"
-    hf_transformers: "4.6.1"
+    hf_transformers: "4.10.2"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py36" ]
@@ -422,4 +422,26 @@ release_images:
       cuda_version: "cu110"
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  32:
+    framework: "autogluon"
+    version: "0.3.1"
+    training:
+      device_types: ["cpu","gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu102"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+
+  33:
+    framework: "autogluon"
+    version: "0.3.1"
+    inference:
+      device_types: ["cpu"]
+      python_versions: [ "py37" ]
+      os_version: "ubuntu16.04"
+      example: False
+      disable_sm_tag: False
       force_release: False
