@@ -14,12 +14,12 @@ repository_info:
 
 context:
   inference_context: &INFERENCE_CONTEXT
-    torchserve-entrypoint:
-      source: docker/build_artifacts/torchserve-entrypoint.py
-      target: torchserve-entrypoint.py
-    dockerd-entrypoint:
-      source: docker/build_artifacts/neuron_entrypoint.sh
-      target: entrypoint.sh
+    neuron-start:
+      source: docker/build_artifacts/neuron-start.sh
+      target: neuron-start.sh
+    neuron-entrypoint:
+      source: docker/build_artifacts/neuron-entrypoint.py
+      target: neuron-entrypoint.py
     config:
       source: docker/build_artifacts/config.properties
       target: config.properties
@@ -27,7 +27,7 @@ context:
 images:
   BuildNeuronPTInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
-    build: &PYTORCH_CPU_INFERENCE_PY3 false
+    build: &PYTORCH_INF_INFERENCE_PY3 false
     image_size_baseline: 10000
     device_type: &DEVICE_TYPE neuron
     python_version: &DOCKER_PYTHON_VERSION py3
