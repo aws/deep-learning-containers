@@ -444,7 +444,6 @@ def execute_ec2_training_test(
     host_network=False,
     container_name="ec2_training_container",
     timeout=3000,
-    override_entrypoint=False,
 ):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
@@ -459,13 +458,9 @@ def execute_ec2_training_test(
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
     network = '--network="host" ' if host_network else ""
-
-    # Inference containers has never-ending entrypoints - override if necessary
-    entrypoint = f'--entrypoint /bin/bash' if override_entrypoint else ""
-
     connection.run(
         f"{docker_cmd} run --name {container_name} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
-        f" {shm_setting} -itd {ecr_uri} {entrypoint}",
+        f" {shm_setting} -itd {ecr_uri}",
         hide=True,
     )
     return connection.run(
