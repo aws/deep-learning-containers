@@ -324,7 +324,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         )
 
 
-@pytest.mark.usefixtures("sagemaker", "huggingface", "non_autogluon_only")
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
@@ -332,6 +332,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     (is_canary_context() and not is_time_for_canary_safety_scan()),
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
+@pytest.mark.flaky(reruns=3)
 def test_dependency_check_cpu(cpu, ec2_connection):
     # TODO: Fix test on HF inference
     if "huggingface-tensorflow-inference" in cpu or "huggingface-pytorch-inference" in cpu:
