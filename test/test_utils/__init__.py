@@ -29,8 +29,10 @@ DEFAULT_REGION = "us-west-2"
 # Constant to represent region where p3dn tests can be run
 P3DN_REGION = "us-east-1"
 
-UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0ab8a8eaef5d56ff2"
-UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-01d0263a9631d8502"
+UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0150e36b3f936a26e"
+UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-044971d381e6a1109"
+AML2_GPU_DLAMI_US_WEST_2 = "ami-071cb1e434903a577"
+AML2_GPU_DLAMI_US_EAST_1 = "ami-044264d246686b043"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0b5d270a84e753c18"
@@ -117,9 +119,11 @@ def get_dockerfile_path_for_image(image_uri):
     device_type = get_processor_from_image_uri(image_uri)
     cuda_version = get_cuda_version_from_tag(image_uri)
 
+    dockerfile_name = get_expected_dockerfile_filename(device_type, image_uri)
+
     dockerfiles_list = [
         path
-        for path in glob(os.path.join(python_version_path, "**", f"Dockerfile.{device_type}"), recursive=True)
+        for path in glob(os.path.join(python_version_path, "**", dockerfile_name), recursive=True)
         if "example" not in path
     ]
 
@@ -138,6 +142,14 @@ def get_dockerfile_path_for_image(image_uri):
     assert len(dockerfiles_list) == 1, f"No unique dockerfile path in:\n{dockerfiles_list}\nfor image: {image_uri}"
 
     return dockerfiles_list[0]
+
+
+def get_expected_dockerfile_filename(device_type, image_uri):
+    if is_diy_image(image_uri):
+        return f"Dockerfile.diy.{device_type}"
+    if is_sagemaker_image(image_uri):
+        return f"Dockerfile.sagemaker.{device_type}"
+    return f"Dockerfile.{device_type}"
 
 
 def get_python_invoker(ami_id):
@@ -247,6 +259,14 @@ def is_benchmark_dev_context():
 def is_rc_test_context():
     sm_remote_tests_val = get_sagemaker_remote_tests_config_value()
     return sm_remote_tests_val == AllowedSMRemoteConfigValues.RC.value
+
+
+def is_diy_image(image_uri):
+    return "-diy" in image_uri
+
+
+def is_sagemaker_image(image_uri):
+    return "-sagemaker" in image_uri
 
 
 def is_time_for_canary_safety_scan():
@@ -660,10 +680,20 @@ def get_canary_default_tag_py3_version(framework, version):
     :return: default tag python version
     """
     if framework == "tensorflow2" or framework == "huggingface_tensorflow":
-        return "py37" if Version(version) >= Version("2.2") else "py3"
+        if Version("2.2") <= Version(version) < Version("2.6"):
+            return "py37"
+        if Version(version) >= Version("2.6"):
+            return "py38"
 
     if framework == "mxnet":
-        return "py37" if Version(version) >= Version("1.8") else "py3"
+        if Version(version) == Version("1.8"):
+            return "py37"
+        if Version(version) >= Version("1.9"):
+            return "py38"
+
+    if framework == "pytorch":
+        if Version(version) >= Version("1.9"):
+            return "py38"
 
     return "py3"
 

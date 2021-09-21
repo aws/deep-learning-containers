@@ -22,11 +22,15 @@ from test.test_utils import (
     get_job_type_from_image,
     is_tf_version,
     is_below_framework_version,
+    is_diy_image,
+    is_sagemaker_image,
     DEFAULT_REGION,
     P3DN_REGION,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
+    AML2_GPU_DLAMI_US_WEST_2,
+    AML2_GPU_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
 )
@@ -192,7 +196,11 @@ def ec2_instance(
         ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
-            ec2_instance_ami = UBUNTU_18_BASE_DLAMI_US_EAST_1
+            ec2_instance_ami = (
+                AML2_GPU_DLAMI_US_EAST_1
+                if ec2_instance_ami == AML2_GPU_DLAMI_US_WEST_2
+                else UBUNTU_18_BASE_DLAMI_US_EAST_1
+            )
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
@@ -217,6 +225,8 @@ def ec2_instance(
         "MinCount": 1,
     }
 
+    volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
+
     if (
         ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
         and (
@@ -230,7 +240,7 @@ def ec2_instance(
     ):
         params["BlockDeviceMappings"] = [
             {
-                "DeviceName": "/dev/sda1",
+                "DeviceName": volume_name,
                 "Ebs": {
                     "VolumeSize": 300,
                 },
@@ -241,7 +251,7 @@ def ec2_instance(
         # TODO: Revert the configuration once DLAMI is public
         params["BlockDeviceMappings"] = [
             {
-                "DeviceName": "/dev/sda1",
+                "DeviceName": volume_name,
                 "Ebs": {
                     "VolumeSize": 90,
                 },
@@ -361,6 +371,16 @@ def gpu_only():
 
 
 @pytest.fixture(scope="session")
+def sagemaker():
+    pass
+
+
+@pytest.fixture(scope="session")
+def sagemaker_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def eia_only():
     pass
 
@@ -382,6 +402,11 @@ def example_only():
 
 @pytest.fixture(scope="session")
 def huggingface_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def huggingface():
     pass
 
 
@@ -616,11 +641,23 @@ def pytest_generate_tests(metafunc):
             for image in images:
                 if lookup in image:
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
-                    is_huggingface_lookup = "huggingface_only" in metafunc.fixturenames and "huggingface" in image
+                    is_huggingface_lookup = (
+                            ("huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames)
+                            and "huggingface" in image
+                    )
                     is_standard_lookup = all(
                         fixture_name not in metafunc.fixturenames
                         for fixture_name in ["example_only", "huggingface_only"]
                     ) and all(keyword not in image for keyword in ["example", "huggingface"])
+                    if "sagemaker_only" in metafunc.fixturenames and is_diy_image(image):
+                        LOGGER.info(f"Not running DIY image {image} on sagemaker_only test")
+                        continue
+                    if is_sagemaker_image(image):
+                        if "sagemaker_only" not in metafunc.fixturenames and "sagemaker" not in metafunc.fixturenames:
+                            LOGGER.info(
+                                f"Skipping test, as this function is not marked as 'sagemaker_only' or 'sagemaker'"
+                            )
+                            continue
                     if not framework_version_within_limit(metafunc, image):
                         continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:

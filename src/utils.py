@@ -412,6 +412,8 @@ def fetch_dlc_images_for_test_jobs(images):
     build_disabled = not is_build_enabled()
 
     for docker_image in images:
+        if not docker_image.is_test_promotion_enabled:
+            continue
         use_preexisting_images = (build_disabled and docker_image.build_status == constants.NOT_BUILT)
         if docker_image.build_status == constants.SUCCESS or use_preexisting_images:
             # Run sanity tests on the all images built
