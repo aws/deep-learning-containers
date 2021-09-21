@@ -48,7 +48,6 @@ def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
 
         assert test_utils.request_mxnet_inference(port=port_to_forward, model="mxnet-resnet50")
     finally:
-        run("kubectl cluster-info dump")
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
 
