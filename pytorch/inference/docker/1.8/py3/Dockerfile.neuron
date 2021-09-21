@@ -4,10 +4,10 @@ LABEL dlc_major_version="1"
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
-ARG PYTHON=python3
-ARG PYTHON_VERSION=3.6.13
-ARG TS_VERSION=0.3.1
-ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.7.1/cpu/torchvision-0.8.2-cp36-cp36m-linux_x86_64.whl
+ARG PYTHON=python3.7
+ARG PYTHON_VERSION=3.7.10
+ARG TS_VERSION=0.4.0
+ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.8.1ei/cpu/torchvision-0.9.1-cp36-cp36m-linux_x86_64.whl
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
@@ -114,11 +114,11 @@ RUN pip install --no-cache-dir -U \
     grpcio==1.24.1 \
     protobuf==3.16.0 \
     gast==0.2.2 \
-    pillow==8.2.0 \
+    "pillow>=8.3" \
     "awscli<2"
 
 RUN pip install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && pip install "torch-neuron>=1.7.1,<1.7.2" --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && pip install "torch-neuron>=1.8.1,<1.8.2" --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install torchserve==$TS_VERSION --no-deps \
  && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL \
  # Install TF 1.15.5 to override neuron-cc[tensorflow]'s installation of tensorflow==1.15.0
@@ -149,7 +149,7 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.7/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.8/license.txt -o /license.txt
 
 EXPOSE 8080 8081
 COPY entrypoint.sh /usr/local/bin/
