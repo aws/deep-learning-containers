@@ -3,6 +3,7 @@ region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
 version: &VERSION 1.7.1
 os_version: &OS_VERSION ubuntu18.04
+short_version: &SHORT_VERSION 1.7
 
 repository_info:
   inference_repository: &INFERENCE_REPOSITORY
@@ -17,7 +18,7 @@ context:
       source: docker/build_artifacts/torchserve-entrypoint.py
       target: torchserve-entrypoint.py
     dockerd-entrypoint:
-      source: docker/build_artifacts/entrypoint.sh
+      source: docker/build_artifacts/neuron_entrypoint.sh
       target: entrypoint.sh
     config:
       source: docker/build_artifacts/config.properties
@@ -32,6 +33,6 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py36
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
-    docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., neuron ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., neuron ]
     context:
       <<: *INFERENCE_CONTEXT
