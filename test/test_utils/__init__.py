@@ -560,9 +560,16 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
                 + " ".join(parameters)
         )
     else:
-        mms_command = (
-            f"/usr/local/bin/entrypoint.sh -t /home/model-server/config.properties -m " + " ".join(parameters)
-        )
+        #Temp till the mxnet dockerfile also have the neuron entrypoint file
+        if server_type == "ts":
+            mms_command = (
+                    f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
+                    + " ".join(parameters)
+            )
+        else:
+            mms_command = (
+                f"/usr/local/bin/entrypoint.sh -t /home/model-server/config.properties -m " + " ".join(parameters)
+            )
 
     return mms_command
 
