@@ -332,7 +332,6 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     (is_canary_context() and not is_time_for_canary_safety_scan()),
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
-@pytest.mark.flaky(reruns=3)
 def test_dependency_check_cpu(cpu, ec2_connection):
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
