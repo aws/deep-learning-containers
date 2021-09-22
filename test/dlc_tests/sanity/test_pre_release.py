@@ -249,14 +249,20 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     short_fw_version = re.search(r"(\d+\.\d+)", image).group(1)
 
     allow_openssl_cve_fw_versions = {
-        "tensorflow": ["1.15", "2.3", "2.4", "2.5", "2.6"],
-        "mxnet": ["1.9"],
-        "pytorch": [],
-        "huggingface_pytorch": ["1.8"],
-        "huggingface_tensorflow": ["2.4"]
+        "tensorflow": {
+            "1.15": ["cpu", "gpu", "neuron", "eia"],
+            "2.3": ["cpu", "gpu", "eia"],
+            "2.4": ["cpu", "gpu"],
+            "2.5": ["cpu", "gpu"],
+            "2.6": ["cpu", "gpu"],
+        },
+        "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
+        "pytorch": {},
+        "huggingface_pytorch": {"1.8": ["cpu", "gpu"]},
+        "huggingface_tensorflow": {"2.4": ["cpu", "gpu"]},
     }
 
-    if short_fw_version in allow_openssl_cve_fw_versions.get(framework, []):
+    if processor in allow_openssl_cve_fw_versions.get(framework, {}).get(short_fw_version):
         allowed_vulnerabilities.add("CVE-2021-3711")
 
     container_name = f"dep_check_{processor}"
