@@ -28,6 +28,7 @@ from test.test_utils import (
     P3DN_REGION,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    UBUNTU_20_ARM64_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     AML2_GPU_DLAMI_US_WEST_2,
     AML2_GPU_DLAMI_US_EAST_1,
@@ -55,12 +56,15 @@ FRAMEWORK_FIXTURES = (
     "cpu",
     "eia",
     "neuron",
+    "graviton",
     "pytorch_inference_eia",
     "mxnet_inference_eia",
     "tensorflow_inference_eia",
     "tensorflow_inference_neuron",
     "pytorch_inference_neuron",
     "mxnet_inference_neuron",
+    "pytorch_inference_graviton",
+    "beta_pytorch_inference",
     "huggingface_tensorflow_training",
     "huggingface_pytorch_training",
     "huggingface_mxnet_training",
@@ -201,6 +205,10 @@ def ec2_instance(
                 if ec2_instance_ami == AML2_GPU_DLAMI_US_WEST_2
                 else UBUNTU_18_BASE_DLAMI_US_EAST_1
             )
+
+    if ec2_instance_type == "c6g.4xlarge":
+        ec2_instance_ami = UBUNTU_20_ARM64_US_WEST_2
+
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
@@ -391,6 +399,10 @@ def neuron_only():
 
 
 @pytest.fixture(scope="session")
+def graviton_only():
+    pass
+
+@pytest.fixture(scope="session")
 def py3_only():
     pass
 
@@ -522,7 +534,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
-    config.addinivalue_line("markers", "processor(cpu/gpu/eia): explicitly mark which processor is used")
+    config.addinivalue_line("markers", "processor(cpu/gpu/eia/graviton): explicitly mark which processor is used")
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
 
@@ -600,7 +612,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                 for index, image in enumerate(images_to_parametrize):
 
                     # Tag fixtures with EC2 instance types if env variable is present
-                    allowed_processors = ("gpu", "cpu", "eia", "neuron")
+                    allowed_processors = ("gpu", "cpu", "eia", "neuron", "graviton")
                     instance_tag = ""
                     for processor in allowed_processors:
                         if processor in image:
@@ -673,11 +685,14 @@ def pytest_generate_tests(metafunc):
                             images_to_parametrize.append(image)
                         elif "neuron_only" in metafunc.fixturenames and "neuron" in image:
                             images_to_parametrize.append(image)
+                        elif "graviton_only" in metafunc.fixturenames and "graviton" in image:
+                            images_to_parametrize.append(image)
                         elif (
                             "cpu_only" not in metafunc.fixturenames
                             and "gpu_only" not in metafunc.fixturenames
                             and "eia_only" not in metafunc.fixturenames
                             and "neuron_only" not in metafunc.fixturenames
+                            and "graviton_only" not in metafunc.fixturenames
                         ):
                             images_to_parametrize.append(image)
 
