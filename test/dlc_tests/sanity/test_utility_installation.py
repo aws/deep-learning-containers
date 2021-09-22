@@ -28,7 +28,7 @@ def test_awscli(mxnet_inference):
     test_utils.run_cmd_on_container(container_name, ctx, "aws --version")
 
 
-@pytest.mark.usefixtures("sagemaker_only", "huggingface")
+@pytest.mark.usefixtures("sagemaker_only", "huggingface", "non_autogluon_only")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("utility pacakges")
 def test_utility_packages_using_import(training):
