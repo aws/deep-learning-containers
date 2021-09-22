@@ -26,7 +26,6 @@ RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz 
  && ./config && make -j $(nproc) && make install \
  && ldconfig \
  && cd .. && rm -rf openssl-* \
- && rmdir /usr/local/ssl/certs \
  && ln -s /etc/ssl/certs /usr/local/ssl/certs
 
 
