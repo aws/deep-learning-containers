@@ -3,6 +3,7 @@ import re
 import subprocess
 import botocore
 import boto3
+import time
 from packaging.version import Version
 
 import pytest
@@ -30,9 +31,12 @@ from test.test_utils import (
     is_nightly_context,
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
+    get_python_version_from_image_uri,
+    is_tf_version
 )
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run stray file test regularly on production images")
 def test_stray_files(image):
@@ -75,6 +79,7 @@ def test_stray_files(image):
     _assert_artifact_free(root, stray_artifacts)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run python version test regularly on production images")
 def test_python_version(image):
@@ -103,6 +108,7 @@ def test_python_version(image):
     assert py_version in container_py_version, f"Cannot find {py_version} in {container_py_version}"
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 def test_ubuntu_version(image):
     """
@@ -126,6 +132,7 @@ def test_ubuntu_version(image):
     assert ubuntu_version in container_ubuntu_version
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run non-gpu framework version test regularly on production images")
 def test_framework_version_cpu(image):
@@ -136,18 +143,24 @@ def test_framework_version_cpu(image):
     :param image: ECR image URI
     """
     if "gpu" in image:
-        pytest.skip("GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
+        pytest.skip(
+            "GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia)?", image_repo_name):
-        pytest.skip(msg="TF inference for CPU/GPU/EIA does not have core tensorflow installed")
+        pytest.skip(
+            msg="TF inference for CPU/GPU/EIA does not have core tensorflow installed")
 
-    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
+    tested_framework, tag_framework_version = get_framework_and_version_from_tag(
+        image)
 
     # Framework name may include huggingface
-    tested_framework = tested_framework.lstrip("huggingface_")
+    if tested_framework.startswith('huggingface_'):
+        tested_framework = tested_framework[len("huggingface_"):]
     # Module name is torch
     if tested_framework == "pytorch":
         tested_framework = "torch"
+    elif tested_framework == "autogluon":
+        tested_framework = "autogluon.core"
     ctx = Context()
     container_name = get_container_name("framework-version", image)
     start_container(container_name, image, ctx)
@@ -157,10 +170,14 @@ def test_framework_version_cpu(image):
     if is_canary_context():
         assert tag_framework_version in output.stdout.strip()
     else:
-        assert tag_framework_version == output.stdout.strip()
+        if tested_framework == "autogluon.core":
+            assert output.stdout.strip().startswith(tag_framework_version)
+        else:
+            assert tag_framework_version == output.stdout.strip()
 
 
 # TODO: Enable as canary once resource cleaning lambda is added
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
@@ -171,33 +188,41 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     :param ec2_connection: fixture to establish connection with an ec2 instance
     """
     image = gpu
-    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
+    tested_framework, tag_framework_version = get_framework_and_version_from_tag(
+        image)
 
     # Framework Version Check #
     # Skip framework version test for tensorflow-inference, since it doesn't have core TF installed
     if "tensorflow-inference" not in image:
         # Framework name may include huggingface
-        tested_framework = tested_framework.lstrip("huggingface_")
+        if tested_framework.startswith('huggingface_'):
+            tested_framework = tested_framework[len("huggingface_"):]
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
+        elif tested_framework == "autogluon":
+            tested_framework = "autogluon.core"
         cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
 
         if is_canary_context():
             assert tag_framework_version in output.stdout.strip()
         else:
-            assert tag_framework_version == output.stdout.strip()
+            if tested_framework == "autogluon.core":
+                assert output.stdout.strip().startswith(tag_framework_version)
+            else:
+                assert tag_framework_version == output.stdout.strip()
 
     # CUDA Version Check #
     cuda_version = re.search(r"-cu(\d+)-", image).group(1)
 
-    # MXNet inference containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
-    if "mxnet-inference" in image:
+    # MXNet inference/HF tensorflow inference and Autogluon containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
+    if "mxnet-inference" in image or "autogluon" in image or "huggingface-tensorflow-inference" in image:
         cuda_cmd = "readlink /usr/local/cuda"
     else:
         cuda_cmd = "nvcc --version"
-    cuda_output = ec2.execute_ec2_training_test(ec2_connection, image, cuda_cmd, container_name="cuda_version_test")
+    cuda_output = ec2.execute_ec2_training_test(
+        ec2_connection, image, cuda_cmd, container_name="cuda_version_test")
 
     # Ensure that cuda version in tag is in the container
     assert cuda_version in cuda_output.stdout.replace(".", "")
@@ -219,6 +244,21 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         "CVE-2020-13936",
     }
 
+    # Whitelist CVE #CVE-2021-3711 for DLCs where openssl is installed using apt-get
+    framework, _ = get_framework_and_version_from_tag(image)
+    short_fw_version = re.search(r"(\d+\.\d+)", image).group(1)
+
+    allow_openssl_cve_fw_versions = {
+        "tensorflow": ["1.15", "2.3", "2.4", "2.5", "2.6"],
+        "mxnet": ["1.9"],
+        "pytorch": [],
+        "huggingface_pytorch": ["1.8"],
+        "huggingface_tensorflow": ["2.4"]
+    }
+
+    if short_fw_version in allow_openssl_cve_fw_versions.get(framework, []):
+        allowed_vulnerabilities.add("CVE-2021-3711")
+
     container_name = f"dep_check_{processor}"
     report_addon = get_container_name("depcheck-report", image)
     dependency_check_report = f"{report_addon}.html"
@@ -226,12 +266,16 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     test_script = os.path.join(CONTAINER_TESTS_PREFIX, "testDependencyCheck")
 
     # Execute test, copy results to s3
-    ec2.execute_ec2_training_test(ec2_connection, image, test_script, container_name=container_name)
+    ec2.execute_ec2_training_test(
+        ec2_connection, image, test_script, container_name=container_name, bin_bash_entrypoint=True
+    )
     ec2_connection.run(f"docker cp {html_file} ~/{dependency_check_report}")
-    ec2_connection.run(f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
+    ec2_connection.run(
+        f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
 
     # Check for any vulnerabilities not mentioned in allowed_vulnerabilities
-    html_output = ec2_connection.run(f"cat ~/{dependency_check_report}", hide=True).stdout
+    html_output = ec2_connection.run(
+        f"cat ~/{dependency_check_report}", hide=True).stdout
     cves = re.findall(r">(CVE-\d+-\d+)</a>", html_output)
     vulnerabilities = set(cves) - allowed_vulnerabilities
 
@@ -246,7 +290,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
                 session = requests.Session()
                 session.mount(
                     "https://",
-                    requests.adapters.HTTPAdapter(max_retries=Retry(total=5, status_forcelist=[404, 504, 502])),
+                    requests.adapters.HTTPAdapter(max_retries=Retry(
+                        total=5, status_forcelist=[404, 504, 502])),
                 )
                 response = session.get(cve_url)
 
@@ -259,13 +304,13 @@ def _run_dependency_check_test(image, ec2_connection, processor):
                         .get("baseMetricV2", {})
                         .get("severity", "UNKNOWN")
                     )
+                    if vulnerability_severity.get(severity):
+                        vulnerability_severity[severity].append(vulnerability)
+                    else:
+                        vulnerability_severity[severity] = [vulnerability]
             except ConnectionError:
-                LOGGER.exception(f"Failed to load NIST data for CVE {vulnerability}")
-
-            if vulnerability_severity.get(severity):
-                vulnerability_severity[severity].append(vulnerability)
-            else:
-                vulnerability_severity[severity] = [vulnerability]
+                LOGGER.exception(
+                    f"Failed to load NIST data for CVE {vulnerability}")
 
         # TODO: Remove this once we have whitelisted appropriate LOW/MEDIUM vulnerabilities
         if not (vulnerability_severity.get("CRITICAL") or vulnerability_severity.get("HIGH")):
@@ -278,6 +323,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         )
 
 
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
@@ -289,6 +335,7 @@ def test_dependency_check_cpu(cpu, ec2_connection):
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
 
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
@@ -300,6 +347,7 @@ def test_dependency_check_gpu(gpu, ec2_connection):
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
@@ -311,6 +359,38 @@ def test_dependency_check_neuron(neuron, ec2_connection):
     _run_dependency_check_test(neuron, ec2_connection, "neuron")
 
 
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+def test_dataclasses_check(image):
+    """
+    Ensure there is no dataclasses pip package is installed for python 3.7 and above version.
+    Python version retrieved from the ecr image uri is expected in the format `py<major_verion><minor_version>`
+    :param image: ECR image URI
+    """
+    ctx = Context()
+    pip_package = "dataclasses"
+
+    container_name = get_container_name("dataclasses-check", image)
+
+    python_version = get_python_version_from_image_uri(image).replace("py","")
+    python_version = int(python_version)
+
+    if python_version >= 37:
+        start_container(container_name, image, ctx)
+        output = run_cmd_on_container(
+            container_name, ctx, f"pip show {pip_package}", warn=True)
+
+        if output.return_code == 0:
+            pytest.fail(
+                f"{pip_package} package exists in the DLC image {image} that has py{python_version} version which is greater than py36 version")
+        else:
+            LOGGER.info(
+                f"{pip_package} package does not exists in the DLC image {image}")
+    else:
+        pytest.skip(f"Skipping test for DLC image {image} that has py36 version as {pip_package} is not included in the python framework")
+
+
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run pip check test regularly on production images")
 def test_pip_check(image):
@@ -336,13 +416,15 @@ def test_pip_check(image):
     )
 
     # Add null entrypoint to ensure command exits immediately
-    output = ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
+    output = ctx.run(
+        f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
         if not (allowed_tf_exception.match(output.stdout) or allowed_smclarify_exception.match(output.stdout)):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
 
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 def test_cuda_paths(gpu):
     """
@@ -354,7 +436,8 @@ def test_cuda_paths(gpu):
     """
     image = gpu
     if "example" in image:
-        pytest.skip("Skipping Example Dockerfiles which are not explicitly tied to a cuda version")
+        pytest.skip(
+            "Skipping Example Dockerfiles which are not explicitly tied to a cuda version")
 
     dlc_path = os.getcwd().split("/test/")[0]
     job_type = "training" if "training" in image else "inference"
@@ -368,16 +451,19 @@ def test_cuda_paths(gpu):
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
-        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(cpu|gpu|neuron)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)(-example)?)",
+        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(cpu|gpu|neuron)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)(-example|-diy|-sagemaker)?)",
         image,
     ).group(1)
 
     # replacing '_' by '/' to handle huggingface_<framework> case
     framework_path = framework.replace("_", "/")
-    framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_version)
+    framework_version_path = os.path.join(
+        dlc_path, framework_path, job_type, "docker", framework_version)
     if not os.path.exists(framework_version_path):
-        framework_short_version = re.match(r"(\d+.\d+)", framework_version).group(1)
-        framework_version_path = os.path.join(dlc_path, framework_path, job_type, "docker", framework_short_version)
+        framework_short_version = re.match(
+            r"(\d+.\d+)", framework_version).group(1)
+        framework_version_path = os.path.join(
+            dlc_path, framework_path, job_type, "docker", framework_short_version)
     if not os.path.exists(os.path.join(framework_version_path, python_version)):
         # Use the pyX version as opposed to the pyXY version if pyXY path does not exist
         short_python_version = python_version[:3]
@@ -398,7 +484,8 @@ def test_cuda_paths(gpu):
         if image_spec["device_type"] == "gpu" and image_spec["tag"] == image_tag:
             cuda_in_buildspec = True
             dockerfile_spec_abs_path = os.path.join(
-                os.path.dirname(framework_version_path), image_spec["docker_file"].lstrip("docker/")
+                os.path.dirname(
+                    framework_version_path), image_spec["docker_file"].lstrip("docker/")
             )
             break
 
@@ -406,7 +493,8 @@ def test_cuda_paths(gpu):
         assert cuda_in_buildspec, f"Can't find {cuda_in_buildspec_ref} in {buildspec_path}"
     except AssertionError as e:
         if not is_dlc_cicd_context():
-            LOGGER.warn(f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context.")
+            LOGGER.warn(
+                f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context.")
         else:
             raise
 
@@ -420,7 +508,8 @@ def test_cuda_paths(gpu):
         f"{image_properties_expected_in_dockerfile_path}"
     )
 
-    assert os.path.exists(dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
+    assert os.path.exists(
+        dockerfile_spec_abs_path), f"Cannot find dockerfile for {image} in {dockerfile_spec_abs_path}"
 
 
 def _assert_artifact_free(output, stray_artifacts):
@@ -436,6 +525,7 @@ def _assert_artifact_free(output, stray_artifacts):
         ), f"Matched {artifact} in {output.stdout} while running {output.command}"
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("oss_compliance")
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="We need to test OSS compliance only on PRs and pipelines")
@@ -453,10 +543,12 @@ def test_oss_compliance(image):
     start_container(container_name, image, context)
 
     # run compliance test to make sure license attribution files exists. testOSSCompliance is copied as part of Dockerfile
-    run_cmd_on_container(container_name, context, "/usr/local/bin/testOSSCompliance /root")
+    run_cmd_on_container(container_name, context,
+                         "/usr/local/bin/testOSSCompliance /root")
 
     try:
-        context.run(f"docker cp {container_name}:/root/{file} {os.path.join(local_repo_path, file)}")
+        context.run(
+            f"docker cp {container_name}:/root/{file} {os.path.join(local_repo_path, file)}")
     finally:
         context.run(f"docker rm -f {container_name}", hide=True)
 
@@ -472,18 +564,21 @@ def test_oss_compliance(image):
             for i in range(3):
                 try:
                     if not os.path.isdir(local_file_path):
-                        context.run(f"git clone {url.rstrip()} {local_file_path}")
-                        context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
+                        context.run(
+                            f"git clone {url.rstrip()} {local_file_path}")
+                        context.run(
+                            f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
                 except Exception as e:
                     time.sleep(1)
-                    if i==2:
+                    if i == 2:
                         LOGGER.error(f"Unable to clone git repo. Error: {e}")
                         raise
                     continue
             try:
                 if os.path.exists(f"{local_file_path}.tar.gz"):
                     LOGGER.info(f"Uploading package to s3 bucket: {line}")
-                    s3_resource.Object(THIRD_PARTY_SOURCE_CODE_BUCKET, s3_object_path).load()
+                    s3_resource.Object(
+                        THIRD_PARTY_SOURCE_CODE_BUCKET, s3_object_path).load()
             except botocore.exceptions.ClientError as e:
                 if e.response["Error"]["Code"] == "404":
                     try:
@@ -491,7 +586,8 @@ def test_oss_compliance(image):
                         context.run(
                             f"aws s3 cp {local_file_path}.tar.gz s3://{THIRD_PARTY_SOURCE_CODE_BUCKET}/{s3_object_path}"
                         )
-                        object = s3_resource.Bucket(THIRD_PARTY_SOURCE_CODE_BUCKET).Object(s3_object_path)
+                        object = s3_resource.Bucket(
+                            THIRD_PARTY_SOURCE_CODE_BUCKET).Object(s3_object_path)
                         object.Acl().put(ACL="public-read")
                     except ClientError as e:
                         LOGGER.error(

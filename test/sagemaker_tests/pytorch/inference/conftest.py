@@ -105,7 +105,7 @@ def pytest_addoption(parser):
     parser.addoption('--docker-base-name', default='pytorch')
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
-    parser.addoption('--py-version', choices=['2', '3'], default=str(sys.version_info.major))
+    parser.addoption('--py-version', choices=['2', '3', '37', '38'], default=str(sys.version_info.major))
     # Processor is still "cpu" for EIA tests
     parser.addoption('--processor', choices=['gpu', 'cpu', 'eia'], default='cpu')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
@@ -115,6 +115,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
+    parser.addoption('--sagemaker-region')
 
 
 def pytest_configure(config):
@@ -149,6 +150,10 @@ def fixture_region(request):
 def fixture_framework_version(request):
     return request.config.getoption('--framework-version')
 
+@pytest.fixture(scope='session', name='sagemaker_regions')
+def fixture_sagemaker_region(request):
+    sagemaker_regions = request.config.getoption('--sagemaker-region')
+    return sagemaker_regions.split(",")
 
 @pytest.fixture(scope='session', name='py_version')
 def fixture_py_version(request):
@@ -263,7 +268,7 @@ def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
 
 @pytest.fixture(autouse=True)
 def skip_by_py_version(request, py_version):
-    if request.node.get_closest_marker('skip_py2') and py_version != 'py3':
+    if request.node.get_closest_marker('skip_py2') and 'py2' in py_version:
         pytest.skip('Skipping the test because Python 2 is not supported.')
 
 
@@ -278,7 +283,7 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
 @pytest.fixture(autouse=True)
 def skip_gpu_py2(request, use_gpu, instance_type, py_version, framework_version):
     is_gpu = use_gpu or instance_type[3] in ['g', 'p']
-    if request.node.get_closest_marker('skip_gpu_py2') and is_gpu and py_version != 'py3' \
+    if request.node.get_closest_marker('skip_gpu_py2') and is_gpu and 'py2' in py_version \
             and framework_version == '1.4.0':
         pytest.skip('Skipping the test until mms issue resolved.')
 

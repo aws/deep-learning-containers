@@ -250,7 +250,13 @@ def main_worker(gpu, ngpus_per_node, args):
 
     cudnn.benchmark = True
 
-    url_list = ["s3://pt-s3plugin-test-data-west2/integration_tests/imagenet-train-000000.tar"]
+    region = os.environ.get("AWS_REGION", "us-west-2")
+    if region == "us-west-2":
+        url_list = ["s3://pt-s3plugin-test-data-west2/integration_tests/imagenet-train-000000.tar"]
+    elif region == "us-east-1":
+        url_list = ["s3://pt-s3plugin-test-data-east1/integration_tests/imagenet-train-000000.tar"]
+    elif region == "eu-west-1":
+        url_list = ["s3://pt-s3plugin-test-data-eu-west1/integration_tests/imagenet-train-000000.tar"]
 
     preproc = transforms.Compose([
         transforms.RandomResizedCrop(224),

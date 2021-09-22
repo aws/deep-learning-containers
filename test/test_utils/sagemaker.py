@@ -21,6 +21,7 @@ from test_utils import (
     get_job_type_from_image,
     get_python_invoker,
     is_pr_context,
+    SAGEMAKER_EXECUTION_REGIONS,
 )
 
 from test_utils import (
@@ -42,7 +43,9 @@ class DLCSageMakerLocalTestFailure(Exception):
 
 
 def assign_sagemaker_remote_job_instance_type(image):
-    if "gpu" in image:
+    if "neuron" in image:
+        return "ml.inf1.xlarge"
+    elif "gpu" in image:
         return "ml.p3.8xlarge"
     elif "tensorflow" in image:
         return "ml.c4.4xlarge"
@@ -116,9 +119,9 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     accelerator_type_arg = "--accelerator-type"
     framework_version_arg = "--framework-version"
     eia_arg = "ml.eia1.large"
-    processor = "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
+    processor = "neuron" if "neuron" in image else "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
     py_version = re.search(r"py\d+", tag).group()
-    sm_local_py_version = "37" if py_version == "py37" else "2" if py_version == "py27" else "3"
+    sm_local_py_version = "37" if py_version == "py37" else "38" if py_version == "py38" else "2" if py_version == "py27" else "3"
     if framework == "tensorflow" and job_type == "inference":
         # Tf Inference tests have an additional sub directory with test
         integration_path = os.path.join("test", "integration", sagemaker_test_type)
@@ -154,10 +157,15 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
         efa_flag = '--efa' if efa_dedicated else '-m \"not efa\"'
 
+    region_list = ",".join(SAGEMAKER_EXECUTION_REGIONS)
+
+    #Multi region functionality is added for PT currently
+    sagemaker_region_list = f"--sagemaker-region {region_list}" if framework == "pytorch" else ""
+
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
         f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
-        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} --junitxml {test_report}"
+        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} {sagemaker_region_list} --junitxml {test_report}"
     )
 
     if processor == "eia" :

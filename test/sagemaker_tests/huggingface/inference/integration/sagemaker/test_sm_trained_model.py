@@ -12,8 +12,6 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os
-
 import pytest
 import sagemaker
 from sagemaker.model import Model
@@ -21,24 +19,32 @@ from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 from sagemaker.deserializers import JSONDeserializer
 
-from ...integration import model_dir, pt_model, tf_model
+from ...integration import model_dir, pt_model, tf_model, dump_logs_from_cloudwatch
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_sm_trained_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type):
+def test_sm_trained_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
     instance_type = instance_type or "ml.m5.xlarge"
-    _test_sm_trained_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+    try:
+        _test_sm_trained_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+    except Exception as e:
+        dump_logs_from_cloudwatch(e, region)
+        raise
 
 
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_sm_trained_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type):
+def test_sm_trained_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
     instance_type = instance_type or "ml.p2.xlarge"
-    _test_sm_trained_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+    try:
+        _test_sm_trained_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+    except Exception as e:
+        dump_logs_from_cloudwatch(e, region)
+        raise
 
 
 def _test_sm_trained_model(
