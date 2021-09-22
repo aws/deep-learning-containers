@@ -254,7 +254,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         "pytorch": [],
         "huggingface_pytorch": ["1.8"],
         "huggingface_tensorflow": ["2.4"],
-        "autogluon": [],
+        "autogluon": ["0.3"],
     }
 
     if short_fw_version in allow_openssl_cve_fw_versions.get(framework, []):
