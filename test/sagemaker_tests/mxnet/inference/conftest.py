@@ -22,6 +22,7 @@ import pytest
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.mxnet import MXNet
+from packaging.version import Version, parse
 
 from .integration import NO_P2_REGIONS, NO_P3_REGIONS, NO_P4_REGIONS, get_ecr_registry
 
@@ -40,7 +41,7 @@ def pytest_addoption(parser):
     parser.addoption('--region', default='us-west-2')
     parser.addoption('--framework-version', default='')
     parser.addoption('--py-version', default='3', choices=['2', '3', '2,3', '37'])
-    parser.addoption('--processor', default='cpu', choices=['gpu', 'cpu', 'cpu,gpu', 'eia'])
+    parser.addoption('--processor', default='cpu', choices=['gpu', 'cpu', 'neuron', 'cpu,gpu', 'eia'])
     parser.addoption('--aws-id', default=None)
     parser.addoption('--instance-type', default=None)
     parser.addoption('--accelerator-type', default=None)
@@ -167,6 +168,25 @@ def skip_eia_containers(request, docker_base_name):
     if request.node.get_closest_marker('skip_eia_containers'):
         if 'eia' in docker_base_name:
             pytest.skip('Skipping eia container with tag {}'.format(docker_base_name))
+
+
+@pytest.fixture(scope="function")
+def skip_neuron_containers(request, tag):
+    if 'neuron' in tag:
+        pytest.skip('Skipping neuron container with tag {}'.format(tag))
+
+
+@pytest.fixture(scope="function")
+def skip_if_no_neuron(ecr_image, instance_type):
+    if 'neuron' not in ecr_image:
+        pytest.skip('Skipping neuron test for non neuron images')
+    if 'inf1' not in instance_type:
+        pytest.skip('Skipping neuron test for non inf1 instances')
+
+    image_tag = ecr_image.split(":")[1]
+    framework_version = parse(image_tag.split("-")[0])
+    if framework_version < Version("1.8"):
+        pytest.skip('Skipping neuron test for mxnet version < 1.8')
 
 
 def _get_remote_override_flags():

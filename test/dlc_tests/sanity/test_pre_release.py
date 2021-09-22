@@ -267,7 +267,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
 
     # Execute test, copy results to s3
     ec2.execute_ec2_training_test(
-        ec2_connection, image, test_script, container_name=container_name)
+        ec2_connection, image, test_script, container_name=container_name, bin_bash_entrypoint=True
+    )
     ec2_connection.run(f"docker cp {html_file} ~/{dependency_check_report}")
     ec2_connection.run(
         f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
@@ -303,14 +304,13 @@ def _run_dependency_check_test(image, ec2_connection, processor):
                         .get("baseMetricV2", {})
                         .get("severity", "UNKNOWN")
                     )
+                    if vulnerability_severity.get(severity):
+                        vulnerability_severity[severity].append(vulnerability)
+                    else:
+                        vulnerability_severity[severity] = [vulnerability]
             except ConnectionError:
                 LOGGER.exception(
                     f"Failed to load NIST data for CVE {vulnerability}")
-
-            if vulnerability_severity.get(severity):
-                vulnerability_severity[severity].append(vulnerability)
-            else:
-                vulnerability_severity[severity] = [vulnerability]
 
         # TODO: Remove this once we have whitelisted appropriate LOW/MEDIUM vulnerabilities
         if not (vulnerability_severity.get("CRITICAL") or vulnerability_severity.get("HIGH")):
@@ -332,9 +332,6 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
 def test_dependency_check_cpu(cpu, ec2_connection):
-    # TODO: Fix test on HF inference
-    if "huggingface-tensorflow-inference" in cpu or "huggingface-pytorch-inference" in cpu:
-        pytest.skip("Temporarily skipping HF inference images due to test flakiness")
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
 
@@ -347,9 +344,6 @@ def test_dependency_check_cpu(cpu, ec2_connection):
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
 def test_dependency_check_gpu(gpu, ec2_connection):
-    # TODO: Fix test on HF inference
-    if "huggingface-tensorflow-inference" in gpu or "huggingface-pytorch-inference" in gpu:
-        pytest.skip("Temporarily skipping HF inference images due to test flakiness")
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
 
 
