@@ -312,8 +312,6 @@ def _run_dependency_check_test(image, ec2_connection, processor):
                 LOGGER.exception(
                     f"Failed to load NIST data for CVE {vulnerability}")
 
-
-
         # TODO: Remove this once we have whitelisted appropriate LOW/MEDIUM vulnerabilities
         if not (vulnerability_severity.get("CRITICAL") or vulnerability_severity.get("HIGH")):
             return
