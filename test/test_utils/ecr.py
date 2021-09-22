@@ -14,6 +14,7 @@ from test.test_utils import (
     get_account_id_from_image_uri,
     login_to_ecr_registry,
     get_unique_name_from_tag,
+    get_repository_local_path,
     LOGGER,
 )
 from test.test_utils.security import CVESeverity
@@ -211,12 +212,14 @@ def process_scraped_data(scraped_data):
 def populate_ecr_scan_with_web_scraper_results(
     image_uri, ecr_scan_to_be_populated, prepend_url="https://ubuntu.com/security/"
 ):
+    if len(ecr_scan_to_be_populated) == 0:
+        return ecr_scan_to_be_populated
     cve_list = list(set([cve["name"] for cve in ecr_scan_to_be_populated]))
     url_list = [prepend_url + cve_name for cve_name in cve_list]
     url_csv_string = ",".join(url_list)
     simplified_image_uri = image_uri.replace(".", "-").replace("/", "-").replace(":", "-")
     storage_file_path = os.path.join(
-        os.sep, os.getenv("ROOT_FOLDER_PATH"), "cve-data", f"cve-data-{simplified_image_uri}.json"
+        os.sep, get_repository_local_path(), "cve-data", f"cve-data-{simplified_image_uri}.json"
     )
     run_spider(CveSpider, storage_file_path=storage_file_path, url_csv_string=url_csv_string)
     f = open(storage_file_path, "r")
@@ -230,5 +233,5 @@ def populate_ecr_scan_with_web_scraper_results(
         if cve_id in scraped_data and package_name in scraped_data[cve_id]:
             finding["scraped_data"] = scraped_data[cve_id][package_name]
         else:
-            finding["scraped_data"] = [{"_comment": "Could Not be Processed"}]
+            finding["scraped_data"] = [{"_comment": "Could Not be Processed. Webpage for this might not be in the required format."}]
     return ecr_scan_to_be_populated

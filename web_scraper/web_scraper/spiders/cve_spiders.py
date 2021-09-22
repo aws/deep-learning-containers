@@ -98,7 +98,9 @@ class CveSpider(scrapy.Spider):
         if table_data is not None:
             processed_data['status_tables'].append(table_data)
         
-        all_notes = note_table[1].css('td').css('pre::text').getall()
+        all_notes = []
+        if len(note_table) > 0:
+            all_notes = note_table[1].css('td').css('pre::text').getall()
         processed_data['notes'] = [note for note in all_notes]
 
         yield processed_data
