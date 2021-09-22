@@ -21,14 +21,14 @@ skip_frameworks = []
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = true
+do_build = false
 
 [test]
 ### On by default
 sanity_tests = true
 ecs_tests = false
 eks_tests = false
-ec2_tests = false
+ec2_tests = true
 
 ### Off by default
 sagemaker_local_tests = false
