@@ -7,7 +7,6 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 ARG PYTHON=python3.7
 ARG PYTHON_VERSION=3.7.10
 ARG TS_VERSION=0.4.0
-ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.8.1ei/cpu/torchvision-0.9.1-cp36-cp36m-linux_x86_64.whl
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
@@ -120,9 +119,7 @@ RUN pip install --no-cache-dir -U \
 RUN pip install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install "torch-neuron>=1.8.1,<1.8.2" --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install torchserve==$TS_VERSION --no-deps \
- && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL \
- # Install TF 1.15.5 to override neuron-cc[tensorflow]'s installation of tensorflow==1.15.0
- && pip install -U tensorflow==1.15.5 \
+ && pip install --no-deps --no-cache-dir -U torchvision \
  && pip install torch-model-archiver==$TS_VERSION
 
 RUN useradd -m model-server \
@@ -154,8 +151,6 @@ RUN HOME_DIR=/root \
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.8/license.txt -o /license.txt
 
 EXPOSE 8080 8081
-COPY entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/opt/ml/model"]
