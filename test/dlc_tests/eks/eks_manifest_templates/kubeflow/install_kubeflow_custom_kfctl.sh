@@ -1,7 +1,6 @@
 #!/bin/bash
 #/ Usage: 
-#/ export AWS_REGION=<AWS-Region>
-#/ ./install_cluster_components.sh eks_cluster_name cluster_autoscalar_image_version
+#/ ./install_kubeflow_custom_kfctl.sh eks_cluster_name region_name
 
 set -ex
 

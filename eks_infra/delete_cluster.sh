@@ -3,7 +3,7 @@
 #/ Usage:
 #/ export AWS_REGION=<AWS-Region>
 #/ export EKS_CLUSTER_MANAGER_ROLE=<ARN-of-IAM-role>
-#/ ./delete.sh eks_cluster_name
+#/ ./delete_cluster.sh eks_cluster_name
 
 set -ex
 

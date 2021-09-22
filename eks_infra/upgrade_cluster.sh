@@ -2,7 +2,7 @@
 #/ Usage:
 #/ export AWS_REGION=<AWS-Region>
 #/ export EKS_CLUSTER_MANAGER_ROLE=<ARN-of-IAM-role>
-#/ ./upgrade.sh eks_cluster_name eks_version cluster_autoscalar_image_version
+#/ ./upgrade_cluster.sh eks_cluster_name eks_version cluster_autoscalar_image_version
 set -ex
 
 # Function to update kubeconfig at ~/.kube/config

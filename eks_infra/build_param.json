@@ -1,9 +1,8 @@
 {
-    "operation": "delete",
+    "operation": "create",
     "contexts":[
         "PR",
-        "MAINLINE",
-        "NIGHTLY"
+        "MAINLINE"
     ],
     "eks_clusters":[
         "mxnet",
