@@ -20,6 +20,9 @@
       entrypoint:
         source: docker/artifacts/entrypoint.sh
         target:  entrypoint.sh
+      mms-entrypoint:
+        source: docker/artifacts/mms-entrypoint.py
+        target:  mms-entrypoint.py
 
   images:
     BuildNeuronMXNetInferencePy3DockerImage:

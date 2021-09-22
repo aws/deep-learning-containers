@@ -22,6 +22,7 @@ from test_utils import (
     is_pr_context,
     is_benchmark_dev_context,
     is_rc_test_context,
+    is_diy_image,
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
     setup_sm_benchmark_mx_train_env,
@@ -322,7 +323,14 @@ def main():
         return
 
     if specific_test_type in (
-            "sanity", "ecs", "ec2", "eks", "canary", "bai", "quick_checks", "release_candidate_integration"
+        "sanity",
+        "ecs",
+        "ec2",
+        "eks",
+        "canary",
+        "bai",
+        "quick_checks",
+        "release_candidate_integration",
     ):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
@@ -432,13 +440,13 @@ def main():
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
 
     elif specific_test_type == "sagemaker":
-        if "neuron" in dlc_images:
-            LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
-            # Creating an empty file for because codebuild job fails without it
-            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-            sm_utils.generate_empty_report(report, test_type, "neuron")
-            return
         if benchmark_mode:
+            if "neuron" in dlc_images:
+                LOGGER.info(f"Skipping benchmark sm tests for Neuron. Images: {dlc_images}")
+                # Creating an empty file for because codebuild job fails without it
+                report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+                sm_utils.generate_empty_report(report, test_type, "neuron")
+                return
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
             os.chdir(os.path.join("test", "dlc_tests"))
 
@@ -449,9 +457,21 @@ def main():
             sys.exit(pytest.main(pytest_cmd))
 
         else:
-            run_sagemaker_remote_tests(
-                [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
-            )
+            if all("neuron" in image and "mxnet" not in image for image in standard_images_list):
+                report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+                sm_utils.generate_empty_report(report, test_type, "neuron")
+            else:
+                run_sagemaker_remote_tests(
+                    [
+                        image
+                        for image in standard_images_list
+                        if not (
+                            ("tensorflow-inference" in image and "py2" in image)
+                            or is_diy_image(image)
+                            or ("neuron" in image and "mxnet" not in image)
+                        )
+                    ]
+                )
         metrics_utils.send_test_duration_metrics(start_time)
 
     elif specific_test_type == "sagemaker-local":
@@ -464,7 +484,7 @@ def main():
         testing_image_list = [
             image
             for image in standard_images_list
-            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))
+            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or (is_diy_image(image)))
         ]
         run_sagemaker_local_tests(testing_image_list)
         # for EIA Images

@@ -31,6 +31,7 @@ SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'empty_module.
 @pytest.mark.model("linear_regression")
 @pytest.mark.cpu_test
 @pytest.mark.release_test
+@pytest.mark.skip_neuron_containers
 def test_hosting(sagemaker_session, ecr_image, instance_type, framework_version):
     prefix = 'mxnet-serving/default-handlers'
     model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=prefix)

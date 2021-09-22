@@ -39,6 +39,7 @@ def skip_if_non_supported_ei_region(region):
 @pytest.mark.processor("eia")
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.model("linear_regression")
+@pytest.mark.skip_neuron_containers
 @pytest.mark.skip_if_non_supported_ei_region()
 @pytest.mark.eia_test
 @pytest.mark.release_test
@@ -47,7 +48,7 @@ def test_elastic_inference(ecr_image, sagemaker_session, instance_type, accelera
     image_framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     if image_framework_version == "1.5.1":
         entry_point = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'empty_module.py')
-        
+
     endpoint_name = utils.unique_name_from_base('test-mxnet-ei')
 
     with timeout_and_delete_endpoint_by_name(endpoint_name=endpoint_name,
