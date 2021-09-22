@@ -18,7 +18,7 @@ import time
 import boto3
 import pytest
 
-from integration.sagemaker import util
+from .integration.sagemaker import util
 
 from botocore.config import Config
 from botocore.exceptions import ClientError
