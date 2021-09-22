@@ -28,7 +28,6 @@ RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz 
  && cd .. && rm -rf openssl-* \
  && ln -s /etc/ssl/certs /usr/local/ssl/certs
 
-
 ARG TORCH_VER=1.8.0+cpu
 ARG TORCH_VISION_VER=0.9.0+cpu
 ARG NUMPY_VER=1.19.5
