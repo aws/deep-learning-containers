@@ -38,6 +38,6 @@ sagemaker_local_tests = false
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "efa"
+sagemaker_remote_tests = "standard"
 
 use_scheduler = false
