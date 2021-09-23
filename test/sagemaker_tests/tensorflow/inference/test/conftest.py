@@ -138,8 +138,10 @@ def processor(request, instance_type):
 
 @pytest.fixture(scope="session")
 def instance_type(request):
-    return request.config.getoption("--instance-type")
-
+    provided_instance_type = request.config.getoption('--instance-type')
+    default_instance_type = 'ml.c4.xlarge' if processor == 'cpu' else 'ml.p2.xlarge'
+    return provided_instance_type if provided_instance_type is not None else default_instance_type
+    
 
 @pytest.fixture(scope="session")
 def tag(request, framework_version, processor):
