@@ -105,11 +105,11 @@ if [ -z "${AWS_REGION}" ]; then
   exit 1
 fi
 
+CLUSTER=${1}
+
 if [ -n "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
   update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
 fi
-
-CLUSTER=${1}
 
 remove_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}
 delete_oidc_provider ${CLUSTER}
