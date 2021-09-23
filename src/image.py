@@ -143,12 +143,9 @@ class DockerImage:
         self.update_pre_build_configuration()
 
         # Start building the image
-        if self.context:
-            with open(self.context.context_path, "rb") as context_file:
-                self.docker_build(fileobj=context_file, custom_context=True)
-                self.context.remove()
-        else:
-            self.docker_build()
+        with open(self.context.context_path, "rb") as context_file:
+            self.docker_build(fileobj=context_file, custom_context=True)
+            self.context.remove()
 
         if self.build_status == constants.FAIL:
             return self.build_status
