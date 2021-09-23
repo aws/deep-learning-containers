@@ -5,7 +5,7 @@ from time import sleep, time
 
 import pytest
 
-from invoke import run
+from invoke import run, Context
 
 from test.test_utils import LOGGER, get_account_id_from_image_uri, get_dockerfile_path_for_image, is_dlc_cicd_context
 from test.test_utils import ecr as ecr_utils
@@ -52,6 +52,40 @@ def run_scan(ecr_client, image):
     if scan_status != "COMPLETE":
         raise TimeoutError(f"ECR Scan is still in {scan_status} state. Exiting.")
 
+def get_new_image_uri(image):
+    """
+    Returns the new image uri for the image being tested. After running the apt commands, the
+    new image will be uploaded to the ECR based on the new image uri.
+
+    :param image: str
+    :param new_image_uri: str
+    """
+    repository_name = os.getenv('UPGRADE_REPO_NAME')
+    ecr_account = f"{os.getenv('ACCOUNT_ID')}.dkr.ecr.{os.getenv('REGION')}.amazonaws.com"
+    upgraded_image_tag = '-'.join(image.replace("/",":").split(":")[1:]) + "-up"
+    new_image_uri = f"{ecr_account}/{repository_name}:{upgraded_image_tag}"
+    return new_image_uri
+
+def run_upgrade_on_image_and_push(image, new_image_uri):
+    """
+    Creates a container for the image being tested. Runs apt update and upgrade on the container
+    and the commits the container as new_image_uri. This new image is then pushed to the ECR. 
+
+    :param image: str
+    :param new_image_uri: str
+    """
+    ctx = Context()
+    docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image}"
+    container_id = ctx.run(f"{docker_run_cmd}", hide=True, warn=True).stdout.strip()
+    apt_command = "apt-get update && apt-get upgrade"
+    docker_exec_cmd = f"docker exec -i {container_id}"
+    run_output = ctx.run(f"{docker_exec_cmd} {apt_command}", hide=True, warn=True)
+    if not run_output.ok:
+        raise ValueError("Could not run apt update and upgrade.")
+    ctx.run(f"docker commit {container_id} {new_image_uri}", hide=True, warn=True)
+    ctx.run(f"docker rm -f {container_id}", hide=True, warn=True)
+    ctx.run(f"docker push {new_image_uri}", hide=True, warn=True)
+
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
@@ -87,6 +121,12 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
     run_scan(ecr_client, image)
     scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
     scan_results = ecr_utils.populate_ecr_scan_with_web_scraper_results(image, scan_results)
+
+    new_image_uri = get_new_image_uri(image)
+    run_upgrade_on_image_and_push(image, new_image_uri)
+    run_scan(ecr_client, new_image_uri)
+    scan_results_with_upgrade = ecr_utils.get_ecr_image_scan_results(ecr_client, new_image_uri, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
+    scan_results_with_upgrade = ecr_utils.populate_ecr_scan_with_web_scraper_results(new_image_uri, scan_results_with_upgrade)
 
     image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
     image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
