@@ -85,7 +85,7 @@ def framework_version(request):
     return request.config.getoption('--framework-version')
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def tag(request, framework_version, processor, py_version):
     provided_tag = request.config.getoption('--tag')
     default_tag = '{}-{}-py{}'.format(framework_version, processor, py_version)
@@ -107,13 +107,13 @@ def n_virginia_sagemaker_session(n_virginia_region):
     return Session(boto_session=boto3.Session(region_name=n_virginia_region))
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def efa_instance_type():
     default_instance_type = "ml.p3dn.24xlarge"
     return default_instance_type
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def n_virginia_ecr_image(ecr_image, n_virginia_region):
     """
     It uploads image to n_virginia region and return image uri
@@ -135,21 +135,21 @@ def account_id(request):
     return request.config.getoption('--aws-id')
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def instance_type(request, processor):
     provided_instance_type = request.config.getoption('--instance-type')
     default_instance_type = 'ml.c4.xlarge' if processor == 'cpu' else 'ml.p2.xlarge'
     return provided_instance_type if provided_instance_type is not None else default_instance_type
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def py_version():
     if 'TEST_PY_VERSIONS' in os.environ:
         return os.environ['TEST_PY_VERSIONS'].split(',')
     return None
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session')
 def processor():
     if 'TEST_PROCESSORS' in os.environ:
         return os.environ['TEST_PROCESSORS'].split(',')
@@ -172,7 +172,7 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
                 pytest.skip('Skipping GPU test in region {}'.format(region))
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def docker_image(docker_base_name, tag):
     return '{}:{}'.format(docker_base_name, tag)
 
@@ -184,7 +184,7 @@ def skip_py2_containers(request, tag):
             pytest.skip('Skipping python2 container with tag {}'.format(tag))
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def ecr_image(account_id, docker_base_name, tag, region):
     registry = get_ecr_registry(account_id, region)
     return '{}/{}:{}'.format(registry, docker_base_name, tag)

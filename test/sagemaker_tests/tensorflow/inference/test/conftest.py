@@ -127,7 +127,7 @@ def region(request):
     return request.config.getoption("--region")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def processor(request, instance_type):
     return request.config.getoption("--processor") or (
         "gpu"
@@ -141,7 +141,7 @@ def instance_type(request):
     return request.config.getoption("--instance-type")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def tag(request, framework_version, processor):
     if request.config.getoption("--tag"):
         return request.config.getoption("--tag")
