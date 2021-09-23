@@ -28,7 +28,7 @@ from test_utils import (
     setup_sm_benchmark_mx_train_env,
     setup_sm_benchmark_hf_infer_env,
     get_framework_and_version_from_tag,
-    get_build_context
+    get_build_context,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 
@@ -196,6 +196,7 @@ def pull_dlc_images(images):
     for image in images:
         run(f"docker pull {image}", hide="out")
 
+
 def setup_sm_benchmark_env(dlc_images, test_path):
     # The plan is to have a separate if/elif-condition for each type of image
     if re.search(r"huggingface-(tensorflow|pytorch|mxnet)-inference", dlc_images):
@@ -296,6 +297,11 @@ def main():
             pull_dlc_images(all_image_list)
         if specific_test_type == "bai":
             build_bai_docker_container()
+        # Execute separate cmd for canaries
+        if specific_test_type in ("canary", "quick_checks"):
+            pytest_cmds = [
+                ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
+            ]
         if specific_test_type == "eks" and not is_all_images_list_eia:
             frameworks_in_images = [
                 framework for framework in ("mxnet", "pytorch", "tensorflow") if framework in dlc_images
@@ -306,33 +312,26 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
-            is_neuron = "neuron" in dlc_images
             build_context = get_build_context()
             eks_cluster_name = f"{framework}-{build_context}"
-            
+
             if eks_utils.is_eks_cluster_active(eks_cluster_name):
                 eks_utils.eks_write_kubeconfig(eks_cluster_name)
             else:
                 raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
-            
-            pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
-            if is_pr_context():
+
+        # Execute dlc_tests pytest command
+        pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
+
+        if specific_test_type == "ec2":
+            pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
+        if is_pr_context():
+            if specific_test_type == "eks":
                 pytest_cmd.append("--timeout=2340")
-            pytest_cmds = [pytest_cmd]
-        else:
-            # Execute dlc_tests pytest command
-            pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
-            if specific_test_type == "ec2":
-                pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
-            if is_pr_context():
+            else:
                 pytest_cmd.append("--timeout=4860")
 
-            pytest_cmds = [pytest_cmd]
-        # Execute separate cmd for canaries
-        if specific_test_type in ("canary", "quick_checks"):
-            pytest_cmds = [
-                ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
-            ]
+        pytest_cmds = [pytest_cmd]
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
