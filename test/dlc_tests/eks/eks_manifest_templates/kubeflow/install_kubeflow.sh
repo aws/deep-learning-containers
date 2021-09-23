@@ -1,8 +1,12 @@
 #!/bin/bash
-set -e
+#/ Usage: 
+#/ ./install_kubeflow.sh eks_cluster_name region_name
 
+set -ex
+
+# Function to install kfctl cli
 install_kfctl(){
-    #install kfctl cli
+
     KFCTL_VERSION="v1.0.2"
 
     if ! command -v kfctl &> /dev/null
@@ -18,60 +22,65 @@ install_kfctl(){
     fi
 }
 
+# Function to install kubeflow in EKS cluster 
 setup_kubeflow(){
-    #install kubeflow in EKS cluster
+
     local REGION=$1
     KUBEFLOW_URL="https://raw.githubusercontent.com/aws/deep-learning-containers/master/test/dlc_tests/eks/eks_manifest_templates/kubeflow/kfctl_aws.yaml"
     CONFIG_FILE=kfctl_aws.yaml
     wget -O ${CONFIG_FILE} ${KUBEFLOW_URL} 
-    sed -i -e 's/<REGION>/'"$REGION"'/' ${CONFIG_FILE}
+    sed -i -e 's/<REGION>/'"${REGION}"'/' ${CONFIG_FILE}
     kfctl apply -V -f ${CONFIG_FILE}
 }
 
+# Function to install mpi operator in EKS cluster
 install_mpi_operator() {
-    #install mpi operator in EKS cluster
+
     MPI_OPERATOR_URL=https://raw.githubusercontent.com/kubeflow/mpi-operator/v0.2.3/deploy/v1alpha2/mpi-operator.yaml
     wget -O mpi-operator.yaml ${MPI_OPERATOR_URL}
     kubectl create -f mpi-operator.yaml
 }
 
+# Function to install mxnet operator in EKS cluster
 install_mxnet_operator() {
-    #install mxnet operator in EKS cluster
+
     git clone https://github.com/kubeflow/mxnet-operator.git
     kubectl create -k mxnet-operator/manifests/overlays/v1beta1/
 }
 
+# Function to create directory to install kubeflow components
 create_dir(){
     local EKS_CLUSTER_NAME=$1
-    DIRECTORY="$HOME/$EKS_CLUSTER_NAME"
+    DIRECTORY="${HOME}/${EKS_CLUSTER_NAME}"
 
-    if [ -d "$DIRECTORY" ]; then
-        rm -rf $DIRECTORY;
+    if [ -d "${DIRECTORY}" ]; then
+        rm -rf ${DIRECTORY};
     fi
         
-    mkdir $DIRECTORY 
-    cd $DIRECTORY
+    mkdir ${DIRECTORY} 
+    cd ${DIRECTORY}
 }
 
+# Check for input arguments
 if [ $# -ne 2 ]; then
-    echo $0: usage: ./install_kubeflow eks_cluster_name region_name
+    echo "usage: ./${0} eks_cluster_name region_name"
     exit 1
 fi
 
-eks_cluster_name=$1
-region_name=$2
+EKS_CLUSTER_NAME=${1}
+REGION_NAME=${2}
 
 echo "> Set AWS region"
 export AWS_REGION=$2
 
 echo "> Setup installation directory"
-create_dir $eks_cluster_name
+create_dir ${EKS_CLUSTER_NAME}
 
 echo "> Installing kfctl"
 install_kfctl 
 
 echo "> Setting up kubeflow"
-setup_kubeflow $region_name
+setup_kubeflow ${REGION_NAME}
 
 echo "> Installing mxnet operator"
 install_mxnet_operator
