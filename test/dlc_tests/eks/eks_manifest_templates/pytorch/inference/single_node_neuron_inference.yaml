@@ -34,9 +34,11 @@ spec:
       containers:
       - name: <SERVER_TYPE>-container
         image: <DOCKER_IMAGE_BUILD_ID>
-        command: ["/bin/sh","-c"]
         args:
         - <SERVER_CMD>
+        - --start
+        - --<SERVER_TYPE>-config /home/model-server/config.properties
+        - --models <MODELS>
         ports:
         - name: <SERVER_TYPE>
           containerPort: 8080
