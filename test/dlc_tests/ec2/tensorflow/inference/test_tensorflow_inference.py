@@ -28,7 +28,7 @@ TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 #FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_AL2_DLAMI], indirect=True)
 def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, ec2_instance_ami, region, neuron_only):
-    run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, "8500", region)
+    run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, ec2_instance_ami, "8500", region)
 
 
 @pytest.mark.model("mnist")
@@ -87,7 +87,8 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
     framework_version = get_tensorflow_framework_version(image_uri)
     home_dir = ec2_connection.run("echo $HOME").stdout.strip('\n')
     serving_folder_path = os.path.join(home_dir, "serving")
-    model_path = os.path.join(serving_folder_path, "models", "mnist")
+    model_name = "mnist"
+    model_path = os.path.join(serving_folder_path, "models", model_name)
     python_invoker = test_utils.get_python_invoker(ec2_instance_ami)
     mnist_client_path = os.path.join(
         serving_folder_path, "tensorflow_serving", "example", "mnist_client.py"
@@ -99,11 +100,10 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
     if is_neuron:
         if str(framework_version).startswith(TENSORFLOW2_VERSION):
             model_name= "simple"
-        else:
-            model_name = "mnist"
-        model_path = os.path.join(serving_folder_path, "models", {model_name})
+            model_path = os.path.join(serving_folder_path, "models", model_name)
+            rest_api_port = "8501"
         docker_run_cmd = (
-            f"{docker_cmd} run -id --name {container_name} -p {grpc_port}:8500 "
+            f"{docker_cmd} run -id --name {container_name} -p {rest_api_port}:8501 "
             f"--device=/dev/neuron0 --net=host  --cap-add IPC_LOCK "
             f"--mount type=bind,source={model_path},target=/models/{model_name} -e TEST_MODE=1 -e MODEL_NAME={model_name}"
             f" {image_uri}"
@@ -116,7 +116,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
         )
     try:
         host_setup_for_tensorflow_inference(
-            serving_folder_path, framework_version, ec2_connection, is_neuron, 'mnist', python_invoker
+            serving_folder_path, framework_version, ec2_connection, is_neuron, model_name, python_invoker
         )
         sleep(2)
         if not is_neuron:
@@ -129,7 +129,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
         ec2_connection.run(docker_run_cmd, hide=True)
         sleep(20)
         if is_neuron and str(framework_version).startswith(TENSORFLOW2_VERSION):
-            test.utils.request_tensorflow_inference(model_name)
+            test_utils.request_tensorflow_inference(model_name, connection=ec2_connection, inference_string="'{\"instances\": [[1.0, 2.0, 5.0]]}'")
         else:
             test_utils.request_tensorflow_inference_grpc(
                 script_file_path=mnist_client_path, port=grpc_port, connection=ec2_connection, ec2_instance_ami=ec2_instance_ami
@@ -188,14 +188,14 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
         ec2_connection.run(f"mkdir -p {serving_folder_path}")
         ec2_connection.run(f"cp -r {local_scripts_path} {serving_folder_path}")
         if is_neuron:
-            neuron_local_model = os.path.jopin("$HOME". "container_tests/bin/neuron_tests/simple")
-            LOGGER.info(f"Host Model Dir {neuron_model_dir}")
+            neuron_local_model = os.path.join("$HOME", "container_tests/bin/neuron_tests/simple")
             neuron_model_dir = os.path.join(serving_folder_path, f"models/")
             neuron_model_file_path = os.path.join(serving_folder_path, f"models/{model_name}/1")
             neuron_model_file = os.path.join(neuron_model_file_path, "saved_model.pb")
             LOGGER.info(f"Host Model path {neuron_model_file_path}")
+            LOGGER.info(f"Host Model Dir {neuron_model_dir}")
             ec2_connection.run(f"mkdir -p {neuron_model_file_path}")
-            ec2_connection.run(f"cp -f {neuron_local_model} {neuron_model_dir}")
+            ec2_connection.run(f"cp -r {neuron_local_model} {neuron_model_dir}")
 
 
 def check_telemetry(ec2_connection, container_name):

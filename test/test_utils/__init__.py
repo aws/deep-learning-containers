@@ -451,7 +451,7 @@ def request_pytorch_inference_densenet(
 
 
 @retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
-def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"):
+def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501", connection = None, inference_string="'{\"instances\": [1.0, 2.0, 5.0]}'"):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
     :param model_name:
@@ -460,8 +460,8 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
     :connection: ec2_connection object to run the commands remotely over ssh
     :return:
     """
-    inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"
-    run_out = run(
+    conn_run = connection.run if connection is not None else run
+    run_out = conn_run(
         f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
     )
 
