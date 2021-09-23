@@ -177,6 +177,10 @@ def runtime_config(request, processor):
         return ''
 
 
+@pytest.fixture(scope="session")
+def docker_base_name(request):
+    return request.config.getoption('--docker-base-name')
+
 @pytest.fixture
 def image_uri(aws_id, region, docker_base_name, tag):
     return util.image_uri(aws_id, region, docker_base_name, tag)
