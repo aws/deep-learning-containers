@@ -6,6 +6,6 @@
     "eks_clusters":[
         "mxnet"            # supports "tensorflow", "pytorch", "mxnet"
     ],
-    "eks_version": "1.18", # EKS version
-    "cluster_autoscalar_image_version": "v1.18.3" # docker image version compatible with eks version. Refer: https://github.com/kubernetes/autoscaler/releases
+    "eks_version": "1.20", # EKS version
+    "cluster_autoscalar_image_version": "v1.20.0" # docker image version compatible with eks version. Refer: https://github.com/kubernetes/autoscaler/releases
 }
