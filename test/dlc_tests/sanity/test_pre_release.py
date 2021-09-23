@@ -253,7 +253,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         "mxnet": ["1.9"],
         "pytorch": [],
         "huggingface_pytorch": ["1.8", "1.9"],
-        "huggingface_tensorflow": ["2.4", "2.5"]
+        "huggingface_tensorflow": ["2.4", "2.5"],
+        "autogluon": ["0.3"],
     }
 
     if short_fw_version in allow_openssl_cve_fw_versions.get(framework, []):

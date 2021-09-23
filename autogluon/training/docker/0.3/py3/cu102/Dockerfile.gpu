@@ -12,6 +12,7 @@ LABEL dlc_major_version="1"
 
 ARG CUDA_VER
 
+ARG OPENSSL_VERSION=1.1.1l
 ARG AUTOGLUON_VERSION=0.3.1
 
 ARG MXNET_VER=1.7.*
@@ -40,6 +41,16 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/*
+
+# install OpenSSL
+RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && tar -xzf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make -j $(nproc) && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-* \
+ && rmdir /usr/local/ssl/certs \
+ && ln -s /etc/ssl/certs /usr/local/ssl/certs
 
 RUN source activate rapids \
  && conda update --all -y \
@@ -77,6 +88,10 @@ RUN source activate rapids \
     traitlets \
     websockets \
     widgetsnbextension 
+
+# Catboost 0.26 updates version of scala 2.11 for security reasons
+# https://github.com/catboost/catboost/issues/1632
+RUN pip install --no-cache-dir -U catboost==0.26.1
 
 WORKDIR /
 
