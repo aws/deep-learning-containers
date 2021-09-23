@@ -4,11 +4,11 @@
 set -ex
 
 # Parse parameters from build_param.json config file
-OPERATION=$(jq -r '.operation' build_param.json)
-EKS_CLUSTERS=($(jq -r '.eks_clusters[]' build_param.json))
-CONTEXTS=($(jq -r '.contexts[]' build_param.json))
-EKS_VERSION=$(jq -r '.eks_version' build_param.json)
-CLUSTER_AUTOSCALAR_IMAGE_VERSION=$(jq -r '.cluster_autoscalar_image_version' build_param.json)
+OPERATION=$(jq -r '.operation' eks_infrastructure/build_param.json)
+EKS_CLUSTERS=($(jq -r '.eks_clusters[]' eks_infrastructure/build_param.json))
+CONTEXTS=($(jq -r '.contexts[]' eks_infrastructure/build_param.json))
+EKS_VERSION=$(jq -r '.eks_version' eks_infrastructure/build_param.json)
+CLUSTER_AUTOSCALAR_IMAGE_VERSION=$(jq -r '.cluster_autoscalar_image_version' eks_infrastructure/build_param.json)
 
 # Create operation function
 #
@@ -17,6 +17,7 @@ CLUSTER_AUTOSCALAR_IMAGE_VERSION=$(jq -r '.cluster_autoscalar_image_version' bui
 # and test IAM role authentication to the cluster.
 # Invokes install_cluster_components.sh script to install cluster autoscalar and kubeflow components in the cluster.
 function create_cluster() {
+  cd eks_infrastructure
 
   for CONTEXT in "${CONTEXTS[@]}"; do
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
@@ -46,6 +47,7 @@ function create_cluster() {
 # 5. Scale cluster autoscalar back to 1
 function upgrade_cluster() {
 
+  cd eks_infrastructure
   for CONTEXT in "${CONTEXTS[@]}"; do
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
       CLUSTER_NAME=${CLUSTER}-${CONTEXT}
@@ -64,6 +66,7 @@ function upgrade_cluster() {
 # Invokes delete_cluster.sh script to delete EKS cluster, nodegroups and other related components
 function delete_cluster() {
 
+  cd eks_infrastructure
   for CONTEXT in "${CONTEXTS[@]}"; do
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
       CLUSTER_NAME=${CLUSTER}-${CONTEXT}
