@@ -86,6 +86,30 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     ctx.run(f"docker rm -f {container_id}", hide=True, warn=True)
     ctx.run(f"docker push {new_image_uri}", hide=True, warn=True)
 
+def conduct_failure_routine(image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list):
+    ## If both none, nothing can be changed. 
+    ## If any one exists, then we get the list of vulnerabilites that can be upgraded
+    ## We send that list to the lambda and send the upgraded_image_vulnerability_list to it
+    print(ecr_image_vulnerability_list.vulnerability_list)
+    fixable_ecr_image_scan_vulnerabilites = ecr_image_vulnerability_list - upgraded_image_vulnerability_list
+    fixable_allowlist_vulnerabilites = image_allowlist - upgraded_image_vulnerability_list
+    fixable_by_upgrade_vulnerability_list = None
+    if not fixable_ecr_image_scan_vulnerabilites and not fixable_allowlist_vulnerabilites:
+        print("Nothing cold be fixed by Apt-upgrade. Making a commit with just the diff for ignore list.")
+    elif fixable_ecr_image_scan_vulnerabilites and fixable_allowlist_vulnerabilites:
+        fixable_by_upgrade_vulnerability_list = fixable_ecr_image_scan_vulnerabilites + fixable_allowlist_vulnerabilites
+    elif fixable_ecr_image_scan_vulnerabilites:
+        fixable_by_upgrade_vulnerability_list = fixable_ecr_image_scan_vulnerabilites
+    else:
+        fixable_by_upgrade_vulnerability_list = fixable_allowlist_vulnerabilites
+    
+    if not fixable_by_upgrade_vulnerability_list:
+        ## Call api for just the diff for ignore list.
+        return
+    
+    ## Call api for diff with ignore list and upgradable vulns
+    return
+
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
@@ -121,22 +145,26 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
     run_scan(ecr_client, image)
     scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
     scan_results = ecr_utils.populate_ecr_scan_with_web_scraper_results(image, scan_results)
+    ecr_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
+    ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
 
     new_image_uri = get_new_image_uri(image)
     run_upgrade_on_image_and_push(image, new_image_uri)
     run_scan(ecr_client, new_image_uri)
     scan_results_with_upgrade = ecr_utils.get_ecr_image_scan_results(ecr_client, new_image_uri, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
     scan_results_with_upgrade = ecr_utils.populate_ecr_scan_with_web_scraper_results(new_image_uri, scan_results_with_upgrade)
+    upgraded_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
+    upgraded_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results_with_upgrade)
 
     image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
     image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
     if os.path.exists(image_scan_allowlist_path):
         image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
 
-    ecr_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
-    ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
-
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
+
+    if remaining_vulnerabilities:
+        conduct_failure_routine(image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list)
 
     assert not remaining_vulnerabilities, (
         f"The following vulnerabilities need to be fixed on {image}:\n"

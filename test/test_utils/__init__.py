@@ -1107,3 +1107,17 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
     return context.run(
         f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
     )
+
+def uniquify_list_of_dict(list_of_dict):
+    """
+    Takes list_of_dict as an input and returns a list of dict such that each dict is only present
+    once in the returned list. Runs an operation that is similar to list(set(input_list)). However,
+    for list_of_dict, it is not possible to run the operation directly. 
+
+    :param list_of_dict: List(dict)
+    :return: List(dict)
+    """
+    list_of_string = [json.dumps(dict_element) for dict_element in list_of_dict]
+    unique_list_of_string = list(set(list_of_string))
+    list_of_dict_to_return = [json.loads(str_element) for str_element in unique_list_of_string]
+    return list_of_dict_to_return

@@ -63,6 +63,22 @@ class ScanVulnerabilityList:
             if CVESeverity[vulnerability["severity"]] >= self.minimum_severity:
                 self.vulnerability_list[package_name].append(vulnerability)
         return self.vulnerability_list
+    
+    def get_flattened_vulnerability_list(self):
+        """
+        Returns the vulnerability list in the flattened format. For eg., if a vulnerability list looks like
+        {"k1":[{"a":"b"},{"c":"d"}], "k2":[{"e":"f"},{"g":"h"}]}, it would return the following:
+        [{"a":"b"},{"c":"d"},{"e":"f"},{"g":"h"}]
+
+        :return: List(dict)
+        """
+        if self.vulnerability_list:
+            return [
+                vulnerability
+                for package_vulnerabilities in self.vulnerability_list.values()
+                for vulnerability in package_vulnerabilities
+            ]
+        return None
 
     def __contains__(self, vulnerability):
         """
@@ -126,6 +142,28 @@ class ScanVulnerabilityList:
         difference = ScanVulnerabilityList(minimum_severity=self.minimum_severity)
         difference.construct_allowlist_from_ecr_scan_result(missing_vulnerabilities)
         return difference
+
+    def __add__(self, other):
+        """
+        Does Union between ScanVulnerabilityList objects
+
+        :param other: Another ScanVulnerabilityList object
+        :return: Union of vulnerabilites exisiting in self and other
+        """
+        flattened_vulnerability_list_self = self.get_flattened_vulnerability_list()
+        flattened_vulnerability_list_other = other.get_flattened_vulnerability_list()
+        if not flattened_vulnerability_list_self and not flattened_vulnerability_list_other:
+            return None
+        all_vulnerabilites = []
+        if flattened_vulnerability_list_self:
+            all_vulnerabilites += flattened_vulnerability_list_self
+        if flattened_vulnerability_list_other:
+            all_vulnerabilites += flattened_vulnerability_list_other
+        union_vulnerabilities = test_utils.uniquify_list_of_dict(all_vulnerabilites)
+
+        union = ScanVulnerabilityList(minimum_severity=self.minimum_severity)
+        union.construct_allowlist_from_ecr_scan_result(union_vulnerabilities)
+        return union
 
 
 def are_vulnerabilities_equivalent(vulnerability_1, vulnerability_2):
