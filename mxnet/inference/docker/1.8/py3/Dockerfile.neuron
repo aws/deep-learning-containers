@@ -15,7 +15,6 @@ ARG MX_URL=https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.8.0/aws_mx-1.8.0-py2
 ARG PYTHON=python3
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.10
-ARG OPENSSL_VERSION=1.1.1k
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -44,6 +43,7 @@ RUN apt-get update \
     zlib1g-dev \
     libreadline-gplv2-dev \
     libncursesw5-dev \
+    openssl \
     libssl-dev \
     libsqlite3-dev \
     libgdbm-dev \
@@ -72,17 +72,6 @@ RUN apt-get update \
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
-
-# install OpenSSL
-RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
- && tar -xzf openssl-${OPENSSL_VERSION}.tar.gz \
- && cd openssl-${OPENSSL_VERSION} \
- && ./config && make -j $(nproc) && make install \
- && ldconfig \
- && cd .. && rm -rf openssl-* \
- && rmdir /usr/local/ssl/certs \
- && ln -s /etc/ssl/certs /usr/local/ssl/certs
-
 
 # install Python
 RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
@@ -127,6 +116,7 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
  && chown -R model-server /home/model-server
 
+COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
 
 RUN HOME_DIR=/root \
@@ -144,4 +134,5 @@ EXPOSE 8080 8081
 COPY entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["/usr/local/bin/entrypoint.sh"]

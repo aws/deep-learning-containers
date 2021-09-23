@@ -15,8 +15,16 @@ import numpy as np
 import os
 import json
 import tensorflow as tf
-import tensorflow_io as tfio
+
+tf_major, tf_minor, _ = tf.__version__.split('.')
+if int(tf_major) > 2 or (int(tf_major) == 2 and int(tf_minor) >= 6):
+    import tensorflow_io as tfio
 from tensorflow.keras.layers import Conv2D, BatchNormalization, Dense, Flatten
+
+"""
+This script uses custom loops to train Mnist model and saves the checkpoints using 
+checkpoint manager.
+"""
 
 # define a model
 class LeNet(tf.keras.Model):
@@ -152,11 +160,12 @@ def main(args):
     
     ckpt = tf.train.Checkpoint(optimizer=optimizer, model=net)
     ckpt_manager = tf.train.CheckpointManager(
-        ckpt, args.model_dir, max_to_keep=1, checkpoint_name='ckpt'
+        ckpt, args.model_dir, max_to_keep=5, checkpoint_name='model.ckpt'
     )
     
     dtrain, deval = load_data(args.train)
-    for i in range(10):
+    num_epochs = 10
+    for i in range(num_epochs):
         for x, y in dtrain:
             train_step(x, y, net, optimizer, train_loss, train_accuracy) 
         

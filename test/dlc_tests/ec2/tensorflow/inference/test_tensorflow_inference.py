@@ -63,6 +63,7 @@ def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connecti
     run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, "8500", region)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu_telemetry(
@@ -73,6 +74,7 @@ def test_ec2_tensorflow_inference_gpu_telemetry(
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, ec2_instance_ami, "8500", region, True)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_cpu_telemetry(tensorflow_inference, ec2_connection, ec2_instance_ami, region, cpu_only):
