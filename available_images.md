@@ -220,8 +220,9 @@ Prior Hugging Face Container Versions
 ==============
 | Framework 			                        |Job Type 	   |CPU/GPU 	 |Python Version Options     |Example URL 			                                                                                                         |
 |-----------------------------------------------|--------------|-------------|---------------------------|-------------------------------------------------------------------------------------------------------------------------------|
+|PyTorch 1.8.1 with HuggingFace transformers    |training	|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training:1.8.1-transformers4.6.1-gpu-py36-cu111-ubuntu18.04       |
 |PyTorch 1.6.0 with HuggingFace transformers    |training	   |GPU 		 | 3.6 (py36)                |763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training:1.6.0-transformers4.5.0-gpu-py36-cu110-ubuntu18.04   |
-|TensorFlow 2.4.1 with HuggingFace transformers |training      |GPU          | 3.7 (py37)                |763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-training:2.4.1-transformers4.5.0-gpu-py37-cu110-ubuntu18.04|
+|TensorFlow 2.4.1 with HuggingFace transformers |training	|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-training:2.4.1-transformers4.6.1-gpu-py37-cu110-ubuntu18.04 	|
 
 Prior Elastic Inference Container Versions
 ==============
