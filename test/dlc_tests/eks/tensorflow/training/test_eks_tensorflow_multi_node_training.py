@@ -43,18 +43,20 @@ def _run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, cl
     namespace = "tensorflow"
     job_name = f"tf-resnet50-horovod-job-{unique_tag}"
 
-    script_name = ("/deep-learning-models/models/resnet/tensorflow2/train_tf2_resnet.py" if major_version == "2" else
-                   "/deep-learning-models/models/resnet/tensorflow/train_imagenet_resnet_hvd.py")
+    script_name = (
+        "/deep-learning-models/models/resnet/tensorflow2/train_tf2_resnet.py"
+        if major_version == "2"
+        else "/deep-learning-models/models/resnet/tensorflow/train_imagenet_resnet_hvd.py"
+    )
 
-    args_to_pass = ('["--synthetic","--batch_size,128","--num_batches","100","--clear_log","2"]' if major_version == "2" else
-                    '["--num_epochs=1","--synthetic"]')
+    args_to_pass = (
+        '["--synthetic","--batch_size,128","--num_batches","100","--clear_log","2"]'
+        if major_version == "2"
+        else '["--num_epochs=1","--synthetic"]'
+    )
 
     local_template_file_path = os.path.join(
-        "eks",
-        "eks_manifest_templates",
-        "tensorflow",
-        "training",
-        "multi_node_gpu_training.yaml"
+        "eks", "eks_manifest_templates", "tensorflow", "training", "multi_node_gpu_training.yaml"
     )
 
     remote_yaml_file_path = os.path.join(os.sep, "tmp", f"tensorflow_multi_node_training_{unique_tag}.yaml")
@@ -65,7 +67,7 @@ def _run_eks_tensorflow_multinode_training_resnet50_mpijob(example_image_uri, cl
         "<CONTAINER_IMAGE>": example_image_uri,
         "<SCRIPT_NAME>": script_name,
         "<ARGS>": args_to_pass,
-        "<GPUS>": str(eks_gpus_per_worker)
+        "<GPUS>": str(eks_gpus_per_worker),
     }
 
     eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file_path, replace_dict)

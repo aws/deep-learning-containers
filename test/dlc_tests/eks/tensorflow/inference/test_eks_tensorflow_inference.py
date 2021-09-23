@@ -8,6 +8,7 @@ from invoke import run
 import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
+
 @pytest.mark.model("mnist")
 def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
     if "eia" in tensorflow_inference or "neuron" not in tensorflow_inference:
@@ -15,7 +16,7 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
-        
+
     processor = "neuron"
 
     model_name = "mnist_neuron"
@@ -28,7 +29,7 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference
+        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference,
     }
 
     search_replace_dict["<NUM_INF1S>"] = "1"
@@ -73,7 +74,7 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference
+        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference,
     }
 
     if processor == "gpu":
@@ -118,7 +119,7 @@ def test_eks_tensorflow_albert(tensorflow_inference):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference
+        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference,
     }
 
     if processor == "gpu":

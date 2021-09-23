@@ -29,12 +29,12 @@ def test_eks_mxnet_multi_node_training_horovod_mnist(mxnet_training, example_onl
     ec2_instance_type = "p3.16xlarge"
 
     eks_gpus_per_worker = ec2_utils.get_instance_num_gpus(instance_type=ec2_instance_type)
-    
+
     _run_eks_mxnet_multinode_training_horovod_mpijob(mxnet_training, eks_cluster_size, eks_gpus_per_worker)
 
 
 def _run_eks_mxnet_multinode_training_horovod_mpijob(example_image_uri, cluster_size, eks_gpus_per_worker):
-    
+
     LOGGER.info("Starting run_eks_mxnet_multi_node_training on MNIST dataset using horovod")
     LOGGER.info("The test will run on an example image %s", example_image_uri)
 
@@ -48,11 +48,7 @@ def _run_eks_mxnet_multinode_training_horovod_mpijob(example_image_uri, cluster_
     LOGGER.debug(f"Namespace: {namespace}")
 
     local_template_file_path = os.path.join(
-        "eks",
-        "eks_manifest_templates",
-        "mxnet",
-        "training",
-        "multi_node_training_horovod_mnist.yaml"
+        "eks", "eks_manifest_templates", "mxnet", "training", "multi_node_training_horovod_mnist.yaml"
     )
 
     remote_yaml_file_path = os.path.join(os.sep, "tmp", f"tensorflow_multi_node_training_{unique_tag}.yaml")
@@ -61,7 +57,7 @@ def _run_eks_mxnet_multinode_training_horovod_mpijob(example_image_uri, cluster_
         "<JOB_NAME>": job_name,
         "<NUM_WORKERS>": cluster_size,
         "<CONTAINER_IMAGE>": example_image_uri,
-        "<GPUS>": str(eks_gpus_per_worker)
+        "<GPUS>": str(eks_gpus_per_worker),
     }
 
     eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file_path, replace_dict)
@@ -91,11 +87,7 @@ def test_eks_mxnet_multinode_training(mxnet_training, example_only):
     gpus = '"0"'
 
     local_template_file_path = os.path.join(
-        "eks",
-        "eks_manifest_templates",
-        "mxnet",
-        "training",
-        "multi_node_gpu_training.yaml"
+        "eks", "eks_manifest_templates", "mxnet", "training", "multi_node_gpu_training.yaml"
     )
 
     remote_yaml_file_path = os.path.join(os.sep, "tmp", f"mxnet_multi_node_training_{unique_id}.yaml")
@@ -108,7 +100,7 @@ def test_eks_mxnet_multinode_training(mxnet_training, example_only):
         "<EPOCHS>": epochs,
         "<LAYERS>": layers,
         "<GPUS>": gpus,
-        "<GPU_LIMIT>": gpu_limit
+        "<GPU_LIMIT>": gpu_limit,
     }
 
     eks_utils.write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file_path, replace_dict)
@@ -131,7 +123,6 @@ def _run_eks_mxnet_multi_node_training(namespace, job_name, remote_yaml_file_pat
         run(f"kubectl create namespace {namespace}")
 
     try:
-        
         # Delete old job with same name if exists
         run(f"kubectl delete -f {remote_yaml_file_path}", warn=True)
         run(f"kubectl create -f {remote_yaml_file_path} -n {namespace}")
@@ -155,7 +146,7 @@ def is_mxnet_eks_multinode_training_complete(job_name, namespace):
         job_info = json.loads(run_out.stdout)
         LOGGER.debug(f"Job info: {job_info}")
 
-    if 'status' not in job_info or 'conditions' not in job_info["status"] or len(job_info["status"]["conditions"]) == 0:
+    if "status" not in job_info or "conditions" not in job_info["status"] or len(job_info["status"]["conditions"]) == 0:
         raise ValueError("Waiting for job to launch...")
     else:
         job_conditions = job_info["status"]["conditions"]
@@ -172,7 +163,7 @@ def _run_eks_multi_node_training_mpijob(namespace, job_name, remote_yaml_file_pa
     """
 
     does_namespace_exist = run(f"kubectl get namespace | grep {namespace}", warn=True)
-    
+
     if not does_namespace_exist:
         run(f"kubectl create namespace {namespace}")
 

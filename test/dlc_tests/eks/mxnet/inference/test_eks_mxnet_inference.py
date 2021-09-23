@@ -9,6 +9,7 @@ from invoke import run
 import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
+
 @pytest.mark.model("resnet50")
 def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
     if "eia" in mxnet_inference or "neuron" not in mxnet_inference:
@@ -28,11 +29,10 @@ def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
         "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference,
-        "<SERVER_CMD>": server_cmd
+        "<SERVER_CMD>": server_cmd,
     }
 
     search_replace_dict["<NUM_INF1S>"] = "1"
-
 
     eks_utils.write_eks_yaml_file_from_template(
         eks_utils.get_single_node_inference_template_path("mxnet", processor), yaml_path, search_replace_dict
@@ -50,6 +50,7 @@ def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
+
 
 @pytest.mark.model("squeezenet")
 def test_eks_mxnet_squeezenet_inference(mxnet_inference):
@@ -70,7 +71,7 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference
+        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference,
     }
 
     if processor == "gpu":
@@ -94,7 +95,9 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
         run(f"kubectl delete service {selector_name}")
 
 
-@pytest.mark.skip("Flaky test. Same test passes on EC2. Fails for gpu-inference for mx1.7. Refer: https://github.com/aws/deep-learning-containers/issues/587")
+@pytest.mark.skip(
+    "Flaky test. Same test passes on EC2. Fails for gpu-inference for mx1.7. Refer: https://github.com/aws/deep-learning-containers/issues/587"
+)
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("bert_sst")
 def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
@@ -115,7 +118,7 @@ def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference
+        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference,
     }
 
     if processor == "gpu":
