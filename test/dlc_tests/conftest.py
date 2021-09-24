@@ -28,7 +28,7 @@ from test.test_utils import (
     P3DN_REGION,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
-    UBUNTU_20_ARM64_US_WEST_2,
+    AML2_20_ARM64_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     AML2_GPU_DLAMI_US_WEST_2,
     AML2_GPU_DLAMI_US_EAST_1,
@@ -207,7 +207,7 @@ def ec2_instance(
             )
 
     if ec2_instance_type == "c6g.4xlarge":
-        ec2_instance_ami = UBUNTU_20_ARM64_US_WEST_2
+        ec2_instance_ami = AML2_20_ARM64_US_WEST_2
 
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)

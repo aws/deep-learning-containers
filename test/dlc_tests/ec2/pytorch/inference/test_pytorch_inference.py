@@ -46,6 +46,12 @@ def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cp
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
 
 
+@pytest.mark.model("densenet")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+def test_ec2_pytorch_inference_graviton_cpu(pytorch_inference, ec2_connection, region, graviton_only):
+    ec2_pytorch_inference(pytorch_inference, "graviton", ec2_connection, region)
+
+
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
@@ -60,19 +66,6 @@ def test_ec2_pytorch_inference_eia_cpu(pytorch_inference_eia, ec2_connection, re
 @pytest.mark.parametrize("ei_accelerator_type", PT_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
 def test_ec2_pytorch_inference_eia_gpu(pytorch_inference_eia, ec2_connection, region, eia_only, pt14_and_above_only):
     ec2_pytorch_inference(pytorch_inference_eia, "eia", ec2_connection, region)
-
-
-# @pytest.mark.integration("elastic_inference")
-# @pytest.mark.model("resnet")
-# @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
-# def test_ec2_pytorch_inference_graviton_cpu(pytorch_inference_graviton, ec2_connection, region, graviton_only):
-#     ec2_pytorch_inference(pytorch_inference_graviton, "graviton", ec2_connection, region)
-
-@pytest.mark.integration("elastic_inference")
-@pytest.mark.model("resnet")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
-def test_ec2_pytorch_inference_graviton_cpu(pytorch_inference, ec2_connection, region, graviton_only):
-    ec2_pytorch_inference(pytorch_inference, "graviton", ec2_connection, region)
 
 
 def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
