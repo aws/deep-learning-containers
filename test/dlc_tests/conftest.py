@@ -253,7 +253,7 @@ def ec2_instance(
             {
                 "DeviceName": volume_name,
                 "Ebs": {
-                    "VolumeSize": 90,
+                    "VolumeSize": 300,
                 },
             }
         ]
