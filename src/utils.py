@@ -404,7 +404,7 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
                     os.environ[env_variable] = "true"
 
 
-def fetch_dlc_images_for_test_jobs(images):
+def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
     """
     use the JobParamters.run_test_types values to pass on image ecr urls to each test type.
     :param images: list
@@ -419,8 +419,12 @@ def fetch_dlc_images_for_test_jobs(images):
             continue
         use_preexisting_images = (build_disabled and docker_image.build_status == constants.NOT_BUILT)
         if docker_image.build_status == constants.SUCCESS or use_preexisting_images:
+            ecr_url_to_test = docker_image.ecr_url
+            if use_latest_additional_tag and len(docker_image.additional_tags) > 0:
+                ecr_url_to_test = f"{docker_image.repository}:{docker_image.additional_tags[-1]}"
+
             # Run sanity tests on the all images built
-            DLC_IMAGES["sanity"].append(docker_image.ecr_url)
+            DLC_IMAGES["sanity"].append(ecr_url_to_test)
             image_job_type = docker_image.info.get("image_type")
             image_device_type = docker_image.info.get("device_type")
             image_python_version = docker_image.info.get("python_version")
@@ -432,12 +436,12 @@ def fetch_dlc_images_for_test_jobs(images):
                     constants.ALL_TESTS if constants.ALL in run_tests else run_tests
                 )
                 for test in run_tests:
-                    DLC_IMAGES[test].append(docker_image.ecr_url)
+                    DLC_IMAGES[test].append(ecr_url_to_test)
             # when key is training or inference values can be  (ecs, eks, ec2, sagemaker)
             if image_job_type in JobParameters.image_run_test_types.keys():
                 run_tests = JobParameters.image_run_test_types.get(image_job_type)
                 for test in run_tests:
-                    DLC_IMAGES[test].append(docker_image.ecr_url)
+                    DLC_IMAGES[test].append(ecr_url_to_test)
             # when key is image_tag (training-cpu-py3) values can be (ecs, eks, ec2, sagemaker)
             if image_tag in JobParameters.image_run_test_types.keys():
                 run_tests = JobParameters.image_run_test_types.get(image_tag)
@@ -445,7 +449,7 @@ def fetch_dlc_images_for_test_jobs(images):
                     constants.ALL_TESTS if constants.ALL in run_tests else run_tests
                 )
                 for test in run_tests:
-                    DLC_IMAGES[test].append(docker_image.ecr_url)
+                    DLC_IMAGES[test].append(ecr_url_to_test)
 
     for test_type in DLC_IMAGES.keys():
         test_images = DLC_IMAGES[test_type]
@@ -459,7 +463,7 @@ def write_to_json_file(file_name, content):
         json.dump(content, fp)
 
 
-def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
+def set_test_env(images, use_latest_additional_tag=False, images_env="DLC_IMAGES", **kwargs):
     """
     Util function to write a file to be consumed by test env with necessary environment variables
 
@@ -472,7 +476,7 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     """
     test_envs = []
 
-    test_images_dict = fetch_dlc_images_for_test_jobs(images)
+    test_images_dict = fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=use_latest_additional_tag)
 
     # dumping the test_images to dict that can be used in src/start_testbuilds.py
     write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, test_images_dict)

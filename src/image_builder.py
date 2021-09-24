@@ -177,16 +177,15 @@ def image_builder(buildspec):
         # to the repository. Instead, we just push its common stage image to the repository. Therefore,
         # inside function get_common_stage_image_object we make pre_push_stage_image_object non pushable.
         common_stage_image_object = generate_common_stage_image_object(pre_push_stage_image_object, image_tag)
+        COMMON_STAGE_IMAGES.append(common_stage_image_object)
 
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
-        COMMON_STAGE_IMAGES.append(common_stage_image_object)
         FORMATTER.separator()
 
     FORMATTER.banner("DLC")
 
     # Standard images must be built before example images
     # Example images will use standard images as base
-    # Common images must be built at the end as they will consume respective standard and example images
     standard_images = [image for image in PRE_PUSH_STAGE_IMAGES if "example" not in image.name.lower()]
     example_images = [image for image in PRE_PUSH_STAGE_IMAGES if "example" in image.name.lower()]
     ALL_IMAGES = PRE_PUSH_STAGE_IMAGES + COMMON_STAGE_IMAGES
@@ -199,11 +198,8 @@ def image_builder(buildspec):
     assert all(image in pushed_images for image in IMAGES_TO_PUSH), "Few images could not be pushed."
 
     # After the build, display logs/summary for all the images.
-    FORMATTER.banner("Build Logs")
-    show_build_logs(ALL_IMAGES)
-
     FORMATTER.banner("Summary")
-    show_build_summary(ALL_IMAGES)
+    show_build_info(ALL_IMAGES)
 
     FORMATTER.banner("Errors")
     is_any_build_failed, is_any_build_failed_size_limit = show_build_errors(ALL_IMAGES)
@@ -219,7 +215,10 @@ def image_builder(buildspec):
     test_trigger_job = utils.get_codebuild_project_name()
     # Tests should only run on images that were pushed to the repository
     utils.set_test_env(
-        IMAGES_TO_PUSH, BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"), TEST_TRIGGER=test_trigger_job,
+        IMAGES_TO_PUSH, 
+        use_latest_additional_tag=True, 
+        BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"), 
+        TEST_TRIGGER=test_trigger_job
     )
 
 
@@ -229,7 +228,11 @@ def process_images(pre_push_image_list, pre_push_image_type="Pre-push"):
     pre push images and then builds it. After the pre-push images have been built, it extracts the 
     corresponding common stage images for the pre-push images and builds those common stage images.
     After the common stage images have been built, it finds outs the docker images that need to be 
-    pushed and pushes them according.
+    pushed and pushes them accordingly.
+
+    Note that the common stage images should always be built after the pre-push images of a
+    particular kind. This is because the Common stage images use are built on respctive 
+    Standard and Example images.
 
     :param pre_push_image_list: list[DockerImage], list of pre-push images
     :param pre_push_image_type: str, used to display the message on the logs
@@ -283,9 +286,9 @@ def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
     return common_stage_image_object
 
 
-def show_build_logs(images):
+def show_build_info(images):
     """
-    Display and save the build logs for a list of input images.
+    Displays the build info for a list of input images.
 
     :param images: list[DockerImage]
     """
@@ -297,24 +300,15 @@ def show_build_logs(images):
         image_description = f"{image.name}-{image.stage}"
         FORMATTER.title(image_description)
         FORMATTER.table(image.info.items())
-        FORMATTER.title(f"Ending Logs for {image_description}")
-        FORMATTER.print_lines(image.log[-1][-2:])
+
         flattened_logs = list(itertools.chain(*image.log))
         with open(f"logs/{image_description}", "w") as fp:
             fp.write("/n".join(flattened_logs))
             image.summary["log"] = f"logs/{image_description}"
-
-
-def show_build_summary(images):
-    """
-    Display the build summary for a list of input images.
-
-    :param images: list[DockerImage]
-    """
-
-    for image in images:
-        FORMATTER.title(image.name)
         FORMATTER.table(image.summary.items())
+
+        FORMATTER.title(f"Ending Logs for {image_description}")
+        FORMATTER.print_lines(image.log[-1][-2:])
 
 
 def show_build_errors(images):

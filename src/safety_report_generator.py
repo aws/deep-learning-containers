@@ -131,7 +131,7 @@ class SafetyReportGenerator:
         safety_check_command = f"{self.docker_exec_cmd} safety check --json"
         run_out = self.ctx.run(safety_check_command, warn=True, hide=True)
         if run_out.return_code != 0:
-            print(f"safety check command returned non-zero error code. stderr printed for logging: {run_out.stderr}")
+            print("safety check command returned non-zero error code. This indicates that vulnerabilities might exist.")
         return run_out.stdout
 
     def run_safety_check_in_cb_context(self):

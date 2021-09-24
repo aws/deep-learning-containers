@@ -172,7 +172,7 @@ class DockerImage:
         :param custom_context: bool
         :return: int, Build Status
         """
-        response = [f"Starting the Build Process for {self.name}"]
+        response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
         for line in self.client.build(
             fileobj=fileobj,
             path=self.dockerfile,
@@ -206,7 +206,7 @@ class DockerImage:
         self.log.append(response)
 
         LOGGER.info(f"DOCKER BUILD LOGS: \n{self.get_tail_logs_in_pretty_format()}")
-        LOGGER.info(f"Completed Build for {self.name}")
+        LOGGER.info(f"Completed Build for {self.repository}:{self.tag}")
 
         self.build_status = constants.SUCCESS
         return self.build_status
@@ -217,7 +217,7 @@ class DockerImage:
 
         :return: int, Build Status
         """
-        response = [f"Starting image size check for {self.name}"]
+        response = [f"Starting image size check for {self.repository}:{self.tag}"]
         self.summary["image_size"] = int(self.client.inspect_image(self.ecr_url)["Size"]) / (1024 * 1024)
         if self.summary["image_size"] > self.info["image_size_baseline"] * 1.20:
             response.append("Image size baseline exceeded")
@@ -225,7 +225,7 @@ class DockerImage:
             response += self.collect_installed_packages_information()
             self.build_status = constants.FAIL_IMAGE_SIZE_LIMIT
         else:
-            response.append(f"Image Size Check Succeeded for {self.name}")
+            response.append(f"Image Size Check Succeeded for {self.repository}:{self.tag}")
             self.build_status = constants.SUCCESS
         self.log.append(response)
 
