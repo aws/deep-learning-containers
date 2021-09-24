@@ -35,6 +35,10 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
+EKS_VERSION = "1.20.4"
+EKSCTL_VERSION = "0.53.0"
+KUBETAIL_VERSION = "1.6.7"
+
 def get_aws_secret_yml_path():
 
     return os.path.join(os.sep, DLC_TESTS_PREFIX, "eks", "eks_manifest_templates", "aws_access", "secret.yaml",)
@@ -113,6 +117,76 @@ def is_eks_training_complete(pod_name):
 
     return False
 
+def setup_eksctl():
+    run_out = run("eksctl version", echo=True, warn=True)
+
+    eksctl_installed = not run_out.return_code
+
+    if eksctl_installed:
+        return
+
+    platform = run("uname -s", echo=True).stdout.strip()
+    eksctl_download_command = (
+        f"curl --silent --location https://github.com/weaveworks/eksctl/releases/download/"
+        f"{EKSCTL_VERSION}/eksctl_{platform}_amd64.tar.gz | tar xz -C /tmp"
+    )
+    run(eksctl_download_command, echo=True)
+    run("mv /tmp/eksctl /usr/local/bin")
+
+
+def eks_setup():
+    """Function to download eksctl, kubectl, aws-iam-authenticator and kubetail binaries
+    Utilities:
+    1. eksctl: create and manage cluster
+    2. kubectl: create and manage runs on eks cluster
+    3. aws-iam-authenticator: authenticate the instance to access eks with the appropriate aws credentials
+    """
+
+    # Run a quick check that the binaries are available in the PATH by listing the 'version'
+    run_out = run(
+        "eksctl version && kubectl version --short --client && aws-iam-authenticator version",
+        warn=True,
+    )
+
+    eks_tools_installed = not run_out.return_code
+
+    if eks_tools_installed:
+        return
+
+    platform = run("uname -s").stdout.strip()
+
+    kubectl_download_command = (
+        f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
+        f"{EKS_VERSION}/2021-04-12/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
+    )
+
+    aws_iam_authenticator_download_command = (
+        f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
+        f"{EKS_VERSION}/2021-04-12/bin/{platform.lower()}/amd64/aws-iam-authenticator "
+        f"-o /usr/local/bin/aws-iam-authenticator"
+    )
+
+    kubetail_download_command = (
+        f"curl --silent --location https://raw.githubusercontent.com/johanhaleby/kubetail/"
+        f"{KUBETAIL_VERSION}/kubetail -o /usr/local/bin/kubetail"
+    )
+
+    # Separate function handles setting up eksctl
+    setup_eksctl()
+
+    run(kubectl_download_command, echo=True)
+    run("chmod +x /usr/local/bin/kubectl")
+
+    run(aws_iam_authenticator_download_command, echo=True)
+    run("chmod +x /usr/local/bin/aws-iam-authenticator")
+
+    run(kubetail_download_command, echo=True)
+    run("chmod +x /usr/local/bin/kubetail")
+
+    # Run a quick check that the binaries are available in the PATH by listing the 'version'
+    run("eksctl version", echo=True)
+    run("kubectl version --short --client", echo=True)
+    run("aws-iam-authenticator version", echo=True)
 
 def write_eks_yaml_file_from_template(local_template_file_path, remote_yaml_file_path, search_replace_dict):
     """Function that does a simple replace operation based on the search_replace_dict on the template file contents
