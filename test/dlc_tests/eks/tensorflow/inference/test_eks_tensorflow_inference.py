@@ -24,7 +24,7 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
 
     search_replace_dict = {
         "<MODEL_NAME>": model_name,
-        "<MODEL_BASE_PATH>": f"https://aws-dlc-sample-models.s3.amazonaws.com/{model_name}",
+        "<MODEL_BASE_PATH>": f"s3://aws-dlc-sample-models/{model_name}",
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
