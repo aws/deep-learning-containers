@@ -30,7 +30,7 @@ class DockerImage:
     The DockerImage class has the functions and attributes for building the dockerimage
     """
 
-    def __init__(self, info, dockerfile, repository, tag, to_build, stage, context=None, to_push=True):
+    def __init__(self, info, dockerfile, repository, tag, to_build, stage, context=None, to_push=True, additional_tags=[]):
 
         # Meta-data about the image should go to info.
         # All keys in info are accessible as attributes
@@ -48,6 +48,7 @@ class DockerImage:
         # TODO: Add ability to tag image with multiple tags
         self.repository = repository
         self.tag = tag
+        self.additional_tags = additional_tags
         self.ecr_url = f"{self.repository}:{self.tag}"
 
         if not isinstance(to_build, bool):
@@ -149,7 +150,7 @@ class DockerImage:
             self.docker_build(fileobj=context_file, custom_context=True)
             self.context.remove()
 
-        if self.build_status == constants.FAIL:
+        if self.build_status != constants.SUCCESS:
             return self.build_status
 
         if not self.to_push:
@@ -232,14 +233,19 @@ class DockerImage:
 
         return self.build_status
 
-    def push_image(self):
+    def push_image(self, tag_value=None):
         """
         Pushes the Docker image to ECR using Docker low-level API client for docker.
         
+        :param tag_value: str, an optional variable to provide a different tag
         :return: int, states if the Push was successful or not
         """
-        response = [f"Starting image Push for {self.name}"]
-        for line in self.client.push(self.repository, self.tag, stream=True, decode=True):
+        tag = tag_value
+        if tag_value is None:
+            tag = self.tag
+
+        response = [f"Starting image Push for {self.repository}:{tag}"]
+        for line in self.client.push(self.repository, tag, stream=True, decode=True):
             if line.get("error") is not None:
                 response.append(line["error"])
                 self.log.append(response)
@@ -249,7 +255,7 @@ class DockerImage:
 
                 LOGGER.info(f"Docker Build Logs: \n {self.get_tail_logs_in_pretty_format(100)}")
                 LOGGER.error("ERROR during Docker PUSH")
-                LOGGER.error(f"Error message received for {self.dockerfile} while docker push: {line}")
+                LOGGER.error(f"Error message received for {self.repository}:{tag} while docker push: {line}")
 
                 return self.build_status
             if line.get("stream") is not None:
@@ -260,9 +266,43 @@ class DockerImage:
         self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
         self.summary["end_time"] = datetime.now()
         self.summary["ecr_url"] = self.ecr_url
+        if "pushed_uris" not in self.summary:
+            self.summary["pushed_uris"] = []
+        self.summary["pushed_uris"].append(f"{self.repository}:{tag}")
+        response.append(f"Completed Push for {self.repository}:{tag}")
         self.log.append(response)
 
         LOGGER.info(f"DOCKER PUSH LOGS: \n {self.get_tail_logs_in_pretty_format(2)}")
-        LOGGER.info(f"Completed Push for {self.name}")
+        return self.build_status
 
+    def push_image_with_additional_tags(self):
+        """
+        Pushes an already built Docker image by applying additional tags to it.
+        
+        :return: int, states if the Push was successful or not
+        """
+        self.log.append([f"Started Tagging for {self.ecr_url}"])
+        for additional_tag in self.additional_tags:
+            response = [f"Tagging {self.ecr_url} as {self.repository}:{additional_tag}"]
+            tagging_successful = self.client.tag(self.ecr_url, self.repository, additional_tag)
+            if not tagging_successful:
+                response.append(f"Tagging {self.ecr_url} with {additional_tag} unsuccessful.")
+                self.log.append(response)
+                LOGGER.error("ERROR during Tagging")
+                LOGGER.error(f"Tagging {self.ecr_url} with {additional_tag} unsuccessful.")
+                self.build_status = constants.FAIL
+                self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
+                return self.build_status
+            response.append(f"Tagged {self.ecr_url} succussefully as {self.repository}:{additional_tag}")
+            self.log.append(response)
+
+            self.build_status = self.push_image(tag_value=additional_tag)
+            if self.build_status != constants.SUCCESS:
+                return self.build_status
+
+        self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
+        self.summary["end_time"] = datetime.now()
+        self.log.append([f"Completed Tagging for {self.ecr_url}"])
+
+        LOGGER.info(f"DOCKER TAG and PUSH LOGS: \n {self.get_tail_logs_in_pretty_format(5)}")
         return self.build_status

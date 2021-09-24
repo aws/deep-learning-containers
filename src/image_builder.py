@@ -165,17 +165,18 @@ def image_builder(buildspec):
             info=info,
             dockerfile=image_config["docker_file"],
             repository=image_repo_uri,
-            tag=image_tag,
+            tag=append_tag(image_tag, "pre-push"),
             to_build=image_config["build"],
             stage=constants.PRE_PUSH_STAGE,
             context=context,
+            additional_tags=[image_tag],
         )
 
         ##### Create Common stage docker object #####
         # If for a pre_push stage image we create a common stage image, then we do not push the pre_push stage image
         # to the repository. Instead, we just push its common stage image to the repository. Therefore,
         # inside function get_common_stage_image_object we make pre_push_stage_image_object non pushable.
-        common_stage_image_object = generate_common_stage_image_object(pre_push_stage_image_object)
+        common_stage_image_object = generate_common_stage_image_object(pre_push_stage_image_object, image_tag)
 
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         COMMON_STAGE_IMAGES.append(common_stage_image_object)
@@ -249,10 +250,13 @@ def process_images(pre_push_image_list, pre_push_image_type="Pre-push"):
     all_images = pre_push_image_list + common_stage_image_list
     images_to_push =  [image for image in all_images if image.to_push and image.to_build]
     push_images(images_to_push)
+
+    FORMATTER.banner(f"{pre_push_image_type} Retagging")
+    retag_and_push_images(images_to_push)
     return images_to_push
 
 
-def generate_common_stage_image_object(pre_push_stage_image_object):
+def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
     """
     Creates a common stage image object for a pre_push stage image. If for a pre_push stage image we create a common 
     stage image, then we do not push the pre_push stage image to the repository. Instead, we just push its common stage 
@@ -269,9 +273,10 @@ def generate_common_stage_image_object(pre_push_stage_image_object):
         info=common_stage_info,
         dockerfile=os.path.join(os.sep, utils.get_root_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.common"),
         repository=pre_push_stage_image_object.repository,
-        tag=tag_image_with_multistage_common(pre_push_stage_image_object.tag),
+        tag=append_tag(image_tag, "multistage-common"),
         to_build=pre_push_stage_image_object.to_build,
         stage=constants.COMMON_STAGE,
+        additional_tags=[image_tag],
     )
     pre_push_stage_image_object.to_push = False
     pre_push_stage_image_object.corresponding_common_stage_image = common_stage_image_object
@@ -413,6 +418,17 @@ def push_images(images):
             THREADS[image.name] = executor.submit(image.push_image)
     FORMATTER.progress(THREADS)
 
+def retag_and_push_images(images):
+    """
+    Takes a list of images, retags them and pushes to the repository
+
+    :param images: list[DockerImage]
+    """
+    THREADS = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=constants.MAX_WORKER_COUNT_FOR_PUSHING_IMAGES) as executor:
+        for image in images:
+            THREADS[image.name] = executor.submit(image.push_image_with_additional_tags)
+    FORMATTER.progress(THREADS)
 
 def tag_image_with_pr_number(image_tag):
     pr_number = os.getenv("CODEBUILD_SOURCE_VERSION").replace("/", "-")
@@ -424,15 +440,14 @@ def tag_image_with_datetime(image_tag):
     return f"{image_tag}-{datetime_suffix}"
 
 
-def tag_image_with_multistage_common(image_tag):
+def append_tag(image_tag, append_str):
     """
-    Appends multistage-common tag to the image
+    Appends image_tag with append_str
 
-    :param image_tag: str
-    :return: str, image tag appended with multistage-common
+    :param image_tag: str, original image tag
+    :param append_str: str, string to be appended
     """
-    append_tag = "multistage-common"
-    return f"{image_tag}-{append_tag}"
+    return f"{image_tag}-{append_str}"
 
 
 def modify_repository_name_for_context(image_repo_uri, build_context):
