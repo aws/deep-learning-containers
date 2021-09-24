@@ -62,10 +62,6 @@ def is_sm_local_test_enabled():
     return parse_dlc_developer_configs("test", "sagemaker_local_tests")
 
 
-def are_efa_tests_enabled():
-    return parse_dlc_developer_configs("test", "efa_tests")
-
-
 def is_scheduler_enabled():
     return parse_dlc_developer_configs("test", "use_scheduler")
 
@@ -78,6 +74,7 @@ class AllowedSMRemoteConfigValues(Enum):
     OFF = "off"
     RC = "rc"
     STANDARD = "standard"
+    EFA = "efa"
 
 
 def get_sagemaker_remote_tests_config_value():
@@ -102,6 +99,7 @@ def is_sm_remote_test_enabled():
         True,
         AllowedSMRemoteConfigValues.STANDARD.value,
         AllowedSMRemoteConfigValues.RC.value,
+        AllowedSMRemoteConfigValues.EFA.value,
     }:
         return True
 
@@ -111,3 +109,8 @@ def is_sm_remote_test_enabled():
             f"Please choose one of {allowed_values}. Disabling sagemaker remote tests."
         )
     return False
+
+
+def are_efa_tests_enabled():
+    sm_remote_value = get_sagemaker_remote_tests_config_value()
+    return sm_remote_value == AllowedSMRemoteConfigValues.EFA.value
