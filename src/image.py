@@ -83,10 +83,12 @@ class DockerImage:
     @corresponding_common_stage_image.setter
     def corresponding_common_stage_image(self, docker_image_object):
         """
-        Sets the value for the corresponding_common_stage_image variable.
+        For a pre-push stage image, it sets the value for the corresponding_common_stage_image variable.
         """
         if self.to_push:
-            raise ValueError("Corresponding common stage image can only exist if the image is non-pushable")
+            raise ValueError(
+                "For any pre-push stage image, corresponding common stage image should only exist if the pre-push stage image is non-pushable."
+            )
         self._corresponding_common_stage_image = docker_image_object
 
     def collect_installed_packages_information(self):
