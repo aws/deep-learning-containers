@@ -10,6 +10,7 @@
                 "35015":"for shipping pycrypto<=2.6.1 - the last available version for py2"
             },
             "py3": {
+                "41161":"TF 2.6.0 is the last version for 2.6 series and does not have a fix yet."
             }
         },
         "inference":{
