@@ -79,6 +79,11 @@ class ScanVulnerabilityList:
                 for vulnerability in package_vulnerabilities
             ]
         return None
+    
+    def save_vulnerability_list(self, path):
+        if self.vulnerability_list:
+            with open(path, 'w') as f:
+                json.dump(self.vulnerability_list, f, indent=4, sort_keys=True)
 
     def __contains__(self, vulnerability):
         """

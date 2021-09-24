@@ -94,6 +94,7 @@ def conduct_failure_routine(image_allowlist, ecr_image_vulnerability_list, upgra
     fixable_ecr_image_scan_vulnerabilites = ecr_image_vulnerability_list - upgraded_image_vulnerability_list
     fixable_allowlist_vulnerabilites = image_allowlist - upgraded_image_vulnerability_list
     fixable_by_upgrade_vulnerability_list = None
+    ecr_image_vulnerability_list.save_vulnerability_list('ecr_image1.json')
     if not fixable_ecr_image_scan_vulnerabilites and not fixable_allowlist_vulnerabilites:
         print("Nothing cold be fixed by Apt-upgrade. Making a commit with just the diff for ignore list.")
     elif fixable_ecr_image_scan_vulnerabilites and fixable_allowlist_vulnerabilites:
