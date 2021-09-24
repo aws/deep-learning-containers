@@ -20,6 +20,7 @@ from test.test_utils import (
 )
 
 
+@pytest.mark.usefixtures("sagemaker_only", "huggingface")
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(not is_mainline_context() and not is_rc_test_context(), reason="Mainline only test")
@@ -59,6 +60,7 @@ def test_sm_profiler_pt(pytorch_training):
     run_sm_profiler_tests(pytorch_training, profiler_tests_dir, "test_profiler_pytorch.py", processor)
 
 
+@pytest.mark.usefixtures("sagemaker_only", "huggingface")
 @pytest.mark.integration("smprofiler")
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(not is_mainline_context() and not is_rc_test_context(), reason="Mainline only test")

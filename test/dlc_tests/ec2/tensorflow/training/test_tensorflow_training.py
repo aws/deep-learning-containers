@@ -5,12 +5,7 @@ import pytest
 import test.test_utils as test_utils
 import test.test_utils.ec2 as ec2_utils
 
-from test.test_utils import (
-    CONTAINER_TESTS_PREFIX, 
-    LOGGER, 
-    is_tf_version, 
-    get_python_invoker
-)
+from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER, is_tf_version, get_python_invoker
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -29,7 +24,7 @@ TF_DATASERVICE_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testDataservice"
 TF_DATASERVICE_DISTRIBUTE_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testDataserviceDistribute")
 
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
-    default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
+    default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu
 )
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.16xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="cpu")
@@ -40,7 +35,7 @@ class TFTrainingTestFailure(Exception):
     pass
 
 
-@pytest.mark.integration('tensorflow_sanity_test')
+@pytest.mark.integration("tensorflow_sanity_test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_standalone_gpu(tensorflow_training, ec2_connection, gpu_only, ec2_instance_type):
@@ -50,7 +45,7 @@ def test_tensorflow_standalone_gpu(tensorflow_training, ec2_connection, gpu_only
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
 
-@pytest.mark.integration('tensorflow_sanity_test')
+@pytest.mark.integration("tensorflow_sanity_test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_standalone_cpu(tensorflow_training, ec2_connection, cpu_only):
@@ -85,7 +80,7 @@ def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2
         connection=ec2_connection,
         ecr_uri=tensorflow_training,
         test_cmd=f"{test_script} {ec2_instance_type}",
-        large_shm=bool(re.match(r"(p2\.8xlarge)|(g3\.16xlarge)", ec2_instance_type))
+        large_shm=bool(re.match(r"(p2\.8xlarge)|(g3\.16xlarge)", ec2_instance_type)),
     )
 
 
@@ -98,7 +93,11 @@ def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_on
     test_script = TF1_HVD_CMD if is_tf_version("1", tensorflow_training) else TF2_HVD_CMD
     try:
         execute_ec2_training_test(
-            ec2_connection, tensorflow_training, f"{test_script} {ec2_instance_type}", container_name=container_name, timeout=1800
+            ec2_connection,
+            tensorflow_training,
+            f"{test_script} {ec2_instance_type}",
+            container_name=container_name,
+            timeout=1800,
         )
     except Exception as e:
         debug_output = ec2_connection.run(f"docker logs {container_name}")
@@ -128,6 +127,7 @@ def test_tensorflow_opencv_cpu(tensorflow_training, ec2_connection, tf2_only, cp
 
 
 # Testing Telemetry Script on only one GPU instance
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -139,6 +139,7 @@ def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only,
 
 
 # Testing Telemetry Script on only one CPU instance
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -152,7 +153,7 @@ def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only)
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_keras_horovod_amp(
-        tensorflow_training, ec2_connection, tf21_and_above_only, gpu_only, ec2_instance_type
+    tensorflow_training, ec2_connection, tf21_and_above_only, gpu_only, ec2_instance_type
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}")
@@ -207,29 +208,32 @@ def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, tf2_only, cp
 # Helper function to test data service
 def run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, cmd):
     python_invoker = get_python_invoker(ec2_instance_ami)
-    ec2_connection.run(f'{python_invoker} -m pip install --upgrade pip')
-    ec2_connection.run(f'{python_invoker} -m pip install tensorflow==2.5')
+    _, tensorflow_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
+    ec2_connection.run(f"{python_invoker} -m pip install --upgrade pip")
+    ec2_connection.run(f"{python_invoker} -m pip install tensorflow=={tensorflow_version}")
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(f'cd {container_test_local_dir}/bin && screen -d -m {python_invoker} start_dataservice.py')
+    ec2_connection.run(f"cd {container_test_local_dir}/bin && screen -d -m {python_invoker} start_dataservice.py")
     execute_ec2_training_test(ec2_connection, tensorflow_training, cmd, host_network=True)
 
 
 # Testing Data Service on only one CPU instance
 # Skip test for TF 2.3 and below
-@pytest.mark.integration('tensorflow-dataservice-test')
+@pytest.mark.integration("tensorflow-dataservice-test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_dataservice_cpu(tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, cpu_only):
+def test_tensorflow_dataservice_cpu(
+    tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, cpu_only
+):
     run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_TEST_CMD)
 
 
 # Testing Data Service on only one GPU instance
 # Skip test for TF 2.3 and below
-@pytest.mark.integration('tensorflow-dataservice-test')
+@pytest.mark.integration("tensorflow-dataservice-test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_gpu(
-        tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, gpu_only, ec2_instance_type
+    tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, gpu_only, ec2_instance_type
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}")
@@ -238,20 +242,22 @@ def test_tensorflow_dataservice_gpu(
 
 # Testing Data Service Distributed mode on only one CPU instance
 # Skip test for TF 2.3 and below
-@pytest.mark.integration('tensorflow-dataservice-distribute-test')
+@pytest.mark.integration("tensorflow-dataservice-distribute-test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_distribute_dataservice_cpu(tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, cpu_only):
+def test_tensorflow_distribute_dataservice_cpu(
+    tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, cpu_only
+):
     run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_DISTRIBUTE_TEST_CMD)
 
 
 # Testing Data Service Distributed mode on only one GPU instance
 # Skip test for TF 2.3 and below
-@pytest.mark.integration('tensorflow-dataservice-distribute-test')
+@pytest.mark.integration("tensorflow-dataservice-distribute-test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_distribute_dataservice_gpu(
-        tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, gpu_only, ec2_instance_type
+    tensorflow_training, ec2_connection, ec2_instance_ami, tf24_and_above_only, gpu_only, ec2_instance_type
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}")

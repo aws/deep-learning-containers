@@ -31,10 +31,12 @@ from test.test_utils import (
     is_nightly_context,
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
-    get_python_version_from_image_uri
+    get_python_version_from_image_uri,
+    is_tf_version
 )
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run stray file test regularly on production images")
 def test_stray_files(image):
@@ -77,6 +79,7 @@ def test_stray_files(image):
     _assert_artifact_free(root, stray_artifacts)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run python version test regularly on production images")
 def test_python_version(image):
@@ -105,6 +108,7 @@ def test_python_version(image):
     assert py_version in container_py_version, f"Cannot find {py_version} in {container_py_version}"
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 def test_ubuntu_version(image):
     """
@@ -128,6 +132,7 @@ def test_ubuntu_version(image):
     assert ubuntu_version in container_ubuntu_version
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run non-gpu framework version test regularly on production images")
 def test_framework_version_cpu(image):
@@ -172,6 +177,7 @@ def test_framework_version_cpu(image):
 
 
 # TODO: Enable as canary once resource cleaning lambda is added
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
@@ -210,8 +216,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     # CUDA Version Check #
     cuda_version = re.search(r"-cu(\d+)-", image).group(1)
 
-    # MXNet inference and Autogluon containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
-    if "mxnet-inference" in image or "autogluon" in image:
+    # MXNet inference/HF tensorflow inference and Autogluon containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
+    if "mxnet-inference" in image or "autogluon" in image or "huggingface-tensorflow-inference" in image:
         cuda_cmd = "readlink /usr/local/cuda"
     else:
         cuda_cmd = "nvcc --version"
@@ -238,6 +244,22 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         "CVE-2020-13936",
     }
 
+    # Whitelist CVE #CVE-2021-3711 for DLCs where openssl is installed using apt-get
+    framework, _ = get_framework_and_version_from_tag(image)
+    short_fw_version = re.search(r"(\d+\.\d+)", image).group(1)
+
+    allow_openssl_cve_fw_versions = {
+        "tensorflow": ["1.15", "2.3", "2.4", "2.5", "2.6"],
+        "mxnet": ["1.9"],
+        "pytorch": [],
+        "huggingface_pytorch": ["1.8", "1.9"],
+        "huggingface_tensorflow": ["2.4", "2.5"],
+        "autogluon": ["0.3"],
+    }
+
+    if short_fw_version in allow_openssl_cve_fw_versions.get(framework, []):
+        allowed_vulnerabilities.add("CVE-2021-3711")
+
     container_name = f"dep_check_{processor}"
     report_addon = get_container_name("depcheck-report", image)
     dependency_check_report = f"{report_addon}.html"
@@ -246,7 +268,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
 
     # Execute test, copy results to s3
     ec2.execute_ec2_training_test(
-        ec2_connection, image, test_script, container_name=container_name)
+        ec2_connection, image, test_script, container_name=container_name, bin_bash_entrypoint=True
+    )
     ec2_connection.run(f"docker cp {html_file} ~/{dependency_check_report}")
     ec2_connection.run(
         f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
@@ -282,14 +305,13 @@ def _run_dependency_check_test(image, ec2_connection, processor):
                         .get("baseMetricV2", {})
                         .get("severity", "UNKNOWN")
                     )
+                    if vulnerability_severity.get(severity):
+                        vulnerability_severity[severity].append(vulnerability)
+                    else:
+                        vulnerability_severity[severity] = [vulnerability]
             except ConnectionError:
                 LOGGER.exception(
                     f"Failed to load NIST data for CVE {vulnerability}")
-
-            if vulnerability_severity.get(severity):
-                vulnerability_severity[severity].append(vulnerability)
-            else:
-                vulnerability_severity[severity] = [vulnerability]
 
         # TODO: Remove this once we have whitelisted appropriate LOW/MEDIUM vulnerabilities
         if not (vulnerability_severity.get("CRITICAL") or vulnerability_severity.get("HIGH")):
@@ -302,6 +324,7 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         )
 
 
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
@@ -313,6 +336,7 @@ def test_dependency_check_cpu(cpu, ec2_connection):
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
 
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
@@ -330,6 +354,7 @@ def test_dependency_check_hpu(hpu, ec2_connection):
     _run_dependency_check_test(hpu, ec2_connection, "hpu")
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
@@ -341,6 +366,7 @@ def test_dependency_check_neuron(neuron, ec2_connection):
     _run_dependency_check_test(neuron, ec2_connection, "neuron")
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 def test_dataclasses_check(image):
     """
@@ -371,6 +397,7 @@ def test_dataclasses_check(image):
         pytest.skip(f"Skipping test for DLC image {image} that has py36 version as {pip_package} is not included in the python framework")
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run pip check test regularly on production images")
 def test_pip_check(image):
@@ -423,6 +450,7 @@ def _allowed_autogluon_exceptions_only(image, output):
     return unexpected_lines_present
 
 
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 def test_cuda_paths(gpu):
     """
@@ -449,7 +477,7 @@ def test_cuda_paths(gpu):
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
-        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(cpu|gpu|neuron)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)(-example)?)",
+        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(cpu|gpu|neuron)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)(-example|-diy|-sagemaker)?)",
         image,
     ).group(1)
 
@@ -523,6 +551,7 @@ def _assert_artifact_free(output, stray_artifacts):
         ), f"Matched {artifact} in {output.stdout} while running {output.command}"
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("oss_compliance")
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="We need to test OSS compliance only on PRs and pipelines")

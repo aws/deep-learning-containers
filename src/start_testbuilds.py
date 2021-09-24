@@ -85,7 +85,7 @@ def is_test_job_enabled(test_type):
             return True
         if test_type == constants.EKS_TESTS and config.is_eks_test_enabled():
             return True
-        if test_type == constants.SANITY_TESTS and config.is_eks_test_enabled():
+        if test_type == constants.SANITY_TESTS and config.is_sanity_test_enabled():
             return True
 
     return False
@@ -111,6 +111,8 @@ def main():
         if images:
             pr_test_job = f"dlc-pr-{test_type}-test"
             images_str = " ".join(images)
+            if "graviton" in images_str and test_type == "sanity":
+                pr_test_job += "-graviton"
             if is_test_job_enabled(test_type):
                 if "huggingface" in images_str and test_type in [
                     constants.EC2_TESTS,

@@ -15,6 +15,7 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("dev", "partner_developer") == ""
     assert config.parse_dlc_developer_configs("dev", "ei_mode") is False
     assert config.parse_dlc_developer_configs("dev", "neuron_mode") is False
+    assert config.parse_dlc_developer_configs("dev", "graviton_mode") is False
     assert config.parse_dlc_developer_configs("dev", "benchmark_mode") is False
     assert config.parse_dlc_developer_configs("dev", "habana_mode") is False
 
@@ -24,7 +25,6 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("build", "do_build") is True
 
     # Check test settings
-    assert config.parse_dlc_developer_configs("test", "efa_tests") is False
     assert config.parse_dlc_developer_configs("test", "sanity_tests") is True
     assert config.parse_dlc_developer_configs("test", "sagemaker_remote_tests") == "off"
     assert config.parse_dlc_developer_configs("test", "sagemaker_local_tests") is False

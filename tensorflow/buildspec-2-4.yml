@@ -1,7 +1,7 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK tensorflow
-version: &VERSION 2.4.1
+version: &VERSION 2.4.3
 short_version: &SHORT_VERSION 2.4
 
 repository_info:
@@ -23,6 +23,9 @@ context:
     dockerd-entrypoint:
       source: docker/build_artifacts/dockerd-entrypoint.py
       target: dockerd-entrypoint.py
+    deep_learning_container:
+      source: ../../src/deep_learning_container.py
+      target: deep_learning_container.py
   inference_context: &INFERENCE_CONTEXT
     sagemaker_package_name:
       source: docker/build_artifacts/sagemaker
@@ -33,7 +36,9 @@ context:
     dockerd-entrypoint:
       source: docker/build_artifacts/dockerd-entrypoint.py
       target: dockerd-entrypoint.py
-
+    deep_learning_container:
+      source: ../../src/deep_learning_container.py
+      target: deep_learning_container.py
 images:
   BuildTensorflowCpuPy37TrainingDockerImage:
     <<: *TRAINING_REPOSITORY

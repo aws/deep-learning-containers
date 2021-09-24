@@ -159,6 +159,7 @@ def image_builder(buildspec):
             "image_type": str(image_config["image_type"]),
             "image_size_baseline": int(image_config["image_size_baseline"]),
             "base_image_uri": base_image_uri,
+            "enable_test_promotion": image_config.get("enable_test_promotion", True),
             "labels": labels,
             "extra_build_args": extra_build_args
         }
@@ -182,18 +183,18 @@ def image_builder(buildspec):
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
     # to it is executed concurrently in a separate thread.
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-        # Standard images must be built before example images
-        # Example images will use standard images as base
-        standard_images = [image for image in IMAGES if "example" not in image.name.lower()]
-        example_images = [image for image in IMAGES if "example" in image.name.lower()]
+        # Parent images do not inherit from any containers built in this job
+        # Child images use one of the parent images as their base image
+        parent_images = [image for image in IMAGES if not image.is_child_image]
+        child_images = [image for image in IMAGES if image.is_child_image]
 
-        for image in standard_images:
+        for image in parent_images:
             THREADS[image.name] = executor.submit(image.build)
 
         # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
         FORMATTER.progress(THREADS)
 
-        for image in example_images:
+        for image in child_images:
             THREADS[image.name] = executor.submit(image.build)
 
         # the FORMATTER.progress(THREADS) function call also waits until all threads have completed

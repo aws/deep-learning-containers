@@ -25,6 +25,7 @@ def main():
     build_context = os.getenv("BUILD_CONTEXT")
     ei_dedicated = os.getenv("EIA_DEDICATED", "false").lower() == "true"
     neuron_dedicated = os.getenv("NEURON_DEDICATED", "false").lower() == "true"
+    graviton_dedicated = os.getenv("GRAVITON_DEDICATED", "false").lower() == "true"
     habana_dedicated = os.getenv("HABANA_DEDICATED", "false").lower() == "true"
     hopper_dedicated = os.getenv("HOPPER_DEDICATED", "false").lower() == "true"
 
@@ -32,17 +33,20 @@ def main():
     frameworks_to_skip = parse_dlc_developer_configs("build", "skip_frameworks")
     ei_build_mode = parse_dlc_developer_configs("dev", "ei_mode")
     neuron_build_mode = parse_dlc_developer_configs("dev", "neuron_mode")
+    graviton_build_mode = parse_dlc_developer_configs("dev", "graviton_mode")
     habana_build_mode = parse_dlc_developer_configs("dev", "habana_mode")
     hopper_build_mode = parse_dlc_developer_configs("dev", "hopper_mode")
 
-    # A general will work if in non-EI and non-NEURON mode and its framework not been disabled
+    # A general will work if in non-EI, non-NEURON and non-GRAVITON mode and its framework not been disabled
     general_builder_enabled = (
         not ei_dedicated
         and not neuron_dedicated
+        and not graviton_dedicated
         and not habana_dedicated
         and not hopper_dedicated
         and not ei_build_mode
         and not neuron_build_mode
+        and not graviton_build_mode
         and not habana_build_mode
         and not hopper_build_mode
         and args.framework not in frameworks_to_skip
@@ -56,6 +60,13 @@ def main():
     neuron_builder_enabled = (
         neuron_dedicated
         and neuron_build_mode
+        and args.framework not in frameworks_to_skip
+    )
+
+    # A GRAVITON dedicated builder will work if in GRAVITON mode and its framework has not been disabled
+    graviton_builder_enabled = (
+        graviton_dedicated
+        and graviton_build_mode
         and args.framework not in frameworks_to_skip
     )
 
@@ -76,12 +87,13 @@ def main():
     utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
     # A builder will always work if it is in non-PR context
     if (
-        general_builder_enabled
-        or ei_builder_enabled
-        or neuron_builder_enabled
-        or habana_builder_enabled
-        or hopper_builder_enabled
-        or build_context != "PR"
+      general_builder_enabled
+      or ei_builder_enabled
+      or neuron_builder_enabled
+      or graviton_builder_enabled
+      or habana_builder_enabled
+      or hopper_builder_enabled
+      or build_context != "PR"
     ):
         utils.build_setup(
             args.framework, device_types=device_types, image_types=image_types, py_versions=py_versions,
