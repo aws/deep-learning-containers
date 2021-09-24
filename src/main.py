@@ -87,12 +87,13 @@ def main():
     utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
     # A builder will always work if it is in non-PR context
     if (
-        general_builder_enabled
-        or ei_builder_enabled
-        or neuron_builder_enabled
-        or habana_builder_enabled
-        or hopper_builder_enabled
-        or build_context != "PR"
+      general_builder_enabled
+      or ei_builder_enabled
+      or neuron_builder_enabled
+      or graviton_builder_enabled
+      or habana_builder_enabled
+      or hopper_builder_enabled
+      or build_context != "PR"
     ):
         utils.build_setup(
             args.framework, device_types=device_types, image_types=image_types, py_versions=py_versions,

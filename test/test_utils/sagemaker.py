@@ -124,7 +124,17 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     accelerator_type_arg = "--accelerator-type"
     framework_version_arg = "--framework-version"
     eia_arg = "ml.eia1.large"
-    processor = "neuron" if "neuron" in image else "gpu" if "gpu" in image else "eia" if "eia" in image else "hpu" if "hpu" in image else "cpu"
+    processor = (
+        "neuron"
+        if "neuron" in image
+        else "gpu"
+        if "gpu" in image
+        else "eia"
+        if "eia" in image
+        else "hpu"
+        if "hpu" in image
+        else "cpu"
+    )
     py_version = re.search(r"py\d+", tag).group()
     sm_local_py_version = "37" if py_version == "py37" else "38" if py_version == "py38" else "2" if py_version == "py27" else "3"
     if framework == "tensorflow" and job_type == "inference":
