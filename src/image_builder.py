@@ -176,8 +176,8 @@ def image_builder(buildspec):
         # If for a pre_push stage image we create a common stage image, then we do not push the pre_push stage image
         # to the repository. Instead, we just push its common stage image to the repository. Therefore,
         # inside function get_common_stage_image_object we make pre_push_stage_image_object non pushable.
-        common_stage_image_object = generate_common_stage_image_object(pre_push_stage_image_object, image_tag)
-        COMMON_STAGE_IMAGES.append(common_stage_image_object)
+        # common_stage_image_object = generate_common_stage_image_object(pre_push_stage_image_object, image_tag)
+        # COMMON_STAGE_IMAGES.append(common_stage_image_object)
 
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()
@@ -231,7 +231,7 @@ def process_images(pre_push_image_list, pre_push_image_type="Pre-push"):
     pushed and pushes them accordingly.
 
     Note that the common stage images should always be built after the pre-push images of a
-    particular kind. This is because the Common stage images use are built on respctive 
+    particular kind. This is because the Common stage images use are built on respective 
     Standard and Example images.
 
     :param pre_push_image_list: list[DockerImage], list of pre-push images
