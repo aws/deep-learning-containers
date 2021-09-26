@@ -1,0 +1,138 @@
+{
+    "tensorflow": {
+        "training": {
+            "_comment":"py2 is deprecated",
+            "py2": {
+                "38449":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38450":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38451":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38452":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "35015":"for shipping pycrypto<=2.6.1 - the last available version for py2"
+            },
+            "py3": {
+                "41161":"TF 2.6.0 is the last version for 2.6 series and does not have a fix yet."
+            }
+        },
+        "inference":{
+            "_comment":"py2 is deprecated",
+            "py2": {
+                "38449":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38450":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38451":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38452":"for shipping pillow<=6.2.2 - the last available version for py2"
+            },
+            "py3": {
+            }
+        },
+        "inference-eia": {
+            "_comment":"py2 is deprecated",
+            "py2": {
+                "38449":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38450":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38451":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38452":"for shipping pillow<=6.2.2 - the last available version for py2"
+            },
+            "py3": {
+            }
+        },
+        "inference-neuron":{
+            "_comment":"py2 is deprecated",
+            "py2": {
+            },
+            "py3": {
+                "39409":"TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches",
+                "39408":"TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches",
+                "39407":"TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches",
+                "39406":"TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches"
+            }
+        }
+    },
+    "mxnet": {
+        "training": {
+            "_comment":"py2 is deprecated",
+            "py2": {
+                "38449":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38450":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38451":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38452":"for shipping pillow<=6.2.2 - the last available version for py2"
+            },
+            "py3": {
+            }
+        },
+        "inference": {
+            "_comment":"py2 is deprecated",
+            "py2": {
+                "38449":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38450":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38451":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38452":"for shipping pillow<=6.2.2 - the last available version for py2"
+            },
+            "py3": {
+            }
+        },
+        "inference-eia": {
+            "_comment":"py2 is deprecated",
+            "py2": {
+                "38449":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38450":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38451":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38452":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "36810":"numpy<=1.16.0 -- This has to only be here while we publish MXNet 1.4.1 EI DLC v1.0"
+            },
+            "py3": {
+            }
+        },
+        "inference-neuron": {
+            "_comment":"py2 is deprecated",
+            "py2": {
+            },
+            "py3": {
+                "40673":"for shipping tensorflow 1.15.5",
+                "40675":"for shipping tensorflow 1.15.5",
+                "40676":"for shipping tensorflow 1.15.5",
+                "40794":"for shipping tensorflow 1.15.5",
+                "40795":"for shipping tensorflow 1.15.5",
+                "40796":"for shipping tensorflow 1.15.5"
+            }
+        }
+    },
+    "pytorch": {
+        "training": {
+            "_comment":"py2 is deprecated",
+            "py2": {
+                "35810":"for astropy<3.0.1",
+                "38449":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38450":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38451":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "38452":"for shipping pillow<=6.2.2 - the last available version for py2"
+            },
+            "py3": {
+            }
+        },
+        "inference": {
+            "_comment":"py2 is deprecated",
+            "py2": {
+            },
+            "py3": {
+            }
+        },
+        "inference-eia": {
+            "_comment":"py2 is deprecated",
+            "py2": {
+            },
+            "py3": {
+            }
+        },
+        "inference-neuron": {
+            "_comment":"py2 is deprecated",
+            "py2": {
+            },
+            "py3": {
+                "39409":"TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches",
+                "39408":"TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches",
+                "39407":"TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches",
+                "39406":"TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches"
+            }
+        }
+    }
+}
