@@ -57,7 +57,7 @@ class SafetyPythonEnvironmentVulnerabilityReport:
 
 
 @pytest.mark.model("N/A")
-@pytest.skip("Will be unskipped when Safety Scan Report Generation is enabled")
+@pytest.mark.skip(reason="Will be unskipped when Safety Scan Report Generation is enabled")
 def test_safety_file_exists_and_is_valid(image):
     """
     Checks if the image has a safety report at the desired location and fails if any of the
