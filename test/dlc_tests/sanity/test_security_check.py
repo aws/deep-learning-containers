@@ -87,6 +87,24 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     ctx.run(f"docker rm -f {container_id}", hide=True, warn=True)
     ctx.run(f"docker push {new_image_uri}", hide=True, warn=True)
 
+def invoke_lambda(function_name, payload_dict = {}):
+    """
+    Asyncronously Invokes the passed lambda.
+
+    :param function_name: str, name of the lambda function
+    :param payload_dict: dict, payload to be sent to the lambda
+    """
+    lambda_client = boto3.client('lambda', region_name=os.getenv('REGION'))
+    response = lambda_client.invoke(
+        FunctionName=function_name,
+        InvocationType='Event',
+        LogType='Tail',
+        Payload=json.dumps(payload_dict)
+    )
+    status_code = response.get('StatusCode')
+    if status_code != 202:
+        raise ValueError("Lambda call not made properly. Status code returned {status_code}")
+
 def save_to_s3(image, vulnerability_list):
     """
     Saves the vulnerability list in the s3 bucket. It uses image to decide the name of the file on 
@@ -145,6 +163,7 @@ def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list
         "fixable_vulnerabilites": fixable_list,
         "non_fixable_vulnerabilites": non_fixable_list
     }
+    invoke_lambda(function_name = 'trshanta-ECR-AS', payload_dict=message_body)
     print(message_body)
 
 
