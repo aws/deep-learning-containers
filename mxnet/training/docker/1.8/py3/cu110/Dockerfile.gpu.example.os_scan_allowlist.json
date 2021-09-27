@@ -19,69 +19,6 @@
                     "value": "7.5"
                 }
             ],
-            "description": "aom_dsp/grain_table.c in libaom in AOMedia before 2021-03-30 has a use-after-free.",
-            "name": "CVE-2021-30474",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "aom",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "Upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "Ubuntu 21.04 (Hirsute Hippo)",
-                                "Needs triage"
-                            ],
-                            [
-                                "Ubuntu 20.04 LTS (Focal Fossa)",
-                                "Needs triage"
-                            ],
-                            [
-                                "Ubuntu 18.04 LTS (Bionic Beaver)",
-                                "Does not exist"
-                            ],
-                            [
-                                "Ubuntu 16.04 ESM (Xenial Xerus)",
-                                "Ignored (out of standard support)"
-                            ],
-                            [
-                                "Ubuntu 14.04 ESM (Trusty Tahr)",
-                                "Does not exist"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "HIGH",
-            "uri": "https://security-tracker.debian.org/tracker/CVE-2021-30474"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "1.0.0.errata1-3"
-                },
-                {
-                    "key": "package_name",
-                    "value": "aom"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "7.5"
-                }
-            ],
             "description": "aom_image.c in libaom in AOMedia before 2021-04-07 frees memory that is not located on the heap.",
             "name": "CVE-2021-30473",
             "scraped_data": [
@@ -125,6 +62,69 @@
             ],
             "severity": "HIGH",
             "uri": "https://security-tracker.debian.org/tracker/CVE-2021-30473"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1.0.0.errata1-3"
+                },
+                {
+                    "key": "package_name",
+                    "value": "aom"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "7.5"
+                }
+            ],
+            "description": "Dummy Addition",
+            "name": "CVE-2021-30475-dummy",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "aom",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "Upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "Ubuntu 21.04 (Hirsute Hippo)",
+                                "Needs triage"
+                            ],
+                            [
+                                "Ubuntu 20.04 LTS (Focal Fossa)",
+                                "Needs triage"
+                            ],
+                            [
+                                "Ubuntu 18.04 LTS (Bionic Beaver)",
+                                "Does not exist"
+                            ],
+                            [
+                                "Ubuntu 16.04 ESM (Xenial Xerus)",
+                                "Ignored (out of standard support)"
+                            ],
+                            [
+                                "Ubuntu 14.04 ESM (Trusty Tahr)",
+                                "Does not exist"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "HIGH",
+            "uri": "https://security-tracker.debian.org/tracker/CVE-2021-30475"
         },
         {
             "attributes": [
