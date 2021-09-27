@@ -4,6 +4,7 @@ import os
 from time import sleep, time
 
 import pytest
+import boto3
 
 from invoke import run, Context
 
@@ -86,11 +87,20 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     ctx.run(f"docker rm -f {container_id}", hide=True, warn=True)
     ctx.run(f"docker push {new_image_uri}", hide=True, warn=True)
 
-def conduct_failure_routine(image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list):
+def save_to_s3(image, vulnerability_list):
+    s3_bucket_name = "trshanta-bucket"
+    processed_image_uri = image.replace(".", "-").replace("/", "-").replace(":", "-")
+    file_name = f"{processed_image_uri}-allowlist.json"
+    vulnerability_list.save_vulnerability_list(file_name)
+    s3_client = boto3.client("s3")
+    s3_client.upload_file(Filename=file_name, Bucket=s3_bucket_name, Key=file_name)
+
+def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list):
     ## If both none, nothing can be changed. 
     ## If any one exists, then we get the list of vulnerabilites that can be upgraded
     ## We send that list to the lambda and send the upgraded_image_vulnerability_list to it
-    print(ecr_image_vulnerability_list.vulnerability_list)
+    # print(ecr_image_vulnerability_list.vulnerability_list)
+    save_to_s3(image, upgraded_image_vulnerability_list)
     fixable_ecr_image_scan_vulnerabilites = ecr_image_vulnerability_list - upgraded_image_vulnerability_list
     fixable_allowlist_vulnerabilites = image_allowlist - upgraded_image_vulnerability_list
     fixable_by_upgrade_vulnerability_list = None
@@ -108,6 +118,7 @@ def conduct_failure_routine(image_allowlist, ecr_image_vulnerability_list, upgra
         ## Call api for just the diff for ignore list.
         return
     
+    print(fixable_allowlist_vulnerabilites.vulnerability_list)
     ## Call api for diff with ignore list and upgradable vulns
     return
 
@@ -165,7 +176,7 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
 
     if remaining_vulnerabilities:
-        conduct_failure_routine(image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list)
+        conduct_failure_routine(image, image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list)
 
     assert not remaining_vulnerabilities, (
         f"The following vulnerabilities need to be fixed on {image}:\n"
