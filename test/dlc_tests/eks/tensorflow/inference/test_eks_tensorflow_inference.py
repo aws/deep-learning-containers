@@ -47,7 +47,7 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
         if eks_utils.is_service_running(selector_name):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8501")
 
-        inference_string = '\'{"instances": ' + "{}".format([0 for i in range(784)]) + "}'"
+        inference_string = '\'{"instances": ' + "{}".format([[0 for i in range(784)]]) + "}'"
         assert test_utils.request_tensorflow_inference(model_name=model_name, port=port_to_forward, inference_string=inference_string)
     except ValueError as excp:
         run("kubectl cluster-info dump")
