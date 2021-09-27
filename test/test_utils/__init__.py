@@ -467,12 +467,7 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
     :connection: ec2_connection object to run the commands remotely over ssh
     :return:
     """
-
-    if "mnist_neuron" in model_name:
-        inference_string = '\'{"instances": ' + "{}".format([0 for i in range(784)]) + "}'"
-    else:
-        inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"
-
+    inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"
     run_out = run(
         f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
     )

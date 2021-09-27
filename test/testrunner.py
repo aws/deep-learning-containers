@@ -338,8 +338,8 @@ def main():
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
             if all([status == 0 for status in cmd_exit_statuses]):
                 sys.exit(0)
-        except:
-            raise RuntimeError(pytest_cmds)
+            else:
+                raise RuntimeError(pytest_cmds)
         finally:
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
