@@ -18,7 +18,7 @@ from packaging.version import LegacyVersion, Version, parse
 from packaging.specifiers import SpecifierSet
 from retrying import retry
 
-from src.config import is_benchmark_mode_enabled, get_sagemaker_remote_tests_config_value, AllowedSMRemoteConfigValues
+from src import config
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -257,12 +257,12 @@ def is_dlc_cicd_context():
 
 
 def is_benchmark_dev_context():
-    return is_benchmark_mode_enabled()
+    return config.is_benchmark_mode_enabled()
 
 
 def is_rc_test_context():
-    sm_remote_tests_val = get_sagemaker_remote_tests_config_value()
-    return sm_remote_tests_val == AllowedSMRemoteConfigValues.RC.value
+    sm_remote_tests_val = config.get_sagemaker_remote_tests_config_value()
+    return sm_remote_tests_val == config.AllowedSMRemoteConfigValues.RC.value
 
 
 def is_diy_image(image_uri):
@@ -303,6 +303,10 @@ def are_efa_tests_disabled():
     override_disable_efa_tests = remote_override_flags.get("disable_efa_tests", "false").lower() == "true"
 
     return disable_efa_tests or override_disable_efa_tests
+
+
+def is_safety_test_context():
+    return config.is_safety_check_test_enabled()
 
 
 def is_test_disabled(test_name, build_name, version):
