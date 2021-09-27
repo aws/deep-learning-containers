@@ -53,6 +53,8 @@ spec:
           value: <MODEL_NAME>
         - name: MODEL_BASE_PATH
           value: <MODEL_BASE_PATH>
+        - name: AWS_LOG_LEVEL
+          value: "3"
         - name: AWS_REGION
           value: us-east-1
         - name: S3_USE_HTTPS
