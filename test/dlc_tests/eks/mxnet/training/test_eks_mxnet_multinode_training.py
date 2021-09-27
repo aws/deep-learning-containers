@@ -17,7 +17,7 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON
 LOGGER = eks_utils.LOGGER
 
 
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+#@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.integration("horovod")
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(3)
@@ -65,7 +65,7 @@ def _run_eks_mxnet_multinode_training_horovod_mpijob(example_image_uri, cluster_
     _run_eks_multi_node_training_mpijob(namespace, job_name, remote_yaml_file_path)
 
 
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+#@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.integration("parameter server")
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(3)
@@ -119,7 +119,7 @@ def _run_eks_mxnet_multi_node_training(namespace, job_name, remote_yaml_file_pat
 
     # Namespaces will allow parallel runs on the same cluster. Create namespace if it doesnt exist.
     does_namespace_exist = run(f"kubectl get namespace | grep {namespace}", warn=True)
-    if not does_namespace_exist:
+    if does_namespace_exist.return_code != 0:
         run(f"kubectl create namespace {namespace}")
 
     try:
@@ -164,7 +164,7 @@ def _run_eks_multi_node_training_mpijob(namespace, job_name, remote_yaml_file_pa
 
     does_namespace_exist = run(f"kubectl get namespace | grep {namespace}", warn=True)
 
-    if not does_namespace_exist:
+    if does_namespace_exist.return_code != 0:
         run(f"kubectl create namespace {namespace}")
 
     try:

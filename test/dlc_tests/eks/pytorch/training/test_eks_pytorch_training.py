@@ -224,7 +224,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
         run("kubectl delete pods {}".format(pod_name))
 
 
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+#@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(4)
 def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
@@ -271,7 +271,7 @@ def run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_file_pa
 
     # Namespaces will allow parallel runs on the same cluster. Create namespace if it doesnt exist.
     does_namespace_exist = run(f"kubectl get namespace | grep {namespace}", warn=True)
-    if not does_namespace_exist:
+    if does_namespace_exist.return_code != 0:
         run(f"kubectl create namespace {namespace}")
 
     try:

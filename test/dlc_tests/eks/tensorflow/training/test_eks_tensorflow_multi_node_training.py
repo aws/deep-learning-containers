@@ -14,7 +14,7 @@ from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 
 # Test only runs in region us-west-2, on instance type p3.16xlarge, on PR_EKS_CLUSTER_NAME_TEMPLATE cluster
-@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+#@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
 @pytest.mark.multinode(3)
@@ -87,7 +87,7 @@ def _run_eks_tensorflow_multi_node_training_mpijob(namespace, job_name, remote_y
 
     does_namespace_exist = run(f"kubectl get namespace | grep {namespace}", warn=True)
 
-    if not does_namespace_exist:
+    if does_namespace_exist.return_code != 0:
         run(f"kubectl create namespace {namespace}")
 
     try:
