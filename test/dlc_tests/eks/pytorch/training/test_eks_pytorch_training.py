@@ -224,7 +224,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
         run("kubectl delete pods {}".format(pod_name))
 
 
-#@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
+@pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(4)
 def test_eks_pytorch_multinode_node_training(pytorch_training, example_only):
