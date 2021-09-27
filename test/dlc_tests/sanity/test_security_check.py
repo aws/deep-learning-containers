@@ -88,39 +88,64 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     ctx.run(f"docker push {new_image_uri}", hide=True, warn=True)
 
 def save_to_s3(image, vulnerability_list):
+    """
+    Saves the vulnerability list in the s3 bucket. It uses image to decide the name of the file on 
+    the s3 bucket.
+
+    :param image: str, image uri 
+    :param vulnerability_list: ScanVulnerabilityList
+    :return: str, name of the file as stored on s3
+    """
     s3_bucket_name = "trshanta-bucket"
     processed_image_uri = image.replace(".", "-").replace("/", "-").replace(":", "-")
     file_name = f"{processed_image_uri}-allowlist.json"
     vulnerability_list.save_vulnerability_list(file_name)
     s3_client = boto3.client("s3")
     s3_client.upload_file(Filename=file_name, Bucket=s3_bucket_name, Key=file_name)
+    return file_name
 
-def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list):
-    ## If both none, nothing can be changed. 
-    ## If any one exists, then we get the list of vulnerabilites that can be upgraded
-    ## We send that list to the lambda and send the upgraded_image_vulnerability_list to it
-    # print(ecr_image_vulnerability_list.vulnerability_list)
-    save_to_s3(image, upgraded_image_vulnerability_list)
+def get_vulnerabilites_fixable_by_upgrade(image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list):
+    """
+    Finds out the vulnerabilities that are fixable by apt-get update and apt-get upgrade.
+
+    :param image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the 
+                            DLC git repo.
+    :param ecr_image_vulnerability_list: ScanVulnerabilityList, Vulnerabities recently detected WITHOUT running apt-upgrade on 
+                                         the originally released image.
+    :param upgraded_image_vulnerability_list: ScanVulnerabilityList, Vulnerabilites exisiting in the image WITH apt-upgrade 
+                                              run on it.
+    :return: ScanVulnerabilityList/NONE, either ScanVulnerabilityList object or None if no fixable vulnerability
+    """
     fixable_ecr_image_scan_vulnerabilites = ecr_image_vulnerability_list - upgraded_image_vulnerability_list
     fixable_allowlist_vulnerabilites = image_allowlist - upgraded_image_vulnerability_list
-    fixable_by_upgrade_vulnerability_list = None
-    ecr_image_vulnerability_list.save_vulnerability_list('ecr_image1.json')
-    if not fixable_ecr_image_scan_vulnerabilites and not fixable_allowlist_vulnerabilites:
-        print("Nothing cold be fixed by Apt-upgrade. Making a commit with just the diff for ignore list.")
-    elif fixable_ecr_image_scan_vulnerabilites and fixable_allowlist_vulnerabilites:
-        fixable_by_upgrade_vulnerability_list = fixable_ecr_image_scan_vulnerabilites + fixable_allowlist_vulnerabilites
+    vulnerabilities_fixable_by_upgrade = None
+    if fixable_ecr_image_scan_vulnerabilites and fixable_allowlist_vulnerabilites:
+        vulnerabilities_fixable_by_upgrade = fixable_ecr_image_scan_vulnerabilites + fixable_allowlist_vulnerabilites
     elif fixable_ecr_image_scan_vulnerabilites:
-        fixable_by_upgrade_vulnerability_list = fixable_ecr_image_scan_vulnerabilites
-    else:
-        fixable_by_upgrade_vulnerability_list = fixable_allowlist_vulnerabilites
-    
-    if not fixable_by_upgrade_vulnerability_list:
-        ## Call api for just the diff for ignore list.
-        return
-    
-    print(fixable_allowlist_vulnerabilites.vulnerability_list)
-    ## Call api for diff with ignore list and upgradable vulns
-    return
+        vulnerabilities_fixable_by_upgrade = fixable_ecr_image_scan_vulnerabilites
+    elif fixable_allowlist_vulnerabilites:
+        vulnerabilities_fixable_by_upgrade = fixable_allowlist_vulnerabilites
+    return vulnerabilities_fixable_by_upgrade
+
+
+def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list):
+    s3_filename = save_to_s3(image, upgraded_image_vulnerability_list)
+    original_filepath = get_ecr_scan_allowlist_path(image)
+    vulnerabilities_fixable_by_upgrade = get_vulnerabilites_fixable_by_upgrade(image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list)
+    non_fixable_vulnerabilites = upgraded_image_vulnerability_list - image_allowlist
+    edited_files = [{"s3_filename": s3_filename, "original_filepath": original_filepath}]
+    fixable_list = []
+    if vulnerabilities_fixable_by_upgrade:
+        fixable_list = vulnerabilities_fixable_by_upgrade.vulnerability_list
+    non_fixable_list = []
+    if non_fixable_vulnerabilites:
+        non_fixable_list = non_fixable_vulnerabilites.vulnerability_list
+    message_body = {
+        "edited_files": edited_files,
+        "fixable_vulnerabilites": fixable_list,
+        "non_fixable_vulnerabilites": non_fixable_list
+    }
+    print(message_body)
 
 
 @pytest.mark.usefixtures("sagemaker")
