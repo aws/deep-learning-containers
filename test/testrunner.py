@@ -297,11 +297,6 @@ def main():
             pull_dlc_images(all_image_list)
         if specific_test_type == "bai":
             build_bai_docker_container()
-        # Execute separate cmd for canaries
-        if specific_test_type in ("canary", "quick_checks"):
-            pytest_cmds = [
-                ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
-            ]
         if specific_test_type == "eks" and not is_all_images_list_eia:
             frameworks_in_images = [
                 framework for framework in ("mxnet", "pytorch", "tensorflow") if framework in dlc_images
@@ -332,6 +327,11 @@ def main():
                 pytest_cmd.append("--timeout=4860")
 
         pytest_cmds = [pytest_cmd]
+        # Execute separate cmd for canaries
+        if specific_test_type in ("canary", "quick_checks"):
+            pytest_cmds = [
+                ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
+            ]
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
