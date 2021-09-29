@@ -98,10 +98,10 @@ def test_tfs_model(boto_session, sagemaker_client,
                                     image_uri, instance_type, accelerator_type, input_data)
 
 @pytest.mark.model("unknown_model")
+@pytest.mark.neuron_test
 def test_tfs_neuron_model(boto_session, sagemaker_client,
                    sagemaker_runtime_client, model_name, tfs_neuron_model,
                    image_uri, instance_type, accelerator_type):
-    import pdb; pdb.set_trace()
     input_data = {"instances": [[[[1, 10], [2, 20]]]]}
     util.create_and_invoke_endpoint(boto_session, sagemaker_client,
                                     sagemaker_runtime_client, model_name, tfs_neuron_model,
