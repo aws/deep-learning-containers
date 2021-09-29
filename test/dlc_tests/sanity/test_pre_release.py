@@ -426,7 +426,9 @@ def test_pip_check(image):
     output = ctx.run(
         f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not (allowed_tf_exception.match(output.stdout) or allowed_smclarify_exception.match(output.stdout)):
+        if not (allowed_tf_exception.match(output.stdout) or
+                allowed_smclarify_exception.match(output.stdout) or
+                _allowed_autogluon_exceptions_only(image, output)):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 

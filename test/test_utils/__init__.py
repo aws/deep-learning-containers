@@ -311,6 +311,14 @@ def is_sagemaker_image(image_uri):
     return "-sagemaker" in image_uri
 
 
+def is_diy_image(image_uri):
+    return "-diy" in image_uri
+
+
+def is_sagemaker_image(image_uri):
+    return "-sagemaker" in image_uri
+
+
 def is_time_for_canary_safety_scan():
     """
     Canary tests run every 15 minutes.
