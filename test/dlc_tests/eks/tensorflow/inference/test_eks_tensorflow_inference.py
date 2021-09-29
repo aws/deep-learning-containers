@@ -10,7 +10,7 @@ import test.test_utils as test_utils
 
 
 @pytest.mark.model("mnist")
-def test_eks_tensorflow_neuron_inference(tensorflow_inference):
+def test_eks_tensorflow_neuron_inference(tensorflow_inference_neuron):
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
@@ -27,7 +27,7 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference,
+        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference_neuron,
     }
 
     search_replace_dict["<NUM_INF1S>"] = "1"

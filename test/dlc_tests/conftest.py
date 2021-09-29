@@ -72,7 +72,6 @@ FRAMEWORK_FIXTURES = (
     "huggingface_tensorflow_inference",
     "huggingface_pytorch_inference",
     "huggingface_mxnet_inference",
-    "autogluon_training",
     "tensorflow_training_habana",
     "pytorch_training_habana"
 )
@@ -433,16 +432,6 @@ def sagemaker():
 
 @pytest.fixture(scope="session")
 def sagemaker_only():
-    pass
-
-
-@pytest.fixture(scope="session")
-def eia_only():
-    pass
-
-
-@pytest.fixture(scope="session")
-def neuron_only():
     pass
 
 

@@ -11,9 +11,8 @@ import test.test_utils as test_utils
 
 
 @pytest.mark.model("resnet50")
-def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
-    if "eia" in mxnet_inference or "neuron" not in mxnet_inference:
-        pytest.skip("Skipping EKS Neuron Test for EIA and Non Neuron Images")
+def test_eks_mxnet_neuron_inference(mxnet_inference_neuron):
+    
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
@@ -28,7 +27,7 @@ def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference,
+        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference_neuron,
         "<SERVER_CMD>": server_cmd,
     }
 

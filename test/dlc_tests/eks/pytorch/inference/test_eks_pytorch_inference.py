@@ -11,8 +11,8 @@ import test.test_utils as test_utils
 
 
 @pytest.mark.model("resnet")
-def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
-    server_type = test_utils.get_inference_server_type(pytorch_inference)
+def test_eks_pytorch_neuron_inference(pytorch_inference_neuron):
+    server_type = test_utils.get_inference_server_type(pytorch_inference_neuron)
     
     model = "pytorch-resnet-neuron=https://aws-dlc-sample-models.s3.amazonaws.com/pytorch/Resnet50-neuron.mar"
     server_cmd = "torchserve"
@@ -29,7 +29,7 @@ def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": pytorch_inference,
+        "<DOCKER_IMAGE_BUILD_ID>": pytorch_inference_neuron,
         "<SERVER_TYPE>": server_type,
         "<SERVER_CMD>": server_cmd,
     }
