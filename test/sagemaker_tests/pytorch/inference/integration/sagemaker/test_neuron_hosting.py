@@ -31,7 +31,6 @@ from .... import invoke_pytorch_helper_function
 @pytest.mark.processor("neuron")
 @pytest.mark.neuron_test
 def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
-    import pdb; pdb.set_trace()
     instance_type = instance_type or 'ml.inf1.xlarge'
     model_dir = os.path.join(model_neuron_dir, 'model-resnet.tar.gz')
     function_args = {
@@ -49,7 +48,6 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
 def _test_resnet_distributed(
         ecr_image, sagemaker_session, framework_version, instance_type, model_dir, resnet_script, resnet_neuron_input, resnet_neuron_image_list, accelerator_type=None
 ):
-    import pdb; pdb.set_trace()
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-pytorch-serving")
 
     model_data = sagemaker_session.upload_data(
