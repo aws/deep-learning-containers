@@ -2,8 +2,8 @@ account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 base_framework: &BASE_FRAMEWORK pytorch
 framework: &FRAMEWORK !join [ "hopper_", *BASE_FRAMEWORK]
-version: &VERSION 1.8.1
-short_version: &SHORT_VERSION 1.8
+version: &VERSION 1.9.0
+short_version: &SHORT_VERSION 1.9
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
@@ -19,17 +19,17 @@ images:
     image_size_baseline: &IMAGE_SIZE_BASELINE 15000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py36
+    tag_python_version: &TAG_PYTHON_VERSION py38
     cuda_version: &CUDA_VERSION cu111
-    os_version: &OS_VERSION ubuntu18.04
-    transformers_version: &TRANSFORMERS_VERSION 4.6.1
-    datasets_version: &DATASETS_VERSION 1.6.2
+    os_version: &OS_VERSION ubuntu20.04
+    transformers_version: &TRANSFORMERS_VERSION 4.10.2
+    datasets_version: &DATASETS_VERSION 1.11.0
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
                  *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
                          *CUDA_VERSION, /Dockerfile.hopper., *DEVICE_TYPE ]
     download_artifacts:
-      custom_artifact:
+      pytorch_xla_whl:
         type: s3
-        URI: s3://dlc-test-coverage-reports-501576597925/test_coverage_report-aws-deep-learning-containers-2020-09-25.csv
-        VAR_IN_DOCKERFILE: CUSTOM_ARTIFACT_LOCATION_IN_BUILD_CONTEXT
+        URI: s3://aws-hopper-pytorch-cicd-v3-binaries/PyTorchXla/2021-09-29_16:23:22/wheels/xla/torch_xla-1.9+8d69ff7-cp38-cp38-linux_x86_64.whl
+        VAR_IN_DOCKERFILE: PT_XLA_URL

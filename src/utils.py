@@ -166,7 +166,9 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
             # HuggingFace related files stored in huggingface/<framework> directories
             # Joining 1 and 2 elements to get huggingface_<framework> as a first element
             dockerfile = [f"{dockerfile[0]}_{dockerfile[1]}"]+dockerfile[2:]
-        framework_change = dockerfile[0]
+        framework_change = (
+            dockerfile[0].replace("huggingface", "hopper") if "hopper" in dockerfile[-1] else dockerfile[0]
+        )
 
         if dockerfile[0] == "habana":
             framework_change = dockerfile[1]

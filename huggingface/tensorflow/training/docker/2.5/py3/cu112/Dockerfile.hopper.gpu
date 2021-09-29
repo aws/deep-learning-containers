@@ -1,8 +1,8 @@
 # https://github.com/aws/deep-learning-containers/blob/master/available_images.md
-# refer to the above page to pull latest Pytorch image
+# refer to the above page to pull latest Tensorflow image
 
 # docker image region us-west-2
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.8.1-gpu-py36-cu111-ubuntu18.04
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training:2.5.1-gpu-py37-cu112-ubuntu18.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -14,13 +14,18 @@ ARG PYTHON=python3
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
-	transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \
-	datasets==${DATASETS_VERSION}
+    transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \
+    datasets==${DATASETS_VERSION} \
+    tensorflow-addons==0.12.0 \
+    psutil \
+    # TODO: Remove upgrade statements once packages are updated in base image
+    "Pillow>=8.3.2"
+
 RUN apt-get update \
- # TODO: Remove systemd upgrade once it is updated in base image
- && apt-get -y upgrade --only-upgrade systemd \
+ # TODO: Remove upgrade statements once packages are updated in base image
+ && apt-get -y upgrade --only-upgrade systemd openssl \
  && apt install -y git-lfs \
- && apt-get clean \
+ && apt-get clean \  
  && rm -rf /var/lib/apt/lists/*
 
 RUN HOME_DIR=/root \
@@ -31,6 +36,15 @@ RUN HOME_DIR=/root \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
+
+# Set environment variables for Hopper/XLA
+ENV XLA_FLAGS="--xla_gpu_autotune_level=2"
+ENV TF_XLA_FLAGS="--tf_xla_auto_jit=2"
+# Disable in production environment
+# ENV HOPPER_PASS=on
+# ENV XLA_FLAGS="--xla_dump_to=/opt/ml/model"
+# ENV TF_CPP_MIN_LOG_LEVEL=0
+# ENV TF_CPP_VMODULE=hlo_pass_pipeline=1,hopper_pass_0=1,xla_ops=3
 
 ARG CUSTOM_ARTIFACT_PATH
 
