@@ -151,7 +151,7 @@ def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list
     original_filepath = get_ecr_scan_allowlist_path(image)
     vulnerabilities_fixable_by_upgrade = get_vulnerabilites_fixable_by_upgrade(image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list)
     non_fixable_vulnerabilites = upgraded_image_vulnerability_list - image_allowlist
-    edited_files = [{"s3_filename": s3_filename, "original_filepath": original_filepath}]
+    edited_files = [{"s3_filename": s3_filename, "github_filepath": original_filepath}]
     fixable_list = []
     if vulnerabilities_fixable_by_upgrade:
         fixable_list = vulnerabilities_fixable_by_upgrade.vulnerability_list
@@ -160,8 +160,8 @@ def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list
         non_fixable_list = non_fixable_vulnerabilites.vulnerability_list
     message_body = {
         "edited_files": edited_files,
-        "fixable_vulnerabilites": fixable_list,
-        "non_fixable_vulnerabilites": non_fixable_list
+        "fixable_vulnerabilities": fixable_list,
+        "non_fixable_vulnerabilities": non_fixable_list
     }
     invoke_lambda(function_name = 'trshanta-ECR-AS', payload_dict=message_body)
     print(message_body)
