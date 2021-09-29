@@ -71,3 +71,5 @@ spec:
           requests:
             cpu: "1"
             memory: 1Gi
+      nodeSelector:
+        test_type: inf
