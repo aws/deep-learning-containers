@@ -466,6 +466,9 @@ def test_cuda_paths(gpu):
 
     # replacing '_' by '/' to handle huggingface_<framework> case
     framework_path = framework.replace("_", "/")
+    if "hopper" in image:
+        framework_path = "huggingface/" + framework_path
+
     framework_version_path = os.path.join(
         dlc_path, framework_path, job_type, "docker", framework_version)
     if not os.path.exists(framework_version_path):
@@ -481,6 +484,8 @@ def test_cuda_paths(gpu):
     buildspec = "buildspec.yml"
     if is_tf_version("1", image):
         buildspec = "buildspec-tf1.yml"
+    if "hopper" in image:
+        buildspec = "buildspec-hopper.yml"
 
     cuda_in_buildspec = False
     dockerfile_spec_abs_path = None
