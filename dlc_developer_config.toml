@@ -25,7 +25,7 @@ do_build = true
 
 [test]
 sanity_tests = true
-safety_check_test = false
+safety_check_test = true
 ecs_tests = true
 eks_tests = true
 ec2_tests = true
