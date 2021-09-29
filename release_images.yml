@@ -482,7 +482,7 @@ release_images:
   36:
     framework: "huggingface_tensorflow"
     version: "2.5.1"
-    hf_transformers: "4.10.2"
+    hf_transformers: "4.11.0"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py37" ]
@@ -494,7 +494,7 @@ release_images:
   37:
     framework: "huggingface_tensorflow"
     version: "2.5.1"
-    hf_transformers: "4.10.2"
+    hf_transformers: "4.11.0"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py37" ]
@@ -506,7 +506,7 @@ release_images:
   38:
     framework: "huggingface_pytorch"
     version: "1.9.0"
-    hf_transformers: "4.10.2"
+    hf_transformers: "4.11.0"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py38" ]
@@ -518,7 +518,7 @@ release_images:
   39:
     framework: "huggingface_pytorch"
     version: "1.9.0"
-    hf_transformers: "4.10.2"
+    hf_transformers: "4.11.0"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
