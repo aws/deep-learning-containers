@@ -4,6 +4,7 @@ FROM ${FROM_IMAGE}
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
+ARG OPENSSL_VERSION=1.1.1l
 ARG PYTHON_VERSION=3.7.10
 ARG PYTHON=python3
 ARG MXNET_VER=1.7.*
@@ -55,7 +56,17 @@ RUN apt-get update \
  && apt-get autoremove -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
- 
+
+# install OpenSSL
+RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && tar -xzf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make -j $(nproc) && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-* \
+ && rmdir /usr/local/ssl/certs \
+ && ln -s /etc/ssl/certs /usr/local/ssl/certs
+
 # Install Open MPI
 RUN mkdir /tmp/openmpi \
  && cd /tmp/openmpi \
@@ -125,6 +136,10 @@ RUN pip install --no-cache-dir -U \
     traitlets \
     websockets \
     widgetsnbextension 
+
+# Catboost 0.26 updates version of scala 2.11 for security reasons
+# https://github.com/catboost/catboost/issues/1632
+RUN pip install --no-cache-dir -U catboost==0.26.1
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \

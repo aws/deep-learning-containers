@@ -18,7 +18,7 @@ from packaging.version import LegacyVersion, Version, parse
 from packaging.specifiers import SpecifierSet
 from retrying import retry
 
-from src.config import is_benchmark_mode_enabled, get_sagemaker_remote_tests_config_value, AllowedSMRemoteConfigValues
+from src import config
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -33,6 +33,8 @@ UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0150e36b3f936a26e"
 UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-044971d381e6a1109"
 AML2_GPU_DLAMI_US_WEST_2 = "ami-071cb1e434903a577"
 AML2_GPU_DLAMI_US_EAST_1 = "ami-044264d246686b043"
+AML2_CPU_ARM64_US_WEST_2 = "ami-0bccd90b9db95e2e5"
+AML2_CPU_ARM64_US_EAST_1 = "ami-01c47f32b27ed7fa0"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0b5d270a84e753c18"
@@ -49,7 +51,7 @@ NEURON_AL2_DLAMI = "ami-092059396c7e51f52"
 
 DLAMI_PYTHON_MAPPING = {
     UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
-    UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7"
+    UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7",
 }
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
@@ -194,18 +196,18 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
     :return: bool True if there are incompatibilities, False if there aren't
     """
     image_is_cuda10_on_incompatible_p4d_instance = (
-        get_processor_from_image_uri(image_uri) == "gpu" and
-        get_cuda_version_from_tag(image_uri).startswith("cu10") and
-        ec2_instance_type in ["p4d.24xlarge"]
+        get_processor_from_image_uri(image_uri) == "gpu"
+        and get_cuda_version_from_tag(image_uri).startswith("cu10")
+        and ec2_instance_type in ["p4d.24xlarge"]
     )
 
     framework, _ = get_framework_and_version_from_tag(image_uri)
 
     image_is_cuda11_on_incompatible_p2_instance_mxnet = (
-        framework == "mxnet" and
-        get_processor_from_image_uri(image_uri) == "gpu" and
-        get_cuda_version_from_tag(image_uri).startswith("cu11") and
-        ec2_instance_type in ["p2.8xlarge"]
+        framework == "mxnet"
+        and get_processor_from_image_uri(image_uri) == "gpu"
+        and get_cuda_version_from_tag(image_uri).startswith("cu11")
+        and ec2_instance_type in ["p2.8xlarge"]
     )
 
     return image_is_cuda10_on_incompatible_p4d_instance or image_is_cuda11_on_incompatible_p2_instance_mxnet
@@ -226,6 +228,10 @@ def get_inference_server_type(image_uri):
     if isinstance(pytorch_ver, LegacyVersion) or pytorch_ver < Version("1.6"):
         return "mms"
     return "ts"
+
+
+def get_build_context():
+    return os.getenv("BUILD_CONTEXT")
 
 
 def is_pr_context():
@@ -253,16 +259,16 @@ def is_dlc_cicd_context():
 
 
 def is_benchmark_dev_context():
-    return is_benchmark_mode_enabled()
+    return config.is_benchmark_mode_enabled()
 
 
 def is_rc_test_context():
-    sm_remote_tests_val = get_sagemaker_remote_tests_config_value()
-    return sm_remote_tests_val == AllowedSMRemoteConfigValues.RC.value
+    sm_remote_tests_val = config.get_sagemaker_remote_tests_config_value()
+    return sm_remote_tests_val == config.AllowedSMRemoteConfigValues.RC.value
 
 
 def is_diy_image(image_uri):
-    return "-diy" in image_uri
+    return "-ec2-ecs-eks" in image_uri
 
 
 def is_sagemaker_image(image_uri):
@@ -280,11 +286,11 @@ def is_time_for_canary_safety_scan():
 
 def _get_remote_override_flags():
     try:
-        s3_client = boto3.client('s3')
-        sts_client = boto3.client('sts')
-        account_id = sts_client.get_caller_identity().get('Account')
+        s3_client = boto3.client("s3")
+        sts_client = boto3.client("sts")
+        account_id = sts_client.get_caller_identity().get("Account")
         result = s3_client.get_object(Bucket=f"dlc-cicd-helper-{account_id}", Key="override_tests_flags.json")
-        json_content = json.loads(result["Body"].read().decode('utf-8'))
+        json_content = json.loads(result["Body"].read().decode("utf-8"))
     except ClientError as e:
         LOGGER.warning("ClientError when performing S3/STS operation: {}".format(e))
         json_content = {}
@@ -299,6 +305,10 @@ def are_efa_tests_disabled():
     override_disable_efa_tests = remote_override_flags.get("disable_efa_tests", "false").lower() == "true"
 
     return disable_efa_tests or override_disable_efa_tests
+
+
+def is_safety_test_context():
+    return config.is_safety_check_test_enabled()
 
 
 def is_test_disabled(test_name, build_name, version):
@@ -321,9 +331,8 @@ def is_test_disabled(test_name, build_name, version):
     remote_override_flags = _get_remote_override_flags()
     remote_override_build = remote_override_flags.get(build_name, {})
     if version in remote_override_build:
-        return (
-            not remote_override_build[version]
-            or any([test_keyword in test_name for test_keyword in remote_override_build[version]])
+        return not remote_override_build[version] or any(
+            [test_keyword in test_name for test_keyword in remote_override_build[version]]
         )
     return False
 
@@ -412,7 +421,7 @@ def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connecti
     stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false,
 )
 def request_pytorch_inference_densenet(
-        ip_address="127.0.0.1", port="80", connection=None, model_name="pytorch-densenet", server_type="ts"
+    ip_address="127.0.0.1", port="80", connection=None, model_name="pytorch-densenet", server_type="ts"
 ):
     """
     Send request to container to test inference on flower.jpg
@@ -440,9 +449,9 @@ def request_pytorch_inference_densenet(
     else:
         inference_output = json.loads(run_out.stdout.strip("\n"))
         if not (
-                ("neuron" in model_name and isinstance(inference_output, list) and len(inference_output) == 3)
-                or (server_type=="ts" and isinstance(inference_output, dict) and len(inference_output) == 5)
-                or (server_type=="mms" and isinstance(inference_output, list) and len(inference_output) == 5)
+            ("neuron" in model_name and isinstance(inference_output, list) and len(inference_output) == 3)
+            or (server_type == "ts" and isinstance(inference_output, dict) and len(inference_output) == 5)
+            or (server_type == "mms" and isinstance(inference_output, list) and len(inference_output) == 5)
         ):
             return False
         LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
@@ -490,13 +499,15 @@ def request_tensorflow_inference_nlp(model_name, ip_address="127.0.0.1", port="8
 
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
-    if run_out.return_code != 0 or 'predictions' not in run_out.stdout:
+    if run_out.return_code != 0 or "predictions" not in run_out.stdout:
         return False
 
     return True
 
 
-def request_tensorflow_inference_grpc(script_file_path, ip_address="127.0.0.1", port="8500", connection=None, ec2_instance_ami=None):
+def request_tensorflow_inference_grpc(
+    script_file_path, ip_address="127.0.0.1", port="8500", connection=None, ec2_instance_ami=None
+):
     """
     Method to run tensorflow inference on MNIST model using gRPC protocol
     :param script_file_path:
@@ -556,13 +567,20 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
 
     if processor != "neuron":
         mms_command = (
-                f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
-                + " ".join(parameters)
+            f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
+            + " ".join(parameters)
         )
     else:
-        mms_command = (
-            f"/usr/local/bin/entrypoint.sh -t /home/model-server/config.properties -m " + " ".join(parameters)
-        )
+        # Temp till the mxnet dockerfile also have the neuron entrypoint file
+        if server_type == "ts":
+            mms_command = (
+                f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
+                + " ".join(parameters)
+            )
+        else:
+            mms_command = f"/usr/local/bin/entrypoint.sh -t /home/model-server/config.properties -m " + " ".join(
+                parameters
+            )
 
     return mms_command
 
@@ -580,11 +598,7 @@ def get_tensorflow_model_name(processor, model_name):
             "gpu": "saved_model_half_plus_two_gpu",
             "eia": "saved_model_half_plus_two",
         },
-        "albert": {
-            "cpu": "albert",
-            "gpu": "albert",
-            "eia": "albert",
-        },
+        "albert": {"cpu": "albert", "gpu": "albert", "eia": "albert",},
         "saved_model_half_plus_three": {"eia": "saved_model_half_plus_three"},
     }
     if model_name in tensorflow_models:
@@ -746,8 +760,7 @@ def parse_canary_images(framework, region):
     # Adding huggingface here since we dont have inference HF containers now
     versions = []
     for v, inf_train in versions_counter.items():
-        if (inf_train["inf"] and inf_train["tr"])\
-                or framework.startswith("huggingface"):
+        if (inf_train["inf"] and inf_train["tr"]) or framework.startswith("huggingface"):
             versions.append(v)
 
     # Sort ascending to descending, use lambda to ensure 2.2 < 2.15, for instance
@@ -944,7 +957,7 @@ def get_unique_name_from_tag(image_uri):
     :param image_uri: ECR image URI
     :return: unique name
     """
-    return re.sub('[^A-Za-z0-9]+', '', image_uri)
+    return re.sub("[^A-Za-z0-9]+", "", image_uri)
 
 
 def get_framework_and_version_from_tag(image_uri):
@@ -955,7 +968,14 @@ def get_framework_and_version_from_tag(image_uri):
     :return: framework name, framework version
     """
     tested_framework = get_framework_from_image_uri(image_uri)
-    allowed_frameworks = ("huggingface_tensorflow", "huggingface_pytorch", "tensorflow", "mxnet", "pytorch", "autogluon")
+    allowed_frameworks = (
+        "huggingface_tensorflow",
+        "huggingface_pytorch",
+        "tensorflow",
+        "mxnet",
+        "pytorch",
+        "autogluon",
+    )
 
     if not tested_framework:
         raise RuntimeError(
@@ -969,12 +989,18 @@ def get_framework_and_version_from_tag(image_uri):
 
 def get_framework_from_image_uri(image_uri):
     return (
-        "huggingface_tensorflow" if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch" if "huggingface-pytorch" in image_uri
-        else "mxnet" if "mxnet" in image_uri
-        else "pytorch" if "pytorch" in image_uri
-        else "tensorflow" if "tensorflow" in image_uri
-        else "autogluon" if "autogluon" in image_uri
+        "huggingface_tensorflow"
+        if "huggingface-tensorflow" in image_uri
+        else "huggingface_pytorch"
+        if "huggingface-pytorch" in image_uri
+        else "mxnet"
+        if "mxnet" in image_uri
+        else "pytorch"
+        if "pytorch" in image_uri
+        else "tensorflow"
+        if "tensorflow" in image_uri
+        else "autogluon"
+        if "autogluon" in image_uri
         else None
     )
 
