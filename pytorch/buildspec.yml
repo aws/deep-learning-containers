@@ -1,8 +1,8 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
-version: &VERSION 1.10.0
-short_version: &SHORT_VERSION 1.10
+version: &VERSION 1.9.0
+short_version: &SHORT_VERSION 1.9
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
