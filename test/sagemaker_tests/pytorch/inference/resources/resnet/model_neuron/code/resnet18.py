@@ -1,5 +1,10 @@
 
-
+import os
+import torch
+import torch.neuron
+import io
+import torchvision.transforms as transforms
+from PIL import Image
 
 def model_fn(model_dir):
     """Loads a model. Provides a default implementation.
@@ -8,9 +13,6 @@ def model_fn(model_dir):
         model_dir: a directory where model is saved.
     Returns: A PyTorch model.
     """
-    import os
-    import torch
-    import torch.neuron
 
     model_files = []
     for f in os.listdir(model_dir):
@@ -24,11 +26,6 @@ def model_fn(model_dir):
 
 
 def input_fn(request_body, request_content_type):
-    import io
-
-    import torch
-    import torchvision.transforms as transforms
-    from PIL import Image
 
     print("Type of request body is {} and content type is {}".format(type(request_body), request_content_type))
     f = io.BytesIO(request_body)

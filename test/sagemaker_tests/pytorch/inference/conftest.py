@@ -250,7 +250,7 @@ def fixture_ecr_image(docker_registry, docker_base_name, tag):
 def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
     is_gpu = use_gpu or instance_type[3] in ['g', 'p']
     is_eia = accelerator_type is not None
-    is_neuron = instance_type == 'ml.inf1.xlarge'
+    is_neuron = instance_type.startswith("ml.inf")
 
     # Separate out cases for clearer logic.
     # When running Neuron test, skip CPU  and GPU test. 
