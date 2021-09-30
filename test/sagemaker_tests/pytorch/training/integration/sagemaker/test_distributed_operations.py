@@ -114,6 +114,9 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
     if Version(image_framework_version) == Version("1.9"):
         pytest.skip("Fast ai is not supported on PyTorch v1.9 ")
 
+    if Version(image_framework_version) == Version("1.9.1"):
+        pytest.skip("Fast ai is not supported on PyTorch v1.9.1 ")
+
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
             'entry_point': 'train_cifar.py',
