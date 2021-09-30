@@ -119,7 +119,7 @@ RUN pip install --no-cache-dir -U \
 RUN pip install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install "torch-neuron>=1.8.1,<1.8.2" --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install torchserve==$TS_VERSION --no-deps \
- && pip install --no-deps --no-cache-dir -U torchvision \
+ && pip install --no-deps --no-cache-dir -U torchvision==0.9.1 \
  && pip install torch-model-archiver==$TS_VERSION
 
 RUN useradd -m model-server \
