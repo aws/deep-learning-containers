@@ -65,12 +65,8 @@ def post_status(state):
 
     test_context = os.getenv("TEST_TYPE")
 
-    if test_context:
-        if test_context in "quick_checks":
-            trigger_job = "dlc-pr-quick-checks"
-        else:
-            trigger_job = os.getenv("TEST_TRIGGER", "UNKNOWN-TEST-TRIGGER")
-            
+    if test_context and test_context not in "quick_checks":
+        trigger_job = os.getenv("TEST_TRIGGER", "UNKNOWN-TEST-TRIGGER")
         context = f"{trigger_job}_{project_name}"
     else:
         context = f"{project_name}"
