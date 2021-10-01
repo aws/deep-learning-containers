@@ -23,6 +23,7 @@ PT_EC2_NEURON_INSTANCE_TYPE = get_ec2_instance_type(default="inf1.xlarge", proce
 PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
 )
+PT_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", processor="graviton")
 
 PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test")
 
@@ -45,6 +46,12 @@ def test_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gp
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cpu_only):
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
+
+
+@pytest.mark.model("densenet")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+def test_ec2_pytorch_inference_graviton_cpu(pytorch_inference, ec2_connection, region, graviton_only):
+    ec2_pytorch_inference(pytorch_inference, "graviton", ec2_connection, region)
 
 
 @pytest.mark.integration("elastic_inference")

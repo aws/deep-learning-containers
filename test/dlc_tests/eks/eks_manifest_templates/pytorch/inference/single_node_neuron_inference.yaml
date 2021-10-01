@@ -68,3 +68,5 @@ spec:
           requests:
             aws.amazon.com/neuron: 1  # desired number of Inferentia devices.
             memory: 1024Mi
+      nodeSelector:
+        test_type: inf

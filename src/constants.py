@@ -31,6 +31,10 @@ FAIL_IMAGE_SIZE_LIMIT = 2
 # Left and right padding between text and margins in output
 PADDING = 1
 
+# Docker build stages
+PRE_PUSH_STAGE = "pre_push"
+COMMON_STAGE = "common"
+
 # Docker connections
 DOCKER_URL = "unix://var/run/docker.sock"
 
@@ -71,3 +75,7 @@ EC2_TESTS = "ec2"
 ECS_TESTS = "ecs"
 EKS_TESTS = "eks"
 ALL_TESTS = ["sagemaker", "ec2", "eks", "ecs"]
+
+# Timeout in seconds for Docker API client.
+API_CLIENT_TIMEOUT = 600
+MAX_WORKER_COUNT_FOR_PUSHING_IMAGES = 3

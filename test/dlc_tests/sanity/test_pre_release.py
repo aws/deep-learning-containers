@@ -433,23 +433,6 @@ def test_pip_check(image):
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
 
-def _allowed_autogluon_exceptions_only(image, output):
-    unexpected_lines_present = True
-    if "autogluon" in image:
-        allowed_exceptions = [
-            "fastai <version> requires torchvision, which is not installed.",
-            "catboost <version> requires plotly, which is not installed.",
-        ]
-
-        lines = []
-        for line in output.stdout.splitlines():
-            if line.strip() and re.sub(r'\d+(\.\d+)*', '<version>', line.strip()) not in allowed_exceptions:
-                lines.append(line)
-
-        unexpected_lines_present = len(lines) == 0
-    return unexpected_lines_present
-
-
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 def test_cuda_paths(gpu):

@@ -8,12 +8,13 @@ from invoke import run
 import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
+
 @pytest.mark.model("mnist")
-def test_eks_tensorflow_neuron_inference(tensorflow_inference):
+def test_eks_tensorflow_neuron_inference(tensorflow_inference_neuron):
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
-        
+
     processor = "neuron"
 
     model_name = "mnist_neuron"
@@ -26,7 +27,7 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference
+        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference_neuron,
     }
 
     search_replace_dict["<NUM_INF1S>"] = "1"
@@ -46,9 +47,6 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8500")
 
         assert test_utils.request_tensorflow_inference(model_name=model_name, port=port_to_forward)
-    except ValueError as excp:
-        run("kubectl cluster-info dump")
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
@@ -72,7 +70,7 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference
+        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference,
     }
 
     if processor == "gpu":
@@ -91,8 +89,6 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8500")
 
         assert test_utils.request_tensorflow_inference(model_name=model_name, port=port_to_forward)
-    except ValueError as excp:
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
@@ -117,7 +113,7 @@ def test_eks_tensorflow_albert(tensorflow_inference):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference
+        "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference,
     }
 
     if processor == "gpu":
@@ -136,8 +132,6 @@ def test_eks_tensorflow_albert(tensorflow_inference):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8500")
 
         assert test_utils.request_tensorflow_inference_nlp(model_name=model_name, port=port_to_forward)
-    except ValueError as excp:
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
