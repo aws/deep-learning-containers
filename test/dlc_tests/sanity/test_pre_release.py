@@ -173,7 +173,10 @@ def test_framework_version_cpu(image):
         if tested_framework == "autogluon.core":
             assert output.stdout.strip().startswith(tag_framework_version)
         else:
-            assert tag_framework_version == output.stdout.strip()
+            if "neuron" in image:
+                assert tag_framework_version in output.stdout.strip()
+            else:
+                assert tag_framework_version == output.stdout.strip()
 
 
 # TODO: Enable as canary once resource cleaning lambda is added
