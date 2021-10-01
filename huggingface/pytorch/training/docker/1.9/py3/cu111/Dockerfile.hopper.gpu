@@ -36,6 +36,15 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
+# Install PyTorch
+ARG PT_URL
+COPY ${PT_URL} .
+
+RUN pip uninstall -y torch\
+ && pip install --no-deps --no-cache-dir -U ${PT_URL} \
+ && rm -rf ${PT_URL}
+
+# Install PyTorch XLA
 ARG PT_XLA_URL
 COPY ${PT_XLA_URL} .
 
@@ -43,8 +52,29 @@ RUN pip uninstall -y torch_xla \
  && pip install --no-deps --no-cache-dir -U ${PT_XLA_URL} \
  && rm -rf ${PT_XLA_URL}
 
+# Install TorchVision
+ARG TORCHVISION_URL
+COPY ${TORCHVISION_URL} .
+
+RUN pip uninstall -y torchvision \
+ && pip install --no-deps --no-cache-dir -U ${TORCHVISION_URL} \
+ && rm -rf ${TORCHVISION_URL}
+
+# Install Tranformers
+ARG HF_TRANSFORMERS_URL
+COPY ${HF_TRANSFORMERS_URL} .
+
+RUN pip uninstall -y transformers \
+ && pip install --no-deps --no-cache-dir -U ${HF_TRANSFORMERS_URL} \
+ && rm -rf ${HF_TRANSFORMERS_URL}
+
+# Fix library links
 ARG CONDA_PREFIX=/opt/conda
 
 RUN ln -s ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so ${CONDA_PREFIX}/lib/libmkl_intel_lp64.so.1 \
  && ln -s ${CONDA_PREFIX}/lib/libmkl_intel_thread.so ${CONDA_PREFIX}/lib/libmkl_intel_thread.so.1 \
  && ln -s ${CONDA_PREFIX}/lib/libmkl_core.so ${CONDA_PREFIX}/lib/libmkl_core.so.1
+
+# Install Numpy
+ARG NUMPY_VERSION=1.20
+RUN ${CONDA_PREFIX}/bin/conda install -y -c anaconda numpy=${NUMPY_VERSION}

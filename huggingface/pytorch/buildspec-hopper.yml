@@ -29,7 +29,19 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
                          *CUDA_VERSION, /Dockerfile.hopper., *DEVICE_TYPE ]
     download_artifacts:
+      pytorch_whl:
+        type: s3
+        URI: s3://aws-hopper-pytorch-cicd-v3-binaries/PyTorchXla/2021-09-30_19:22:56/wheels/pytorch/torch-1.9.0-cp38-cp38-linux_x86_64.whl
+        VAR_IN_DOCKERFILE: PT_URL
       pytorch_xla_whl:
         type: s3
-        URI: s3://aws-hopper-pytorch-cicd-v3-binaries/PyTorchXla/2021-09-29_16:23:22/wheels/xla/torch_xla-1.9+8d69ff7-cp38-cp38-linux_x86_64.whl
+        URI: s3://aws-hopper-pytorch-cicd-v3-binaries/PyTorchXla/2021-09-30_19:22:56/wheels/xla/torch_xla-1.9+de8bdab-cp38-cp38-linux_x86_64.whl
         VAR_IN_DOCKERFILE: PT_XLA_URL
+      torchvision_whl:
+        type: s3
+        URI: s3://aws-hopper-pytorch-cicd-v3-binaries/PyTorchXla/2021-09-30_19:22:56/wheels/torchvision/torchvision-0.10.0a0+6e72416-cp38-cp38-linux_x86_64.whl
+        VAR_IN_DOCKERFILE: TORCHVISION_URL
+      huggingface_transformers_whl:
+        type: s3
+        URI: s3://hf-transformers/2021-09-29_11:00:00/wheels/transformers-4.10.2-py2.py3-none-any.whl
+        VAR_IN_DOCKERFILE: HF_TRANSFORMERS_URL
