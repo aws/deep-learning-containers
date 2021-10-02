@@ -112,14 +112,14 @@ AutoGluon training containers
 
 | Framework         |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																								 |
 |-------------------|-----------|-----------|-----------------------|------------------------------------------------------------------------------------------------------------|
-|AutoGluon 0.3.1    |training   |GPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:0.3.1-gpu-py37-cu102-ubuntu18.04            |
-|AutoGluon 0.3.1    |training   |CPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:0.3.1-cpu-py37-ubuntu18.04			    	 |
+|AutoGluon 0.3.1    |training   |GPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.3.1-gpu-py37-cu102-ubuntu18.04            |
+|AutoGluon 0.3.1    |training   |CPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.3.1-cpu-py37-ubuntu18.04			    	 |
 
 AutoGluon inference containers
 ===============================
 | Framework         |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																								 |
 |-------------------|-----------|-----------|-----------------------|------------------------------------------------------------------------------------------------------------|
-|AutoGluon 0.3.1    |inference  |CPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-inference:0.3.1-cpu-py37-ubuntu16.04			    	 |
+|AutoGluon 0.3.1    |inference  |CPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.3.1-cpu-py37-ubuntu16.04			    	 |
 
 HuggingFace training containers
 ===============================
@@ -242,8 +242,8 @@ Prior AutoGluon Container Versions
 
 | Framework         |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																								 |
 |-------------------|-----------|-----------|-----------------------|------------------------------------------------------------------------------------------------------------|
-|AutoGluon 0.2.1    |training   |GPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:0.2.1-gpu-py37-cu102-ubuntu18.04            |
-|AutoGluon 0.2.1    |training   |CPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:0.2.1-cpu-py37-ubuntu18.04			    	 |
+|AutoGluon 0.2.1    |training   |GPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.2.1-gpu-py37-cu102-ubuntu18.04            |
+|AutoGluon 0.2.1    |training   |CPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.2.1-cpu-py37-ubuntu18.04			    	 |
 
 Prior Elastic Inference Container Versions
 ==============
