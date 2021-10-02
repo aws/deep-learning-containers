@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+      name: pytorch
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+      name: tensorflow
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+      name: mxnet

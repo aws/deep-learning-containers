@@ -173,7 +173,10 @@ def test_framework_version_cpu(image):
         if tested_framework == "autogluon.core":
             assert output.stdout.strip().startswith(tag_framework_version)
         else:
-            assert tag_framework_version == output.stdout.strip()
+            if "neuron" in image:
+                assert tag_framework_version in output.stdout.strip()
+            else:
+                assert tag_framework_version == output.stdout.strip()
 
 
 # TODO: Enable as canary once resource cleaning lambda is added
@@ -252,8 +255,9 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         "tensorflow": ["1.15", "2.3", "2.4", "2.5", "2.6"],
         "mxnet": ["1.9"],
         "pytorch": [],
-        "huggingface_pytorch": ["1.8"],
-        "huggingface_tensorflow": ["2.4"]
+        "huggingface_pytorch": ["1.8", "1.9"],
+        "huggingface_tensorflow": ["2.4", "2.5"],
+        "autogluon": ["0.3"],
     }
 
     if short_fw_version in allow_openssl_cve_fw_versions.get(framework, []):
