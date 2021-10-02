@@ -117,6 +117,7 @@ AutoGluon training containers
 
 AutoGluon inference containers
 ===============================
+
 | Framework         |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																								 |
 |-------------------|-----------|-----------|-----------------------|------------------------------------------------------------------------------------------------------------|
 |AutoGluon 0.3.1    |inference  |CPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.3.1-cpu-py37-ubuntu16.04			    	 |
