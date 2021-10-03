@@ -369,7 +369,6 @@ def main():
                     if not (
                         ("tensorflow-inference" in image and "py2" in image)
                         or is_diy_image(image)
-                        or ("neuron" in image)
                     )
                 ]
             )
