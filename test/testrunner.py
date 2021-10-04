@@ -362,7 +362,7 @@ def main():
             sys.exit(pytest.main(pytest_cmd))
 
         else:
-            if all("neuron" in image and "mxnet" not in image for image in standard_images_list):
+            if all("neuron" in image and "tensorflow" in image for image in standard_images_list):
                 report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
                 sm_utils.generate_empty_report(report, test_type, "neuron")
             else:
@@ -373,7 +373,7 @@ def main():
                         if not (
                             ("tensorflow-inference" in image and "py2" in image)
                             or is_diy_image(image)
-                            or ("neuron" in image and "mxnet" not in image)
+                            or ("neuron" in image and "tensorflow" in image)
                         )
                     ]
                 )

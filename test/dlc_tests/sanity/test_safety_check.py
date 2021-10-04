@@ -140,6 +140,9 @@ IGNORE_SAFETY_IDS = {
                 "39408",
                 "39407",
                 "39406",
+                # 40794, 40795: TF 1.15.5 is the last available version of TF 1
+                "40794",
+                "40795",
             ]
         },
     },
@@ -185,15 +188,13 @@ def _get_latest_package_version(package):
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run safety tests regularly on production images")
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
-@pytest.mark.skipif(
-    not (
-        is_mainline_context() or is_safety_test_context() or (is_canary_context() and is_time_for_canary_safety_scan())
-    ),
-    reason=(
-        "Skipping the test to decrease the number of calls to the Safety Check DB. "
-        "Test will be executed in the 'mainline' pipeline and canaries pipeline."
-    ),
-)
+# @pytest.mark.skipif(
+#     not (is_mainline_context() or (is_canary_context() and is_time_for_canary_safety_scan())),
+#     reason=(
+#         "Skipping the test to decrease the number of calls to the Safety Check DB. "
+#         "Test will be executed in the 'mainline' pipeline and canaries pipeline."
+#     )
+# )
 def test_safety(image):
     """
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
