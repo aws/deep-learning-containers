@@ -41,7 +41,7 @@ ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV MANUAL_BUILD=0
 ENV RDMAV_FORK_SAFE=1
 
-ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.10.0_aws_v3/building_environment/gpu/torch-1.10.0-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.10.0_aws_v3/20211004-195347/d23269fc471724b686cb7ba8aad9a599f86535b3/gpu/torch-1.10.0-cp38-cp38-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cpu/torchvision-0.10.1%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
