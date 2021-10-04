@@ -118,7 +118,6 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "pyyaml>=5.4,<5.5" \
     opencv-python==4.5.2.54 \
     "awscli<2" \
-    "fastai>=2.4" \
     scipy \
     click \
     "cryptography>3.2" \

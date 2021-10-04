@@ -42,8 +42,8 @@ def test_mnist(docker_image, processor, instance_type, sagemaker_local_session, 
 @pytest.mark.skip_py2_containers
 def test_fastai_mnist(docker_image, instance_type, py_version, sagemaker_local_session, tmpdir):
     _, image_framework_version = get_framework_and_version_from_tag(docker_image)
-    if Version(image_framework_version) == Version("1.9"):
-        pytest.skip("Fast AI is not supported on PT 1.9 DLC")
+    if Version(image_framework_version) == Version("1.9") or Version(image_framework_version) == Version("1.9.1"):
+        pytest.skip("Fast AI is not supported on PT 1.9.x DLC")
     estimator = PyTorch(
         entry_point=fastai_mnist_script,
         role=ROLE,
