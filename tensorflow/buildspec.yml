@@ -1,8 +1,8 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK tensorflow
-version: &VERSION 2.6.0
-short_version: &SHORT_VERSION 2.6
+version: &VERSION 2.5.1
+short_version: &SHORT_VERSION 2.5
 repository_info:
   training_repository: &TRAINING_REPOSITORY
     image_type: &TRAINING_IMAGE_TYPE training
@@ -39,45 +39,45 @@ context:
       target: deep_learning_container.py
 
 images:
-  BuildTensorflowCpuPy38TrainingDockerImage:
+  BuildTensorflowCpuPy37TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_CPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 4489
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py38
-    os_version: &OS_VERSION ubuntu20.04
+    tag_python_version: &TAG_PYTHON_VERSION py37
+    os_version: &OS_VERSION ubuntu18.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION
       ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.,
       *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowGpuCu112Py38TrainingDockerImage:
+  BuildTensorflowGpuPy37Cu112TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 7738
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py38
+    tag_python_version: &TAG_PYTHON_VERSION py37
     cuda_version: &CUDA_VERSION cu112
-    os_version: &OS_VERSION ubuntu20.04
+    os_version: &OS_VERSION ubuntu18.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
       "-", *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION,
       /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowExampleGpuCu112Py38TrainingDockerImage:
+  BuildTensorflowExampleGpuPy37Cu112TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 7738
-    base_image_name: BuildTensorflowGpuCu112Py38TrainingDockerImage
+    base_image_name: BuildTensorflowGpuPy37Cu112TrainingDockerImage
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py38
+    tag_python_version: &TAG_PYTHON_VERSION py37
     cuda_version: &CUDA_VERSION cu112
-    os_version: &OS_VERSION ubuntu20.04
+    os_version: &OS_VERSION ubuntu18.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
       "-", *OS_VERSION, "-example" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /example,
@@ -90,8 +90,8 @@ images:
     image_size_baseline: 4899
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py38
-    os_version: &OS_VERSION ubuntu20.04
+    tag_python_version: &TAG_PYTHON_VERSION py37
+    os_version: &OS_VERSION ubuntu18.04
     # TODO: To be reverted once TF Training 2.5.1 is released
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
@@ -103,9 +103,9 @@ images:
     image_size_baseline: 7738
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py38
+    tag_python_version: &TAG_PYTHON_VERSION py37
     cuda_version: &CUDA_VERSION cu112
-    os_version: &OS_VERSION ubuntu20.04
+    os_version: &OS_VERSION ubuntu18.04
     # TODO: To be reverted once TF Training 2.5.1 is released
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
