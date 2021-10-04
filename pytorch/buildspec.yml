@@ -51,7 +51,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py38
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2-ecs-eks" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.diy, *DEVICE_TYPE ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.diy., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
   BuildDIYGPUPTTrainPy3DockerImage:
@@ -64,7 +64,7 @@ images:
     cuda_version: &CUDA_VERSION cu113
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2-ecs-eks" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.diy,
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.diy.,
                          *DEVICE_TYPE ]
   BuildSageMakerCPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
@@ -76,7 +76,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py38
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.sagemaker, *DEVICE_TYPE ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.sagemaker., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
   BuildSageMakerGPUPTTrainPy3DockerImage:
@@ -90,7 +90,7 @@ images:
     cuda_version: &CUDA_VERSION cu113
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.sagemaker,
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.sagemaker.,
                          *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
