@@ -36,4 +36,6 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp
 
+# Starts framework
+ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
