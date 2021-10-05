@@ -455,7 +455,7 @@ def test_cuda_paths(gpu):
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
-        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(cpu|gpu|neuron)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)(-example|-diy|-sagemaker)?)",
+        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-ec2-ecs-eks)?-example|-ec2-ecs-eks|-sagemaker)?)",
         image,
     ).group(1)
 
@@ -477,24 +477,22 @@ def test_cuda_paths(gpu):
     if is_tf_version("1", image):
         buildspec = "buildspec-tf1.yml"
 
-    cuda_in_buildspec = False
+    image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
-    cuda_in_buildspec_ref = f"CUDA_VERSION {cuda_version}"
     buildspec_path = os.path.join(dlc_path, framework_path, buildspec)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
     for name, image_spec in buildspec_def["images"].items():
         if image_spec["device_type"] == "gpu" and image_spec["tag"] == image_tag:
-            cuda_in_buildspec = True
+            image_tag_in_buildspec = True
             dockerfile_spec_abs_path = os.path.join(
                 os.path.dirname(
                     framework_version_path), image_spec["docker_file"].lstrip("docker/")
             )
             break
-
     try:
-        assert cuda_in_buildspec, f"Can't find {cuda_in_buildspec_ref} in {buildspec_path}"
+        assert image_tag_in_buildspec, f"Image tag {image_tag} not found in {buildspec_path}"
     except AssertionError as e:
         if not is_dlc_cicd_context():
             LOGGER.warn(
