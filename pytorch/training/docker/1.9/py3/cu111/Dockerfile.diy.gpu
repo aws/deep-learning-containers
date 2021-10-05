@@ -175,6 +175,7 @@ RUN pip install --no-cache-dir -U \
     opencv-python==4.5.2.54 \
    "pyyaml>=5.4,<5.5" \
     "awscli<2" \
+    boto3 \
     psutil \
     "Pillow>=8.3.2" \
     scipy \
