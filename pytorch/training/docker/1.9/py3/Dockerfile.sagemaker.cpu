@@ -18,6 +18,10 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 WORKDIR /
 
+# Copy workaround script for incorrect hostname
+COPY changehostname.c /
+COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
@@ -25,6 +29,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-pytorch-training<3"
+
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

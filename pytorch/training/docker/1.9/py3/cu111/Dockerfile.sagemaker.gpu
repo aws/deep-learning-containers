@@ -31,6 +31,12 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.
   && rm -rf boost_1_73_0 \
   && cd ${CONDA_PREFIX}/include/boost
 
+WORKDIR /opt/pytorch
+
+# Copy workaround script for incorrect hostname
+COPY changehostname.c /
+COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+
 WORKDIR /root
 
 RUN pip install --no-cache-dir -U \
@@ -49,6 +55,8 @@ RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 WORKDIR /
+
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

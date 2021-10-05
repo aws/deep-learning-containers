@@ -162,12 +162,6 @@ RUN conda install -c pytorch magma-cuda111==2.5.2 \
     libgcc \
  && conda clean -ya
 
-WORKDIR /opt/pytorch
-
-# Copy workaround script for incorrect hostname
-COPY changehostname.c /
-COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
-
 WORKDIR /root
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
@@ -290,8 +284,7 @@ WORKDIR /
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
-RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
- && chmod +x /usr/local/bin/deep_learning_container.py
+RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
