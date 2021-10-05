@@ -31,6 +31,15 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
+def get_codebuild_build_arn():
+    """
+    Get env variable CODEBUILD_BUILD_ARN
+
+    @return: value or empty string if not set
+    """
+    return os.getenv("CODEBUILD_BUILD_ARN", "")
+
+
 class JobParameters:
     image_types = []
     device_types = []
