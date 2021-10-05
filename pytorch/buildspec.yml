@@ -50,7 +50,7 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "ec2-ecs-eks" ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2-ecs-eks" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.diy., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
@@ -63,7 +63,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py38
     cuda_version: &CUDA_VERSION cu111
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "ec2-ecs-eks" ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2-ecs-eks" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.diy.,
                          *DEVICE_TYPE ]
     context:
@@ -92,7 +92,7 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "sagemaker" ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.sagemaker., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
@@ -106,7 +106,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py38
     cuda_version: &CUDA_VERSION cu111
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "sagemaker" ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.sagemaker.,
                          *DEVICE_TYPE ]
     context:
@@ -119,7 +119,7 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "ec2-ecs-eks" ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2-ecs-eks" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.diy., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
@@ -132,7 +132,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py38
     cuda_version: &CUDA_VERSION cu111
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "ec2-ecs-eks" ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2-ecs-eks" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.diy., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
@@ -145,7 +145,7 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "sagemaker" ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.sagemaker., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
@@ -159,7 +159,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py38
     cuda_version: &CUDA_VERSION cu111
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "sagemaker" ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.sagemaker., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
