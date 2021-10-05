@@ -189,6 +189,8 @@ def skip_by_device_type(request, instance_type):
     #If neuron run only tests marked as neuron
     if (is_neuron  and not request.node.get_closest_marker("neuron_test")):
         pytest.skip("Skipping because running on \"{}\" instance".format(instance_type))
+    if (request.node.get_closest_marker("neuron_test") and not is_neuron):
+        pytest.skip("Skipping because running on \"{}\" instance".format(instance_type))
 
     if (request.node.get_closest_marker("skip_gpu") and is_gpu) or \
             (request.node.get_closest_marker("skip_cpu") and not is_gpu):

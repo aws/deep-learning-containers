@@ -56,7 +56,7 @@ spec:
         - name: AWS_LOG_LEVEL
           value: "3"
         - name: AWS_REGION
-          value: us-east-1
+          value: us-west-2
         - name: S3_USE_HTTPS
           value: "true"
         - name: S3_VERIFY_SSL
