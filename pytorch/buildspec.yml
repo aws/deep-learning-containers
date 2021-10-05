@@ -107,7 +107,7 @@ images:
     cuda_version: &CUDA_VERSION cu113
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
-                 "-example" ]
+                 "-ec2-ecs-eks-example" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /example, /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT

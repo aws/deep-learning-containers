@@ -156,6 +156,9 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training, pt17_and_above_
         run("kubectl delete pods {}".format(pod_name))
 
 
+# TODO: unskip this test when DGL supports PT 1.10. If we need to release without DGL, make sure this skip
+# TODO: is conditional for PT1.10, so that DGL tests still run on prior images.
+@pytest.mark.skip(reason="Skip DGL tests for PT1.10, since there is no compatible version at the moment")
 @pytest.mark.skipif(not is_pr_context(), reason="Skip this test. It is already tested under PR context")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
