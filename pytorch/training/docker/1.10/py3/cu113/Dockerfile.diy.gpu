@@ -141,7 +141,8 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     typing \
     future \
     "pyopenssl>=17.5.0" \
-#  && conda install -y -c dglteam dgl-cuda11.3=0.6.1 \
+ # TODO: Add back DGL when there is a version that supports PT 1.10/cu11.3
+ # && conda install -y -c dglteam dgl-cuda11.3=0.6.1 \
  && ${CONDA_PREFIX}/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
@@ -175,6 +176,7 @@ RUN pip install --no-cache-dir -U \
     opencv-python==4.5.2.54 \
    "pyyaml>=5.4,<5.5" \
     "awscli<2" \
+    boto3 \
     psutil \
     Pillow==8.3.1 \
     scipy \

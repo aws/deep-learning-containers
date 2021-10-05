@@ -75,6 +75,9 @@ def test_pytorch_linear_regression_cpu(pytorch_training, ec2_connection, cpu_onl
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_REGRESSION_CMD)
 
 
+# TODO: unskip this test when DGL supports PT 1.10. If we need to release without DGL, make sure this skip
+# TODO: is conditional for PT1.10, so that DGL tests still run on prior images.
+@pytest.mark.skip(reason="Skip DGL tests for PT1.10, since there is no compatible version at the moment")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -84,6 +87,9 @@ def test_pytorch_train_dgl_gpu(pytorch_training, ec2_connection, gpu_only, py3_o
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DGL_CMD)
 
 
+# TODO: unskip this test when DGL supports PT 1.10. If we need to release without DGL, make sure this skip
+# TODO: is conditional for PT1.10, so that DGL tests still run on prior images.
+@pytest.mark.skip(reason="Skip DGL tests for PT1.10, since there is no compatible version at the moment")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)

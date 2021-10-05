@@ -95,7 +95,8 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     pandas \
     h5py \
     requests \
- && conda install -c dglteam -y dgl=0.6.1 \
+ # TODO: Add DGL back in when there is a version that support PT 1.10
+ # && conda install -c dglteam -y dgl=0.6.1 \
  && /opt/conda/bin/conda clean -ya \
  && conda clean -ya
 
@@ -113,6 +114,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "pyyaml>=5.4,<5.5" \
     opencv-python==4.5.2.54 \
     "awscli<2" \
+    boto3 \
     scipy \
     click \
     "cryptography>3.2" \
