@@ -194,6 +194,7 @@ def test_pytorch_s3_plugin_cpu(pytorch_training, ec2_connection, cpu_only, ec2_i
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_S3_PLUGIN_CMD)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
@@ -202,6 +203,7 @@ def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only, ec2_i
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)

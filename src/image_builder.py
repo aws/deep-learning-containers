@@ -184,16 +184,16 @@ def image_builder(buildspec):
 
     FORMATTER.banner("DLC")
 
-    # Standard images must be built before example images
-    # Example images will use standard images as base
-    standard_images = [image for image in PRE_PUSH_STAGE_IMAGES if "example" not in image.name.lower()]
-    example_images = [image for image in PRE_PUSH_STAGE_IMAGES if "example" in image.name.lower()]
+    # Parent images do not inherit from any containers built in this job
+    # Child images use one of the parent images as their base image
+    parent_images = [image for image in PRE_PUSH_STAGE_IMAGES if not image.is_child_image]
+    child_images = [image for image in PRE_PUSH_STAGE_IMAGES if image.is_child_image]
     ALL_IMAGES = PRE_PUSH_STAGE_IMAGES + COMMON_STAGE_IMAGES
     IMAGES_TO_PUSH = [image for image in ALL_IMAGES if image.to_push and image.to_build]
 
     pushed_images = []
-    pushed_images += process_images(standard_images, "Standard")
-    pushed_images += process_images(example_images, "Example")
+    pushed_images += process_images(parent_images, "Parent/Independent")
+    pushed_images += process_images(child_images, "Child/Dependent")
 
     assert all(image in pushed_images for image in IMAGES_TO_PUSH), "Few images could not be pushed."
 
