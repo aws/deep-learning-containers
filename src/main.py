@@ -33,6 +33,13 @@ def main():
     neuron_build_mode = parse_dlc_developer_configs("dev", "neuron_mode")
     graviton_build_mode = parse_dlc_developer_configs("dev", "graviton_mode")
 
+    # Add ability to skip tensorflow-1 or tensorflow-2
+    build_arn = utils.get_codebuild_build_arn()
+    if "tensorflow-1" in build_arn and "tensorflow-1" in frameworks_to_skip:
+        return
+    if "tensorflow-2" in build_arn and "tensorflow-2" in frameworks_to_skip:
+        return
+
     # A general will work if in non-EI, non-NEURON and non-GRAVITON mode and its framework not been disabled
     general_builder_enabled = (
         not ei_dedicated
