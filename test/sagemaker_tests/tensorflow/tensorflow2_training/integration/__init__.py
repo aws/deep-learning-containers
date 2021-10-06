@@ -200,10 +200,10 @@ def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_
 
     # using ctx.run throws error on codebuild "OSError: reading from stdin while output is captured".
     # Also it throws more errors related to awscli if in_stream=False flag is added to ctx.run which needs more deep dive
-    ecr_handler.login_into_ecr(client, image_account_id, image_region)
+    ecr_handler.login_into_ecr(client, image_account_id)
     subprocess.check_output(f"docker pull {source_image_uri} && docker tag {source_image_uri} {target_image_uri}", shell=True, executable="/bin/bash")
 
-    ecr_handler.login_into_ecr(target_ecr_client, target_account_id, target_region)
+    ecr_handler.login_into_ecr(target_ecr_client, target_account_id)
     subprocess.check_output(f"docker push {target_image_uri}", shell=True, executable="/bin/bash")
 
     return target_image_uri
