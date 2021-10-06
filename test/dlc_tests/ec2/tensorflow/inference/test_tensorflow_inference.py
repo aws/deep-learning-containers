@@ -106,6 +106,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
             f"{docker_cmd} run -id --name {container_name} -p {rest_api_port}:8501 "
             f"--device=/dev/neuron0 --net=host  --cap-add IPC_LOCK "
             f"--mount type=bind,source={model_path},target=/models/{model_name} -e TEST_MODE=1 -e MODEL_NAME={model_name}"
+            f"-e NEURON_MONITOR_CW_REGION=us-east-1 -e NEURON_MONITOR_CW_NAMESPACE=tf1 "
             f" {image_uri}"
         )
     else:
