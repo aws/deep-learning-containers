@@ -122,7 +122,7 @@ RUN pip uninstall -y torch \
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
 RUN pip install \
-    "Pillow>=8.3.1,<8.4" \ 
+    "Pillow>=8.3.2,<8.4" \ 
     "awscli<2"
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
