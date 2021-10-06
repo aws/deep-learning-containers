@@ -98,12 +98,18 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
 
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     if is_neuron:
+        #For 2.5 using rest api port instead of grpc since using curl for prediction instead of grpc
         if str(framework_version).startswith(TENSORFLOW2_VERSION):
             model_name= "simple"
             model_path = os.path.join(serving_folder_path, "models", model_name)
-            rest_api_port = "8501"
+            src_port = "8501"
+            dst_port = "8501"
+        else:
+            src_port = grpc_port
+            dst_port = "8500"
+
         docker_run_cmd = (
-            f"{docker_cmd} run -id --name {container_name} -p {rest_api_port}:8501 "
+            f"{docker_cmd} run -id --name {container_name} -p {src_port}:{dst_port} "
             f"--device=/dev/neuron0 --net=host  --cap-add IPC_LOCK "
             f"--mount type=bind,source={model_path},target=/models/{model_name} -e TEST_MODE=1 -e MODEL_NAME={model_name}"
             f"-e NEURON_MONITOR_CW_REGION=us-east-1 -e NEURON_MONITOR_CW_NAMESPACE=tf1 "
