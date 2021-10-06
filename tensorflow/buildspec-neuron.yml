@@ -15,14 +15,17 @@
   context:
     inference_context: &INFERENCE_CONTEXT
       sagemaker_package_name:
-        source: docker/build_artifacts/sagemaker
+        source: docker/build_artifacts/sagemaker_neuron
         target: sagemaker
       init:
         source: docker/build_artifacts/__init__.py
         target: __init__.py
-      dockerd-entrypoint:
-        source: docker/build_artifacts/entrypoint.sh
-        target: entrypoint.sh
+      neuron-start:
+        source: docker/build_artifacts/neuron-start.sh
+        target: neuron-start.sh
+      neuron-entrypoint:
+        source: docker/build_artifacts/neuron-entrypoint.py
+        target: neuron-entrypoint.py
       deep_learning_container:
         source: ../../src/deep_learning_container.py
         target: deep_learning_container.py
