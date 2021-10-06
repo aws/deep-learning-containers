@@ -147,7 +147,6 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    "typing-extensions>=3.7.4,<3.8" \
     ${ESTIMATOR_URL} \
     h5py==2.10.0 \
     "absl-py>=0.9,<0.11" \
