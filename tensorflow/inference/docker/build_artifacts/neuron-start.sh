@@ -43,34 +43,18 @@ else
   echo "Neuron RTD is running as a side car container...."
 fi
 
-# Start the Model Server
-/usr/local/bin/tensorflow_model_server_neuron --port=8500 --rest_api_port=8501 --model_name=${MODEL_NAME} --model_base_path=${MODEL_BASE_PATH}/${MODEL_NAME} "$@" &
-status=$?
-if [ $status -ne 0 ]; then
-  echo "Failed to start TF Model Server: $status"
-  exit $status
+neuron_monitor_running=0
+if [[ ! -z "${NEURON_MONITOR_CW_REGION}" ]]; then
+  # Start neuron monitor. If namespace/region variable is set then use it.
+  if [[ ! -z "${NEURON_MONITOR_CONFIG_FILE}" ]]; then
+    config="--config-file ${NEURON_MONITOR_CONFIG_FILE:+ $NEURON_MONITOR_CONFIG_FILE}"
+  fi
+  if [[ ! -z "${NEURON_MONITOR_CW_NAMESPACE}" ]]; then
+    mnnamespace="--namespace ${NEURON_MONITOR_CW_NAMESPACE:+ $NEURON_MONITOR_CW_NAMESPACE}"
+  fi
+  region="--region ${NEURON_MONITOR_CW_REGION:+ $NEURON_MONITOR_CW_REGION}"
+  /opt/aws/neuron/bin/neuron-monitor ${config:+ $config} | /opt/aws/neuron/bin/neuron-monitor-cloudwatch.py ${mnnamespace:+ $mnnamespace} ${region:+$region} >> /tmp/nm.log 2>&1 &
+  nm_pid=$!
+  echo "Neuron Monitor Started"
+  neuron_monitor_running=1
 fi
-
-# more than one service in a container. The container exits with an error
-# if it detects that either of the processes has exited.
-# Otherwise it loops forever, waking up every 60 seconds
-
-while sleep 60; do
-  if [ $nrtd_present -ne 0 ]; then
-    ps aux |grep neuron-rtd |grep -q -v grep
-    NRTD_STATUS=$?
-    if [ $NRTD_STATUS -ne 0 ]; then
-      echo "neuron-rtd service exited."
-      cat /tmp/nrtd.log
-      exit 1
-    fi
-  fi
-  ps aux |grep tensorflow_model_server_neuron |grep -q -v grep
-  MODEL_SERVER_STATUS=$?
-  # If the greps above find anything, they exit with 0 status
-  # If they are not both 0, then something is wrong
-  if [ $MODEL_SERVER_STATUS -ne 0 ]; then
-    echo "tensorflow_model_server_neuron  has already exited."
-    exit 1
-  fi
-done
