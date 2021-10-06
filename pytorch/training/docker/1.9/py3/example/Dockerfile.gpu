@@ -4,9 +4,4 @@ ARG BASE_IMAGE=""
 
 FROM $BASE_IMAGE
 
-RUN pip install tensorboardX==2.2
 
-# Add any script or repo as required
-COPY mnist.py /var/mnist.py
-
-ENTRYPOINT ["python", "/var/mnist.py"]
