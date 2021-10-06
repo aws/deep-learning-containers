@@ -31,7 +31,7 @@ eks_tests = true
 ec2_tests = true
 
 ### SM specific tests
-sagemaker_local_tests = true
+sagemaker_local_tests = false
 
 # SM remote test valid values:
 # "off" --> do not trigger sagemaker remote tests (default)
