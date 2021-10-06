@@ -22,11 +22,17 @@ from test.test_utils import (
     get_job_type_from_image,
     is_tf_version,
     is_below_framework_version,
+    is_diy_image,
+    is_sagemaker_image,
     DEFAULT_REGION,
     P3DN_REGION,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    AML2_CPU_ARM64_US_WEST_2,
+    AML2_CPU_ARM64_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
+    AML2_GPU_DLAMI_US_WEST_2,
+    AML2_GPU_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
 )
@@ -51,12 +57,14 @@ FRAMEWORK_FIXTURES = (
     "cpu",
     "eia",
     "neuron",
+    "graviton",
     "pytorch_inference_eia",
     "mxnet_inference_eia",
     "tensorflow_inference_eia",
     "tensorflow_inference_neuron",
     "pytorch_inference_neuron",
     "mxnet_inference_neuron",
+    "pytorch_inference_graviton",
     "huggingface_tensorflow_training",
     "huggingface_pytorch_training",
     "huggingface_mxnet_training",
@@ -192,7 +200,18 @@ def ec2_instance(
         ec2_client = boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         ec2_resource = boto3.resource("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
         if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
-            ec2_instance_ami = UBUNTU_18_BASE_DLAMI_US_EAST_1
+            ec2_instance_ami = (
+                AML2_GPU_DLAMI_US_EAST_1
+                if ec2_instance_ami == AML2_GPU_DLAMI_US_WEST_2
+                else UBUNTU_18_BASE_DLAMI_US_EAST_1
+            )
+
+    if ec2_instance_type == "c6g.4xlarge":
+        if region == DEFAULT_REGION:
+            ec2_instance_ami = AML2_CPU_ARM64_US_WEST_2
+        else:
+            ec2_instance_ami = AML2_CPU_ARM64_US_EAST_1
+
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
@@ -217,6 +236,8 @@ def ec2_instance(
         "MinCount": 1,
     }
 
+    volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
+
     if (
         ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
         and (
@@ -224,13 +245,15 @@ def ec2_instance(
             or "mxnet_inference" in request.fixturenames
         )
     ) or (
+        "neuron_only" in request.fixturenames
+    ) or (
         "tensorflow_training" in request.fixturenames
         and "gpu_only" in request.fixturenames
         and "horovod" in ec2_key_name
     ):
         params["BlockDeviceMappings"] = [
             {
-                "DeviceName": "/dev/sda1",
+                "DeviceName": volume_name,
                 "Ebs": {
                     "VolumeSize": 300,
                 },
@@ -241,7 +264,7 @@ def ec2_instance(
         # TODO: Revert the configuration once DLAMI is public
         params["BlockDeviceMappings"] = [
             {
-                "DeviceName": "/dev/sda1",
+                "DeviceName": volume_name,
                 "Ebs": {
                     "VolumeSize": 90,
                 },
@@ -361,6 +384,16 @@ def gpu_only():
 
 
 @pytest.fixture(scope="session")
+def sagemaker():
+    pass
+
+
+@pytest.fixture(scope="session")
+def sagemaker_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def eia_only():
     pass
 
@@ -369,6 +402,10 @@ def eia_only():
 def neuron_only():
     pass
 
+
+@pytest.fixture(scope="session")
+def graviton_only():
+    pass
 
 @pytest.fixture(scope="session")
 def py3_only():
@@ -382,6 +419,11 @@ def example_only():
 
 @pytest.fixture(scope="session")
 def huggingface_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def huggingface():
     pass
 
 
@@ -497,7 +539,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
-    config.addinivalue_line("markers", "processor(cpu/gpu/eia): explicitly mark which processor is used")
+    config.addinivalue_line("markers", "processor(cpu/gpu/eia/graviton): explicitly mark which processor is used")
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
 
@@ -575,7 +617,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                 for index, image in enumerate(images_to_parametrize):
 
                     # Tag fixtures with EC2 instance types if env variable is present
-                    allowed_processors = ("gpu", "cpu", "eia", "neuron")
+                    allowed_processors = ("gpu", "cpu", "eia", "neuron", "graviton")
                     instance_tag = ""
                     for processor in allowed_processors:
                         if processor in image:
@@ -616,11 +658,23 @@ def pytest_generate_tests(metafunc):
             for image in images:
                 if lookup in image:
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
-                    is_huggingface_lookup = "huggingface_only" in metafunc.fixturenames and "huggingface" in image
+                    is_huggingface_lookup = (
+                            ("huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames)
+                            and "huggingface" in image
+                    )
                     is_standard_lookup = all(
                         fixture_name not in metafunc.fixturenames
                         for fixture_name in ["example_only", "huggingface_only"]
                     ) and all(keyword not in image for keyword in ["example", "huggingface"])
+                    if "sagemaker_only" in metafunc.fixturenames and is_diy_image(image):
+                        LOGGER.info(f"Not running DIY image {image} on sagemaker_only test")
+                        continue
+                    if is_sagemaker_image(image):
+                        if "sagemaker_only" not in metafunc.fixturenames and "sagemaker" not in metafunc.fixturenames:
+                            LOGGER.info(
+                                f"Skipping test, as this function is not marked as 'sagemaker_only' or 'sagemaker'"
+                            )
+                            continue
                     if not framework_version_within_limit(metafunc, image):
                         continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
@@ -636,11 +690,14 @@ def pytest_generate_tests(metafunc):
                             images_to_parametrize.append(image)
                         elif "neuron_only" in metafunc.fixturenames and "neuron" in image:
                             images_to_parametrize.append(image)
+                        elif "graviton_only" in metafunc.fixturenames and "graviton" in image:
+                            images_to_parametrize.append(image)
                         elif (
                             "cpu_only" not in metafunc.fixturenames
                             and "gpu_only" not in metafunc.fixturenames
                             and "eia_only" not in metafunc.fixturenames
                             and "neuron_only" not in metafunc.fixturenames
+                            and "graviton_only" not in metafunc.fixturenames
                         ):
                             images_to_parametrize.append(image)
 

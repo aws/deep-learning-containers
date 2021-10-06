@@ -28,7 +28,7 @@ TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 #FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_AL2_DLAMI], indirect=True)
 def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, ec2_instance_ami, region, neuron_only):
-    run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, "8500", region)
+    run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, ec2_instance_ami, "8500", region)
 
 
 @pytest.mark.model("mnist")
@@ -63,6 +63,7 @@ def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connecti
     run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, "8500", region)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu_telemetry(
@@ -73,6 +74,7 @@ def test_ec2_tensorflow_inference_gpu_telemetry(
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, ec2_instance_ami, "8500", region, True)
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_cpu_telemetry(tensorflow_inference, ec2_connection, ec2_instance_ami, region, cpu_only):
@@ -98,6 +100,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
         docker_run_cmd = (
             f"{docker_cmd} run -id --name {container_name} -p {grpc_port}:8500 "
             f"--device=/dev/neuron0 --net=host  --cap-add IPC_LOCK "
+            f"-e NEURON_MONITOR_CW_REGION=us-east-1 -e NEURON_MONITOR_CW_NAMESPACE=tf1 "
             f"--mount type=bind,source={model_path},target=/models/mnist -e TEST_MODE=1 -e MODEL_NAME=mnist"
             f" {image_uri}"
         )

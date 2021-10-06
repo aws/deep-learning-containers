@@ -56,7 +56,7 @@ def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=F
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
     a list.
     """
-    allowed_processors = ("cpu", "gpu", "neuron")
+    allowed_processors = ("cpu", "gpu", "neuron", "graviton")
     if processor not in allowed_processors:
         raise RuntimeError(
             f"Aborting EC2 test run. Unrecognized processor type {processor}. "
@@ -444,6 +444,7 @@ def execute_ec2_training_test(
     host_network=False,
     container_name="ec2_training_container",
     timeout=3000,
+    bin_bash_entrypoint=False,
 ):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
@@ -458,9 +459,10 @@ def execute_ec2_training_test(
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
     network = '--network="host" ' if host_network else ""
+    bin_bash_cmd = "--entrypoint /bin/bash " if bin_bash_entrypoint else ""
     connection.run(
         f"{docker_cmd} run --name {container_name} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
-        f" {shm_setting} -itd {ecr_uri}",
+        f" {shm_setting} -itd {bin_bash_cmd}{ecr_uri}",
         hide=True,
     )
     return connection.run(
