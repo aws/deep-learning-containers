@@ -18,7 +18,6 @@ from packaging.version import LegacyVersion, Version, parse
 from packaging.specifiers import SpecifierSet
 from retrying import retry
 
-import sagemaker
 from sagemaker import Session
 from base64 import b64decode
 
@@ -1104,7 +1103,6 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
     return context.run(
         f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
     )
-
 
 
 def get_sagemaker_session(region):
