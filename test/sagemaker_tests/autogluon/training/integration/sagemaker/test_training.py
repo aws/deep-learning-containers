@@ -19,7 +19,7 @@ from sagemaker import utils
 
 from .timeout import timeout
 from ..local.ag_tools import AutoGluon
-from test.test_utils.sagemaker import invoke_sm_helper_function
+from ... import invoke_autogluon_helper_function
 from ...integration import RESOURCE_PATH, DEFAULT_TIMEOUT
 
 
@@ -27,7 +27,7 @@ from ...integration import RESOURCE_PATH, DEFAULT_TIMEOUT
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_test_in_region
 def test_training(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_training_function,
+    invoke_autogluon_helper_function(ecr_image, sagemaker_regions, _test_training_function,
                                      instance_type, framework_version)
 
 

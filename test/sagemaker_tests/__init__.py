@@ -11,4 +11,128 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
+import os
+import sagemaker
+import boto3
+import subprocess
+import re
+import time
+from sagemaker import Session
+from base64 import b64decode
 
+
+def get_sagemaker_session(region):
+    return Session(boto_session=boto3.Session(region_name=region))
+
+
+def get_unique_name_from_tag(image_uri):
+    """
+    Return the unique from the image tag.
+
+    :param image_uri: ECR image URI
+    :return: unique name
+    """
+    return re.sub('[^A-Za-z0-9]+', '', image_uri)
+
+
+def get_account_id_from_image_uri(image_uri):
+    """
+    Find the account ID where the image is located
+
+    :param image_uri: <str> ECR image URI
+    :return: <str> AWS Account ID
+    """
+    return image_uri.split(".")[0]
+
+
+def get_region_from_image_uri(image_uri):
+    """
+    Find the region where the image is located
+
+    :param image_uri: <str> ECR image URI
+    :return: <str> AWS Region Name
+    """
+    region_pattern = r"(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d+"
+    region_search = re.search(region_pattern, image_uri)
+    assert region_search, f"{image_uri} must have region that matches {region_pattern}"
+    return region_search.group()
+
+
+def ecr_repo_exists(ecr_client, repo_name, account_id=None):
+    """
+    :param ecr_client: boto3.Client for ECR
+    :param repo_name: str ECR Repository Name
+    :param account_id: str Account ID where repo is expected to exist
+    :return: bool True if repo exists, False if not
+    """
+    query = {"repositoryNames": [repo_name]}
+    if account_id:
+        query["registryId"] = account_id
+    try:
+        ecr_client.describe_repositories(**query)
+    except ecr_client.exceptions.RepositoryNotFoundException as e:
+        return False
+    return True
+
+
+class ECRRepoDoesNotExist(Exception):
+    pass
+
+
+def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_region):
+    """
+    Helper function to reupload an image owned by a another/same account to an ECR repo in this account to given region, so that
+    this account can freely run tests without permission issues.
+
+    :param source_image_uri: str Image URI for image to be tested
+    :param target_image_repo_name: str Target image ECR repo name
+    :param target_region: str Region where test is being run
+    :return: str New image URI for re-uploaded image
+    """
+    ecr_handler = EcrHandler()
+    sts_client = boto3.client("sts", region_name=target_region)
+    target_ecr_client = boto3.client("ecr", region_name=target_region)
+    target_account_id = sts_client.get_caller_identity().get("Account")
+    image_account_id = get_account_id_from_image_uri(source_image_uri)
+    image_region = get_region_from_image_uri(source_image_uri)
+    image_repo_uri, image_tag = source_image_uri.split(":")
+    _, image_repo_name = image_repo_uri.split("/")
+    client = boto3.client('ecr', region_name = image_region)
+    if not ecr_repo_exists(target_ecr_client, target_image_repo_name):
+        raise ECRRepoDoesNotExist(
+            f"Repo named {target_image_repo_name} does not exist in {target_region} on the account {target_account_id}"
+        )
+
+    target_image_uri = (
+        source_image_uri.replace(image_region, target_region)
+        .replace(image_repo_name, target_image_repo_name)
+        .replace(image_account_id, target_account_id)
+    )
+
+
+    # using ctx.run throws error on codebuild "OSError: reading from stdin while output is captured".
+    # Also it throws more errors related to awscli if in_stream=False flag is added to ctx.run which needs more deep dive
+    ecr_handler.login_into_ecr(client, image_account_id)
+    subprocess.check_output(f"docker pull {source_image_uri} && docker tag {source_image_uri} {target_image_uri}", shell=True, executable="/bin/bash")
+
+    ecr_handler.login_into_ecr(target_ecr_client, target_account_id)
+    subprocess.check_output(f"docker push {target_image_uri}", shell=True, executable="/bin/bash")
+
+    return target_image_uri
+
+
+def get_ecr_image_region(ecr_image):
+    ecr_registry, _ = ecr_image.split("/")
+    region_search = re.search(r"(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d+", ecr_registry)
+    return region_search.group()
+
+
+def get_ecr_image(ecr_image, region):
+    """
+    It uploads image to the aws region and return image uri
+    """
+    image_repo_uri, image_tag = ecr_image.split(":")
+    _, image_repo_name = image_repo_uri.split("/")
+    target_image_repo_name = f"{image_repo_name}"
+    regional_ecr_image = reupload_image_to_test_ecr(ecr_image, target_image_repo_name, region)
+    return regional_ecr_image

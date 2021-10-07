@@ -20,7 +20,7 @@ from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 from six.moves.urllib.parse import urlparse
 
-from test.test_utils.sagemaker import invoke_sm_helper_function
+from .... import invoke_tf_helper_function
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from .timeout import timeout
@@ -30,7 +30,7 @@ from .timeout import timeout
 @pytest.mark.model("mnist")
 @pytest.mark.deploy_test
 def test_mnist(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_mnist_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_mnist_function,
                               instance_type, framework_version)
 
 
@@ -60,7 +60,7 @@ def _test_mnist_function(ecr_image, sagemaker_session, instance_type, framework_
 @pytest.mark.multinode(2)
 @pytest.mark.integration("no parameter server")
 def test_distributed_mnist_no_ps(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_distributed_mnist_no_ps_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_distributed_mnist_no_ps_function,
                               instance_type, framework_version)
 
 
@@ -86,7 +86,7 @@ def _test_distributed_mnist_no_ps_function(ecr_image, sagemaker_session, instanc
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
 def test_distributed_mnist_ps(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_distributed_mnist_ps_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_distributed_mnist_ps_function,
                               instance_type, framework_version)
 
 
@@ -114,7 +114,7 @@ def _test_distributed_mnist_ps_function(ecr_image, sagemaker_session, instance_t
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
 def test_s3_plugin(ecr_image, sagemaker_regions, instance_type, region, framework_version):
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_s3_plugin_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_s3_plugin_function,
                               instance_type, region, framework_version)
 
 
@@ -153,7 +153,7 @@ def _test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, region
 @pytest.mark.model("mnist")
 @pytest.mark.integration("hpo")
 def test_tuning(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_tuning_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_tuning_function,
                               instance_type, framework_version)
 
 
@@ -195,7 +195,7 @@ def _test_tuning_function(ecr_image, sagemaker_session, instance_type, framework
 @pytest.mark.integration("smdebug")
 @pytest.mark.skip_py2_containers
 def test_tf1x_smdebug(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_tf1x_smdebug_function,
+    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_tf1x_smdebug_function,
                               instance_type, framework_version)
 
 

@@ -18,7 +18,7 @@ import pytest
 import sagemaker.huggingface
 from sagemaker.huggingface import HuggingFace
 
-from test.test_utils.sagemaker import invoke_sm_helper_function
+from .... import invoke_hf_pt_helper_function
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
@@ -85,7 +85,7 @@ def test_smdp_question_answering(ecr_image, sagemaker_regions, py_version):
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smdp_question_answering_function,
+    invoke_hf_pt_helper_function(ecr_image, sagemaker_regions, _test_smdp_question_answering_function,
                                  py_version, 1)
 
 
@@ -99,7 +99,7 @@ def test_smdp_question_answering_multinode(ecr_image, sagemaker_regions, py_vers
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smdp_question_answering_function,
+    invoke_hf_pt_helper_function(ecr_image, sagemaker_regions, _test_smdp_question_answering_function,
                                  py_version, 2)
 
 

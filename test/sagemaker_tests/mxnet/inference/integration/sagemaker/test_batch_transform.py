@@ -21,7 +21,7 @@ import pytest
 from sagemaker import utils
 from sagemaker.mxnet.model import MXNetModel
 
-from test.test_utils.sagemaker import invoke_sm_helper_function
+from ... import invoke_mxnet_helper_function
 from ...integration import RESOURCE_PATH
 from ...integration.sagemaker import timeout
 
@@ -37,7 +37,7 @@ DATA_PATH = os.path.join(MNIST_PATH, 'images', DATA_FILE)
 @pytest.mark.integration("batch_transform")
 @pytest.mark.model("mnist")
 def test_batch_transform(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_batch_transform_function,
+    invoke_mxnet_helper_function(ecr_image, sagemaker_regions, _test_batch_transform_function,
                                  instance_type, framework_version)
 
 

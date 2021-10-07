@@ -4,7 +4,6 @@ import subprocess
 import random
 import re
 import boto3
-from sagemaker.exceptions import UnexpectedStatusException
 from botocore.config import Config
 from time import sleep
 
@@ -343,33 +342,3 @@ def generate_empty_report(report, test_type, case):
     ts = TestSuite(report, test_cases)
     with open(report, "w") as skip_file:
         TestSuite.to_file(skip_file, [ts], prettyprint=False)
-
-
-def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test_function_args):
-    """
-    Used to invoke SM job defined in the helper functions in respective test file. The ECR image and the sagemaker
-    session are passed explicitly depending on the AWS region.
-    This function will rerun for all SM regions after a defined wait time if capacity issues are seen.
-
-    :param ecr_image: ECR image in us-west-2 region
-    :param sagemaker_regions: List of SageMaker regions
-    :param test_function: Function to invoke
-    :param test_function_args: Helper function args
-
-    :return: None
-    """
-    from test_utils import get_ecr_image_region, get_sagemaker_session, get_ecr_image
-
-    ecr_image_region = get_ecr_image_region(ecr_image)
-    for region in sagemaker_regions:
-        sagemaker_session = get_sagemaker_session(region)
-        # Reupload the image to test region if needed
-        tested_ecr_image = get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
-        try:
-            test_function(tested_ecr_image, sagemaker_session, *test_function_args)
-            return
-        except UnexpectedStatusException as e:
-            if "CapacityError" in str(e):
-                continue
-            else:
-                raise e
