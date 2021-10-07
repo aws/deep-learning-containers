@@ -144,6 +144,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
         if telemetry_mode:
             check_telemetry(ec2_connection, container_name)
     finally:
+        print(ec2_connection.run(f"docker logs {container_name}"))
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
 
 
