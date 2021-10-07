@@ -24,7 +24,7 @@ from smexperiments.experiment import Experiment
 from smexperiments.trial import Trial
 from smexperiments.trial_component import TrialComponent
 
-from .... import invoke_tf_helper_function
+from test.test_utils.sagemaker import invoke_sm_helper_function
 from ...integration import DEFAULT_TIMEOUT
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
@@ -37,7 +37,7 @@ SCRIPT_PATH = os.path.join(DATA_PATH, "mnist_gluon_basic_hook_demo.py")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_py2_containers
 def test_training(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_training_function,
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_training_function,
                               instance_type, framework_version)
 
 

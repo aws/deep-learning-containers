@@ -19,7 +19,7 @@ from sagemaker import utils
 from sagemaker.mxnet import MXNetModel
 
 from test.test_utils import get_framework_and_version_from_tag
-from ... import invoke_mxnet_helper_function
+from test.test_utils.sagemaker import invoke_sm_helper_function
 
 from ...integration import EI_SUPPORTED_REGIONS, RESOURCE_PATH
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint_by_name
@@ -47,7 +47,7 @@ def skip_if_non_supported_ei_region(region):
 @pytest.mark.skip_if_non_supported_ei_region()
 @pytest.mark.skip_if_no_accelerator()
 def test_elastic_inference(ecr_image, sagemaker_regions, instance_type, accelerator_type, framework_version):
-    invoke_mxnet_helper_function(ecr_image, sagemaker_regions, _test_elastic_inference_function,
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_elastic_inference_function,
                                  instance_type, accelerator_type, framework_version)
 
 

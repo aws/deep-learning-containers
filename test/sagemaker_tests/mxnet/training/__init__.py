@@ -18,14 +18,14 @@ from sagemaker.mxnet.estimator import MXNet as MXNet
 
 class MXNetWrapper(MXNet):
     def __init__(self, image_uri, sagemaker_regions, **kwargs):
-        from ... import get_sagemaker_session
+        from test_utils import get_sagemaker_session
         super().__init__(image_uri=image_uri, **kwargs)
         self.image_uri = image_uri
         self.sagemaker_regions = sagemaker_regions
         self.sagemaker_session = get_sagemaker_session(self.sagemaker_regions[0])
 
     def fit(self, inputs=None, wait=True, logs="All", job_name=None, experiment_config=None, **kwargs):
-        from ... import get_ecr_image_region, get_sagemaker_session, get_ecr_image
+        from test_utils import get_ecr_image_region, get_sagemaker_session, get_ecr_image
 
         for region in self.sagemaker_regions:
             self.sagemaker_session = get_sagemaker_session(region)

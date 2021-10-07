@@ -19,7 +19,7 @@ from sagemaker.huggingface import HuggingFace
 
 from packaging.version import Version
 
-from .... import invoke_hf_tf_helper_function
+from test.test_utils.sagemaker import invoke_sm_helper_function
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 
@@ -45,7 +45,7 @@ def test_hf_smdp(ecr_image, sagemaker_regions, instance_type, framework_version,
     """
     Tests SMDataParallel single-node command via script mode
     """
-    invoke_hf_tf_helper_function(ecr_image, sagemaker_regions, _test_hf_smdp_function,
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_hf_smdp_function,
                                  instance_type, framework_version, py_version, tmpdir, 1)
 
 
@@ -63,7 +63,7 @@ def test_hf_smdp_multi(ecr_image, sagemaker_regions, instance_type, framework_ve
     """
     Tests smddprun command via Estimator API distribution parameter
     """
-    invoke_hf_tf_helper_function(ecr_image, sagemaker_regions, _test_hf_smdp_function,
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_hf_smdp_function,
                                  instance_type, framework_version, py_version, tmpdir, 2)
 
 

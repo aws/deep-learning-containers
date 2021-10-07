@@ -19,7 +19,7 @@ import pytest
 import sagemaker
 from sagemaker.tensorflow import TensorFlow
 
-from .... import invoke_tf_helper_function
+from test.test_utils.sagemaker import invoke_sm_helper_function
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
@@ -33,7 +33,7 @@ def test_distributed_training_horovod(ecr_image,
                                       instance_type,
                                       tmpdir,
                                       framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_distributed_training_horovod_function,
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_distributed_training_horovod_function,
                               instance_type, tmpdir, framework_version)
 
 
@@ -68,7 +68,7 @@ def _test_distributed_training_horovod_function(ecr_image, sagemaker_session, in
 def test_distributed_training_horovod_with_env_vars(
         ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version
 ):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_distributed_training_horovod_with_env_vars_function,
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_distributed_training_horovod_with_env_vars_function,
                               instance_type, tmpdir, framework_version)
 
 
