@@ -4,7 +4,7 @@ import subprocess
 import random
 import re
 import boto3
-import sagemaker
+from sagemaker.exceptions import UnexpectedStatusException
 from botocore.config import Config
 from time import sleep
 
@@ -368,7 +368,7 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
         try:
             test_function(tested_ecr_image, sagemaker_session, *test_function_args)
             return
-        except sagemaker.exceptions.UnexpectedStatusException as e:
+        except UnexpectedStatusException as e:
             if "CapacityError" in str(e):
                 continue
             else:
