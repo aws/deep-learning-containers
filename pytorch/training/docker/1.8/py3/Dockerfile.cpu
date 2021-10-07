@@ -50,9 +50,7 @@ RUN apt-get update \
     unzip \
     vim \
     zlib1g-dev \
-    # PyHive Dependencies
     && apt-get install -y -qq libsasl2-dev libsasl2-modules \
-    # EMR connection - kerberos case
     && apt-get install -y -qq krb5-user \
  && rm -rf /var/lib/apt/lists/*
 
@@ -134,15 +132,14 @@ RUN pip install --no-cache-dir -U \
     "opencv-python>=4.3,<5" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
-    "shap>=0.39,<1"
-    # Install PyHive, Sparkmagic and Astra libraries
-    "boto3>1.0<2.0" \
+    "shap>=0.39,<1" \
+    "boto3>1.0,<2.0" \
     "sasl<1" \
     "thrift_sasl<1" \
-    "PyHive<1"
+    "PyHive<1" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
-    "sagemaker-studio-analytics-extension<1" \
+    "sagemaker-studio-analytics-extension==0.0.2"
 
 # Install PT S3 plugin
 RUN pip install -U ${PT_S3_WHL}
