@@ -3,7 +3,7 @@
 partner_developer = ""
 # Please only set it to true if you are preparing an EI related PR
 # Do remember to revert it back to false before merging any PR (including EI dedicated PR)
-ei_mode = false
+ei_mode = true
 # Please only set it to true if you are preparing a NEURON related PR
 # Do remember to revert it back to false before merging any PR (including NEURON dedicated PR)
 neuron_mode = true
@@ -24,13 +24,13 @@ datetime_tag = true
 do_build = true
 
 [test]
-### On by default
 sanity_tests = true
+safety_check_test = false
 ecs_tests = false
 eks_tests = false
 ec2_tests = false
 
-### Off by default
+### SM specific tests
 sagemaker_local_tests = false
 
 # SM remote test valid values:

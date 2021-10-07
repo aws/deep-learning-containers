@@ -40,9 +40,6 @@ spec:
       containers:
       - name: tfs-service
         image: <DOCKER_IMAGE_BUILD_ID>
-        command: ["/bin/sh","-c"]
-        args:
-        - "/usr/local/bin/entrypoint.sh"
         ports:
         - containerPort: 8500
         - containerPort: 8501
@@ -56,14 +53,16 @@ spec:
           value: <MODEL_NAME>
         - name: MODEL_BASE_PATH
           value: <MODEL_BASE_PATH>
+        - name: AWS_LOG_LEVEL
+          value: "3"
         - name: AWS_REGION
-          value: us-west-2
+          value: us-east-1
         - name: S3_USE_HTTPS
           value: "true"
         - name: S3_VERIFY_SSL
           value: "true"
         - name: S3_ENDPOINT
-          value: s3.us-west-2.amazonaws.com
+          value: s3.us-east-1.amazonaws.com
         resources:
           limits:
             cpu: "4"
@@ -72,3 +71,5 @@ spec:
           requests:
             cpu: "1"
             memory: 1Gi
+      nodeSelector:
+        test_type: inf

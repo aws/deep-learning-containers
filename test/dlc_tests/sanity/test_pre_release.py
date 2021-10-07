@@ -173,7 +173,10 @@ def test_framework_version_cpu(image):
         if tested_framework == "autogluon.core":
             assert output.stdout.strip().startswith(tag_framework_version)
         else:
-            assert tag_framework_version == output.stdout.strip()
+            if "neuron" in image:
+                assert tag_framework_version in output.stdout.strip()
+            else:
+                assert tag_framework_version == output.stdout.strip()
 
 
 # TODO: Enable as canary once resource cleaning lambda is added
@@ -258,8 +261,9 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "pytorch": {},
-        "huggingface_pytorch": {"1.8": ["cpu", "gpu"]},
-        "huggingface_tensorflow": {"2.4": ["cpu", "gpu"]},
+        "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
+        "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"]},
+        "autogluon": {"0.3": ["graviton"]},
     }
 
     if processor in allow_openssl_cve_fw_versions.get(framework, {}).get(short_fw_version):
@@ -457,7 +461,7 @@ def test_cuda_paths(gpu):
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
-        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(cpu|gpu|neuron)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)(-example|-diy|-sagemaker)?)",
+        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-ec2-ecs-eks)?-example|-ec2-ecs-eks|-sagemaker)?)",
         image,
     ).group(1)
 
@@ -479,24 +483,22 @@ def test_cuda_paths(gpu):
     if is_tf_version("1", image):
         buildspec = "buildspec-tf1.yml"
 
-    cuda_in_buildspec = False
+    image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
-    cuda_in_buildspec_ref = f"CUDA_VERSION {cuda_version}"
     buildspec_path = os.path.join(dlc_path, framework_path, buildspec)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
     for name, image_spec in buildspec_def["images"].items():
         if image_spec["device_type"] == "gpu" and image_spec["tag"] == image_tag:
-            cuda_in_buildspec = True
+            image_tag_in_buildspec = True
             dockerfile_spec_abs_path = os.path.join(
                 os.path.dirname(
                     framework_version_path), image_spec["docker_file"].lstrip("docker/")
             )
             break
-
     try:
-        assert cuda_in_buildspec, f"Can't find {cuda_in_buildspec_ref} in {buildspec_path}"
+        assert image_tag_in_buildspec, f"Image tag {image_tag} not found in {buildspec_path}"
     except AssertionError as e:
         if not is_dlc_cicd_context():
             LOGGER.warn(
