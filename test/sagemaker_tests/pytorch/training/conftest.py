@@ -27,7 +27,7 @@ from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
-from .utils import image_utils, get_ecr_registry, reupload_image_to_test_ecr
+from .utils import image_utils, get_ecr_registry
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)

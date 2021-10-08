@@ -23,7 +23,7 @@ from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.mxnet import MXNet
 from .integration import NO_P2_REGIONS, NO_P3_REGIONS, NO_P4_REGIONS
-from .integration.utils import get_ecr_registry, reupload_image_to_test_ecr
+from .integration.utils import get_ecr_registry
 
 
 logger = logging.getLogger(__name__)

@@ -39,3 +39,14 @@ def _botocore_resolver():
     """
     loader = botocore.loaders.create_loader()
     return botocore.regions.EndpointResolver(loader.load_data('endpoints'))
+
+
+def get_ecr_registry(account, region):
+    """
+    Get prefix of ECR image URI
+    :param account: Account ID
+    :param region: region where ECR repo exists
+    :return: AWS ECR registry
+    """
+    endpoint_data = _botocore_resolver().construct_endpoint('ecr', region)
+    return '{}.dkr.{}'.format(account, endpoint_data['hostname'])
