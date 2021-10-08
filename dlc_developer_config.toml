@@ -6,7 +6,7 @@ partner_developer = ""
 ei_mode = false
 # Please only set it to true if you are preparing a NEURON related PR
 # Do remember to revert it back to false before merging any PR (including NEURON dedicated PR)
-neuron_mode = false
+neuron_mode = true
 # Please only set it to true if you are preparing a GRAVITON related PR
 # Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
 graviton_mode = false
@@ -25,7 +25,7 @@ do_build = true
 
 [test]
 sanity_tests = true
-  safety_check_test = false
+safety_check_test = true
 ecs_tests = true
 eks_tests = true
 ec2_tests = true
@@ -38,6 +38,6 @@ sagemaker_local_tests = false
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "off"
+sagemaker_remote_tests = "on"
 
 use_scheduler = false
