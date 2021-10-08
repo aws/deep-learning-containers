@@ -22,11 +22,13 @@ from test_utils import (
     is_pr_context,
     is_benchmark_dev_context,
     is_rc_test_context,
+    is_diy_image,
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
     setup_sm_benchmark_mx_train_env,
     setup_sm_benchmark_hf_infer_env,
     get_framework_and_version_from_tag,
+    get_build_context,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 
@@ -195,57 +197,6 @@ def pull_dlc_images(images):
         run(f"docker pull {image}", hide="out")
 
 
-def setup_eks_cluster(framework_name, is_neuron):
-    frameworks = {
-        "tensorflow": "tf",
-        "mxnet": "mx",
-        "pytorch": "pt",
-    }
-    long_name = framework_name
-    short_name = frameworks[long_name]
-    codebuild_version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")[0:7]
-    num_nodes = 1 if is_pr_context() else 3 if long_name != "pytorch" else 4
-    cluster_name = f"dlc-{short_name}-cluster-{codebuild_version}-{random.randint(1, 10000)}"
-    # default volume size
-    volume_size = 80
-    try:
-        eks_utils.eks_setup()
-        if is_neuron:
-            eks_utils.create_eks_cluster(cluster_name, num_nodes, volume_size, "inf1.xlarge", "pytest.pem")
-        else:
-            eks_utils.create_eks_cluster(cluster_name, num_nodes, volume_size, "p3.16xlarge", "pytest.pem")
-    except Exception:
-        eks_utils.delete_eks_cluster(cluster_name)
-        raise
-    return cluster_name
-
-
-def configure_eks_cluster(eks_cluster_name):
-    """Function to configure EKS cluster
-    1. Attach IAM permissions on EKS nodegroup IAM role
-    2. Setup SSM agent on EKS cluster
-    """
-    ATTACH_IAM_POLICY = "attach"
-    eks_utils.manage_iam_permissions_nodegroup(eks_cluster_name, ATTACH_IAM_POLICY)
-    eks_utils.setup_ssm_agent()
-
-
-def delete_eks_cluster(eks_cluster_name, is_neuron):
-    """Function to delete EKS cluster
-    1. Detach IAM permissions from EKS nodegroup IAM role
-    2. Delete OIDC provider created by kubeflow
-    3. Delete the EKS cluster
-    """
-    DETACH_IAM_POLICY = "detach"
-    eks_utils.manage_iam_permissions_nodegroup(eks_cluster_name, DETACH_IAM_POLICY)
-
-    # Delete OIDC provider on EKS cluster other than neuron as kubeflow is not being installed
-    if not is_neuron:
-        eks_utils.delete_oidc_provider(eks_cluster_name)
-
-    eks_utils.delete_eks_cluster(eks_cluster_name)
-
-
 def setup_sm_benchmark_env(dlc_images, test_path):
     # The plan is to have a separate if/elif-condition for each type of image
     if re.search(r"huggingface-(tensorflow|pytorch|mxnet)-inference", dlc_images):
@@ -322,7 +273,14 @@ def main():
         return
 
     if specific_test_type in (
-            "sanity", "ecs", "ec2", "eks", "canary", "bai", "quick_checks", "release_candidate_integration"
+        "sanity",
+        "ecs",
+        "ec2",
+        "eks",
+        "canary",
+        "bai",
+        "quick_checks",
+        "release_candidate_integration",
     ):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
@@ -349,67 +307,26 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
-            is_neuron = "neuron" in dlc_images
-            eks_cluster_name = setup_eks_cluster(framework, is_neuron)
-            configure_eks_cluster(eks_cluster_name)
-
-            if not is_neuron:
-                # setup kubeflow
-                eks_utils.setup_kubeflow(eks_cluster_name)
-
-            # Change 1: Split training and inference, and run one after the other, to prevent scheduling issues
-            # Set -n=4, instead of -n=auto, because initiating too many pods simultaneously has been resulting in
-            # pods timing-out while they were in the Pending state. Scheduling 4 tests (and hence, 4 pods) at once
-            # seems to be an optimal configuration.
-            # Change 2: Separate multi-node EKS tests from single-node tests in execution to prevent resource contention
-            if not is_neuron:
-                pytest_cmds = [
-                    [
-                        "-s",
-                        "-rA",
-                        os.path.join(test_path, framework, "training"),
-                        f"--junitxml={report_train}",
-                        "-n=4",
-                        "-m",
-                        "not multinode",
-                    ],
-                    [
-                        "-s",
-                        "-rA",
-                        os.path.join(test_path, framework, "inference"),
-                        f"--junitxml={report_infer}",
-                        "-n=4",
-                        "-m",
-                        "not multinode",
-                    ],
-                    ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
-                ]
+            build_context = get_build_context()
+            eks_cluster_name = f"{framework}-{build_context}"
+            eks_utils.eks_setup()
+            if eks_utils.is_eks_cluster_active(eks_cluster_name):
+                eks_utils.eks_write_kubeconfig(eks_cluster_name)
             else:
-                pytest_cmds = [
-                    [
-                        "-s",
-                        "-rA",
-                        os.path.join(test_path, framework, "inference"),
-                        f"--junitxml={report_infer}",
-                        "-n=4",
-                        "-m",
-                        "not multinode",
-                    ],
-                    ["-s", "-rA", test_path, f"--junitxml={report_multinode_train}", "--multinode"],
-                ]
+                raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
 
-            if is_pr_context():
-                for cmd in pytest_cmds:
-                    cmd.append("--timeout=2340")
-        else:
-            # Execute dlc_tests pytest command
-            pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
-            if specific_test_type == "ec2":
-                pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
-            if is_pr_context():
+        # Execute dlc_tests pytest command
+        pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
+
+        if specific_test_type == "ec2":
+            pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
+        if is_pr_context():
+            if specific_test_type == "eks":
+                pytest_cmd.append("--timeout=2340")
+            else:
                 pytest_cmd.append("--timeout=4860")
 
-            pytest_cmds = [pytest_cmd]
+        pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
         if specific_test_type in ("canary", "quick_checks"):
             pytest_cmds = [
@@ -424,21 +341,17 @@ def main():
             else:
                 raise RuntimeError(pytest_cmds)
         finally:
-            if specific_test_type == "eks" and eks_cluster_name:
-                delete_eks_cluster(eks_cluster_name, is_neuron)
-
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
-
     elif specific_test_type == "sagemaker":
-        if "neuron" in dlc_images:
-            LOGGER.info(f"Skipping sagemaker tests because Neuron is not yet supported on SM. Images: {dlc_images}")
-            # Creating an empty file for because codebuild job fails without it
-            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-            sm_utils.generate_empty_report(report, test_type, "neuron")
-            return
         if benchmark_mode:
+            if "neuron" in dlc_images:
+                LOGGER.info(f"Skipping benchmark sm tests for Neuron. Images: {dlc_images}")
+                # Creating an empty file for because codebuild job fails without it
+                report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+                sm_utils.generate_empty_report(report, test_type, "neuron")
+                return
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
             os.chdir(os.path.join("test", "dlc_tests"))
 
@@ -450,7 +363,14 @@ def main():
 
         else:
             run_sagemaker_remote_tests(
-                [image for image in standard_images_list if not ("tensorflow-inference" in image and "py2" in image)]
+                [
+                    image
+                    for image in standard_images_list
+                    if not (
+                        ("tensorflow-inference" in image and "py2" in image)
+                        or is_diy_image(image)
+                    )
+                ]
             )
         metrics_utils.send_test_duration_metrics(start_time)
 
@@ -464,7 +384,7 @@ def main():
         testing_image_list = [
             image
             for image in standard_images_list
-            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image))
+            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or (is_diy_image(image)))
         ]
         run_sagemaker_local_tests(testing_image_list)
         # for EIA Images

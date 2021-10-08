@@ -2,8 +2,8 @@ account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 base_framework: &BASE_FRAMEWORK tensorflow
 framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK]
-version: &VERSION 2.4.3
-short_version: &SHORT_VERSION 2.4
+version: &VERSION 2.5.1
+short_version: &SHORT_VERSION 2.5
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
@@ -27,17 +27,17 @@ context:
       target: config.properties
 
 images:
-  BuildHuggingFaceTensorflowGpuPy37Cu110TrainingDockerImage:
+  BuildHuggingFaceTensorflowGpuPy37Cu112TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &HUGGINGFACE_TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 10500
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
-    cuda_version: &CUDA_VERSION cu110
+    cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu18.04
-    transformers_version: &TRANSFORMERS_VERSION 4.10.2
-    datasets_version: &DATASETS_VERSION 1.11.0
+    transformers_version: &TRANSFORMERS_VERSION 4.11.0
+    datasets_version: &DATASETS_VERSION 1.12.1
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
                  *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
@@ -50,22 +50,22 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
     os_version: &OS_VERSION ubuntu18.04
-    transformers_version: &TRANSFORMERS_VERSION 4.10.2
+    transformers_version: &TRANSFORMERS_VERSION 4.11.0
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
                  *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
-  BuildHuggingFaceTensorflowGpuPy37Cu110InferenceDockerImage:
+  BuildHuggingFaceTensorflowGpuPy37Cu112InferenceDockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &HUGGINGFACE_TENSORFLOW_GPU_INFERENCE_PY3 false
     image_size_baseline: 6481
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
-    cuda_version: &CUDA_VERSION cu110
+    cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu18.04
-    transformers_version: &TRANSFORMERS_VERSION 4.10.2
+    transformers_version: &TRANSFORMERS_VERSION 4.11.0
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
                  *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
