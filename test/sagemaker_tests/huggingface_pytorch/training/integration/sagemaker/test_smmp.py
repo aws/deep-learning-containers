@@ -16,7 +16,7 @@ import os
 import re
 import pytest
 
-from .... import invoke_hf_pt_helper_function
+from ..... import invoke_sm_helper_function
 from ...integration import DEFAULT_TIMEOUT
 from sagemaker.huggingface import HuggingFace
 from ...integration.sagemaker.timeout import timeout
@@ -70,7 +70,7 @@ def get_transformers_version(ecr_image):
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_smmp_gpu(ecr_image, sagemaker_regions, instance_type, framework_version, py_version, dist_gpu_backend):
-    invoke_hf_pt_helper_function(ecr_image, sagemaker_regions, _test_smmp_gpu_function, py_version, 1)
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smmp_gpu_function, py_version, 1)
 
 
 @pytest.mark.processor("gpu")
@@ -81,7 +81,7 @@ def test_smmp_gpu(ecr_image, sagemaker_regions, instance_type, framework_version
 @pytest.mark.multinode(2)
 def test_smmp_gpu_multinode(ecr_image, sagemaker_regions, instance_type, framework_version, py_version,
                             dist_gpu_backend):
-    invoke_hf_pt_helper_function(ecr_image, sagemaker_regions, _test_smmp_gpu_function, py_version, 2)
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smmp_gpu_function, py_version, 2)
 
 
 def _test_smmp_gpu_function(ecr_image, sagemaker_session, py_version, instances_quantity):

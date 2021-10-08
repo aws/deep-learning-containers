@@ -19,6 +19,7 @@ import re
 import time
 from sagemaker import Session
 from base64 import b64decode
+from dlc.ecr_handler import EcrHandler
 
 
 def get_sagemaker_session(region):
@@ -109,11 +110,11 @@ def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_
         .replace(image_account_id, target_account_id)
     )
 
-
     # using ctx.run throws error on codebuild "OSError: reading from stdin while output is captured".
     # Also it throws more errors related to awscli if in_stream=False flag is added to ctx.run which needs more deep dive
     ecr_handler.login_into_ecr(client, image_account_id)
-    subprocess.check_output(f"docker pull {source_image_uri} && docker tag {source_image_uri} {target_image_uri}", shell=True, executable="/bin/bash")
+    subprocess.check_output(f"docker pull {source_image_uri} && docker tag {source_image_uri} {target_image_uri}",
+                            shell=True, executable="/bin/bash")
 
     ecr_handler.login_into_ecr(target_ecr_client, target_account_id)
     subprocess.check_output(f"docker push {target_image_uri}", shell=True, executable="/bin/bash")
@@ -136,3 +137,32 @@ def get_ecr_image(ecr_image, region):
     target_image_repo_name = f"{image_repo_name}"
     regional_ecr_image = reupload_image_to_test_ecr(ecr_image, target_image_repo_name, region)
     return regional_ecr_image
+
+
+def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test_function_args):
+    """
+    Used to invoke SM job defined in the helper functions in respective test file. The ECR image and the sagemaker
+    session are passed explicitly depending on the AWS region.
+    This function will rerun for all SM regions after a defined wait time if capacity issues are seen.
+
+    :param ecr_image: ECR image in us-west-2 region
+    :param sagemaker_regions: List of SageMaker regions
+    :param test_function: Function to invoke
+    :param test_function_args: Helper function args
+
+    :return: None
+    """
+
+    ecr_image_region = get_ecr_image_region(ecr_image)
+    for region in sagemaker_regions:
+        sagemaker_session = get_sagemaker_session(region)
+        # Reupload the image to test region if needed
+        tested_ecr_image = get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
+        try:
+            test_function(tested_ecr_image, sagemaker_session, *test_function_args)
+            return
+        except sagemaker.exceptions.UnexpectedStatusException as e:
+            if "CapacityError" in str(e):
+                continue
+            else:
+                raise e

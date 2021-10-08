@@ -21,7 +21,7 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from sagemaker.tensorflow import TensorFlow
 
-from .... import invoke_tf_helper_function
+from ..... import invoke_sm_helper_function
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 
@@ -62,7 +62,7 @@ def can_run_smdataparallel_efa(ecr_image):
 def test_distributed_training_smdataparallel_script_mode(ecr_image, sagemaker_regions, instance_type, tmpdir,
                                                          framework_version
                                                          ):
-    invoke_tf_helper_function(ecr_image, 
+    invoke_sm_helper_function(ecr_image, 
                               sagemaker_regions,
                               _test_distributed_training_smdataparallel_script_mode_function,
                               instance_type, 
@@ -101,7 +101,7 @@ def _test_distributed_training_smdataparallel_script_mode_function(
 @pytest.mark.efa()
 @pytest.mark.parametrize('instance_types', ["ml.p3.16xlarge", "ml.p4d.24xlarge"])
 def test_smdataparallel_mnist(ecr_image, sagemaker_regions, instance_types, py_version, tmpdir):
-    invoke_tf_helper_function(ecr_image,
+    invoke_sm_helper_function(ecr_image,
                               sagemaker_regions,
                               _test_smdataparallel_mnist_function,
                               instance_types)
@@ -136,7 +136,7 @@ def _test_smdataparallel_mnist_function(
 @pytest.mark.efa()
 @pytest.mark.parametrize('instance_types', ["ml.p4d.24xlarge"])
 def test_smdataparallel_throughput(ecr_image, sagemaker_regions, instance_types, py_version, tmpdir):
-    invoke_tf_helper_function(ecr_image,
+    invoke_sm_helper_function(ecr_image,
                               sagemaker_regions,
                               _test_smdataparallel_throughput_function,
                               instance_types)

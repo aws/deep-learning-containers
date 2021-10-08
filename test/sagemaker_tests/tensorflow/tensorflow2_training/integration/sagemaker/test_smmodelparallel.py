@@ -21,7 +21,7 @@ from sagemaker.tensorflow import TensorFlow
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-from .... import invoke_tf_helper_function
+from ..... import invoke_sm_helper_function
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
@@ -58,7 +58,7 @@ def can_run_smmodelparallel_efa(ecr_image):
 @pytest.mark.parametrize("test_script, num_processes", [("tf2_conv.py", 2), ("tf2_conv_xla.py", 2), ("smmodelparallel_hvd2_conv.py", 4), ("send_receive_checkpoint.py", 2), ("tf2_checkpoint_test.py", 2)])
 @pytest.mark.efa()
 def test_smmodelparallel_efa(ecr_image, sagemaker_regions, efa_instance_type, tmpdir, framework_version, test_script, num_processes):
-    invoke_tf_helper_function(ecr_image,
+    invoke_sm_helper_function(ecr_image,
                               sagemaker_regions,
                               _test_smmodelparallel_efa_function,
                               efa_instance_type, tmpdir, framework_version, test_script, num_processes)
@@ -100,7 +100,7 @@ def _test_smmodelparallel_efa_function(
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_hvd2_conv_multinode.py", 2)])
 @pytest.mark.efa()
 def test_smmodelparallel_multinode_efa(ecr_image, sagemaker_regions, efa_instance_type, tmpdir, framework_version, test_script, num_processes):
-    invoke_tf_helper_function(ecr_image,
+    invoke_sm_helper_function(ecr_image,
                               sagemaker_regions,
                               _test_smmodelparallel_multinode_efa_function,
                               efa_instance_type, tmpdir, framework_version, test_script, num_processes)
@@ -140,7 +140,7 @@ def _test_smmodelparallel_multinode_efa_function(
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("tf2_conv.py", 2), ("tf2_conv_xla.py", 2), ("smmodelparallel_hvd2_conv.py", 4), ("send_receive_checkpoint.py", 2), ("tf2_checkpoint_test.py", 2)])
 def test_smmodelparallel(ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version, test_script, num_processes):
-    invoke_tf_helper_function(ecr_image,
+    invoke_sm_helper_function(ecr_image,
                               sagemaker_regions,
                               _test_smmodelparallel_function,
                               instance_type, tmpdir, framework_version, test_script, num_processes)
@@ -182,7 +182,7 @@ def _test_smmodelparallel_function(
 @pytest.mark.skip_py2_containers
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_hvd2_conv_multinode.py", 2)])
 def test_smmodelparallel_multinode(ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version, test_script, num_processes):
-    invoke_tf_helper_function(ecr_image,
+    invoke_sm_helper_function(ecr_image,
                               sagemaker_regions,
                               _test_smmodelparallel_multinode_function,
                               instance_type, tmpdir, framework_version, test_script, num_processes)

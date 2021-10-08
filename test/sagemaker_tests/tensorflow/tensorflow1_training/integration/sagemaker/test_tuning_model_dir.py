@@ -16,7 +16,7 @@ import os
 
 import pytest
 
-from .... import invoke_tf_helper_function
+from ..... import invoke_sm_helper_function
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 
@@ -26,7 +26,7 @@ from ...integration.utils import processor, py_version, unique_name_from_base  #
 @pytest.mark.integration("hpo")
 @pytest.mark.model("N/A")
 def test_model_dir_with_training_job_name(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, _test_model_dir_with_training_job_name_function,
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_model_dir_with_training_job_name_function,
                               instance_type, framework_version)
 
 

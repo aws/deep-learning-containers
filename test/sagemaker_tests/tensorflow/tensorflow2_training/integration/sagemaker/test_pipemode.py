@@ -18,7 +18,7 @@ import uuid
 
 import pytest
 
-from .... import invoke_tf_helper_function
+from ..... import invoke_sm_helper_function
 from .recordio_utils import build_record_file, build_single_record_file
 from sagemaker import TrainingInput
 from sagemaker.tensorflow import TensorFlow
@@ -97,7 +97,7 @@ def run_test(ecr_image, sagemaker_session, instance_type, framework_version, tes
 @pytest.mark.integration("pipemode")
 @pytest.mark.model("N/A")
 def test_single_record(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, run_test,
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, run_test,
                               instance_type,
                               framework_version,
                               single_record_test_data,
@@ -108,7 +108,7 @@ def test_single_record(ecr_image, sagemaker_regions, instance_type, framework_ve
 @pytest.mark.integration("pipemode")
 @pytest.mark.model("N/A")
 def test_multi_records(ecr_image, sagemaker_regions, instance_type, framework_version):
-    invoke_tf_helper_function(ecr_image, sagemaker_regions, run_test,
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, run_test,
                               instance_type,
                               framework_version,
                               multi_records_test_data
