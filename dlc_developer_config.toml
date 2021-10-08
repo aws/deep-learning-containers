@@ -24,20 +24,20 @@ datetime_tag = false
 do_build = false
 
 [test]
-### On by default
 sanity_tests = false
+  safety_check_test = false
 ecs_tests = false
 eks_tests = false
 ec2_tests = false
 
-### Off by default
-efa_tests = false
+### SM specific tests
 sagemaker_local_tests = true
 
 # SM remote test valid values:
 # "off" --> do not trigger sagemaker remote tests (default)
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
+# "efa" --> run efa sagemaker tests
 sagemaker_remote_tests = "standard"
 
 use_scheduler = false

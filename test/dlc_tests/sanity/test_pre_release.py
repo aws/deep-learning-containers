@@ -173,7 +173,10 @@ def test_framework_version_cpu(image):
         if tested_framework == "autogluon.core":
             assert output.stdout.strip().startswith(tag_framework_version)
         else:
-            assert tag_framework_version == output.stdout.strip()
+            if "neuron" in image:
+                assert tag_framework_version in output.stdout.strip()
+            else:
+                assert tag_framework_version == output.stdout.strip()
 
 
 # TODO: Enable as canary once resource cleaning lambda is added
@@ -252,8 +255,9 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         "tensorflow": ["1.15", "2.3", "2.4", "2.5", "2.6"],
         "mxnet": ["1.9"],
         "pytorch": [],
-        "huggingface_pytorch": ["1.8"],
-        "huggingface_tensorflow": ["2.4"]
+        "huggingface_pytorch": ["1.8", "1.9"],
+        "huggingface_tensorflow": ["2.4", "2.5"],
+        "autogluon": ["0.3"],
     }
 
     if short_fw_version in allow_openssl_cve_fw_versions.get(framework, []):
@@ -267,7 +271,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
 
     # Execute test, copy results to s3
     ec2.execute_ec2_training_test(
-        ec2_connection, image, test_script, container_name=container_name)
+        ec2_connection, image, test_script, container_name=container_name, bin_bash_entrypoint=True
+    )
     ec2_connection.run(f"docker cp {html_file} ~/{dependency_check_report}")
     ec2_connection.run(
         f"aws s3 cp ~/{dependency_check_report} s3://dlc-dependency-check")
@@ -303,14 +308,13 @@ def _run_dependency_check_test(image, ec2_connection, processor):
                         .get("baseMetricV2", {})
                         .get("severity", "UNKNOWN")
                     )
+                    if vulnerability_severity.get(severity):
+                        vulnerability_severity[severity].append(vulnerability)
+                    else:
+                        vulnerability_severity[severity] = [vulnerability]
             except ConnectionError:
                 LOGGER.exception(
                     f"Failed to load NIST data for CVE {vulnerability}")
-
-            if vulnerability_severity.get(severity):
-                vulnerability_severity[severity].append(vulnerability)
-            else:
-                vulnerability_severity[severity] = [vulnerability]
 
         # TODO: Remove this once we have whitelisted appropriate LOW/MEDIUM vulnerabilities
         if not (vulnerability_severity.get("CRITICAL") or vulnerability_severity.get("HIGH")):
@@ -332,9 +336,6 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
 def test_dependency_check_cpu(cpu, ec2_connection):
-    # TODO: Fix test on HF inference
-    if "huggingface-tensorflow-inference" in cpu or "huggingface-pytorch-inference" in cpu:
-        pytest.skip("Temporarily skipping HF inference images due to test flakiness")
     _run_dependency_check_test(cpu, ec2_connection, "cpu")
 
 
@@ -347,9 +348,6 @@ def test_dependency_check_cpu(cpu, ec2_connection):
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
 def test_dependency_check_gpu(gpu, ec2_connection):
-    # TODO: Fix test on HF inference
-    if "huggingface-tensorflow-inference" in gpu or "huggingface-pytorch-inference" in gpu:
-        pytest.skip("Temporarily skipping HF inference images due to test flakiness")
     _run_dependency_check_test(gpu, ec2_connection, "gpu")
 
 
@@ -457,7 +455,7 @@ def test_cuda_paths(gpu):
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
-        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(cpu|gpu|neuron)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)(-example|-diy|-sagemaker)?)",
+        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-ec2-ecs-eks)?-example|-ec2-ecs-eks|-sagemaker)?)",
         image,
     ).group(1)
 
@@ -479,24 +477,22 @@ def test_cuda_paths(gpu):
     if is_tf_version("1", image):
         buildspec = "buildspec-tf1.yml"
 
-    cuda_in_buildspec = False
+    image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None
-    cuda_in_buildspec_ref = f"CUDA_VERSION {cuda_version}"
     buildspec_path = os.path.join(dlc_path, framework_path, buildspec)
     buildspec_def = Buildspec()
     buildspec_def.load(buildspec_path)
 
     for name, image_spec in buildspec_def["images"].items():
         if image_spec["device_type"] == "gpu" and image_spec["tag"] == image_tag:
-            cuda_in_buildspec = True
+            image_tag_in_buildspec = True
             dockerfile_spec_abs_path = os.path.join(
                 os.path.dirname(
                     framework_version_path), image_spec["docker_file"].lstrip("docker/")
             )
             break
-
     try:
-        assert cuda_in_buildspec, f"Can't find {cuda_in_buildspec_ref} in {buildspec_path}"
+        assert image_tag_in_buildspec, f"Image tag {image_tag} not found in {buildspec_path}"
     except AssertionError as e:
         if not is_dlc_cicd_context():
             LOGGER.warn(

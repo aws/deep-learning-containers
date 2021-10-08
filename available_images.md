@@ -87,10 +87,10 @@ You can pin your version by adding the version tag to your URL as follows:
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-|TensorFlow 2.5.0   |training	|Yes			|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.5.0-cpu-py37-ubuntu18.04		|
-|TensorFlow 2.5.0   |training	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.5.0-gpu-py37-cu112-ubuntu18.04	|
-|TensorFlow 2.5.1   |inference	|Yes			|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.5.1-cpu-py37-ubuntu18.04		|
-|TensorFlow 2.5.1   |inference	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.5.1-gpu-py37-cu112-ubuntu18.04	|
+|TensorFlow 2.6.0   |training	|Yes			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.6.0-cpu-py38-ubuntu20.04		|
+|TensorFlow 2.6.0   |training	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.6.0-gpu-py38-cu112-ubuntu20.04	|
+|TensorFlow 2.6.0   |inference	|Yes			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.6.0-cpu-py38-ubuntu20.04		|
+|TensorFlow 2.6.0   |inference	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.6.0-gpu-py38-cu112-ubuntu20.04	|
 |TensorFlow 1.15.5  |training	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:1.15.5-gpu-py37-cu110-ubuntu18.04	|
 |TensorFlow 1.15.5  |training	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:1.15.5-gpu-py37-cu100-ubuntu18.04	|
 |TensorFlow 1.15.5  |training	|Yes			|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:1.15.5-gpu-py36-cu100-ubuntu18.04	|
@@ -112,16 +112,23 @@ AutoGluon training containers
 
 | Framework         |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																								 |
 |-------------------|-----------|-----------|-----------------------|------------------------------------------------------------------------------------------------------------|
-|AutoGluon 0.2.1    |training   |GPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.2.1-gpu-py37-cu102-ubuntu18.04            |
-|AutoGluon 0.2.1    |training   |CPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.2.1-cpu-py37-ubuntu18.04			    	 |
+|AutoGluon 0.3.1    |training   |GPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.3.1-gpu-py37-cu102-ubuntu18.04            |
+|AutoGluon 0.3.1    |training   |CPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.3.1-cpu-py37-ubuntu18.04			    	 |
+
+AutoGluon inference containers
+===============================
+
+| Framework         |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																								 |
+|-------------------|-----------|-----------|-----------------------|------------------------------------------------------------------------------------------------------------|
+|AutoGluon 0.3.1    |inference  |CPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.3.1-cpu-py37-ubuntu16.04			    	 |
 
 HuggingFace training containers
 ===============================
 
 | Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-----------------------------------------------|-----------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-|PyTorch 1.8.1 with HuggingFace transformers    |training	|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training:1.8.1-transformers4.6.1-gpu-py36-cu111-ubuntu18.04       |
-|TensorFlow 2.4.1 with HuggingFace transformers |training	|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-training:2.4.1-transformers4.6.1-gpu-py37-cu110-ubuntu18.04 	|
+|PyTorch 1.9.0 with HuggingFace transformers    |training	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training:1.9.0-transformers4.11.0-gpu-py38-cu111-ubuntu20.04      |
+|TensorFlow 2.5.1 with HuggingFace transformers |training	|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-training:2.5.1-transformers4.11.0-gpu-py37-cu112-ubuntu18.04 	|
 
 
 HuggingFace inference containers
@@ -129,10 +136,10 @@ HuggingFace inference containers
 
 | Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-----------------------------------------------|-----------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-|PyTorch 1.8.1 with HuggingFace transformers    |inference	|CPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.8.1-transformers4.6.1-cpu-py36-ubuntu18.04		|
-|PyTorch 1.8.1 with HuggingFace transformers    |inference	|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.8.1-transformers4.6.1-gpu-py36-cu111-ubuntu18.04		|
-|TensorFlow 2.4.1 with HuggingFace transformers |inference	|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.4.1-transformers4.6.1-cpu-py37-ubuntu18.04 	|
-|TensorFlow 2.4.1 with HuggingFace transformers |inference	|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.4.1-transformers4.6.1-gpu-py37-cu110-ubuntu18.04 	|
+|PyTorch 1.9.0 with HuggingFace transformers    |inference	|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.9.0-transformers4.11.0-cpu-py38-ubuntu20.04		|
+|PyTorch 1.9.0 with HuggingFace transformers    |inference	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.9.0-transformers4.11.0-gpu-py38-cu111-ubuntu20.04		|
+|TensorFlow 2.5.1 with HuggingFace transformers |inference	|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.5.1-transformers4.11.0-cpu-py37-ubuntu18.04 	|
+|TensorFlow 2.5.1 with HuggingFace transformers |inference	|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.5.1-transformers4.11.0-gpu-py37-cu112-ubuntu18.04 	|
 
 
 Elastic Inference Containers
@@ -161,6 +168,10 @@ Prior General Framework Container Versions
 
 | Framework 			                      |Job Type 			   |Horovod Options 			     |CPU/GPU 	  |Python Version Options 			      |Example URL 			                                                                               |
 |---------------------------------------------|------------------------|---------------------------------|------------|---------------------------------------|----------------------------------------------------------------------------------------------------|
+|TensorFlow 2.5.0   |training	|Yes			|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.5.0-cpu-py37-ubuntu18.04		|
+|TensorFlow 2.5.0   |training	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.5.0-gpu-py37-cu112-ubuntu18.04	|
+|TensorFlow 2.5.1   |inference	|Yes			|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.5.1-cpu-py37-ubuntu18.04		|
+|TensorFlow 2.5.1   |inference	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.5.1-gpu-py37-cu112-ubuntu18.04	|
 |TensorFlow 2.4.1   |training	|Yes			|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04		|
 |TensorFlow 2.4.1   |training	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-gpu-py37-cu110-ubuntu18.04	|
 |TensorFlow 2.4.1   |inference	|Yes			|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.4.1-cpu-py37-ubuntu18.04		|
@@ -220,8 +231,20 @@ Prior Hugging Face Container Versions
 ==============
 | Framework 			                        |Job Type 	   |CPU/GPU 	 |Python Version Options     |Example URL 			                                                                                                         |
 |-----------------------------------------------|--------------|-------------|---------------------------|-------------------------------------------------------------------------------------------------------------------------------|
-|PyTorch 1.6.0 with HuggingFace transformers    |training	   |GPU 		 | 3.6 (py36)                |763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training:1.6.0-transformers4.5.0-gpu-py36-cu110-ubuntu18.04   |
-|TensorFlow 2.4.1 with HuggingFace transformers |training      |GPU          | 3.7 (py37)                |763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-training:2.4.1-transformers4.5.0-gpu-py37-cu110-ubuntu18.04|
+|PyTorch 1.8.1 with HuggingFace transformers    |training	|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-training:1.8.1-transformers4.10.2-gpu-py36-cu111-ubuntu18.04       |
+|TensorFlow 2.4.3 with HuggingFace transformers |training	|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-training:2.4.3-transformers4.10.2-gpu-py37-cu110-ubuntu18.04 	|
+|PyTorch 1.8.1 with HuggingFace transformers    |inference	|CPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.8.1-transformers4.10.2-cpu-py36-ubuntu18.04		|
+|PyTorch 1.8.1 with HuggingFace transformers    |inference	|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.8.1-transformers4.10.2-gpu-py36-cu111-ubuntu18.04		|
+|TensorFlow 2.4.3 with HuggingFace transformers |inference	|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.4.3-transformers4.10.2-cpu-py37-ubuntu18.04 	|
+|TensorFlow 2.4.3 with HuggingFace transformers |inference	|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.4.3-transformers4.10.2-gpu-py37-cu110-ubuntu18.04 	|
+
+Prior AutoGluon Container Versions
+===============================
+
+| Framework         |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																								 |
+|-------------------|-----------|-----------|-----------------------|------------------------------------------------------------------------------------------------------------|
+|AutoGluon 0.2.1    |training   |GPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.2.1-gpu-py37-cu102-ubuntu18.04            |
+|AutoGluon 0.2.1    |training   |CPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.2.1-cpu-py37-ubuntu18.04			    	 |
 
 Prior Elastic Inference Container Versions
 ==============

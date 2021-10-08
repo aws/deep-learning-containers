@@ -31,6 +31,7 @@ SCRIPT_PATH = os.path.join(GLUONNLP_PATH, 'bert.py')
 @pytest.mark.model("bert_sst")
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_eia_containers
+@pytest.mark.skip_neuron_containers
 def test_gluonnlp(ecr_image, sagemaker_regions, instance_type, framework_version):
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_gluonnlp_function,
                                  instance_type, framework_version)

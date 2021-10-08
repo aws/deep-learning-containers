@@ -30,6 +30,7 @@ SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'empty_module.
 
 @pytest.mark.integration("hosting")
 @pytest.mark.model("linear_regression")
+@pytest.mark.skip_neuron_containers
 def test_hosting(ecr_image, sagemaker_regions, instance_type, framework_version):
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_hosting_function,
                                  instance_type, framework_version)

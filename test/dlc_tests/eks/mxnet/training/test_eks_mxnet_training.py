@@ -190,18 +190,10 @@ def test_eks_mxnet_gluonnlp_single_node_training(mxnet_training, py3_only):
                 accuracy = float(results.groups()[0])
 
                 if accuracy >= 0.75:
-                    eks_utils.LOGGER.info(
-                        "GluonNLP EKS test succeeded with accuracy {} >= 0.75".format(
-                            accuracy
-                        )
-                    )
+                    eks_utils.LOGGER.info("GluonNLP EKS test succeeded with accuracy {} >= 0.75".format(accuracy))
                     training_result = True
                 else:
-                    eks_utils.LOGGER.info(
-                        "GluonNLP EKS test FAILED with accuracy {} < 0.75".format(
-                            accuracy
-                        )
-                    )
+                    eks_utils.LOGGER.info("GluonNLP EKS test FAILED with accuracy {} < 0.75".format(accuracy))
                     eks_utils.LOGGER.debug(gluonnlp_out)
 
         assert training_result, f"Training failed"
