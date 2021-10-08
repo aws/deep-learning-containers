@@ -22,7 +22,7 @@ from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 from six.moves.urllib.parse import urlparse
 from packaging.version import Version
 
-from ..... import invoke_sm_helper_function
+from test.test_utils.sagemaker_utils import invoke_sm_helper_function
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401

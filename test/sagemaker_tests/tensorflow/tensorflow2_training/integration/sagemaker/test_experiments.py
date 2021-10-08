@@ -24,7 +24,7 @@ from smexperiments.experiment import Experiment
 from smexperiments.trial import Trial
 from smexperiments.trial_component import TrialComponent
 
-from ..... import invoke_sm_helper_function
+from test.test_utils.sagemaker_utils import invoke_sm_helper_function
 from ...integration import DEFAULT_TIMEOUT
 from ...integration import RESOURCE_PATH
 from .timeout import timeout

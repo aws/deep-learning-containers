@@ -19,7 +19,7 @@ from sagemaker import utils
 from sagemaker.mxnet import MXNetModel
 
 from test.test_utils import get_framework_and_version_from_tag
-from ..... import invoke_sm_helper_function
+from test.test_utils.sagemaker_utils import invoke_sm_helper_function
 
 from ...integration import EI_SUPPORTED_REGIONS, RESOURCE_PATH
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint_by_name

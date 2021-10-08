@@ -21,7 +21,7 @@ import pytest
 from sagemaker import utils
 from sagemaker.mxnet.model import MXNetModel
 
-from ..... import invoke_sm_helper_function
+from test.test_utils.sagemaker_utils import invoke_sm_helper_function
 from ...integration import RESOURCE_PATH
 from ...integration.sagemaker import timeout
 

@@ -18,7 +18,7 @@ import uuid
 
 import pytest
 
-from ..... import invoke_sm_helper_function
+from test.test_utils.sagemaker_utils import invoke_sm_helper_function
 from .recordio_utils import build_record_file, build_single_record_file
 from sagemaker import TrainingInput
 from sagemaker.tensorflow import TensorFlow
