@@ -15,7 +15,7 @@ from botocore.config import Config
 from invoke import run
 from invoke.context import Context
 from test_utils import eks as eks_utils
-from test_utils import sagemaker_utils as sm_utils
+from test_utils import sagemaker as sm_utils
 from test_utils import metrics as metrics_utils
 from test_utils import (
     get_dlc_images,

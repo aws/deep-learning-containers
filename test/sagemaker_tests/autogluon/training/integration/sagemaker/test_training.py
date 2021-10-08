@@ -19,7 +19,7 @@ from sagemaker import utils
 
 from .timeout import timeout
 from ..local.ag_tools import AutoGluon
-from test.test_utils.sagemaker_utils import invoke_sm_helper_function
+from ..... import invoke_sm_helper_function
 from ...integration import RESOURCE_PATH, DEFAULT_TIMEOUT
 
 

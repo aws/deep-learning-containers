@@ -18,7 +18,7 @@ import pytest
 import sagemaker.huggingface
 from sagemaker.huggingface import HuggingFace
 
-from test.test_utils.sagemaker_utils import invoke_sm_helper_function
+from ..... import invoke_sm_helper_function
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
