@@ -1,4 +1,3 @@
-region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
 version: &VERSION 1.9.0
 short_version: &SHORT_VERSION 1.9
