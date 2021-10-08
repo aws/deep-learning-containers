@@ -305,7 +305,7 @@ def execute_local_tests(image):
                     if 'failures="0"' not in str(output):
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
-                ec2_conn.run(pytest_command)
+                ec2_conn.run("pytest --cache-show")
                 print(f"Downloading Test reports for image: {image}")
                 ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
     finally:
@@ -327,7 +327,7 @@ def execute_sagemaker_remote_tests(image):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
-            res = context.run(pytest_command, warn=True)
+            res = context.run("pytest --cache-show", warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
             if res.failed:
                 raise DLCSageMakerRemoteTestFailure(
