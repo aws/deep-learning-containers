@@ -56,10 +56,6 @@ RUN apt-get update \
     libgl1-mesa-glx \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
-    # PyHive Dependencies
-    && apt-get install -y -qq libsasl2-dev libsasl2-modules \
-    # EMR connection - kerberos case
-    && apt-get install -y -qq krb5-user \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Open MPI
@@ -142,14 +138,6 @@ RUN ${PIP} install --no-cache-dir -U \
     requests==2.24.0 \
     "awscli<2" \
     mpi4py==3.0.3 \
-    # Install PyHive, Sparkmagic and Astra libraries
-    "boto3>1.0<2.0" \
-    "sasl<1" \
-    "thrift_sasl<1" \
-    "PyHive<1"
-    "sparkmagic<1" \
-    "sagemaker-studio-sparkmagic-lib<1" \
-    "sagemaker-studio-analytics-extension<1" \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.4,<2.5" \
