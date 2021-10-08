@@ -334,7 +334,7 @@ def main():
             ]
         try:
             pytest_cmds = [
-                [" --cache-show"]
+                ["--cache-show"]
             ]
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
