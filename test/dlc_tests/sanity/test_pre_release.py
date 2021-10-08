@@ -466,8 +466,6 @@ def test_cuda_paths(gpu):
 
     # replacing '_' by '/' to handle huggingface_<framework> case
     framework_path = framework.replace("_", "/")
-    if "hopper" in image:
-        framework_path = "huggingface/" + framework_path
 
     framework_version_path = os.path.join(
         dlc_path, framework_path, job_type, "docker", framework_version)

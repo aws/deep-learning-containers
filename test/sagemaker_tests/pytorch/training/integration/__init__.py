@@ -43,8 +43,8 @@ DEFAULT_TIMEOUT = 40
 
 def get_framework_from_image_uri(image_uri):
     return (
-        "huggingface_tensorflow" if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch" if "huggingface-pytorch" in image_uri
+        "huggingface_tensorflow" if "huggingface-tensorflow" in image_uri or "hopper-tensorflow" in image_uri
+        else "huggingface_pytorch" if "huggingface-pytorch" in image_uri or "hopper-pytorch" in image_uri
         else "mxnet" if "mxnet" in image_uri
         else "pytorch" if "pytorch" in image_uri
         else "tensorflow" if "tensorflow" in image_uri
