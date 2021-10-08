@@ -98,5 +98,3 @@ def test_emacs(image):
     # Make sure the following emacs sanity tests exit with code 0
     test_utils.run_cmd_on_container(container_name, ctx, "which emacs")
     test_utils.run_cmd_on_container(container_name, ctx, "emacs -version")
-
-
