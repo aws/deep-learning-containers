@@ -269,7 +269,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "autogluon": {"0.3": ["graviton"]},
     }
 
-    if processor in allow_openssl_cve_fw_versions.get(framework, {}).get(short_fw_version):
+    if processor in allow_openssl_cve_fw_versions.get(framework, {}).get(short_fw_version, []):
         allowed_vulnerabilities.add("CVE-2021-3711")
 
     container_name = f"dep_check_{processor}"
