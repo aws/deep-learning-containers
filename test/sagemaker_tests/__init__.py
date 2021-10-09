@@ -80,6 +80,13 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
     session are passed explicitly depending on the AWS region.
     This function will rerun for all SM regions after a defined wait time if capacity issues are seen.
 
+    E.g 
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function_to_be_executed,
+                                test_function_arg1, test_function_arg2, test_function_arg3)
+
+    That way {@param test_function_to_be_executed} will be sequentially executed in {@param sagemaker_regions} 
+    with all provided test_function_args
+
     :param ecr_image: ECR image in us-west-2 region
     :param sagemaker_regions: List of SageMaker regions
     :param test_function: Function to invoke
