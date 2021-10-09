@@ -19,7 +19,7 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("dev", "benchmark_mode") is False
 
     # Check build settings
-    assert config.parse_dlc_developer_configs("build", "skip_frameworks") == []
+    assert config.parse_dlc_developer_configs("build", "skip_frameworks") == ["mxnet", "tensorflow", "huggingface_pytorch", "huggingface_tensorflow"]
     assert config.parse_dlc_developer_configs("build", "datetime_tag") is True
     assert config.parse_dlc_developer_configs("build", "do_build") is True
 
@@ -50,4 +50,4 @@ def test_developer_config_wrappers_defaults():
     assert config.is_eks_test_enabled() is True
     assert config.is_ec2_test_enabled() is True
     assert config.is_scheduler_enabled() is False
-    assert config.is_safety_check_test_enabled() is False
+    assert config.is_safety_check_test_enabled() is True
