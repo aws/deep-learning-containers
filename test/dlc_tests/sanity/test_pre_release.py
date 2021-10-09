@@ -256,8 +256,8 @@ def _run_dependency_check_test(image, ec2_connection):
 
     allow_openssl_cve_fw_versions = {
         "tensorflow": {
-            "1.15": ["cpu", "gpu", "neuron", "eia"],
-            "2.3": ["cpu", "gpu", "eia"],
+            "1.15": ["cpu", "gpu", "neuron"],
+            "2.3": ["cpu", "gpu"],
             "2.4": ["cpu", "gpu"],
             "2.5": ["cpu", "gpu"],
             "2.6": ["cpu", "gpu"],
