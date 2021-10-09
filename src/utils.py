@@ -429,8 +429,8 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
         use_preexisting_images = (build_disabled and docker_image.build_status == constants.NOT_BUILT)
         if docker_image.build_status == constants.SUCCESS or use_preexisting_images:
             ecr_url_to_test = docker_image.ecr_url
-            if use_latest_additional_tag and len(docker_image.additional_tags) > 0:
-                ecr_url_to_test = f"{docker_image.repository}:{docker_image.additional_tags[-1]}"
+            # if use_latest_additional_tag and len(docker_image.additional_tags) > 0:
+            #     ecr_url_to_test = f"{docker_image.repository}:{docker_image.additional_tags[-1]}"
 
             # Run sanity tests on the all images built
             DLC_IMAGES["sanity"].append(ecr_url_to_test)
