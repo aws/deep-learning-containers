@@ -424,10 +424,9 @@ def retag_and_push_images(images):
             THREADS[image.name] = executor.submit(image.push_image_with_additional_tags)
     FORMATTER.progress(THREADS)
 
-
 def tag_image_with_pr_number(image_tag):
     pr_number = os.getenv("CODEBUILD_SOURCE_VERSION").replace("/", "-")
-    return f"{image_tag}-pr-1316"
+    return f"{image_tag}-{pr_number}"
 
 
 def tag_image_with_datetime(image_tag):
