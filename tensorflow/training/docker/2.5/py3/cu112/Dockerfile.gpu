@@ -223,6 +223,9 @@ RUN ${PIP} install --no-cache-dir -U \
    requests==2.25.1 \
    "awscli<2" \
    mpi4py==3.0.3 \
+   tqdm \
+   yacs \
+   typeguard \
    "sagemaker>=2,<3" \
    sagemaker-experiments==0.* \
    "sagemaker-tensorflow>=2.5,<2.6" \
@@ -247,6 +250,23 @@ RUN pip install --no-cache-dir -U \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
     "shap>=0.39,<1"
+
+# install tensorflow addons
+RUN pip install --no-deps tensorflow_addons==0.13.0
+
+# install pycocotools
+RUN git clone https://github.com/NVIDIA/cocoapi && \
+    cd cocoapi/PythonAPI && \
+    pip install -v --no-cache-dir -e .
+
+# Install Python opencv
+# set timezone so opencv doesn't ask
+ENV TZ=America/Los_Angeles
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN apt-get update
+
+RUN apt update && apt install -y python3-opencv libopenblas-base \
+        libomp-dev build-essential
 
 ARG METIS=metis-5.1.0
 ARG RMM_VERSION=0.15.0
@@ -332,4 +352,9 @@ RUN HOME_DIR=/root \
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.5/license.txt -o /license.txt
 
-CMD ["/bin/bash"]
+# add kernel tools to use interactively with studio
+RUN pip install ipykernel && \
+    python -m ipykernel install --sys-prefix && \
+    pip install jupyter_kernel_gateway
+
+CMD ["bin/bash"]
