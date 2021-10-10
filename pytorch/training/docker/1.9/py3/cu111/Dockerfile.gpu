@@ -51,6 +51,7 @@ ARG PT_TORCHVISION_URL=https://torchvision-build-rc.s3.us-west-2.amazonaws.com/1
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.9.0/build-artifacts/2021-06-29-16-48/smdistributed_modelparallel-1.4.0-cp38-cp38-linux_x86_64.whl
 ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.9.0/cu111/2021-08-13/smdistributed_dataparallel-1.2.0-cp38-cp38-linux_x86_64.whl
 ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_SMCV_WHL=https://aws-smcv-us-west-2.s3.us-west-2.amazonaws.com/utils/binaries/smcv_utils-0.0.1-cp38-cp38-linux_x86_64.whl
 
 RUN apt-get update \
  # TODO: Remove systemd upgrade once it is updated in base image
@@ -207,6 +208,10 @@ RUN pip install --no-cache-dir -U \
     cmake==3.18.2.post1 \
     torchnet \
     "cryptography>3.2" \
+    yacs \
+    matplotlib \
+    imgaug \
+    tqdm \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
@@ -316,9 +321,17 @@ ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/
 RUN pip install --no-cache-dir -U ${PT_S3_WHL_GPU}
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
+# Install SMCV
+RUN pip install --no-cache-dir -U ${PT_SMCV_WHL}
+
+# install pycocotools
+RUN git clone https://github.com/NVIDIA/cocoapi && \
+    cd cocoapi/PythonAPI && \
+    pip install -v --no-cache-dir -e .
+
 WORKDIR /
 
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
  && chmod +x /usr/local/bin/deep_learning_container.py
@@ -334,6 +347,11 @@ RUN HOME_DIR=/root \
  && rm -rf /tmp/tmp*
 
 RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.9/license.txt
+
+# add kernel tools to use interactively with SageMaker Studio
+RUN pip install ipykernel jupyterlab && \
+    python -m ipykernel install --sys-prefix && \
+    pip install jupyter_kernel_gateway
 
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]

@@ -1,0 +1,172 @@
+#!/usr/bin/env python
+import torch
+from collections import OrderedDict
+from smcv_utils import _C
+from torch.nn.utils.rnn import pad_sequence
+
+# Anchor generator tests
+cell_anchors = OrderedDict()
+cell_anchors[0] = torch.tensor([[-22., -10., 25., 13.], [-14., -14.,  17.,  17.], [-10., -22.,  13.,  25.]]).to('cuda')
+cell_anchors[1] = torch.tensor([[-40., -20.,  47.,  27.], [-28., -28.,  35.,  35.], [-20., -44.,  27.,  51.]]).to('cuda')
+cell_anchors[2] = torch.tensor([[-84., -40.,  99.,  55.], [-56., -56.,  71.,  71.], [-36., -80.,  51.,  95.]]).to('cuda')
+cell_anchors[3] = torch.tensor([[-164.,  -72.,  195.,  103.], [-112., -112.,  143.,  143.], [ -76., -168.,  107.,  199.]]).to('cuda')
+cell_anchors[4] = torch.tensor([[-332., -152.,  395.,  215.], [-224., -224.,  287.,  287.], [-148., -328.,  211.,  391.]]).to('cuda')
+
+straddle_thresh = 0
+
+feature_sizes = [[200, 304], [100, 152], [50, 76], [25, 38], [13, 19]]
+
+image_sizes =  torch.tensor([[1199,  800], 
+                             [1132,  800], 
+                             [1196,  800], 
+                             [1066,  800], 
+                             [1066,  800], 
+                             [1003,  800], 
+                             [1066,  800], 
+                             [1199,  800]], dtype=torch.int32).to('cuda')
+
+strides = (4, 8, 16, 32, 64)
+
+anchor_sums = [367353600, 91838400., 22959600., 5739900., 1516086.]
+inds_inside_sums = [112304, 26398, 5698, 1004, 90]
+
+image_sizes_wh = [tuple(i) for i in image_sizes]
+
+fmap_size_cat = torch.tensor([[304, 200],
+                                [152, 100],
+                                [ 76,  50],
+                                [ 38,  25],
+                                [ 19,  13]]).to('cuda')
+
+anchors = []
+inds_inside = []
+for cell_anchor, feature_size, image_size, stride \
+    in zip(cell_anchors, feature_sizes, image_sizes, strides):
+    anchor, inds = _C.anchor_generator(*image_size, 
+                                        feature_size, 
+                                        cell_anchors[cell_anchor], 
+                                        stride, straddle_thresh)
+    anchors.append(anchor)
+    inds_inside.append(inds)
+    
+anchor_boxes = torch.cat(anchors, dim=0).unsqueeze(dim=0)
+anchor_visibility = torch.cat(inds_inside, dim=0).unsqueeze(dim=0)
+
+
+targets = [torch.tensor([[186.0830, 146.0500, 295.3147, 254.1167],
+                         [353.8781, 158.8833, 395.7352, 275.8167]]).to('cuda'),
+           torch.tensor([[ 691.8182,  376.1677,  810.4888,  446.7545],
+                         [ 806.5865,  614.0599,  819.4183,  636.6467],
+                         [ 670.5115,  418.1078,  879.6753,  514.3713],
+                         [ 691.5308,  374.4670,  810.3211,  448.0000],
+                         [ 273.1315,  537.1018,  538.4346,  797.6048],
+                         [ 974.0468,  575.5928, 1193.8878,  785.1257],
+                         [ 233.0320,  666.4670,  335.0164,  797.6048],
+                         [ 489.3336,  107.2814, 1015.8460,  784.0718]]).to('cuda'),
+           torch.tensor([[510.5305,  70.1077, 974.2625, 789.1335],
+                         [451.4422,  21.2272, 740.3076, 617.0867],
+                         [243.5469, 697.3303, 287.1230, 742.9134],
+                         [ 67.0878, 688.5059, 110.1956, 735.6628],
+                         [185.1518, 368.5433, 404.4002, 683.0727],
+                         [604.5021, 191.9438, 645.3806, 296.9180],
+                         [614.7311, 606.7634, 646.9916, 641.4801],
+                         [629.5874, 661.8267, 667.9367, 702.3701],
+                         [353.0493, 748.1406, 401.0280, 796.9087],
+                         [531.6815, 196.8150, 566.6586, 228.2717],
+                         [503.4114, 282.3419, 544.2336, 329.2178],
+                         [479.5438, 594.3420, 508.3573, 626.2670],
+                         [  0.0000, 373.2646, 706.9979, 787.2413]]).to('cuda'),
+           torch.tensor([[163.2066, 501.4614, 573.6593, 746.0054]]).to('cuda')]
+
+targets = pad_sequence(targets, batch_first=True, padding_value=-1)
+
+iou = _C.box_iou(torch.cat([anchor_boxes]*4, dim=0), targets)
+
+objectness = [torch.rand([1, 3, *i[-2:]]).to('cuda') for i in fmap_size_cat]
+rpn_box_regression = [torch.rand([1, 12, *i[-2:]]).to('cuda') for i in fmap_size_cat]
+
+N = 1
+A = 3
+H_max = 304
+W_max = 200
+num_fmaps = 5
+num_anchors_per_level = torch.tensor([182400,  45600,  11400,   2850,    741]).to('cuda')
+num_max_proposals = [2000 for i in range(N*num_fmaps)]
+num_max_props_tensor = [2000 for i in range(N*num_fmaps)]
+
+
+batched_objectness_tensor = -1e6 * torch.ones([num_fmaps, N, A * H_max * W_max],  \
+                                                        dtype = objectness[0].dtype, device=objectness[0].device)
+batched_regression_tensor = -1 * torch.ones([num_fmaps, N, 4 * A * H_max * W_max], \
+                                                        dtype = objectness[0].dtype, device=objectness[0].device)
+
+for i in range(num_fmaps):
+    H, W = objectness[i].shape[2], objectness[i].shape[3]
+    batched_objectness_tensor[i,:,:(A * H * W)] = objectness[i].reshape(N, -1)
+    batched_regression_tensor[i,:,:(4 * A * H * W)] = rpn_box_regression[i].reshape(N, -1)
+    
+batched_objectness_tensor = batched_objectness_tensor.reshape(num_fmaps * N, -1)
+batched_objectness_tensor = batched_objectness_tensor.sigmoid()
+batched_objectness_topk, topk_idx = batched_objectness_tensor.topk(2000, dim=1, sorted=True)
+
+batched_anchor_data = [anchor_boxes, 
+                       anchor_visibility, 
+                       image_sizes_wh]
+
+batched_anchor_tensor, image_shapes = batched_anchor_data[0], batched_anchor_data[2]
+
+mock_features = torch.rand([4, 256, 200, 304]).to('cuda')
+
+mock_rois = torch.tensor([[0.0000e+00, 1.8608e+02, 1.4605e+02, 2.9531e+02, 2.5412e+02],
+                            [0.0000e+00, 3.5388e+02, 1.5888e+02, 3.9574e+02, 2.7582e+02],
+                            [1.0000e+00, 6.9182e+02, 3.7617e+02, 8.1049e+02, 4.4675e+02],
+                            [1.0000e+00, 8.0659e+02, 6.1406e+02, 8.1942e+02, 6.3665e+02],
+                            [1.0000e+00, 6.7051e+02, 4.1811e+02, 8.7968e+02, 5.1437e+02],
+                            [2.0000e+00, 5.1053e+02, 7.0108e+01, 9.7426e+02, 7.8913e+02],
+                            [2.0000e+00, 4.5144e+02, 2.1227e+01, 7.4031e+02, 6.1709e+02],
+                            [3.0000e+00, 1.6321e+02, 5.0146e+02, 5.7366e+02, 7.4601e+02]]).to('cuda')
+
+spatial_scale = .25
+sampling_ratio = 2
+output_size = (7, 7)
+NHWC = False
+
+def test_anchor_generator():
+    for cell_anchor, feature_size, image_size, stride, anchor_sum, ind_sum \
+        in zip(cell_anchors, feature_sizes, image_sizes, strides, anchor_sums, inds_inside_sums):
+        anchors, inds_inside = _C.anchor_generator(*image_size, 
+                                            feature_size, 
+                                            cell_anchors[cell_anchor], 
+                                            stride, straddle_thresh)
+        assert anchors.sum()==anchor_sum
+        assert inds_inside.sum()==ind_sum
+        
+def test_iou():
+    iou = _C.box_iou(torch.cat([anchor_boxes]*4, dim=0), targets)
+    assert tuple(iou.shape)==(4, 242991, 13)
+    
+def test_matcher():
+    matches = _C.match_proposals(iou, True, 0.3, 0.7)
+    assert tuple(matches.size())==(4, 13)
+    
+def test_nms():
+    proposals_gen, objectness_gen, keep_gen = _C.GeneratePreNMSUprightBoxesBatched(
+                                N,
+                                A,
+                                H_max*W_max,
+                                A*H_max*W_max,
+                                fmap_size_cat,
+                                num_anchors_per_level,
+                                topk_idx,
+                                batched_objectness_topk.float(),    # Need to cast these as kernel doesn't support fp16
+                                torch.rand([5, 8, 729600]).float(),
+                                batched_anchor_tensor,
+                                image_sizes.float(),
+                                2000,
+                                0,
+                                4.135166556742356,
+                                True)
+                                
+def test_roi_align():
+    extracted_features = _C.roi_align_forward(mock_features, mock_rois, spatial_scale, *output_size, sampling_ratio, NHWC)
+    assert tuple(extracted_features.shape)==(8, 256, 7, 7)
