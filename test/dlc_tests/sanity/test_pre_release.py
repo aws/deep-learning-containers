@@ -32,7 +32,8 @@ from test.test_utils import (
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
     get_python_version_from_image_uri,
-    is_tf_version
+    is_tf_version,
+    get_processor_from_image_uri,
 )
 
 
@@ -235,7 +236,7 @@ class DependencyCheckFailure(Exception):
     pass
 
 
-def _run_dependency_check_test(image, ec2_connection, processor):
+def _run_dependency_check_test(image, ec2_connection):
     # Record any whitelisted medium/low severity CVEs; I.E. allowed_vulnerabilities = {CVE-1000-5555, CVE-9999-9999}
     allowed_vulnerabilities = {
         # Those vulnerabilities are fixed. Current openssl version is 1.1.1g. These are false positive
@@ -247,20 +248,28 @@ def _run_dependency_check_test(image, ec2_connection, processor):
         "CVE-2020-13936",
     }
 
+    processor = get_processor_from_image_uri(image)
+
     # Whitelist CVE #CVE-2021-3711 for DLCs where openssl is installed using apt-get
     framework, _ = get_framework_and_version_from_tag(image)
     short_fw_version = re.search(r"(\d+\.\d+)", image).group(1)
 
     allow_openssl_cve_fw_versions = {
-        "tensorflow": ["1.15", "2.3", "2.4", "2.5", "2.6"],
-        "mxnet": ["1.9"],
-        "pytorch": [],
-        "huggingface_pytorch": ["1.8", "1.9"],
-        "huggingface_tensorflow": ["2.4", "2.5"],
-        "autogluon": ["0.3"],
+        "tensorflow": {
+            "1.15": ["cpu", "gpu", "neuron"],
+            "2.3": ["cpu", "gpu"],
+            "2.4": ["cpu", "gpu"],
+            "2.5": ["cpu", "gpu"],
+            "2.6": ["cpu", "gpu"],
+        },
+        "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
+        "pytorch": {},
+        "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
+        "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"]},
+        "autogluon": {"0.3": ["graviton"]},
     }
 
-    if short_fw_version in allow_openssl_cve_fw_versions.get(framework, []):
+    if processor in allow_openssl_cve_fw_versions.get(framework, {}).get(short_fw_version, []):
         allowed_vulnerabilities.add("CVE-2021-3711")
 
     container_name = f"dep_check_{processor}"
@@ -335,8 +344,8 @@ def _run_dependency_check_test(image, ec2_connection, processor):
     (is_canary_context() and not is_time_for_canary_safety_scan()),
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
-def test_dependency_check_cpu(cpu, ec2_connection):
-    _run_dependency_check_test(cpu, ec2_connection, "cpu")
+def test_dependency_check_cpu(cpu, ec2_connection, cpu_only):
+    _run_dependency_check_test(cpu, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
@@ -347,8 +356,20 @@ def test_dependency_check_cpu(cpu, ec2_connection):
     (is_canary_context() and not is_time_for_canary_safety_scan()),
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
-def test_dependency_check_gpu(gpu, ec2_connection):
-    _run_dependency_check_test(gpu, ec2_connection, "gpu")
+def test_dependency_check_gpu(gpu, ec2_connection, gpu_only):
+    _run_dependency_check_test(gpu, ec2_connection)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+@pytest.mark.canary("Run dependency tests regularly on production images")
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.skipif(
+    (is_canary_context() and not is_time_for_canary_safety_scan()),
+    reason="Executing test in canaries pipeline during only a limited period of time.",
+)
+def test_dependency_check_eia(eia, ec2_connection, eia_only):
+    _run_dependency_check_test(eia, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -359,8 +380,20 @@ def test_dependency_check_gpu(gpu, ec2_connection):
     (is_canary_context() and not is_time_for_canary_safety_scan()),
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
-def test_dependency_check_neuron(neuron, ec2_connection):
-    _run_dependency_check_test(neuron, ec2_connection, "neuron")
+def test_dependency_check_neuron(neuron, ec2_connection, neuron_only):
+    _run_dependency_check_test(neuron, ec2_connection)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+@pytest.mark.canary("Run dependency tests regularly on production images")
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.skipif(
+    (is_canary_context() and not is_time_for_canary_safety_scan()),
+    reason="Executing test in canaries pipeline during only a limited period of time.",
+)
+def test_dependency_check_graviton(graviton, ec2_connection, graviton_only):
+    _run_dependency_check_test(graviton, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
