@@ -19,6 +19,8 @@ from test_utils import sagemaker as sm_utils
 from test_utils import metrics as metrics_utils
 from test_utils import (
     get_dlc_images,
+    get_framework_and_version_from_tag,
+    get_job_type_from_image,
     is_pr_context,
     is_benchmark_dev_context,
     is_rc_test_context,
@@ -339,14 +341,28 @@ def main():
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
             os.makedirs(f"{os.curdir}/.pytest_cache/v/cache")
+            commit_id = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')
+            framework, version = get_framework_and_version_from_tag()
+            job_type = get_job_type_from_image()
+            LOGGER.info(f"Downloading previous executions cache: {commit_id}/{framework}/{version}/{job_type}/lastfailed")
             s3 = boto3.client("s3")
-            s3.download_file('dlc-test-execution-results-669063966089', 'lastfailed', f"{os.curdir}/.pytest_cache/v/cache/lastfailed")
+            s3.download_file('dlc-test-execution-results-669063966089',
+                             f"{commit_id}/{framework}/{version}/{job_type}/lastfailed",
+                             f"{os.curdir}/.pytest_cache/v/cache/lastfailed")
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
             if all([status == 0 for status in cmd_exit_statuses]):
                 sys.exit(0)
             else:
                 raise RuntimeError(pytest_cmds)
         finally:
+            if os.path.exists(f"{os.curdir}/.pytest_cache/v/cache/lastfailed"):
+                LOGGER.info(f"Uploading current execution result for commit: {commit_id}")
+                s3.upload_file(f"{os.curdir}/.pytest_cache/v/cache/lastfailed",
+                               "dlc-test-execution-results-669063966089",
+                               f"{commit_id}/{framework}/{version}/{job_type}/lastfailed")
+                LOGGER.warning(f"Cache file uploaded")
+            else:
+                LOGGER.warning(f"No cache file was created")
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
