@@ -334,21 +334,21 @@ def main():
             pytest_cmds = [
                 ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
             ]
+        os.makedirs(f"{os.curdir}/.pytest_cache/v/cache", exist_ok=True)
+        commit_id = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION', default="non_recognised_commit_id")
+        framework, version = get_framework_and_version_from_tag(all_image_list[0])
+        LOGGER.info(f"Downloading previous executions cache: {commit_id}/{framework}/{version}/lastfailed")
+        s3 = boto3.client("s3")
         try:
-            pytest_cmds = [
-                ["--cache-show"]
-            ]
+            s3.download_file('dlc-test-execution-results-669063966089',
+                         f"{commit_id}/{framework}/{version}/lastfailed",
+                         f"{os.curdir}/.pytest_cache/v/cache/lastfailed")
+        except Exception as e:
+            LOGGER.info(f"Cache file wasn't downloaded: {e}")
+
+        try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
-            os.makedirs(f"{os.curdir}/.pytest_cache/v/cache")
-            commit_id = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')
-            framework, version = get_framework_and_version_from_tag()
-            job_type = get_job_type_from_image()
-            LOGGER.info(f"Downloading previous executions cache: {commit_id}/{framework}/{version}/{job_type}/lastfailed")
-            s3 = boto3.client("s3")
-            s3.download_file('dlc-test-execution-results-669063966089',
-                             f"{commit_id}/{framework}/{version}/{job_type}/lastfailed",
-                             f"{os.curdir}/.pytest_cache/v/cache/lastfailed")
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
             if all([status == 0 for status in cmd_exit_statuses]):
                 sys.exit(0)
@@ -357,12 +357,15 @@ def main():
         finally:
             if os.path.exists(f"{os.curdir}/.pytest_cache/v/cache/lastfailed"):
                 LOGGER.info(f"Uploading current execution result for commit: {commit_id}")
-                s3.upload_file(f"{os.curdir}/.pytest_cache/v/cache/lastfailed",
+                try:
+                    s3.upload_file(f"{os.curdir}/.pytest_cache/v/cache/lastfailed",
                                "dlc-test-execution-results-669063966089",
-                               f"{commit_id}/{framework}/{version}/{job_type}/lastfailed")
-                LOGGER.warning(f"Cache file uploaded")
+                               f"{commit_id}/{framework}/{version}/lastfailed")
+                    LOGGER.info(f"Cache file uploaded")
+                except Exception as e:
+                    LOGGER.info(f"Cache file wasn't uploaded because of error: {e}")
             else:
-                LOGGER.warning(f"No cache file was created")
+                LOGGER.info(f"No cache file was created")
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
