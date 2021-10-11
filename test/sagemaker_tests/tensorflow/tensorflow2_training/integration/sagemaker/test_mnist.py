@@ -102,7 +102,7 @@ def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, frame
         path=os.path.join(resource_path, 'mnist', 'data-distributed'),
         key_prefix='scriptmode/mnist-distributed')
     estimator.fit(inputs, job_name=unique_name_from_base('test-tf-sm-distributed-mnist'))
-    _assert_checkpoint_exists(sagemaker_session.boto_region_name, estimator.model_dir, 200)
+    _assert_checkpoint_exists(sagemaker_session.boto_region_name, estimator.model_dir, 0)
 
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
