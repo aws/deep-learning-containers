@@ -20,7 +20,6 @@ from test_utils import metrics as metrics_utils
 from test_utils import (
     get_dlc_images,
     get_framework_and_version_from_tag,
-    get_job_type_from_image,
     is_pr_context,
     is_benchmark_dev_context,
     is_rc_test_context,
@@ -33,7 +32,7 @@ from test_utils import (
     get_build_context,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
-
+from test_utils.pytest_cache import PytestCache
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -243,13 +242,16 @@ def build_bai_docker_container():
 def main():
     # Define constants
     start_time = datetime.now()
+    pytest_cache_util = PytestCache(boto3.client("s3"))
     test_type = os.getenv("TEST_TYPE")
 
     efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
+    commit_id = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION', default="non_recognised_commit_id")
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
+    framework, version = get_framework_and_version_from_tag(all_image_list[0])
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
     # Do not create EKS cluster for when EIA Only Images are present
     is_all_images_list_eia = all("eia" in image_uri for image_uri in all_image_list)
@@ -293,6 +295,7 @@ def main():
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
         os.chdir(os.path.join("test", "dlc_tests"))
+        pytest_cache_util.download_pytect_cache(os.getcwd(), commit_id, framework, version)
 
         # Pull images for necessary tests
         if specific_test_type == "sanity":
@@ -334,17 +337,6 @@ def main():
             pytest_cmds = [
                 ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
             ]
-        os.makedirs(f"{os.curdir}/.pytest_cache/v/cache", exist_ok=True)
-        commit_id = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION', default="non_recognised_commit_id")
-        framework, version = get_framework_and_version_from_tag(all_image_list[0])
-        LOGGER.info(f"Downloading previous executions cache: {commit_id}/{framework}/{version}/lastfailed")
-        s3 = boto3.client("s3")
-        try:
-            s3.download_file('dlc-test-execution-results-669063966089',
-                         f"{commit_id}/{framework}/{version}/lastfailed",
-                         f"{os.curdir}/.pytest_cache/v/cache/lastfailed")
-        except Exception as e:
-            LOGGER.info(f"Cache file wasn't downloaded: {e}")
 
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
@@ -355,17 +347,6 @@ def main():
             else:
                 raise RuntimeError(pytest_cmds)
         finally:
-            if os.path.exists(f"{os.curdir}/.pytest_cache/v/cache/lastfailed"):
-                LOGGER.info(f"Uploading current execution result for commit: {commit_id}")
-                try:
-                    s3.upload_file(f"{os.curdir}/.pytest_cache/v/cache/lastfailed",
-                               "dlc-test-execution-results-669063966089",
-                               f"{commit_id}/{framework}/{version}/lastfailed")
-                    LOGGER.info(f"Cache file uploaded")
-                except Exception as e:
-                    LOGGER.info(f"Cache file wasn't uploaded because of error: {e}")
-            else:
-                LOGGER.info(f"No cache file was created")
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
@@ -379,6 +360,9 @@ def main():
                 return
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
             os.chdir(os.path.join("test", "dlc_tests"))
+            # I don't understand the purpouse of that ^^^ chdir here, 
+            # so I'm not sure if we need one more call of download_pytect_cache() 
+            # pytest_cache_util.download_pytect_cache(os.getcwd(), commit_id, framework, version)
 
             setup_sm_benchmark_env(dlc_images, test_path)
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
@@ -420,6 +404,7 @@ def main():
         raise NotImplementedError(
             f"{test_type} test is not supported. Only support ec2, ecs, eks, sagemaker and sanity currently"
         )
+    pytest_cache_util.upload_pytect_cache(os.getcwd(), commit_id, framework, version)
 
 
 if __name__ == "__main__":

@@ -291,7 +291,7 @@ def execute_local_tests(image):
             # causes an issue with fabric ec2_connection
             if framework == "mxnet" and job_type == "training" and "cpu" in image:
                 try:
-                    ec2_conn.run("pytest --cache-show", timeout=1000, warn=True)
+                    ec2_conn.run(pytest_command, timeout=1000, warn=True)
                 except exceptions.CommandTimedOut as exc:
                     print(f"Ec2 connection timed out for {image}, {exc}")
                 finally:
@@ -305,7 +305,7 @@ def execute_local_tests(image):
                     if 'failures="0"' not in str(output):
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
-                ec2_conn.run("pytest --cache-show")
+                ec2_conn.run(pytest_command)
                 print(f"Downloading Test reports for image: {image}")
                 ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
     finally:
