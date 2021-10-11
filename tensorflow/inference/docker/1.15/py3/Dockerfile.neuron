@@ -129,7 +129,7 @@ RUN ${PIP} install --no-cache-dir -U \
     gunicorn==20.0.4 \
     gevent==1.4.0 \
     requests==2.22.0 \
-    grpcio==1.24.1 \
+    grpcio==1.34.1 \
     protobuf==3.10.0 \
     gast==0.2.2 \
     "awscli<2"
