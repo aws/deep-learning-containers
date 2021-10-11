@@ -47,7 +47,7 @@ UL_AMI_LIST = [
 ]
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
-NEURON_AL2_DLAMI = "ami-092059396c7e51f52"
+NEURON_AL2_DLAMI = "ami-03c4cdc89eca4dbcb"
 
 DLAMI_PYTHON_MAPPING = {
     UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
@@ -268,7 +268,7 @@ def is_rc_test_context():
 
 
 def is_diy_image(image_uri):
-    return "-diy" in image_uri
+    return "-ec2-ecs-eks" in image_uri
 
 
 def is_sagemaker_image(image_uri):
@@ -460,7 +460,7 @@ def request_pytorch_inference_densenet(
 
 
 @retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
-def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"):
+def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501", inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
     :param model_name:
@@ -469,7 +469,6 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
     :connection: ec2_connection object to run the commands remotely over ssh
     :return:
     """
-    inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"
     run_out = run(
         f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
     )
