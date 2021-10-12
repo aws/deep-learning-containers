@@ -158,9 +158,9 @@ RUN mkdir -p ${MODEL_BASE_PATH}
 
 # Create a script that runs the model server so we can use environment variables
 # while also passing in arguments from the docker command line
-RUN echo '#!/bin/bash \n\n' > /usr/bin/tf_serving_entrypoint.sh \
+RUN echo '#!/bin/bash \n\n' > /usr/local/bin/entrypoint.sh \
  && echo '/usr/local/bin/tensorflow_model_server_neuron --port=8500 --rest_api_port=8501 --model_name=${MODEL_NAME} --model_base_path=${MODEL_BASE_PATH}/${MODEL_NAME} "$@"' >> /usr/bin/tf_serving_entrypoint.sh \
- && chmod +x /usr/bin/tf_serving_entrypoint.sh
+ && chmod +x /usr/local/bin/entrypoint.sh
 
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -180,11 +180,9 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /li
 
 COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY neuron-start.sh /usr/local/bin/neuron-start.sh
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 RUN chmod +x /usr/local/bin/neuron-start.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["/usr/bin/tf_serving_entrypoint.sh"]
+CMD ["/usr/local/bin/entrypoint.sh"]
