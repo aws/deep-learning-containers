@@ -326,7 +326,7 @@ def execute_sagemaker_remote_tests(image):
     with context.cd(path):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
-            # context.run("pip install -r requirements.txt", warn=True)
+            context.run("pip install -r requirements.txt", warn=True)
             context.run("mkdir -p /.pytest_cache && mkdir -p /.pytest_cache/v && mkdir -p /.pytest_cache/v/cache")
             s3 = boto3.client("s3")
             s3.download_file('dlc-test-execution-results-669063966089', 'lastfailed', '/.pytest_cache/v/cache/lastfailed')
