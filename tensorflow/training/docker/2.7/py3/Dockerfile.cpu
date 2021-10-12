@@ -28,7 +28,7 @@ ARG PYTHON_VERSION=3.8.2
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 
-ARG TF_URL=s3://framework-binaries/tensorflow/r2.7_aws/cpu/tensorflow-2.7.0rc0-cp38-cp38-linux_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.7_aws/cpu/tensorflow-2.7.0rc0-cp38-cp38-linux_x86_64.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
@@ -110,8 +110,10 @@ RUN apt-get update \
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
- && ./configure && make && make install \
- && make && make install && rm -rf ../Python-$PYTHON_VERSION*
+ && ./configure \
+ && make -j $(nproc) \
+ && make install \ 
+ && rm -rf ../Python-$PYTHON_VERSION*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
@@ -125,7 +127,7 @@ RUN apt-get update && apt-get -y install protobuf-compiler
 
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
-RUN ${PIP} install --no-cache-dir -U \
+RUN ${PIP} install --no-cache-dir -U \ 
     pybind11 \
     cmake==3.18.2.post1 \
     numpy==1.19.5 \
@@ -147,10 +149,10 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    tensorflow-io \
+    #tensorflow-io \ # dependencies conflict with tf2.7
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
-    horovod==0.22.1 \
+    horovod \ 
     werkzeug==1.0.1 \
     psutil==5.7.2 \
     smdebug==${SMDEBUG_VERSION} \
