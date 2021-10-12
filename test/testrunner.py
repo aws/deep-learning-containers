@@ -392,6 +392,7 @@ def main():
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
             if not is_pr_context():
                 pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
+                pytest_cmd += ["--last-failed", "--last-failed-no-failures", "all"]
             pytest_cache_util.download_pytect_cache(os.getcwd(), **pytest_cache_params)
             sys.exit(pytest.main(pytest_cmd))
             pytest_cache_util.upload_pytest_cache(os.getcwd(), **pytest_cache_params)
