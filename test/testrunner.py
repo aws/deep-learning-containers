@@ -251,13 +251,16 @@ def main():
     commit_id = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION', default="non_recognised_commit_id")
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
-    framework, version = get_framework_and_version_from_tag(all_image_list[0])
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
     # Do not create EKS cluster for when EIA Only Images are present
     is_all_images_list_eia = all("eia" in image_uri for image_uri in all_image_list)
     eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
+    try:
+        framework, version = get_framework_and_version_from_tag(all_image_list[0])
+    except:
+        framework, version = "none", "none"
 
     # In PR context, allow us to switch sagemaker tests to RC tests.
     # Do not allow them to be both enabled due to capacity issues.
