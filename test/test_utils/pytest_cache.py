@@ -11,9 +11,9 @@ class PytestCache:
     def __init__(self, s3_client):
         self.s3_client = s3_client
 
-    def download_pytest_cache(self, current_dir, commit_id, framework, version, build_context, specific_test_type):
+    def download_pytest_cache(self, current_dir, commit_id, framework, version, build_context, test_type):
         local_file_path = f"{current_dir}/.pytest_cache/v/cache"
-        s3_file_path = self.make_s3_path(commit_id, framework, version, build_context, specific_test_type)
+        s3_file_path = self.make_s3_path(commit_id, framework, version, build_context, test_type)
         if os.path.exists(f"{local_file_path}/lastfailed"):
             os.remove(f"{local_file_path}/lastfailed")
         else:
@@ -27,9 +27,9 @@ class PytestCache:
         except Exception as e:
             LOGGER.info(f"Cache file wasn't downloaded: {e}")
 
-    def upload_pytest_cache(self, current_dir, commit_id, framework, version, build_context, specific_test_type):
+    def upload_pytest_cache(self, current_dir, commit_id, framework, version, build_context, test_type):
         local_file_path = f"{current_dir}/.pytest_cache/v/cache"
-        s3_file_path = self.make_s3_path(commit_id, framework, version, build_context, specific_test_type)
+        s3_file_path = self.make_s3_path(commit_id, framework, version, build_context, test_type)
         if os.path.exists(f"{local_file_path}/lastfailed"):
             LOGGER.info(f"Uploading current execution result to {s3_file_path}/lastfailed")
             try:
