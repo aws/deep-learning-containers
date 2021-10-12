@@ -305,6 +305,8 @@ def show_build_info(images):
         with open(f"logs/{image_description}", "w") as fp:
             fp.write("/n".join(flattened_logs))
             image.summary["log"] = f"logs/{image_description}"
+        #TODO: temp change, to be reverted before PR merge
+        FORMATTER.print_lines("/n".join(flattened_logs))
         FORMATTER.table(image.summary.items())
 
         FORMATTER.title(f"Ending Logs for {image_description}")
