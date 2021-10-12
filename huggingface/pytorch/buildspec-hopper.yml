@@ -43,5 +43,5 @@ images:
         VAR_IN_DOCKERFILE: TORCHVISION_URL
       huggingface_transformers_whl:
         type: s3
-        URI: s3://hf-transformers/2021-09-29_11:00:00/wheels/transformers-4.10.2-py2.py3-none-any.whl
+        URI: s3://hf-transformers/2021-10-08_21:35:40/wheels/transformers-4.10.2-py2.py3-none-any.whl
         VAR_IN_DOCKERFILE: HF_TRANSFORMERS_URL
