@@ -19,7 +19,6 @@ from test_utils import sagemaker as sm_utils
 from test_utils import metrics as metrics_utils
 from test_utils import (
     get_dlc_images,
-    get_framework_and_version_from_tag,
     is_pr_context,
     is_benchmark_dev_context,
     is_rc_test_context,
@@ -37,9 +36,10 @@ from test_utils.pytest_cache import PytestCache
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+pytest_cache_util = PytestCache(boto3.client("s3"))
 
 
-def run_sagemaker_local_tests(images):
+def run_sagemaker_local_tests(images, pytest_cache_params):
     """
     Function to run the SageMaker Local tests
     :param images: <list> List of all images to be used in SageMaker tests
@@ -57,11 +57,16 @@ def run_sagemaker_local_tests(images):
     run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
 
     pool_number = len(images)
-    with Pool(pool_number) as p:
-        p.map(sm_utils.execute_local_tests, images)
+    pytest_cache_util.download_pytest_cache(os.getcwd(), **pytest_cache_params)
+
+    try:
+        with Pool(pool_number) as p:
+            p.map(sm_utils.execute_local_tests, images)
+    finally:
+        pytest_cache_util.upload_pytest_cache(os.getcwd(), **pytest_cache_params)
 
 
-def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
+def run_sagemaker_test_in_executor(image, num_of_instances, instance_type, pytest_cache_params):
     """
     Run pytest in a virtual env for a particular image
 
@@ -85,8 +90,10 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
             context.run(f"python3 -m virtualenv {tag}")
             with context.prefix(f"source {tag}/bin/activate"):
                 context.run("pip install -r requirements.txt", warn=True)
+                pytest_cache_util.download_pytest_cache(os.getcwd(), **pytest_cache_params)
                 context.run(pytest_command)
     except Exception as e:
+        pytest_cache_util.upload_pytest_cache(os.getcwd(), **pytest_cache_params)
         LOGGER.error(e)
         return False
 
@@ -144,7 +151,7 @@ def send_scheduler_requests(requester, image):
             break
 
 
-def run_sagemaker_remote_tests(images):
+def run_sagemaker_remote_tests(images, pytest_cache_params):
     """
     Function to set up multiprocessing for SageMaker tests
     :param images: <list> List of all images to be used in SageMaker tests
@@ -186,8 +193,12 @@ def run_sagemaker_remote_tests(images):
         if not images:
             return
         pool_number = len(images)
-        with Pool(pool_number) as p:
-            p.map(sm_utils.execute_sagemaker_remote_tests, images)
+        pytest_cache_util.download_pytest_cache(os.getcwd(), **pytest_cache_params)
+        try:
+            with Pool(pool_number) as p:
+                p.map(sm_utils.execute_sagemaker_remote_tests, images)
+        finally:
+            pytest_cache_util.upload_pytest_cache(os.getcwd(), **pytest_cache_params)
 
 
 def pull_dlc_images(images):
@@ -242,7 +253,6 @@ def build_bai_docker_container():
 def main():
     # Define constants
     start_time = datetime.now()
-    pytest_cache_util = PytestCache(boto3.client("s3"))
     test_type = os.getenv("TEST_TYPE")
 
     efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
@@ -257,10 +267,21 @@ def main():
     eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
+    build_context = get_build_context()
+
+    # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
         framework, version = get_framework_and_version_from_tag(all_image_list[0])
     except:
-        framework, version = "none", "none"
+        framework, version = "general_test", "none"
+
+    pytest_cache_params = {
+        "commit_id": commit_id,
+        "framework": framework,
+        "version": version,
+        "build_context": build_context,
+        "test_type": specific_test_type,
+    }
 
     # In PR context, allow us to switch sagemaker tests to RC tests.
     # Do not allow them to be both enabled due to capacity issues.
@@ -314,7 +335,6 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
-            build_context = get_build_context()
             eks_cluster_name = f"{framework}-{build_context}"
             eks_utils.eks_setup()
             if eks_utils.is_eks_cluster_active(eks_cluster_name):
@@ -341,9 +361,9 @@ def main():
             ]
 
         pytest_cmds = [pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"] for pytest_cmd in pytest_cmds]
+        pytest_cache_util.download_pytest_cache(os.getcwd(), **pytest_cache_params)
         try:
-            pytest_cache_util.download_pytest_cache(os.getcwd(), commit_id, framework, version)
-            # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
+        # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
             if all([status == 0 for status in cmd_exit_statuses]):
@@ -351,7 +371,7 @@ def main():
             else:
                 raise RuntimeError(pytest_cmds)
         finally:
-            pytest_cache_util.upload_pytest_cache(os.getcwd(), commit_id, framework, version)
+            pytest_cache_util.upload_pytest_cache(os.getcwd(), **pytest_cache_params)
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
@@ -367,13 +387,14 @@ def main():
             os.chdir(os.path.join("test", "dlc_tests"))
             # I don't understand the purpouse of that ^^^ chdir here, 
             # so I'm not sure if we need one more call of download_pytect_cache() 
-            # pytest_cache_util.download_pytect_cache(os.getcwd(), commit_id, framework, version)
 
             setup_sm_benchmark_env(dlc_images, test_path)
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
             if not is_pr_context():
                 pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
+            pytest_cache_util.download_pytect_cache(os.getcwd(), **pytest_cache_params)
             sys.exit(pytest.main(pytest_cmd))
+            pytest_cache_util.upload_pytest_cache(os.getcwd(), **pytest_cache_params)
 
         else:
             run_sagemaker_remote_tests(
@@ -384,7 +405,8 @@ def main():
                         ("tensorflow-inference" in image and "py2" in image)
                         or is_diy_image(image)
                     )
-                ]
+                ],
+                pytest_cache_params
             )
         metrics_utils.send_test_duration_metrics(start_time)
 
@@ -400,7 +422,7 @@ def main():
             for image in standard_images_list
             if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or (is_diy_image(image)))
         ]
-        run_sagemaker_local_tests(testing_image_list)
+        run_sagemaker_local_tests(testing_image_list, pytest_cache_params)
         # for EIA Images
         if len(testing_image_list) == 0:
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")

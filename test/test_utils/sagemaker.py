@@ -22,9 +22,6 @@ from test_utils import (
     get_python_invoker,
     is_pr_context,
     SAGEMAKER_EXECUTION_REGIONS,
-)
-
-from test_utils import (
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
     SAGEMAKER_LOCAL_TEST_TYPE,
@@ -327,10 +324,7 @@ def execute_sagemaker_remote_tests(image):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
-            context.run("mkdir -p /.pytest_cache && mkdir -p /.pytest_cache/v && mkdir -p /.pytest_cache/v/cache")
-            s3 = boto3.client("s3")
-            s3.download_file('dlc-test-execution-results-669063966089', 'lastfailed', '/.pytest_cache/v/cache/lastfailed')
-            res = context.run("pytest --cache-show", warn=True)
+            res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
             if res.failed:
                 raise DLCSageMakerRemoteTestFailure(
