@@ -32,7 +32,6 @@ from test_utils import (
     get_build_context,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
-from test_utils.pytest_cache import PytestCache
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
