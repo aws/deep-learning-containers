@@ -32,6 +32,7 @@ from test_utils import (
     get_build_context,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
+from test_utils.pytest_cache import PytestCache
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -237,33 +238,11 @@ def build_bai_docker_container():
     with ctx.cd(docker_dir):
         ctx.run("docker build -t bai_env_container -f Dockerfile .")
 
-    def download_pytest_cache(current_dir, commit_id, framework, version):
-        os.makedirs(f"{current_dir}/.pytest_cache/v/cache", exist_ok=True)
-        LOGGER.info(f"Downloading previous executions cache: {commit_id}/{framework}/{version}/lastfailed")
-        try:
-            boto3.client("s3").download_file('dlc-test-execution-results-669063966089',
-                                             f"{commit_id}/{framework}/{version}/lastfailed",
-                                             f"{os.curdir}/.pytest_cache/v/cache/lastfailed")
-        except Exception as e:
-            LOGGER.info(f"Cache file wasn't downloaded: {e}")
-
-    def upload_pytest_cache(self, current_dir, commit_id, framework, version):
-        if os.path.exists(f"{current_dir}/.pytest_cache/v/cache/lastfailed"):
-            LOGGER.info(f"Uploading current execution result for commit: {commit_id}")
-            try:
-                boto3.client("s3").upload_file(f"{os.curdir}/.pytest_cache/v/cache/lastfailed",
-                                               "dlc-test-execution-results-669063966089",
-                                               f"{commit_id}/{framework}/{version}/lastfailed")
-                LOGGER.info(f"Cache file uploaded")
-            except Exception as e:
-                LOGGER.info(f"Cache file wasn't uploaded because of error: {e}")
-        else:
-            LOGGER.info(f"No cache file was created")
-
 
 def main():
     # Define constants
     start_time = datetime.now()
+    pytest_cache_util = PytestCache(boto3.client("s3"))
     test_type = os.getenv("TEST_TYPE")
 
     efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
@@ -316,7 +295,6 @@ def main():
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
         os.chdir(os.path.join("test", "dlc_tests"))
-        download_pytest_cache(os.getcwd(), commit_id, framework, version)
 
         # Pull images for necessary tests
         if specific_test_type == "sanity":
@@ -359,7 +337,9 @@ def main():
                 ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
             ]
 
+        pytest_cmds = [pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"] for pytest_cmd in pytest_cmds]
         try:
+            pytest_cache_util.download_pytest_cache(os.getcwd(), commit_id, framework, version)
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
@@ -368,6 +348,7 @@ def main():
             else:
                 raise RuntimeError(pytest_cmds)
         finally:
+            pytest_cache_util.upload_pytest_cache(os.getcwd(), commit_id, framework, version)
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
@@ -425,7 +406,6 @@ def main():
         raise NotImplementedError(
             f"{test_type} test is not supported. Only support ec2, ecs, eks, sagemaker and sanity currently"
         )
-    upload_pytest_cache(os.getcwd(), commit_id, framework, version)
 
 
 if __name__ == "__main__":
