@@ -24,6 +24,7 @@ datetime_tag = true
 do_build = true
 
 [test]
+### On by default
 sanity_tests = true
   safety_check_test = false
 ecs_tests = true
