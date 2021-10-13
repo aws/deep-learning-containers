@@ -143,6 +143,8 @@ IGNORE_SAFETY_IDS = {
                 # 40794, 40795: TF 1.15.5 is the last available version of TF 1
                 "40794",
                 "40795",
+                "42098",
+                "42062",
             ]
         },
     },
