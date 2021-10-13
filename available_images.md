@@ -180,6 +180,10 @@ Prior General Framework Container Versions
 |PyTorch 1.8.1      |training	|No				|CPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.8.1-cpu-py36-ubuntu18.04			|
 |PyTorch 1.8.1      |inference	|No			|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.8.1-gpu-py36-cu111-ubuntu18.04	|
 |PyTorch 1.8.1      |inference	|No				|CPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.8.1-cpu-py36-ubuntu18.04		 |
+|PyTorch 1.7.1      |training	|Yes			|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.7.1-gpu-py36-cu110-ubuntu18.04		|
+|PyTorch 1.7.1      |training	|No				|CPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.7.1-cpu-py36-ubuntu18.04			|
+|PyTorch 1.7.1      |inference	|No			|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.7.1-gpu-py36-cu110-ubuntu18.04		|
+|PyTorch 1.7.1      |inference	|No				|CPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.7.1-cpu-py36-ubuntu18.04			|
 |TensorFlow 2.3.2   |training	|Yes			|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.3.2-cpu-py37-ubuntu18.04		|
 |TensorFlow 2.3.2   |training	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.3.2-gpu-py37-cu110-ubuntu18.04	|
 |TensorFlow 2.3.2   |training	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.3.2-gpu-py37-cu102-ubuntu18.04	|
