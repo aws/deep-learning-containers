@@ -90,6 +90,7 @@ RUN apt-get update \
     unzip \
     zlib1g-dev \
     jq \
+    && apt-get install -y -qq libkrb5-dev \
     && apt-get install -y -qq libsasl2-dev libsasl2-modules \
     && apt-get install -y -qq krb5-user \
  && rm -rf /var/lib/apt/lists/*
