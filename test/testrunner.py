@@ -61,7 +61,7 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
 
     try:
         with Pool(pool_number) as p:
-            p.map(sm_utils.execute_local_tests, images)
+            p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images])
     finally:
         pytest_cache_util.upload_pytest_cache(os.getcwd(), **pytest_cache_params)
 

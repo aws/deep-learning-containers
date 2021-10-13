@@ -1,3 +1,4 @@
+import json
 import os
 import logging
 import sys
@@ -22,25 +23,81 @@ class PytestCache:
         LOGGER.info(f"Downloading previous executions cache: {s3_file_path}/lastfailed")
         try:
             self.s3_client.download_file('dlc-test-execution-results-669063966089',
-                                             f"{s3_file_path}/lastfailed",
-                                             f"{local_file_path}/lastfailed")
+                                         f"{s3_file_path}/lastfailed",
+                                         f"{local_file_path}/lastfailed")
         except Exception as e:
             LOGGER.info(f"Cache file wasn't downloaded: {e}")
+
+    def download_pytest_cache_from_s3_to_ec2(self, ec2_connection, path, commit_id, framework, version, build_context,
+                                             test_type):
+        file_path = f"{path}/.pytest_cache/v/cache"
+        s3_file_path = self.make_s3_path(commit_id, framework, version, build_context, test_type)
+        with ec2_connection.cd(path):
+            ec2_connection.run("mkdir -p /.pytest_cache && "
+                               "mkdir -p /.pytest_cache/v && "
+                               "mkdir -p /.pytest_cache/v/cache && "
+                               "rm -f /.pytest_cache/v/cache/lastfailed")
+
+            LOGGER.info(f"Downloading previous executions cache: {s3_file_path}/lastfailed")
+            try:
+                self.s3_client.download_file('dlc-test-execution-results-669063966089',
+                                             f"{s3_file_path}/lastfailed",
+                                             "lastfailed")
+                ec2_connection.put("lastfailed", f"{file_path}")
+            except Exception as e:
+                LOGGER.info(f"Cache file wasn't downloaded: {e}")
+
+    def upload_pytest_cache_from_ec2_to_s3(self,
+                                           ec2_connection,
+                                           path,
+                                           commit_id,
+                                           framework,
+                                           version,
+                                           build_context,
+                                           test_type):
+        ec2_path = f"{path}/.pytest_cache/v/cache"
+        s3_file_path = self.make_s3_path(commit_id, framework, version, build_context, test_type)
+        LOGGER.info(f"Downloading executions cache from ec2 instance")
+        try:
+            ec2_connection.get(f"{ec2_path}/lastfailed", "tmp")
+        except Exception as e:
+            LOGGER.info(f"Cache file wasn't downloaded: {e}")
+
+        if os.path.exists(f"tmp"):
+            with open("tmp") as tmp:
+                tmp_results = json.load(tmp)
+            if os.path.exists(f"lastfailed"):
+                with open("lastfailed") as l:
+                    lastfailed = json.load(l)
+            else:
+                lastfailed = {}
+            lastfailed.update(tmp_results)
+            with open("lastfailed", "w") as f:
+                f.write(json.dumps(lastfailed))
+
+        self.upload_to_s3("lastfailed", f"{s3_file_path}/lastfailed")
 
     def upload_pytest_cache(self, current_dir, commit_id, framework, version, build_context, test_type):
         local_file_path = f"{current_dir}/.pytest_cache/v/cache"
         s3_file_path = self.make_s3_path(commit_id, framework, version, build_context, test_type)
         if os.path.exists(f"{local_file_path}/lastfailed"):
-            LOGGER.info(f"Uploading current execution result to {s3_file_path}/lastfailed")
+            self.upload_to_s3(
+                f"{local_file_path}/lastfailed",
+                f"{s3_file_path}/lastfailed"
+            )
+
+    def make_s3_path(self, commit_id, framework, version, build_context, specific_test_type):
+        return f"{commit_id}/{framework}/{version}/{build_context}/{specific_test_type}"
+
+    def upload_to_s3(self, local_file, s3_file):
+        if os.path.exists(f"{local_file}/lastfailed"):
+            LOGGER.info(f"Uploading current execution result to {s3_file}")
             try:
-                self.s3_client.upload_file(f"{local_file_path}/lastfailed",
-                                               "dlc-test-execution-results-669063966089",
-                                               f"{s3_file_path}/lastfailed")
+                self.s3_client.upload_file(local_file,
+                                           "dlc-test-execution-results-669063966089",
+                                           s3_file)
                 LOGGER.info(f"Cache file uploaded")
             except Exception as e:
                 LOGGER.info(f"Cache file wasn't uploaded because of error: {e}")
         else:
             LOGGER.info(f"No cache file was created")
-
-    def make_s3_path(self, commit_id, framework, version, build_context, specific_test_type):
-        return f"{commit_id}/{framework}/{version}/{build_context}/{specific_test_type}"
