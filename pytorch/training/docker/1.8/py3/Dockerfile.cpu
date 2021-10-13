@@ -12,6 +12,9 @@ ARG OPEN_MPI_VERSION=4.0.1
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=1.0.9
 
+# disable prompts during package installation
+ARG DEBIAN_FRONTEND=noninteractive
+
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -71,8 +74,8 @@ ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 # Copy workaround script for incorrect hostname
-COPY changehostname.c /
-COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+#COPY changehostname.c /
+#COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
@@ -145,10 +148,10 @@ RUN pip install --no-cache-dir -U \
 RUN pip install -U ${PT_S3_WHL}
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+#COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
-RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
- && chmod +x /usr/local/bin/deep_learning_container.py
+#RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
+ #&& chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
