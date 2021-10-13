@@ -184,6 +184,7 @@ class DockerImage:
             labels=self.labels,
         ):
             if line.get("error") is not None:
+                LOGGER.info(line["error"])
                 response.append(line["error"])
                 self.log.append(response)
                 self.build_status = constants.FAIL
@@ -197,8 +198,10 @@ class DockerImage:
                 return self.build_status
 
             if line.get("stream") is not None:
+                LOGGER.info(line["stream"])
                 response.append(line["stream"])
             elif line.get("status") is not None:
+                LOGGER.info(line["status"])
                 response.append(line["status"])
             else:
                 response.append(str(line))
