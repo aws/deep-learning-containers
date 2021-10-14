@@ -56,23 +56,18 @@ class PytestCache:
         LOGGER.info(f"Downloading executions cache from ec2 instance")
         try:
             ec2_connection.get(f"{ec2_path}/lastfailed", "tmp")
+            with open("tmp") as tmp:
+                print("tmp: " + tmp.read())
         except Exception as e:
             LOGGER.info(f"Cache file wasn't downloaded: {e}")
 
-        if os.path.exists(f"tmp"):
-            with open("tmp") as tmp:
-                tmp_results = json.load(tmp)
-            if os.path.exists(f"lastfailed"):
-                with open("lastfailed") as l:
-                    lastfailed = json.load(l)
-            else:
-                lastfailed = {}
-            lastfailed.update(tmp_results)
-            with open("lastfailed", "w") as f:
-                f.write(json.dumps(lastfailed))
+        self.merge_2_execution_caches_and_save("tmp", "lastfailed", "lastfailed")
 
         self.upload_to_s3("lastfailed", f"{s3_file_path}/lastfailed")
 
+        with open("lastfailed") as tmp:
+            print("lastfailed: " + tmp.read())
+    
     def upload_pytest_cache(self, current_dir, commit_id, framework, version, build_context, test_type):
         local_file_path = f"{current_dir}/.pytest_cache/v/cache"
         s3_file_path = self.make_s3_path(commit_id, framework, version, build_context, test_type)
@@ -127,18 +122,21 @@ class PytestCache:
         else:
             LOGGER.info(f"No cache file was created")
 
-    def merge_2_execution_caches(self, a, b, result):
-        if os.path.exists(a):
+    def merge_2_execution_caches_and_save(self, a, b, save_to):
+        if self.is_file_exist_and_not_empty(a):
             with open(a) as tmp1:
                 json1 = json.load(tmp1)
         else:
             json1 = {}
-        if os.path.exists(b):
+        if self.is_file_exist_and_not_empty(b):
             with open(b) as tmp2:
                 json2 = json.load(tmp2)
         else:
             json2 = {}
 
         merged_json = {**json1, **json2}
-        with open(result, "w") as f:
+        with open(save_to, "w") as f:
             f.write(json.dumps(merged_json))
+
+    def is_file_exist_and_not_empty(self, file_path):
+        return os.path.exists(file_path) and os.stat(file_path).st_size != 0

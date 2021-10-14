@@ -309,12 +309,10 @@ def execute_local_tests(image, pytest_cache_params):
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
                 ec2_conn.run(pytest_command)
-                ec2_conn.run("pytest --cache-show")
                 print(f"Downloading Test reports for image: {image}")
                 ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
     finally:
         with ec2_conn.cd(path):
-            ec2_conn.run("pytest --cache-show")
             pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, **pytest_cache_params)
         print(f"Terminating Instances for image: {image}")
         ec2_utils.terminate_instance(instance_id, region)
