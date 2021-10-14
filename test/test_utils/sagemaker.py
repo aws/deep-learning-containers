@@ -246,12 +246,14 @@ def kill_background_processes_and_run_apt_get_update(ec2_conn):
     return
 
 
-def execute_local_tests(image, s3_file_path):
+def execute_local_tests(obj):
     """
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
     :return: None
     """
+    image = obj["image"]
+    s3_file_path = obj["image"]
     ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
     pytest_command += " --last-failed --last-failed-no-failures all "

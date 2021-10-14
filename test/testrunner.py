@@ -59,7 +59,7 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
     pool_number = len(images)
     s3_file_path = pytest_cache_util.make_s3_path(**pytest_cache_params)
     with Pool(pool_number) as p:
-        p.starmap(sm_utils.execute_local_tests, [[image, s3_file_path] for image in images])
+        p.map(sm_utils.execute_local_tests, [{"image": image, "s3_file_path": s3_file_path} for image in images])
 
 
 def run_sagemaker_test_in_executor(image, num_of_instances, instance_type, pytest_cache_params):
@@ -293,14 +293,14 @@ def main():
         return
 
     if specific_test_type in (
-        "sanity",
-        "ecs",
-        "ec2",
-        "eks",
-        "canary",
-        "bai",
-        "quick_checks",
-        "release_candidate_integration",
+            "sanity",
+            "ecs",
+            "ec2",
+            "eks",
+            "canary",
+            "bai",
+            "quick_checks",
+            "release_candidate_integration",
     ):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
@@ -355,7 +355,7 @@ def main():
         pytest_cmds = [pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"] for pytest_cmd in pytest_cmds]
         pytest_cache_util.download_pytest_cache(os.getcwd(), **pytest_cache_params)
         try:
-        # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
+            # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
             if all([status == 0 for status in cmd_exit_statuses]):
@@ -397,7 +397,7 @@ def main():
                     if not (
                         ("tensorflow-inference" in image and "py2" in image)
                         or is_diy_image(image)
-                    )
+                )
                 ],
                 pytest_cache_params
             )
