@@ -5,7 +5,7 @@ import logging
 import re
 
 from junit_xml import TestSuite, TestCase
-from multiprocessing import Pool
+from multiprocessing.dummy import Pool
 from datetime import datetime
 
 import boto3
@@ -57,9 +57,8 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
     run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
 
     pool_number = len(images)
-    s3_file_path = pytest_cache_util.make_s3_path(**pytest_cache_params)
     with Pool(pool_number) as p:
-        p.map(sm_utils.execute_local_tests, [{"image": image, "s3_file_path": s3_file_path} for image in images])
+        p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images])
 
 
 def run_sagemaker_test_in_executor(image, num_of_instances, instance_type, pytest_cache_params):

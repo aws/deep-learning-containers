@@ -246,14 +246,14 @@ def kill_background_processes_and_run_apt_get_update(ec2_conn):
     return
 
 
-def execute_local_tests(obj):
+def execute_local_tests(image, pytest_cache_params):
     """
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
     :return: None
     """
-    image = obj["image"]
-    s3_file_path = obj["image"]
+    print(image)
+    print(pytest_cache_params)
     ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
     pytest_command += " --last-failed --last-failed-no-failures all "
@@ -288,7 +288,7 @@ def execute_local_tests(obj):
         kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
             install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id)
-            pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, s3_file_path)
+            pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
             if framework == "mxnet" and job_type == "training" and "cpu" in image:
@@ -304,12 +304,12 @@ def execute_local_tests(obj):
                                      os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
                     output = subprocess.check_output(f"cat test/{job_type}_{tag}_sm_local.xml", shell=True,
                                                      executable="/bin/bash")
-                    pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn_new, path, s3_file_path)
+                    pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn_new, path, **pytest_cache_params)
                     if 'failures="0"' not in str(output):
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
                 ec2_conn.run(pytest_command)
-                pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, s3_file_path)
+                pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, **pytest_cache_params)
                 print(f"Downloading Test reports for image: {image}")
                 ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
     finally:
@@ -317,6 +317,7 @@ def execute_local_tests(obj):
         ec2_utils.terminate_instance(instance_id, region)
         print(f"Destroying ssh Key_pair for image: {image}")
         destroy_ssh_keypair(ec2_client, ec2_key_name)
+        return None
 
 
 def execute_sagemaker_remote_tests(image, pytest_cache_params):
