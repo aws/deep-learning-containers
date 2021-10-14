@@ -32,20 +32,19 @@ class PytestCache:
                                              test_type):
         file_path = f"{path}/.pytest_cache/v/cache"
         s3_file_path = self.make_s3_path(commit_id, framework, version, build_context, test_type)
-        with ec2_connection.cd(path):
-            ec2_connection.run("mkdir -p /.pytest_cache && "
-                               "mkdir -p /.pytest_cache/v && "
-                               "mkdir -p /.pytest_cache/v/cache && "
-                               "rm -f /.pytest_cache/v/cache/lastfailed")
+        ec2_connection.run("mkdir -p /.pytest_cache && "
+                           "mkdir -p /.pytest_cache/v && "
+                           "mkdir -p /.pytest_cache/v/cache && "
+                           "rm -f /.pytest_cache/v/cache/lastfailed")
 
-            LOGGER.info(f"Downloading previous executions cache: {s3_file_path}/lastfailed")
-            try:
-                self.s3_client.download_file('dlc-test-execution-results-669063966089',
-                                             f"{s3_file_path}/lastfailed",
-                                             "lastfailed")
-                ec2_connection.put("lastfailed", f"{file_path}")
-            except Exception as e:
-                LOGGER.info(f"Cache file wasn't downloaded: {e}")
+        LOGGER.info(f"Downloading previous executions cache: {s3_file_path}/lastfailed")
+        try:
+            self.s3_client.download_file('dlc-test-execution-results-669063966089',
+                                         f"{s3_file_path}/lastfailed",
+                                         "lastfailed")
+            ec2_connection.put("lastfailed", f"{file_path}")
+        except Exception as e:
+            LOGGER.info(f"Cache file wasn't downloaded: {e}")
 
     def upload_pytest_cache_from_ec2_to_s3(self,
                                            ec2_connection,

@@ -57,13 +57,8 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
     run(f"tar -cz --exclude='*.pytest_cache' --exclude='__pycache__' -f {sm_tests_tar_name} {sm_tests_path}")
 
     pool_number = len(images)
-    pytest_cache_util.download_pytest_cache(os.getcwd(), **pytest_cache_params)
-
-    try:
-        with Pool(pool_number) as p:
-            p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images])
-    finally:
-        pytest_cache_util.upload_pytest_cache(os.getcwd(), **pytest_cache_params)
+    with Pool(pool_number) as p:
+        p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images])
 
 
 def run_sagemaker_test_in_executor(image, num_of_instances, instance_type, pytest_cache_params):
