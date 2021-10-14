@@ -252,8 +252,6 @@ def execute_local_tests(image, pytest_cache_params):
     :param image: ECR url
     :return: None
     """
-    print(image)
-    print(pytest_cache_params)
     ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
     pytest_command += " --last-failed --last-failed-no-failures all "
@@ -264,8 +262,10 @@ def execute_local_tests(image, pytest_cache_params):
     ec2_ami_id = UBUNTU_18_BASE_DLAMI_US_EAST_1 if region == "us-east-1" else UBUNTU_18_BASE_DLAMI_US_WEST_2
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
+    instance_id = ""
+    ec2_conn = None
+    key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
     try:
-        key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
         print(f"Launching new Instance for image: {image}")
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(
             image,
@@ -309,10 +309,13 @@ def execute_local_tests(image, pytest_cache_params):
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
                 ec2_conn.run(pytest_command)
-                pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, **pytest_cache_params)
+                ec2_conn.run("pytest --cache-show")
                 print(f"Downloading Test reports for image: {image}")
                 ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
     finally:
+        with ec2_conn.cd(path):
+            ec2_conn.run("pytest --cache-show")
+            pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, **pytest_cache_params)
         print(f"Terminating Instances for image: {image}")
         ec2_utils.terminate_instance(instance_id, region)
         print(f"Destroying ssh Key_pair for image: {image}")

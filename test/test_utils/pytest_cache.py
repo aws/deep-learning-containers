@@ -115,7 +115,7 @@ class PytestCache:
         return f"{commit_id}/{framework}/{version}/{build_context}/{test_type}"
 
     def upload_to_s3(self, local_file, s3_file):
-        if os.path.exists(f"{local_file}/lastfailed"):
+        if os.path.exists(f"{local_file}"):
             LOGGER.info(f"Uploading current execution result to {s3_file}")
             try:
                 self.s3_client.upload_file(local_file,
