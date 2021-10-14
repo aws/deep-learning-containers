@@ -28,10 +28,8 @@ class PytestCache:
         except Exception as e:
             LOGGER.info(f"Cache file wasn't downloaded: {e}")
 
-    def download_pytest_cache_from_s3_to_ec2(self, ec2_connection, path, commit_id, framework, version, build_context,
-                                             test_type):
+    def download_pytest_cache_from_s3_to_ec2(self, ec2_connection, path, s3_file_path):
         file_path = f"{path}/.pytest_cache/v/cache"
-        s3_file_path = self.make_s3_path(commit_id, framework, version, build_context, test_type)
         ec2_connection.run("mkdir -p /.pytest_cache && "
                            "mkdir -p /.pytest_cache/v && "
                            "mkdir -p /.pytest_cache/v/cache && "
@@ -85,6 +83,35 @@ class PytestCache:
                 f"{s3_file_path}/lastfailed"
             )
 
+    def append_lastailed_and_upload_pytest_cache_to_s3(self,
+                                                       local_path,
+                                                       commit_id,
+                                                       framework,
+                                                       version,
+                                                       build_context,
+                                                       test_type):
+        local_path = f"{local_path}/.pytest_cache/v/cache"
+        s3_file_path = self.make_s3_path(commit_id, framework, version, build_context, test_type)
+        LOGGER.info(f"Appending executions cache")
+        try:
+            ec2_connection.get(f"{local_path}/lastfailed", "tmp")
+        except Exception as e:
+            LOGGER.info(f"Cache file wasn't downloaded: {e}")
+
+        if os.path.exists(f"tmp"):
+            with open("tmp") as tmp:
+                tmp_results = json.load(tmp)
+            if os.path.exists(f"lastfailed"):
+                with open("lastfailed") as l:
+                    lastfailed = json.load(l)
+            else:
+                lastfailed = {}
+            lastfailed.update(tmp_results)
+            with open("lastfailed", "w") as f:
+                f.write(json.dumps(lastfailed))
+
+        self.upload_to_s3("lastfailed", f"{s3_file_path}/lastfailed")
+
     def make_s3_path(self, commit_id, framework, version, build_context, specific_test_type):
         return f"{commit_id}/{framework}/{version}/{build_context}/{specific_test_type}"
 
@@ -100,3 +127,19 @@ class PytestCache:
                 LOGGER.info(f"Cache file wasn't uploaded because of error: {e}")
         else:
             LOGGER.info(f"No cache file was created")
+
+    def merge_2_execution_caches(self, a, b, result):
+        if os.path.exists(a):
+            with open(a) as tmp1:
+                json1 = json.load(tmp1)
+        else:
+            json1 = {}
+        if os.path.exists(b):
+            with open(b) as tmp2:
+                json2 = json.load(tmp2)
+        else:
+            json2 = {}
+
+        merged_json = {**json1, **json2}
+        with open(result, "w") as f:
+            f.write(json.dumps(merged_json))

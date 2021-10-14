@@ -246,7 +246,7 @@ def kill_background_processes_and_run_apt_get_update(ec2_conn):
     return
 
 
-def execute_local_tests(image, pytest_cache_params):
+def execute_local_tests(image, s3_file_path):
     """
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
@@ -286,7 +286,7 @@ def execute_local_tests(image, pytest_cache_params):
         kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
             install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id)
-            pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
+            pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, s3_file_path)
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
             if framework == "mxnet" and job_type == "training" and "cpu" in image:
@@ -302,12 +302,12 @@ def execute_local_tests(image, pytest_cache_params):
                                      os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
                     output = subprocess.check_output(f"cat test/{job_type}_{tag}_sm_local.xml", shell=True,
                                                      executable="/bin/bash")
-                    pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn_new, path, **pytest_cache_params)
+                    pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn_new, path, s3_file_path)
                     if 'failures="0"' not in str(output):
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
                 ec2_conn.run(pytest_command)
-                pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, **pytest_cache_params)
+                pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, s3_file_path)
                 print(f"Downloading Test reports for image: {image}")
                 ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
     finally:
@@ -317,7 +317,7 @@ def execute_local_tests(image, pytest_cache_params):
         destroy_ssh_keypair(ec2_client, ec2_key_name)
 
 
-def execute_sagemaker_remote_tests(image):
+def execute_sagemaker_remote_tests(image, pytest_cache_params):
     """
     Run pytest in a virtual env for a particular image
     Expected to run via multiprocessing
