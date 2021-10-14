@@ -14,6 +14,9 @@ ARG CONDA_PREFIX=/opt/conda
 ARG METIS=metis-5.1.0
 ARG RMM_VERSION=0.15.0
 
+# disable prompts during package installation
+ARG DEBIAN_FRONTEND=noninteractive
+
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=1.0.9
@@ -87,6 +90,9 @@ RUN apt-get update \
     unzip \
     zlib1g-dev \
     jq \
+    && apt-get install -y -qq libkrb5-dev \
+    && apt-get install -y -qq libsasl2-dev libsasl2-modules \
+    && apt-get install -y -qq krb5-user \
  && rm -rf /var/lib/apt/lists/*
 
 RUN cd /tmp \
@@ -208,7 +214,14 @@ RUN pip install --no-cache-dir -U \
     "opencv-python>=4.3,<5" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
-    "shap>=0.39,<1"
+    "shap>=0.39,<1" \
+    "boto3>1.0,<2.0" \
+    "sasl<1" \
+    "thrift_sasl<1" \
+    "PyHive<1" \
+    "sparkmagic<1" \
+    "sagemaker-studio-sparkmagic-lib<1" \
+    "sagemaker-studio-analytics-extension==0.0.2"
 
 # install metis
 RUN wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
