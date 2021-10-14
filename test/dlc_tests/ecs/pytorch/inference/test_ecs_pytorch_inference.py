@@ -4,7 +4,7 @@ import test.test_utils.ecs as ecs_utils
 import test.test_utils.ec2 as ec2_utils
 from test.test_utils import request_pytorch_inference_densenet, get_framework_and_version_from_tag, get_inference_server_type
 from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2
-from test.test_utils import AML2_CPU_ARM64_US_WEST_2
+from test.test_utils import ECS_AML2_GRAVITON_CPU_USWEST2
 
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
@@ -28,7 +28,7 @@ def test_ecs_pytorch_inference_cpu(pytorch_inference, ecs_container_instance, re
 
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ecs_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ecs_ami", [AML2_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_GRAVITON_CPU_USWEST2], indirect=True)
 def test_ecs_pytorch_inference_graviton_cpu(pytorch_inference, ecs_container_instance, region, graviton_only):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
