@@ -59,6 +59,12 @@ def test_ec2_mxnet_squeezenet_inference_cpu(mxnet_inference, ec2_connection, reg
     run_ec2_mxnet_inference(mxnet_inference, SQUEEZENET_MODEL, "squeezenet", ec2_connection, "cpu", region, 80, 8081)
 
 
+@pytest.mark.model(SQUEEZENET_MODEL)
+@pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_ec2_mxnet_squeezenet_inference_graviton_cpu(mxnet_inference, ec2_connection, region, graviton_only):
+    run_ec2_mxnet_inference(mxnet_inference, SQUEEZENET_MODEL, "squeezenet", ec2_connection, "cpu", region, 80, 8081)
+
+
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.model(RESNET_EIA_MODEL)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
