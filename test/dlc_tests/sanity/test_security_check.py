@@ -93,6 +93,8 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
 
     remaining_vulnerabilities = ecr_image_vulnerability_list
 
+    # TODO: Once this feature is enabled, remove "if" condition and second assertion statement
+    # TODO: Ensure this works on the canary tags before removing feature flag
     if is_ecr_scan_allowlist_feature_enabled():
         image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
         image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
@@ -100,7 +102,13 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
             image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
         remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
 
-    assert not remaining_vulnerabilities, (
+        assert not remaining_vulnerabilities, (
+            f"The following vulnerabilities need to be fixed on {image}:\n"
+            f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
+        )
+        return
+
+    assert not remaining_vulnerabilities.vulnerability_list, (
         f"The following vulnerabilities need to be fixed on {image}:\n"
         f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
     )
