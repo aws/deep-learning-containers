@@ -12,6 +12,7 @@ from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
     CVESeverity, ScanVulnerabilityList, ECRScanFailureException, get_ecr_scan_allowlist_path
 )
+from src.config import is_ecr_scan_allowlist_feature_enabled
 
 
 MINIMUM_SEV_THRESHOLD = "HIGH"
@@ -87,15 +88,17 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
     run_scan(ecr_client, image)
     scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
 
-    image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
-    image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
-    if os.path.exists(image_scan_allowlist_path):
-        image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
-
     ecr_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
     ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
 
-    remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
+    remaining_vulnerabilities = ecr_image_vulnerability_list
+
+    if is_ecr_scan_allowlist_feature_enabled():
+        image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
+        image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
+        if os.path.exists(image_scan_allowlist_path):
+            image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
+        remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
 
     assert not remaining_vulnerabilities, (
         f"The following vulnerabilities need to be fixed on {image}:\n"
