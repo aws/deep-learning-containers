@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.1.1-base-ubuntu20.04
+FROM nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
 
 
 LABEL maintainer="Amazon AI"
@@ -15,7 +15,7 @@ ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/test/cu113/torchaudio-0.1
 
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.4.2
-ARG CUBLAS_VERSION=11.3.0.106
+ARG CUBLAS_VERSION=11.5.1.109
 
 ARG DEBIAN_FRONTEND=noninteractive
 # See http://bugs.python.org/issue19846
@@ -24,11 +24,11 @@ ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
-ENV CUDNN_VERSION=8.0.5.39
-ENV NCCL_VERSION=2.7.8
+ENV CUDNN_VERSION=8.2.0.53
+ENV NCCL_VERSION=2.9.9
 ENV EFA_VERSION=1.11.2
 ENV OMPI_VERSION=4.1.1
-ENV NVML_VERSION=11.1.74
+ENV NVML_VERSION=11.3.58
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
@@ -43,21 +43,21 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    cuda-command-line-tools-11-1 \
-    cuda-cudart-11-1 \
-    cuda-libraries-dev-11-1 \
+    cuda-command-line-tools-11-3 \
+    cuda-cudart-11-3 \
+    cuda-libraries-dev-11-3 \
     curl \
     emacs \
     git \
     jq \
-    libcublas-11-1=${CUBLAS_VERSION}-1 \
-    libcublas-dev-11-1=${CUBLAS_VERSION}-1 \
-    libcudnn8=$CUDNN_VERSION-1+cuda11.1 \
-    libcufft-dev-11-1 \
-    libcurand-dev-11-1 \
-    libcusolver-dev-11-1 \
-    libcusparse-dev-11-1 \
-    cuda-nvml-dev-11-1=${NVML_VERSION}-1 \
+    libcublas-11-3=${CUBLAS_VERSION}-1 \
+    libcublas-dev-11-3=${CUBLAS_VERSION}-1 \
+    libcudnn8=$CUDNN_VERSION-1+cuda11.3 \
+    libcufft-dev-11-3 \
+    libcurand-dev-11-3 \
+    libcusolver-dev-11-3 \
+    libcusparse-dev-11-3 \
+    cuda-nvml-dev-11-3=${NVML_VERSION}-1 \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libgomp1 \
@@ -132,7 +132,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c \
-    pytorch magma-cuda111 \
+    pytorch magma-cuda113 \
  && conda install -c \
     conda-forge \
     opencv \
