@@ -5,7 +5,7 @@ import logging
 import re
 
 from junit_xml import TestSuite, TestCase
-from multiprocessing.dummy import Pool
+from multiprocessing import Pool
 from datetime import datetime
 
 import boto3
@@ -61,7 +61,7 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
         p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images])
 
 
-def run_sagemaker_test_in_executor(image, num_of_instances, instance_type, pytest_cache_params):
+def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
     """
     Run pytest in a virtual env for a particular image
 
@@ -85,10 +85,8 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type, pytes
             context.run(f"python3 -m virtualenv {tag}")
             with context.prefix(f"source {tag}/bin/activate"):
                 context.run("pip install -r requirements.txt", warn=True)
-                pytest_cache_util.download_pytest_cache_from_s3_to_local(os.getcwd(), **pytest_cache_params)
                 context.run(pytest_command)
     except Exception as e:
-        pytest_cache_util.upload_pytest_cache_from_local_to_s3(os.getcwd(), **pytest_cache_params)
         LOGGER.error(e)
         return False
 
@@ -146,7 +144,7 @@ def send_scheduler_requests(requester, image):
             break
 
 
-def run_sagemaker_remote_tests(images, pytest_cache_params):
+def run_sagemaker_remote_tests(images):
     """
     Function to set up multiprocessing for SageMaker tests
     :param images: <list> List of all images to be used in SageMaker tests
@@ -189,7 +187,7 @@ def run_sagemaker_remote_tests(images, pytest_cache_params):
             return
         pool_number = len(images)
         with Pool(pool_number) as p:
-            p.starmap(sm_utils.execute_sagemaker_remote_tests, [[image, pytest_cache_params] for image in images])
+            p.map(sm_utils.execute_sagemaker_remote_tests, images)
 
 
 def pull_dlc_images(images):
@@ -292,14 +290,14 @@ def main():
         return
 
     if specific_test_type in (
-            "sanity",
-            "ecs",
-            "ec2",
-            "eks",
-            "canary",
-            "bai",
-            "quick_checks",
-            "release_candidate_integration",
+        "sanity",
+        "ecs",
+        "ec2",
+        "eks",
+        "canary",
+        "bai",
+        "quick_checks",
+        "release_candidate_integration",
     ):
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
@@ -376,17 +374,12 @@ def main():
                 return
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
             os.chdir(os.path.join("test", "dlc_tests"))
-            # I don't understand the purpouse of that ^^^ chdir here, 
-            # so I'm not sure if we need one more call of download_pytect_cache() 
 
             setup_sm_benchmark_env(dlc_images, test_path)
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
             if not is_pr_context():
                 pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
-                pytest_cmd += ["--last-failed", "--last-failed-no-failures", "all"]
-            pytest_cache_util.download_pytect_cache(os.getcwd(), **pytest_cache_params)
             sys.exit(pytest.main(pytest_cmd))
-            pytest_cache_util.upload_pytest_cache_from_local_to_s3(os.getcwd(), **pytest_cache_params)
 
         else:
             run_sagemaker_remote_tests(
@@ -396,9 +389,8 @@ def main():
                     if not (
                         ("tensorflow-inference" in image and "py2" in image)
                         or is_diy_image(image)
-                )
-                ],
-                pytest_cache_params
+                    )
+                ]
             )
         metrics_utils.send_test_duration_metrics(start_time)
 

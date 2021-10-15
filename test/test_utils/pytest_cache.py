@@ -67,14 +67,14 @@ class PytestCache:
         else:
             LOGGER.info(f"No cache file was created")
 
-    def __merge_2_execution_caches_and_save(self, a, b, save_to):
-        if self.__is_file_exist_and_not_empty(a):
-            with open(a) as tmp1:
+    def __merge_2_execution_caches_and_save(self, cache_file_1, cache_file_2, save_to):
+        if self.__is_file_exist_and_not_empty(cache_file_1):
+            with open(cache_file_1) as tmp1:
                 json1 = json.load(tmp1)
         else:
             json1 = {}
-        if self.__is_file_exist_and_not_empty(b):
-            with open(b) as tmp2:
+        if self.__is_file_exist_and_not_empty(cache_file_2):
+            with open(cache_file_2) as tmp2:
                 json2 = json.load(tmp2)
         else:
             json2 = {}

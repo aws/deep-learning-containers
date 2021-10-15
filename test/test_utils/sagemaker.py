@@ -321,14 +321,13 @@ def execute_local_tests(image, pytest_cache_params):
         return None
 
 
-def execute_sagemaker_remote_tests(image, pytest_cache_params):
+def execute_sagemaker_remote_tests(image):
     """
     Run pytest in a virtual env for a particular image
     Expected to run via multiprocessing
     :param image: ECR url
     """
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
-    pytest_command += " --last-failed --last-failed-no-failures all "
     context = Context()
     with context.cd(path):
         context.run(f"virtualenv {tag}")
