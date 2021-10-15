@@ -9,9 +9,9 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.10
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.4.2
-ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.9.1_inference/cpu/torch-1.9.1-cp38-cp38-manylinux1_x86_64.whl
-ARG PT_TORCHVISION_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.9.1_aws_v3/torchvision/cpu/torchvision-0.10.1%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/torchaudio-0.9.1-cp38-cp38-linux_x86_64.whl
+ARG PT_INFERENCE_URL=https://download.pytorch.org/whl/test/cpu/torch-1.10.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cpu/torchvision-0.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/test/cpu/torchaudio-0.10.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH

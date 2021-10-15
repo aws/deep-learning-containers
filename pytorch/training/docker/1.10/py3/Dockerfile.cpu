@@ -28,8 +28,8 @@ ENV PATH=/opt/conda/bin:$PATH
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV DGLBACKEND=pytorch
 
-ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.9.1_aws_v3/20210925-173424/7b75a1ebbf2ad37219e1a59da150faa89c2a455e/cpu/torch-1.9.1-cp38-cp38-manylinux1_x86_64.whl
-ARG PT_TORCHVISION_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.9.1_aws_v3/torchvision/cpu/torchvision-0.10.1%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TRAINING_URL=https://download.pytorch.org/whl/test/cpu/torch-1.10.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cpu/torchvision-0.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_S3_WHL=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
 WORKDIR /
