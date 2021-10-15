@@ -76,8 +76,6 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends --allow-unauthenticated \
     libcublas-11-0=11.2.0.252-1 \
     libcublas-dev-11-0=11.2.0.252-1 \
-    && apt-get install -y -qq libsasl2-dev libsasl2-modules \
-    && apt-get install -y -qq krb5-user \
     # The 'apt-get install' of nvinfer-runtime-trt-repo-ubuntu1804-5.0.2-ga-cuda10.0
     # adds a new list which contains libnvinfer library, so it needs another
     # 'apt-get update' to retrieve that list before it can actually install the
@@ -194,11 +192,6 @@ RUN ${PIP} install --no-cache-dir -U \
     "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.3.0.36 \
-    "boto3>1.0,<2.0" \
-    "sasl<1" \
-    "thrift_sasl<1" \
-    "PyHive<1" \
-    "sparkmagic<1" \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.3,<2.4" \

@@ -54,8 +54,6 @@ RUN apt-get update \
     zlib1g-dev \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
-    && apt-get install -y -qq libsasl2-dev libsasl2-modules \
-    && apt-get install -y -qq krb5-user \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Open MPI
@@ -137,13 +135,6 @@ RUN ${PIP} install --no-cache-dir -U \
     "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.3.0.36 \
-    "boto3>1.0,<2.0" \
-    "sasl<1" \
-    "thrift_sasl<1" \
-    "PyHive<1" \
-    "sparkmagic<1" \
-    "sagemaker-studio-sparkmagic-lib<1" \
-    "sagemaker-studio-analytics-extension==0.0.2" \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.3,<2.4" \
