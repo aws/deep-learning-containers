@@ -85,10 +85,10 @@ def run_sagemaker_test_in_executor(image, num_of_instances, instance_type, pytes
             context.run(f"python3 -m virtualenv {tag}")
             with context.prefix(f"source {tag}/bin/activate"):
                 context.run("pip install -r requirements.txt", warn=True)
-                pytest_cache_util.download_pytest_cache(os.getcwd(), **pytest_cache_params)
+                pytest_cache_util.download_pytest_cache_from_s3_to_local(os.getcwd(), **pytest_cache_params)
                 context.run(pytest_command)
     except Exception as e:
-        pytest_cache_util.upload_pytest_cache(os.getcwd(), **pytest_cache_params)
+        pytest_cache_util.upload_pytest_cache_from_local_to_s3(os.getcwd(), **pytest_cache_params)
         LOGGER.error(e)
         return False
 
@@ -352,7 +352,7 @@ def main():
             ]
 
         pytest_cmds = [pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"] for pytest_cmd in pytest_cmds]
-        pytest_cache_util.download_pytest_cache(os.getcwd(), **pytest_cache_params)
+        pytest_cache_util.download_pytest_cache_from_s3_to_local(os.getcwd(), **pytest_cache_params)
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
@@ -362,7 +362,7 @@ def main():
             else:
                 raise RuntimeError(pytest_cmds)
         finally:
-            pytest_cache_util.upload_pytest_cache(os.getcwd(), **pytest_cache_params)
+            pytest_cache_util.upload_pytest_cache_from_local_to_s3(os.getcwd(), **pytest_cache_params)
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
@@ -386,7 +386,7 @@ def main():
                 pytest_cmd += ["--last-failed", "--last-failed-no-failures", "all"]
             pytest_cache_util.download_pytect_cache(os.getcwd(), **pytest_cache_params)
             sys.exit(pytest.main(pytest_cmd))
-            pytest_cache_util.upload_pytest_cache(os.getcwd(), **pytest_cache_params)
+            pytest_cache_util.upload_pytest_cache_from_local_to_s3(os.getcwd(), **pytest_cache_params)
 
         else:
             run_sagemaker_remote_tests(
