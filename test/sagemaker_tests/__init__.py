@@ -17,11 +17,10 @@ import boto3
 import subprocess
 import re
 import time
-from sagemaker import Session
 from test.test_utils.ecr import reupload_image_to_test_ecr
 
 def get_sagemaker_session(region):
-    return Session(boto_session=boto3.Session(region_name=region))
+    return sagemaker.Session(boto_session=boto3.Session(region_name=region))
 
 
 def get_unique_name_from_tag(image_uri):
