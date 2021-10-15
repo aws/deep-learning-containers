@@ -49,7 +49,7 @@ class PytestCache:
                                              test_type):
         local_file_path = f"{current_dir}/.pytest_cache/v/cache"
         s3_file_path = self.__make_s3_path(commit_id, framework, version, build_context, test_type)
-        self.__upload_cache_to_s3("lastfailed", f"{s3_file_path}/lastfailed")
+        self.__upload_cache_to_s3(F"{local_file_path}/lastfailed", f"{s3_file_path}/lastfailed")
 
     def __make_s3_path(self, commit_id, framework, version, build_context, test_type):
         return f"{commit_id}/{framework}/{version}/{build_context}/{test_type}"
