@@ -245,7 +245,6 @@ RUN ${PIP} install --no-cache-dir -U \
    tensorflow-io \
    h5py==3.1.0 \
    "absl-py>=0.9,<0.11" \
-   werkzeug==1.0.1 \
    smdebug==${SMDEBUG_VERSION} \
    smclarify
 
