@@ -147,7 +147,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     typing \
     future \
     "pyopenssl>=17.5.0" \
- && conda install -y -c dglteam dgl-cuda11.1 \
+ && conda install -y -c dglteam dgl-cuda11.1==0.6.1 \
  && ${CONDA_PREFIX}/bin/conda clean -ya
 
 RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
@@ -189,6 +189,8 @@ RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
+    # Pin SM Training toolkit as the latest version (4.0.0) dropped py36 support
+    "sagemaker-training<4" \
     sagemaker-pytorch-training \
     --no-cache-dir fastai==1.0.61 \
     "pyyaml>=5.4,<5.5" \
