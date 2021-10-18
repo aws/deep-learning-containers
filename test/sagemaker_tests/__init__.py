@@ -43,22 +43,9 @@ def get_account_id_from_image_uri(image_uri):
     return image_uri.split(".")[0]
 
 
-def get_region_from_image_uri(image_uri):
-    """
-    Find the region where the image is located
-
-    :param image_uri: <str> ECR image URI
-    :return: <str> AWS Region Name
-    """
-    region_pattern = r"(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d+"
-    region_search = re.search(region_pattern, image_uri)
-    assert region_search, f"{image_uri} must have region that matches {region_pattern}"
-    return region_search.group()
-
-
 def get_ecr_image_region(ecr_image):
     ecr_registry, _ = ecr_image.split("/")
-    region_search = re.search(r"(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d+", ecr_registry)
+    region_search = re.search(r"(us(-gov)?|ap|ca|cn|eu|sa|me|af)-(central|(north|south)?(east|west)?)-\d+", ecr_registry)
     return region_search.group()
 
 
