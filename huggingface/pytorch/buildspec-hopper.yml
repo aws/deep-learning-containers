@@ -16,7 +16,7 @@ images:
   BuildHuggingFacePytorchGpuPy37Cu111TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &HOPPER_PYTORCH_GPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 15000
+    image_size_baseline: &IMAGE_SIZE_BASELINE 18000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
@@ -31,17 +31,17 @@ images:
     download_artifacts:
       pytorch_whl:
         type: s3
-        URI: s3://aws-hopper-pytorch-cicd-v3-binaries/PyTorchXla/2021-09-30_19:22:56/wheels/pytorch/torch-1.9.0-cp38-cp38-linux_x86_64.whl
+        URI: s3://aws-hopper-pytorch-cicd-v3-binaries/PyTorchXla/2021-10-18_23:00:05/wheels/pytorch/torch-1.9.0-cp38-cp38-linux_x86_64.whl
         VAR_IN_DOCKERFILE: PT_URL
       pytorch_xla_whl:
         type: s3
-        URI: s3://aws-hopper-pytorch-cicd-v3-binaries/PyTorchXla/2021-09-30_19:22:56/wheels/xla/torch_xla-1.9+de8bdab-cp38-cp38-linux_x86_64.whl
+        URI: s3://aws-hopper-pytorch-cicd-v3-binaries/PyTorchXla/2021-10-18_23:00:05/wheels/xla/torch_xla-1.10+f355694-cp38-cp38-linux_x86_64.whl
         VAR_IN_DOCKERFILE: PT_XLA_URL
       torchvision_whl:
         type: s3
-        URI: s3://aws-hopper-pytorch-cicd-v3-binaries/PyTorchXla/2021-09-30_19:22:56/wheels/torchvision/torchvision-0.10.0a0+6e72416-cp38-cp38-linux_x86_64.whl
+        URI: s3://aws-hopper-pytorch-cicd-v3-binaries/PyTorchXla/2021-10-18_23:00:05/wheels/torchvision/torchvision-0.10.0a0+6e72416-cp38-cp38-linux_x86_64.whl
         VAR_IN_DOCKERFILE: TORCHVISION_URL
       huggingface_transformers_whl:
         type: s3
-        URI: s3://hf-transformers/2021-10-11_10:22:56/wheels/transformers-4.10.2-py2.py3-none-any.whl
+        URI: s3://hf-transformers/2021-10-18_15:04:22/wheels/transformers-4.10.2-py2.py3-none-any.whl
         VAR_IN_DOCKERFILE: HF_TRANSFORMERS_URL

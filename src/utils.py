@@ -207,7 +207,7 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
             # HuggingFace related files stored in huggingface/<framework> directories
             # Joining 1 and 2 elements to get huggingface_<framework> as a first element
             buildspec_arr = [f"{buildspec_arr[0]}_{buildspec_arr[1]}"]+buildspec_arr[2:]
-        buildspec_framework = buildspec_arr[0]
+        buildspec_framework = buildspec_arr[0].replace("huggingface", "hopper") if "hopper" in buildspec else buildspec_arr[0]
         if buildspec_arr[0] == "habana":
             buildspec_framework = buildspec_arr[1]
         if buildspec_framework == framework:
