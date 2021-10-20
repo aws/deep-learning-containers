@@ -20,6 +20,7 @@ from test.test_utils import (
     ec2,
     get_container_name,
     get_framework_and_version_from_tag,
+    get_neuron_framework_and_version_from_tag,
     is_canary_context,
     is_tf_version,
     is_dlc_cicd_context,
@@ -178,6 +179,43 @@ def test_framework_version_cpu(image):
                 assert tag_framework_version in output.stdout.strip()
             else:
                 assert tag_framework_version == output.stdout.strip()
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+def test_framework_and_neuron_sdk_version(neuron):
+    """
+    Check that the framework version in the image tag is the same as the one on a running container.
+    This function tests CPU, EIA, and Neuron images.
+
+    :param image: ECR image URI
+    """
+    image = neuron
+
+    import pdb; pdb.set_trace()
+    tested_framework, neuron_tag_framework_version = get_neuron_framework_and_version_from_tag(image)
+
+    if neuron_tag_framework_version is None:
+        pytest.skip(msg="Neuron SDK tag is not there as part of image")
+
+
+    if tested_framework == "pytorch":
+        tested_framework = "torch_neuron"
+    elif tested_framework == "tensorflow":
+        tested_framework = "tensorflow_neuron"
+    elif tested_framework == "mxnet":
+        tested_framework = "mxnet"
+
+    ctx = Context()
+
+    container_name = get_container_name("framework-version", image)
+    start_container(container_name, image, ctx)
+    output = run_cmd_on_container(
+        container_name, ctx, f"import {tested_framework}; print({tested_framework}.__version__)", executable="python"
+    )
+
+    assert neuron_tag_framework_version == output.stdout.strip()
+
 
 
 # TODO: Enable as canary once resource cleaning lambda is added
