@@ -103,7 +103,6 @@ RUN ${PIP} uninstall -y tensorflow-cpu \
     "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.3.0.36 \
- && ${PIP} uninstall -y typing \
  && ${PIP} uninstall -y keras \
  && ${PIP} install --no-cache-dir -U boto3 --upgrade \
     # Let's install TensorFlow separately in the end to avoid
@@ -112,7 +111,7 @@ RUN ${PIP} uninstall -y tensorflow-cpu \
     ${TF_URL} \
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
-    werkzeug==1.0.1 \
+    werkzeug \
     psutil==5.7.2 \
  && rm -rf ${TF_URL}
 
