@@ -1,8 +1,8 @@
   account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK tensorflow
-  version: &VERSION 2.5.0
-  short_version: &SHORT_VERSION 2.5
+  version: &VERSION 2.7.0
+  short_version: &SHORT_VERSION 2.7
 
   repository_info:
     inference_repository: &INFERENCE_REPOSITORY
@@ -13,16 +13,15 @@
 
   context:
     inference_context: &INFERENCE_CONTEXT
-      sagemaker_package_name:
-        source: docker/build_artifacts/sagemaker
-        target: sagemaker
       init:
         source: docker/build_artifacts/__init__.py
         target: __init__.py
       dockerd-entrypoint:
-        source: docker/build_artifacts/entrypoint.sh
-        target: entrypoint.sh
-
+        source: docker/build_artifacts/dockerd-entrypoint.py
+        target: dockerd-entrypoint.py
+      deep_learning_container:
+        source: ../../src/deep_learning_container.py
+        target: deep_learning_container.py
   images:
     BuildGravitonTFInferencePy3DockerImage:
       <<: *INFERENCE_REPOSITORY
