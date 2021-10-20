@@ -10,7 +10,9 @@
                 "35015":"for shipping pycrypto<=2.6.1 - the last available version for py2"
             },
             "py3": {
-                "41161":"TF 2.6.0 is the last version for 2.6 series and does not have a fix yet."
+                "41161":"TF 2.6.0 is the last version for 2.6 series and does not have a fix yet.",
+                "42098":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
+                "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images."
             }
         },
         "inference":{
@@ -22,6 +24,8 @@
                 "38452":"for shipping pillow<=6.2.2 - the last available version for py2"
             },
             "py3": {
+                "42098":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
+                "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images."
             }
         },
         "inference-eia": {
@@ -33,6 +37,8 @@
                 "38452":"for shipping pillow<=6.2.2 - the last available version for py2"
             },
             "py3": {
+                "42098":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
+                "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images."
             }
         },
         "inference-neuron":{
@@ -43,7 +49,9 @@
                 "39409":"TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches",
                 "39408":"TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches",
                 "39407":"TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches",
-                "39406":"TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches"
+                "39406":"TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches",
+                "42098":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
+                "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images."
             }
         }
     },

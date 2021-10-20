@@ -105,10 +105,10 @@ def get_dockerfile_path_for_image(image_uri):
     job_type = get_job_type_from_image(image_uri)
 
     short_framework_version = re.search(r"(\d+\.\d+)", image_uri).group(1)
-    long_framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
 
     framework_version_path = os.path.join(github_repo_path, framework_path, job_type, "docker", short_framework_version)
     if not os.path.isdir(framework_version_path):
+        long_framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
         framework_version_path = os.path.join(
             github_repo_path, framework_path, job_type, "docker", long_framework_version
         )

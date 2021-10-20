@@ -19,13 +19,19 @@ from sagemaker import utils
 
 from .timeout import timeout
 from ..local.ag_tools import AutoGluon
+from ..... import invoke_sm_helper_function
 from ...integration import RESOURCE_PATH, DEFAULT_TIMEOUT
 
 
 @pytest.mark.model("autogluon")
 @pytest.mark.integration("smexperiments")
 @pytest.mark.skip_test_in_region
-def test_training(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_training(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_training_function,
+                                     instance_type, framework_version)
+
+
+def _test_training_function(ecr_image, sagemaker_session, instance_type, framework_version):
     ag = AutoGluon(
         entry_point=os.path.join(RESOURCE_PATH, 'scripts', 'train_tab.py'),
         role='SageMakerRole',
@@ -48,7 +54,6 @@ def test_training(sagemaker_session, ecr_image, instance_type, framework_version
 
         job_name = utils.unique_name_from_base('test-autogluon-image')
         ag.fit({'config': config_input, 'train': train_input, 'test': eval_input}, job_name=job_name)
-
 
 
 def _disable_sm_profiler(region, estimator):
