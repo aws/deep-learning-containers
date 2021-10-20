@@ -7,6 +7,7 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
+ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.9.1_inference/20211007-004133/555fef37e52666fce9bcfd8572c89d9c245db1ce/graviton/torch-1.9.1-cp38-cp38-manylinux2014_aarch64.whl
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.3.1
 ENV LANG C.UTF-8
@@ -96,7 +97,9 @@ RUN conda install -c \
     "cryptography>=3.3.2"
 
 # install torch and torchvision from the PyTorch website
-RUN pip install torch torchvision
+RUN pip uninstall -y torch \
+ && pip install --no-cache-dir -U $PT_INFERENCE_URL
+RUN pip install torchvision
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
 RUN pip install pillow==8.3.2 "awscli<2"
