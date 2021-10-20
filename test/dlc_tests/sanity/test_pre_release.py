@@ -192,7 +192,6 @@ def test_framework_and_neuron_sdk_version(neuron):
     """
     image = neuron
 
-    import pdb; pdb.set_trace()
     tested_framework, neuron_tag_framework_version = get_neuron_framework_and_version_from_tag(image)
 
     if neuron_tag_framework_version is None:
