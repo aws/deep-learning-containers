@@ -43,7 +43,7 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
     """
     Function to run the SageMaker Local tests
     :param images: <list> List of all images to be used in SageMaker tests
-    :param pytest_cache_params: <dict> dictionary with data requiren for pytest cache handler
+    :param pytest_cache_params: <dict> dictionary with data required for pytest cache handler
     """
     if not images:
         return
@@ -248,7 +248,8 @@ def main():
     efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
-    commit_id = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION', default="non_recognised_commit_id")
+    # Executing locally ona can provide commit_id or may ommit it. Assigning default value for local executions:  
+    commit_id = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION', default="unrecognised_commit_id")
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]

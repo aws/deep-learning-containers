@@ -246,6 +246,8 @@ def execute_local_tests(image, pytest_cache_util, pytest_cache_params):
     """
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
+    :param pytest_cache_util: util class for pytest cahce handling
+    :param pytest_cache_params: parameters required for :param pytest_cache_util
     :return: None
     """
     ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
