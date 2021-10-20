@@ -100,7 +100,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     pandas \
     h5py \
     requests \
- && conda install -c dglteam -y dgl=0.7.1 \
+#  && conda install -c dglteam -y dgl=0.7.1 \
  && /opt/conda/bin/conda clean -ya \
  && conda clean -ya
 
@@ -128,6 +128,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "sagemaker-pytorch-training<3" \
     psutil==5.6.7 \
     "Pillow>=8.3.2,<8.4" \
+ # pinging the nightly dgl to fix the DLPack issue
+ && pip install --pre dgl -f https://data.dgl.ai/wheels-test/repo.html \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
