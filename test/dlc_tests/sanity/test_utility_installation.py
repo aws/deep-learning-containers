@@ -6,18 +6,11 @@ from invoke.context import Context
 
 from test import test_utils
 
-UTILITY_PACKAGES_IMPORT = [
-    "bokeh",
-    "imageio",
-    "plotly",
-    "seaborn",
-    "shap",
-    "sagemaker",
-    "pandas",
-    "cv2"
-]
+UTILITY_PACKAGES_IMPORT = ["bokeh", "imageio", "plotly", "seaborn", "shap", "pandas", "cv2", "sagemaker"]
+
 
 # TODO: Need to be added to all DLC images in furture.
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("awscli")
 def test_awscli(mxnet_inference):
@@ -35,6 +28,7 @@ def test_awscli(mxnet_inference):
     test_utils.run_cmd_on_container(container_name, ctx, "aws --version")
 
 
+@pytest.mark.usefixtures("sagemaker_only", "huggingface", "non_autogluon_only")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("utility pacakges")
 def test_utility_packages_using_import(training):
@@ -51,8 +45,10 @@ def test_utility_packages_using_import(training):
     utility_package_minimum_framework_version = {
         "mxnet": "1.8",
         "pytorch": "1.7",
+        "huggingface_pytorch": "1.7",
         "tensorflow2": "2.4",
         "tensorflow1": "1.15",
+        "huggingface_tensorflow": "2.4",
     }
 
     if framework == "tensorflow":
@@ -60,13 +56,16 @@ def test_utility_packages_using_import(training):
 
     if Version(framework_version) < Version(utility_package_minimum_framework_version[framework]):
         pytest.skip("Extra utility packages will be added going forward.")
-    
-    for package in UTILITY_PACKAGES_IMPORT:
+
+    packages_to_import = UTILITY_PACKAGES_IMPORT
+
+    for package in packages_to_import:
         version = test_utils.run_cmd_on_container(container_name, ctx, f"import {package}; print({package}.__version__)", executable="python").stdout.strip()
         if package == "sagemaker":
             assert Version(version) > Version("2"), f"Sagemaker version should be > 2.0. Found version {version}"
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("boto3")
 def test_boto3(mxnet_inference):
@@ -83,6 +82,7 @@ def test_boto3(mxnet_inference):
     test_utils.run_cmd_on_container(container_name, ctx, 'import boto3', executable="python")
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("emacs")
 def test_emacs(image):
@@ -98,3 +98,19 @@ def test_emacs(image):
     # Make sure the following emacs sanity tests exit with code 0
     test_utils.run_cmd_on_container(container_name, ctx, "which emacs")
     test_utils.run_cmd_on_container(container_name, ctx, "emacs -version")
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("tomcat")
+@pytest.mark.canary("Ensure we don't install apache tomcat")
+def test_apache_tomcat(image):
+    """
+    Temporary canary test
+    """
+    ctx = Context()
+    container_name = test_utils.get_container_name("tomcat", image)
+    test_utils.start_container(container_name, image, ctx)
+    tomcat_output = test_utils.run_cmd_on_container(container_name, ctx, "find / -name *tomcat*").stdout.strip()
+    if tomcat_output:
+        raise RuntimeError(f"Found tomcat installation in {image}. See output: {tomcat_output}")

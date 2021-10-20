@@ -1,5 +1,6 @@
 import argparse
 import os
+import re
 
 import utils
 import constants
@@ -33,6 +34,18 @@ def main():
     neuron_build_mode = parse_dlc_developer_configs("dev", "neuron_mode")
     graviton_build_mode = parse_dlc_developer_configs("dev", "graviton_mode")
 
+    # Write empty dict to JSON file, so subsequent buildspec steps do not fail in case we skip this build
+    utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
+
+    # Skip tensorflow-1 PR jobs, as there are no longer patch releases being added for TF1
+    # Purposefully not including this in developer config to make this difficult to enable
+    # TODO: Remove when we remove these jobs completely
+    build_arn = utils.get_codebuild_build_arn()
+    if build_context == "PR":
+        tf_1_build_regex = re.compile(r"dlc-pr-tensorflow-1:")
+        if tf_1_build_regex.search(build_arn):
+            return
+
     # A general will work if in non-EI, non-NEURON and non-GRAVITON mode and its framework not been disabled
     general_builder_enabled = (
         not ei_dedicated
@@ -44,29 +57,27 @@ def main():
         and args.framework not in frameworks_to_skip
     )
     # An EI dedicated builder will work if in EI mode and its framework not been disabled
-    ei_builder_enabled = (
-        ei_dedicated and ei_build_mode and args.framework not in frameworks_to_skip
-    )
+    ei_builder_enabled = ei_dedicated and ei_build_mode and args.framework not in frameworks_to_skip
 
     # A NEURON dedicated builder will work if in NEURON mode and its framework has not been disabled
-    neuron_builder_enabled = (
-        neuron_dedicated
-        and neuron_build_mode
-        and args.framework not in frameworks_to_skip
-    )
+    neuron_builder_enabled = neuron_dedicated and neuron_build_mode and args.framework not in frameworks_to_skip
 
     # A GRAVITON dedicated builder will work if in GRAVITON mode and its framework has not been disabled
-    graviton_builder_enabled = (
-        graviton_dedicated
-        and graviton_build_mode
-        and args.framework not in frameworks_to_skip
-    )
+    graviton_builder_enabled = graviton_dedicated and graviton_build_mode and args.framework not in frameworks_to_skip
 
-    utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
     # A builder will always work if it is in non-PR context
-    if general_builder_enabled or ei_builder_enabled or neuron_builder_enabled or graviton_builder_enabled or build_context != "PR":
+    if (
+        general_builder_enabled
+        or ei_builder_enabled
+        or neuron_builder_enabled
+        or graviton_builder_enabled
+        or build_context != "PR"
+    ):
         utils.build_setup(
-            args.framework, device_types=device_types, image_types=image_types, py_versions=py_versions,
+            args.framework,
+            device_types=device_types,
+            image_types=image_types,
+            py_versions=py_versions,
         )
         image_builder(args.buildspec)
 

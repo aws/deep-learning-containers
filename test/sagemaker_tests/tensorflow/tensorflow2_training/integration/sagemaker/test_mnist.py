@@ -13,25 +13,42 @@
 from __future__ import absolute_import
 
 import os
-
+import re
 import boto3
 import pytest
+from packaging.specifiers import SpecifierSet
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 from six.moves.urllib.parse import urlparse
 from packaging.version import Version
 
+from ..... import invoke_sm_helper_function
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from .timeout import timeout
 
+def can_run_mnist_estimator(ecr_image):
+    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    return Version(image_framework_version) in SpecifierSet("<2.6")
+
+
+def validate_or_skip_test(ecr_image):
+    if not can_run_mnist_estimator(ecr_image):
+        pytest.skip("Mnist Estimator related scripts can only run for versions < 2.6")
+
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
+
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.deploy_test
-def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_mnist(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_mnist_function,
+                              instance_type, framework_version)
+
+
+def _test_mnist_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
     estimator = TensorFlow(entry_point=script,
@@ -55,7 +72,12 @@ def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("no parameter server")
-def test_distributed_mnist_no_ps(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_distributed_mnist_no_ps(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_distributed_mnist_no_ps_function,
+                              instance_type, framework_version)
+
+
+def _test_distributed_mnist_no_ps_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
     estimator = TensorFlow(entry_point=script,
@@ -75,7 +97,14 @@ def test_distributed_mnist_no_ps(sagemaker_session, ecr_image, instance_type, fr
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
-def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_distributed_mnist_ps(ecr_image, sagemaker_regions, instance_type, framework_version):
+    validate_or_skip_test(ecr_image=ecr_image)
+    print('ecr image used for training', ecr_image)
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_distributed_mnist_ps_function,
+                              instance_type, framework_version)
+
+
+def _test_distributed_mnist_ps_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
     estimator = TensorFlow(entry_point=script,
@@ -91,15 +120,40 @@ def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, frame
         key_prefix='scriptmode/mnist-distributed')
     estimator.fit(inputs, job_name=unique_name_from_base('test-tf-sm-distributed-mnist'))
     _assert_checkpoint_exists(sagemaker_session.boto_region_name, estimator.model_dir, 0)
-    _assert_s3_file_exists(sagemaker_session.boto_region_name, estimator.model_data)
+
+@pytest.mark.model("mnist")
+@pytest.mark.multinode(2)
+@pytest.mark.integration("parameter server")
+def test_distributed_mnist_custom_ps(sagemaker_session, ecr_image, instance_type, framework_version):
+    print('ecr image used for training', ecr_image)
+    resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
+    script = os.path.join(resource_path, 'mnist', 'mnist_custom.py')
+    estimator = TensorFlow(entry_point=script,
+                           role='SageMakerRole',
+                           hyperparameters={'sagemaker_parameter_server_enabled': True},
+                           instance_count=2,
+                           instance_type=instance_type,
+                           sagemaker_session=sagemaker_session,
+                           image_uri=ecr_image,
+                           framework_version=framework_version)
+    inputs = estimator.sagemaker_session.upload_data(
+        path=os.path.join(resource_path, 'mnist', 'data-distributed'),
+        key_prefix='scriptmode/mnist-distributed')
+    estimator.fit(inputs, job_name=unique_name_from_base('test-tf-sm-distributed-mnist'))
+    _assert_checkpoint_exists_v2(sagemaker_session.boto_region_name, estimator.model_dir, 10)
 
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
-def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framework_version):
+def test_s3_plugin(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_s3_plugin_function,
+                              instance_type, framework_version)
+
+
+def _test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
-    script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
+    script = os.path.join(resource_path, 'mnist', 'mnist_custom.py')
     estimator = TensorFlow(entry_point=script,
                            role='SageMakerRole',
                            hyperparameters={
@@ -121,16 +175,26 @@ def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framewor
                            sagemaker_session=sagemaker_session,
                            image_uri=ecr_image,
                            framework_version=framework_version)
-    estimator.fit('s3://sagemaker-sample-data-{}/tensorflow/mnist'.format(region),
-                  job_name=unique_name_from_base('test-tf-sm-s3-mnist'))
-    _assert_s3_file_exists(region, estimator.model_data)
-    _assert_checkpoint_exists(region, estimator.model_dir, 200)
 
+    inputs = estimator.sagemaker_session.upload_data(
+        path=os.path.join(resource_path, 'mnist', 'data-distributed'),
+        key_prefix='scriptmode/mnist-distributed')
+    estimator.fit(inputs,job_name=unique_name_from_base('test-tf-sm-s3-mnist'))
+    print("=========== Model data location ===============")
+    print(estimator.model_data)
+    print("=========== Model dir           ===============")
+    print(estimator.model_dir)
+    _assert_checkpoint_exists_v2(sagemaker_session.boto_region_name, estimator.model_dir, 10)
 
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.integration("hpo")
-def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_tuning(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_tuning_function,
+                              instance_type, framework_version)
+
+
+def _test_tuning_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
 
@@ -167,7 +231,12 @@ def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smdebug")
 @pytest.mark.skip_py2_containers
-def test_smdebug(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_smdebug(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smdebug_function,
+                              instance_type, framework_version)
+
+
+def _test_smdebug_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_smdebug.py')
     hyperparameters = {'smdebug_path': '/tmp/ml/output/tensors'}
@@ -191,12 +260,18 @@ def test_smdebug(sagemaker_session, ecr_image, instance_type, framework_version)
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-def test_smdataparallel_smmodelparallel_mnist(sagemaker_session, instance_type, ecr_image, tmpdir, framework_version):
+def test_smdataparallel_smmodelparallel_mnist(ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version):
     """
     Tests SM Distributed DataParallel and ModelParallel single-node via script mode
     This test has been added for SM DataParallelism and ModelParallelism tests for re:invent.
     TODO: Consider reworking these tests after re:Invent releases are done
     """
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smdataparallel_smmodelparallel_mnist_function,
+                              instance_type, tmpdir, framework_version)
+
+
+def _test_smdataparallel_smmodelparallel_mnist_function(ecr_image, sagemaker_session, instance_type, tmpdir,
+                                                        framework_version):
     instance_type = "ml.p3.16xlarge"
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
@@ -219,7 +294,19 @@ def test_smdataparallel_smmodelparallel_mnist(sagemaker_session, instance_type, 
     estimator.fit()
 
 
+def _assert_checkpoint_exists_v2(region, model_dir, checkpoint_number):
+    """
+    Checking for v2 style checkpoints i.e. checkpoint and .index files
+    """
+    _assert_s3_file_exists(region, os.path.join(model_dir, 'checkpoint'))
+    _assert_s3_file_exists(region,
+                           os.path.join(model_dir, 'model.ckpt-{}.index'.format(checkpoint_number)))
+
+
 def _assert_checkpoint_exists(region, model_dir, checkpoint_number):
+    """
+    Checking for v1 style checkpoints i.e. graph.pbtxt, .index files and meta
+    """
     _assert_s3_file_exists(region, os.path.join(model_dir, 'graph.pbtxt'))
     _assert_s3_file_exists(region,
                            os.path.join(model_dir, 'model.ckpt-{}.index'.format(checkpoint_number)))
@@ -231,6 +318,7 @@ def _assert_s3_file_exists(region, s3_url):
     parsed_url = urlparse(s3_url)
     s3 = boto3.resource('s3', region_name=region)
     s3.Object(parsed_url.netloc, parsed_url.path.lstrip('/')).load()
+
 
 def _disable_sm_profiler(region, estimator):
     """Disable SMProfiler feature for China regions

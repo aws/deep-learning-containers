@@ -22,9 +22,6 @@ from test_utils import (
     get_python_invoker,
     is_pr_context,
     SAGEMAKER_EXECUTION_REGIONS,
-)
-
-from test_utils import (
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
     SAGEMAKER_LOCAL_TEST_TYPE,
@@ -43,7 +40,9 @@ class DLCSageMakerLocalTestFailure(Exception):
 
 
 def assign_sagemaker_remote_job_instance_type(image):
-    if "gpu" in image:
+    if "neuron" in image:
+        return "ml.inf1.xlarge"
+    elif "gpu" in image:
         return "ml.p3.8xlarge"
     elif "tensorflow" in image:
         return "ml.c4.4xlarge"
@@ -93,7 +92,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     :param sagemaker_test_type: local or remote test type
     :return: <tuple> pytest command to be run, path where it should be executed, image tag
     """
-    reruns = 4
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
     account_id = os.getenv("ACCOUNT_ID", image.split(".")[0])
     print("image name {}".format(image))
@@ -117,9 +115,9 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     accelerator_type_arg = "--accelerator-type"
     framework_version_arg = "--framework-version"
     eia_arg = "ml.eia1.large"
-    processor = "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
+    processor = "neuron" if "neuron" in image else "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
     py_version = re.search(r"py\d+", tag).group()
-    sm_local_py_version = "37" if py_version == "py37" else "2" if py_version == "py27" else "3"
+    sm_local_py_version = "37" if py_version == "py37" else "38" if py_version == "py38" else "2" if py_version == "py27" else "3"
     if framework == "tensorflow" and job_type == "inference":
         # Tf Inference tests have an additional sub directory with test
         integration_path = os.path.join("test", "integration", sagemaker_test_type)
@@ -133,14 +131,14 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             docker_base_arg = "--repo"
             instance_type_arg = "--instance-types"
             framework_version_arg = "--versions"
-            integration_path = os.path.join(integration_path, "test_tfs.py") if processor != "eia" else os.path.join(integration_path, "test_ei.py")
+            integration_path = os.path.join(integration_path, "test_tfs.py") if processor != "eia" else os.path.join(
+                integration_path, "test_ei.py")
 
     if framework == "tensorflow" and job_type == "training":
         aws_id_arg = "--account-id"
 
     test_report = os.path.join(os.getcwd(), "test", f"{job_type}_{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
-
 
     # Explanation of why we need the if-condition below:
     # We have separate Pipeline Actions that run EFA tests, which have the env variable "EFA_DEDICATED=True" configured
@@ -157,17 +155,16 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     region_list = ",".join(SAGEMAKER_EXECUTION_REGIONS)
 
-    #Multi region functionality is added for PT currently
-    sagemaker_region_list = f"--sagemaker-region {region_list}" if framework == "pytorch" else ""
+    sagemaker_regions_list = f"--sagemaker-regions {region_list}"
 
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
         f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
-        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} {sagemaker_region_list} --junitxml {test_report}"
+        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} {sagemaker_regions_list} --junitxml {test_report}"
     )
 
-    if processor == "eia" :
-        remote_pytest_cmd += (f" {accelerator_type_arg} {eia_arg}")
+    if processor == "eia":
+        remote_pytest_cmd += f"{accelerator_type_arg} {eia_arg}"
 
     local_pytest_cmd = (f"pytest -s -v {integration_path} {docker_base_arg} "
                         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
@@ -245,14 +242,17 @@ def kill_background_processes_and_run_apt_get_update(ec2_conn):
     return
 
 
-def execute_local_tests(image):
+def execute_local_tests(image, pytest_cache_util, pytest_cache_params):
     """
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url
+    :param pytest_cache_util: util class for pytest cahce handling
+    :param pytest_cache_params: parameters required for :param pytest_cache_util
     :return: None
     """
     ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_LOCAL_TEST_TYPE)
+    pytest_command += " --last-failed --last-failed-no-failures all "
     print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
@@ -261,6 +261,8 @@ def execute_local_tests(image):
     ec2_ami_id = UBUNTU_18_BASE_DLAMI_US_EAST_1 if region == "us-east-1" else UBUNTU_18_BASE_DLAMI_US_WEST_2
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
+    instance_id = ""
+    ec2_conn = None
     try:
         key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
         print(f"Launching new Instance for image: {image}")
@@ -285,6 +287,7 @@ def execute_local_tests(image):
         kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
             install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id)
+            pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
             if framework == "mxnet" and job_type == "training" and "cpu" in image:
@@ -300,6 +303,7 @@ def execute_local_tests(image):
                                      os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
                     output = subprocess.check_output(f"cat test/{job_type}_{tag}_sm_local.xml", shell=True,
                                                      executable="/bin/bash")
+                    pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn_new, path, **pytest_cache_params)
                     if 'failures="0"' not in str(output):
                         raise ValueError(f"Sagemaker Local tests failed for {image}")
             else:
@@ -307,10 +311,15 @@ def execute_local_tests(image):
                 print(f"Downloading Test reports for image: {image}")
                 ec2_conn.get(ec2_test_report_path, os.path.join("test", f"{job_type}_{tag}_sm_local.xml"))
     finally:
+        with ec2_conn.cd(path):
+            pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn, path, **pytest_cache_params)
         print(f"Terminating Instances for image: {image}")
         ec2_utils.terminate_instance(instance_id, region)
         print(f"Destroying ssh Key_pair for image: {image}")
         destroy_ssh_keypair(ec2_client, ec2_key_name)
+        # return None here to prevent errors from multiprocessing.map(). Without this it returns some object by default
+        # which is causing "cannot pickle '_thread.lock' object" error
+        return None
 
 
 def execute_sagemaker_remote_tests(image):

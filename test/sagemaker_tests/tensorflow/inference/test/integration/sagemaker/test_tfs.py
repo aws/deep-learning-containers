@@ -67,12 +67,18 @@ def tfs_model(region, boto_session):
                                        boto_session,
                                        "data/tfs-model.tar.gz")
 
+@pytest.fixture(scope="session")
+def tfs_neuron_model(region, boto_session):
+    return util.find_or_put_model_data(region,
+                                       boto_session,
+                                       "data/tfs-neuron-model.tar.gz")
+
 
 @pytest.fixture(scope="session")
 def python_model_with_requirements(region, boto_session):
     return util.find_or_put_model_data(region,
                                        boto_session,
-                                       "data/python-with-requirements.tar.gz")
+                                       "data/tfs-model_greater_than_equal_to_tf26.tar.gz")
 
 
 @pytest.fixture(scope="session")
@@ -89,6 +95,16 @@ def test_tfs_model(boto_session, sagemaker_client,
     input_data = {"instances": [1.0, 2.0, 5.0]}
     util.create_and_invoke_endpoint(boto_session, sagemaker_client,
                                     sagemaker_runtime_client, model_name, tfs_model,
+                                    image_uri, instance_type, accelerator_type, input_data)
+
+@pytest.mark.model("unknown_model")
+@pytest.mark.neuron_test
+def test_tfs_neuron_model(boto_session, sagemaker_client,
+                   sagemaker_runtime_client, model_name, tfs_neuron_model,
+                   image_uri, instance_type, accelerator_type):
+    input_data = {"instances": [[[[1, 10], [2, 20]]]]}
+    util.create_and_invoke_endpoint(boto_session, sagemaker_client,
+                                    sagemaker_runtime_client, model_name, tfs_neuron_model,
                                     image_uri, instance_type, accelerator_type, input_data)
 
 
@@ -119,15 +135,12 @@ def test_python_model_with_requirements(boto_session, sagemaker_client,
         pytest.skip("skip for p3 instance")
 
     # the python service needs to transform this to get a valid prediction
-    input_data = {"x": [1.0, 2.0, 5.0]}
+    input_data = {"instances": [[1.0, 2.0, 5.0]]}
     output_data = util.create_and_invoke_endpoint(boto_session, sagemaker_client,
                                                   sagemaker_runtime_client, model_name,
                                                   python_model_with_requirements, image_uri,
                                                   instance_type, accelerator_type, input_data)
 
-    # python service adds this to tfs response
-    assert output_data["python"] is True
-    assert output_data["pillow"] == "6.0.0"
 
 
 @pytest.mark.model("unknown_model")
