@@ -39,7 +39,7 @@ class PytestCache:
         local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
         local_file_path = os.path.join(local_file_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(commit_id, framework, version, build_context, test_type)
-        s3_file_path = self.__make_s3_path(s3_file_dir, "lastfailed")
+        s3_file_path = os.path.join(s3_file_dir, "lastfailed")
 
         if os.path.exists(local_file_path):
             os.remove(local_file_path)
@@ -69,7 +69,7 @@ class PytestCache:
         local_file_dir = os.path.join(path, ".pytest_cache", "v", "cache")
         local_file_path = os.path.join(local_file_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(commit_id, framework, version, build_context, test_type)
-        s3_file_path = self.__make_s3_path(s3_file_dir, "lastfailed")
+        s3_file_path = os.path.join(s3_file_dir, "lastfailed")
         self.__delete_file_on_ec2(ec2_connection, local_file_path)
 
         self.__download_cache_from_s3(s3_file_path, "lastfailed")
@@ -98,7 +98,7 @@ class PytestCache:
         ec2_dir = os.path.join(path, ".pytest_cache", "v", "cache")
         ec2_file_path = os.path.join(ec2_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(commit_id, framework, version, build_context, test_type)
-        s3_file_path = self.__make_s3_path(s3_file_dir, "lastfailed")
+        s3_file_path = os.path.join(s3_file_dir, "lastfailed")
 
         # Since we run tests in parallel files from latests executions will overwrite existing file.
         # So put the latest file into tmp, add it to local lastfailed and upload to s3.
@@ -126,10 +126,11 @@ class PytestCache:
         :param build_context
         :param test_type
         """
-        local_file_path = os.path.join(current_dir, ".pytest_cache", "v", "cache")
+        local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
+        local_file_path = os.path.join(local_file_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(commit_id, framework, version, build_context, test_type)
-        s3_file_path = self.__make_s3_path(s3_file_dir, "lastfailed")
-        self.__upload_cache_to_s3(f"{local_file_path}/lastfailed", f"{s3_file_path}/lastfailed")
+        s3_file_path = os.path.join(s3_file_dir, "lastfailed")
+        self.__upload_cache_to_s3(local_file_path, s3_file_path)
 
     def __make_s3_path(self, commit_id, framework, version, build_context, test_type):
         return os.path.join(commit_id, framework, version, build_context, test_type)
