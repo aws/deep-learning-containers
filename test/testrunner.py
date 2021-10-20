@@ -43,6 +43,7 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
     """
     Function to run the SageMaker Local tests
     :param images: <list> List of all images to be used in SageMaker tests
+    :param pytest_cache_params: <dict> dictionary with data requiren for pytest cache handler
     """
     if not images:
         return
