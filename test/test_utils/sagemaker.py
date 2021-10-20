@@ -29,9 +29,6 @@ from test_utils import (
     UBUNTU_HOME_DIR,
     DEFAULT_REGION,
 )
-from test_utils.pytest_cache import PytestCache
-
-pytest_cache_util = PytestCache(boto3.client("s3"), boto3.client("sts").get_caller_identity()["Account"])
 
 
 class DLCSageMakerRemoteTestFailure(Exception):
@@ -245,7 +242,7 @@ def kill_background_processes_and_run_apt_get_update(ec2_conn):
     return
 
 
-def execute_local_tests(image, pytest_cache_params):
+def execute_local_tests(image, pytest_cache_util, pytest_cache_params):
     """
     Run the sagemaker local tests in ec2 instance for the image
     :param image: ECR url

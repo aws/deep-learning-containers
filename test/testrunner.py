@@ -36,7 +36,7 @@ from test_utils.pytest_cache import PytestCache
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
-pytest_cache_util = PytestCache(boto3.client("s3"))
+pytest_cache_util = PytestCache(boto3.client("s3"), boto3.client("sts").get_caller_identity()["Account"])
 
 
 def run_sagemaker_local_tests(images, pytest_cache_params):
@@ -59,7 +59,7 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
 
     pool_number = len(images)
     with Pool(pool_number) as p:
-        p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images])
+        p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_util, pytest_cache_params] for image in images])
 
 
 def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
