@@ -45,6 +45,8 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
 ]
+
+# ECS images are maintained here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 ECS_AML2_GRAVITON_CPU_USWEST2 = "ami-0fb32cf53e5ab7686"
