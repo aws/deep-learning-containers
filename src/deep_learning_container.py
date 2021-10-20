@@ -157,7 +157,7 @@ def parse_args():
     fw_version_pattern = r"\d+(\.\d+){1,2}((-rc\d)|(\+cpu)|(\+cu\d{3}))?"
     assert re.fullmatch(fw_version_pattern, args.framework_version), (
         f"args.framework_version = {args.framework_version} does not match {fw_version_pattern}\n"
-        f"Please specify framework version as X.Y.Z or X.Y."
+        f"Please specify framework version as X.Y.Z or X.Y. with at most one suffix in (-rcX, +cpu, +cuXXX)"
     )
 
     return args
