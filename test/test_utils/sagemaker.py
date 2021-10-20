@@ -30,6 +30,7 @@ from test_utils import (
     DEFAULT_REGION,
 )
 from test_utils.pytest_cache import PytestCache
+
 pytest_cache_util = PytestCache(boto3.client("s3"))
 
 
@@ -133,14 +134,14 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             docker_base_arg = "--repo"
             instance_type_arg = "--instance-types"
             framework_version_arg = "--versions"
-            integration_path = os.path.join(integration_path, "test_tfs.py") if processor != "eia" else os.path.join(integration_path, "test_ei.py")
+            integration_path = os.path.join(integration_path, "test_tfs.py") if processor != "eia" else os.path.join(
+                integration_path, "test_ei.py")
 
     if framework == "tensorflow" and job_type == "training":
         aws_id_arg = "--account-id"
 
     test_report = os.path.join(os.getcwd(), "test", f"{job_type}_{tag}.xml")
     local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
-
 
     # Explanation of why we need the if-condition below:
     # We have separate Pipeline Actions that run EFA tests, which have the env variable "EFA_DEDICATED=True" configured
@@ -262,8 +263,8 @@ def execute_local_tests(image, pytest_cache_params):
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     instance_id = ""
     ec2_conn = None
-    key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
     try:
+        key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
         print(f"Launching new Instance for image: {image}")
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(
             image,
@@ -316,6 +317,8 @@ def execute_local_tests(image, pytest_cache_params):
         ec2_utils.terminate_instance(instance_id, region)
         print(f"Destroying ssh Key_pair for image: {image}")
         destroy_ssh_keypair(ec2_client, ec2_key_name)
+        # return None here to prevent errors from multiprocessing.map(). Without this it returns some object by default
+        # which is causing "cannot pickle '_thread.lock' object" error
         return None
 
 
