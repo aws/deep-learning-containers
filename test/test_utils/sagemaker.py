@@ -31,7 +31,7 @@ from test_utils import (
 )
 from test_utils.pytest_cache import PytestCache
 
-pytest_cache_util = PytestCache(boto3.client("s3"))
+pytest_cache_util = PytestCache(boto3.client("s3"), boto3.client("sts").get_caller_identity()["Account"])
 
 
 class DLCSageMakerRemoteTestFailure(Exception):
