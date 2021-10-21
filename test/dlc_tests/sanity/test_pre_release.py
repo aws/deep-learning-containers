@@ -209,7 +209,7 @@ def test_framework_and_neuron_sdk_version(neuron):
 
     ctx = Context()
 
-    container_name = get_container_name("framework-version", image)
+    container_name = get_container_name("framework-version-neuron", image)
     start_container(container_name, image, ctx)
     output = run_cmd_on_container(
         container_name, ctx, f"import {tested_framework}; print({tested_framework}.__version__)", executable="python"
