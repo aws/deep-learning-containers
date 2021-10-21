@@ -173,6 +173,8 @@ def test_framework_version_cpu(image):
     else:
         if tested_framework == "autogluon.core":
             assert output.stdout.strip().startswith(tag_framework_version)
+        elif tested_framework == "torch":
+            assert output.stdout.strip().startswith(tag_framework_version)
         else:
             if "neuron" in image:
                 assert tag_framework_version in output.stdout.strip()
@@ -213,6 +215,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
             assert tag_framework_version in output.stdout.strip()
         else:
             if tested_framework == "autogluon.core":
+                assert output.stdout.strip().startswith(tag_framework_version)
+            elif tested_framework == "torch":
                 assert output.stdout.strip().startswith(tag_framework_version)
             else:
                 assert tag_framework_version == output.stdout.strip()
