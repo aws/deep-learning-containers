@@ -162,12 +162,6 @@ RUN conda install -c pytorch magma-cuda113==2.5.2 \
     libgcc \
  && conda clean -ya
 
-WORKDIR /opt/pytorch
-
-# Copy workaround script for incorrect hostname
-COPY changehostname.c /
-COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
-
 WORKDIR /root
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
@@ -189,17 +183,6 @@ RUN pip install --no-cache-dir -U \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
-
-# Install extra packages
-# numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
-RUN pip install --no-cache-dir -U \
-    "bokeh>=2.3,<3" \
-    "imageio>=2.9,<3" \
-    "opencv-python>=4.3,<5" \
-    "plotly>=5.1,<6" \
-    "seaborn>=0.11,<1" \
-    "numba<0.54" \
-    "shap>=0.39,<1"
 
 # install metis
 RUN rm /etc/apt/sources.list.d/* \
