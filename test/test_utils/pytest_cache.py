@@ -198,5 +198,5 @@ class PytestCache:
         except Exception as e:
             LOGGER.info(f"Cache file wasn't downloaded: {e}")
 
-    def delete_file_on_ec2(self, ec2_connection, ec2_file):
+    def __delete_file_on_ec2(self, ec2_connection, ec2_file):
         ec2_connection.run(f"rm -f {ec2_file}")
