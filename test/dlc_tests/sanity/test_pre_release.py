@@ -27,6 +27,7 @@ from test.test_utils import (
     is_pr_context,
     run_cmd_on_container,
     start_container,
+    stop_and_remove_container,
     is_time_for_canary_safety_scan,
     is_mainline_context,
     is_nightly_context,
@@ -179,6 +180,7 @@ def test_framework_version_cpu(image):
                 assert tag_framework_version in output.stdout.strip()
             else:
                 assert tag_framework_version == output.stdout.strip()
+    stop_and_remove_container(container_name, ctx)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -214,6 +216,7 @@ def test_framework_and_neuron_sdk_version(neuron):
     )
 
     assert neuron_tag_framework_version == output.stdout.strip()
+    stop_and_remove_container(container_name, ctx)
 
 
 

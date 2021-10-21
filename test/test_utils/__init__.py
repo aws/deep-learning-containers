@@ -1164,6 +1164,18 @@ def get_container_name(prefix, image_uri):
     """
     return f"{prefix}-{image_uri.split('/')[-1].replace('.', '-').replace(':', '-')}"
 
+def stop_and_remove_container(container_name, context):
+    """
+    Helper function to stop a container locally
+    :param container_name: Name of the docker container
+    :param context: Invoke context object
+    """
+    context.run(
+        f"docker stop {container_name}", hide=True,
+    )
+    context.run(
+        f"docker rm {container_name}", hide=True,
+    )
 
 def start_container(container_name, image_uri, context):
     """
