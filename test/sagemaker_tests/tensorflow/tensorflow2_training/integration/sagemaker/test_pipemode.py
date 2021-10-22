@@ -17,6 +17,8 @@ import shutil
 import uuid
 
 import pytest
+
+from ..... import invoke_sm_helper_function
 from .recordio_utils import build_record_file, build_single_record_file
 from sagemaker import TrainingInput
 from sagemaker.tensorflow import TensorFlow
@@ -42,7 +44,6 @@ def make_test_data(directory, name, num_files, num_records, dimension, sagemaker
                                          key_prefix='pipemode-{}-files'.format(name))
 
 
-@pytest.fixture(scope='session')
 def multi_records_test_data(sagemaker_session):
     test_data = 'test-data-' + str(uuid.uuid4())
     os.makedirs(test_data)
@@ -57,7 +58,6 @@ def multi_records_test_data(sagemaker_session):
     return s3_url
 
 
-@pytest.fixture(scope='session')
 def single_record_test_data(sagemaker_session):
     test_data = 'test-data-' + str(uuid.uuid4())
     os.makedirs(test_data)
@@ -72,7 +72,7 @@ def single_record_test_data(sagemaker_session):
     return s3_url
 
 
-def run_test(sagemaker_session, ecr_image, instance_type, framework_version, test_data,
+def run_test(ecr_image, sagemaker_session, instance_type, framework_version, test_data,
              record_wrapper_type=None):
     source_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources', 'pipemode')
     script = os.path.join(source_path, 'pipemode.py')
@@ -85,10 +85,10 @@ def run_test(sagemaker_session, ecr_image, instance_type, framework_version, tes
                            framework_version=framework_version,
                            input_mode='Pipe',
                            hyperparameters={'dimension': DIMENSION})
-    input = TrainingInput(s3_data=test_data,
-                     distribution='FullyReplicated',
-                     record_wrapping=record_wrapper_type,
-                     input_mode='Pipe')
+    input = TrainingInput(s3_data=test_data(sagemaker_session),
+                          distribution='FullyReplicated',
+                          record_wrapping=record_wrapper_type,
+                          input_mode='Pipe')
     with timeout(minutes=20):
         estimator.fit({'elizabeth': input},
                       job_name=unique_name_from_base('test-sagemaker-pipemode'))
@@ -96,22 +96,20 @@ def run_test(sagemaker_session, ecr_image, instance_type, framework_version, tes
 
 @pytest.mark.integration("pipemode")
 @pytest.mark.model("N/A")
-def test_single_record(sagemaker_session, ecr_image, instance_type, framework_version,
-                       single_record_test_data):
-    run_test(sagemaker_session,
-             ecr_image,
-             instance_type,
-             framework_version,
-             single_record_test_data,
-             'RecordIO')
+def test_single_record(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, run_test,
+                              instance_type,
+                              framework_version,
+                              single_record_test_data,
+                              'RecordIO'
+                              )
 
 
 @pytest.mark.integration("pipemode")
 @pytest.mark.model("N/A")
-def test_multi_records(sagemaker_session, ecr_image, instance_type, framework_version,
-                       multi_records_test_data):
-    run_test(sagemaker_session,
-             ecr_image,
-             instance_type,
-             framework_version,
-             multi_records_test_data)
+def test_multi_records(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, run_test,
+                              instance_type,
+                              framework_version,
+                              multi_records_test_data
+                              )
