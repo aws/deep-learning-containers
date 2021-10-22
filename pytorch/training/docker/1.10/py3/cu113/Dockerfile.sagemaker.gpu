@@ -67,6 +67,8 @@ RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
+WORKDIR /
+
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 RUN HOME_DIR=/root \
