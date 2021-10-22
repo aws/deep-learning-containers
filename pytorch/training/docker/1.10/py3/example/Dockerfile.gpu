@@ -1,10 +1,9 @@
-
-# Use the Deep Learning Container as a base Image
+# Expecting base image to be the Deep Learning Container image built by ./Dockerfile.diy.gpu
 ARG BASE_IMAGE=""
 
 FROM $BASE_IMAGE
 
-RUN pip install tensorboardX==2.2
+RUN pip install tensorboardX==2.4
 
 # Add any script or repo as required
 COPY mnist.py /var/mnist.py
