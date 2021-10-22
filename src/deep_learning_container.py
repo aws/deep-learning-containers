@@ -155,7 +155,8 @@ def parse_args():
     args, _unknown = parser.parse_known_args()
 
     fw_version_pattern = r"\d+(\.\d+){1,2}(-rc\d)?"
-    assert re.fullmatch(fw_version_pattern, args.framework_version.split('+')[0]), (
+    args.framework_version = re.match(fw_version_pattern, args.framework_version).group()
+    assert re.fullmatch(fw_version_pattern, args.framework_version), (
         f"args.framework_version = {args.framework_version} does not match {fw_version_pattern}\n"
         f"Please specify framework version as X.Y.Z or X.Y."
     )
