@@ -357,12 +357,12 @@ release_images:
   27:
     framework: "pytorch"
     version: "1.9.0"
+    customer_type: "e3"
     training:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
       cuda_version: "cu111"
-      customer_type: "e3"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
                             # to images being published.
@@ -373,7 +373,6 @@ release_images:
       python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
       cuda_version: "cu111"
-      customer_type: "e3"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
                             # to images being published.
@@ -382,12 +381,12 @@ release_images:
   28:
     framework: "pytorch"
     version: "1.9.0"
+    customer_type: "e3"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
       cuda_version: "cu111"
-      customer_type: "e3"
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
@@ -577,12 +576,12 @@ release_images:
   44:
     framework: "pytorch"
     version: "1.9.0"
+    customer_type: "sagemaker"
     training:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
       cuda_version: "cu111"
-      customer_type: "sagemaker"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
                             # to images being published.
@@ -593,7 +592,6 @@ release_images:
       python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
       cuda_version: "cu111"
-      customer_type: "sagemaker"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
                             # to images being published.
