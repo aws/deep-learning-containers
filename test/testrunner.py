@@ -271,7 +271,7 @@ def main():
         "framework": framework,
         "version": version,
         "build_context": build_context,
-        "test_type": specific_test_type,
+        "test_type": test_type,
     }
 
     # In PR context, allow us to switch sagemaker tests to RC tests.
