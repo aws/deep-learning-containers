@@ -173,8 +173,12 @@ def test_framework_version_cpu(image):
     else:
         if tested_framework == "autogluon.core":
             assert output.stdout.strip().startswith(tag_framework_version)
-        elif tested_framework == "torch":
-            assert output.stdout.strip().startswith(tag_framework_version)
+        elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
+            torch_version_pattern = r"{torch_version}(\+cpu)".format(torch_version=tag_framework_version)
+            assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
+                f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                f"Please specify framework version as X.Y.Z+cpu"
+            )
         else:
             if "neuron" in image:
                 assert tag_framework_version in output.stdout.strip()
@@ -216,8 +220,12 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         else:
             if tested_framework == "autogluon.core":
                 assert output.stdout.strip().startswith(tag_framework_version)
-            elif tested_framework == "torch":
-                assert output.stdout.strip().startswith(tag_framework_version)
+            elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
+                torch_version_pattern = r"{torch_version}(\+cu\d+)".format(torch_version=tag_framework_version)
+                assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
+                    f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                    f"Please specify framework version as X.Y.Z+cuXXX"
+                )
             else:
                 assert tag_framework_version == output.stdout.strip()
 
