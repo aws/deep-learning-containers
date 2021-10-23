@@ -715,6 +715,41 @@ def get_canary_default_tag_py3_version(framework, version):
     return "py3"
 
 
+def get_e3_addon_tags(framework, version):
+    """
+    Get e3 addon tags (os, dlc_major_version, cuda_version)
+
+    @param framework: tensorflow2, mxnet, pytorch
+    @param version: major.minor version
+    @return: tuple of os, dlc major version, cuda version
+    """
+    fw_map = {
+        "tensorflow1": {},
+        "tensorflow2": {},
+        "pytorch": {
+            "latest": {
+                "cuda": "cu113",
+                "os": "ubuntu20.04",
+                "major_version": "v1"
+            }
+        },
+        "mxnet": {
+            "cpu": {},
+            "gpu": {},
+        },
+    }
+
+    image_e3_components = fw_map.get(framework, {}).get(version, {})
+    if not image_e3_components:
+        image_e3_components = fw_map.get(framework, {}).get("latest", {})
+
+    return (
+        image_e3_components.get("os", ""),
+        image_e3_components.get("major_version", ""),
+        image_e3_components.get("cuda", "")
+    )
+
+
 def parse_canary_images(framework, region):
     """
     Return which canary images to run canary tests on for a given framework and AWS region
@@ -775,6 +810,7 @@ def parse_canary_images(framework, region):
     dlc_images = []
     for fw_version in framework_versions:
         py3_version = get_canary_default_tag_py3_version(framework, fw_version)
+        operating_system, dlc_major_version, cuda = get_e3_addon_tags(framework, fw_version)
         images = {
             "tensorflow1": {},
             "tensorflow2": {
@@ -796,7 +832,12 @@ def parse_canary_images(framework, region):
                 ],
             },
             "pytorch": {
-                "e3": [],
+                "e3": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py3_version}-{cuda}-{operating_system}-e3-{dlc_major_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py3_version}-{operating_system}-e3-{dlc_major_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-{py3_version}-{cuda}-{operating_system}-e3-{dlc_major_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-{py3_version}-{operating_system}-e3-{dlc_major_version}",
+                ],
                 "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py3_version}",
@@ -831,7 +872,8 @@ def parse_canary_images(framework, region):
                 ],
             },
         }
-        dlc_images += images[framework]["py3"]
+        imgs_key = customer_type if customer_type else "sagemaker"
+        dlc_images += images[framework][imgs_key]
 
     return " ".join(dlc_images)
 
