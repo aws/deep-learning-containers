@@ -147,11 +147,15 @@ def get_dockerfile_path_for_image(image_uri):
 
 
 def get_expected_dockerfile_filename(device_type, image_uri):
-    if is_diy_image(image_uri):
+    if is_e3_image(image_uri):
         return f"Dockerfile.diy.{device_type}"
     if is_sagemaker_image(image_uri):
         return f"Dockerfile.sagemaker.{device_type}"
     return f"Dockerfile.{device_type}"
+
+
+def get_customer_type():
+    return os.getenv("CUSTOMER_TYPE")
 
 
 def get_python_invoker(ami_id):
@@ -267,7 +271,7 @@ def is_rc_test_context():
     return sm_remote_tests_val == config.AllowedSMRemoteConfigValues.RC.value
 
 
-def is_diy_image(image_uri):
+def is_e3_image(image_uri):
     return "-e3" in image_uri
 
 
@@ -725,17 +729,18 @@ def parse_canary_images(framework, region):
         else:
             framework = "tensorflow1"
 
+    customer_type = get_customer_type()
+    customer_type_tag = f"-{customer_type}" if customer_type else ""
+
     version_regex = {
         "tensorflow1": r"tf-(1.\d+)",
-        "tensorflow2": r"tf-(2.\d+)",
-        "mxnet": r"mx-(\d+.\d+)",
-        "pytorch": r"pt-(\d+.\d+)",
+        "tensorflow2": rf"tf{customer_type_tag}-(2.\d+)",
+        "mxnet": rf"mx{customer_type_tag}-(\d+.\d+)",
+        "pytorch": rf"pt{customer_type_tag}-(\d+.\d+)",
         "huggingface_pytorch": r"hf-pt-(\d+.\d+)",
         "huggingface_tensorflow": r"hf-tf-(\d+.\d+)",
         "autogluon": r"ag-(\d+.\d+)",
     }
-
-    py2_deprecated = {"tensorflow1": None, "tensorflow2": "2.2", "mxnet": "1.7", "pytorch": "1.5"}
 
     repo = git.Repo(os.getcwd(), search_parent_directories=True)
 
@@ -771,21 +776,10 @@ def parse_canary_images(framework, region):
     for fw_version in framework_versions:
         py3_version = get_canary_default_tag_py3_version(framework, fw_version)
         images = {
-            "tensorflow1": {
-                "py2": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-py2",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-py2",
-                ],
-                "py3": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
-                ],
-            },
+            "tensorflow1": {},
             "tensorflow2": {
-                "py2": [],
-                "py3": [
+                "e3": [],
+                "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu",
@@ -793,13 +787,8 @@ def parse_canary_images(framework, region):
                 ],
             },
             "mxnet": {
-                "py2": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-py2",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-py2",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-py2",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-py2",
-                ],
-                "py3": [
+                "e3": [],
+                "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-{py3_version}",
@@ -807,8 +796,8 @@ def parse_canary_images(framework, region):
                 ],
             },
             "pytorch": {
-                "py2": [],
-                "py3": [
+                "e3": [],
+                "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-{py3_version}",
@@ -817,8 +806,8 @@ def parse_canary_images(framework, region):
             },
             # TODO: uncomment once cpu training and inference images become available
             "huggingface_pytorch": {
-                "py2": [],
-                "py3": [
+                "e3": [],
+                "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py3_version}",
                     # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py3_version}",
                     # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py3_version}",
@@ -826,8 +815,8 @@ def parse_canary_images(framework, region):
                 ],
             },
             "huggingface_tensorflow": {
-                "py2": [],
-                "py3": [
+                "e3": [],
+                "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py3_version}",
                     # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py3_version}",
                     # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py3_version}",
@@ -835,19 +824,14 @@ def parse_canary_images(framework, region):
                 ],
             },
             "autogluon": {
-                "py2": [],
-                "py3": [
+                "e3": [],
+                "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py3_version}",
                 ],
             },
         }
         dlc_images += images[framework]["py3"]
-        no_py2 = py2_deprecated.get(framework)
-        if no_py2 and (Version(fw_version) >= Version(no_py2)):
-            continue
-        else:
-            dlc_images += images[framework].get("py2", [])
 
     return " ".join(dlc_images)
 

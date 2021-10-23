@@ -22,7 +22,7 @@ from test.test_utils import (
     get_job_type_from_image,
     is_tf_version,
     is_below_framework_version,
-    is_diy_image,
+    is_e3_image,
     is_sagemaker_image,
     DEFAULT_REGION,
     P3DN_REGION,
@@ -666,7 +666,7 @@ def pytest_generate_tests(metafunc):
                         fixture_name not in metafunc.fixturenames
                         for fixture_name in ["example_only", "huggingface_only"]
                     ) and all(keyword not in image for keyword in ["example", "huggingface"])
-                    if "sagemaker_only" in metafunc.fixturenames and is_diy_image(image):
+                    if "sagemaker_only" in metafunc.fixturenames and is_e3_image(image):
                         LOGGER.info(f"Not running DIY image {image} on sagemaker_only test")
                         continue
                     if is_sagemaker_image(image):
