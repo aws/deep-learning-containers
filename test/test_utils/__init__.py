@@ -812,7 +812,10 @@ def parse_canary_images(framework, region):
         py3_version = get_canary_default_tag_py3_version(framework, fw_version)
         operating_system, dlc_major_version, cuda = get_e3_addon_tags(framework, fw_version)
         images = {
-            "tensorflow1": {},
+            "tensorflow1": {
+                "e3": [],
+                "sagemaker": [],
+            },
             "tensorflow2": {
                 "e3": [],
                 "sagemaker": [
