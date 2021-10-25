@@ -248,8 +248,8 @@ def main():
     efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
-    # Executing locally ona can provide commit_id or may ommit it. Assigning default value for local executions:  
-    commit_id = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION', default="unrecognised_commit_id")
+    # Executing locally ona can provide commit_id or may ommit it. Assigning default value for local executions:
+    commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", default="unrecognised_commit_id")
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
@@ -271,7 +271,7 @@ def main():
         "framework": framework,
         "version": version,
         "build_context": build_context,
-        "test_type": specific_test_type,
+        "test_type": test_type,
     }
 
     # In PR context, allow us to switch sagemaker tests to RC tests.
@@ -384,16 +384,15 @@ def main():
             sys.exit(pytest.main(pytest_cmd))
 
         else:
-            run_sagemaker_remote_tests(
-                [
-                    image
-                    for image in standard_images_list
-                    if not (
-                        ("tensorflow-inference" in image and "py2" in image)
-                        or is_diy_image(image)
-                    )
-                ]
-            )
+            sm_remote_images = [
+                image
+                for image in standard_images_list
+                if not (("tensorflow-inference" in image and "py2" in image) or is_diy_image(image))
+            ]
+            run_sagemaker_remote_tests(sm_remote_images)
+            if standard_images_list and not sm_remote_images:
+                report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+                sm_utils.generate_empty_report(report, test_type, "sm_remote_unsupported")
         metrics_utils.send_test_duration_metrics(start_time)
 
     elif specific_test_type == "sagemaker-local":
