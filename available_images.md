@@ -107,6 +107,15 @@ You can pin your version by adding the version tag to your URL as follows:
 |PyTorch 1.9.0      |inference	|No			    |GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.9.0-gpu-py38-cu111-ubuntu20.04    |
 |PyTorch 1.9.0      |inference	|No				|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.9.0-cpu-py38-ubuntu20.04          |
 
+Habana training containers
+===============================
+
+| Framework         |Job Type	|Device Type 	|Python Version Options	|Example URL																								 |
+|-------------------|-----------|-----------|-----------------------|------------------------------------------------------------------------------------------------------------|
+|PyTorch 1.7.1    |training   |HPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training-habana:1.7.1-hpu-py37-synapseai0.15.4-ubuntu18.04            |
+|TensorFlow 2.5.0   |training   |HPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training-habana:2.5.0-hpu-py37-synapseai0.15.4-ubuntu18.04
+
+
 AutoGluon training containers
 ===============================
 
