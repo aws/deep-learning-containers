@@ -196,8 +196,13 @@ def test_framework_and_neuron_sdk_version(neuron):
 
     tested_framework, neuron_tag_framework_version = get_neuron_framework_and_version_from_tag(image)
 
+    # neuron tag is there in pytorch images for now. Once all frameworks have it, then this will
+    # be removed
     if neuron_tag_framework_version is None:
-        pytest.skip(msg="Neuron SDK tag is not there as part of image")
+        if tested_framework is "pytorch":
+            assert neuron_tag_framework_version != None
+        else:
+            pytest.skip(msg="Neuron SDK tag is not there as part of image")
 
 
     if tested_framework == "pytorch":

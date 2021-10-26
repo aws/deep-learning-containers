@@ -987,7 +987,11 @@ def get_framework_and_version_from_tag(image_uri):
 
 # for the time being have this static table. Need to figure out a way to get this from
 # neuron github once their version manifest file is updated to the latest
-neuron_version_manifest = {
+# 1.15.2 etc represent the neuron sdk version
+# For each of the sdk version we have differen frameworks like pytoch, mxnet etc
+# For each of the frameworks it has the framework version mapping to the actual neuron framework version in the container
+# If the framework version does not exist then it means it is not supported for that neuron sdk version
+NEURON_VERSION_MANIFEST = {
     "1.15.2": {
         "pytorch": {
             "1.5.1": "1.5.1.1.5.21.0",
@@ -1013,42 +1017,32 @@ def get_neuron_sdk_version_from_tag(image_uri):
     """
     Return the neuron sdk version from the image tag.
     :param image_uri: ECR image URI
-    :return: cuda version
+    :return: neuron sdk version
     """
     neuron_sdk_version = None
 
     if "sdk" in image_uri:
-        neuron_sdk_version = re.search(r"sdk\s*([\d.]+)", image_uri).group(1)
+        neuron_sdk_version = re.search(r"sdk[\d\.]+)", image_uri).group(1)
 
     return neuron_sdk_version
 
 def get_neuron_framework_and_version_from_tag(image_uri):
     """
-    Return the neuron framework and version from the image tag.
+    Return the framework version and expected framework version for the neuron tag from the image tag.
 
     :param image_uri: ECR image URI
-    :return: framework name, framework version
+    :return: framework version, expected framework version from neuron sdk version
     """
-    tested_framework = get_framework_from_image_uri(image_uri)
-    allowed_frameworks = (
-        "tensorflow",
-        "mxnet",
-        "pytorch",
-    )
-
-    if not tested_framework:
-        raise RuntimeError(
-            f"Cannot find framework in image uri {image_uri} " f"from allowed frameworks {allowed_frameworks}"
-        )
-    tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]
+    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image_uri)
     neuron_sdk_version = get_neuron_sdk_version_from_tag(image_uri)
+
     if neuron_sdk_version is None:
         return tag_framework_version, None
 
-    if neuron_sdk_version not in neuron_version_manifest:
+    if neuron_sdk_version not in NEURON_VERSION_MANIFEST:
         raise RuntimeError(f"Cannot find neuron sdk version {neuron_sdk_version} ")
 
-    neuron_framework_versions = neuron_version_manifest[neuron_sdk_version][tested_framework]
+    neuron_framework_versions = NEURON_VERSION_MANIFEST[neuron_sdk_version][tested_framework]
     neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)
 
     return tested_framework, neuron_tag_framework_version
