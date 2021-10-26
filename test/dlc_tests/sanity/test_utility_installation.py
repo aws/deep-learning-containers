@@ -9,7 +9,7 @@ from test import test_utils
 UTILITY_PACKAGES_IMPORT = ["bokeh", "imageio", "plotly", "seaborn", "shap", "pandas", "cv2", "sagemaker"]
 
 
-# TODO: Need to be added to all DLC images in furture.
+# TODO: Need to be added to all DLC images in future.
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("awscli")
@@ -114,3 +114,33 @@ def test_apache_tomcat(image):
     tomcat_output = test_utils.run_cmd_on_container(container_name, ctx, "find / -name *tomcat*").stdout.strip()
     if tomcat_output:
         raise RuntimeError(f"Found tomcat installation in {image}. See output: {tomcat_output}")
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("torchaudio")
+def test_torchaudio(pytorch):
+    """
+    Test that torchaudio is properly installed on PT containers
+    """
+    fw, fw_version = test_utils.get_framework_and_version_from_tag()
+    if Version(fw_version) < Version("1.9"):
+        pytest.skip(f"Torchaudio was not installed in framework versions less than 1.9. Tested {fw} {fw_version}.")
+
+    ctx = Context()
+    container_name = test_utils.get_container_name("torchaudio", pytorch)
+    test_utils.start_container(container_name, pytorch, ctx)
+    test_utils.run_cmd_on_container(container_name, ctx, 'import torchaudio', executable="python")
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("torchvision")
+def test_torchvision(pytorch):
+    """
+    Test that torchaudio is properly installed on PT containers
+    """
+    ctx = Context()
+    container_name = test_utils.get_container_name("torchvision", pytorch)
+    test_utils.start_container(container_name, pytorch, ctx)
+    test_utils.run_cmd_on_container(container_name, ctx, 'import torchvision', executable="python")
