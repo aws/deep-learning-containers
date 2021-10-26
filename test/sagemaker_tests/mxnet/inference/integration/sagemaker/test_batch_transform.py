@@ -21,6 +21,7 @@ import pytest
 from sagemaker import utils
 from sagemaker.mxnet.model import MXNetModel
 
+from ..... import invoke_sm_helper_function
 from ...integration import RESOURCE_PATH
 from ...integration.sagemaker import timeout
 
@@ -36,7 +37,12 @@ DATA_PATH = os.path.join(MNIST_PATH, 'images', DATA_FILE)
 @pytest.mark.integration("batch_transform")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_neuron_containers
-def test_batch_transform(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_batch_transform(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_batch_transform_function,
+                                 instance_type, framework_version)
+
+
+def _test_batch_transform_function(ecr_image, sagemaker_session, instance_type, framework_version):
     s3_prefix = 'mxnet-serving/mnist'
     model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=s3_prefix)
     model = MXNetModel(model_data,

@@ -2,10 +2,10 @@
 release_images:
   1:
     framework: "pytorch"
-    version: "1.7.1"
+    version: "1.8.1"
     inference:
       device_types: ["neuron"]
-      python_versions: ["py36"]
+      python_versions: ["py37"]
       os_version: "ubuntu18.04"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
@@ -356,7 +356,7 @@ release_images:
       force_release: False
   27:
     framework: "pytorch"
-    version: "1.9.0"
+    version: "1.9.1"
     training:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
@@ -379,7 +379,7 @@ release_images:
                             # has already been published. Re-released image will have minor version incremented by 1.
   28:
     framework: "pytorch"
-    version: "1.9.0"
+    version: "1.9.1"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py38" ]

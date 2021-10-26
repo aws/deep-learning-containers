@@ -68,6 +68,7 @@ NO_P3_REGIONS = [
     "ca-central-1",
     "eu-central-1",
     "eu-north-1",
+    "eu-west-1",
     "eu-west-2",
     "eu-west-3",
     "eu-south-1",
@@ -115,7 +116,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
-    parser.addoption('--sagemaker-region')
+    parser.addoption('--sagemaker-regions', default='us-west-2')
 
 
 def pytest_configure(config):
@@ -152,7 +153,7 @@ def fixture_framework_version(request):
 
 @pytest.fixture(scope='session', name='sagemaker_regions')
 def fixture_sagemaker_region(request):
-    sagemaker_regions = request.config.getoption('--sagemaker-region')
+    sagemaker_regions = request.config.getoption('--sagemaker-regions')
     return sagemaker_regions.split(",")
 
 @pytest.fixture(scope='session', name='py_version')
