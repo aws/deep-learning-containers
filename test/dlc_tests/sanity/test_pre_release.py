@@ -193,8 +193,10 @@ def test_framework_version_cpu(image):
 @pytest.mark.model("N/A")
 def test_framework_and_neuron_sdk_version(neuron):
     """
-    Check that the framework version in the image tag is the same as the one on a running container.
-    This function tests CPU, EIA, and Neuron images.
+    Gets the neuron sdk tag from the image. For that neuron sdk and the frame work version from
+    the image, it gets the expected frame work version. Then checks that the expected framework version
+    same as the one on a running container.
+    This function test only Neuron images.
 
     :param image: ECR image URI
     """

@@ -19,7 +19,6 @@ from test import test_utils
 from test.test_utils import (
     is_benchmark_dev_context,
     get_framework_and_version_from_tag,
-    get_neuron_framework_and_version_from_tag,
     get_job_type_from_image,
     is_tf_version,
     is_below_framework_version,

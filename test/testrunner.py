@@ -28,7 +28,6 @@ from test_utils import (
     setup_sm_benchmark_mx_train_env,
     setup_sm_benchmark_hf_infer_env,
     get_framework_and_version_from_tag,
-    get_neuron_framework_and_version_from_tag,
     get_build_context,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION

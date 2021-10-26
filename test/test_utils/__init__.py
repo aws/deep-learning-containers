@@ -1040,7 +1040,7 @@ def get_neuron_framework_and_version_from_tag(image_uri):
         return tag_framework_version, None
 
     if neuron_sdk_version not in NEURON_VERSION_MANIFEST:
-        raise RuntimeError(f"Cannot find neuron sdk version {neuron_sdk_version} ")
+        raise KeyError(f"Cannot find neuron sdk version {neuron_sdk_version} ")
 
     neuron_framework_versions = NEURON_VERSION_MANIFEST[neuron_sdk_version][tested_framework]
     neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)
@@ -1165,10 +1165,7 @@ def stop_and_remove_container(container_name, context):
     :param context: Invoke context object
     """
     context.run(
-        f"docker stop {container_name}", hide=True,
-    )
-    context.run(
-        f"docker rm {container_name}", hide=True,
+        f"docker rm -f {container_name}", hide=True,
     )
 
 def start_container(container_name, image_uri, context):
