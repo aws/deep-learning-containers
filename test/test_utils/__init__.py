@@ -1022,7 +1022,7 @@ def get_neuron_sdk_version_from_tag(image_uri):
     neuron_sdk_version = None
 
     if "sdk" in image_uri:
-        neuron_sdk_version = re.search(r"sdk[\d\.]+)", image_uri).group(1)
+        neuron_sdk_version = re.search(r"sdk([\d\.]+)", image_uri).group(1)
 
     return neuron_sdk_version
 
