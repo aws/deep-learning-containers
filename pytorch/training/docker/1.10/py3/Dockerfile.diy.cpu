@@ -23,7 +23,7 @@ ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
 ENV PATH=/opt/conda/bin:$PATH
 # TODO: Add DGL environment variables back when DGL is re-enabled
 # ENV DGLBACKEND=pytorch
-ENV DLC_CONTAINER_TYPE training
+ENV DLC_CONTAINER_TYPE=training
 
 # There's no PT pipeline for binary for diy/e3 currently. Using the inference branch (PyTorch + telemetry feature) with different building environments for both training and inference DLCs temporarily.
 ARG PT_TRAINING_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211027-160245/36dea191ed0df524207de5acc4e6fb4322306d1a/cpu/torch-1.10.0%2Bcpu-cp38-cp38-manylinux1_x86_64.whl

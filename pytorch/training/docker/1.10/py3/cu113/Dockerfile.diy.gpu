@@ -38,7 +38,7 @@ ENV DGLBACKEND=pytorch
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV MANUAL_BUILD=0
 ENV RDMAV_FORK_SAFE=1
-ENV DLC_CONTAINER_TYPE training
+ENV DLC_CONTAINER_TYPE=training
 
 # There's no PT pipeline for binary for diy/e3 currently. Using the inference branch (PyTorch + telemetry feature) with different building environments for both training and inference DLCs temporarily.
 ARG PT_TRAINING_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211027-160245/36dea191ed0df524207de5acc4e6fb4322306d1a/gpu/torch-1.10.0%2Bcu113-cp38-cp38-manylinux1_x86_64.whl

@@ -29,7 +29,7 @@ ENV NVML_VERSION=11.3.58
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
-ENV DLC_CONTAINER_TYPE inference
+ENV DLC_CONTAINER_TYPE=inference
 
 RUN apt-get update \
     # TODO: Remove systemd upgrade once it is updated in base image
