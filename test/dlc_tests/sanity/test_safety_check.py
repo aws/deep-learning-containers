@@ -41,7 +41,11 @@ IGNORE_SAFETY_IDS = {
                 # for shipping pycrypto<=2.6.1 - the last available version for py2
                 "35015",
             ],
-            "py3": [],
+            "py3": [
+                # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
+                "42098",
+                "42062",
+            ],
         },
         "inference": {
             "py2": [
@@ -51,7 +55,11 @@ IGNORE_SAFETY_IDS = {
                 "38451",
                 "38452",
             ],
-            "py3": [],
+            "py3": [
+                # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
+                "42098",
+                "42062",
+            ],
         },
         "inference-eia": {
             "py2": [
@@ -61,7 +69,11 @@ IGNORE_SAFETY_IDS = {
                 "38451",
                 "38452",
             ],
-            "py3": [],
+            "py3": [
+                # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
+                "42098",
+                "42062",
+            ],
         },
         "inference-neuron": {
             "py3": [
@@ -70,6 +82,9 @@ IGNORE_SAFETY_IDS = {
                 "39408",
                 "39407",
                 "39406",
+                # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
+                "42098",
+                "42062",
             ],
         },
     },
