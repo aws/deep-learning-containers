@@ -8,7 +8,7 @@ ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.8.10
 #TODO: replace binary
-ARG TFS_URL=https://graviton-tf-arm-binary.s3.us-west-2.amazonaws.com/tensorflow_model_server
+ARG TFS_URL=https://aws-ei-tensorflow-binaries.s3.us-west-2.amazonaws.com/serving/r2.7_aws/20211026-050027/graviton/cpu/py38/tensorflow_model_server
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
@@ -119,6 +119,6 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
 #add license for TF2.7
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.6/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.7/license.txt -o /license.txt
 
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
