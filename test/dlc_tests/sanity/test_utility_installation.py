@@ -123,7 +123,7 @@ def test_torchaudio(pytorch):
     """
     Test that torchaudio is properly installed on PT containers
     """
-    fw, fw_version = test_utils.get_framework_and_version_from_tag(pytorch)
+    fw, fw_version = test_utils.get_framework_and_version_from_tag()
     if Version(fw_version) < Version("1.9"):
         pytest.skip(f"Torchaudio was not installed in framework versions less than 1.9. Tested {fw} {fw_version}.")
 
@@ -138,7 +138,7 @@ def test_torchaudio(pytorch):
 @pytest.mark.integration("torchvision")
 def test_torchvision(pytorch):
     """
-    Test that torchvision is properly installed on PT containers
+    Test that torchaudio is properly installed on PT containers
     """
     ctx = Context()
     container_name = test_utils.get_container_name("torchvision", pytorch)
