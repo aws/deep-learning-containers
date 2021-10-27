@@ -7,9 +7,8 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.10
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.4.2
-ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211020-112420/f0fe4bdfb8159b0ba6de7e77fd349d608653d58a/cpu/torch-1.10.0%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211027-061940/36dea191ed0df524207de5acc4e6fb4322306d1a/cpu/torch-1.10.0%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.11.1%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cpu/torchaudio-0.10.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
@@ -17,6 +16,7 @@ ENV PATH /opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
+ENV DLC_CONTAINER_TYPE inference
 
 RUN apt-get update \
 # TODO: Remove systemd upgrade once it is updated in base image
@@ -112,9 +112,7 @@ RUN conda install -c \
 RUN pip uninstall -y torch \
  && pip install --no-cache-dir -U $PT_INFERENCE_URL \
  && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL \
- && pip uninstall -y torchaudio \
- && pip install --no-deps --no-cache-dir -U $PT_TORCHAUDIO_URL
+ && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
 RUN pip install \
