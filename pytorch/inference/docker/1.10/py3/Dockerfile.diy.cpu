@@ -96,8 +96,6 @@ RUN conda install -c \
     conda-forge \
     opencv \
  && conda install -y \
-    scikit-learn \
-    pandas \
     h5py \
     requests \
  && conda clean -ya \

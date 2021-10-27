@@ -90,8 +90,6 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     typing \
     "pyopenssl>=17.5.0" \
  && conda install -y \
-    scikit-learn \
-    pandas \
     h5py \
     requests \
 # TODO: Add DGL back when 0.7.1 is released
