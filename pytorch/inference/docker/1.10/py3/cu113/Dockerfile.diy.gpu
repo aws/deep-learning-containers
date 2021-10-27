@@ -10,7 +10,6 @@ ARG PYTHON_VERSION=3.8.10
 # PyTorch Binaries
 ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211020-112420/f0fe4bdfb8159b0ba6de7e77fd349d608653d58a/gpu/torch-1.10.0%2Bcu113-cp38-cp38-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.11.1%2Bcu113-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu113/torchaudio-0.10.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.4.2
@@ -135,8 +134,6 @@ RUN conda install -c \
     conda-forge \
     opencv \
  && conda install -y \
-    scikit-learn \
-    pandas \
     h5py \
     requests \
  && conda clean -ya \
@@ -158,9 +155,7 @@ RUN rm -rf /opt/conda/lib/libtinfo.so.6
 RUN pip uninstall -y torch \
  && pip install --no-cache-dir -U $PT_INFERENCE_URL \
  && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL \
- && pip uninstall -y torchaudio \
- && pip install --no-deps --no-cache-dir -U $PT_TORCHAUDIO_URL
+ && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
 RUN pip install \
