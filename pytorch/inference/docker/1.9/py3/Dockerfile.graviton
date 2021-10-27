@@ -35,6 +35,7 @@ RUN apt-get update \
     libxrender-dev \
     openjdk-11-jdk \
     openssl \
+    scons \
     vim \
     wget \
     unzip \
@@ -119,6 +120,15 @@ RUN useradd -m model-server \
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
+
+## compile and install ArmCL
+RUN git clone https://github.com/Arm-software/ComputeLibrary.git \
+ && cd ComputeLibrary \
+ && git checkout v21.05 \
+ && scons Werror=0 -j8 debug=0 neon=1 opencl=0 os=linux arch=arm64-v8a build=native \
+ && mkdir /opt/armClArtifact \
+ && cp build/libarm* /opt/armClArtifact
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/armClArtifact/"
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
