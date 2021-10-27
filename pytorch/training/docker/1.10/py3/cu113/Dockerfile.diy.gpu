@@ -153,8 +153,7 @@ RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
  && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
 
 RUN conda install -c pytorch magma-cuda113==2.5.2 \
- && conda install -y scikit-learn \
-    pandas \
+ && conda install -y \
     h5py \
     requests \
     libgcc \
@@ -182,8 +181,6 @@ RUN pip install --no-cache-dir -U \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
-
-
 
 # Install Nvidia Apex
 RUN git clone https://github.com/NVIDIA/apex.git \
