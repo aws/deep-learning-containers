@@ -44,7 +44,6 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Immutable constant for framework specific image fixtures
 FRAMEWORK_FIXTURES = (
-    "pytorch",
     "pytorch_inference",
     "pytorch_training",
     "autogluon_training",
