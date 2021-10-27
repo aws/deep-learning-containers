@@ -71,12 +71,8 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && ./configure && make && make install \
  && rm -rf ../Python-$PYTHON_VERSION*
 
-#RUN echo "deb https://apt.repos.neuron.amazonaws.com bionic main" > /etc/apt/sources.list.d/neuron.list
-#RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
-#RUN apt-get update
-
-RUN echo "deb https://NeuronUser:koxHDfNT5VX7u1e9@apt.repos.gamma.neuron.amazonaws.com bionic main" > /etc/apt/sources.list.d/neuron.list
-RUN wget -qO - https://NeuronUser:koxHDfNT5VX7u1e9@apt.repos.gamma.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
+RUN echo "deb https://apt.repos.neuron.amazonaws.com bionic main" > /etc/apt/sources.list.d/neuron.list
+RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
 RUN apt-get update
 
 # tensorflow-model-server-neuron 2.5 is segfaulting and so for the time being installing 2.4 which works
@@ -107,10 +103,9 @@ RUN ${PIP} install --no-cache-dir \
 
 # pip install statements have been separated out into multiple sequentially executed statements to
 # resolve package dependencies during installation.
-RUN ${PIP} install "tensorflow_serving_api>=2.5,<2.6" --no-deps --extra-index-url https://NeuronUser:koxHDfNT5VX7u1e9@pip.repos.gamma.neuron.amazonaws.com \
- && ${PIP} install neuron-cc --extra-index-url https://NeuronUser:koxHDfNT5VX7u1e9@pip.repos.gamma.neuron.amazonaws.com \
- && ${PIP} install "tensorflow-neuron>=2.5,<2.6" --extra-index-url https://NeuronUser:koxHDfNT5VX7u1e9@pip.repos.gamma.neuron.amazonaws.com 
-
+RUN ${PIP} install "tensorflow_serving_api>=2.5,<2.6" --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install neuron-cc --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install "tensorflow-neuron>=2.5,<2.6" --extra-index-url https://pip.repos.neuron.amazonaws.com
 COPY ./sagemaker /sagemaker
 
 # Some TF tools expect a "python" binary
