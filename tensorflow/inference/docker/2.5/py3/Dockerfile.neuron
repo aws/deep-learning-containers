@@ -75,9 +75,8 @@ RUN echo "deb https://apt.repos.neuron.amazonaws.com bionic main" > /etc/apt/sou
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
 RUN apt-get update
 
-# tensorflow-model-server-neuron 2.5 is segfaulting and so for the time being installing 2.4 which works
 RUN apt-get install -y \
-    tensorflow-model-server-neuron=2.4.* \
+    tensorflow-model-server-neuron=2.5.* \
     aws-neuron-tools \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
