@@ -104,7 +104,6 @@ RUN apt-get update
 
 RUN apt-get install -y \
     tensorflow-model-server-neuron=1.15.* \
-    aws-neuron-runtime \
     aws-neuron-tools
 
 RUN ${PIP} --no-cache-dir install --upgrade \
