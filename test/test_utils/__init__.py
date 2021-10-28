@@ -45,8 +45,11 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
 ]
+
+# ECS images are maintained here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
+ECS_AML2_GRAVITON_CPU_USWEST2 = "ami-0fb32cf53e5ab7686"
 NEURON_AL2_DLAMI = "ami-03c4cdc89eca4dbcb"
 
 DLAMI_PYTHON_MAPPING = {
@@ -105,10 +108,10 @@ def get_dockerfile_path_for_image(image_uri):
     job_type = get_job_type_from_image(image_uri)
 
     short_framework_version = re.search(r"(\d+\.\d+)", image_uri).group(1)
-    long_framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
 
     framework_version_path = os.path.join(github_repo_path, framework_path, job_type, "docker", short_framework_version)
     if not os.path.isdir(framework_version_path):
+        long_framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
         framework_version_path = os.path.join(
             github_repo_path, framework_path, job_type, "docker", long_framework_version
         )
@@ -268,7 +271,7 @@ def is_rc_test_context():
 
 
 def is_diy_image(image_uri):
-    return "-ec2-ecs-eks" in image_uri
+    return "-e3" in image_uri
 
 
 def is_sagemaker_image(image_uri):

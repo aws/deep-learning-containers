@@ -18,6 +18,9 @@ context:
     config:
       source: docker/build_artifacts/config.properties
       target: config.properties
+    default-handlers:
+      source: docker/build_artifacts/default_inference_handler.py
+      target: default_inference_handler.py
 
 images:
   BuildEIAPTInferencePy3DockerImage:
