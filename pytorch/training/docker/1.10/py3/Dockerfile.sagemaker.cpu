@@ -22,6 +22,11 @@ WORKDIR /
 COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
+# Install scikit-learn and pandas
+RUN conda install -y \
+    scikit-learn \
+    pandas
+
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache-dir -U \
     smdebug==${SMDEBUG_VERSION} \
