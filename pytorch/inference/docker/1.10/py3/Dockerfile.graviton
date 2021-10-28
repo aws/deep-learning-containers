@@ -35,6 +35,7 @@ RUN apt-get update \
     libxrender-dev \
     openjdk-11-jdk \
     openssl \
+    scons \
     vim \
     wget \
     unzip \
