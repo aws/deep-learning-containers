@@ -23,8 +23,10 @@ ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
 ENV PATH=/opt/conda/bin:$PATH
 # TODO: Add DGL environment variables back when DGL is re-enabled
 # ENV DGLBACKEND=pytorch
+ENV DLC_CONTAINER_TYPE=training
 
-ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.10.0_aws_v3/20211020-103012/22941b52395496362d9b564ef1fb2c6b135f4239/cpu/torch-1.10.0%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
+# There's no PT pipeline for binary for diy/e3 currently. Using the inference branch (PyTorch + telemetry feature) with different building environments for both training and inference DLCs temporarily.
+ARG PT_TRAINING_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211027-160245/36dea191ed0df524207de5acc4e6fb4322306d1a/cpu/torch-1.10.0%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.11.1%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_S3_WHL=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
@@ -88,8 +90,6 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     typing \
     "pyopenssl>=17.5.0" \
  && conda install -y \
-    scikit-learn \
-    pandas \
     h5py \
     requests \
 # TODO: Add DGL back when 0.7.1 is released
