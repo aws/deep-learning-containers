@@ -99,7 +99,6 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     if is_neuron:
         #For 2.5 using rest api port instead of grpc since using curl for prediction instead of grpc
-        ec2_connection.run("sudo systemctl stop neuron-rtd")  # Stop neuron-rtd in host env for DLC to start it
         if str(framework_version).startswith(TENSORFLOW2_VERSION):
             model_name= "simple"
             model_path = os.path.join(serving_folder_path, "models", model_name)
