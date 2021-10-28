@@ -26,6 +26,7 @@ Deep Learning Containers Docker Images are available in the following regions:
 |Africa (Cape Town)			|af-south-1			|Available			|Available					|None				|626614931356.dkr.ecr.af-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |Asia Pacific (Hong Kong)	|ap-east-1			|Available 			|None 			            |None				|871362719292.dkr.ecr.ap-east-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |Asia Pacific (Mumbai)		|ap-south-1			|Available 			|None 			            |Available			|763104351884.dkr.ecr.ap-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
+|Asia Pacific (Osaka)		|ap-northeast-3		|Available 			|None     			        |None				|364406365360.dkr.ecr.ap-northeast-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Asia Pacific (Seoul)		|ap-northeast-2		|Available 			|Available 			        |None				|763104351884.dkr.ecr.ap-northeast-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Asia Pacific (Singapore)	|ap-southeast-1		|Available 			|None 			            |Available			|763104351884.dkr.ecr.ap-southeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Asia Pacific (Sydney)		|ap-southeast-2 	|Available 			|None 			            |Available			|763104351884.dkr.ecr.ap-southeast-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
