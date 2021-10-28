@@ -5,11 +5,11 @@ version: &VERSION 1.10.0
 short_version: &SHORT_VERSION "1.10"
 
 repository_info:
-  # training_repository: &TRAINING_REPOSITORY
-  #   image_type: &TRAINING_IMAGE_TYPE training
-  #   root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
-  #   repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
-  #   repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+  training_repository: &TRAINING_REPOSITORY
+    image_type: &TRAINING_IMAGE_TYPE training
+    root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
+    repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
   inference_repository: &INFERENCE_REPOSITORY
     image_type: &INFERENCE_IMAGE_TYPE inference
     root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
@@ -17,19 +17,19 @@ repository_info:
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
 context:
-  # training_context: &TRAINING_CONTEXT
-  #   changehostname:
-  #     source: docker/build_artifacts/changehostname.c
-  #     target: changehostname.c
-  #   start_with_right_hostname:
-  #     source: docker/build_artifacts/start_with_right_hostname.sh
-  #     target: start_with_right_hostname.sh
-  #   example_mnist_file:
-  #     source: docker/build_artifacts/mnist.py
-  #     target: mnist.py
-  #   deep_learning_container:
-  #     source: ../../src/deep_learning_container.py
-  #     target: deep_learning_container.py
+  training_context: &TRAINING_CONTEXT
+    changehostname:
+      source: docker/build_artifacts/changehostname.c
+      target: changehostname.c
+    start_with_right_hostname:
+      source: docker/build_artifacts/start_with_right_hostname.sh
+      target: start_with_right_hostname.sh
+    example_mnist_file:
+      source: docker/build_artifacts/mnist.py
+      target: mnist.py
+    deep_learning_container:
+      source: ../../src/deep_learning_container.py
+      target: deep_learning_container.py
   inference_context: &INFERENCE_CONTEXT
     torchserve-diy-entrypoint:
       source: docker/build_artifacts/torchserve-diy-entrypoint.py
