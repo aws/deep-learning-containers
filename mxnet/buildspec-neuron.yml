@@ -17,12 +17,15 @@
       config:
         source: docker/artifacts/config.properties
         target: config.properties
-      entrypoint:
-        source: docker/artifacts/entrypoint.sh
-        target:  entrypoint.sh
-      mms-entrypoint:
-        source: docker/artifacts/mms-entrypoint.py
-        target:  mms-entrypoint.py
+      modelserver-neuron:
+        source: docker/artifacts/modelserver-neuron.sh
+        target:  modelserver-neuron.sh
+      neuron-start:
+        source: docker/artifacts/neuron-start.sh
+        target:  neuron-start.sh
+      neuron-entrypoint:
+        source: docker/artifacts/neuron-entrypoint.py
+        target:  neuron-entrypoint.py
 
   images:
     BuildNeuronMXNetInferencePy3DockerImage:
