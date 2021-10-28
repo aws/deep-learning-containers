@@ -13,6 +13,11 @@ ARG PYTHON_VERSION=3.8.10
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
+# Install scikit-learn and pandas
+RUN conda install -y \
+    scikit-learn \
+    pandas
+
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
