@@ -26,6 +26,7 @@ Deep Learning Containers Docker Images are available in the following regions:
 |Africa (Cape Town)			|af-south-1			|Available			|Available					|None				|626614931356.dkr.ecr.af-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |Asia Pacific (Hong Kong)	|ap-east-1			|Available 			|None 			            |None				|871362719292.dkr.ecr.ap-east-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
 |Asia Pacific (Mumbai)		|ap-south-1			|Available 			|None 			            |Available			|763104351884.dkr.ecr.ap-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			|
+|Asia Pacific (Osaka)		|ap-northeast-3		|Available 			|None     			        |None				|364406365360.dkr.ecr.ap-northeast-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Asia Pacific (Seoul)		|ap-northeast-2		|Available 			|Available 			        |None				|763104351884.dkr.ecr.ap-northeast-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Asia Pacific (Singapore)	|ap-southeast-1		|Available 			|None 			            |Available			|763104351884.dkr.ecr.ap-southeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
 |Asia Pacific (Sydney)		|ap-southeast-2 	|Available 			|None 			            |Available			|763104351884.dkr.ecr.ap-southeast-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		|
@@ -106,6 +107,15 @@ You can pin your version by adding the version tag to your URL as follows:
 |PyTorch 1.9.0      |training	|No				|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.9.0-cpu-py38-ubuntu20.04			|
 |PyTorch 1.9.0      |inference	|No			    |GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.9.0-gpu-py38-cu111-ubuntu20.04    |
 |PyTorch 1.9.0      |inference	|No				|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.9.0-cpu-py38-ubuntu20.04          |
+
+Habana training containers
+===============================
+
+| Framework         |Job Type	|Device Type 	|Python Version Options	|Example URL																								 |
+|-------------------|-----------|-----------|-----------------------|------------------------------------------------------------------------------------------------------------|
+|PyTorch 1.7.1    |training   |HPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training-habana:1.7.1-hpu-py37-synapseai0.15.4-ubuntu18.04            |
+|TensorFlow 2.5.0   |training   |HPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training-habana:2.5.0-hpu-py37-synapseai0.15.4-ubuntu18.04
+
 
 AutoGluon training containers
 ===============================
