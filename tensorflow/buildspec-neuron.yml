@@ -2,7 +2,7 @@
   region: &REGION <set-$REGION-in-environment>
   framework: &FRAMEWORK tensorflow
   short_version: &SHORT_VERSION 2.5
-  version: &VERSION 2.5.0
+  version: &VERSION 2.5.1
   os_version: &OS_VERSION ubuntu18.04
 
   repository_info:
