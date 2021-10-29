@@ -68,6 +68,7 @@ NO_P3_REGIONS = [
     "ca-central-1",
     "eu-central-1",
     "eu-north-1",
+    "eu-west-1",
     "eu-west-2",
     "eu-west-3",
     "eu-south-1",
@@ -107,7 +108,7 @@ def pytest_addoption(parser):
     parser.addoption('--framework-version', default='')
     parser.addoption('--py-version', choices=['2', '3', '37', '38'], default=str(sys.version_info.major))
     # Processor is still "cpu" for EIA tests
-    parser.addoption('--processor', choices=['gpu', 'cpu', 'eia'], default='cpu')
+    parser.addoption('--processor', choices=['gpu', 'cpu', 'eia', 'neuron'], default='cpu')
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
     parser.addoption('--tag', default=None)
     parser.addoption('--generate-coverage-doc', default=False, action='store_true',
@@ -115,7 +116,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
-    parser.addoption('--sagemaker-region')
+    parser.addoption('--sagemaker-regions', default='us-west-2')
 
 
 def pytest_configure(config):
@@ -152,7 +153,7 @@ def fixture_framework_version(request):
 
 @pytest.fixture(scope='session', name='sagemaker_regions')
 def fixture_sagemaker_region(request):
-    sagemaker_regions = request.config.getoption('--sagemaker-region')
+    sagemaker_regions = request.config.getoption('--sagemaker-regions')
     return sagemaker_regions.split(",")
 
 @pytest.fixture(scope='session', name='py_version')
@@ -250,18 +251,23 @@ def fixture_ecr_image(docker_registry, docker_base_name, tag):
 def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
     is_gpu = use_gpu or instance_type[3] in ['g', 'p']
     is_eia = accelerator_type is not None
+    is_neuron = instance_type.startswith("ml.inf")
 
     # Separate out cases for clearer logic.
-    # When running GPU test, skip CPU test. When running CPU test, skip GPU test.
-    if (request.node.get_closest_marker('gpu_test') and not is_gpu) or \
-            (request.node.get_closest_marker('cpu_test') and is_gpu):
+    # When running Neuron test, skip CPU  and GPU test. 
+    if (request.node.get_closest_marker('neuron_test') and not is_neuron):
         pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
 
-    # When running EIA test, skip the CPU and GPU functions
-    elif (request.node.get_closest_marker('gpu_test') or request.node.get_closest_marker('cpu_test')) and is_eia:
+    # When running GPU test, skip CPU  and neuron test. When running CPU test, skip GPU  and neuron test.
+    elif (request.node.get_closest_marker('gpu_test') and not is_gpu) or \
+            (request.node.get_closest_marker('cpu_test') and (is_gpu or is_neuron)):
         pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
 
-    # When running CPU or GPU test, skip EIA test.
+    # When running EIA test, skip the CPU, GPU and Neuron functions
+    elif (request.node.get_closest_marker('neuron_test') or request.node.get_closest_marker('gpu_test') or request.node.get_closest_marker('cpu_test')) and is_eia:
+        pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
+
+    # When running CPU or GPU or Neuron test, skip EIA test.
     elif request.node.get_closest_marker('eia_test') and not is_eia:
         pytest.skip('Skipping because running on \'{}\' instance'.format(instance_type))
 

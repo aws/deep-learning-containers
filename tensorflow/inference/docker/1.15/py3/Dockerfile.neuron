@@ -55,6 +55,12 @@ RUN apt-get update \
     wget \
     unzip \
     zlib1g-dev \
+ && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
+ && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
+ && apt-get update \
+ && apt-get -y install --no-install-recommends \
+    nginx \
+    nginx-module-njs \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -97,7 +103,7 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 RUN apt-get update
 
 RUN apt-get install -y \
-    tensorflow-model-server-neuron \
+    tensorflow-model-server-neuron=1.15.* \
     aws-neuron-runtime \
     aws-neuron-tools
 
@@ -116,13 +122,14 @@ RUN ${PIP} install --no-cache-dir -U \
     pandas==0.24.2 \
     Pillow \
     h5py==2.10.0 \
+    boto3 \
     "pyYAML>=5.4,<5.5" \
     cython==0.29.12 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
     gevent==1.4.0 \
     requests==2.22.0 \
-    grpcio==1.24.1 \
+    grpcio==1.34.1 \
     protobuf==3.10.0 \
     gast==0.2.2 \
     "awscli<2"
@@ -171,7 +178,11 @@ RUN HOME_DIR=/root \
  
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 
-COPY entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY neuron-start.sh /usr/local/bin/neuron-start.sh
 
-CMD ["/usr/local/bin/entrypoint.sh"]
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+RUN chmod +x /usr/local/bin/neuron-start.sh
+
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["/usr/bin/tf_serving_entrypoint.sh"]

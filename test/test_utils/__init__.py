@@ -45,9 +45,12 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
 ]
+
+# ECS images are maintained here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
-NEURON_AL2_DLAMI = "ami-092059396c7e51f52"
+ECS_AML2_GRAVITON_CPU_USWEST2 = "ami-0fb32cf53e5ab7686"
+NEURON_AL2_DLAMI = "ami-03c4cdc89eca4dbcb"
 
 DLAMI_PYTHON_MAPPING = {
     UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
@@ -105,10 +108,10 @@ def get_dockerfile_path_for_image(image_uri):
     job_type = get_job_type_from_image(image_uri)
 
     short_framework_version = re.search(r"(\d+\.\d+)", image_uri).group(1)
-    long_framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
 
     framework_version_path = os.path.join(github_repo_path, framework_path, job_type, "docker", short_framework_version)
     if not os.path.isdir(framework_version_path):
+        long_framework_version = re.search(r"\d+(\.\d+){2}", image_uri).group()
         framework_version_path = os.path.join(
             github_repo_path, framework_path, job_type, "docker", long_framework_version
         )
@@ -268,7 +271,7 @@ def is_rc_test_context():
 
 
 def is_diy_image(image_uri):
-    return "-ec2-ecs-eks" in image_uri
+    return "-e3" in image_uri
 
 
 def is_sagemaker_image(image_uri):
@@ -460,7 +463,7 @@ def request_pytorch_inference_densenet(
 
 
 @retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
-def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"):
+def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501", inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
     :param model_name:
@@ -469,7 +472,6 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
     :connection: ec2_connection object to run the commands remotely over ssh
     :return:
     """
-    inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"
     run_out = run(
         f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
     )
@@ -986,6 +988,67 @@ def get_framework_and_version_from_tag(image_uri):
 
     return tested_framework, tag_framework_version
 
+# for the time being have this static table. Need to figure out a way to get this from
+# neuron github once their version manifest file is updated to the latest
+# 1.15.2 etc represent the neuron sdk version
+# For each of the sdk version we have differen frameworks like pytoch, mxnet etc
+# For each of the frameworks it has the framework version mapping to the actual neuron framework version in the container
+# If the framework version does not exist then it means it is not supported for that neuron sdk version
+NEURON_VERSION_MANIFEST = {
+    "1.15.2": {
+        "pytorch": {
+            "1.5.1": "1.5.1.1.5.21.0",
+            "1.6.0": "1.6.0.1.5.21.0",
+            "1.7.1": "1.7.1.1.5.21.0",
+            "1.8.1": "1.8.1.1.5.21.0",
+        },
+        "tensorflow": {
+            "2.1.4" : "2.1.4.1.6.10.0",
+            "2.2.3" : "2.2.3.1.6.10.0",
+            "2.3.3": "2.3.3.1.6.10.0",
+            "2.4.2": "2.4.2.1.6.10.0",
+            "2.4.2": "2.4.2.1.6.10.0",
+            "2.5.0": "2.5.0.1.6.10.0",
+        },
+        "mxnet" : {
+            "1.8.0": "1.8.0.1.3.4.0",
+        }
+    }
+}
+
+def get_neuron_sdk_version_from_tag(image_uri):
+    """
+    Return the neuron sdk version from the image tag.
+    :param image_uri: ECR image URI
+    :return: neuron sdk version
+    """
+    neuron_sdk_version = None
+
+    if "sdk" in image_uri:
+        neuron_sdk_version = re.search(r"sdk([\d\.]+)", image_uri).group(1)
+
+    return neuron_sdk_version
+
+def get_neuron_framework_and_version_from_tag(image_uri):
+    """
+    Return the framework version and expected framework version for the neuron tag from the image tag.
+
+    :param image_uri: ECR image URI
+    :return: framework version, expected framework version from neuron sdk version
+    """
+    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image_uri)
+    neuron_sdk_version = get_neuron_sdk_version_from_tag(image_uri)
+
+    if neuron_sdk_version is None:
+        return tag_framework_version, None
+
+    if neuron_sdk_version not in NEURON_VERSION_MANIFEST:
+        raise KeyError(f"Cannot find neuron sdk version {neuron_sdk_version} ")
+
+    neuron_framework_versions = NEURON_VERSION_MANIFEST[neuron_sdk_version][tested_framework]
+    neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)
+
+    return tested_framework, neuron_tag_framework_version
 
 def get_framework_from_image_uri(image_uri):
     return (
@@ -1098,6 +1161,15 @@ def get_container_name(prefix, image_uri):
     """
     return f"{prefix}-{image_uri.split('/')[-1].replace('.', '-').replace(':', '-')}"
 
+def stop_and_remove_container(container_name, context):
+    """
+    Helper function to stop a container locally
+    :param container_name: Name of the docker container
+    :param context: Invoke context object
+    """
+    context.run(
+        f"docker rm -f {container_name}", hide=True,
+    )
 
 def start_container(container_name, image_uri, context):
     """
