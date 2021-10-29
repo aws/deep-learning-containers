@@ -117,11 +117,11 @@ RUN useradd -m model-server \
 
 COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY neuron-start.sh /usr/local/bin/neuron-start.sh
-COPY modelserver-neuron.sh /usr/local/bin/
+COPY modelserver-neuron.sh /usr/local/bin/entrypoint.sh
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 RUN chmod +x /usr/local/bin/neuron-start.sh
-RUN chmod +x /usr/local/bin/modelserver-neuron.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 COPY config.properties /home/model-server
 
@@ -139,4 +139,4 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.8.0/license.txt -o /
 EXPOSE 8080 8081
 
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["/usr/local/bin/modelserver-neuron.sh"]
+CMD ["/usr/local/bin/entrypoint.sh"]
