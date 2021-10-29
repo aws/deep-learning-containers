@@ -129,12 +129,12 @@ RUN useradd -m model-server \
 
 COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY neuron-start.sh /usr/local/bin/neuron-start.sh
-COPY torchserve-neuron.sh /usr/local/bin/torchserve-neuron.sh
+COPY torchserve-neuron.sh /usr/local/bin/entrypoint.sh
 COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 RUN chmod +x /usr/local/bin/neuron-start.sh
-RUN chmod +x /usr/local/bin/torchserve-neuron.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -156,4 +156,4 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.8/license.txt -o /l
 EXPOSE 8080 8081
 
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["/usr/local/bin/torchserve-neuron.sh"]
+CMD ["/usr/local/bin/entrypoint.sh"]
