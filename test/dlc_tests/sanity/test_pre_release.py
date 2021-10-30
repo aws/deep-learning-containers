@@ -229,7 +229,7 @@ def test_framework_and_neuron_sdk_version(neuron):
     )
 
     if tested_framework == "mxnet":
-        # For neuron the mx_neuron module does not support the __version__ yet and we
+        # TODO -For neuron the mx_neuron module does not support the __version__ yet and we
         # can get the version of only the base mxnet model. The base mxnet model just
         # has framework version and does not have the neuron semantic version yet. Till
         # the mx_neuron supports __version__ do the minimal check and not exact match
