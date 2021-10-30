@@ -40,6 +40,6 @@
       tag_python_version: &TAG_PYTHON_VERSION py37
       neuron_sdk_version: &NEURON_SDK_VERSION sdk1.16.0
       tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *NEURON_SDK_VERSION, "-", *OS_VERSION ]
-      docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., neuron ]
+      docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *NEURON_SDK_VERSION, /Dockerfile., neuron ]
       context:
         <<: *INFERENCE_CONTEXT
