@@ -233,7 +233,7 @@ def test_framework_and_neuron_sdk_version(neuron):
         # can get the version of only the base mxnet model. The base mxnet model just
         # has framework version and does not have the neuron semantic version yet. Till
         # the mx_neuron supports __version__ do the minimal check and not exact match
-        _ , tag_framework_version = get_framework_and_version_from_tag(
+        _ , tag_framework_version = get_framework_and_version_from_tag(image)
         assert tag_framework_version == output.stdout.strip()
     else:
         assert neuron_tag_framework_version == output.stdout.strip()
