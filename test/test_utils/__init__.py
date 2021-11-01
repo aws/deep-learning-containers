@@ -34,6 +34,7 @@ UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-044971d381e6a1109"
 AML2_GPU_DLAMI_US_WEST_2 = "ami-071cb1e434903a577"
 AML2_GPU_DLAMI_US_EAST_1 = "ami-044264d246686b043"
 AML2_CPU_ARM64_US_WEST_2 = "ami-0bccd90b9db95e2e5"
+UL18_CPU_ARM64_US_WEST_2 = "ami-00bccef9d47441ac9"
 AML2_CPU_ARM64_US_EAST_1 = "ami-01c47f32b27ed7fa0"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
@@ -44,6 +45,7 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    UL18_CPU_ARM64_US_WEST_2
 ]
 
 # ECS images are maintained here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
@@ -55,6 +57,7 @@ NEURON_AL2_DLAMI = "ami-03c4cdc89eca4dbcb"
 DLAMI_PYTHON_MAPPING = {
     UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
     UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7",
+    UL18_CPU_ARM64_US_WEST_2: "/usr/bin/python3.8"
 }
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
