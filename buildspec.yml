@@ -13,6 +13,7 @@ phases:
       - pip install -r src/requirements.txt
       - bash src/setup.sh $FRAMEWORK
       - python src/parse_partner_developers.py
+      - python src/send_status.py --status 2
   build:
     commands:
       - echo Build started on `date`
@@ -53,6 +54,7 @@ phases:
       - echo Build step finished on `date`
       - echo Starting test jobs
       - python src/start_testbuilds.py
+      - python src/send_status.py --status $CODEBUILD_BUILD_SUCCEEDING
 artifacts:
   files:
     - $HOME/test_type_images.json
