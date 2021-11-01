@@ -7,7 +7,7 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
-ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211027-160245/36dea191ed0df524207de5acc4e6fb4322306d1a/graviton/torch-1.10.0-cp38-cp38-manylinux2014_aarch64.whl
+ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211029-184012/c6edd96c1a92892731eb1f85272ca4d878e540d7/graviton/torch-1.10.0%2Bcpu-cp38-cp38-manylinux2014_aarch64.whl
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.3.1
 ENV LANG C.UTF-8
