@@ -521,8 +521,7 @@ def test_pip_check(image):
     output = ctx.run(
         f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not (allowed_tf_exception.match(output.stdout) or
-                allowed_smclarify_exception.match(output.stdout)):
+        if not (allowed_tf_exception.match(output.stdout) or allowed_smclarify_exception.match(output.stdout)):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
@@ -560,7 +559,6 @@ def test_cuda_paths(gpu):
 
     # replacing '_' by '/' to handle huggingface_<framework> case
     framework_path = framework.replace("_", "/")
-
     framework_version_path = os.path.join(
         dlc_path, framework_path, job_type, "docker", framework_version)
     if not os.path.exists(framework_version_path):
