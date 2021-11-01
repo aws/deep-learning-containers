@@ -23,6 +23,9 @@ TF_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
 
 TF_EC2_GPU_INSTANCE_TYPE = "p3.16xlarge"
 TF_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
+#Placeholder for habana instance type
+# Instance type and AMI to be updated once the EC2 Gaudi instance is available
+TF_EC2_HPU_INSTANCE_TYPE = "t2.nano"
 
 
 @pytest.mark.integration("synthetic dataset")
@@ -74,6 +77,17 @@ def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection
         threshold={"Throughput": threshold},
     )
 
+# Placeholder for habana benchmark test
+# Using exisitng instance to run the test
+#@pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)
+#@pytest.mark.parametrize("ec2_instance_ami", [test_utils.HPU_AL2_DLAMI], indirect=True)
+@pytest.mark.parametrize("ec2_key_file_name", ["<ec2_key_file>"], indirect=True)
+@pytest.mark.parametrize("ec2_user_name", ["<user-name>"], indirect=True)
+@pytest.mark.parametrize("ec2_public_ip", ["public-ip-address"], indirect=True)
+@pytest.mark.model('N/A')
+def test_performance_tensorflow_hpu_imagenet(tensorflow_training_habana, existing_ec2_instance_connection):
+    existing_ec2_instance_connection.run('mkdir habana')
+    assert 1==1    
 
 def post_process_tensorflow_training_performance(connection, log_location):
     last_lines = connection.run(f"tail {log_location}").stdout.split("\n")

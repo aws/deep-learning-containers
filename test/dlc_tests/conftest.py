@@ -58,6 +58,7 @@ FRAMEWORK_FIXTURES = (
     "eia",
     "neuron",
     "graviton",
+    "hpu",
     "pytorch_inference_eia",
     "mxnet_inference_eia",
     "tensorflow_inference_eia",
@@ -71,7 +72,8 @@ FRAMEWORK_FIXTURES = (
     "huggingface_tensorflow_inference",
     "huggingface_pytorch_inference",
     "huggingface_mxnet_inference",
-    "autogluon_training",
+    "tensorflow_training_habana",
+    "pytorch_training_habana"
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -127,6 +129,17 @@ def num_nodes(request):
 def ec2_key_name(request):
     return request.param
 
+@pytest.fixture(scope="function")
+def ec2_key_file_name(request):
+    return request.param
+
+@pytest.fixture(scope="function")
+def ec2_user_name(request):
+    return request.param
+
+@pytest.fixture(scope="function")
+def ec2_public_ip(request):
+    return request.param
 
 @pytest.fixture(scope="session")
 def region():
@@ -351,6 +364,37 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
 
     return conn
 
+@pytest.fixture(scope="function")
+def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, ec2_public_ip):
+    """
+    Fixture to establish connection with EC2 instance if necessary
+    :param request: pytest test request
+    :param ec2_key_file_name: ec2 key file name
+    :param ec2_user_name: username of the ec2 instance to login
+    :param ec2_public_ip: public ip address of the instance
+    :return: Fabric connection object
+    """
+    conn = Connection(
+        user=ec2_user_name,
+        host=ec2_public_ip,
+        connect_kwargs={"key_filename": [ec2_key_file_name]},
+    )
+
+    random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
+    unique_id = random.randint(1, 100000)
+    ec2_key_name = ec2_public_ip.split(".")[0]
+    artifact_folder = f"{ec2_key_name}-{unique_id}-folder"
+    s3_test_artifact_location = test_utils.upload_tests_to_s3(artifact_folder)
+
+    def delete_s3_artifact_copy():
+        test_utils.delete_uploaded_tests_from_s3(s3_test_artifact_location)
+
+    request.addfinalizer(delete_s3_artifact_copy)
+
+    conn.run(f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests")
+    conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
+
+    return conn
 
 @pytest.fixture(scope="session")
 def dlc_images(request):
@@ -390,16 +434,6 @@ def sagemaker():
 
 @pytest.fixture(scope="session")
 def sagemaker_only():
-    pass
-
-
-@pytest.fixture(scope="session")
-def eia_only():
-    pass
-
-
-@pytest.fixture(scope="session")
-def neuron_only():
     pass
 
 
@@ -539,7 +573,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
-    config.addinivalue_line("markers", "processor(cpu/gpu/eia/graviton): explicitly mark which processor is used")
+    config.addinivalue_line("markers", "processor(cpu/gpu/eia/hpu/graviton): explicitly mark which processor is used")
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
 
@@ -617,7 +651,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                 for index, image in enumerate(images_to_parametrize):
 
                     # Tag fixtures with EC2 instance types if env variable is present
-                    allowed_processors = ("gpu", "cpu", "eia", "neuron", "graviton")
+                    allowed_processors = ("gpu", "cpu", "eia", "neuron", "graviton", "hpu")
                     instance_tag = ""
                     for processor in allowed_processors:
                         if processor in image:
@@ -643,6 +677,25 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
     return fixtures_parametrized
 
 
+def lookup_condition(lookup, image):
+    """
+    Return true if the ECR repo name ends with the lookup or lookup contains job type or device type part of the image uri.
+    """
+    #Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
+    repo_name = image.split("/")[-1].split(":")[0]
+
+    job_type = ("training", "inference",)
+    device_type = ("cpu", "gpu", "eia", "neuron", "hpu")
+
+    if not repo_name.endswith(lookup):
+        if (lookup in job_type or lookup in device_type) and lookup in image:
+            return True
+        else:
+            return False
+    else:
+        return True
+
+
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
@@ -656,7 +709,7 @@ def pytest_generate_tests(metafunc):
             lookup = fixture.replace("_", "-")
             images_to_parametrize = []
             for image in images:
-                if lookup in image:
+                if lookup_condition(lookup, image):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_huggingface_lookup = (
                             ("huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames)
@@ -686,17 +739,11 @@ def pytest_generate_tests(metafunc):
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
-                        elif "eia_only" in metafunc.fixturenames and "eia" in image:
-                            images_to_parametrize.append(image)
-                        elif "neuron_only" in metafunc.fixturenames and "neuron" in image:
-                            images_to_parametrize.append(image)
                         elif "graviton_only" in metafunc.fixturenames and "graviton" in image:
                             images_to_parametrize.append(image)
                         elif (
                             "cpu_only" not in metafunc.fixturenames
                             and "gpu_only" not in metafunc.fixturenames
-                            and "eia_only" not in metafunc.fixturenames
-                            and "neuron_only" not in metafunc.fixturenames
                             and "graviton_only" not in metafunc.fixturenames
                         ):
                             images_to_parametrize.append(image)

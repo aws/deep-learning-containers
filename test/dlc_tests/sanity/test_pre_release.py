@@ -430,6 +430,12 @@ def test_dependency_check_gpu(gpu, ec2_connection, gpu_only):
 def test_dependency_check_eia(eia, ec2_connection, eia_only):
     _run_dependency_check_test(eia, ec2_connection)
 
+@pytest.mark.model("N/A")
+@pytest.mark.canary("Run dependency tests regularly on production images")
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+def test_dependency_check_hpu(hpu, ec2_connection):
+    _run_dependency_check_test(hpu, ec2_connection, "hpu")
+
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
@@ -515,7 +521,8 @@ def test_pip_check(image):
     output = ctx.run(
         f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not (allowed_tf_exception.match(output.stdout) or allowed_smclarify_exception.match(output.stdout)):
+        if not (allowed_tf_exception.match(output.stdout) or
+                allowed_smclarify_exception.match(output.stdout)):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
@@ -553,6 +560,7 @@ def test_cuda_paths(gpu):
 
     # replacing '_' by '/' to handle huggingface_<framework> case
     framework_path = framework.replace("_", "/")
+
     framework_version_path = os.path.join(
         dlc_path, framework_path, job_type, "docker", framework_version)
     if not os.path.exists(framework_version_path):

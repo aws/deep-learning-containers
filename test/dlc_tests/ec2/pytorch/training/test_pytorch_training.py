@@ -29,6 +29,8 @@ PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 PT_EC2_MULTI_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="g3.8xlarge", processor="gpu", filter_function=ec2_utils.filter_only_multi_gpu,
 )
+#Instance type to be updated once the EC2 Gaudi instance is available
+PT_EC2_HPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="hpu")
 
 
 @pytest.mark.integration("pytorch_sanity_test")
@@ -218,3 +220,12 @@ def test_pytorch_telemetry_gpu(pytorch_training, ec2_connection, gpu_only, ec2_i
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only, pt15_and_above_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD)
+
+
+# Placeholder for habana test
+# Instance type and AMI to be updated once the EC2 Gaudi instance is available
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_HPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.HPU_AL2_DLAMI], indirect=True)
+def test_tensorflow_standalone_hpu(pytorch_training_habana, ec2_connection):
+    assert 1 == 1

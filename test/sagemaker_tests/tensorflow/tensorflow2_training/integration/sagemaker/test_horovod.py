@@ -90,3 +90,12 @@ def _test_distributed_training_horovod_with_env_vars_function(ecr_image, sagemak
     )
 
     estimator.fit(job_name=unique_name_from_base("test-tf-horovod-env-vars"))
+
+# Placeholder for Habana SM test
+@pytest.mark.model('N/A')
+def test_distributed_training_horovod(sagemaker_session,
+                                      instance_type,
+                                      ecr_image,
+                                      tmpdir,
+                                      framework_version):
+    assert 1==1

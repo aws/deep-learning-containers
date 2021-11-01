@@ -34,6 +34,11 @@ def test_tensorflow_sagemaker_training_performance_multinode(tensorflow_training
 def test_tensorflow_sagemaker_training_performance_singlenode(tensorflow_training, region):
     run_sm_perf_test(tensorflow_training, 1, region)
 
+# Placeholder for habana benchmark test
+@pytest.mark.model('N/A')
+def test_tensorflow_sagemaker_training_performance_singlenode_hpu(tensorflow_training_habana, region):
+    assert 1==1
+
 
 def run_sm_perf_test(image_uri, num_nodes, region):
     """
