@@ -37,7 +37,7 @@ def ecs_cluster(request, ecs_client, ecs_cluster_name, region):
     def delete_ecs_cluster():
         ecs_utils.delete_ecs_cluster(cluster_arn, region=region)
 
-    request.addfinalizer(delete_ecs_cluster)
+    #request.addfinalizer(delete_ecs_cluster)
 
     # Wait for cluster status to be active
     if ecs_utils.check_ecs_cluster_status(cluster_arn, "ACTIVE"):
@@ -141,7 +141,7 @@ def ecs_container_instance(request, ecs_cluster, ec2_client, ecs_client, ecs_ins
         terminate_waiter = ec2_client.get_waiter("instance_terminated")
         terminate_waiter.wait(InstanceIds=[instance_id])
 
-    request.addfinalizer(terminate_ec2_instance)
+    #request.addfinalizer(terminate_ec2_instance)
 
     waiter = ec2_client.get_waiter("instance_running")
     waiter.wait(InstanceIds=[instance_id])
