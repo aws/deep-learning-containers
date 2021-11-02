@@ -684,11 +684,11 @@ def lookup_condition(lookup, image):
     #Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
     repo_name = image.split("/")[-1].split(":")[0]
 
-    job_type = ("training", "inference",)
-    device_type = ("cpu", "gpu", "eia", "neuron", "hpu")
+    job_types = ("training", "inference",)
+    device_types = ("cpu", "gpu", "eia", "neuron", "hpu")
 
     if not repo_name.endswith(lookup):
-        if (lookup in job_type or lookup in device_type) and lookup in image:
+        if (lookup in job_types or lookup in device_types) and lookup in image:
             return True
         else:
             return False
