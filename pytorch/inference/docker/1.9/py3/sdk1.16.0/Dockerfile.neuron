@@ -16,10 +16,10 @@ ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends software-properties-common \
-    && add-apt-repository ppa:openjdk-r/ppa \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
+ && apt-get install -y --no-install-recommends software-properties-common \
+ && add-apt-repository ppa:openjdk-r/ppa \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends \
     build-essential \
     apt-transport-https \
     ca-certificates \
@@ -40,19 +40,19 @@ RUN apt-get update \
     zlib1g-dev \
     libcap-dev \
     gpg-agent \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /tmp/tmp* \
-    && apt-get clean
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /tmp/tmp* \
+ && apt-get clean
 
 RUN echo "deb https://apt.repos.neuron.amazonaws.com bionic main" > /etc/apt/sources.list.d/neuron.list
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
 
 RUN apt-get update \
-    && apt-get install -y \
+ && apt-get install -y \
     aws-neuron-tools \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /tmp/tmp* \
-    && apt-get clean
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /tmp/tmp* \
+ && apt-get clean
 
 
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
@@ -129,13 +129,13 @@ RUN useradd -m model-server \
  && chown -R model-server /home/model-server /opt/ml/model
 
 COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-COPY neuron-start.sh /usr/local/bin/neuron-start.sh
+COPY neuron-monitor.sh /usr/local/bin/neuron-monitor.sh
 COPY torchserve-neuron.sh /usr/local/bin/entrypoint.sh
 COPY config.properties /home/model-server
 
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
-RUN chmod +x /usr/local/bin/neuron-start.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py \
+ && chmod +x /usr/local/bin/neuron-monitor.sh \
+ && chmod +x /usr/local/bin/entrypoint.sh
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
