@@ -99,7 +99,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.1/license.txt -o 
 RUN conda install -y -c conda-forge "PyYAML>=5.4,<5.5"
 
 RUN pip install \
-    pillow==7.1.0 \
+    "Pillow>=8.3.2,<8.4" \
     "awscli<2" \
     # cryptography required by pyopenssl and paramiko, <3.3.2 has safety vulnerabilities
     "cryptography>=3.3.2"
