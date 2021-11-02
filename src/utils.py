@@ -389,10 +389,10 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
     enable_build = is_build_enabled()
 
     if build_context == "PR":
-        pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
+        pr_number = os.getenv("PR_NUMBER")
         LOGGER.info(f"pr number: {pr_number}")
         if pr_number is not None:
-            pr_number = int(pr_number.split("/")[-1])
+            pr_number = int(pr_number)
         device_types, image_types, py_versions = pr_build_setup(pr_number, framework)
 
     if device_types != constants.ALL:
