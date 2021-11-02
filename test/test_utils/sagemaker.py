@@ -45,9 +45,6 @@ def assign_sagemaker_remote_job_instance_type(image):
         return "ml.inf1.xlarge"
     elif "gpu" in image:
         return "ml.p3.8xlarge"
-    elif "hpu" in image:
-        # Instance type and AMI to be updated once the EC2 Gaudi instance is available
-        return "ml.p3.8xlarge"
     elif "tensorflow" in image:
         return "ml.c4.4xlarge"
     else:
@@ -128,8 +125,6 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         if "gpu" in image
         else "eia"
         if "eia" in image
-        else "hpu"
-        if "hpu" in image
         else "cpu"
     )
     py_version = re.search(r"py\d+", tag).group()

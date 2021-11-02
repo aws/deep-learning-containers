@@ -70,26 +70,19 @@ def main():
     graviton_builder_enabled = graviton_dedicated and graviton_build_mode and args.framework not in frameworks_to_skip
 
     # A HABANA dedicated builder will work if in HABANA mode and its framework has not been disabled
-    habana_builder_enabled = (
-        habana_dedicated
-        and habana_build_mode
-        and args.framework not in frameworks_to_skip
-    )
+    habana_builder_enabled = habana_dedicated and habana_build_mode and args.framework not in frameworks_to_skip
 
     # A builder will always work if it is in non-PR context
     if (
-      general_builder_enabled
-      or ei_builder_enabled
-      or neuron_builder_enabled
-      or graviton_builder_enabled
-      or habana_builder_enabled
-      or build_context != "PR"
+        general_builder_enabled
+        or ei_builder_enabled
+        or neuron_builder_enabled
+        or graviton_builder_enabled
+        or habana_builder_enabled
+        or build_context != "PR"
     ):
         utils.build_setup(
-            args.framework,
-            device_types=device_types,
-            image_types=image_types,
-            py_versions=py_versions,
+            args.framework, device_types=device_types, image_types=image_types, py_versions=py_versions,
         )
         image_builder(args.buildspec)
 
