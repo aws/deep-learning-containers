@@ -14,9 +14,9 @@ repository_info:
 
 context:
   inference_context: &INFERENCE_CONTEXT
-    neuron-start:
-      source: docker/build_artifacts/neuron-start.sh
-      target: neuron-start.sh
+    neuron-monitor:
+      source: docker/build_artifacts/neuron-monitor.sh
+      target: neuron-monitor.sh
     neuron-entrypoint:
       source: docker/build_artifacts/neuron-entrypoint.py
       target: neuron-entrypoint.py
