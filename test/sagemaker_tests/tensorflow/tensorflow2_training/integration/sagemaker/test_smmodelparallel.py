@@ -29,13 +29,13 @@ RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 def validate_or_skip_smmodelparallel(ecr_image):
     if not can_run_smmodelparallel(ecr_image):
-        pytest.skip("Model Parallelism is supported on CUDA 11 on TensorFlow v2.3.1 or higher")
+        pytest.skip("Model Parallelism is supported on CUDA 11 on TensorFlow version no lower than v2.3.1 and lower than v2.7.0")
 
 
 def can_run_smmodelparallel(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet(">=2.3.1") and Version(
+    return Version(image_framework_version) in SpecifierSet(">=2.3.1") and Version(image_framework_version) in SpecifierSet("<2.7.0") and Version(
         image_cuda_version.strip("cu")) >= Version("110")
 
 
