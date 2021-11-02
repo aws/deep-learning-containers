@@ -667,7 +667,7 @@ def pytest_generate_tests(metafunc):
                         for fixture_name in ["example_only", "huggingface_only"]
                     ) and all(keyword not in image for keyword in ["example", "huggingface"])
                     if "sagemaker_only" in metafunc.fixturenames and is_e3_image(image):
-                        LOGGER.info(f"Not running DIY image {image} on sagemaker_only test")
+                        LOGGER.info(f"Not running E3 image {image} on sagemaker_only test")
                         continue
                     if is_sagemaker_image(image):
                         if "sagemaker_only" not in metafunc.fixturenames and "sagemaker" not in metafunc.fixturenames:

@@ -720,6 +720,7 @@ def get_canary_default_tag_py3_version(framework, version):
 
 def get_e3_addon_tags(framework, version):
     """
+    # TODO: Remove this when we add the sagemaker-like e3 tags
     Get e3 addon tags (os, dlc_major_version, cuda_version)
 
     @param framework: tensorflow2, mxnet, pytorch
@@ -736,21 +737,24 @@ def get_e3_addon_tags(framework, version):
                 "major_version": "v1"
             }
         },
-        "mxnet": {
-            "cpu": {},
-            "gpu": {},
-        },
+        "mxnet": {},
     }
 
     image_e3_components = fw_map.get(framework, {}).get(version, {})
     if not image_e3_components:
         image_e3_components = fw_map.get(framework, {}).get("latest", {})
 
-    return (
-        image_e3_components.get("os", ""),
-        image_e3_components.get("major_version", ""),
-        image_e3_components.get("cuda", "")
-    )
+    # This message is common across all assertion statements, so defining it only once
+    common_assertion_msg = f"for {framework} in {image_e3_components}. Full framework map: {fw_map}"
+
+    operating_system = image_e3_components.get("os")
+    assert operating_system, f"Cannot find OS {common_assertion_msg}"
+    major_version = image_e3_components.get("major_version")
+    assert major_version, f"Cannot find DLC major version {common_assertion_msg}"
+    cuda_version = image_e3_components.get("cuda", "")
+    assert cuda_version, f"Cannot find CUDA version {common_assertion_msg}"
+
+    return operating_system, major_version, cuda_version
 
 
 def parse_canary_images(framework, region):
@@ -813,7 +817,11 @@ def parse_canary_images(framework, region):
     dlc_images = []
     for fw_version in framework_versions:
         py3_version = get_canary_default_tag_py3_version(framework, fw_version)
-        operating_system, dlc_major_version, cuda = get_e3_addon_tags(framework, fw_version)
+
+        # TODO: Remove this when we add the "sagemaker-like" e3 tag
+        operating_system, dlc_major_version, cuda = ("", "", "")
+        if customer_type == "e3":
+            operating_system, dlc_major_version, cuda = get_e3_addon_tags(framework, fw_version)
         images = {
             "tensorflow1": {
                 "e3": [],
