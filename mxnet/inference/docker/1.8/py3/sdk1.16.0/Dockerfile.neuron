@@ -116,12 +116,12 @@ RUN useradd -m model-server \
  && chown -R model-server /home/model-server
 
 COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-COPY neuron-start.sh /usr/local/bin/neuron-start.sh
+COPY neuron-monitor.sh /usr/local/bin/neuron-monitor.sh
 COPY modelserver-neuron.sh /usr/local/bin/entrypoint.sh
 
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
-RUN chmod +x /usr/local/bin/neuron-start.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py \
+ && chmod +x /usr/local/bin/neuron-monitor.sh \
+ && chmod +x /usr/local/bin/entrypoint.sh
 
 COPY config.properties /home/model-server
 

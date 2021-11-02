@@ -16,7 +16,7 @@ import subprocess
 import sys
 import os.path
 
-neuron_cmd = "/usr/local/bin/neuron-start.sh"
+neuron_cmd = "/usr/local/bin/neuron-monitor.sh"
 subprocess.check_call(shlex.split(neuron_cmd))
 
 if sys.argv[1] == 'serve':

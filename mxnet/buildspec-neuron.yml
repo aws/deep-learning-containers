@@ -20,9 +20,9 @@
       modelserver-neuron:
         source: docker/artifacts/modelserver-neuron.sh
         target:  modelserver-neuron.sh
-      neuron-start:
-        source: docker/artifacts/neuron-start.sh
-        target:  neuron-start.sh
+      neuron-monitor:
+        source: docker/artifacts/neuron-monitor.sh
+        target:  neuron-monitor.sh
       neuron-entrypoint:
         source: docker/artifacts/neuron-entrypoint.py
         target:  neuron-entrypoint.py
