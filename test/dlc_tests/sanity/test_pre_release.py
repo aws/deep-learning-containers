@@ -313,6 +313,7 @@ def _run_dependency_check_test(image, ec2_connection):
     framework, _ = get_framework_and_version_from_tag(image)
     short_fw_version = re.search(r"(\d+\.\d+)", image).group(1)
 
+    # Check that these versions have been matched on https://ubuntu.com/security/CVE-2021-3711 before adding
     allow_openssl_cve_fw_versions = {
         "tensorflow": {
             "1.15": ["cpu", "gpu", "neuron"],
@@ -321,8 +322,8 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.5": ["cpu", "gpu"],
             "2.6": ["cpu", "gpu"],
         },
-        "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
-        "pytorch": {},
+        "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu", "graviton"]},
+        "pytorch": {"1.10": ["graviton"]},
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"]},
         "autogluon": {"0.3": ["graviton"]},

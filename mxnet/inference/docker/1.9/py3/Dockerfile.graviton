@@ -68,11 +68,17 @@ RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz 
  && ln -s /etc/ssl/certs /usr/local/ssl/certs
 
 # install ArmPL
-run wget https://developer.arm.com/-/media/Files/downloads/hpc/arm-performance-libraries/21-1-0/Ubuntu20.04/arm-performance-libraries_21.1_Ubuntu-20.04_gcc-9.3.tar \
- && tar -xvf arm-performance-libraries_21.1_Ubuntu-20.04_gcc-9.3.tar \
- && arm-performance-libraries_21.1_Ubuntu-20.04_gcc-9.3/arm-performance-libraries_21.1_Ubuntu-20.04.sh -a \
+run wget https://developer.arm.com/-/media/Files/downloads/hpc/arm-performance-libraries/21-1-0/Ubuntu18.04/arm-performance-libraries_21.1_Ubuntu-18.04_gcc-9.3.tar \
+ && tar -xvf arm-performance-libraries_21.1_Ubuntu-18.04_gcc-9.3.tar \
+ && arm-performance-libraries_21.1_Ubuntu-18.04_gcc-9.3/arm-performance-libraries_21.1_Ubuntu-18.04.sh -a \
  && export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/arm/armpl_21.1_gcc-9.3/lib/ \
  && ldconfig /opt/arm/armpl_21.1_gcc-9.3/lib/
+
+# run wget https://developer.arm.com/-/media/Files/downloads/hpc/arm-performance-libraries/21-1-0/Ubuntu20.04/arm-performance-libraries_21.1_Ubuntu-20.04_gcc-9.3.tar \
+#  && tar -xvf arm-performance-libraries_21.1_Ubuntu-20.04_gcc-9.3.tar \
+#  && arm-performance-libraries_21.1_Ubuntu-20.04_gcc-9.3/arm-performance-libraries_21.1_Ubuntu-20.04.sh -a \
+#  && export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/arm/armpl_21.1_gcc-9.3/lib/ \
+#  && ldconfig /opt/arm/armpl_21.1_gcc-9.3/lib/
 
 # install Python
 RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
@@ -116,6 +122,8 @@ RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN rm /tmp/*
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
