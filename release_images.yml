@@ -162,26 +162,15 @@ release_images:
   12:
     framework: "pytorch"
     version: "1.6.0"
-    training:
-      device_types: ["gpu"]
+    inference:
+      device_types: ["cpu", "gpu"]
       python_versions: ["py36"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu110"
+      os_version: "ubuntu16.04"
+      cuda_version: "cu101"
       example: False
-      disable_sm_tag: True  # [Default: False] This option is not used by Example images
-      force_release: False
-  13:
-    framework: "pytorch"
-    version: "1.6.0"
-    training:
-      device_types: [ "gpu" ]
-      python_versions: [ "py36" ]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu110"
-      example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  14:
+  13:
     framework: "tensorflow"
     version: "2.5.1"
     training:
@@ -192,7 +181,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  15:
+  14:
     framework: "tensorflow"
     version: "2.5.1"
     training:
@@ -203,7 +192,7 @@ release_images:
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  16:
+  15:
     framework: "tensorflow"
     version: "2.5.1"
     inference:
@@ -214,7 +203,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  17:
+  16:
     framework: "huggingface_pytorch"
     version: "1.8.1"
     hf_transformers: "4.10.2"
@@ -226,7 +215,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  18:
+  17:
     framework: "pytorch"
     version: "1.9.1"
     training:
@@ -249,7 +238,7 @@ release_images:
                             # to images being published.
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
                             # has already been published. Re-released image will have minor version incremented by 1.
-  19:
+  18:
     framework: "pytorch"
     version: "1.9.1"
     training:
@@ -260,7 +249,7 @@ release_images:
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  20:
+  19:
     framework: "autogluon"
     version: "0.2.1"
     training:
@@ -271,7 +260,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  21:
+  20:
     framework: "huggingface_pytorch"
     version: "1.8.1"
     hf_transformers: "4.10.2"
@@ -283,7 +272,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  22:
+  21:
     framework: "huggingface_tensorflow"
     version: "2.4.3"
     hf_transformers: "4.10.2"
@@ -295,7 +284,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  23:
+  22:
     framework: "tensorflow"
     version: "2.6.0"
     training:
@@ -318,7 +307,7 @@ release_images:
       # to images being published.
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
       # has already been published. Re-released image will have minor version incremented by 1.
-  24:
+  23:
     framework: "tensorflow"
     version: "2.6.0"
     training:
@@ -329,7 +318,7 @@ release_images:
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  25:
+  24:
     framework: "autogluon"
     version: "0.3.1"
     training:
@@ -340,7 +329,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  26:
+  25:
     framework: "autogluon"
     version: "0.3.1"
     inference:
@@ -350,12 +339,24 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  27:
+  26:
     framework: "huggingface_tensorflow"
     version: "2.5.1"
     hf_transformers: "4.11.0"
     training:
       device_types: [ "gpu" ]
+      python_versions: [ "py37" ]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu112"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  27:
+    framework: "huggingface_tensorflow"
+    version: "2.5.1"
+    hf_transformers: "4.11.0"
+    inference:
+      device_types: [ "cpu", "gpu" ]
       python_versions: [ "py37" ]
       os_version: "ubuntu18.04"
       cuda_version: "cu112"
@@ -363,18 +364,6 @@ release_images:
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
   28:
-    framework: "huggingface_tensorflow"
-    version: "2.5.1"
-    hf_transformers: "4.11.0"
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py37" ]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu112"
-      example: False
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
-  29:
     framework: "huggingface_pytorch"
     version: "1.9.0"
     hf_transformers: "4.11.0"
@@ -386,7 +375,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  30:
+  29:
     framework: "huggingface_pytorch"
     version: "1.9.0"
     hf_transformers: "4.11.0"
@@ -398,7 +387,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  31:
+  30:
     framework: "pytorch"
     version: "1.10.0"
     customer_type: "e3"
@@ -422,7 +411,7 @@ release_images:
       # to images being published.
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
       # has already been published. Re-released image will have minor version incremented by 1.
-  32:
+  31:
     framework: "pytorch"
     version: "1.10.0"
     customer_type: "e3"
