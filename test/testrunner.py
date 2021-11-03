@@ -255,7 +255,7 @@ def main():
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
     # Do not create EKS cluster for when EIA Only Images are present
     is_all_images_list_eia = all("eia" in image_uri for image_uri in all_image_list)
-    eks_cluster_name = "graviton-support"
+    eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     build_context = get_build_context()
@@ -326,7 +326,7 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
-            # eks_cluster_name = f"{framework}-{build_context}"
+            eks_cluster_name = f"{framework}-{build_context}"
             eks_utils.eks_setup()
             if eks_utils.is_eks_cluster_active(eks_cluster_name):
                 eks_utils.eks_write_kubeconfig(eks_cluster_name)
@@ -351,8 +351,8 @@ def main():
                 ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
             ]
 
-        # pytest_cmds = [pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"] for pytest_cmd in pytest_cmds]
-        # pytest_cache_util.download_pytest_cache_from_s3_to_local(os.getcwd(), **pytest_cache_params)
+        pytest_cmds = [pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"] for pytest_cmd in pytest_cmds]
+        pytest_cache_util.download_pytest_cache_from_s3_to_local(os.getcwd(), **pytest_cache_params)
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
@@ -362,7 +362,7 @@ def main():
             else:
                 raise RuntimeError(pytest_cmds)
         finally:
-            # pytest_cache_util.upload_pytest_cache_from_local_to_s3(os.getcwd(), **pytest_cache_params)
+            pytest_cache_util.upload_pytest_cache_from_local_to_s3(os.getcwd(), **pytest_cache_params)
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
