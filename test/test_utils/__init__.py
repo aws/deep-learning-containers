@@ -150,11 +150,15 @@ def get_dockerfile_path_for_image(image_uri):
 
 
 def get_expected_dockerfile_filename(device_type, image_uri):
-    if is_diy_image(image_uri):
+    if is_e3_image(image_uri):
         return f"Dockerfile.diy.{device_type}"
     if is_sagemaker_image(image_uri):
         return f"Dockerfile.sagemaker.{device_type}"
     return f"Dockerfile.{device_type}"
+
+
+def get_customer_type():
+    return os.getenv("CUSTOMER_TYPE")
 
 
 def get_python_invoker(ami_id):
@@ -270,7 +274,7 @@ def is_rc_test_context():
     return sm_remote_tests_val == config.AllowedSMRemoteConfigValues.RC.value
 
 
-def is_diy_image(image_uri):
+def is_e3_image(image_uri):
     return "-e3" in image_uri
 
 
@@ -714,6 +718,45 @@ def get_canary_default_tag_py3_version(framework, version):
     return "py3"
 
 
+def get_e3_addon_tags(framework, version):
+    """
+    # TODO: Remove this when we add the sagemaker-like e3 tags
+    Get e3 addon tags (os, dlc_major_version, cuda_version)
+
+    @param framework: tensorflow2, mxnet, pytorch
+    @param version: major.minor version
+    @return: tuple of os, dlc major version, cuda version
+    """
+    fw_map = {
+        "tensorflow1": {},
+        "tensorflow2": {},
+        "pytorch": {
+            "latest": {
+                "cuda": "cu113",
+                "os": "ubuntu20.04",
+                "major_version": "v1"
+            }
+        },
+        "mxnet": {},
+    }
+
+    image_e3_components = fw_map.get(framework, {}).get(version, {})
+    if not image_e3_components:
+        image_e3_components = fw_map.get(framework, {}).get("latest", {})
+
+    # This message is common across all assertion statements, so defining it only once
+    common_assertion_msg = f"for {framework} in {image_e3_components}. Full framework map: {fw_map}"
+
+    operating_system = image_e3_components.get("os")
+    assert operating_system, f"Cannot find OS {common_assertion_msg}"
+    major_version = image_e3_components.get("major_version")
+    assert major_version, f"Cannot find DLC major version {common_assertion_msg}"
+    cuda_version = image_e3_components.get("cuda", "")
+    assert cuda_version, f"Cannot find CUDA version {common_assertion_msg}"
+
+    return operating_system, major_version, cuda_version
+
+
 def parse_canary_images(framework, region):
     """
     Return which canary images to run canary tests on for a given framework and AWS region
@@ -728,17 +771,18 @@ def parse_canary_images(framework, region):
         else:
             framework = "tensorflow1"
 
+    customer_type = get_customer_type()
+    customer_type_tag = f"-{customer_type}" if customer_type else ""
+
     version_regex = {
         "tensorflow1": r"tf-(1.\d+)",
-        "tensorflow2": r"tf-(2.\d+)",
-        "mxnet": r"mx-(\d+.\d+)",
-        "pytorch": r"pt-(\d+.\d+)",
+        "tensorflow2": rf"tf{customer_type_tag}-(2.\d+)",
+        "mxnet": rf"mx{customer_type_tag}-(\d+.\d+)",
+        "pytorch": rf"pt{customer_type_tag}-(\d+.\d+)",
         "huggingface_pytorch": r"hf-pt-(\d+.\d+)",
         "huggingface_tensorflow": r"hf-tf-(\d+.\d+)",
         "autogluon": r"ag-(\d+.\d+)",
     }
-
-    py2_deprecated = {"tensorflow1": None, "tensorflow2": "2.2", "mxnet": "1.7", "pytorch": "1.5"}
 
     repo = git.Repo(os.getcwd(), search_parent_directories=True)
 
@@ -773,22 +817,19 @@ def parse_canary_images(framework, region):
     dlc_images = []
     for fw_version in framework_versions:
         py3_version = get_canary_default_tag_py3_version(framework, fw_version)
+
+        # TODO: Remove this when we add the "sagemaker-like" e3 tag
+        operating_system, dlc_major_version, cuda = ("", "", "")
+        if customer_type == "e3":
+            operating_system, dlc_major_version, cuda = get_e3_addon_tags(framework, fw_version)
         images = {
             "tensorflow1": {
-                "py2": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-py2",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-py2",
-                ],
-                "py3": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
-                ],
+                "e3": [],
+                "sagemaker": [],
             },
             "tensorflow2": {
-                "py2": [],
-                "py3": [
+                "e3": [],
+                "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu",
@@ -796,13 +837,8 @@ def parse_canary_images(framework, region):
                 ],
             },
             "mxnet": {
-                "py2": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-py2",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-py2",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-py2",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-py2",
-                ],
-                "py3": [
+                "e3": [],
+                "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-{py3_version}",
@@ -810,8 +846,13 @@ def parse_canary_images(framework, region):
                 ],
             },
             "pytorch": {
-                "py2": [],
-                "py3": [
+                "e3": [
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py3_version}-{cuda}-{operating_system}-e3-{dlc_major_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py3_version}-{operating_system}-e3-{dlc_major_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-{py3_version}-{cuda}-{operating_system}-e3-{dlc_major_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-{py3_version}-{operating_system}-e3-{dlc_major_version}",
+                ],
+                "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-{py3_version}",
@@ -820,8 +861,8 @@ def parse_canary_images(framework, region):
             },
             # TODO: uncomment once cpu training and inference images become available
             "huggingface_pytorch": {
-                "py2": [],
-                "py3": [
+                "e3": [],
+                "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py3_version}",
                     # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py3_version}",
                     # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py3_version}",
@@ -829,8 +870,8 @@ def parse_canary_images(framework, region):
                 ],
             },
             "huggingface_tensorflow": {
-                "py2": [],
-                "py3": [
+                "e3": [],
+                "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py3_version}",
                     # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py3_version}",
                     # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py3_version}",
@@ -838,19 +879,15 @@ def parse_canary_images(framework, region):
                 ],
             },
             "autogluon": {
-                "py2": [],
-                "py3": [
+                "e3": [],
+                "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py3_version}",
                 ],
             },
         }
-        dlc_images += images[framework]["py3"]
-        no_py2 = py2_deprecated.get(framework)
-        if no_py2 and (Version(fw_version) >= Version(no_py2)):
-            continue
-        else:
-            dlc_images += images[framework].get("py2", [])
+        imgs_key = customer_type if customer_type else "sagemaker"
+        dlc_images += images[framework][imgs_key]
 
     return " ".join(dlc_images)
 
@@ -988,6 +1025,67 @@ def get_framework_and_version_from_tag(image_uri):
 
     return tested_framework, tag_framework_version
 
+# for the time being have this static table. Need to figure out a way to get this from
+# neuron github once their version manifest file is updated to the latest
+# 1.15.2 etc represent the neuron sdk version
+# For each of the sdk version we have differen frameworks like pytoch, mxnet etc
+# For each of the frameworks it has the framework version mapping to the actual neuron framework version in the container
+# If the framework version does not exist then it means it is not supported for that neuron sdk version
+NEURON_VERSION_MANIFEST = {
+    "1.15.2": {
+        "pytorch": {
+            "1.5.1": "1.5.1.1.5.21.0",
+            "1.6.0": "1.6.0.1.5.21.0",
+            "1.7.1": "1.7.1.1.5.21.0",
+            "1.8.1": "1.8.1.1.5.21.0",
+        },
+        "tensorflow": {
+            "2.1.4" : "2.1.4.1.6.10.0",
+            "2.2.3" : "2.2.3.1.6.10.0",
+            "2.3.3": "2.3.3.1.6.10.0",
+            "2.4.2": "2.4.2.1.6.10.0",
+            "2.4.2": "2.4.2.1.6.10.0",
+            "2.5.0": "2.5.0.1.6.10.0",
+        },
+        "mxnet" : {
+            "1.8.0": "1.8.0.1.3.4.0",
+        }
+    }
+}
+
+def get_neuron_sdk_version_from_tag(image_uri):
+    """
+    Return the neuron sdk version from the image tag.
+    :param image_uri: ECR image URI
+    :return: neuron sdk version
+    """
+    neuron_sdk_version = None
+
+    if "sdk" in image_uri:
+        neuron_sdk_version = re.search(r"sdk([\d\.]+)", image_uri).group(1)
+
+    return neuron_sdk_version
+
+def get_neuron_framework_and_version_from_tag(image_uri):
+    """
+    Return the framework version and expected framework version for the neuron tag from the image tag.
+
+    :param image_uri: ECR image URI
+    :return: framework version, expected framework version from neuron sdk version
+    """
+    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image_uri)
+    neuron_sdk_version = get_neuron_sdk_version_from_tag(image_uri)
+
+    if neuron_sdk_version is None:
+        return tag_framework_version, None
+
+    if neuron_sdk_version not in NEURON_VERSION_MANIFEST:
+        raise KeyError(f"Cannot find neuron sdk version {neuron_sdk_version} ")
+
+    neuron_framework_versions = NEURON_VERSION_MANIFEST[neuron_sdk_version][tested_framework]
+    neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)
+
+    return tested_framework, neuron_tag_framework_version
 
 def get_framework_from_image_uri(image_uri):
     return (
@@ -1100,6 +1198,15 @@ def get_container_name(prefix, image_uri):
     """
     return f"{prefix}-{image_uri.split('/')[-1].replace('.', '-').replace(':', '-')}"
 
+def stop_and_remove_container(container_name, context):
+    """
+    Helper function to stop a container locally
+    :param container_name: Name of the docker container
+    :param context: Invoke context object
+    """
+    context.run(
+        f"docker rm -f {container_name}", hide=True,
+    )
 
 def start_container(container_name, image_uri, context):
     """
