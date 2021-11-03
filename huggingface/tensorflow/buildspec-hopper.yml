@@ -33,3 +33,7 @@ images:
         type: s3
         URI: s3://dlc-test-coverage-reports-501576597925/test_coverage_report-aws-deep-learning-containers-2020-09-25.csv
         VAR_IN_DOCKERFILE: CUSTOM_ARTIFACT_PATH
+      sagemaker_pysdk_whl:
+        type: s3
+        URI: s3://sagemaker-python-sdk-524001406597/dist/sagemaker.tar.gz 
+        VAR_IN_DOCKERFILE: SAGEMAKER_BINARY

@@ -16,6 +16,7 @@ language governing permissions and limitations under the License.
 import concurrent.futures
 import datetime
 import os
+import re
 
 from copy import deepcopy
 
@@ -58,6 +59,8 @@ def is_private_artifact_label_required(artifact_uri, image_repo_uri):
     :param image_repo_uri: str Image ECR repo URI
     :return: bool True if label should be skipped, else False
     """
+    if re.fullmatch(r"\bs3:\/\/sagemaker-python-sdk-\d+\/dist\/sagemaker.tar.gz\b", artifact_uri):
+        return False
     return not ("s3://" in artifact_uri.lower() and any(keyword in image_repo_uri.lower() for keyword in ["hopper"]))
 
 

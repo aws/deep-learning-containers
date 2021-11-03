@@ -2,7 +2,7 @@ boto3
 botocore
 awscli
 junit-xml
-sagemaker>=2.31,<3
+sagemaker.tar.gz
 smdebug>=1
 sagemaker-experiments
 numpy

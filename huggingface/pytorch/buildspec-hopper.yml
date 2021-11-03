@@ -45,3 +45,7 @@ images:
         type: s3
         URI: s3://hf-transformers/2021-11-02_16:28:00/wheels/transformers-4.11.0-py3-none-any.whl
         VAR_IN_DOCKERFILE: HF_TRANSFORMERS_URL
+      sagemaker_pysdk_whl:
+        type: s3
+        URI: s3://sagemaker-python-sdk-524001406597/dist/sagemaker.tar.gz 
+        VAR_IN_DOCKERFILE: SAGEMAKER_BINARY

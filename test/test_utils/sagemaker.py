@@ -223,6 +223,7 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_inst
     if framework == "pytorch":
         # The following distutils package conflict with test dependencies
         ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
+    ec2_conn.run("aws s3 cp s3://sagemaker-python-sdk-524001406597/dist/sagemaker.tar.gz .", warn=True)
     ec2_conn.run(f"sudo {python_invoker} -m pip install -r requirements.txt ", warn=True)
 
 
@@ -339,6 +340,7 @@ def execute_sagemaker_remote_tests(image):
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
     context = Context()
     with context.cd(path):
+        context.run("aws s3 cp s3://sagemaker-python-sdk-524001406597/dist/sagemaker.tar.gz .", warn=True)
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)

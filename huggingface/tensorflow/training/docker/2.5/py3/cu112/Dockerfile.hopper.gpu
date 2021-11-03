@@ -12,6 +12,14 @@ ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
 ARG PYTHON=python3
 
+# Install  Sagemaker PythonSDK
+ARG SAGEMAKER_BINARY
+
+COPY ${SAGEMAKER_BINARY} .
+
+RUN pip install --no-cache-dir ${SAGEMAKER_BINARY} \
+ && rm -rf ${SAGEMAKER_BINARY}
+
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
     transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \
