@@ -237,7 +237,7 @@ RUN ${PIP} install --no-cache-dir -U \
    "PyHive<1" \
    "sparkmagic<1" \
    "sagemaker-studio-sparkmagic-lib<1" \
-   "sagemaker-studio-analytics-extension==0.0.2" \
+   "sagemaker-studio-analytics-extension<1" \
    # Let's install TensorFlow separately in the end to avoid
    # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
