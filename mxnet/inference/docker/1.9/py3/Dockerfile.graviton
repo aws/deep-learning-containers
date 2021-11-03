@@ -87,6 +87,8 @@ RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VER
     pip \
     setuptools
 
+RUN rm -rf /tmp/tmp*
+
 WORKDIR /
 
 RUN ${PIP} install --no-cache-dir \
