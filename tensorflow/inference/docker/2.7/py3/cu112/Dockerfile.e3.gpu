@@ -2,16 +2,13 @@ FROM nvidia/cuda:11.2.1-base-ubuntu20.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-# Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
-# https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
-LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG PYTHON=python3.8
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.8.9
 
-ARG TFS_SHORT_VERSION=2.6
+ARG TFS_SHORT_VERSION=2.7
 ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serve/r2.7_aws/gpu/tensorflow_model_server
 
 ENV NCCL_VERSION=2.8.4-1+cuda11.2
@@ -22,8 +19,6 @@ ENV LANG=C.UTF-8
 ENV PYTHONDONTWRITEBYTECODE=1
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 ENV PYTHONUNBUFFERED=1
-ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
-ENV PATH="$PATH:/sagemaker"
 ENV MODEL_BASE_PATH=/models
 # The only required piece is the model name in order to differentiate endpoints
 ENV MODEL_NAME=model
@@ -101,36 +96,24 @@ RUN v="${TRT_VERSION%.*}-1+cuda${CUDA_VERSION%.*}" &&\
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
-# nginx + njs
 RUN apt-get update \
  && apt-get -y install --no-install-recommends \
     curl \
     gnupg2 \
- && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
- && echo 'deb http://nginx.org/packages/ubuntu/ focal nginx' >> /etc/apt/sources.list \
- && apt-get update \
- && apt-get -y install --no-install-recommends \
-    nginx \
-    nginx-module-njs \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# cython, falcon, gunicorn, grpc
 RUN ${PIP} install -U --no-cache-dir \
     "awscli<2" \
     boto3 \
     cython==0.29.21 \
-    falcon==2.0.0 \
-    gunicorn==20.0.4 \
     gevent==21.1.1 \
     requests==2.25.1 \
     grpcio==1.34.1 \
     protobuf==3.14.0 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api-gpu==2.6
-
-COPY ./sagemaker /sagemaker
+    tensorflow-serving-api-gpu=="2.7.0rc1"
 
 RUN curl $TFS_URL -o /usr/bin/tensorflow_model_server \
  && chmod 555 /usr/bin/tensorflow_model_server
@@ -160,6 +143,6 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.6/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.7/license.txt -o /license.txt
 
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
