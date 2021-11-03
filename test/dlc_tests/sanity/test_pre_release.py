@@ -20,12 +20,14 @@ from test.test_utils import (
     ec2,
     get_container_name,
     get_framework_and_version_from_tag,
+    get_neuron_framework_and_version_from_tag,
     is_canary_context,
     is_tf_version,
     is_dlc_cicd_context,
     is_pr_context,
     run_cmd_on_container,
     start_container,
+    stop_and_remove_container,
     is_time_for_canary_safety_scan,
     is_mainline_context,
     is_nightly_context,
@@ -173,11 +175,62 @@ def test_framework_version_cpu(image):
     else:
         if tested_framework == "autogluon.core":
             assert output.stdout.strip().startswith(tag_framework_version)
+        elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
+            torch_version_pattern = r"{torch_version}(\+cpu)".format(torch_version=tag_framework_version)
+            assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
+                f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                f"Please specify framework version as X.Y.Z+cpu"
+            )
         else:
             if "neuron" in image:
                 assert tag_framework_version in output.stdout.strip()
             else:
                 assert tag_framework_version == output.stdout.strip()
+    stop_and_remove_container(container_name, ctx)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+def test_framework_and_neuron_sdk_version(neuron):
+    """
+    Gets the neuron sdk tag from the image. For that neuron sdk and the frame work version from
+    the image, it gets the expected frame work version. Then checks that the expected framework version
+    same as the one on a running container.
+    This function test only Neuron images.
+
+    :param image: ECR image URI
+    """
+    image = neuron
+
+    tested_framework, neuron_tag_framework_version = get_neuron_framework_and_version_from_tag(image)
+
+    # neuron tag is there in pytorch images for now. Once all frameworks have it, then this will
+    # be removed
+    if neuron_tag_framework_version is None:
+        if tested_framework is "pytorch":
+            assert neuron_tag_framework_version != None
+        else:
+            pytest.skip(msg="Neuron SDK tag is not there as part of image")
+
+
+    if tested_framework == "pytorch":
+        tested_framework = "torch_neuron"
+    elif tested_framework == "tensorflow":
+        tested_framework = "tensorflow_neuron"
+    elif tested_framework == "mxnet":
+        tested_framework = "mxnet"
+
+    ctx = Context()
+
+    container_name = get_container_name("framework-version-neuron", image)
+    start_container(container_name, image, ctx)
+    output = run_cmd_on_container(
+        container_name, ctx, f"import {tested_framework}; print({tested_framework}.__version__)", executable="python"
+    )
+
+    assert neuron_tag_framework_version == output.stdout.strip()
+    stop_and_remove_container(container_name, ctx)
+
 
 
 # TODO: Enable as canary once resource cleaning lambda is added
@@ -214,6 +267,12 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         else:
             if tested_framework == "autogluon.core":
                 assert output.stdout.strip().startswith(tag_framework_version)
+            elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
+                torch_version_pattern = r"{torch_version}(\+cu\d+)".format(torch_version=tag_framework_version)
+                assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
+                    f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                    f"Please specify framework version as X.Y.Z+cuXXX"
+                )
             else:
                 assert tag_framework_version == output.stdout.strip()
 
@@ -488,7 +547,7 @@ def test_cuda_paths(gpu):
     python_version = re.search(r"(py\d+)", image).group(1)
     short_python_version = None
     image_tag = re.search(
-        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-ec2-ecs-eks)?-example|-ec2-ecs-eks|-sagemaker)?)",
+        r":(\d+(\.\d+){2}(-transformers\d+(\.\d+){2})?-(gpu)-(py\d+)(-cu\d+)-(ubuntu\d+\.\d+)((-e3)?-example|-e3|-sagemaker)?)",
         image,
     ).group(1)
 

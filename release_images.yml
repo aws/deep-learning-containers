@@ -2,10 +2,10 @@
 release_images:
   1:
     framework: "pytorch"
-    version: "1.7.1"
+    version: "1.8.1"
     inference:
       device_types: ["neuron"]
-      python_versions: ["py36"]
+      python_versions: ["py37"]
       os_version: "ubuntu18.04"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
@@ -13,223 +13,130 @@ release_images:
       force_release: False   # [Default: False] Set to True to force images to be published even if the same image
       # has already been published. Re-released image will have minor version incremented by 1.
   2:
-    framework: "tensorflow"
-    version: "2.3.2"
-    training:
-      device_types: ["cpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu102"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-                            # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-                            # has already been published. Re-released image will have minor version incremented by 1.
-    inference:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu102"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-                            # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-                            # has already been published. Re-released image will have minor version incremented by 1.
-  3:
-    framework: "tensorflow"
-    version: "2.3.2"
-    training:
-      device_types: ["gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu102"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-                            # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-                            # has already been published. Re-released image will have minor version incremented by 1.
-  4:
-    framework: "tensorflow"
-    version: "2.3.2"
-    training:
-      device_types: ["gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu102"
-      example: True        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-                            # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-                            # has already been published. Re-released image will have minor version incremented by 1.
-  5:
-    framework: "tensorflow"
-    version: "1.15.5"
+    framework: "mxnet"
+    version: "1.8.0"
     training:
       device_types: ["cpu", "gpu"]
-      python_versions: ["py36", "py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu100"
+      python_versions: ["py37"]
+      os_version: "ubuntu16.04"
+      cuda_version: "cu110"
       example: False
       disable_sm_tag: False
       force_release: False
     inference:
       device_types: ["cpu", "gpu"]
-      python_versions: ["py36"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu100"
+      python_versions: ["py37"]
+      os_version: "ubuntu16.04"
+      cuda_version: "cu110"
       example: False
       disable_sm_tag: False
+      force_release: False
+  3:
+    framework: "mxnet"
+    version: "1.8.0"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu16.04"
+      cuda_version: "cu110"
+      example: True
+      disable_sm_tag: False
+      force_release: False
+  4:
+    framework: "mxnet"
+    version: "1.7.0"
+    training:
+      device_types: ["cpu","gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu16.04"
+      cuda_version: "cu101"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+    inference:
+      device_types: ["cpu","gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu16.04"
+      cuda_version: "cu101"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  5:
+    framework: "mxnet"
+    version: "1.7.0"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu16.04"
+      cuda_version: "cu101"
+      example: True
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
   6:
     framework: "tensorflow"
-    version: "1.15.5"
+    version: "2.4.3"
     training:
-      device_types: ["gpu"]
-      python_versions: ["py36", "py37"]
+      device_types: ["cpu","gpu"]
+      python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      cuda_version: "cu100"
-      example: True        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-                            # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-      # has already been published. Re-released image will have minor version incremented by 1.
+      cuda_version: "cu110"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+    inference:
+      device_types: ["cpu","gpu"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu110"
+      example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
   7:
     framework: "tensorflow"
-    version: "2.3.0"
-    inference:
-      device_types: ["eia"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: False  # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-                            # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-                            # has already been published. Re-released image will have minor version incremented by 1.
-  8:
-    framework: "mxnet"
-    version: "1.8.0"
-    training:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu16.04"
-      cuda_version: "cu110"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-    inference:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu16.04"
-      cuda_version: "cu110"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  9:
-    framework: "mxnet"
-    version: "1.8.0"
+    version: "2.4.3"
     training:
       device_types: ["gpu"]
       python_versions: ["py37"]
-      os_version: "ubuntu16.04"
+      os_version: "ubuntu18.04"
       cuda_version: "cu110"
       example: True
       disable_sm_tag: False
+      force_release: False
+  8:
+    framework: "pytorch"
+    version: "1.8.1"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu111"
+      example: False        # [Default: False] Set to True to denote that this image is an Example image
+      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
+                            # to images being published.
+      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
+                            # has already been published. Re-released image will have minor version incremented by 1.
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu111"
+      example: False        # [Default: False] Set to True to denote that this image is an Example image
+      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
+                            # to images being published.
+      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
+                            # has already been published. Re-released image will have minor version incremented by 1.
+  9:
+    framework: "pytorch"
+    version: "1.8.1"
+    training:
+      device_types: ["gpu"]
+      python_versions: ["py36"]
+      os_version: "ubuntu18.04"
+      cuda_version: "cu111"
+      example: True
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
   10:
-    framework: "mxnet"
-    version: "1.7.0"
-    training:
-      device_types: ["cpu","gpu"]
-      python_versions: ["py36"]
-      os_version: "ubuntu16.04"
-      cuda_version: "cu101"
-      example: False
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
-    inference:
-      device_types: ["cpu","gpu"]
-      python_versions: ["py36"]
-      os_version: "ubuntu16.04"
-      cuda_version: "cu101"
-      example: False
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
-  11:
-    framework: "mxnet"
-    version: "1.7.0"
-    training:
-      device_types: ["gpu"]
-      python_versions: ["py36"]
-      os_version: "ubuntu16.04"
-      cuda_version: "cu101"
-      example: True
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
-  12:
-    framework: "tensorflow"
-    version: "2.4.3"
-    training:
-      device_types: ["cpu","gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu110"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-    inference:
-      device_types: ["cpu","gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu110"
-      example: False
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
-  13:
-    framework: "tensorflow"
-    version: "2.4.3"
-    training:
-      device_types: ["gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu110"
-      example: True
-      disable_sm_tag: False
-      force_release: False
-  14:
-    framework: "pytorch"
-    version: "1.8.1"
-    training:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py36"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu111"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-                            # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-                            # has already been published. Re-released image will have minor version incremented by 1.
-    inference:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py36"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu111"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-                            # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-                            # has already been published. Re-released image will have minor version incremented by 1.
-  15:
-    framework: "pytorch"
-    version: "1.8.1"
-    training:
-      device_types: ["gpu"]
-      python_versions: ["py36"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu111"
-      example: True
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
-  16:
     framework: "pytorch"
     version: "1.5.1"
     inference:
@@ -240,7 +147,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  17:
+  11:
     framework: "huggingface_tensorflow"
     version: "2.4.3"
     hf_transformers: "4.10.2"
@@ -252,21 +159,9 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  18:
-    framework: "huggingface_pytorch"
-    version: "1.7.1"
-    hf_transformers: "4.6.1"
-    inference:
-      device_types: ["cpu", "gpu"]
-      python_versions: [ "py36" ]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu110"
-      example: False
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
-  19:
+  12:
     framework: "pytorch"
-    version: "1.5.0"
+    version: "1.6.0"
     inference:
       device_types: ["cpu", "gpu"]
       python_versions: ["py36"]
@@ -275,41 +170,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  20:
-    framework: "pytorch"
-    version: "1.6.0"
-    training:
-      device_types: ["gpu"]
-      python_versions: ["py36"]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu110"
-      example: False
-      disable_sm_tag: True  # [Default: False] This option is not used by Example images
-      force_release: False
-  21:
-    framework: "pytorch"
-    version: "1.6.0"
-    training:
-      device_types: [ "gpu" ]
-      python_versions: [ "py36" ]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu110"
-      example: True
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
-  22:
-    framework: "huggingface_pytorch"
-    version: "1.6.0"
-    hf_transformers: "4.6.1"
-    training:
-      device_types: [ "gpu" ]
-      python_versions: [ "py36" ]
-      os_version: "ubuntu18.04"
-      cuda_version: "cu110"
-      example: False
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
-  23:
+  13:
     framework: "tensorflow"
     version: "2.5.1"
     training:
@@ -320,7 +181,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  24:
+  14:
     framework: "tensorflow"
     version: "2.5.1"
     training:
@@ -331,7 +192,7 @@ release_images:
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  25:
+  15:
     framework: "tensorflow"
     version: "2.5.1"
     inference:
@@ -342,7 +203,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  26:
+  16:
     framework: "huggingface_pytorch"
     version: "1.8.1"
     hf_transformers: "4.10.2"
@@ -354,9 +215,9 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  27:
+  17:
     framework: "pytorch"
-    version: "1.9.0"
+    version: "1.9.1"
     training:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
@@ -377,9 +238,9 @@ release_images:
                             # to images being published.
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
                             # has already been published. Re-released image will have minor version incremented by 1.
-  28:
+  18:
     framework: "pytorch"
-    version: "1.9.0"
+    version: "1.9.1"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py38" ]
@@ -388,7 +249,7 @@ release_images:
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  29:
+  19:
     framework: "autogluon"
     version: "0.2.1"
     training:
@@ -399,7 +260,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  30:
+  20:
     framework: "huggingface_pytorch"
     version: "1.8.1"
     hf_transformers: "4.10.2"
@@ -411,7 +272,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  31:
+  21:
     framework: "huggingface_tensorflow"
     version: "2.4.3"
     hf_transformers: "4.10.2"
@@ -423,7 +284,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  32:
+  22:
     framework: "tensorflow"
     version: "2.6.0"
     training:
@@ -446,7 +307,7 @@ release_images:
       # to images being published.
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
       # has already been published. Re-released image will have minor version incremented by 1.
-  33:
+  23:
     framework: "tensorflow"
     version: "2.6.0"
     training:
@@ -457,7 +318,7 @@ release_images:
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  34:
+  24:
     framework: "autogluon"
     version: "0.3.1"
     training:
@@ -468,8 +329,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-
-  35:
+  25:
     framework: "autogluon"
     version: "0.3.1"
     inference:
@@ -479,7 +339,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  36:
+  26:
     framework: "huggingface_tensorflow"
     version: "2.5.1"
     hf_transformers: "4.11.0"
@@ -491,7 +351,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  37:
+  27:
     framework: "huggingface_tensorflow"
     version: "2.5.1"
     hf_transformers: "4.11.0"
@@ -503,7 +363,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  38:
+  28:
     framework: "huggingface_pytorch"
     version: "1.9.0"
     hf_transformers: "4.11.0"
@@ -515,7 +375,7 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  39:
+  29:
     framework: "huggingface_pytorch"
     version: "1.9.0"
     hf_transformers: "4.11.0"
@@ -525,5 +385,41 @@ release_images:
       os_version: "ubuntu20.04"
       cuda_version: "cu111"
       example: False
+      disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+  30:
+    framework: "pytorch"
+    version: "1.10.0"
+    customer_type: "e3"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py38" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu113"
+      example: False        # [Default: False] Set to True to denote that this image is an Example image
+      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
+      # to images being published.
+      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
+      # has already been published. Re-released image will have minor version incremented by 1.
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py38" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu113"
+      example: False        # [Default: False] Set to True to denote that this image is an Example image
+      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
+      # to images being published.
+      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
+      # has already been published. Re-released image will have minor version incremented by 1.
+  31:
+    framework: "pytorch"
+    version: "1.10.0"
+    customer_type: "e3"
+    training:
+      device_types: [ "gpu" ]
+      python_versions: [ "py38" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu113"
+      example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
