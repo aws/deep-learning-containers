@@ -176,7 +176,7 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
-COPY torchserve-diy-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY torchserve-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py

@@ -31,9 +31,9 @@ context:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
   inference_context: &INFERENCE_CONTEXT
-    torchserve-diy-entrypoint:
-      source: docker/build_artifacts/torchserve-diy-entrypoint.py
-      target: torchserve-diy-entrypoint.py
+    torchserve-e3-entrypoint:
+      source: docker/build_artifacts/torchserve-e3-entrypoint.py
+      target: torchserve-e3-entrypoint.py
     torchserve-entrypoint:
       source: docker/build_artifacts/torchserve-entrypoint.py
       target: torchserve-entrypoint.py
