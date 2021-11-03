@@ -44,10 +44,9 @@ def skip_if_non_supported_ei_region(region):
 @pytest.mark.processor("eia")
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.model("linear_regression")
-@pytest.mark.skip_neuron_containers
 @pytest.mark.skip_if_non_supported_ei_region()
 @pytest.mark.skip_if_no_accelerator()
-def test_elastic_inference(ecr_image, sagemaker_regions, instance_type, accelerator_type, framework_version):
+def test_elastic_inference(ecr_image, sagemaker_regions, instance_type, accelerator_type, framework_version, skip_neuron_containers):
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_elastic_inference_function,
                                  instance_type, accelerator_type, framework_version)
 
