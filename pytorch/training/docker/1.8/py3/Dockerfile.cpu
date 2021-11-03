@@ -145,7 +145,7 @@ RUN pip install --no-cache-dir -U \
     "PyHive<1" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
-    "sagemaker-studio-analytics-extension==0.0.2"
+    "sagemaker-studio-analytics-extension<1"
 
 # Install PT S3 plugin
 RUN pip install -U ${PT_S3_WHL}
