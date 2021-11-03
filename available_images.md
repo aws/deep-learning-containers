@@ -116,8 +116,8 @@ E3 Framework Containers (EC2, ECS, and EKS support only)
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
 |PyTorch 1.10.0   |training	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.10.0-cpu-py38-ubuntu20.04-e3		|
 |PyTorch 1.10.0   |training	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.10.0-gpu-py38-cu113-ubuntu20.04-e3	|
-|PyTorch 1.10.0   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference1.10.0--cpu-py38-ubuntu20.04-e3		|
-|PyTorch 1.10.0   |inference	|No			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference1.10.0--gpu-py38-cu113-ubuntu20.04-e3	|
+|PyTorch 1.10.0   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.10.0-cpu-py38-ubuntu20.04-e3		|
+|PyTorch 1.10.0   |inference	|No			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.10.0-gpu-py38-cu113-ubuntu20.04-e3	|
 
 
 Habana training containers
