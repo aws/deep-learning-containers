@@ -178,10 +178,10 @@ RUN HOME_DIR=/root \
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
 
 COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-COPY neuron-start.sh /usr/local/bin/neuron-start.sh
+COPY neuron-monitor.sh /usr/local/bin/neuron-monitor.sh
 
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
-RUN chmod +x /usr/local/bin/neuron-start.sh
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py \
+ && chmod +x /usr/local/bin/neuron-monitor.sh
 
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["/usr/local/bin/entrypoint.sh"]
