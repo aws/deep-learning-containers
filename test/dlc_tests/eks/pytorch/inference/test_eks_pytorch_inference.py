@@ -60,18 +60,6 @@ def test_eks_pytorch_neuron_inference(pytorch_inference, neuron_only):
 
 @pytest.mark.model("densenet")
 def test_eks_pytorch_densenet_inference(pytorch_inference):
-    if "graviton" in pytorch_inference:
-        pytest.skip("Skipping EKS x86 Test for Graviton Images")
-    processor = "gpu" if "gpu" in pytorch_inference else "cpu"
-    __test_eks_pytorch_densenet_inference(pytorch_inference, processor)
-
-
-@pytest.mark.model("densenet")
-def test_eks_pytorch_densenet_inference_graviton(pytorch_inference, graviton_only):
-    __test_eks_pytorch_densenet_inference(pytorch_inference, "graviton")
-
-
-def __test_eks_pytorch_densenet_inference(pytorch_inference, processor):
     server_type = test_utils.get_inference_server_type(pytorch_inference)
     if "eia" in pytorch_inference:
         pytest.skip("Skipping EKS Test for EIA")
@@ -88,6 +76,16 @@ def __test_eks_pytorch_densenet_inference(pytorch_inference, processor):
 
     rand_int = random.randint(4001, 6000)
 
+    if "graviton" in pytorch_inference:
+        processor = "cpu"
+        test_type = "graviton"
+    elif "gpu" in pytorch_inference:
+        processor = "gpu"
+        test_type = "gpu"
+    else:
+        processor = "cpu"
+        test_type = "gpu" #now always use p3 instance for cpu test
+
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_{processor}_inference_{rand_int}.yaml")
     inference_service_name = selector_name = f"densenet-service-{processor}-{rand_int}"
 
@@ -99,6 +97,7 @@ def __test_eks_pytorch_densenet_inference(pytorch_inference, processor):
         "<DOCKER_IMAGE_BUILD_ID>": pytorch_inference,
         "<SERVER_TYPE>": server_type,
         "<SERVER_CMD>": server_cmd,
+        "<TEST_TYPE>": test_type
     }
 
     if processor == "gpu":
