@@ -214,6 +214,7 @@ def image_builder(buildspec):
     # Set environment variables to be consumed by test jobs
     test_trigger_job = utils.get_codebuild_project_name()
     # Tests should only run on images that were pushed to the repository
+    FORMATTER.print(f"IMAGES_TO_PUSH: {IMAGES_TO_PUSH}; ecr urls: {[image.ecr_url for image in IMAGES_TO_PUSH]}")
     utils.set_test_env(
         IMAGES_TO_PUSH, 
         use_latest_additional_tag=True, 

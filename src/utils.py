@@ -421,12 +421,18 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
     """
     DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
 
-    build_disabled = not is_build_enabled()
+    build_enabled = is_build_enabled()
+
+    LOGGER.info(f"BUILD_ENABLED: {build_enabled}")
+    print(f"BUILD_ENABLED: {build_enabled}")
 
     for docker_image in images:
         if not docker_image.is_test_promotion_enabled:
             continue
-        use_preexisting_images = (build_disabled and docker_image.build_status == constants.NOT_BUILT)
+        use_preexisting_images = ((not build_enabled) and docker_image.build_status == constants.NOT_BUILT)
+        LOGGER.info(f"USE_PREEXISTING_IMAGES: {use_preexisting_images} for image {docker_image.ecr_url}")
+        print(f"USE_PREEXISTING_IMAGES: {use_preexisting_images} for image {docker_image.ecr_url}")
+        LOGGER.info("")
         if docker_image.build_status == constants.SUCCESS or use_preexisting_images:
             ecr_url_to_test = docker_image.ecr_url
             if use_latest_additional_tag and len(docker_image.additional_tags) > 0:
