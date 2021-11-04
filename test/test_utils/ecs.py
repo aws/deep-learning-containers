@@ -697,10 +697,15 @@ def build_ecs_training_command(s3_test_location, test_string):
     ]
 
 def build_ecs_tensorflow_inference_command(processor, model_name):
-
+    """
+    Construct the command to download tensorflow model from S3 and start tensorflow model server
+    :param processor: 
+    :param model_name: 
+    :return: <list> command to send to the container
+    """
     model_name = get_tensorflow_model_name(processor, model_name)
     return [
-        f"aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /root/{model_name} && /usr/bin/tf_serving_entrypoint.sh"
+        f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tf_serving_entrypoint.sh"
     ]
 
 
@@ -816,7 +821,7 @@ def setup_ecs_inference_service(
         if is_below_framework_version("2.7", docker_image_uri, "tensorflow"):
             model_base_path = TENSORFLOW_MODELS_BUCKET
         else:
-            model_base_path = f"/root"
+            model_base_path = "/tensorflow_model"
             arguments_dict["container_command"] = build_ecs_tensorflow_inference_command(processor, model_name)
             arguments_dict["entrypoint"] = ["sh", "-c"]
 
