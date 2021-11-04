@@ -49,7 +49,9 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference, neuron_only):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8501")
 
         inference_string = '\'{"instances": ' + "{}".format([[0 for i in range(784)]]) + "}'"
-        assert test_utils.request_tensorflow_inference(model_name=model_name, port=port_to_forward, inference_string=inference_string)
+        assert test_utils.request_tensorflow_inference(
+            model_name=model_name, port=port_to_forward, inference_string=inference_string
+        )
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
@@ -68,14 +70,17 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
     model_name = f"saved_model_half_plus_two_{processor}"
     yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_{processor}_inference_{rand_int}.yaml")
     inference_service_name = selector_name = f"half-plus-two-service-{processor}-{rand_int}"
-
+    model_base_path = get_tensorflow_model_base_path(tensorflow_inference, model_name)
+    command, args = get_tensorflow_command_args(tensorflow_inference, model_name, model_base_path)
+    test_type = get_eks_test_type(tensorflow_inference)
     search_replace_dict = {
-        "<MODEL_NAME>": model_name,
-        "<MODEL_BASE_PATH>": f"s3://tensoflow-trained-models/{model_name}",
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
         "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference,
+        "<COMMAND>": command,
+        "<ARGS>": args,
+        "<TEST_TYPE>": test_type,
     }
 
     if processor == "gpu":
@@ -113,14 +118,17 @@ def test_eks_tensorflow_albert(tensorflow_inference):
     model_name = f"albert"
     yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_{processor}_inference_{rand_int}.yaml")
     inference_service_name = selector_name = f"albert-{processor}-{rand_int}"
-
+    model_base_path = get_tensorflow_model_base_path(tensorflow_inference, model_name)
+    command, args = get_tensorflow_command_args(tensorflow_inference, model_name, model_base_path)
+    test_type = get_eks_test_type(tensorflow_inference)
     search_replace_dict = {
-        "<MODEL_NAME>": model_name,
-        "<MODEL_BASE_PATH>": f"s3://tensoflow-trained-models/{model_name}",
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
         "<DOCKER_IMAGE_BUILD_ID>": tensorflow_inference,
+        "<COMMAND>": command,
+        "<ARGS>": args,
+        "<TEST_TYPE>": test_type,
     }
 
     if processor == "gpu":
@@ -142,3 +150,44 @@ def test_eks_tensorflow_albert(tensorflow_inference):
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
+
+
+def get_tensorflow_model_base_path(image_uri, model_name):
+    if test_utils.is_below_framework_version("2.7", image_uri, "tensorflow"):
+        model_base_path = f"s3://tensoflow-trained-models/{model_name}"
+    else:
+        model_base_path = f"/tensorflow_model/{model_name}"
+
+    return model_base_path
+
+
+def get_tensorflow_command_args(image_uri, model_name, model_base_path):
+    if test_utils.is_below_framework_version("2.7", image_uri, "tensorflow"):
+        command = "['/usr/bin/tensorflow_model_server']"
+        #args = f"['--port=8501', '--rest_api_port=8500', '--model_name={model_name}', '--model_base_path={model_base_path}']"
+        #args = f"--port=8501 --rest_api_port=8500 --model_name={model_name} --model_base_path={model_base_path}"
+        args = (
+             f"--port=8501 "
+             f"--rest_api_port=8500 "
+             f"--model_name={model_name} "
+             f"--model_base_path={model_base_path} "
+        )
+        
+        
+        f"--port=8501 --rest_api_port=8500 --model_name={model_name} --model_base_path={model_base_path}"
+    else:
+        command = "['/bin/sh', '-c']"
+        args = (
+            f"mkdir -p /tensorflow_model "
+            f"&& aws s3 sync s3://tensoflow-trained-models/{model_name}/ /tensorflow_model/{model_name} "
+            f"&& /usr/bin/tf_serving_entrypoint.sh --port=8501 --rest_api_port=8500 --model_name={model_name} --model_base_path={model_base_path}"
+        )
+    return command, args
+
+
+def get_eks_test_type(image_uri):
+    if "graviton" in image_uri:
+        test_type = "graviton"
+    else:
+        test_type = "gpu"
+    return test_type
