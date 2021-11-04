@@ -9,7 +9,7 @@ from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
-from test.test_utils import is_pr_context, is_mainline_context
+from test.test_utils import is_pr_context, is_mainline_context, get_ecr_repo_name_and_tag
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
@@ -530,7 +530,7 @@ def execute_ec2_inference_performance_test(
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
     # Run training command, display benchmark results to console
-    repo_name, image_tag = ecr_uri.split("/")[-1].split(":")
+    repo_name, image_tag = get_ecr_repo_name_and_tag(ecr_uri)
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
     connection.run(
         f"{docker_cmd} run -d --name {container_name} "

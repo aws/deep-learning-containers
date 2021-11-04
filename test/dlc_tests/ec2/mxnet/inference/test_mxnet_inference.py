@@ -4,7 +4,7 @@ import pytest
 import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
-from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag
+from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, get_ecr_repo_name_and_tag
 from test.test_utils.ec2 import get_ec2_instance_type, execute_ec2_inference_test, get_ec2_accelerator_type
 from test.dlc_tests.conftest import LOGGER
 
@@ -98,7 +98,7 @@ def test_ec2_mxnet_gluonnlp_inference_cpu(mxnet_inference, ec2_connection, regio
 
 
 def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection, processor, region, target_port, target_management_port):
-    repo_name, image_tag = image_uri.split("/")[-1].split(":")
+    repo_name, image_tag = get_ecr_repo_name_and_tag(image_uri)
     container_name = f"{repo_name}-{image_tag}-ec2-{container_tag}"
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     mms_inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)

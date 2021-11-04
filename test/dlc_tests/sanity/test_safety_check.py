@@ -18,6 +18,7 @@ from test.test_utils import (
     is_mainline_context,
     is_time_for_canary_safety_scan,
     is_safety_test_context,
+    get_ecr_repo_name_and_tag,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -223,7 +224,7 @@ def test_safety(image):
 
     safety_check = SafetyCheck()
 
-    repo_name, image_tag = image.split("/")[-1].split(":")
+    repo_name, image_tag = get_ecr_repo_name_and_tag(image)
     ignore_ids_list = _get_safety_ignore_list(image)
     sep = " -i "
     ignore_str = "" if not ignore_ids_list else f"{sep}{sep.join(ignore_ids_list)}"

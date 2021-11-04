@@ -7,7 +7,7 @@ import pytest
 
 from invoke import run
 
-from test.test_utils import LOGGER, get_account_id_from_image_uri, get_dockerfile_path_for_image, is_dlc_cicd_context
+from test.test_utils import LOGGER, get_account_id_from_image_uri, get_dockerfile_path_for_image, is_dlc_cicd_context, get_ecr_repo_name_and_tag
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
     CVESeverity, ScanVulnerabilityList, ECRScanFailureException, get_ecr_scan_allowlist_path
@@ -22,7 +22,7 @@ MINIMUM_SEV_THRESHOLD = "HIGH"
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run security test regularly on production images")
 def test_security(image):
-    repo_name, image_tag = image.split("/")[-1].split(":")
+    repo_name, image_tag = get_ecr_repo_name_and_tag(image)
     container_name = f"{repo_name}-{image_tag}-security"
 
     run(
@@ -131,8 +131,7 @@ def test_is_ecr_scan_allowlist_outdated(image, ecr_client, sts_client, region):
     test_account_id = sts_client.get_caller_identity().get("Account")
     image_account_id = get_account_id_from_image_uri(image)
     if image_account_id != test_account_id:
-        image_repo_uri, image_tag = image.split(":")
-        _, image_repo_name = image_repo_uri.split("/")
+        image_repo_name, _ = get_ecr_repo_name_and_tag(image)
         target_image_repo_name = f"beta-{image_repo_name}"
         image = ecr_utils.reupload_image_to_test_ecr(image, target_image_repo_name, region)
 

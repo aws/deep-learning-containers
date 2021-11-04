@@ -185,6 +185,16 @@ def get_python_invoker(ami_id):
     return DLAMI_PYTHON_MAPPING.get(ami_id, "/usr/bin/python3")
 
 
+def get_ecr_repo_name_and_tag(image_uri):
+    """
+    Retrieve ECR repository name and tag from image URI
+    :param image_uri: str ECR Image URI
+    :return: str ECR repository name and image tag
+    """
+    ecr_repo_name, ecr_image_tag = image_uri.split("/")[-1].split(":")
+    return ecr_repo_name, ecr_image_tag
+
+
 def is_tf_version(required_version, image_uri):
     """
     Validate that image_uri has framework version equal to required_version

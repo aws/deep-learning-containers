@@ -6,7 +6,7 @@ from src.benchmark_metrics import (
     PYTORCH_INFERENCE_CPU_THRESHOLD,
     get_threshold_for_image,
 )
-from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag
+from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, get_ecr_repo_name_and_tag
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
     post_process_inference,
@@ -52,7 +52,7 @@ def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection
 def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, region, test_cmd, threshold):
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    repo_name, image_tag = image_uri.split("/")[-1].split(":")
+    repo_name, image_tag = get_ecr_repo_name_and_tag(image_uri)
 
     # Make sure we are logged into ECR so we can pull the image
     ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)

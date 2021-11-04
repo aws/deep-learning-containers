@@ -35,6 +35,7 @@ from test.test_utils import (
     AML2_GPU_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
+    get_ecr_repo_name_and_tag,
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -44,36 +45,44 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Immutable constant for framework specific image fixtures
 FRAMEWORK_FIXTURES = (
-    "pytorch_inference",
+    # ECR repo name fixtures
+    # PyTorch
     "pytorch_training",
-    "autogluon_training",
-    "mxnet_inference",
-    "mxnet_training",
-    "tensorflow_inference",
-    "tensorflow_training",
-    "training",
-    "inference",
-    "gpu",
-    "cpu",
-    "eia",
-    "neuron",
-    "graviton",
-    "hpu",
+    "pytorch_training_habana",
+    "pytorch_inference",
     "pytorch_inference_eia",
-    "mxnet_inference_eia",
+    "pytorch_inference_neuron",
+    "pytorch_inference_graviton",
+    # TensorFlow
+    "tensorflow_training",
+    "tensorflow_inference",
     "tensorflow_inference_eia",
     "tensorflow_inference_neuron",
-    "pytorch_inference_neuron",
+    "tensorflow_training_habana",
+    # MxNET
+    "mxnet_training",
+    "mxnet_inference",
+    "mxnet_inference_eia",
     "mxnet_inference_neuron",
-    "pytorch_inference_graviton",
+    # HuggingFace
     "huggingface_tensorflow_training",
     "huggingface_pytorch_training",
     "huggingface_mxnet_training",
     "huggingface_tensorflow_inference",
     "huggingface_pytorch_inference",
     "huggingface_mxnet_inference",
-    "tensorflow_training_habana",
-    "pytorch_training_habana"
+    # Autogluon
+    "autogluon_training",
+    # Processor fixtures
+    "gpu",
+    "cpu",
+    "eia",
+    "neuron",
+    "graviton",
+    "hpu",
+    # Job Type fixtures
+    "training",
+    "inference",
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -83,40 +92,22 @@ collect_ignore = [os.path.join("container_tests")]
 def pytest_addoption(parser):
     default_images = test_utils.get_dlc_images()
     parser.addoption(
-        "--images",
-        default=default_images.split(" "),
-        nargs="+",
-        help="Specify image(s) to run",
+        "--images", default=default_images.split(" "), nargs="+", help="Specify image(s) to run",
     )
     parser.addoption(
-        "--canary",
-        action="store_true",
-        default=False,
-        help="Run canary tests",
+        "--canary", action="store_true", default=False, help="Run canary tests",
     )
     parser.addoption(
-        "--generate-coverage-doc",
-        action="store_true",
-        default=False,
-        help="Generate a test coverage doc",
+        "--generate-coverage-doc", action="store_true", default=False, help="Generate a test coverage doc",
     )
     parser.addoption(
-        "--multinode",
-        action="store_true",
-        default=False,
-        help="Run only multi-node tests",
+        "--multinode", action="store_true", default=False, help="Run only multi-node tests",
     )
     parser.addoption(
-        "--efa",
-        action="store_true",
-        default=False,
-        help="Run only efa tests",
+        "--efa", action="store_true", default=False, help="Run only efa tests",
     )
     parser.addoption(
-        "--quick_checks",
-        action="store_true",
-        default=False,
-        help="Run quick check tests",
+        "--quick_checks", action="store_true", default=False, help="Run quick check tests",
     )
 
 
@@ -129,17 +120,21 @@ def num_nodes(request):
 def ec2_key_name(request):
     return request.param
 
+
 @pytest.fixture(scope="function")
 def ec2_key_file_name(request):
     return request.param
+
 
 @pytest.fixture(scope="function")
 def ec2_user_name(request):
     return request.param
 
+
 @pytest.fixture(scope="function")
 def ec2_public_ip(request):
     return request.param
+
 
 @pytest.fixture(scope="session")
 def region():
@@ -149,8 +144,7 @@ def region():
 @pytest.fixture(scope="session")
 def docker_client(region):
     test_utils.run_subprocess_cmd(
-        f"$(aws ecr get-login --no-include-email --region {region})",
-        failure="Failed to log into ECR.",
+        f"$(aws ecr get-login --no-include-email --region {region})", failure="Failed to log into ECR.",
     )
     return docker.from_env()
 
@@ -252,37 +246,25 @@ def ec2_instance(
     volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
 
     if (
-        ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
-        and (
-            ("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames)
-            or "mxnet_inference" in request.fixturenames
+        (
+            ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
+            and (
+                ("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames)
+                or "mxnet_inference" in request.fixturenames
+            )
         )
-    ) or (
-        "neuron_only" in request.fixturenames
-    ) or (
-        "tensorflow_training" in request.fixturenames
-        and "gpu_only" in request.fixturenames
-        and "horovod" in ec2_key_name
+        or ("neuron_only" in request.fixturenames)
+        or (
+            "tensorflow_training" in request.fixturenames
+            and "gpu_only" in request.fixturenames
+            and "horovod" in ec2_key_name
+        )
     ):
-        params["BlockDeviceMappings"] = [
-            {
-                "DeviceName": volume_name,
-                "Ebs": {
-                    "VolumeSize": 300,
-                },
-            }
-        ]
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 300,},}]
     else:
         # Using private AMI, the EBS volume size is reduced to 28GB as opposed to 50GB from public AMI. This leads to space issues on test instances
         # TODO: Revert the configuration once DLAMI is public
-        params["BlockDeviceMappings"] = [
-            {
-                "DeviceName": volume_name,
-                "Ebs": {
-                    "VolumeSize": 90,
-                },
-            }
-        ]
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 90,},}]
     if ei_accelerator_type:
         params["ElasticInferenceAccelerators"] = [{"Type": ei_accelerator_type, "Count": 1}]
         availability_zones = {
@@ -337,11 +319,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
     LOGGER.info(f"Connecting to {user}@{ip_address}")
-    conn = Connection(
-        user=user,
-        host=ip_address,
-        connect_kwargs={"key_filename": [instance_pem_file]},
-    )
+    conn = Connection(user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]},)
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 100000)
@@ -364,6 +342,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
 
     return conn
 
+
 @pytest.fixture(scope="function")
 def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, ec2_public_ip):
     """
@@ -374,11 +353,7 @@ def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, 
     :param ec2_public_ip: public ip address of the instance
     :return: Fabric connection object
     """
-    conn = Connection(
-        user=ec2_user_name,
-        host=ec2_public_ip,
-        connect_kwargs={"key_filename": [ec2_key_file_name]},
-    )
+    conn = Connection(user=ec2_user_name, host=ec2_public_ip, connect_kwargs={"key_filename": [ec2_key_file_name]},)
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 100000)
@@ -395,6 +370,7 @@ def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, 
     conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
 
     return conn
+
 
 @pytest.fixture(scope="session")
 def dlc_images(request):
@@ -440,6 +416,7 @@ def sagemaker_only():
 @pytest.fixture(scope="session")
 def graviton_only():
     pass
+
 
 @pytest.fixture(scope="session")
 def py3_only():
@@ -681,10 +658,13 @@ def lookup_condition(lookup, image):
     """
     Return true if the ECR repo name ends with the lookup or lookup contains job type or device type part of the image uri.
     """
-    #Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
-    repo_name = image.split("/")[-1].split(":")[0]
+    # Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
+    repo_name, _ = get_ecr_repo_name_and_tag(image)
 
-    job_types = ("training", "inference",)
+    job_types = (
+        "training",
+        "inference",
+    )
     device_types = ("cpu", "gpu", "eia", "neuron", "hpu")
 
     if not repo_name.endswith(lookup):
@@ -712,9 +692,8 @@ def pytest_generate_tests(metafunc):
                 if lookup_condition(lookup, image):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_huggingface_lookup = (
-                            ("huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames)
-                            and "huggingface" in image
-                    )
+                        "huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames
+                    ) and "huggingface" in image
                     is_standard_lookup = all(
                         fixture_name not in metafunc.fixturenames
                         for fixture_name in ["example_only", "huggingface_only"]

@@ -10,6 +10,7 @@ from test.test_utils import (
     get_framework_and_version_from_tag,
     is_pr_context,
     HPU_AL2_DLAMI,
+    get_ecr_repo_name_and_tag
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_performance_test,
@@ -62,15 +63,15 @@ def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_
 @pytest.mark.model('N/A')
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
-def test_performance_tensorflow_hpu_imagenet(pytorch_training_habana, ec2_connection):
-    assert 1==1  
+def test_performance_tensorflow_hpu_imagenet(pytorch_training_habana):
+    pass  
 
 def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     connection, ecr_uri, test_cmd, region=DEFAULT_REGION
 ):
     _, framework_version = get_framework_and_version_from_tag(ecr_uri)
     threshold = get_threshold_for_image(framework_version, PYTORCH_TRAINING_GPU_IMAGENET_THRESHOLD)
-    repo_name, image_tag = ecr_uri.split("/")[-1].split(":")
+    repo_name, image_tag = get_ecr_repo_name_and_tag(ecr_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
