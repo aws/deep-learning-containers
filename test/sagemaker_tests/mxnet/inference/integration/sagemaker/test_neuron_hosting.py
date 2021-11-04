@@ -35,8 +35,7 @@ OUTPUT_PATH = os.path.join(DEFAULT_HANDLER_PATH, "model", "output.json")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_eia_containers
-@pytest.mark.skip_if_no_neuron
-def test_neuron_hosting(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_neuron_hosting(sagemaker_session, ecr_image, instance_type, framework_version, skip_if_no_neuron):
     prefix = "mxnet-serving/neuron-handlers"
     model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=prefix)
     model = MXNetModel(
