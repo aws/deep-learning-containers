@@ -767,13 +767,7 @@ def get_e3_addon_tags(framework, version):
     fw_map = {
         "tensorflow1": {},
         "tensorflow2": {},
-        "pytorch": {
-            "latest": {
-                "cuda": "cu113",
-                "os": "ubuntu20.04",
-                "major_version": "v1"
-            }
-        },
+        "pytorch": {"latest": {"cuda": "cu113", "os": "ubuntu20.04", "major_version": "v1"}},
         "mxnet": {},
     }
 
@@ -860,10 +854,7 @@ def parse_canary_images(framework, region):
         if customer_type == "e3":
             operating_system, dlc_major_version, cuda = get_e3_addon_tags(framework, fw_version)
         images = {
-            "tensorflow1": {
-                "e3": [],
-                "sagemaker": [],
-            },
+            "tensorflow1": {"e3": [], "sagemaker": [],},
             "tensorflow2": {
                 "e3": [],
                 "sagemaker": [
@@ -1085,9 +1076,7 @@ NEURON_VERSION_MANIFEST = {
             "2.4.2": "2.4.2.1.6.10.0",
             "2.5.0": "2.5.0.1.6.10.0",
         },
-        "mxnet" : {
-            "1.8.0": "1.8.0.1.3.4.0",
-        }
+        "mxnet": {"1.8.0": "1.8.0.1.3.4.0",},
     },
     "1.16.0": {
         "pytorch": {
@@ -1102,12 +1091,10 @@ NEURON_VERSION_MANIFEST = {
             "2.3.4": "2.3.4.2.0.3.0",
             "2.4.3": "2.4.3.2.0.3.0",
             "2.5.1": "2.5.0.2.0.3.0",
-            "1.15.5": "1.15.5.2.0.3.0"
+            "1.15.5": "1.15.5.2.0.3.0",
         },
-        "mxnet" : {
-            "1.8.0": "1.8.0.2.0.271.0",
-        }
-    }
+        "mxnet": {"1.8.0": "1.8.0.2.0.271.0",},
+    },
 }
 
 
