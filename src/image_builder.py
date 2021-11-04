@@ -219,7 +219,7 @@ def image_builder(buildspec):
     else:
         images_to_test = IMAGES_TO_PUSH
 
-    FORMATTER.print(f"IMAGES_TO_PUSH: {IMAGES_TO_PUSH}; ecr urls: {[image.ecr_url for image in IMAGES_TO_PUSH]}")
+    FORMATTER.print(f"IMAGES_TO_PUSH: {IMAGES_TO_PUSH}; images_to_test: {images_to_test}; ecr urls: {[image.ecr_url for image in IMAGES_TO_PUSH]}")
     utils.set_test_env(
         images_to_test,
         use_latest_additional_tag=True, 
