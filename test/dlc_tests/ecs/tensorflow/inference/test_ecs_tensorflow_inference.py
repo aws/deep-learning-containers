@@ -108,7 +108,7 @@ def test_ecs_tensorflow_inference_gpu(tensorflow_inference, ecs_container_instan
 def test_ecs_tensorflow_inference_cpu_nlp(tensorflow_inference, ecs_container_instance, region, cpu_only):
     __ecs_tensorflow_inference_cpu_nlp(tensorflow_inference, ecs_container_instance, region)
 
-@pytest.mark.skipif(not is_nightly_context(), reason="Running additional model in nightly context only")
+#@pytest.mark.skipif(not is_nightly_context(), reason="Running additional model in nightly context only")
 @pytest.mark.model("albert")
 @pytest.mark.parametrize("ecs_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GRAVITON_CPU_USWEST2], indirect=True)
