@@ -23,7 +23,7 @@ images:
     cuda_version: &CUDA_VERSION cu111
     os_version: &OS_VERSION ubuntu20.04
     transformers_version: &TRANSFORMERS_VERSION 4.11.0
-    datasets_version: &DATASETS_VERSION 1.11.0
+    datasets_version: &DATASETS_VERSION 1.12.1
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
                  *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
@@ -31,15 +31,15 @@ images:
     download_artifacts:
       pytorch_whl:
         type: s3
-        URI: s3://aws-hopper-pytorch-cicd-v3-binaries/PyTorchXla/2021-10-25_17:10:52/wheels/pytorch/torch-1.9.0-cp38-cp38-linux_x86_64.whl
+        URI: s3://sm-training-comp-pytorch-binaries/PyTorchXla/2021-11-03_19:20:56/wheels/pytorch/torch-1.9.0-cp38-cp38-linux_x86_64.whl
         VAR_IN_DOCKERFILE: PT_URL
       pytorch_xla_whl:
         type: s3
-        URI: s3://aws-hopper-pytorch-cicd-v3-binaries/PyTorchXla/2021-10-25_17:10:52/wheels/xla/torch_xla-1.10+7cfb151-cp38-cp38-linux_x86_64.whl
+        URI: s3://sm-training-comp-pytorch-binaries/PyTorchXla/2021-11-03_19:20:56/wheels/xla/torch_xla-1.10+64f8aba-cp38-cp38-linux_x86_64.whl
         VAR_IN_DOCKERFILE: PT_XLA_URL
       torchvision_whl:
         type: s3
-        URI: s3://aws-hopper-pytorch-cicd-v3-binaries/PyTorchXla/2021-10-25_17:10:52/wheels/torchvision/torchvision-0.10.0a0+6e72416-cp38-cp38-linux_x86_64.whl
+        URI: s3://sm-training-comp-pytorch-binaries/PyTorchXla/2021-11-03_19:20:56/wheels/torchvision/torchvision-0.10.0a0+6e72416-cp38-cp38-linux_x86_64.whl
         VAR_IN_DOCKERFILE: TORCHVISION_URL
       huggingface_transformers_whl:
         type: s3

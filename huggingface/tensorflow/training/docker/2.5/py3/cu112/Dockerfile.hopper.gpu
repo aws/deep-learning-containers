@@ -45,15 +45,15 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-# Set environment variables for Hopper/XLA
-ENV XLA_FLAGS="--xla_gpu_autotune_level=2"
-ENV TF_XLA_FLAGS="--tf_xla_auto_jit=2"
-# Disable in production environment
-# ENV HOPPER_PASS=on
-# ENV XLA_FLAGS="--xla_dump_to=/opt/ml/model"
-# ENV TF_CPP_MIN_LOG_LEVEL=0
-# ENV TF_CPP_VMODULE=hlo_pass_pipeline=1,hopper_pass_0=1,xla_ops=3
+# Install TensorFlow
+ARG TF_URL
+COPY ${TF_URL} .
 
-ARG CUSTOM_ARTIFACT_PATH
+RUN pip uninstall -y tensorflow\
+ && pip install --no-deps --no-cache-dir -U ${TF_URL} \
+ && rm -rf ${TF_URL}
 
-COPY ${CUSTOM_ARTIFACT_PATH} .
+# Install Horovod
+RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 pip install --no-cache-dir horovod==0.21.1 \
+ && ldconfig
