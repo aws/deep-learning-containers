@@ -1,9 +1,9 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
-version: &VERSION 1.9.0
+version: &VERSION 1.10.0
 os_version: &OS_VERSION ubuntu20.04
-short_version: &SHORT_VERSION 1.9
+short_version: &SHORT_VERSION "1.10"
 
 repository_info:
   inference_repository: &INFERENCE_REPOSITORY
