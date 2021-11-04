@@ -1,4 +1,5 @@
 boto3
+sagemaker>=2,<3
 pytest==5.3.5
 pytest-rerunfailures==9.0
 pytest-timeout==1.3.4

@@ -24,6 +24,7 @@ MX_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
 )
 MX_EC2_NEURON_INSTANCE_TYPE = get_ec2_instance_type(default="inf1.xlarge", processor="neuron")
+MX_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", processor="graviton")
 
 MX_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_mx_dlc_telemetry_test")
 
@@ -83,6 +84,12 @@ def test_ec2_mxnet_resnet_inferencei_eia_gpu(mxnet_inference_eia, ec2_connection
     run_ec2_mxnet_inference(mxnet_inference_eia, model_name, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
 
 
+@pytest.mark.model(SQUEEZENET_MODEL)
+@pytest.mark.parametrize("ec2_instance_type", MX_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+def test_ec2_mxnet_inference_graviton_cpu(mxnet_inference, ec2_connection, region, graviton_only):
+    run_ec2_mxnet_inference(mxnet_inference, SQUEEZENET_MODEL, "graviton", ec2_connection, "graviton_cpu", region, 80, 8081)
+
+
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model(BERT_MODEL)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
@@ -96,7 +103,6 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     mms_inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
     if processor == "neuron":
-        ec2_connection.run("sudo systemctl stop neuron-rtd")  # Stop neuron-rtd in host env for DLC to start it
         docker_run_cmd = (
             f"{docker_cmd} run -itd --name {container_name}"
             f" -p {target_port}:8080 -p {target_management_port}:8081"

@@ -41,7 +41,11 @@ IGNORE_SAFETY_IDS = {
                 # for shipping pycrypto<=2.6.1 - the last available version for py2
                 "35015",
             ],
-            "py3": [],
+            "py3": [
+                # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
+                "42098",
+                "42062",
+            ],
         },
         "inference": {
             "py2": [
@@ -51,7 +55,11 @@ IGNORE_SAFETY_IDS = {
                 "38451",
                 "38452",
             ],
-            "py3": [],
+            "py3": [
+                # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
+                "42098",
+                "42062",
+            ],
         },
         "inference-eia": {
             "py2": [
@@ -61,15 +69,19 @@ IGNORE_SAFETY_IDS = {
                 "38451",
                 "38452",
             ],
-            "py3": [],
+            "py3": [
+                # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
+                "42098",
+                "42062",
+            ],
         },
         "inference-neuron": {
             "py3": [
-                # TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches
-                "39409",
-                "39408",
-                "39407",
-                "39406",
+                # 40794, 40795, 42098, 42062: TF 1.15.5 is the last available version of TF 1
+                "40794",
+                "40795",
+                "42098",
+                "42062",
             ],
         },
     },
@@ -108,14 +120,12 @@ IGNORE_SAFETY_IDS = {
         },
         "inference-neuron": {
             "py3": [
-                # for shipping tensorflow 1.15.5
-                "40673",
-                "40675",
-                "40676",
+                # 40794, 40795, 42098, 42062: TF 1.15.5 is the last available version of TF 1
                 "40794",
                 "40795",
-                "40796",
-            ]
+                "42098",
+                "42062",
+            ],
         },
     },
     "pytorch": {
@@ -140,9 +150,11 @@ IGNORE_SAFETY_IDS = {
                 "39408",
                 "39407",
                 "39406",
-                # 40794, 40795: TF 1.15.5 is the last available version of TF 1
+                # 40794, 40795, 42098, 42062: TF 1.15.5 is the last available version of TF 1
                 "40794",
                 "40795",
+                "42098",
+                "42062",
             ]
         },
     },

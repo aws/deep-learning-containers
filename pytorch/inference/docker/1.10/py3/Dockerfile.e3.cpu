@@ -1,21 +1,26 @@
-FROM arm64v8/ubuntu:20.04
+FROM ubuntu:20.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
-LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.12
+ARG PYTHON_VERSION=3.8.10
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.3.1
+ARG TS_VERSION=0.4.2
+ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211027-061940/36dea191ed0df524207de5acc4e6fb4322306d1a/cpu/torch-1.10.0%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.11.1%2Bcpu-cp38-cp38-linux_x86_64.whl
+
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
-ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
+# Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
+ENV MKL_THREADING_LAYER=GNU
+ENV DLC_CONTAINER_TYPE=inference
 
 RUN apt-get update \
+# TODO: Remove systemd upgrade once it is updated in base image
+ && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends software-properties-common \
  && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
@@ -46,24 +51,30 @@ RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeysto
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
-RUN curl -L -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-py38_4.10.3-Linux-aarch64.sh \
+RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
- && rm ~/miniconda.sh
-
-RUN /opt/conda/bin/conda update conda
-
-RUN /opt/conda/bin/conda install -c conda-forge python=$PYTHON_VERSION
-
-RUN /opt/conda/bin/conda install -y \
-    ruamel_yaml \
+ && rm ~/miniconda.sh \
+ && /opt/conda/bin/conda update conda \
+ && /opt/conda/bin/conda install -c conda-forge \
+    python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -y \
+    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.100 \
     cython \
     ipython \
-    numpy \
+    mkl-include \
+    mkl \
     parso \
-    scipy
+    scipy \
+    typing \
+ && /opt/conda/bin/conda clean -ya
 
-RUN /opt/conda/bin/conda clean -ya
+# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
+# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
+# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
+# once conda fixes the issue: https://github.com/conda/conda/issues/9680
+RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
@@ -85,22 +96,27 @@ RUN conda install -c \
     conda-forge \
     opencv \
  && conda install -y \
-    scikit-learn \
-    pandas \
+    h5py \
     requests \
  && conda clean -ya \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
+    numpy==1.20.3 \
     "cryptography>=3.3.2"
 
-# install torch and torchvision from the PyTorch website
-RUN pip install torch torchvision
+# Uninstall and re-install torch and torchvision from the PyTorch website
+RUN pip uninstall -y torch \
+ && pip install --no-cache-dir -U $PT_INFERENCE_URL \
+ && pip uninstall -y torchvision \
+ && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
-RUN pip install pillow==8.3.2 "awscli<2"
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
+RUN pip install \
+    boto3 \
+    "Pillow>=8.3.2,<8.4" \ 
+    "awscli<2"
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
@@ -114,7 +130,7 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
-COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY torchserve-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
@@ -132,7 +148,7 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.9/license.txt -o /license.txt
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
