@@ -30,7 +30,7 @@ from image import DockerImage
 from common_stage_image import CommonStageImage
 from buildspec import Buildspec
 from output import OutputFormatter
-from config import parse_dlc_developer_configs
+from config import parse_dlc_developer_configs, is_build_enabled
 
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
@@ -214,9 +214,14 @@ def image_builder(buildspec):
     # Set environment variables to be consumed by test jobs
     test_trigger_job = utils.get_codebuild_project_name()
     # Tests should only run on images that were pushed to the repository
+    if not is_build_enabled():
+        images_to_test = [image for image in ALL_IMAGES if image.to_push]
+    else:
+        images_to_test = IMAGES_TO_PUSH
+
     FORMATTER.print(f"IMAGES_TO_PUSH: {IMAGES_TO_PUSH}; ecr urls: {[image.ecr_url for image in IMAGES_TO_PUSH]}")
     utils.set_test_env(
-        IMAGES_TO_PUSH, 
+        images_to_test,
         use_latest_additional_tag=True, 
         BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"), 
         TEST_TRIGGER=test_trigger_job
@@ -413,6 +418,7 @@ def push_images(images):
             THREADS[image.name] = executor.submit(image.push_image)
     FORMATTER.progress(THREADS)
 
+
 def retag_and_push_images(images):
     """
     Takes a list of images, retags them and pushes to the repository
@@ -424,6 +430,7 @@ def retag_and_push_images(images):
         for image in images:
             THREADS[image.name] = executor.submit(image.push_image_with_additional_tags)
     FORMATTER.progress(THREADS)
+
 
 def tag_image_with_pr_number(image_tag):
     pr_number = os.getenv("PR_NUMBER")
