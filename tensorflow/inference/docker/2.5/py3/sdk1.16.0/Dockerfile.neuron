@@ -5,7 +5,6 @@ LABEL dlc_major_version="1"
 # Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
-LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON=python3.7
 ARG PYTHON_PIP=python3-pip
@@ -105,6 +104,7 @@ RUN ${PIP} install --no-cache-dir \
 RUN ${PIP} install "tensorflow_serving_api==2.5.1" --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install neuron-cc --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install "tensorflow-neuron==2.5.1.*" --extra-index-url https://pip.repos.neuron.amazonaws.com
+
 COPY ./sagemaker /sagemaker
 
 # Some TF tools expect a "python" binary

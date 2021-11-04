@@ -195,10 +195,9 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
         ec2_connection.run(f"mkdir -p {serving_folder_path}")
         ec2_connection.run(f"cp -r {local_scripts_path} {serving_folder_path}")
         if is_neuron:
-            neuron_local_model = os.path.join("$HOME", "container_tests/bin/neuron_tests/simple")
-            neuron_model_dir = os.path.join(serving_folder_path, f"models/")
-            neuron_model_file_path = os.path.join(serving_folder_path, f"models/{model_name}/1")
-            neuron_model_file = os.path.join(neuron_model_file_path, "saved_model.pb")
+            neuron_local_model = os.path.join("$HOME", "container_tests", "bin", "neuron_tests", "simple")
+            neuron_model_dir = os.path.join(serving_folder_path, "models")
+            neuron_model_file_path = os.path.join(serving_folder_path, "models", "model_name", "1")
             LOGGER.info(f"Host Model path {neuron_model_file_path}")
             LOGGER.info(f"Host Model Dir {neuron_model_dir}")
             ec2_connection.run(f"mkdir -p {neuron_model_file_path}")
