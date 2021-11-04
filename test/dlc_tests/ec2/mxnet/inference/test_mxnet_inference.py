@@ -103,7 +103,6 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     mms_inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
     if processor == "neuron":
-        ec2_connection.run("sudo systemctl stop neuron-rtd")  # Stop neuron-rtd in host env for DLC to start it
         docker_run_cmd = (
             f"{docker_cmd} run -itd --name {container_name}"
             f" -p {target_port}:8080 -p {target_management_port}:8081"
