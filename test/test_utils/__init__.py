@@ -37,7 +37,8 @@ AML2_CPU_ARM64_US_WEST_2 = "ami-0bccd90b9db95e2e5"
 AML2_CPU_ARM64_US_EAST_1 = "ami-01c47f32b27ed7fa0"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
-NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0b5d270a84e753c18"
+# Since latest driver is not in public DLAMI yet, using a custom one
+NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-078c2404eecfbe916"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
@@ -1049,6 +1050,25 @@ NEURON_VERSION_MANIFEST = {
         },
         "mxnet" : {
             "1.8.0": "1.8.0.1.3.4.0",
+        }
+     },
+    "1.16.0": {
+        "pytorch": {
+            "1.5.1": "1.5.1.2.0.318.0",
+            "1.7.1": "1.7.1.2.0.318.0",
+            "1.8.1": "1.8.1.2.0.318.0",
+            "1.9.1": "1.9.1.2.0.318.0",
+        },
+        "tensorflow": {
+            "2.1.4": "2.1.4.2.0.3.0",
+            "2.2.3": "2.2.3.2.0.3.0",
+            "2.3.4": "2.3.4.2.0.3.0",
+            "2.4.3": "2.4.3.2.0.3.0",
+            "2.5.1": "2.5.0.2.0.3.0",
+            "1.15.5": "1.15.5.2.0.3.0"
+        },
+        "mxnet" : {
+            "1.8.0": "1.8.0.2.0.271.0",
         }
     }
 }
