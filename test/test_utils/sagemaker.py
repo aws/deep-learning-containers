@@ -42,6 +42,13 @@ class DLCSageMakerLocalTestFailure(Exception):
     pass
 
 
+def get_pysdk_s3_uri(image):
+    keynote2_uri = "s3://sagemaker-python-sdk-524001406597/dist/sagemaker.tar.gz"
+    keynote3_uri = "s3://sagemaker-python-sdk-047976067574/dist/sagemaker.tar.gz"
+    if "hopper" in image or "trcomp" in image:
+        return keynote2_uri
+    return keynote3_uri
+
 def assign_sagemaker_remote_job_instance_type(image):
     if "neuron" in image:
         return "ml.inf1.xlarge"
@@ -205,7 +212,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
-def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_instance_ami):
+def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_instance_ami, pysdk_s3_uri=None):
     """
     Install sagemaker local test dependencies
     :param framework: str
@@ -223,7 +230,8 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_inst
     if framework == "pytorch":
         # The following distutils package conflict with test dependencies
         ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
-    ec2_conn.run("aws s3 cp s3://sagemaker-python-sdk-524001406597/dist/sagemaker.tar.gz .", warn=True)
+    if pysdk_s3_uri:
+        ec2_conn.run(f"aws s3 cp {pysdk_s3_uri} .", warn=True)
     ec2_conn.run(f"sudo {python_invoker} -m pip install -r requirements.txt ", warn=True)
 
 
@@ -302,7 +310,9 @@ def execute_local_tests(image):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
-            install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id)
+            pysdk_s3_uri = get_pysdk_s3_uri(image)
+            print(f"SM Local tests ==> fetching {pysdk_s3_uri} for image {image}")
+            install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id, pysdk_s3_uri)
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
             if framework == "mxnet" and job_type == "training" and "cpu" in image:
@@ -340,7 +350,9 @@ def execute_sagemaker_remote_tests(image):
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
     context = Context()
     with context.cd(path):
-        context.run("aws s3 cp s3://sagemaker-python-sdk-524001406597/dist/sagemaker.tar.gz .", warn=True)
+        pysdk_s3_uri = get_pysdk_s3_uri(image)
+        print(f"SM Remote tests ==> fetching {pysdk_s3_uri} for image {image}")
+        context.run(f"aws s3 cp {pysdk_s3_uri} .", warn=True)
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
