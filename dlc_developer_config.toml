@@ -21,12 +21,12 @@ skip_frameworks = ["autogluon", "pytorch", "mxnet", "huggingface_tensorflow", "h
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = true
+do_build = false
 
 [test]
 ### On by default
 sanity_tests = true
-  safety_check_test = false
+  safety_check_test = true
   ecr_scan_allowlist_feature = false
 ecs_tests = true
 eks_tests = true
