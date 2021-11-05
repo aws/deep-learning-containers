@@ -162,6 +162,7 @@ def get_tensorflow_inference_command_tf27_above(image_uri, model_name):
     _, image_framework_version = test_utils.get_framework_and_version_from_tag(image_uri)
     if Version(image_framework_version) in SpecifierSet(">=2.7"):
         inference_command = test_utils.build_tensorflow_inference_command_tf27_and_above(model_name)
-        return inference_command
+        inference_shell_command = f"sh -c '{inference_command}'"
+        return inference_shell_command
     else:
         return ""
