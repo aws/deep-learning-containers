@@ -31,7 +31,7 @@ ARG EFA_VERSION=1.12.1
 ARG OMPI_VERSION=4.1.1
 ARG BRANCH_OFI=1.1.3-aws
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.7_aws/gpu/tensorflow-2.7.0rc1-cp38-cp38-linux_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.7_aws/gpu/tensorflow-2.7.0-cp38-cp38-linux_x86_64.whl
 
 ARG CUDA=11.2
 ARG CUDA_DASH=11-2
