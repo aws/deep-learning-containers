@@ -64,4 +64,3 @@ spec:
             memory: 1Gi
       nodeSelector:
         test_type: <TEST_TYPE>
-
