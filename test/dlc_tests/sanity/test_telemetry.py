@@ -142,7 +142,7 @@ def _run_tag_success(image_uri, ec2_client, ec2_instance, ec2_connection):
         framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
         ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
         output = ec2_connection.run(
-            f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(5)'",
+            f"{docker_cmd} exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(60)'",
             warn=True
         )
 
