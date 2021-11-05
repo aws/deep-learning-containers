@@ -62,7 +62,6 @@ RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEU
 
 RUN apt-get update \
   && apt-get install -y \
-    aws-neuron-runtime \
     aws-neuron-tools \
   && rm -rf /var/lib/apt/lists/* \
   && rm -rf /tmp/tmp* \
@@ -116,7 +115,14 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
  && chown -R model-server /home/model-server
 
-COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY neuron-monitor.sh /usr/local/bin/neuron-monitor.sh
+COPY modelserver-neuron.sh /usr/local/bin/entrypoint.sh
+
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py \
+ && chmod +x /usr/local/bin/neuron-monitor.sh \
+ && chmod +x /usr/local/bin/entrypoint.sh
+
 COPY config.properties /home/model-server
 
 RUN HOME_DIR=/root \
@@ -131,8 +137,6 @@ RUN HOME_DIR=/root \
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.8.0/license.txt -o /license.txt
 
 EXPOSE 8080 8081
-COPY entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["/usr/local/bin/entrypoint.sh"]

@@ -2,11 +2,12 @@
 release_images:
   1:
     framework: "pytorch"
-    version: "1.8.1"
+    version: "1.9.1"
     inference:
       device_types: ["neuron"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
+      neuron_sdk_version: "sdk1.16.0"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
       # to images being published.
@@ -342,7 +343,7 @@ release_images:
   26:
     framework: "huggingface_tensorflow"
     version: "2.5.1"
-    hf_transformers: "4.11.0"
+    hf_transformers: "4.12.3"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py37" ]
@@ -354,7 +355,7 @@ release_images:
   27:
     framework: "huggingface_tensorflow"
     version: "2.5.1"
-    hf_transformers: "4.11.0"
+    hf_transformers: "4.12.3"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py37" ]
@@ -365,8 +366,8 @@ release_images:
       force_release: False
   28:
     framework: "huggingface_pytorch"
-    version: "1.9.0"
-    hf_transformers: "4.11.0"
+    version: "1.9.1"
+    hf_transformers: "4.12.3"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py38" ]
@@ -377,8 +378,8 @@ release_images:
       force_release: False
   29:
     framework: "huggingface_pytorch"
-    version: "1.9.0"
-    hf_transformers: "4.11.0"
+    version: "1.9.1"
+    hf_transformers: "4.12.3"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
@@ -422,4 +423,40 @@ release_images:
       cuda_version: "cu113"
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
+      force_release: False
+
+  32:
+    framework: "mxnet"
+    version: "1.8.0"
+    inference:
+      device_types: ["neuron"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      neuron_sdk_version: "sdk1.16.0"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+
+  33:
+    framework: "tensorflow"
+    version: "2.5.1"
+    inference:
+      device_types: ["neuron"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      neuron_sdk_version: "sdk1.16.0"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+
+  34:
+    framework: "tensorflow"
+    version: "1.15.5"
+    inference:
+      device_types: ["neuron"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      neuron_sdk_version: "sdk1.16.0"
+      example: False
+      disable_sm_tag: False
       force_release: False
