@@ -28,8 +28,6 @@ from test.test_utils import (
     P3DN_REGION,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
-    AML2_CPU_ARM64_US_WEST_2,
-    AML2_CPU_ARM64_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     AML2_GPU_DLAMI_US_WEST_2,
     AML2_GPU_DLAMI_US_EAST_1,
@@ -206,12 +204,6 @@ def ec2_instance(
                 else UBUNTU_18_BASE_DLAMI_US_EAST_1
             )
 
-    if ec2_instance_type == "c6g.4xlarge":
-        if region == DEFAULT_REGION:
-            ec2_instance_ami = AML2_CPU_ARM64_US_WEST_2
-        else:
-            ec2_instance_ami = AML2_CPU_ARM64_US_EAST_1
-
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
@@ -246,6 +238,8 @@ def ec2_instance(
         )
     ) or (
         "neuron_only" in request.fixturenames
+    ) or (
+        ("tensorflow_inference" in request.fixturenames and "graviton_only" in request.fixturenames)
     ) or (
         "tensorflow_training" in request.fixturenames
         and "gpu_only" in request.fixturenames

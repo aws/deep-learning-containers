@@ -8,7 +8,7 @@ import boto3
 
 from retrying import retry
 
-from test.test_utils import DEFAULT_REGION, get_inference_run_command, get_tensorflow_model_name
+from test.test_utils import DEFAULT_REGION, get_inference_run_command, get_tensorflow_model_name, is_below_framework_version
 from test.test_utils import ec2 as ec2_utils
 
 
@@ -668,7 +668,7 @@ def get_ecs_port_mappings(framework):
         raise Exception("Framework not Implemented")
 
 
-def get_ecs_tensorflow_environment_variables(processor, model_name):
+def get_ecs_tensorflow_environment_variables(processor, model_name, model_base_path):
     """
     Get method for environment variables for tensorflow inference via S3 on ECS
     Requirement: Model should be hosted in S3 location defined in TENSORFLOW_MODELS_PATH
@@ -679,7 +679,7 @@ def get_ecs_tensorflow_environment_variables(processor, model_name):
     model_name = get_tensorflow_model_name(processor, model_name)
     ecs_tensorflow_inference_environment = [
         {"name": "MODEL_NAME", "value": model_name},
-        {"name": "MODEL_BASE_PATH", "value": TENSORFLOW_MODELS_BUCKET},
+        {"name": "MODEL_BASE_PATH", "value": model_base_path},
     ]
 
     return ecs_tensorflow_inference_environment
@@ -694,6 +694,18 @@ def build_ecs_training_command(s3_test_location, test_string):
     """
     return [
         f"mkdir -p /test/logs && aws s3 cp {s3_test_location}/ /test/ --recursive && chmod +x -R /test/ && {test_string}"
+    ]
+
+def build_ecs_tensorflow_inference_command(processor, model_name):
+    """
+    Construct the command to download tensorflow model from S3 and start tensorflow model server
+    :param processor: 
+    :param model_name: 
+    :return: <list> command to send to the container
+    """
+    model_name = get_tensorflow_model_name(processor, model_name)
+    return [
+        f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tf_serving_entrypoint.sh"
     ]
 
 
@@ -805,7 +817,15 @@ def setup_ecs_inference_service(
     if processor == "gpu" and num_gpus:
         arguments_dict["num_gpu"] = num_gpus
     if framework == "tensorflow":
-        arguments_dict["environment"] = get_ecs_tensorflow_environment_variables(processor, model_name)
+
+        if is_below_framework_version("2.7", docker_image_uri, "tensorflow"):
+            model_base_path = TENSORFLOW_MODELS_BUCKET
+        else:
+            model_base_path = "/tensorflow_model"
+            arguments_dict["container_command"] = build_ecs_tensorflow_inference_command(processor, model_name)
+            arguments_dict["entrypoint"] = ["sh", "-c"]
+
+        arguments_dict["environment"] = get_ecs_tensorflow_environment_variables(processor, model_name, model_base_path)
         print(f"Added environment variables: {arguments_dict['environment']}")
     elif framework in ["mxnet", "pytorch"]:
         arguments_dict["container_command"] = [

@@ -21,6 +21,7 @@ TF_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_instance_type(default="inf1.xlarge", pr
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
 )
+TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", processor="graviton")
 
 
 @pytest.mark.model("mnist")
@@ -81,6 +82,19 @@ def test_ec2_tensorflow_inference_cpu_telemetry(tensorflow_inference, ec2_connec
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, ec2_instance_ami, "8500", region, True)
 
 
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
+def test_ec2_tensorflow_inference_graviton(tensorflow_inference, ec2_connection, ec2_instance_ami, region, graviton_only):
+    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, ec2_instance_ami, "8500", region)
+
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
+def test_ec2_tensorflow_inference_graviton_telemetry(tensorflow_inference, ec2_connection, ec2_instance_ami, region, graviton_only):
+    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, ec2_instance_ami, "8500", region, True)
+    
+
 def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, grpc_port, region, telemetry_mode=False):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
@@ -94,6 +108,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
     )
 
     is_neuron = "neuron" in image_uri
+    is_graviton = "graviton" in image_uri
 
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     if is_neuron:
@@ -112,7 +127,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
         )
     try:
         host_setup_for_tensorflow_inference(
-            serving_folder_path, framework_version, ec2_connection, is_neuron, 'mnist', python_invoker
+            serving_folder_path, framework_version, ec2_connection, is_neuron, is_graviton, 'mnist', python_invoker
         )
         sleep(2)
         if not is_neuron:
@@ -145,14 +160,29 @@ def train_mnist_model(serving_folder_path, ec2_connection, python_invoker):
     )
 
 
-def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection, is_neuron, model_name, python_invoker):
+def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection, is_neuron, is_graviton, model_name, python_invoker):
     # Tensorflow 1.x doesn't have package with version 1.15.2 so use only 1.15
-    ec2_connection.run(
-        (
-            f"{python_invoker} -m pip install --user -qq -U 'tensorflow<={framework_version}' "
-            f" 'tensorflow-serving-api<={framework_version}' "
-        ), hide=True
-    )
+    if is_graviton:
+        # TF training binary is used that is compatible for graviton instance type
+        # The RC candidate of tensorflow-serving-api is used as TF2.7 is not GA yet.
+        TF_URL="s3://graviton-tf-arm-binary/tensorflow-2.6.0-cp38-cp38-linux_aarch64.whl"
+        ec2_connection.run(
+            (
+                f"{python_invoker} -m pip install --no-cache-dir -U {TF_URL}"
+            ), hide=True
+        )
+        ec2_connection.run(
+            (
+                f"{python_invoker} -m pip install --no-dependencies --no-cache-dir tensorflow-serving-api=={framework_version}rc0"
+            ), hide=True
+        )
+    else: 
+        ec2_connection.run(
+            (
+                f"{python_invoker} -m pip install --user -qq -U 'tensorflow<={framework_version}' "
+                f" 'tensorflow-serving-api<={framework_version}' "
+            ), hide=True
+        )
     if os.path.exists(f"{serving_folder_path}"):
         ec2_connection.run(f"rm -rf {serving_folder_path}")
     if str(framework_version).startswith(TENSORFLOW1_VERSION):
