@@ -70,9 +70,9 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
     model_name = f"saved_model_half_plus_two_{processor}"
     yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_{processor}_inference_{rand_int}.yaml")
     inference_service_name = selector_name = f"half-plus-two-service-{processor}-{rand_int}"
-    model_base_path = get_tensorflow_model_base_path(tensorflow_inference, model_name)
+    model_base_path = get_eks_tensorflow_model_base_path(tensorflow_inference, model_name)
     command, args = get_tensorflow_command_args(tensorflow_inference, model_name, model_base_path)
-    test_type = get_eks_test_type(tensorflow_inference)
+    test_type = test_utils.get_eks_k8s_test_type_label(tensorflow_inference)
     search_replace_dict = {
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
@@ -118,9 +118,9 @@ def test_eks_tensorflow_albert(tensorflow_inference):
     model_name = f"albert"
     yaml_path = os.path.join(os.sep, "tmp", f"tensorflow_single_node_{processor}_inference_{rand_int}.yaml")
     inference_service_name = selector_name = f"albert-{processor}-{rand_int}"
-    model_base_path = get_tensorflow_model_base_path(tensorflow_inference, model_name)
+    model_base_path = get_eks_tensorflow_model_base_path(tensorflow_inference, model_name)
     command, args = get_tensorflow_command_args(tensorflow_inference, model_name, model_base_path)
-    test_type = get_eks_test_type(tensorflow_inference)
+    test_type = test_utils.get_eks_k8s_test_type_label(tensorflow_inference)
     search_replace_dict = {
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
@@ -152,28 +152,27 @@ def test_eks_tensorflow_albert(tensorflow_inference):
         run(f"kubectl delete service {selector_name}")
 
 
-def get_tensorflow_model_base_path(image_uri, model_name):
-    if test_utils.is_below_framework_version("2.7", image_uri, "tensorflow"):
-        model_base_path = f"s3://tensoflow-trained-models/{model_name}"
-    else:
-        model_base_path = f"/tensorflow_model/{model_name}"
-
-    return model_base_path
-
-
 def get_tensorflow_command_args(image_uri, model_name, model_base_path):
     if test_utils.is_below_framework_version("2.7", image_uri, "tensorflow"):
         command = "['/usr/bin/tensorflow_model_server']"
         args = f"['--port=8501', '--rest_api_port=8500', '--model_name={model_name}', '--model_base_path={model_base_path}']"
     else:
         command = "['/bin/sh', '-c']"
-        args = f"['mkdir -p /tensorflow_model && aws s3 sync s3://tensoflow-trained-models/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tf_serving_entrypoint.sh --port=8501 --rest_api_port=8500 --model_name={model_name} --model_base_path={model_base_path}']"
+        args = f"['mkdir -p /tensorflow_model && aws s3 sync s3://tensoflow-trained-models/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tensorflow_model_server --port=8501 --rest_api_port=8500 --model_name={model_name} --model_base_path={model_base_path}']"
     return command, args
 
 
-def get_eks_test_type(image_uri):
-    if "graviton" in image_uri:
-        test_type = "graviton"
+def get_eks_tensorflow_model_base_path(image_uri, model_name):
+    """
+    Retrieve model base path based on version of TensorFlow
+    Requirement: Model defined in TENSORFLOW_MODELS_PATH should be hosted in S3 location for TF version less than 2.6. 
+                 Starting TF2.7, the models are referred locally as the support for S3 is moved to a separate python package `tensorflow-io`
+    :param image_uri: ECR image URI
+    :return: <string> model base path
+    """
+    if test_utils.is_below_framework_version("2.7", image_uri, "tensorflow"):
+        s3_model_bucket = test_utils.TENSORFLOW_MODELS_BUCKET
+        model_base_path = f"{s3_model_bucket}/{model_name}"
     else:
-        test_type = "gpu"
-    return test_type
+        model_base_path = f"/tensorflow_model/{model_name}"
+    return model_base_path

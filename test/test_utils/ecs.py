@@ -8,8 +8,10 @@ import boto3
 
 from retrying import retry
 
-from test.test_utils import DEFAULT_REGION, get_inference_run_command, get_tensorflow_model_name, is_below_framework_version
+from test.test_utils import DEFAULT_REGION, get_inference_run_command, get_tensorflow_model_name, get_tensorflow_model_base_path, build_tensorflow_inference_command_tf27_and_above, get_framework_and_version_from_tag, get_tensorflow_inference_environment_variables
 from test.test_utils import ec2 as ec2_utils
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 
 ECS_AMI_ID = {"cpu": "ami-0fb71e703258ab7eb", "gpu": "ami-0a36be2e955646bb2", "eia": "ami-0fb71e703258ab7eb"}
@@ -24,8 +26,6 @@ ECS_MXNET_PYTORCH_INFERENCE_PORT_MAPPINGS = [
     {"containerPort": 8081, "hostPort": 8081, "protocol": "tcp"},
     {"containerPort": 8080, "hostPort": 80, "protocol": "tcp"},
 ]
-
-TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
 
 class ECSException(Exception):
@@ -668,23 +668,6 @@ def get_ecs_port_mappings(framework):
         raise Exception("Framework not Implemented")
 
 
-def get_ecs_tensorflow_environment_variables(processor, model_name, model_base_path):
-    """
-    Get method for environment variables for tensorflow inference via S3 on ECS
-    Requirement: Model should be hosted in S3 location defined in TENSORFLOW_MODELS_PATH
-    :param processor:
-    :param model_name:
-    :return: <list> JSON
-    """
-    model_name = get_tensorflow_model_name(processor, model_name)
-    ecs_tensorflow_inference_environment = [
-        {"name": "MODEL_NAME", "value": model_name},
-        {"name": "MODEL_BASE_PATH", "value": model_base_path},
-    ]
-
-    return ecs_tensorflow_inference_environment
-
-
 def build_ecs_training_command(s3_test_location, test_string):
     """
     Construct the command to send to the container for running scripts in ECS automation
@@ -694,18 +677,6 @@ def build_ecs_training_command(s3_test_location, test_string):
     """
     return [
         f"mkdir -p /test/logs && aws s3 cp {s3_test_location}/ /test/ --recursive && chmod +x -R /test/ && {test_string}"
-    ]
-
-def build_ecs_tensorflow_inference_command(processor, model_name):
-    """
-    Construct the command to download tensorflow model from S3 and start tensorflow model server
-    :param processor: 
-    :param model_name: 
-    :return: <list> command to send to the container
-    """
-    model_name = get_tensorflow_model_name(processor, model_name)
-    return [
-        f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tf_serving_entrypoint.sh"
     ]
 
 
@@ -816,16 +787,15 @@ def setup_ecs_inference_service(
 
     if processor == "gpu" and num_gpus:
         arguments_dict["num_gpu"] = num_gpus
-    if framework == "tensorflow":
-
-        if is_below_framework_version("2.7", docker_image_uri, "tensorflow"):
-            model_base_path = TENSORFLOW_MODELS_BUCKET
-        else:
-            model_base_path = "/tensorflow_model"
-            arguments_dict["container_command"] = build_ecs_tensorflow_inference_command(processor, model_name)
+    if framework == "tensorflow": 
+        model_name = get_tensorflow_model_name(processor, model_name)
+        model_base_path = get_tensorflow_model_base_path(docker_image_uri)
+        _, image_framework_version = get_framework_and_version_from_tag(docker_image_uri)
+        if Version(image_framework_version) in SpecifierSet(">=2.7"):
+            arguments_dict["container_command"] = [build_tensorflow_inference_command_tf27_and_above(model_name)]
             arguments_dict["entrypoint"] = ["sh", "-c"]
 
-        arguments_dict["environment"] = get_ecs_tensorflow_environment_variables(processor, model_name, model_base_path)
+        arguments_dict["environment"] = get_tensorflow_inference_environment_variables(model_name, model_base_path)
         print(f"Added environment variables: {arguments_dict['environment']}")
     elif framework in ["mxnet", "pytorch"]:
         arguments_dict["container_command"] = [

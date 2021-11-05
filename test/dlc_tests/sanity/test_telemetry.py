@@ -4,7 +4,8 @@ import pytest
 
 from test import test_utils
 from test.test_utils import ec2 as ec2_utils
-from test.test_utils import ecs as ecs_utils
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
@@ -89,9 +90,12 @@ def _run_instance_role_disabled(image_uri, ec2_client, ec2_instance, ec2_connect
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 
     if "tensorflow" in framework and job_type == "inference":
-        env_vars_list = ecs_utils.get_ecs_tensorflow_environment_variables(processor, "saved_model_half_plus_two")
+        model_name = "saved_model_half_plus_two"
+        model_base_path = test_utils.get_tensorflow_model_base_path(image_uri)
+        env_vars_list = test_utils.get_tensorflow_inference_environment_variables(model_name, model_base_path)
         env_vars = " ".join([f"-e {entry['name']}={entry['value']}" for entry in env_vars_list])
-        ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri}")
+        inference_command = get_tensorflow_inference_command_tf27_above(image_uri, model_name)
+        ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri} {inference_command}")
         time.sleep(5)
     else:
         framework_to_import = framework.replace("huggingface_", "")
@@ -133,9 +137,12 @@ def _run_tag_success(image_uri, ec2_client, ec2_instance, ec2_connection):
         ec2_client.remove_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
     if "tensorflow" in framework and job_type == "inference":
-        env_vars_list = ecs_utils.get_ecs_tensorflow_environment_variables(processor, "saved_model_half_plus_two")
+        model_name = "saved_model_half_plus_two"
+        model_base_path = test_utils.get_tensorflow_model_base_path(image_uri)
+        env_vars_list = test_utils.get_tensorflow_inference_environment_variables(model_name, model_base_path)
         env_vars = " ".join([f"-e {entry['name']}={entry['value']}" for entry in env_vars_list])
-        ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri}")
+        inference_command = get_tensorflow_inference_command_tf27_above(image_uri, model_name)
+        ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri} {inference_command}")
         time.sleep(5)
     else:
         framework_to_import = framework.replace("huggingface_", "")
@@ -148,3 +155,13 @@ def _run_tag_success(image_uri, ec2_client, ec2_instance, ec2_connection):
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     assert expected_tag_key in ec2_instance_tags, f"{expected_tag_key} was not applied as an instance tag"
+
+
+def get_tensorflow_inference_command_tf27_above(image_uri, model_name):
+
+    _, image_framework_version = test_utils.get_framework_and_version_from_tag(image_uri)
+    if Version(image_framework_version) in SpecifierSet(">=2.7"):
+        inference_command = test_utils.build_tensorflow_inference_command_tf27_and_above(model_name)
+        return inference_command
+    else:
+        return ""
