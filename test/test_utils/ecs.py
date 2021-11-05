@@ -8,7 +8,15 @@ import boto3
 
 from retrying import retry
 
-from test.test_utils import DEFAULT_REGION, get_inference_run_command, get_tensorflow_model_name, get_tensorflow_model_base_path, build_tensorflow_inference_command_tf27_and_above, get_framework_and_version_from_tag, get_tensorflow_inference_environment_variables
+from test.test_utils import (
+    DEFAULT_REGION,
+    get_inference_run_command,
+    get_tensorflow_model_name,
+    get_tensorflow_model_base_path,
+    build_tensorflow_inference_command_tf27_and_above,
+    get_framework_and_version_from_tag,
+    get_tensorflow_inference_environment_variables,
+)
 from test.test_utils import ec2 as ec2_utils
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
@@ -32,6 +40,7 @@ class ECSException(Exception):
     """
     Base class for other exceptions
     """
+
     pass
 
 
@@ -39,6 +48,7 @@ class ECSClusterCreationException(ECSException):
     """
     Raised when cluster creation fails
     """
+
     pass
 
 
@@ -46,6 +56,7 @@ class ECSDescribeClusterException(ECSException):
     """
     Raised when describe cluster fails
     """
+
     pass
 
 
@@ -53,6 +64,7 @@ class ECSTestArtifactCopyException(ECSException):
     """
     Raised when copying test artifacts fails
     """
+
     pass
 
 
@@ -60,6 +72,7 @@ class ECSTaskNotStoppedError(ECSException):
     """
     Raise when ECS task is not in a stopped state
     """
+
     pass
 
 
@@ -67,11 +80,13 @@ class ECSTrainingTestFailure(ECSException):
     """
     Raise when an ECS training test fails
     """
+
     pass
 
 
 class ECSServiceCreationException(ECSException):
     """Raised when create service on ECS fails"""
+
     pass
 
 
@@ -85,9 +100,7 @@ def retry_if_value_error(exception):
 
 
 @retry(
-    stop_max_attempt_number=12,
-    wait_fixed=10000,
-    retry_on_exception=retry_if_value_error,
+    stop_max_attempt_number=12, wait_fixed=10000, retry_on_exception=retry_if_value_error,
 )
 def check_ecs_cluster_status(cluster_arn_or_name, status, region=DEFAULT_REGION):
     """
@@ -106,8 +119,7 @@ def check_ecs_cluster_status(cluster_arn_or_name, status, region=DEFAULT_REGION)
                 f"Failures in describe cluster. Error - Expected {status} but got {response['failures']}"
             )
         elif (
-            response["clusters"][0]["clusterArn"] == cluster_arn_or_name
-            and response["clusters"][0]["status"] == status
+            response["clusters"][0]["clusterArn"] == cluster_arn_or_name and response["clusters"][0]["status"] == status
         ):
             return True
         else:
@@ -168,7 +180,9 @@ def list_ecs_container_instances(cluster_arn_or_name, filter_value=None, status=
         raise Exception(f"Failed list instances with given arguments. Exception - {e}")
 
 
-def attach_ecs_worker_node(worker_instance_type, ami_id, cluster_name, cluster_arn=None, region=DEFAULT_REGION, worker_eia_capable=False):
+def attach_ecs_worker_node(
+    worker_instance_type, ami_id, cluster_name, cluster_arn=None, region=DEFAULT_REGION, worker_eia_capable=False
+):
     """
     Launch a worker instance in a cluster.
     :param worker_instance_type:
@@ -180,8 +194,8 @@ def attach_ecs_worker_node(worker_instance_type, ami_id, cluster_name, cluster_a
     """
     ecs_user_data = f"#!/bin/bash\necho ECS_CLUSTER={cluster_name} >> /etc/ecs/ecs.config"
 
-    sts_client = boto3.client('sts')
-    account_id = sts_client.get_caller_identity().get('Account')
+    sts_client = boto3.client("sts")
+    account_id = sts_client.get_caller_identity().get("Account")
     ecs_role_name = "ecsInstanceRole"
     ecs_instance_role_arn = f"arn:aws:iam::{account_id}:instance-profile/{ecs_role_name}"
 
@@ -192,29 +206,21 @@ def attach_ecs_worker_node(worker_instance_type, ami_id, cluster_name, cluster_a
         user_data=ecs_user_data,
         iam_instance_profile_arn=ecs_instance_role_arn,
         instance_name=f"ecs worker {cluster_name}",
-        eia_capable=worker_eia_capable
+        eia_capable=worker_eia_capable,
     )
 
     instance_id = instc["InstanceId"]
     public_ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     ec2_utils.check_instance_state(instance_id, state="running", region=region)
-    ec2_utils.check_system_state(
-        instance_id, system_status="ok", instance_status="ok", region=region
-    )
+    ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
 
-    list_container_filter = (
-        f"ec2InstanceId in ['{instance_id}'] and agentConnected==true"
-    )
+    list_container_filter = f"ec2InstanceId in ['{instance_id}'] and agentConnected==true"
     if cluster_arn is None:
         cluster_arn = cluster_name
-    container_arns = list_ecs_container_instances(
-        cluster_arn, list_container_filter, "ACTIVE", region
-    )
+    container_arns = list_ecs_container_instances(cluster_arn, list_container_filter, "ACTIVE", region)
 
     if not container_arns:
-        raise Exception(
-            f"No ACTIVE container instance found on instance-id {instance_id} in cluster {cluster_arn}"
-        )
+        raise Exception(f"No ACTIVE container instance found on instance-id {instance_id} in cluster {cluster_arn}")
     return instance_id, public_ip_address
 
 
@@ -305,9 +311,7 @@ def register_ecs_task_definition(
         if num_gpu:
             if not isinstance(num_gpu, str):
                 if not isinstance(num_gpu, int):
-                    raise Exception(
-                        f"Invalid type for argument num_gpu, type: {num_gpu}. valid type: <int/str>"
-                    )
+                    raise Exception(f"Invalid type for argument num_gpu, type: {num_gpu}. valid type: <int/str>")
                 num_gpu = str(num_gpu)
             arguments_dict["containerDefinitions"][0]["resourceRequirements"] = [
                 {"value": num_gpu, "type": "GPU"},
@@ -318,9 +322,7 @@ def register_ecs_task_definition(
             response["taskDefinition"]["revision"],
         )
     except Exception as e:
-        raise Exception(
-            f"Failed to register task definition {family_name}. Exception - {e}"
-        )
+        raise Exception(f"Failed to register task definition {family_name}. Exception - {e}")
 
 
 def create_ecs_service(cluster_name, service_name, task_definition, region=DEFAULT_REGION):
@@ -350,8 +352,7 @@ def create_ecs_service(cluster_name, service_name, task_definition, region=DEFAU
         return response["service"]["serviceName"]
     except Exception as e:
         raise ECSServiceCreationException(
-            f"Failed to create service: {service_name} with task definition: {task_definition}. "
-            f"Exception - {e}"
+            f"Failed to create service: {service_name} with task definition: {task_definition}. " f"Exception - {e}"
         )
 
 
@@ -368,16 +369,12 @@ def check_running_task_for_ecs_service(cluster_arn_or_name, service_name, region
     try:
         ecs_client = boto3.Session(region_name=region).client("ecs")
         response = ecs_client.list_tasks(
-            cluster=cluster_arn_or_name,
-            serviceName=service_name,
-            desiredStatus="RUNNING",
+            cluster=cluster_arn_or_name, serviceName=service_name, desiredStatus="RUNNING",
         )
         task_arns = response["taskArns"]
 
         if not task_arns:
-            raise Exception(
-                f"Failed to find task with RUNNING status in {service_name} service"
-            )
+            raise Exception(f"Failed to find task with RUNNING status in {service_name} service")
         else:
             return True
 
@@ -402,9 +399,7 @@ def update_ecs_service(cluster_arn_or_name, service_name, desired_count, region=
             desiredCount=desired_count,
         )
     except Exception as e:
-        raise Exception(
-            f"Failed to update desired count for service {service_name} to {desired_count}. Exception {e}"
-        )
+        raise Exception(f"Failed to update desired count for service {service_name} to {desired_count}. Exception {e}")
 
 
 def create_ecs_task(cluster_arn_or_name, task_definition, region=DEFAULT_REGION):
@@ -436,13 +431,11 @@ def create_ecs_task(cluster_arn_or_name, task_definition, region=DEFAULT_REGION)
         ):
             return response["tasks"][0]["taskArn"]
     except Exception as e:
-        raise Exception(
-            f"Failed to create task with task definition {task_definition}. Reason - {e}"
-        )
+        raise Exception(f"Failed to create task with task definition {task_definition}. Reason - {e}")
 
 
 def ecs_task_waiter(
-        cluster_arn_or_name, task_arns, status, waiter_delay=30, waiter_max_attempts=100, region=DEFAULT_REGION,
+    cluster_arn_or_name, task_arns, status, waiter_delay=30, waiter_max_attempts=100, region=DEFAULT_REGION,
 ):
     """
     Waiter for ECS tasks to get into status defined by "status" parameter.
@@ -486,9 +479,9 @@ def describe_ecs_task_exit_status(cluster_arn_or_name, task_arn, region=DEFAULT_
         if container["exitCode"] != 0:
             return_codes.append(
                 {
-                    "container_arn": container['containerArn'],
-                    "exit_code": container['exitCode'],
-                    "reason": container.get('reason', f'UnknownFailureReason - see response: {container}')
+                    "container_arn": container["containerArn"],
+                    "exit_code": container["exitCode"],
+                    "reason": container.get("reason", f"UnknownFailureReason - see response: {container}"),
                 }
             )
 
@@ -506,9 +499,7 @@ def stop_ecs_task(cluster_arn_or_name, task_arn, region=DEFAULT_REGION):
         ecs_client = boto3.Session(region_name=region).client("ecs")
         ecs_client.stop_task(cluster=cluster_arn_or_name, task=task_arn)
     except Exception as e:
-        raise Exception(
-            f"Failed to stop task {task_arn} in cluster {cluster_arn_or_name}. Exception - {e}"
-        )
+        raise Exception(f"Failed to stop task {task_arn} in cluster {cluster_arn_or_name}. Exception - {e}")
 
 
 def delete_ecs_service(cluster_arn_or_name, service_name, region=DEFAULT_REGION):
@@ -540,9 +531,7 @@ def deregister_ecs_task_definition(task_family, revision, region=DEFAULT_REGION)
             taskDefinition=f"{task_family}:{revision}"
         )
     except Exception as e:
-        raise Exception(
-            f"Failed to deregister task definition {task_family}:{revision}. Reason - {e}"
-        )
+        raise Exception(f"Failed to deregister task definition {task_family}:{revision}. Reason - {e}")
 
 
 def deregister_ecs_container_instances(cluster_arn_or_name, container_instances, region=DEFAULT_REGION):
@@ -699,9 +688,9 @@ def ecs_training_test_executor(cluster_name, cluster_arn, training_command, imag
     revision = None
 
     # Define constants for arguments to be sent to task def
-    image_tag = image_uri.split(':')[-1]
-    log_group_name = os.path.join(os.sep, 'ecs', image_tag)
-    datetime_suffix = datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')
+    image_tag = image_uri.split(":")[-1]
+    log_group_name = os.path.join(os.sep, "ecs", image_tag)
+    datetime_suffix = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
     num_cpus = ec2_utils.get_instance_num_cpus(instance_id)
     memory = int(ec2_utils.get_instance_memory(instance_id) * 0.8)
 
@@ -712,8 +701,8 @@ def ecs_training_test_executor(cluster_name, cluster_arn, training_command, imag
         "log_stream_prefix": datetime_suffix,
         "num_cpu": num_cpus,
         "memory": memory,
-        "entrypoint" : ["sh", "-c"],
-        "container_command": training_command
+        "entrypoint": ["sh", "-c"],
+        "container_command": training_command,
     }
 
     if "gpu" in image_tag and num_gpus:
@@ -723,8 +712,10 @@ def ecs_training_test_executor(cluster_name, cluster_arn, training_command, imag
         print(f"Created Task definition - {task_family}:{revision}")
 
         task_arn = create_ecs_task(cluster_name, f"{task_family}:{revision}")
-        print(f"Created ECS task - {task_arn} with cloudwatch log group - {log_group_name} log stream prefix - "
-              f"{os.path.join(datetime_suffix, cluster_name)}")
+        print(
+            f"Created ECS task - {task_arn} with cloudwatch log group - {log_group_name} log stream prefix - "
+            f"{os.path.join(datetime_suffix, cluster_name)}"
+        )
         print("Waiting for task to stop ...")
 
         if ecs_task_waiter(cluster_name, [task_arn], "tasks_stopped"):
@@ -750,7 +741,14 @@ def ecs_training_test_executor(cluster_name, cluster_arn, training_command, imag
 
 
 def setup_ecs_inference_service(
-        docker_image_uri, framework, cluster_arn, model_name, worker_instance_id, ei_accelerator_type=None, num_gpus=None, region=DEFAULT_REGION,
+    docker_image_uri,
+    framework,
+    cluster_arn,
+    model_name,
+    worker_instance_id,
+    ei_accelerator_type=None,
+    num_gpus=None,
+    region=DEFAULT_REGION,
 ):
     """
     Function to setup Inference service on ECS
@@ -782,12 +780,12 @@ def setup_ecs_inference_service(
         "port_mappings": port_mappings,
         "num_cpu": num_cpus,
         "memory": memory,
-        "region": region
+        "region": region,
     }
 
     if processor == "gpu" and num_gpus:
         arguments_dict["num_gpu"] = num_gpus
-    if framework == "tensorflow": 
+    if framework == "tensorflow":
         model_name = get_tensorflow_model_name(processor, model_name)
         model_base_path = get_tensorflow_model_base_path(docker_image_uri)
         _, image_framework_version = get_framework_and_version_from_tag(docker_image_uri)
@@ -798,17 +796,14 @@ def setup_ecs_inference_service(
         arguments_dict["environment"] = get_tensorflow_inference_environment_variables(model_name, model_base_path)
         print(f"Added environment variables: {arguments_dict['environment']}")
     elif framework in ["mxnet", "pytorch"]:
-        arguments_dict["container_command"] = [
-            get_inference_run_command(docker_image_uri, model_name, processor)
-        ]
+        arguments_dict["container_command"] = [get_inference_run_command(docker_image_uri, model_name, processor)]
     if processor == "eia":
         arguments_dict["health_check"] = {
             "retries": 2,
-            "command": ["CMD-SHELL",
-                        "LD_LIBRARY_PATH=/opt/ei_health_check/lib /opt/ei_health_check/bin/health_check"],
+            "command": ["CMD-SHELL", "LD_LIBRARY_PATH=/opt/ei_health_check/lib /opt/ei_health_check/bin/health_check"],
             "timeout": 5,
             "interval": 30,
-            "startPeriod": 60
+            "startPeriod": 60,
         }
         arguments_dict["inference_accelerators"] = {
             "deviceName": "device_1",
