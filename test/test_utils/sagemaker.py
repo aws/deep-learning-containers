@@ -334,20 +334,24 @@ def execute_local_tests(image, pytest_cache_params):
         return None
 
 
-def execute_sagemaker_remote_tests(image):
+def execute_sagemaker_remote_tests(image, pytest_cache_params):
     """
     Run pytest in a virtual env for a particular image
     Expected to run via multiprocessing
     :param image: ECR url
     """
+    account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
+    pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
     context = Context()
     with context.cd(path):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
+            pytest_cache_util.download_pytest_cache_from_s3_to_local(path, **pytest_cache_params)
             res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
+            pytest_cache_util.merge_cache_and_upload_from_local_to_s3(path, **pytest_cache_params)
             if res.failed:
                 raise DLCSageMakerRemoteTestFailure(
                     f"{pytest_command} failed with error code: {res.return_code}\n"
