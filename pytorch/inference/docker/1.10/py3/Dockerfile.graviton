@@ -64,6 +64,12 @@ RUN /opt/conda/bin/conda install -y \
 
 RUN /opt/conda/bin/conda clean -ya
 
+# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
+# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
+# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
+# once conda fixes the issue
+RUN rm -rf /opt/conda/lib/libtinfo.so.6
+
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
  && cd openmpi-$OPEN_MPI_VERSION \
