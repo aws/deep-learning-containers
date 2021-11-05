@@ -207,7 +207,7 @@ RUN ${PIP} install --no-cache-dir -U \
    #tensorflow-io \
    h5py==3.1.0 \
    "absl-py>=0.9,<0.11" \
-   werkzeug==1.0.1
+   "werkzeug>=2.0.2,<3"
 
 # Install AWS OFI NCCL plug-in
 RUN apt-get update && apt-get install -y autoconf
