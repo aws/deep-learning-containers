@@ -659,7 +659,7 @@ def lookup_condition(lookup, image):
     Return true if the ECR repo name ends with the lookup or lookup contains job type or device type part of the image uri.
     """
     # Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
-    repo_name, _ = get_ecr_repo_name(image)
+    repo_name = get_ecr_repo_name(image)
 
     job_types = (
         "training",
