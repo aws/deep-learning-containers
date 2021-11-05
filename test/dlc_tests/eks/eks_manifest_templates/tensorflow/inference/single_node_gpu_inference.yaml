@@ -40,10 +40,8 @@ spec:
       containers:
       - name: tfs-service
         image: <DOCKER_IMAGE_BUILD_ID>
-        command:
-        - <COMMAND>
-        args:
-        - <ARGS>
+        command: <COMMAND>
+        args: <ARGS>
         ports:
         - containerPort: 8500
         - containerPort: 8501

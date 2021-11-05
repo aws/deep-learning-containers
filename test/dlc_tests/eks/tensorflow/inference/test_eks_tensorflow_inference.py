@@ -164,24 +164,10 @@ def get_tensorflow_model_base_path(image_uri, model_name):
 def get_tensorflow_command_args(image_uri, model_name, model_base_path):
     if test_utils.is_below_framework_version("2.7", image_uri, "tensorflow"):
         command = "['/usr/bin/tensorflow_model_server']"
-        #args = f"['--port=8501', '--rest_api_port=8500', '--model_name={model_name}', '--model_base_path={model_base_path}']"
-        #args = f"--port=8501 --rest_api_port=8500 --model_name={model_name} --model_base_path={model_base_path}"
-        args = (
-             f"--port=8501 "
-             f"--rest_api_port=8500 "
-             f"--model_name={model_name} "
-             f"--model_base_path={model_base_path} "
-        )
-        
-        
-        f"--port=8501 --rest_api_port=8500 --model_name={model_name} --model_base_path={model_base_path}"
+        args = f"['--port=8501', '--rest_api_port=8500', '--model_name={model_name}', '--model_base_path={model_base_path}']"
     else:
         command = "['/bin/sh', '-c']"
-        args = (
-            f"mkdir -p /tensorflow_model "
-            f"&& aws s3 sync s3://tensoflow-trained-models/{model_name}/ /tensorflow_model/{model_name} "
-            f"&& /usr/bin/tf_serving_entrypoint.sh --port=8501 --rest_api_port=8500 --model_name={model_name} --model_base_path={model_base_path}"
-        )
+        args = f"['mkdir -p /tensorflow_model && aws s3 sync s3://tensoflow-trained-models/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tf_serving_entrypoint.sh --port=8501 --rest_api_port=8500 --model_name={model_name} --model_base_path={model_base_path}']"
     return command, args
 
 
