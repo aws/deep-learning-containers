@@ -82,7 +82,7 @@ def test_ec2_tensorflow_inference_cpu_telemetry(tensorflow_inference, ec2_connec
 
 
 def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, grpc_port, region, telemetry_mode=False):
-    repo_name, image_tag = test_utils.get_ecr_repo_name_and_tag(image_uri)
+    repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
     framework_version = get_tensorflow_framework_version(image_uri)
     home_dir = ec2_connection.run("echo $HOME").stdout.strip('\n')

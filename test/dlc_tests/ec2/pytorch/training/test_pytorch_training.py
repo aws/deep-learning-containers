@@ -224,7 +224,7 @@ def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only, pt15_
 # Placeholder for habana test
 # Instance type and AMI to be updated once the EC2 Gaudi instance is available
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_HPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.HPU_AL2_DLAMI], indirect=True)
+#@pytest.mark.parametrize("ec2_instance_type", PT_EC2_HPU_INSTANCE_TYPE, indirect=True)
+#@pytest.mark.parametrize("ec2_instance_ami", [test_utils.HPU_AL2_DLAMI], indirect=True)
 def test_tensorflow_standalone_hpu(pytorch_training_habana):
     pass

@@ -29,7 +29,6 @@ from test_utils import (
     setup_sm_benchmark_hf_infer_env,
     get_framework_and_version_from_tag,
     get_build_context,
-    get_ecr_repo_name_and_tag,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 from test_utils.pytest_cache import PytestCache
@@ -164,7 +163,7 @@ def run_sagemaker_remote_tests(images):
         instance_type = sm_utils.assign_sagemaker_remote_job_instance_type(image)
         test_succeeded = run_sagemaker_test_in_executor(image, num_of_instances, instance_type)
 
-        _, tag = get_ecr_repo_name_and_tag(image)
+        tag = image.split("/")[-1].split(":")[-1]
         test_report = os.path.join(os.getcwd(), "test", f"{tag}.xml")
 
         # update in-progress pool, send the xml reports

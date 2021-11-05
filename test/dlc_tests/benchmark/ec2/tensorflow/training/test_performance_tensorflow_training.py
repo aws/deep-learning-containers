@@ -77,8 +77,8 @@ def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection
 
 
 # Placeholder for habana benchmark test
-@pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
+#@pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)
+#@pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
 @pytest.mark.model("N/A")
 def test_performance_tensorflow_hpu_imagenet(tensorflow_training_habana):
     pass

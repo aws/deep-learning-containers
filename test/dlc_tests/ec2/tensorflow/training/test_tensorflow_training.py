@@ -266,7 +266,7 @@ def test_tensorflow_distribute_dataservice_gpu(
 
 # Placeholder for habana test
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", TF_EC2_HPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.HPU_AL2_DLAMI], indirect=True)
+#@pytest.mark.parametrize("ec2_instance_type", TF_EC2_HPU_INSTANCE_TYPE, indirect=True)
+#@pytest.mark.parametrize("ec2_instance_ami", [test_utils.HPU_AL2_DLAMI], indirect=True)
 def test_tensorflow_standalone_hpu(tensorflow_training_habana):
     pass

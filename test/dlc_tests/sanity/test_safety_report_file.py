@@ -7,7 +7,6 @@ import pytest
 from invoke import run
 from dataclasses import dataclass
 from typing import List
-from test.test_utils import get_ecr_repo_name_and_tag
 
 
 LOGGER = logging.getLogger(__name__)
@@ -66,7 +65,7 @@ def test_safety_file_exists_and_is_valid(image):
 
     :param image: str, image uri
     """
-    repo_name, image_tag = get_ecr_repo_name_and_tag(image)
+    repo_name, image_tag = image.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-safety"
     # Add null entrypoint to ensure command exits immediately
     run(f"docker run -id " f"--name {container_name} " f"--entrypoint='/bin/bash' " f"{image}", hide=True, warn=True)

@@ -35,7 +35,7 @@ from test.test_utils import (
     AML2_GPU_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
-    get_ecr_repo_name_and_tag,
+    get_ecr_repo_name
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -659,7 +659,7 @@ def lookup_condition(lookup, image):
     Return true if the ECR repo name ends with the lookup or lookup contains job type or device type part of the image uri.
     """
     # Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
-    repo_name, _ = get_ecr_repo_name_and_tag(image)
+    repo_name, _ = get_ecr_repo_name(image)
 
     job_types = (
         "training",
