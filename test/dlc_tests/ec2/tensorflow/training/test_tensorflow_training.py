@@ -148,6 +148,7 @@ def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only)
 
 
 # Skip test for TF 2.0 and below: https://github.com/tensorflow/tensorflow/issues/33484#issuecomment-555299647
+@pytest.mark.skip(reason="temporary skip to elucidate other failures")
 @pytest.mark.integration("keras, horovod, automatic_mixed_precision (AMP)")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -254,6 +255,7 @@ def test_tensorflow_distribute_dataservice_cpu(
 
 # Testing Data Service Distributed mode on only one GPU instance
 # Skip test for TF 2.3 and below
+@pytest.mark.skip(reason="temporary skip to elucidate other failures")
 @pytest.mark.integration("tensorflow-dataservice-distribute-test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
