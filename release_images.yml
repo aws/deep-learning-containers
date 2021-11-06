@@ -434,7 +434,7 @@ release_images:
       os_version: "ubuntu18.04"
       neuron_sdk_version: "sdk1.16.0"
       example: False
-      disable_sm_tag: False
+      disable_sm_tag: True
       force_release: False
 
   33:
@@ -446,7 +446,7 @@ release_images:
       os_version: "ubuntu18.04"
       neuron_sdk_version: "sdk1.16.0"
       example: False
-      disable_sm_tag: False
+      disable_sm_tag: True
       force_release: False
 
   34:
@@ -458,5 +458,5 @@ release_images:
       os_version: "ubuntu18.04"
       neuron_sdk_version: "sdk1.16.0"
       example: False
-      disable_sm_tag: False
+      disable_sm_tag: True
       force_release: False
