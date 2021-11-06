@@ -10,17 +10,17 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-from __future__ import absolute_import
 
 import shlex
 import subprocess
 import sys
+import os.path
 
 neuron_cmd = "/usr/local/bin/neuron-monitor.sh"
 subprocess.check_call(shlex.split(neuron_cmd))
 
 if sys.argv[1] == 'serve':
-    from sagemaker_pytorch_serving_container import serving
+    from sagemaker_mxnet_serving_container import serving
     serving.main()
 else:
     subprocess.check_call(shlex.split(' '.join(sys.argv[1:])))
