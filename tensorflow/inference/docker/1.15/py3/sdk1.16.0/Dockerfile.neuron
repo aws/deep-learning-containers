@@ -7,6 +7,7 @@ LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 
+
 # Define framework-related package sources
 ARG PYTHON=python3
 ARG PYTHON_PIP=python3-pip
