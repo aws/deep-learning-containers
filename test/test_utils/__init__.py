@@ -53,6 +53,9 @@ ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 ECS_AML2_GRAVITON_CPU_USWEST2 = "ami-0fb32cf53e5ab7686"
 NEURON_AL2_DLAMI = "ami-03c4cdc89eca4dbcb"
 
+# S3 bucket for TensorFlow models
+TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
+
 DLAMI_PYTHON_MAPPING = {
     UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
     UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7",
@@ -468,7 +471,13 @@ def request_pytorch_inference_densenet(
 
 
 @retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
-def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501", inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"):
+def request_tensorflow_inference(
+    model_name,
+    ip_address="127.0.0.1",
+    port="8501",
+    inference_string="'{\"instances\": [1.0, 2.0, 5.0]}'",
+    connection=None,
+):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
     :param model_name:
@@ -477,7 +486,8 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
     :connection: ec2_connection object to run the commands remotely over ssh
     :return:
     """
-    run_out = run(
+    conn_run = connection.run if connection is not None else run
+    run_out = conn_run(
         f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
     )
 
@@ -1026,6 +1036,7 @@ def get_framework_and_version_from_tag(image_uri):
 
     return tested_framework, tag_framework_version
 
+
 # for the time being have this static table. Need to figure out a way to get this from
 # neuron github once their version manifest file is updated to the latest
 # 1.15.2 etc represent the neuron sdk version
@@ -1041,16 +1052,14 @@ NEURON_VERSION_MANIFEST = {
             "1.8.1": "1.8.1.1.5.21.0",
         },
         "tensorflow": {
-            "2.1.4" : "2.1.4.1.6.10.0",
-            "2.2.3" : "2.2.3.1.6.10.0",
+            "2.1.4": "2.1.4.1.6.10.0",
+            "2.2.3": "2.2.3.1.6.10.0",
             "2.3.3": "2.3.3.1.6.10.0",
             "2.4.2": "2.4.2.1.6.10.0",
             "2.4.2": "2.4.2.1.6.10.0",
             "2.5.0": "2.5.0.1.6.10.0",
         },
-        "mxnet" : {
-            "1.8.0": "1.8.0.1.3.4.0",
-        }
+        "mxnet": {"1.8.0": "1.8.0.1.3.4.0",},
     },
     "1.16.0": {
         "pytorch": {
@@ -1064,14 +1073,13 @@ NEURON_VERSION_MANIFEST = {
             "2.2.3": "2.2.3.2.0.3.0",
             "2.3.4": "2.3.4.2.0.3.0",
             "2.4.3": "2.4.3.2.0.3.0",
-            "2.5.1": "2.5.0.2.0.3.0",
-            "1.15.5": "1.15.5.2.0.3.0"
+            "2.5.1": "2.5.1.2.0.3.0",
+            "1.15.5": "1.15.5.2.0.3.0",
         },
-        "mxnet" : {
-            "1.8.0": "1.8.0.2.0.271.0",
-        }
-    }
+        "mxnet": {"1.8.0": "1.8.0.2.0.271.0",},
+    },
 }
+
 
 def get_neuron_sdk_version_from_tag(image_uri):
     """
@@ -1085,6 +1093,7 @@ def get_neuron_sdk_version_from_tag(image_uri):
         neuron_sdk_version = re.search(r"sdk([\d\.]+)", image_uri).group(1)
 
     return neuron_sdk_version
+
 
 def get_neuron_framework_and_version_from_tag(image_uri):
     """
@@ -1106,6 +1115,7 @@ def get_neuron_framework_and_version_from_tag(image_uri):
     neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)
 
     return tested_framework, neuron_tag_framework_version
+
 
 def get_framework_from_image_uri(image_uri):
     return (
@@ -1218,6 +1228,7 @@ def get_container_name(prefix, image_uri):
     """
     return f"{prefix}-{image_uri.split('/')[-1].replace('.', '-').replace(':', '-')}"
 
+
 def stop_and_remove_container(container_name, context):
     """
     Helper function to stop a container locally
@@ -1227,6 +1238,7 @@ def stop_and_remove_container(container_name, context):
     context.run(
         f"docker rm -f {container_name}", hide=True,
     )
+
 
 def start_container(container_name, image_uri, context):
     """
@@ -1255,3 +1267,57 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
     return context.run(
         f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
     )
+
+
+def get_tensorflow_model_base_path(image_uri):
+    """
+    Retrieve model base path based on version of TensorFlow
+    Requirement: Model defined in TENSORFLOW_MODELS_PATH should be hosted in S3 location for TF version less than 2.6. 
+                 Starting TF2.7, the models are referred locally as the support for S3 is moved to a separate python package `tensorflow-io`
+    :param image_uri: ECR image URI
+    :return: <string> model base path
+    """
+    if is_below_framework_version("2.7", image_uri, "tensorflow"):
+        model_base_path = TENSORFLOW_MODELS_BUCKET
+    else:
+        model_base_path = f"/tensorflow_model/"
+    return model_base_path
+
+
+def build_tensorflow_inference_command_tf27_and_above(model_name):
+    """
+    Construct the command to download tensorflow model from S3 and start tensorflow model server
+    :param model_name: 
+    :return: <list> command to send to the container
+    """
+    inference_command = f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tf_serving_entrypoint.sh"
+    return inference_command
+
+
+def get_tensorflow_inference_environment_variables(model_name, model_base_path):
+    """
+    Get method for environment variables for tensorflow inference for EC2 and ECS
+    :param model_name:
+    :return: <list> JSON
+    """
+    tensorflow_inference_environment_variables = [
+        {"name": "MODEL_NAME", "value": model_name},
+        {"name": "MODEL_BASE_PATH", "value": model_base_path},
+    ]
+
+    return tensorflow_inference_environment_variables
+
+
+def get_eks_k8s_test_type_label(image_uri):
+    """
+    Get node label required for k8s job to be scheduled on compatible EKS node
+    :param image_uri: ECR image URI
+    :return: <string> node label
+    """
+    if "graviton" in image_uri:
+        test_type = "graviton"
+    elif "neuron" in image_uri:
+        test_type = "neuron"
+    else:
+        test_type = "gpu"
+    return test_type

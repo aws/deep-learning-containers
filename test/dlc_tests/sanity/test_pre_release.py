@@ -327,7 +327,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "1.15": ["cpu", "gpu", "neuron"],
             "2.3": ["cpu", "gpu"],
             "2.4": ["cpu", "gpu"],
-            "2.5": ["cpu", "gpu"],
+            "2.5": ["cpu", "gpu", "neuron"],
             "2.6": ["cpu", "gpu"],
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu", "graviton"]},

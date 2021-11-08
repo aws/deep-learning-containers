@@ -141,7 +141,7 @@ release_images:
     framework: "pytorch"
     version: "1.5.1"
     inference:
-      device_types: ["eia"]
+      device_types: ["cpu", "gpu"]
       python_versions: ["py36"]
       os_version: "ubuntu16.04"
       cuda_version: "cu101"
@@ -434,7 +434,7 @@ release_images:
       os_version: "ubuntu18.04"
       neuron_sdk_version: "sdk1.16.0"
       example: False
-      disable_sm_tag: False
+      disable_sm_tag: True
       force_release: False
 
   33:
@@ -446,7 +446,7 @@ release_images:
       os_version: "ubuntu18.04"
       neuron_sdk_version: "sdk1.16.0"
       example: False
-      disable_sm_tag: False
+      disable_sm_tag: True
       force_release: False
 
   34:
@@ -458,5 +458,5 @@ release_images:
       os_version: "ubuntu18.04"
       neuron_sdk_version: "sdk1.16.0"
       example: False
-      disable_sm_tag: False
+      disable_sm_tag: True
       force_release: False
