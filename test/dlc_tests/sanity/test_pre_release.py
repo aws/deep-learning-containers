@@ -435,7 +435,7 @@ def test_dependency_check_gpu(gpu, ec2_connection, gpu_only):
     (is_canary_context() and not is_time_for_canary_safety_scan()),
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
-def test_dependency_check_eia(eia, ec2_connection, eia_only):
+def test_dependency_check_eia(eia, ec2_connection):
     _run_dependency_check_test(eia, ec2_connection)
 
 @pytest.mark.model("N/A")
@@ -453,7 +453,7 @@ def test_dependency_check_hpu(hpu, ec2_connection):
     (is_canary_context() and not is_time_for_canary_safety_scan()),
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
-def test_dependency_check_neuron(neuron, ec2_connection, neuron_only):
+def test_dependency_check_neuron(neuron, ec2_connection):
     _run_dependency_check_test(neuron, ec2_connection)
 
 
