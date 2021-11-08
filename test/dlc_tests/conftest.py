@@ -253,7 +253,7 @@ def ec2_instance(
                 or "mxnet_inference" in request.fixturenames
             )
         )
-        or ("tensorflow_inference_neuron" in request.fixturenames)
+        or (is_neuron_image)
         or (
             "tensorflow_training" in request.fixturenames
             and "gpu_only" in request.fixturenames
@@ -301,6 +301,18 @@ def ec2_instance(
     ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
     return instance_id, key_filename
 
+def is_neuron_image(fixtures):
+    """
+    Returns true if a neuron fixture is present in request.fixturenames
+    :param request.fixturenames: active fixtures in the request
+    :return: bool
+    """
+    neuron_fixtures = ["tensorflow_inference_neuron", "mxnet_inference_neuron", "pytorch_inference_neuron"]
+
+    for fixture in neuron_fixtures:
+        if fixture in fixtures:
+            return True
+    return False
 
 @pytest.fixture(scope="function")
 def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, region):
