@@ -13,7 +13,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Hyperparameters sent by the client are passed as command-line arguments to the script.
-    parser.add_argument("--epochs", type=int, default=1 )
+    parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--train-batch-size", type=int, default=16)
     parser.add_argument("--eval-batch-size", type=int, default=8)
     parser.add_argument("--model_name", type=str)
@@ -52,10 +52,7 @@ if __name__ == "__main__":
     )
     train_dataset.set_format(type="tensorflow", columns=["input_ids", "attention_mask", "label"])
 
-    train_features = {
-        x: train_dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length])
-        for x in ["input_ids", "attention_mask"]
-    }
+    train_features = {x: train_dataset[x] for x in ["input_ids", "attention_mask"]}
     tf_train_dataset = tf.data.Dataset.from_tensor_slices((train_features, train_dataset["label"])).batch(
         args.train_batch_size
     )
@@ -66,10 +63,7 @@ if __name__ == "__main__":
     )
     test_dataset.set_format(type="tensorflow", columns=["input_ids", "attention_mask", "label"])
 
-    test_features = {
-        x: test_dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.model_max_length])
-        for x in ["input_ids", "attention_mask"]
-    }
+    test_features = {x: test_dataset[x] for x in ["input_ids", "attention_mask"]}
     tf_test_dataset = tf.data.Dataset.from_tensor_slices((test_features, test_dataset["label"])).batch(
         args.eval_batch_size
     )

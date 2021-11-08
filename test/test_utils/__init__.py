@@ -37,7 +37,8 @@ AML2_CPU_ARM64_US_WEST_2 = "ami-0bccd90b9db95e2e5"
 AML2_CPU_ARM64_US_EAST_1 = "ami-01c47f32b27ed7fa0"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
-NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-0b5d270a84e753c18"
+# Since latest driver is not in public DLAMI yet, using a custom one
+NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-078c2404eecfbe916"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
@@ -151,7 +152,7 @@ def get_dockerfile_path_for_image(image_uri):
 
 def get_expected_dockerfile_filename(device_type, image_uri):
     if is_e3_image(image_uri):
-        return f"Dockerfile.diy.{device_type}"
+        return f"Dockerfile.e3.{device_type}"
     if is_sagemaker_image(image_uri):
         return f"Dockerfile.sagemaker.{device_type}"
     return f"Dockerfile.{device_type}"
@@ -467,7 +468,13 @@ def request_pytorch_inference_densenet(
 
 
 @retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
-def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501", inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"):
+def request_tensorflow_inference(
+    model_name,
+    ip_address="127.0.0.1",
+    port="8501",
+    inference_string="'{\"instances\": [1.0, 2.0, 5.0]}'",
+    connection = None
+):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
     :param model_name:
@@ -476,7 +483,8 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
     :connection: ec2_connection object to run the commands remotely over ssh
     :return:
     """
-    run_out = run(
+    conn_run = connection.run if connection is not None else run
+    run_out = conn_run(
         f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
     )
 
@@ -1049,6 +1057,25 @@ NEURON_VERSION_MANIFEST = {
         },
         "mxnet" : {
             "1.8.0": "1.8.0.1.3.4.0",
+        }
+    },
+    "1.16.0": {
+        "pytorch": {
+            "1.5.1": "1.5.1.2.0.318.0",
+            "1.7.1": "1.7.1.2.0.318.0",
+            "1.8.1": "1.8.1.2.0.318.0",
+            "1.9.1": "1.9.1.2.0.318.0",
+        },
+        "tensorflow": {
+            "2.1.4": "2.1.4.2.0.3.0",
+            "2.2.3": "2.2.3.2.0.3.0",
+            "2.3.4": "2.3.4.2.0.3.0",
+            "2.4.3": "2.4.3.2.0.3.0",
+            "2.5.1": "2.5.1.2.0.3.0",
+            "1.15.5": "1.15.5.2.0.3.0"
+        },
+        "mxnet" : {
+            "1.8.0": "1.8.0.2.0.271.0",
         }
     }
 }

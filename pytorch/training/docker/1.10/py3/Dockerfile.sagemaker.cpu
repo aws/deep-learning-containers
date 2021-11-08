@@ -1,4 +1,4 @@
-# Expecting base image to be the image built by ./Dockerfile.diy.cpu
+# Expecting base image to be the image built by ./Dockerfile.e3.cpu
 ARG BASE_IMAGE=""
 
 FROM $BASE_IMAGE

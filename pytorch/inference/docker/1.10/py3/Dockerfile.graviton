@@ -2,19 +2,17 @@ FROM arm64v8/ubuntu:20.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
-LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
+ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211029-184012/c6edd96c1a92892731eb1f85272ca4d878e540d7/graviton/torch-1.10.0%2Bcpu-cp38-cp38-manylinux2014_aarch64.whl
+ARG ARMCL_BRANCH=v21.05
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.3.1
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
-ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
-
 RUN apt-get update \
  && apt-get install -y --no-install-recommends software-properties-common \
  && add-apt-repository ppa:openjdk-r/ppa \
@@ -34,6 +32,7 @@ RUN apt-get update \
     libxrender-dev \
     openjdk-11-jdk \
     openssl \
+    scons \
     vim \
     wget \
     unzip \
@@ -64,6 +63,12 @@ RUN /opt/conda/bin/conda install -y \
     scipy
 
 RUN /opt/conda/bin/conda clean -ya
+
+# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
+# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
+# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
+# once conda fixes the issue https://github.com/conda/conda/issues/9680
+RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
@@ -96,11 +101,22 @@ RUN conda install -c \
     "cryptography>=3.3.2"
 
 # install torch and torchvision from the PyTorch website
-RUN pip install torch torchvision
+RUN pip uninstall -y torch \
+ && pip install --no-cache-dir -U $PT_INFERENCE_URL
+RUN pip install torchvision
+
+## compile and install ArmCL
+RUN git clone https://github.com/Arm-software/ComputeLibrary.git \
+ && cd ComputeLibrary \
+ && git checkout $ARMCL_BRANCH \
+ && scons Werror=0 -j8 debug=0 neon=1 opencl=0 os=linux arch=arm64-v8a build=native \
+ && mkdir /opt/armClArtifact \
+ && cp build/libarm* /opt/armClArtifact \
+ && cd .. && rm -rf ComputeLibrary
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/armClArtifact/"
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
 RUN pip install pillow==8.3.2 "awscli<2"
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
@@ -132,7 +148,7 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.9/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt -o /license.txt
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]

@@ -1,4 +1,4 @@
-# Expecting base image to be the image built by ./Dockerfile.diy.gpu
+# Expecting base image to be the image built by ./Dockerfile.e3.gpu
 ARG BASE_IMAGE=""
 
 FROM $BASE_IMAGE
