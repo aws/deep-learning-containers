@@ -668,18 +668,6 @@ def build_ecs_training_command(s3_test_location, test_string):
         f"mkdir -p /test/logs && aws s3 cp {s3_test_location}/ /test/ --recursive && chmod +x -R /test/ && {test_string}"
     ]
 
-def build_ecs_tensorflow_inference_command(processor, model_name):
-    """
-    Construct the command to download tensorflow model from S3 and start tensorflow model server
-    :param processor: 
-    :param model_name: 
-    :return: <list> command to send to the container
-    """
-    model_name = get_tensorflow_model_name(processor, model_name)
-    return [
-        f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tf_serving_entrypoint.sh"
-    ]
-
 
 def ecs_training_test_executor(cluster_name, cluster_arn, training_command, image_uri, instance_id, num_gpus=None):
     """
