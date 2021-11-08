@@ -77,12 +77,9 @@ IGNORE_SAFETY_IDS = {
         },
         "inference-neuron": {
             "py3": [
-                # TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches
-                "39409",
-                "39408",
-                "39407",
-                "39406",
-                # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
+                # 40794, 40795, 42098, 42062: TF 1.15.5 is the last available version of TF 1
+                "40794",
+                "40795",
                 "42098",
                 "42062",
             ],
