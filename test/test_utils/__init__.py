@@ -476,11 +476,7 @@ def request_tensorflow_inference(
     ip_address="127.0.0.1",
     port="8501",
     inference_string="'{\"instances\": [1.0, 2.0, 5.0]}'",
-<<<<<<< HEAD
-    connection = None
-=======
     connection=None,
->>>>>>> master
 ):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
