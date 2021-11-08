@@ -228,7 +228,15 @@ def test_framework_and_neuron_sdk_version(neuron):
         container_name, ctx, f"import {tested_framework}; print({tested_framework}.__version__)", executable="python"
     )
 
-    assert neuron_tag_framework_version == output.stdout.strip()
+    if tested_framework == "mxnet":
+        # TODO -For neuron the mx_neuron module does not support the __version__ yet and we
+        # can get the version of only the base mxnet model. The base mxnet model just
+        # has framework version and does not have the neuron semantic version yet. Till
+        # the mx_neuron supports __version__ do the minimal check and not exact match
+        _ , tag_framework_version = get_framework_and_version_from_tag(image)
+        assert tag_framework_version == output.stdout.strip()
+    else:
+        assert neuron_tag_framework_version == output.stdout.strip()
     stop_and_remove_container(container_name, ctx)
 
 
@@ -318,7 +326,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "1.15": ["cpu", "gpu", "neuron"],
             "2.3": ["cpu", "gpu"],
             "2.4": ["cpu", "gpu"],
-            "2.5": ["cpu", "gpu"],
+            "2.5": ["cpu", "gpu", "neuron"],
             "2.6": ["cpu", "gpu"],
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},

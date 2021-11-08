@@ -36,8 +36,7 @@ DATA_PATH = os.path.join(MNIST_PATH, 'images', DATA_FILE)
 @pytest.mark.skip("Known issue: https://github.com/aws/deep-learning-containers/issues/586")
 @pytest.mark.integration("batch_transform")
 @pytest.mark.model("mnist")
-@pytest.mark.skip_neuron_containers
-def test_batch_transform(ecr_image, sagemaker_regions, instance_type, framework_version):
+def test_batch_transform(ecr_image, sagemaker_regions, instance_type, framework_version, skip_neuron_containers):
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_batch_transform_function,
                                  instance_type, framework_version)
 

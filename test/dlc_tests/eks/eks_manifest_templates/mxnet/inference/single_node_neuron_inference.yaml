@@ -34,7 +34,6 @@ spec:
       containers:
       - name: mms-container
         image: <DOCKER_IMAGE_BUILD_ID>
-        command: ["/bin/sh","-c"]
         args:
         - <SERVER_CMD>
         ports:
