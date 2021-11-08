@@ -178,8 +178,7 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
     # Tensorflow 1.x doesn't have package with version 1.15.2 so use only 1.15
     if is_graviton:
         # TF training binary is used that is compatible for graviton instance type
-        # The RC candidate of tensorflow-serving-api is used as TF2.7 is not GA yet.
-        TF_URL="s3://graviton-tf-arm-binary/tensorflow-2.6.0-cp38-cp38-linux_aarch64.whl"
+        TF_URL="https://aws-dlc-graviton-training-binaries.s3.us-west-2.amazonaws.com/tensorflow/2.6.0/tensorflow-2.6.0-cp38-cp38-linux_aarch64.whl"
         ec2_connection.run(
             (
                 f"{python_invoker} -m pip install --no-cache-dir -U {TF_URL}"
@@ -187,7 +186,7 @@ def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, 
         )
         ec2_connection.run(
             (
-                f"{python_invoker} -m pip install --no-dependencies --no-cache-dir tensorflow-serving-api=={framework_version}rc0"
+                f"{python_invoker} -m pip install --no-dependencies --no-cache-dir tensorflow-serving-api=={framework_version}"
             ), hide=True
         )
     else: 
