@@ -169,3 +169,4 @@ def test_mxnet_inference_telemetry_cpu(mxnet_inference, ec2_connection, cpu_only
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
 def test_mxnet_inference_telemetry_graviton_cpu(mxnet_inference, ec2_connection, graviton_only):
     execute_ec2_inference_test(ec2_connection, mxnet_inference, MX_TELEMETRY_CMD)
+    
