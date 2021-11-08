@@ -76,15 +76,8 @@ def test_eks_pytorch_densenet_inference(pytorch_inference):
 
     rand_int = random.randint(4001, 6000)
 
-    if "graviton" in pytorch_inference:
-        processor = "cpu"
-        test_type = "graviton"
-    elif "gpu" in pytorch_inference:
-        processor = "gpu"
-        test_type = "gpu"
-    else:
-        processor = "cpu"
-        test_type = "gpu" #now always use p3 instance for cpu test
+    processor = "gpu" if "gpu" in pytorch_inference else "cpu"
+    test_type = test_utils.get_eks_k8s_test_type_label(pytorch_inference)
 
     yaml_path = os.path.join(os.sep, "tmp", f"pytorch_single_node_{processor}_inference_{rand_int}.yaml")
     inference_service_name = selector_name = f"densenet-service-{processor}-{rand_int}"
