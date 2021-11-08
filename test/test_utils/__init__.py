@@ -476,7 +476,7 @@ def request_tensorflow_inference(
     ip_address="127.0.0.1",
     port="8501",
     inference_string="'{\"instances\": [1.0, 2.0, 5.0]}'",
-    connection = None
+    connection=None,
 ):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
@@ -1074,7 +1074,7 @@ NEURON_VERSION_MANIFEST = {
             "2.3.4": "2.3.4.2.0.3.0",
             "2.4.3": "2.4.3.2.0.3.0",
             "2.5.1": "2.5.1.2.0.3.0",
-            "1.15.5": "1.15.5.2.0.3.0"
+            "1.15.5": "1.15.5.2.0.3.0",
         },
         "mxnet": {"1.8.0": "1.8.0.2.0.271.0",},
     },
