@@ -472,7 +472,11 @@ def request_pytorch_inference_densenet(
 
 @retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
 def request_tensorflow_inference(
-    model_name, ip_address="127.0.0.1", port="8501", inference_string="'{\"instances\": [1.0, 2.0, 5.0]}'"
+    model_name,
+    ip_address="127.0.0.1",
+    port="8501",
+    inference_string="'{\"instances\": [1.0, 2.0, 5.0]}'",
+    connection = None
 ):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
@@ -482,7 +486,8 @@ def request_tensorflow_inference(
     :connection: ec2_connection object to run the commands remotely over ssh
     :return:
     """
-    run_out = run(
+    conn_run = connection.run if connection is not None else run
+    run_out = conn_run(
         f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
     )
 
@@ -1068,8 +1073,8 @@ NEURON_VERSION_MANIFEST = {
             "2.2.3": "2.2.3.2.0.3.0",
             "2.3.4": "2.3.4.2.0.3.0",
             "2.4.3": "2.4.3.2.0.3.0",
-            "2.5.1": "2.5.0.2.0.3.0",
-            "1.15.5": "1.15.5.2.0.3.0",
+            "2.5.1": "2.5.1.2.0.3.0",
+            "1.15.5": "1.15.5.2.0.3.0"
         },
         "mxnet": {"1.8.0": "1.8.0.2.0.271.0",},
     },
