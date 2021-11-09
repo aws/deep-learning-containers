@@ -113,7 +113,7 @@ RUN ${PIP} install -U --no-cache-dir \
     protobuf==3.14.0 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api-gpu=="2.7.0rc1"
+    tensorflow-serving-api-gpu=="2.7.0"
 
 RUN curl $TFS_URL -o /usr/bin/tensorflow_model_server \
  && chmod 555 /usr/bin/tensorflow_model_server
