@@ -43,7 +43,7 @@ images:
         VAR_IN_DOCKERFILE: TORCHVISION_URL
       huggingface_transformers_whl:
         type: s3
-        URI: s3://hf-transformers/2021-11-05_11:49:00/wheels/transformers-4.11.0-py3-none-any.whl
+        URI: s3://sm-training-comp-pytorch-binaries/v4.11.0_aws/20211108-201035/d0180875eedd109a4b5efd40bcf7b1be35b89470/transformers-4.11.0-py3-none-any.whl
         VAR_IN_DOCKERFILE: HF_TRANSFORMERS_URL
       sagemaker_pysdk_whl:
         type: s3
