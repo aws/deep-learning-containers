@@ -17,7 +17,7 @@ TENSORFLOW2_VERSION = "2."
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 TF_EC2_EIA_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="eia1.large", processor="eia")
-TF_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_instance_type(default="inf1.xlarge", processor="neuron")
+TF_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_instance_type(default="inf1.6xlarge", processor="neuron")
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
 )
@@ -27,8 +27,11 @@ TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURON_ACCELERATOR_TYPE, indirect=True)
 #FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
-def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, ec2_instance_ami, region, neuron_only):
-    run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, ec2_instance_ami, "8500", region)
+@pytest.mark.parametrize("neuron_device", range(4))
+def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_instance_type, neuron_device, ec2_connection, ec2_instance_ami, region, neuron_only):
+    if skip_neuron_device(ec2_instance_type, neuron_device):
+        pytest.skip(f"Device {neuron_device} not valid for this instance{ec2_instance_type}")
+    run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, ec2_instance_ami, "8500", region, neuron_device=neuron_device)
 
 
 @pytest.mark.model("mnist")
@@ -81,7 +84,7 @@ def test_ec2_tensorflow_inference_cpu_telemetry(tensorflow_inference, ec2_connec
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, ec2_instance_ami, "8500", region, True)
 
 
-def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, grpc_port, region, telemetry_mode=False):
+def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, grpc_port, region, telemetry_mode=False, neuron_device=None):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
     framework_version = get_tensorflow_framework_version(image_uri)
@@ -110,7 +113,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
 
         docker_run_cmd = (
             f"{docker_cmd} run -id --name {container_name} -p {src_port}:{dst_port} "
-            f"--device=/dev/neuron0 --net=host  --cap-add IPC_LOCK "
+            f"--device=/dev/neuron{neuron_device} --net=host   "
             f"--mount type=bind,source={model_path},target=/models/{model_name} -e TEST_MODE=1 -e MODEL_NAME={model_name} "
             f"-e NEURON_MONITOR_CW_REGION=us-east-1 -e NEURON_MONITOR_CW_NAMESPACE=tf1 "
             f" {image_uri}"
