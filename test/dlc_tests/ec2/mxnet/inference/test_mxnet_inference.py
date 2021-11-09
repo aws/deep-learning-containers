@@ -5,7 +5,7 @@ import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
 from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag
-from test.test_utils.ec2 import get_ec2_instance_type, execute_ec2_inference_test, get_ec2_accelerator_type
+from test.test_utils.ec2 import get_ec2_instance_type, execute_ec2_inference_test, get_ec2_accelerator_type, skip_neuron_device
 from test.dlc_tests.conftest import LOGGER
 
 
@@ -23,16 +23,21 @@ MX_EC2_GPU_EIA_INSTANCE_TYPE = get_ec2_instance_type(
 MX_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
 )
-MX_EC2_NEURON_INSTANCE_TYPE = get_ec2_instance_type(default="inf1.xlarge", processor="neuron")
+MX_EC2_NEURON_INSTANCE_TYPE = get_ec2_instance_type(default="inf1.6xlarge", processor="neuron")
 MX_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", processor="graviton")
 
 MX_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_mx_dlc_telemetry_test")
 
 @pytest.mark.model("mxnet-resnet-neuron")
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
+#@pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_NEURON_INSTANCE_TYPE, indirect=True)
-def test_ec2_mxnet_inference_neuron(mxnet_inference_neuron, ec2_connection, region, neuron_only):
-    run_ec2_mxnet_inference(mxnet_inference_neuron, "mxnet-resnet-neuron", "resnet", ec2_connection, "neuron", region, 80, 8081)
+@pytest.mark.parametrize("neuron_device", range(4))
+def test_ec2_mxnet_inference_neuron(mxnet_inference_neuron, neuron_device, ec2_connection, region, neuron_only):
+    if skip_neuron_device(ec2_instance_type, neuron_device):
+        pytest.skip(f"Device {neuron_device} not valid for this instance{ec2_instance_type}")
+
+    run_ec2_mxnet_inference(mxnet_inference_neuron, "mxnet-resnet-neuron", "resnet", ec2_connection, "neuron", region, 80, 8081, neuron_device=neuron_device)
+    pass
 
 
 @pytest.mark.model(SQUEEZENET_MODEL)
@@ -97,7 +102,7 @@ def test_ec2_mxnet_gluonnlp_inference_cpu(mxnet_inference, ec2_connection, regio
     run_ec2_mxnet_inference(mxnet_inference, BERT_MODEL, "gluonnlp", ec2_connection, "cpu", region, 90, 9091)
 
 
-def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection, processor, region, target_port, target_management_port):
+def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection, processor, region, target_port, target_management_port, neuron_device=None):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2-{container_tag}"
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
@@ -106,7 +111,7 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
         docker_run_cmd = (
             f"{docker_cmd} run -itd --name {container_name}"
             f" -p {target_port}:8080 -p {target_management_port}:8081"
-            f" --device=/dev/neuron0 --cap-add IPC_LOCK"
+            f" --device=/dev/neuron{neuron_device}"
             f" {image_uri} {mms_inference_cmd}"
         )
     else:

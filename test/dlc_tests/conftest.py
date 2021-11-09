@@ -166,6 +166,14 @@ def ec2_resource(region):
 def ec2_instance_type(request):
     return request.param if hasattr(request, "param") else "g4dn.xlarge"
 
+@pytest.fixture(scope="function")
+def neuron_device(request):
+    return request.param if hasattr(request, "param") else "0"
+
+@pytest.fixture(scope="function")
+def neuron_devices(request, ec2_instance_type):
+    return [f"neuron{i}" for i in range(ec2_utils.get_instance_num_inferentias(instance_type=ec2_instance_type))],
+
 
 @pytest.fixture(scope="function")
 def ec2_instance_role_name(request):
