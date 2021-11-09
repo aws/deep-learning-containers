@@ -91,7 +91,8 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && conda install -y \
     h5py \
     requests \
- && conda install -c dglteam -y dgl=0.7.2 \
+# TODO: change back to conda install once 0.7.2-linux is available
+#  && conda install -c dglteam -y dgl=0.7.2 \
  && /opt/conda/bin/conda clean -ya \
  && conda clean -ya
 
@@ -116,6 +117,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     packaging \
     psutil==5.6.7 \
     "Pillow>=8.3.2,<8.4" \
+# TODO: change back to conda install once 0.7.2-linux is available
+ && pip install dgl -f https://data.dgl.ai/wheels/repo.html \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
