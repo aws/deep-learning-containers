@@ -160,6 +160,7 @@ def test_tensorflow_keras_horovod_amp(
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_KERAS_HVD_CMD_AMP)
 
 
+@pytest.mark.skip(reason="temporary skip to elucidate other failures")
 @pytest.mark.integration("keras, horovod, single_precision_floating_point (FP32)")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
