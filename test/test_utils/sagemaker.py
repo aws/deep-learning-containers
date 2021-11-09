@@ -357,6 +357,7 @@ def execute_sagemaker_remote_tests(image, pytest_cache_params):
                     f"{pytest_command} failed with error code: {res.return_code}\n"
                     f"Traceback:\n{res.stdout}"
                 )
+    return None
 
 
 def generate_empty_report(report, test_type, case):

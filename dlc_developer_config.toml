@@ -24,16 +24,16 @@ skip_frameworks = []
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = true
+do_build = false
 
 [test]
 ### On by default
-sanity_tests = true
+sanity_tests = false
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = true
-eks_tests = true
-ec2_tests = true
+ecs_tests = false
+eks_tests = false
+ec2_tests = false
 
 ### SM specific tests
 ### Off by default
