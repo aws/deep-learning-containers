@@ -241,6 +241,8 @@ def ec2_instance(
     ) or (
         ("tensorflow_inference" in request.fixturenames and "graviton_only" in request.fixturenames)
     ) or (
+        "graviton" in request.fixturenames
+    )or (
         "tensorflow_training" in request.fixturenames
         and "gpu_only" in request.fixturenames
         and "horovod" in ec2_key_name
