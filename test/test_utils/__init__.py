@@ -59,6 +59,9 @@ ECS_AML2_GRAVITON_CPU_USWEST2 = "ami-0fb32cf53e5ab7686"
 NEURON_AL2_DLAMI = "ami-03c4cdc89eca4dbcb"
 HPU_AL2_DLAMI = "ami-052f4f716a7c7bad7"
 
+# S3 bucket for TensorFlow models
+TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
+
 DLAMI_PYTHON_MAPPING = {
     UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
     UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7",
@@ -503,7 +506,11 @@ def request_pytorch_inference_densenet(
 
 @retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
 def request_tensorflow_inference(
-    model_name, ip_address="127.0.0.1", port="8501", inference_string="'{\"instances\": [1.0, 2.0, 5.0]}'"
+    model_name,
+    ip_address="127.0.0.1",
+    port="8501",
+    inference_string="'{\"instances\": [1.0, 2.0, 5.0]}'",
+    connection=None,
 ):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
@@ -513,7 +520,8 @@ def request_tensorflow_inference(
     :connection: ec2_connection object to run the commands remotely over ssh
     :return:
     """
-    run_out = run(
+    conn_run = connection.run if connection is not None else run
+    run_out = conn_run(
         f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
     )
 
@@ -1090,11 +1098,32 @@ NEURON_VERSION_MANIFEST = {
             "2.2.3": "2.2.3.2.0.3.0",
             "2.3.4": "2.3.4.2.0.3.0",
             "2.4.3": "2.4.3.2.0.3.0",
-            "2.5.1": "2.5.0.2.0.3.0",
+            "2.5.1": "2.5.1.2.0.3.0",
             "1.15.5": "1.15.5.2.0.3.0",
         },
-        "mxnet": {"1.8.0": "1.8.0.2.0.271.0",},
+        "mxnet" : {
+            "1.8.0": "1.8.0.2.0.271.0",
+        }
     },
+    "1.16.1": {
+        "pytorch": {
+            "1.5.1": "1.5.1.2.0.392.0",
+            "1.7.1": "1.7.1.2.0.392.0",
+            "1.8.1": "1.8.1.2.0.392.0",
+            "1.9.1": "1.9.1.2.0.392.0",
+        },
+        "tensorflow": {
+            "2.1.4": "2.1.4.2.0.4.0",
+            "2.2.3": "2.2.3.2.0.4.0",
+            "2.3.4": "2.3.4.2.0.4.0",
+            "2.4.3": "2.4.3.2.0.4.0",
+            "2.5.1": "2.5.1.2.0.4.0",
+            "1.15.5": "1.15.5.2.0.4.0"
+        },
+        "mxnet" : {
+            "1.8.0": "1.8.0.2.0.276.0",
+        }
+    }
 }
 
 
@@ -1299,3 +1328,57 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
     return context.run(
         f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
     )
+
+
+def get_tensorflow_model_base_path(image_uri):
+    """
+    Retrieve model base path based on version of TensorFlow
+    Requirement: Model defined in TENSORFLOW_MODELS_PATH should be hosted in S3 location for TF version less than 2.6. 
+                 Starting TF2.7, the models are referred locally as the support for S3 is moved to a separate python package `tensorflow-io`
+    :param image_uri: ECR image URI
+    :return: <string> model base path
+    """
+    if is_below_framework_version("2.7", image_uri, "tensorflow"):
+        model_base_path = TENSORFLOW_MODELS_BUCKET
+    else:
+        model_base_path = f"/tensorflow_model/"
+    return model_base_path
+
+
+def build_tensorflow_inference_command_tf27_and_above(model_name):
+    """
+    Construct the command to download tensorflow model from S3 and start tensorflow model server
+    :param model_name: 
+    :return: <list> command to send to the container
+    """
+    inference_command = f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tf_serving_entrypoint.sh"
+    return inference_command
+
+
+def get_tensorflow_inference_environment_variables(model_name, model_base_path):
+    """
+    Get method for environment variables for tensorflow inference for EC2 and ECS
+    :param model_name:
+    :return: <list> JSON
+    """
+    tensorflow_inference_environment_variables = [
+        {"name": "MODEL_NAME", "value": model_name},
+        {"name": "MODEL_BASE_PATH", "value": model_base_path},
+    ]
+
+    return tensorflow_inference_environment_variables
+
+
+def get_eks_k8s_test_type_label(image_uri):
+    """
+    Get node label required for k8s job to be scheduled on compatible EKS node
+    :param image_uri: ECR image URI
+    :return: <string> node label
+    """
+    if "graviton" in image_uri:
+        test_type = "graviton"
+    elif "neuron" in image_uri:
+        test_type = "neuron"
+    else:
+        test_type = "gpu"
+    return test_type
