@@ -6,7 +6,7 @@ import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
 from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, get_inference_server_type
-from test.test_utils.ec2 import get_ec2_instance_type, execute_ec2_inference_test, get_ec2_accelerator_type
+from test.test_utils.ec2 import get_ec2_instance_type, execute_ec2_inference_test, get_ec2_accelerator_type, skip_neuron_device
 from test.dlc_tests.conftest import LOGGER
 import boto3
 from datetime import date, timedelta, datetime
