@@ -28,7 +28,8 @@ class MXNetWrapper(MXNet):
         from ... import get_ecr_image_region, get_sagemaker_session, get_ecr_image
 
         for region in self.sagemaker_regions:
-            self.sagemaker_session = get_sagemaker_session(region)
+            bucket_name = "sagemaker-{}-{}".format(region, self.sagemaker_session.account_id())
+            self.sagemaker_session = get_sagemaker_session(region, bucket_name)
             # Upload the image to test region if needed
             if region != get_ecr_image_region(self.image_uri):
                 self.image_uri = get_ecr_image(self.image_uri, region)
