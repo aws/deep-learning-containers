@@ -141,7 +141,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     typing \
     future \
     "pyopenssl>=17.5.0" \
- && conda install -y -c dglteam dgl-cuda11.3=0.7.2 \
+#  && conda install -y -c dglteam dgl-cuda11.3=0.7.1 \
  && ${CONDA_PREFIX}/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
