@@ -151,5 +151,5 @@ RUN HOME_DIR=/root \
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt -o /license.txt
 
 EXPOSE 8080 8081 8082 7070 7071
-ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh"]
 CMD ["serve"]
