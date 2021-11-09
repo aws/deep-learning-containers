@@ -134,12 +134,12 @@ class PytestCache:
         self.__upload_cache_to_s3(local_file_path, s3_file_path)
 
     def merge_cache_and_upload_from_local_to_s3(self,
-                                             current_dir,
-                                             commit_id,
-                                             framework,
-                                             version,
-                                             build_context,
-                                             test_type):
+                                                current_dir,
+                                                commit_id,
+                                                framework,
+                                                version,
+                                                build_context,
+                                                test_type):
         """
         Copy pytest cache file from local box to directory in s3. .pytest_cache directory will be copied from 
         :param current_dir ec2 directory to s3 directory generated from parameters.
@@ -152,15 +152,13 @@ class PytestCache:
         :param build_context
         :param test_type
         """
-        self.__merge_2_execution_caches_and_save("tmp", "lastfailed", "tmp")
+        tmp_file_name = "tmp"
         local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
-        # tmp file contains full execution cache now so uploading tmp but now lastfailed
-        local_file_path = os.path.join(local_file_dir, "tmp")
+        self.__merge_2_execution_caches_and_save(tmp_file_name, f"{local_file_dir}/lastfailed", tmp_file_name)
+        # tmp file contains full execution cache now so uploading tmp instead of lastfailed
         s3_file_dir = self.__make_s3_path(commit_id, framework, version, build_context, test_type)
         s3_file_path = os.path.join(s3_file_dir, "lastfailed")
-        self.__upload_cache_to_s3(local_file_path, s3_file_path)
-
-
+        self.__upload_cache_to_s3(tmp_file_name, s3_file_path)
 
     def __make_s3_path(self, commit_id, framework, version, build_context, test_type):
         return os.path.join(commit_id, framework, version, build_context, test_type)
@@ -181,7 +179,7 @@ class PytestCache:
     def __merge_2_execution_caches_and_save(self, cache_file_1, cache_file_2, save_to):
         """
         Merges 2 JSON objects into one and safe on disk 
-        
+
         :param cache_file_1
         :param cache_file_2
         :param save_to: filename where to save result JSON
