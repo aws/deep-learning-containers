@@ -21,8 +21,7 @@ ENV LC_ALL=C.UTF-8
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
 ENV PATH=/opt/conda/bin:$PATH
-# TODO: Add DGL environment variables back when DGL is re-enabled
-# ENV DGLBACKEND=pytorch
+ENV DGLBACKEND=pytorch
 ENV DLC_CONTAINER_TYPE=training
 
 # There's no PT pipeline for binary for diy/e3 currently. Using the inference branch (PyTorch + telemetry feature) with different building environments for both training and inference DLCs temporarily.
@@ -92,8 +91,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && conda install -y \
     h5py \
     requests \
-# TODO: Add DGL back when 0.7.1 is released
-#  && conda install -c dglteam -y dgl=0.7.1 \
+ && conda install -c dglteam -y dgl=0.7.2 \
  && /opt/conda/bin/conda clean -ya \
  && conda clean -ya
 
