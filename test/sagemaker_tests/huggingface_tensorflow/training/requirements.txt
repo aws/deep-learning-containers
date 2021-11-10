@@ -1,5 +1,5 @@
+botocore>=1.23.1
 boto3
-botocore
 awscli
 junit-xml
 sagemaker.tar.gz

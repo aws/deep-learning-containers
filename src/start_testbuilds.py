@@ -92,6 +92,31 @@ def is_test_job_enabled(test_type):
     return False
 
 
+def is_test_job_implemented_for_framework(images_str, test_type):
+    """
+    Check to see if a test job is implemnted and supposed to be executed for this particular set of images
+    """
+    is_trcomp_image = "trcomp" in images_str or "hopper" in images_str
+    is_huggingface_image = "huggingface" in images_str and not is_trcomp_image
+    is_autogluon_image = "autogluon" in images_str
+
+    if (is_huggingface_image or is_autogluon_image) and test_type in [
+        constants.EC2_TESTS,
+        constants.ECS_TESTS,
+        constants.EKS_TESTS,
+    ]:
+        LOGGER.debug(f"Skipping {test_type} test")
+        return False
+        # SM Training Compiler has EC2 tests implemented so don't skip
+    if is_trcomp_image and test_type in [
+        constants.ECS_TESTS,
+        constants.EKS_TESTS,
+    ]:
+        LOGGER.debug(f"Skipping {test_type} test")
+        return False
+    return True
+
+
 def main():
     build_context = os.getenv("BUILD_CONTEXT")
     if build_context != "PR":
@@ -114,15 +139,8 @@ def main():
             images_str = " ".join(images)
             if "graviton" in images_str and test_type == "sanity":
                 pr_test_job += "-graviton"
-            if is_test_job_enabled(test_type):
+            if is_test_job_enabled(test_type) and is_test_job_implemented_for_framework(images_str, test_type):
                 LOGGER.debug(f"Test job enabled for {test_type} test")
-                if "huggingface" in images_str and test_type in [
-                    constants.EC2_TESTS,
-                    constants.ECS_TESTS,
-                    constants.EKS_TESTS,
-                ]:
-                    LOGGER.debug(f"Skipping huggingface {test_type} test")
-                    continue
                 run_test_job(commit, pr_test_job, images_str)
 
             # Trigger sagemaker local test jobs when there are changes in sagemaker_tests

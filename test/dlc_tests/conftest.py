@@ -72,6 +72,8 @@ FRAMEWORK_FIXTURES = (
     "huggingface_tensorflow_inference",
     "huggingface_pytorch_inference",
     "huggingface_mxnet_inference",
+    "huggingface_tensorflow_trcomp_training",
+    "huggingface_pytorch_trcomp_training",
     "tensorflow_training_habana",
     "pytorch_training_habana"
 )
@@ -411,6 +413,11 @@ def non_huggingface_only():
 
 
 @pytest.fixture(scope="session")
+def training_compiler_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def non_autogluon_only():
     pass
 
@@ -638,6 +645,8 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
         "pytorch": "pt",
         "huggingface_pytorch": "hf-pt",
         "huggingface_tensorflow": "hf-tf",
+        "huggingface_pytorch-trcomp": "hf-pt-trc",
+        "huggingface_tensorflow-trcomp": "hf-tf-trc",
         "autogluon": "ag",
     }
     fixtures_parametrized = {}
@@ -732,7 +741,8 @@ def pytest_generate_tests(metafunc):
                         continue
                     if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue
-                    if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
+                    if "training_compiler_only" in metafunc.fixturenames and not (
+                            "trcomp" in image or "hopper" in image):
                         continue
                     if is_example_lookup or is_huggingface_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:

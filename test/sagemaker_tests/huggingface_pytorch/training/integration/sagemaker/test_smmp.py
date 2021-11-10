@@ -67,6 +67,7 @@ def get_transformers_version(ecr_image):
 @pytest.mark.model("hf_qa_smmp")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type, py_version, dist_gpu_backend):
     # instance configurations
     instance_type = "ml.p3.16xlarge"
@@ -99,6 +100,7 @@ def test_smmp_gpu(sagemaker_session, framework_version, ecr_image, instance_type
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.multinode(2)
+@pytest.mark.skip_trcomp_containers
 def test_smmp_gpu_multinode(
     sagemaker_session, framework_version, ecr_image, instance_type, py_version, dist_gpu_backend
 ):

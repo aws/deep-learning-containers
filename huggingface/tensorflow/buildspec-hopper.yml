@@ -31,7 +31,7 @@ images:
     download_artifacts:
       tensorflow_whl:
         type: s3
-        URI: s3://sm-training-comp-tensorflow-binaries/tensorflow/r2.5_aws/20211104_002837/gpu/cu112/py37/tensorflow_gpu-2.5.1-cp37-cp37m-manylinux2010_x86_64.whl
+        URI: s3://sm-training-comp-tensorflow-binaries/tensorflow/r2.5_aws/20211109_023936/tensorflow_gpu-2.5.1-cp37-cp37m-manylinux2010_x86_64.whl
         VAR_IN_DOCKERFILE: TF_URL
       sagemaker_pysdk_whl:
         type: s3

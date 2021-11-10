@@ -28,6 +28,10 @@ if __name__ == "__main__":
 
     args, _ = parser.parse_known_args()
 
+    # This is necessary to use XLA for compilation
+    # Cannot set this from the estimator due to https://github.com/aws/sagemaker-training-toolkit/issues/107
+    os.environ['GPU_NUM_DEVICES']=args.n_gpus
+    
     # Set up logging
     logger = logging.getLogger(__name__)
 

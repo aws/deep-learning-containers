@@ -189,6 +189,8 @@ def get_python_invoker(ami_id):
 def is_tf_version(required_version, image_uri):
     """
     Validate that image_uri has framework version equal to required_version
+    Relaying on current convention to include TF version into an image tag for all
+    TF based frameworks
 
     :param required_version: str Framework version which is required from the image_uri
     :param image_uri: str ECR Image URI for the image to be validated
@@ -196,8 +198,16 @@ def is_tf_version(required_version, image_uri):
     """
     image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
     required_version_specifier_set = SpecifierSet(f"=={required_version}.*")
-    return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
+    return is_tf_based_framework(image_framework_name) and image_framework_version in required_version_specifier_set
 
+
+def is_tf_based_framework(name):
+    """
+    Checks whether framework is TF based.
+    Relaying on current convention to include "tensorflow" into TF based names
+    E.g. "huggingface-tensorflow" or "huggingface-tensorflow-trcomp"
+    """
+    return "tensorflow" in name
 
 def is_below_framework_version(version_upper_bound, image_uri, framework):
     """

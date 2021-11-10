@@ -40,8 +40,8 @@ RUN apt-get update \
 ARG TF_URL
 COPY ${TF_URL} .
 
-RUN pip uninstall -y tensorflow\
- && pip install --no-deps --no-cache-dir -U ${TF_URL} \
+RUN pip uninstall -y tensorflow-gpu \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${TF_URL} \
  && rm -rf ${TF_URL}
 
 # Install Horovod

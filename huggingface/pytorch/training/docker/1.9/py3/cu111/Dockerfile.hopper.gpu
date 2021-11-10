@@ -40,7 +40,7 @@ ARG PT_URL
 COPY ${PT_URL} .
 
 RUN pip uninstall -y torch\
- && pip install --no-deps --no-cache-dir -U ${PT_URL} \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${PT_URL} \
  && rm -rf ${PT_URL}
 
 # Install PyTorch XLA
@@ -48,7 +48,7 @@ ARG PT_XLA_URL
 COPY ${PT_XLA_URL} .
 
 RUN pip uninstall -y torch_xla \
- && pip install --no-deps --no-cache-dir -U ${PT_XLA_URL} \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${PT_XLA_URL} \
  && rm -rf ${PT_XLA_URL}
 
 # Install TorchVision
@@ -56,7 +56,7 @@ ARG TORCHVISION_URL
 COPY ${TORCHVISION_URL} .
 
 RUN pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U ${TORCHVISION_URL} \
+ && pip install --no-deps --no-cache-dir -U --force-reinstall ${TORCHVISION_URL} \
  && rm -rf ${TORCHVISION_URL}
 
 # Install Tranformers
@@ -64,7 +64,7 @@ ARG HF_TRANSFORMERS_URL
 COPY ${HF_TRANSFORMERS_URL} .
 
 RUN pip uninstall -y transformers \
- && pip install --no-deps --no-cache-dir -U ${HF_TRANSFORMERS_URL} \
+ && pip install --no-deps --no-cache-dir --force-reinstall -U ${HF_TRANSFORMERS_URL} \
  && rm -rf ${HF_TRANSFORMERS_URL}
 
 # Fix library links

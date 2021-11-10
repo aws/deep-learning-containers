@@ -77,6 +77,7 @@ def get_transformers_version(ecr_image):
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
     """
     Tests SM Distributed DataParallel single-node via script mode
@@ -119,6 +120,7 @@ def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 def test_smdp_question_answering_multinode(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
     """
     Tests SM Distributed DataParallel single-node via script mode
