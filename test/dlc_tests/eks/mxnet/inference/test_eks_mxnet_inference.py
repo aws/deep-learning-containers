@@ -58,6 +58,7 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
     rand_int = random.randint(4001, 6000)
 
     processor = "gpu" if "gpu" in mxnet_inference else "cpu"
+    test_type = test_utils.get_eks_k8s_test_type_label(mxnet_inference)
 
     model = "squeezenet=https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model"
     yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_{processor}_inference_{rand_int}.yaml")
@@ -69,6 +70,7 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
         "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference,
+        "<TEST_TYPE>": test_type,
     }
 
     if processor == "gpu":
