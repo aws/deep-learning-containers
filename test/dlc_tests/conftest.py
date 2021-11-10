@@ -63,6 +63,7 @@ FRAMEWORK_FIXTURES = (
     "mxnet_inference",
     "mxnet_inference_eia",
     "mxnet_inference_neuron",
+    "mxnet_inference_graviton",
     # HuggingFace
     "huggingface_tensorflow_training",
     "huggingface_pytorch_training",
@@ -423,11 +424,6 @@ def sagemaker_only():
 
 
 @pytest.fixture(scope="session")
-def graviton_only():
-    pass
-
-
-@pytest.fixture(scope="session")
 def py3_only():
     pass
 
@@ -727,12 +723,9 @@ def pytest_generate_tests(metafunc):
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
-                        elif "graviton_only" in metafunc.fixturenames and "graviton" in image:
-                            images_to_parametrize.append(image)
                         elif (
                             "cpu_only" not in metafunc.fixturenames
                             and "gpu_only" not in metafunc.fixturenames
-                            and "graviton_only" not in metafunc.fixturenames
                         ):
                             images_to_parametrize.append(image)
 
