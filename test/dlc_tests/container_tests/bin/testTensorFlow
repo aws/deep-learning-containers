@@ -3,7 +3,7 @@
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
-PROFILER_LOG_DIR="/logs/train/plugins/profile"
+PROFILER_LOG_DIR="/logs/plugins/profile"
 
 set -e
 

@@ -52,6 +52,7 @@ def test_tensorflow_standalone_cpu(tensorflow_training, ec2_connection, cpu_only
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
 
+@pytest.mark.skip(reason="temporary skip to elucidate other failures")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_only, ec2_instance_type):
@@ -67,7 +68,7 @@ def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_onl
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
 
-# TODO: Re-enable for TF1 by removing tf2_only fixture once infrastructure issues are addressed
+@pytest.mark.skip(reason="temporary skip to elucidate other failures")
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -83,7 +84,6 @@ def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2
     )
 
 
-# TODO: Re-enable for TF1 by removing tf2_only fixture once infrastructure issues are addressed
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
@@ -148,6 +148,7 @@ def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only)
 
 
 # Skip test for TF 2.0 and below: https://github.com/tensorflow/tensorflow/issues/33484#issuecomment-555299647
+@pytest.mark.skip(reason="temporary skip to elucidate other failures")
 @pytest.mark.integration("keras, horovod, automatic_mixed_precision (AMP)")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -159,6 +160,7 @@ def test_tensorflow_keras_horovod_amp(
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_KERAS_HVD_CMD_AMP)
 
 
+@pytest.mark.skip(reason="temporary skip to elucidate other failures")
 @pytest.mark.integration("keras, horovod, single_precision_floating_point (FP32)")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -169,6 +171,7 @@ def test_tensorflow_keras_horovod_fp32(tensorflow_training, ec2_connection, tf2_
 
 
 # Testing Tensorboard with profiling
+@pytest.mark.skip(reason="temporary skip to elucidate other failures")
 @pytest.mark.integration("tensorboard, keras")
 @pytest.mark.model("sequential")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -228,6 +231,7 @@ def test_tensorflow_dataservice_cpu(
 
 # Testing Data Service on only one GPU instance
 # Skip test for TF 2.3 and below
+@pytest.mark.skip(reason="temporary skip to elucidate other failures")
 @pytest.mark.integration("tensorflow-dataservice-test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -252,6 +256,7 @@ def test_tensorflow_distribute_dataservice_cpu(
 
 # Testing Data Service Distributed mode on only one GPU instance
 # Skip test for TF 2.3 and below
+@pytest.mark.skip(reason="temporary skip to elucidate other failures")
 @pytest.mark.integration("tensorflow-dataservice-distribute-test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)

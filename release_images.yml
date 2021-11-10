@@ -7,7 +7,7 @@ release_images:
       device_types: ["neuron"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.16.0"
+      neuron_sdk_version: "sdk1.16.1"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
       # to images being published.
@@ -141,7 +141,7 @@ release_images:
     framework: "pytorch"
     version: "1.5.1"
     inference:
-      device_types: ["eia"]
+      device_types: ["cpu", "gpu"]
       python_versions: ["py36"]
       os_version: "ubuntu16.04"
       cuda_version: "cu101"
@@ -432,9 +432,9 @@ release_images:
       device_types: ["neuron"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.16.0"
+      neuron_sdk_version: "sdk1.16.1"
       example: False
-      disable_sm_tag: False
+      disable_sm_tag: True
       force_release: False
 
   33:
@@ -444,9 +444,9 @@ release_images:
       device_types: ["neuron"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.16.0"
+      neuron_sdk_version: "sdk1.16.1"
       example: False
-      disable_sm_tag: False
+      disable_sm_tag: True
       force_release: False
 
   34:
@@ -456,7 +456,7 @@ release_images:
       device_types: ["neuron"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.16.0"
+      neuron_sdk_version: "sdk1.16.1"
       example: False
-      disable_sm_tag: False
+      disable_sm_tag: True
       force_release: False
