@@ -2,7 +2,7 @@ import os
 import re
 import pytest
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag
+from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, HPU_AL2_DLAMI
 from test.test_utils.ec2 import execute_ec2_training_performance_test
 from src.benchmark_metrics import (
     get_threshold_for_image,
@@ -23,6 +23,7 @@ TF_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
 
 TF_EC2_GPU_INSTANCE_TYPE = "p3.16xlarge"
 TF_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
+TF_EC2_HPU_INSTANCE_TYPE = "dl1.24xlarge"
 
 
 @pytest.mark.integration("synthetic dataset")
@@ -73,6 +74,14 @@ def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection
         data_source="imagenet",
         threshold={"Throughput": threshold},
     )
+
+
+# Placeholder for habana benchmark test
+#@pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)
+#@pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
+@pytest.mark.model("N/A")
+def test_performance_tensorflow_hpu_imagenet(tensorflow_training_habana):
+    pass
 
 
 def post_process_tensorflow_training_performance(connection, log_location):
