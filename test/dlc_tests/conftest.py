@@ -65,7 +65,7 @@ FRAMEWORK_FIXTURES = (
     "mxnet_inference",
     "mxnet_inference_eia",
     "mxnet_inference_neuron",
-    "mxnet_inference_graviton"
+    "mxnet_inference_graviton",
     # HuggingFace
     "huggingface_tensorflow_training",
     "huggingface_pytorch_training",
