@@ -28,7 +28,7 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", pro
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURON_ACCELERATOR_TYPE, indirect=True)
 #FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
-def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, ec2_instance_ami, region, neuron_only):
+def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, ec2_instance_ami, region):
     run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, ec2_instance_ami, "8500", region)
 
 
@@ -50,7 +50,7 @@ def test_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, ec2_
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", TF_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_eia_cpu(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, region, eia_only):
+def test_ec2_tensorflow_inference_eia_cpu(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, region):
     run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, "8500", region)
 
 
@@ -58,7 +58,7 @@ def test_ec2_tensorflow_inference_eia_cpu(tensorflow_inference_eia, ec2_connecti
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", TF_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, region, eia_only, ec2_instance_type):
+def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, region, ec2_instance_type):
     if ec2_instance_type == "p4d.24xlarge":
         pytest.skip(f"Skipping EIA GPU test for {ec2_instance_type} instance type. See https://github.com/aws/deep-learning-containers/issues/962")
     run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, "8500", region)

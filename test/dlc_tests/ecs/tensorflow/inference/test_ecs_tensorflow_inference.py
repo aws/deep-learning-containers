@@ -48,7 +48,7 @@ def __ecs_tensorflow_inference_cpu(tensorflow_inference, ecs_container_instance,
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", ["eia1.large"], indirect=True)
 def test_ecs_tensorflow_inference_eia(
-    tensorflow_inference_eia, ecs_container_instance, ei_accelerator_type, region, eia_only
+    tensorflow_inference_eia, ecs_container_instance, ei_accelerator_type, region
 ):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
