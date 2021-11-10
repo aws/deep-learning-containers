@@ -7,7 +7,7 @@ release_images:
       device_types: ["neuron"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.16.0"
+      neuron_sdk_version: "sdk1.16.1"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
       # to images being published.
@@ -432,7 +432,7 @@ release_images:
       device_types: ["neuron"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.16.0"
+      neuron_sdk_version: "sdk1.16.1"
       example: False
       disable_sm_tag: True
       force_release: False
@@ -444,7 +444,7 @@ release_images:
       device_types: ["neuron"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.16.0"
+      neuron_sdk_version: "sdk1.16.1"
       example: False
       disable_sm_tag: True
       force_release: False
@@ -456,7 +456,7 @@ release_images:
       device_types: ["neuron"]
       python_versions: ["py37"]
       os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.16.0"
+      neuron_sdk_version: "sdk1.16.1"
       example: False
       disable_sm_tag: True
       force_release: False
