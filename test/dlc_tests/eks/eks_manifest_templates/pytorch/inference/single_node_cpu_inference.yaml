@@ -50,4 +50,4 @@ spec:
             cpu: "1"
             memory: 1Gi
       nodeSelector:
-        test_type: gpu
+        test_type: <TEST_TYPE>
