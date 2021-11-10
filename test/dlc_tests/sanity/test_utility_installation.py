@@ -137,7 +137,7 @@ def test_astra(training, package_name):
     test_utils.start_container(container_name, training, ctx)
 
     # Optionally add version validation in the following steps, rather than just printing it.
-    test_utils.run_cmd_on_container(container_name, ctx, f"pip list {package_name} | grep -i {package_name}")
+    test_utils.run_cmd_on_container(container_name, ctx, f"pip list | grep -i {package_name}")
     import_package = package_name.replace("-", "_")
     import_test_cmd = (
         f"import {import_package}"
