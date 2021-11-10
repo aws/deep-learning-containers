@@ -31,17 +31,19 @@ from test_utils import (
     get_build_context,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
-
+from test_utils.pytest_cache import PytestCache
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+pytest_cache_util = PytestCache(boto3.client("s3"), boto3.client("sts").get_caller_identity()["Account"])
 
 
-def run_sagemaker_local_tests(images):
+def run_sagemaker_local_tests(images, pytest_cache_params):
     """
     Function to run the SageMaker Local tests
     :param images: <list> List of all images to be used in SageMaker tests
+    :param pytest_cache_params: <dict> dictionary with data required for pytest cache handler
     """
     if not images:
         return
@@ -57,7 +59,7 @@ def run_sagemaker_local_tests(images):
 
     pool_number = len(images)
     with Pool(pool_number) as p:
-        p.map(sm_utils.execute_local_tests, images)
+        p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_util, pytest_cache_params] for image in images])
 
 
 def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
@@ -246,6 +248,8 @@ def main():
     efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
+    # Executing locally ona can provide commit_id or may ommit it. Assigning default value for local executions:  
+    commit_id = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION', default="unrecognised_commit_id")
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
@@ -254,6 +258,21 @@ def main():
     eks_cluster_name = None
     benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
+    build_context = get_build_context()
+
+    # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
+    try:
+        framework, version = get_framework_and_version_from_tag(all_image_list[0])
+    except:
+        framework, version = "general_test", "none"
+
+    pytest_cache_params = {
+        "commit_id": commit_id,
+        "framework": framework,
+        "version": version,
+        "build_context": build_context,
+        "test_type": test_type,
+    }
 
     # In PR context, allow us to switch sagemaker tests to RC tests.
     # Do not allow them to be both enabled due to capacity issues.
@@ -309,7 +328,6 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
-            build_context = get_build_context()
             eks_cluster_name = f"{framework}-{build_context}"
             eks_utils.eks_setup()
             if eks_utils.is_eks_cluster_active(eks_cluster_name):
@@ -334,6 +352,9 @@ def main():
             pytest_cmds = [
                 ["-s", "-rA", f"--junitxml={report}", "-n=auto", f"--{specific_test_type}", "--ignore=container_tests/"]
             ]
+
+        pytest_cmds = [pytest_cmd + ["--last-failed", "--last-failed-no-failures", "all"] for pytest_cmd in pytest_cmds]
+        pytest_cache_util.download_pytest_cache_from_s3_to_local(os.getcwd(), **pytest_cache_params)
         try:
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
@@ -343,6 +364,7 @@ def main():
             else:
                 raise RuntimeError(pytest_cmds)
         finally:
+            pytest_cache_util.upload_pytest_cache_from_local_to_s3(os.getcwd(), **pytest_cache_params)
             # Delete dangling EC2 KeyPairs
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
@@ -393,7 +415,7 @@ def main():
             for image in standard_images_list
             if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or (is_diy_image(image)))
         ]
-        run_sagemaker_local_tests(testing_image_list)
+        run_sagemaker_local_tests(testing_image_list, pytest_cache_params)
         # for EIA Images
         if len(testing_image_list) == 0:
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
