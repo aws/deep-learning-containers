@@ -330,11 +330,11 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.5": ["cpu", "gpu", "neuron"],
             "2.6": ["cpu", "gpu"],
         },
-        "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu", "graviton"]},
-        "pytorch": {"1.10": ["graviton"]},
+        "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
+        "pytorch": {"1.10": ["cpu"]},
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"]},
-        "autogluon": {"0.3": ["graviton"]},
+        "autogluon": {"0.3": ["cpu"]},
     }
 
     if processor in allow_openssl_cve_fw_versions.get(framework, {}).get(short_fw_version, []):
