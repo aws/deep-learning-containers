@@ -15,8 +15,9 @@ TF_FasterRCNN_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testFaster
 @pytest.mark.parametrize("training_script", [TF_MNIST_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
-def test_ecs_tensorflow_training_mnist_cpu(cpu_only, ecs_container_instance, tensorflow_training, training_cmd,
-                                           ecs_cluster_name):
+def test_ecs_tensorflow_training_mnist_cpu(
+    cpu_only, ecs_container_instance, tensorflow_training, training_cmd, ecs_cluster_name
+):
     """
     CPU mnist test for TF Training
 
@@ -34,8 +35,9 @@ def test_ecs_tensorflow_training_mnist_cpu(cpu_only, ecs_container_instance, ten
 @pytest.mark.parametrize("training_script", [TF_MNIST_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
-def test_ecs_tensorflow_training_mnist_gpu(gpu_only, ecs_container_instance, tensorflow_training, training_cmd,
-                                           ecs_cluster_name):
+def test_ecs_tensorflow_training_mnist_gpu(
+    gpu_only, ecs_container_instance, tensorflow_training, training_cmd, ecs_cluster_name
+):
     """
     GPU mnist test for TF Training
     Instance Type - p3.2xlarge
@@ -46,8 +48,9 @@ def test_ecs_tensorflow_training_mnist_gpu(gpu_only, ecs_container_instance, ten
 
     num_gpus = ec2_utils.get_instance_num_gpus(instance_id)
 
-    ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, tensorflow_training, instance_id,
-                                         num_gpus=num_gpus)
+    ecs_utils.ecs_training_test_executor(
+        ecs_cluster_name, cluster_arn, training_cmd, tensorflow_training, instance_id, num_gpus=num_gpus
+    )
 
 
 @pytest.mark.skipif(not is_nightly_context(), reason="Running additional model in nightly context only")
@@ -55,8 +58,9 @@ def test_ecs_tensorflow_training_mnist_gpu(gpu_only, ecs_container_instance, ten
 @pytest.mark.parametrize("training_script", [TF_FasterRCNN_TRAINING_SCRIPT], indirect=True)
 @pytest.mark.parametrize("ecs_instance_type", ["g3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
-def test_ecs_tensorflow_training_fasterrcnn_gpu(gpu_only, ecs_container_instance, tensorflow_training, training_cmd,
-                                           ecs_cluster_name):
+def test_ecs_tensorflow_training_fasterrcnn_gpu(
+    gpu_only, ecs_container_instance, tensorflow_training, training_cmd, ecs_cluster_name
+):
     """
     GPU Faster RCNN test for TF Training
 
@@ -69,5 +73,6 @@ def test_ecs_tensorflow_training_fasterrcnn_gpu(gpu_only, ecs_container_instance
 
     num_gpus = ec2_utils.get_instance_num_gpus(instance_id)
 
-    ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, tensorflow_training, instance_id,
-                                         num_gpus=num_gpus)
+    ecs_utils.ecs_training_test_executor(
+        ecs_cluster_name, cluster_arn, training_cmd, tensorflow_training, instance_id, num_gpus=num_gpus
+    )
