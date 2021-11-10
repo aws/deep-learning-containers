@@ -14,9 +14,6 @@ repository_info:
 
 context:
   inference_context: &INFERENCE_CONTEXT
-    torchserve-sagemaker-entrypoint:
-      source: docker/build_artifacts/torchserve-entrypoint.py
-      target: torchserve-entrypoint.py
     torchserve-e3-entrypoint:
       source: docker/build_artifacts/torchserve-e3-entrypoint.py
       target: torchserve-e3-entrypoint.py
@@ -26,7 +23,6 @@ context:
     config-sagemaker:
       source: docker/build_artifacts/config.properties
       target: config.properties
-
 
 images:
   BuildE3PytorchGravitonCPUInferencePy3DockerImage:
@@ -38,16 +34,5 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py38
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION , "-e3"]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.e3., *DEVICE_TYPE ]
-    context:
-      <<: *INFERENCE_CONTEXT
-  BuildSageMakerPytorchGravitonCPUInferencePy3DockerImage:
-    <<: *INFERENCE_REPOSITORY
-    build: &PYTORCH_GRAVITON_INFERENCE_PY3 false
-    image_size_baseline: 10000
-    device_type: &DEVICE_TYPE graviton
-    python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py38
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION , "-sagemaker"]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.sagemaker., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
