@@ -131,7 +131,7 @@ def test_astra(training, package_name):
         pytest.skip(f"astra is not installed in {framework} {framework_version} DLCs")
 
     ctx = Context()
-    container_name = test_utils.get_container_name("astra", training)
+    container_name = test_utils.get_container_name(f"astra-{package_name}", training)
     test_utils.start_container(container_name, training, ctx)
 
     # Optionally add version validation in the following steps, rather than just printing it.
