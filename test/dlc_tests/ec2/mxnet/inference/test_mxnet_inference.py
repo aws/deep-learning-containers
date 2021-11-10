@@ -103,7 +103,6 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     mms_inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
     if processor == "neuron":
-        ec2_connection.run("sudo systemctl stop neuron-rtd")  # Stop neuron-rtd in host env for DLC to start it
         docker_run_cmd = (
             f"{docker_cmd} run -itd --name {container_name}"
             f" -p {target_port}:8080 -p {target_management_port}:8081"
@@ -162,3 +161,12 @@ def test_mxnet_inference_telemetry_gpu(mxnet_inference, ec2_connection, gpu_only
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_inference_telemetry_cpu(mxnet_inference, ec2_connection, cpu_only):
     execute_ec2_inference_test(ec2_connection, mxnet_inference, MX_TELEMETRY_CMD)
+
+
+@pytest.mark.flaky(reruns=3)
+@pytest.mark.integration("telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", MX_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+def test_mxnet_inference_telemetry_graviton_cpu(mxnet_inference, ec2_connection, graviton_only):
+    execute_ec2_inference_test(ec2_connection, mxnet_inference, MX_TELEMETRY_CMD)
+    
