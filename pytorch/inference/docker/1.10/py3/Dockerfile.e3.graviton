@@ -133,7 +133,7 @@ RUN useradd -m model-server \
 COPY torchserve-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server/config.properties
 
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -151,5 +151,5 @@ RUN HOME_DIR=/root \
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt -o /license.txt
 
 EXPOSE 8080 8081
-ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.sh"]
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties"]
