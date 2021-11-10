@@ -57,6 +57,7 @@ FRAMEWORK_FIXTURES = (
     "tensorflow_inference_eia",
     "tensorflow_inference_neuron",
     "tensorflow_training_habana",
+    "tensorflow_inference_graviton",
     # MxNET
     "mxnet_training",
     "mxnet_inference",
