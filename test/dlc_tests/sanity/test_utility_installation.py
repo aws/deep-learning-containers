@@ -60,7 +60,9 @@ def test_utility_packages_using_import(training):
     packages_to_import = UTILITY_PACKAGES_IMPORT
 
     for package in packages_to_import:
-        version = test_utils.run_cmd_on_container(container_name, ctx, f"import {package}; print({package}.__version__)", executable="python").stdout.strip()
+        version = test_utils.run_cmd_on_container(
+            container_name, ctx, f"import {package}; print({package}.__version__)", executable="python"
+        ).stdout.strip()
         if package == "sagemaker":
             assert Version(version) > Version("2"), f"Sagemaker version should be > 2.0. Found version {version}"
 
@@ -79,7 +81,7 @@ def test_boto3(mxnet_inference):
     container_name = test_utils.get_container_name("boto3", image)
     test_utils.start_container(container_name, image, ctx)
 
-    test_utils.run_cmd_on_container(container_name, ctx, 'import boto3', executable="python")
+    test_utils.run_cmd_on_container(container_name, ctx, "import boto3", executable="python")
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -114,3 +116,32 @@ def test_apache_tomcat(image):
     tomcat_output = test_utils.run_cmd_on_container(container_name, ctx, "find / -name *tomcat*").stdout.strip()
     if tomcat_output:
         raise RuntimeError(f"Found tomcat installation in {image}. See output: {tomcat_output}")
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("astra")
+@pytest.mark.parametrize(
+    "package_name", ["pyhive", "sparkmagic", "sagemaker-studio-sparkmagic-lib", "sagemaker-studio-analytics-extension"]
+)
+def test_astra(training, package_name):
+    framework, framework_version = test_utils.get_framework_and_version_from_tag(training)
+    utility_package_minimum_framework_version = {"pytorch": "1.7", "tensorflow": "2.4"}
+    if framework not in utility_package_minimum_framework_version or Version(framework_version) < Version(
+        utility_package_minimum_framework_version[framework]
+    ):
+        pytest.skip(f"astra is not installed in {framework} {framework_version} DLCs")
+
+    ctx = Context()
+    container_name = test_utils.get_container_name("astra", training)
+    test_utils.start_container(container_name, training, ctx)
+
+    # Optionally add version validation in the following steps, rather than just printing it.
+    test_utils.run_cmd_on_container(container_name, ctx, f"pip list {package_name} | grep -i {package_name}")
+    import_package = package_name.replace("-", "_")
+    import_test_cmd = (
+        f"import {import_package}"
+        if package_name in ["sagemaker-studio-sparkmagic-lib", "sagemaker-studio-analytics-extension"]
+        else f"import {import_package}; print({import_package}.__version__)"
+    )
+    test_utils.run_cmd_on_container(container_name, ctx, import_test_cmd, executable="python")
