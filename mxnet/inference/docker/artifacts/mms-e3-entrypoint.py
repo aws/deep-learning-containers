@@ -16,11 +16,7 @@ import subprocess
 import sys
 import os.path
 
-if sys.argv[1] == 'serve':
-    from sagemaker_mxnet_serving_container import serving
-    serving.main()
-else:
-    subprocess.check_call(shlex.split(' '.join(sys.argv[1:])))
+subprocess.check_call(shlex.split(' '.join(sys.argv[1:])))
 
 # prevent docker exit
 subprocess.call(['tail', '-f', '/dev/null'])
