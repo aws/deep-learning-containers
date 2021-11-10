@@ -54,6 +54,8 @@ def assign_sagemaker_remote_job_instance_type(image):
 def assign_sagemaker_local_job_instance_type(image):
     if "tensorflow" in image and "inference" in image and "gpu" in image:
         return "p2.xlarge"
+    elif "autogluon" in image and "gpu" in image:
+        return "p3.2xlarge"
     return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
 
 
@@ -116,7 +118,15 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     accelerator_type_arg = "--accelerator-type"
     framework_version_arg = "--framework-version"
     eia_arg = "ml.eia1.large"
-    processor = "neuron" if "neuron" in image else "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
+    processor = (
+        "neuron"
+        if "neuron" in image
+        else "gpu"
+        if "gpu" in image
+        else "eia"
+        if "eia" in image
+        else "cpu"
+    )
     py_version = re.search(r"py\d+", tag).group()
     sm_local_py_version = "37" if py_version == "py37" else "38" if py_version == "py38" else "2" if py_version == "py27" else "3"
     if framework == "tensorflow" and job_type == "inference":
