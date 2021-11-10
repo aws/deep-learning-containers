@@ -34,9 +34,12 @@ def test_awscli(mxnet_inference):
 def test_utility_packages_using_import(training):
     """
     Verify that utility packages are installed in the Training DLC image
-
     :param training: training ECR image URI
     """
+    #TODO: revert once habana is supported on SM
+    if "hpu" in training:
+        pytest.skip("Skipping test for Habana images as SM is not yet supported")
+
     ctx = Context()
     container_name = test_utils.get_container_name("utility_packages_using_import", training)
     test_utils.start_container(container_name, training, ctx)
