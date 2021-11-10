@@ -17,18 +17,16 @@ context:
     torchserve-sagemaker-entrypoint:
       source: docker/build_artifacts/torchserve-entrypoint.py
       target: torchserve-entrypoint.py
+    torchserve-e3-entrypoint:
+      source: docker/build_artifacts/torchserve-e3-entrypoint.py
+      target: torchserve-e3-entrypoint.py
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
     config-sagemaker:
       source: docker/build_artifacts/config.properties
       target: config.properties
-    torchserve-e3-entrypoint:
-      source: docker/build_artifacts/torchserve-e3-entrypoint.sh
-      target: torchserve-e3-entrypoint.sh
-    config-e3:
-      source: docker/build_artifacts/config.e3.properties
-      target: config.e3.properties
+
 
 images:
   BuildE3PytorchGravitonCPUInferencePy3DockerImage:

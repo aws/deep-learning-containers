@@ -130,8 +130,8 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
-COPY torchserve-e3-entrypoint.sh /usr/local/bin/dockerd-entrypoint.sh
-COPY config.e3.properties /home/model-server/config.properties
+COPY torchserve-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY config.properties /home/model-server/config.properties
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
 
@@ -150,6 +150,6 @@ RUN HOME_DIR=/root \
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt -o /license.txt
 
-EXPOSE 8080 8081 8082 7070 7071
-ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh"]
+EXPOSE 8080 8081
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.sh"]
 CMD ["serve"]
