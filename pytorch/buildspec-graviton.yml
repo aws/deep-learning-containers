@@ -20,7 +20,7 @@ context:
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
-    config-sagemaker:
+    config:
       source: docker/build_artifacts/config.properties
       target: config.properties
 
