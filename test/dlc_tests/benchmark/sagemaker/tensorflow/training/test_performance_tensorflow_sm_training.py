@@ -15,7 +15,10 @@ from src.benchmark_metrics import (
     get_threshold_for_image,
 )
 from test.test_utils import (
-    BENCHMARK_RESULTS_S3_BUCKET, LOGGER, get_framework_and_version_from_tag, get_cuda_version_from_tag,
+    BENCHMARK_RESULTS_S3_BUCKET,
+    LOGGER,
+    get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
 )
 
 
@@ -63,11 +66,15 @@ def run_sm_perf_test(image_uri, num_nodes, region):
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S")
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
     target_upload_location = os.path.join(
-        BENCHMARK_RESULTS_S3_BUCKET, "tensorflow", framework_version, "sagemaker", "training", device_cuda_str, py_version
+        BENCHMARK_RESULTS_S3_BUCKET,
+        "tensorflow",
+        framework_version,
+        "sagemaker",
+        "training",
+        device_cuda_str,
+        py_version,
     )
-    training_job_name = (
-        f"tf{framework_version[0]}-tr-bench-{device_cuda_str}-{num_nodes}-node-{py_version}-{commit_info[:7]}-{time_str}"
-    )
+    training_job_name = f"tf{framework_version[0]}-tr-bench-{device_cuda_str}-{num_nodes}-node-{py_version}-{commit_info[:7]}-{time_str}"
 
     # Inserting random sleep because this test starts multiple training jobs around the same time, resulting in
     # a throttling error for SageMaker APIs.
@@ -133,7 +140,7 @@ def _print_results_of_test(file_path, processor):
     result = ""
     throughput = 0
     if processor == "cpu":
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             lines = f.readlines()
             for line in lines:
                 if "Total img/sec on " in line:
@@ -144,7 +151,7 @@ def _print_results_of_test(file_path, processor):
     elif processor == "gpu":
         """calculate average throughput"""
         result_list, throughput_list = [], []
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             lines = f.readlines()
             for line in lines:
                 if "images/sec: " in line:
@@ -153,12 +160,12 @@ def _print_results_of_test(file_path, processor):
                         re.search(r"(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput")
                     )
                     throughput_list.append(throughput)
-        result = "\n".join(result_list[-100:])+ "\n"
+        result = "\n".join(result_list[-100:]) + "\n"
         if len(throughput_list) == 0:
             raise Exception(
                 "Cannot find throughput lines. Looks like SageMaker job was not run successfully. Please check"
             )
         # Take average of last 100 throughput lines
-        throughput = sum(throughput_list[-100:])/len(throughput_list[-100:])
+        throughput = sum(throughput_list[-100:]) / len(throughput_list[-100:])
     LOGGER.info(result)
     return result, throughput
