@@ -12,7 +12,7 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os
+import os, subprocess, tarfile
 
 import pytest
 import sagemaker.huggingface
@@ -193,11 +193,21 @@ class TestSingleNodeSingleGPU:
                 max_retry_attempts=15,
             )
             estimator.fit(job_name=sagemaker.utils.unique_name_from_base('hf-pt-trcomp-single-gpu-debug'), logs=True)
+
         captured = capsys.readouterr()
         logs = captured.out+captured.err
         assert "Found configuration for Training Compiler" in logs
         assert "Training Compiler set to debug mode" in logs
         assert "Configuring SM Training Compiler" in logs
         assert "Using XLA device" in logs
+
+        debug_artifact_path=estimator.model_data.replace('model.tar.gz','output.tar.gz')
+        debug_artifact=os.path.join(tmpdir, 'output.tar.gz')
+        subprocess.check_output(['aws', 's3', 'cp', debug_artifact_path, debug_artifact])
+        with tarfile.open(debug_artifact, 'r:gz') as tarball:
+            tarball.extractall(path=tmpdir)
+        xla_metrics_file = os.path.join(tmpdir, 'compiler', 'XLA_METRICS_FILE.txt')
+        assert os.path.exists(xla_metrics_file)
+
 
 
