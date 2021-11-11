@@ -11,9 +11,8 @@ import test.test_utils as test_utils
 
 
 @pytest.mark.model("resnet50")
-def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
-    if "eia" in mxnet_inference or "neuron" not in mxnet_inference:
-        pytest.skip("Skipping EKS Neuron Test for EIA and Non Neuron Images")
+def test_eks_mxnet_neuron_inference(mxnet_inference_neuron):
+    
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
@@ -28,7 +27,7 @@ def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference,
+        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference_neuron,
         "<SERVER_CMD>": server_cmd,
     }
 
@@ -54,13 +53,21 @@ def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
 
 @pytest.mark.model("squeezenet")
 def test_eks_mxnet_squeezenet_inference(mxnet_inference):
-    if "eia" in mxnet_inference or "neuron" in mxnet_inference:
-        pytest.skip("Skipping EKS Test for EIA and neuron images")
+    __test_eks_mxnet_squeezenet_inference(mxnet_inference)
+
+
+@pytest.mark.model("squeezenet")
+def test_eks_mxnet_squeezenet_inference_graviton(mxnet_inference_graviton):
+    __test_eks_mxnet_squeezenet_inference(mxnet_inference_graviton)
+
+
+def __test_eks_mxnet_squeezenet_inference(mxnet_inference):
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
 
     processor = "gpu" if "gpu" in mxnet_inference else "cpu"
+    test_type = test_utils.get_eks_k8s_test_type_label(mxnet_inference)
 
     model = "squeezenet=https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model"
     yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_{processor}_inference_{rand_int}.yaml")
@@ -72,6 +79,7 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
         "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference,
+        "<TEST_TYPE>": test_type,
     }
 
     if processor == "gpu":
@@ -101,8 +109,19 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("bert_sst")
 def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
-    if "eia" in mxnet_inference:
-        pytest.skip("Skipping EKS Test for EIA")
+    __test_eks_mxnet_gluonnlp_inference(mxnet_inference)
+
+
+@pytest.mark.skip(
+    "Flaky test. Same test passes on EC2. Fails for gpu-inference for mx1.7. Refer: https://github.com/aws/deep-learning-containers/issues/587"
+)
+@pytest.mark.integration("gluonnlp")
+@pytest.mark.model("bert_sst")
+def test_eks_mxnet_gluonnlp_inference_graviton(mxnet_inference_graviton):
+    __test_eks_mxnet_gluonnlp_inference(mxnet_inference_graviton)
+
+
+def __test_eks_mxnet_gluonnlp_inference(mxnet_inference):
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)

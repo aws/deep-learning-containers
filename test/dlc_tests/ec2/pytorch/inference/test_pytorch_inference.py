@@ -30,7 +30,7 @@ PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_p
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INSTANCE_TYPE, indirect=True)
-def test_ec2_pytorch_inference_neuron(pytorch_inference_neuron, ec2_connection, region, neuron_only):
+def test_ec2_pytorch_inference_neuron(pytorch_inference_neuron, ec2_connection, region):
     ec2_pytorch_inference(pytorch_inference_neuron, "neuron", ec2_connection, region)
 
 
@@ -50,15 +50,16 @@ def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cp
 
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
-def test_ec2_pytorch_inference_graviton_cpu(pytorch_inference, ec2_connection, region, graviton_only):
-    ec2_pytorch_inference(pytorch_inference, "graviton", ec2_connection, region)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AML2_CPU_ARM64_US_WEST_2], indirect=True)
+def test_ec2_pytorch_inference_graviton_cpu(pytorch_inference_graviton, ec2_connection, region):
+    ec2_pytorch_inference(pytorch_inference_graviton, "graviton", ec2_connection, region)
 
 
 @pytest.mark.integration("elastic_inference")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", PT_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
-def test_ec2_pytorch_inference_eia_cpu(pytorch_inference_eia, ec2_connection, region, eia_only, pt14_and_above_only):
+def test_ec2_pytorch_inference_eia_cpu(pytorch_inference_eia, ec2_connection, region, pt14_and_above_only):
     ec2_pytorch_inference(pytorch_inference_eia, "eia", ec2_connection, region)
 
 
@@ -66,7 +67,7 @@ def test_ec2_pytorch_inference_eia_cpu(pytorch_inference_eia, ec2_connection, re
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_EIA_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", PT_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
-def test_ec2_pytorch_inference_eia_gpu(pytorch_inference_eia, ec2_connection, region, eia_only, pt14_and_above_only):
+def test_ec2_pytorch_inference_eia_gpu(pytorch_inference_eia, ec2_connection, region, pt14_and_above_only):
     ec2_pytorch_inference(pytorch_inference_eia, "eia", ec2_connection, region)
 
 
@@ -140,6 +141,6 @@ def test_pytorch_inference_telemetry_cpu(pytorch_inference, ec2_connection, cpu_
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
-def test_pytorch_inference_telemetry_graviton_cpu(pytorch_inference, ec2_connection, graviton_only):
-    execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TELEMETRY_CMD)
+def test_pytorch_inference_telemetry_graviton_cpu(pytorch_inference_graviton, ec2_connection):
+    execute_ec2_inference_test(ec2_connection, pytorch_inference_graviton, PT_TELEMETRY_CMD)
 

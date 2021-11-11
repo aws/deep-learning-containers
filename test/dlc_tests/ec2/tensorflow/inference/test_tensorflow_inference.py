@@ -21,13 +21,14 @@ TF_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_instance_type(default="inf1.xlarge", pr
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
 )
+TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", processor="graviton")
 
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURON_ACCELERATOR_TYPE, indirect=True)
 #FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
-def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, ec2_instance_ami, region, neuron_only):
+def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, ec2_instance_ami, region):
     run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, ec2_instance_ami, "8500", region)
 
 
@@ -49,7 +50,7 @@ def test_ec2_tensorflow_inference_cpu(tensorflow_inference, ec2_connection, ec2_
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", TF_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_eia_cpu(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, region, eia_only):
+def test_ec2_tensorflow_inference_eia_cpu(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, region):
     run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, "8500", region)
 
 
@@ -57,7 +58,7 @@ def test_ec2_tensorflow_inference_eia_cpu(tensorflow_inference_eia, ec2_connecti
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", TF_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, region, eia_only, ec2_instance_type):
+def test_ec2_tensorflow_inference_eia_gpu(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, region, ec2_instance_type):
     if ec2_instance_type == "p4d.24xlarge":
         pytest.skip(f"Skipping EIA GPU test for {ec2_instance_type} instance type. See https://github.com/aws/deep-learning-containers/issues/962")
     run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, ec2_instance_ami, "8500", region)
@@ -81,6 +82,19 @@ def test_ec2_tensorflow_inference_cpu_telemetry(tensorflow_inference, ec2_connec
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, ec2_instance_ami, "8500", region, True)
 
 
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
+def test_ec2_tensorflow_inference_graviton(tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, region):
+    run_ec2_tensorflow_inference(tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, "8500", region)
+
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
+def test_ec2_tensorflow_inference_graviton_telemetry(tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, region):
+    run_ec2_tensorflow_inference(tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, "8500", region, True)
+    
+
 def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, grpc_port, region, telemetry_mode=False):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
@@ -95,6 +109,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
     )
 
     is_neuron = "neuron" in image_uri
+    is_graviton = "graviton" in image_uri
 
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     if is_neuron:
@@ -123,7 +138,7 @@ def run_ec2_tensorflow_inference(image_uri, ec2_connection, ec2_instance_ami, gr
         )
     try:
         host_setup_for_tensorflow_inference(
-            serving_folder_path, framework_version, ec2_connection, is_neuron, model_name, python_invoker
+            serving_folder_path, framework_version, ec2_connection, is_neuron, is_graviton, model_name, python_invoker
         )
         sleep(2)
         if not is_neuron:
@@ -159,14 +174,28 @@ def train_mnist_model(serving_folder_path, ec2_connection, python_invoker):
     )
 
 
-def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection, is_neuron, model_name, python_invoker):
+def host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection, is_neuron, is_graviton, model_name, python_invoker):
     # Tensorflow 1.x doesn't have package with version 1.15.2 so use only 1.15
-    ec2_connection.run(
-        (
-            f"{python_invoker} -m pip install --user -qq -U 'tensorflow<={framework_version}' "
-            f" 'tensorflow-serving-api<={framework_version}' "
-        ), hide=True
-    )
+    if is_graviton:
+        # TF training binary is used that is compatible for graviton instance type
+        TF_URL="https://aws-dlc-graviton-training-binaries.s3.us-west-2.amazonaws.com/tensorflow/2.6.0/tensorflow-2.6.0-cp38-cp38-linux_aarch64.whl"
+        ec2_connection.run(
+            (
+                f"{python_invoker} -m pip install --no-cache-dir -U {TF_URL}"
+            ), hide=True
+        )
+        ec2_connection.run(
+            (
+                f"{python_invoker} -m pip install --no-dependencies --no-cache-dir tensorflow-serving-api=={framework_version}"
+            ), hide=True
+        )
+    else: 
+        ec2_connection.run(
+            (
+                f"{python_invoker} -m pip install --user -qq -U 'tensorflow<={framework_version}' "
+                f" 'tensorflow-serving-api<={framework_version}' "
+            ), hide=True
+        )
     if os.path.exists(f"{serving_folder_path}"):
         ec2_connection.run(f"rm -rf {serving_folder_path}")
     if str(framework_version).startswith(TENSORFLOW1_VERSION):
