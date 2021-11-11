@@ -87,7 +87,7 @@ def test_ec2_mxnet_resnet_inferencei_eia_gpu(mxnet_inference_eia, ec2_connection
 @pytest.mark.model(SQUEEZENET_MODEL)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.AML2_CPU_ARM64_US_WEST_2], indirect=True)
-def test_ec2_mxnet_inference_graviton_cpu(mxnet_inference_graviton, ec2_connection, region):
+def test_ec2_mxnet_inference_graviton_cpu(mxnet_inference_graviton, ec2_connection, region, cpu_only):
     run_ec2_mxnet_inference(mxnet_inference_graviton, SQUEEZENET_MODEL, "squeezenet", ec2_connection, "cpu", region, 80, 8081)
 
 
@@ -169,6 +169,6 @@ def test_mxnet_inference_telemetry_cpu(mxnet_inference, ec2_connection, cpu_only
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.AML2_CPU_ARM64_US_WEST_2], indirect=True)
-def test_mxnet_inference_telemetry_graviton_cpu(mxnet_inference_graviton, ec2_connection):
+def test_mxnet_inference_telemetry_graviton_cpu(mxnet_inference_graviton, ec2_connection, cpu_only):
     execute_ec2_inference_test(ec2_connection, mxnet_inference_graviton, MX_TELEMETRY_CMD)
     

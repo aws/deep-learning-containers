@@ -415,6 +415,16 @@ def gpu_only():
 
 
 @pytest.fixture(scope="session")
+def x86_compatible_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def graviton_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def sagemaker():
     pass
 
@@ -719,14 +729,19 @@ def pytest_generate_tests(metafunc):
                         continue
                     if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue
+                    if "x86_compatible_only" in metafunc.fixturenames and "graviton" in image:
+                        continue
                     if is_example_lookup or is_huggingface_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
+                        elif "graviton_only" in metafunc.fixturenames and "graviton" in image:
+                            images_to_parametrize.append(image)
                         elif (
                             "cpu_only" not in metafunc.fixturenames
                             and "gpu_only" not in metafunc.fixturenames
+                            and "graviton_only" not in metafunc.fixturenames
                         ):
                             images_to_parametrize.append(image)
 
