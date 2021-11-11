@@ -77,6 +77,9 @@ RUN ${PIP} install --no-cache-dir \
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
+RUN cd tmp/ \
+ && rm -rf tmp*
+
 RUN curl $TFS_URL -o /usr/bin/tensorflow_model_server \
  && chmod 555 /usr/bin/tensorflow_model_server
 
