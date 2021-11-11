@@ -59,7 +59,7 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
 
     pool_number = len(images)
     with Pool(pool_number) as p:
-        p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_util, pytest_cache_params] for image in images])
+        p.starmap(sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images])
 
 
 def run_sagemaker_test_in_executor(image, num_of_instances, instance_type):
@@ -248,8 +248,8 @@ def main():
     efa_dedicated = os.getenv("EFA_DEDICATED", "False").lower() == "true"
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
-    # Executing locally ona can provide commit_id or may ommit it. Assigning default value for local executions:  
-    commit_id = os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION', default="unrecognised_commit_id")
+    # Executing locally ona can provide commit_id or may ommit it. Assigning default value for local executions:
+    commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", default="unrecognised_commit_id")
     LOGGER.info(f"Images tested: {dlc_images}")
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
