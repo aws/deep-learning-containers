@@ -28,14 +28,12 @@ from test.test_utils import (
     P3DN_REGION,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
-    AML2_CPU_ARM64_US_WEST_2,
-    AML2_CPU_ARM64_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     AML2_GPU_DLAMI_US_WEST_2,
     AML2_GPU_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
-    get_ecr_repo_name
+    get_ecr_repo_name,
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -59,11 +57,13 @@ FRAMEWORK_FIXTURES = (
     "tensorflow_inference_eia",
     "tensorflow_inference_neuron",
     "tensorflow_training_habana",
+    "tensorflow_inference_graviton",
     # MxNET
     "mxnet_training",
     "mxnet_inference",
     "mxnet_inference_eia",
     "mxnet_inference_neuron",
+    "mxnet_inference_graviton",
     # HuggingFace
     "huggingface_tensorflow_training",
     "huggingface_pytorch_training",
@@ -78,8 +78,9 @@ FRAMEWORK_FIXTURES = (
     "cpu",
     "eia",
     "neuron",
-    "graviton",
     "hpu",
+    # Architecture
+    "graviton",
     # Job Type fixtures
     "training",
     "inference",
@@ -213,12 +214,6 @@ def ec2_instance(
                 else UBUNTU_18_BASE_DLAMI_US_EAST_1
             )
 
-    if ec2_instance_type == "c6g.4xlarge":
-        if region == DEFAULT_REGION:
-            ec2_instance_ami = AML2_CPU_ARM64_US_WEST_2
-        else:
-            ec2_instance_ami = AML2_CPU_ARM64_US_EAST_1
-
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
@@ -259,6 +254,8 @@ def ec2_instance(
             and "gpu_only" in request.fixturenames
             and "horovod" in ec2_key_name
         )
+        or ("tensorflow_inference" in request.fixturenames and "graviton_compatible_only" in request.fixturenames)
+        or ("graviton" in request.fixturenames)
     ):
         params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 300,},}]
     else:
@@ -301,6 +298,7 @@ def ec2_instance(
     ec2_utils.check_system_state(instance_id, system_status="ok", instance_status="ok", region=region)
     return instance_id, key_filename
 
+
 def is_neuron_image(fixtures):
     """
     Returns true if a neuron fixture is present in request.fixturenames
@@ -313,6 +311,7 @@ def is_neuron_image(fixtures):
         if fixture in fixtures:
             return True
     return False
+
 
 @pytest.fixture(scope="function")
 def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, region):
@@ -416,17 +415,22 @@ def gpu_only():
 
 
 @pytest.fixture(scope="session")
+def x86_compatible_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def graviton_compatible_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def sagemaker():
     pass
 
 
 @pytest.fixture(scope="session")
 def sagemaker_only():
-    pass
-
-
-@pytest.fixture(scope="session")
-def graviton_only():
     pass
 
 
@@ -562,7 +566,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
-    config.addinivalue_line("markers", "processor(cpu/gpu/eia/hpu/graviton): explicitly mark which processor is used")
+    config.addinivalue_line("markers", "processor(cpu/gpu/eia/hpu): explicitly mark which processor is used")
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
 
@@ -640,7 +644,7 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                 for index, image in enumerate(images_to_parametrize):
 
                     # Tag fixtures with EC2 instance types if env variable is present
-                    allowed_processors = ("gpu", "cpu", "eia", "neuron", "graviton", "hpu")
+                    allowed_processors = ("gpu", "cpu", "eia", "neuron", "hpu")
                     instance_tag = ""
                     for processor in allowed_processors:
                         if processor in image:
@@ -677,7 +681,7 @@ def lookup_condition(lookup, image):
         "training",
         "inference",
     )
-    device_types = ("cpu", "gpu", "eia", "neuron", "hpu")
+    device_types = ("cpu", "gpu", "eia", "neuron", "hpu", "graviton")
 
     if not repo_name.endswith(lookup):
         if (lookup in job_types or lookup in device_types) and lookup in image:
@@ -725,17 +729,19 @@ def pytest_generate_tests(metafunc):
                         continue
                     if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue
+                    if "x86_compatible_only" in metafunc.fixturenames and "graviton" in image:
+                        continue
                     if is_example_lookup or is_huggingface_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
-                        elif "graviton_only" in metafunc.fixturenames and "graviton" in image:
+                        elif "graviton_compatible_only" in metafunc.fixturenames and "graviton" in image:
                             images_to_parametrize.append(image)
                         elif (
                             "cpu_only" not in metafunc.fixturenames
                             and "gpu_only" not in metafunc.fixturenames
-                            and "graviton_only" not in metafunc.fixturenames
+                            and "graviton_compatible_only" not in metafunc.fixturenames
                         ):
                             images_to_parametrize.append(image)
 

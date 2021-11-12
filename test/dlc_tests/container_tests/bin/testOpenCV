@@ -17,8 +17,6 @@ wget -O ${LOG_DIR}/test_img.jpg https://docs.opencv.org/2.4/_images/GCC_CMake_Ex
 
 python ${BIN_DIR}/testOpenCV.py ${LOG_DIR}/test_img.jpg > ${TRAINING_LOG} 
 
-#2>&1
-
 if grep "Successfully test OpenCV" $TRAINING_LOG; then
   echo "Successfully verified OpenCV."
 else
