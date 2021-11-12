@@ -254,7 +254,7 @@ def ec2_instance(
             and "gpu_only" in request.fixturenames
             and "horovod" in ec2_key_name
         )
-        or ("tensorflow_inference" in request.fixturenames and "graviton_only" in request.fixturenames)
+        or ("tensorflow_inference" in request.fixturenames and "graviton_compatible_only" in request.fixturenames)
         or ("graviton" in request.fixturenames)
     ):
         params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 300,},}]
@@ -420,7 +420,7 @@ def x86_compatible_only():
 
 
 @pytest.fixture(scope="session")
-def graviton_only():
+def graviton_compatible_only():
     pass
 
 
@@ -736,12 +736,12 @@ def pytest_generate_tests(metafunc):
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
-                        elif "graviton_only" in metafunc.fixturenames and "graviton" in image:
+                        elif "graviton_compatible_only" in metafunc.fixturenames and "graviton" in image:
                             images_to_parametrize.append(image)
                         elif (
                             "cpu_only" not in metafunc.fixturenames
                             and "gpu_only" not in metafunc.fixturenames
-                            and "graviton_only" not in metafunc.fixturenames
+                            and "graviton_compatible_only" not in metafunc.fixturenames
                         ):
                             images_to_parametrize.append(image)
 

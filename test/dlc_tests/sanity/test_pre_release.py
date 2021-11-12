@@ -469,7 +469,7 @@ def test_dependency_check_neuron(neuron, ec2_connection):
     (is_canary_context() and not is_time_for_canary_safety_scan()),
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
-def test_dependency_check_graviton_cpu(cpu, ec2_connection, graviton_only):
+def test_dependency_check_graviton_cpu(cpu, ec2_connection, graviton_compatible_only):
     _run_dependency_check_test(cpu, ec2_connection)
 
 
