@@ -330,13 +330,13 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.4": ["cpu", "gpu"],
             "2.5": ["cpu", "gpu", "neuron"],
             "2.6": ["cpu", "gpu"],
-            "2.7": ["cpu", "gpu", "graviton"],
+            "2.7": ["cpu", "gpu"],
         },
-        "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu", "graviton"]},
-        "pytorch": {"1.10": ["graviton"]},
+        "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
+        "pytorch": {"1.10": ["cpu"]},
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"]},
-        "autogluon": {"0.3": ["graviton"]},
+        "autogluon": {"0.3": ["cpu"]},
     }
 
     if processor in allow_openssl_cve_fw_versions.get(framework, {}).get(short_fw_version, []):
@@ -414,7 +414,7 @@ def _run_dependency_check_test(image, ec2_connection):
     (is_canary_context() and not is_time_for_canary_safety_scan()),
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
-def test_dependency_check_cpu(cpu, ec2_connection, cpu_only):
+def test_dependency_check_cpu(cpu, ec2_connection, cpu_only, x86_compatible_only):
     _run_dependency_check_test(cpu, ec2_connection)
 
 
@@ -469,8 +469,8 @@ def test_dependency_check_neuron(neuron, ec2_connection):
     (is_canary_context() and not is_time_for_canary_safety_scan()),
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
-def test_dependency_check_graviton(graviton, ec2_connection):
-    _run_dependency_check_test(graviton, ec2_connection)
+def test_dependency_check_graviton_cpu(cpu, ec2_connection, graviton_compatible_only):
+    _run_dependency_check_test(cpu, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker")
