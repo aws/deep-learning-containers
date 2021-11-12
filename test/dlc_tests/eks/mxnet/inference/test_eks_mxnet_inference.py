@@ -53,6 +53,15 @@ def test_eks_mxnet_neuron_inference(mxnet_inference_neuron):
 
 @pytest.mark.model("squeezenet")
 def test_eks_mxnet_squeezenet_inference(mxnet_inference):
+    __test_eks_mxnet_squeezenet_inference(mxnet_inference)
+
+
+@pytest.mark.model("squeezenet")
+def test_eks_mxnet_squeezenet_inference_graviton(mxnet_inference_graviton):
+    __test_eks_mxnet_squeezenet_inference(mxnet_inference_graviton)
+
+
+def __test_eks_mxnet_squeezenet_inference(mxnet_inference):
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
@@ -100,6 +109,19 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("bert_sst")
 def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
+    __test_eks_mxnet_gluonnlp_inference(mxnet_inference)
+
+
+@pytest.mark.skip(
+    "Flaky test. Same test passes on EC2. Fails for gpu-inference for mx1.7. Refer: https://github.com/aws/deep-learning-containers/issues/587"
+)
+@pytest.mark.integration("gluonnlp")
+@pytest.mark.model("bert_sst")
+def test_eks_mxnet_gluonnlp_inference_graviton(mxnet_inference_graviton):
+    __test_eks_mxnet_gluonnlp_inference(mxnet_inference_graviton)
+
+
+def __test_eks_mxnet_gluonnlp_inference(mxnet_inference):
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
