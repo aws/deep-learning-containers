@@ -1260,7 +1260,7 @@ def get_processor_from_image_uri(image_uri):
     :param image_uri: ECR image URI
     :return: cpu, gpu, eia, neuron or hpu
     """
-    allowed_processors = ["eia", "neuron", "graviton", "cpu", "gpu", "hpu"]
+    allowed_processors = ["eia", "neuron", "cpu", "gpu", "hpu"]
 
     for processor in allowed_processors:
         match = re.search(rf"-({processor})", image_uri)
