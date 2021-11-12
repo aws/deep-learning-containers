@@ -133,7 +133,6 @@ RUN ${PIP} install --no-cache-dir -U \
     requests==2.24.0 \
     "awscli<2" \
     mpi4py==3.0.3 \
-
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
@@ -141,7 +140,8 @@ RUN ${PIP} install --no-cache-dir -U \
     tensorflow-io==0.22.0 \ 
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
-    horovod==0.23.0 \ 
+    horovod==0.23.0 \
+    "opencv-python>=4.3,<5" \
     "werkzeug>=2.0.2,<3" \
     psutil==5.7.2
 

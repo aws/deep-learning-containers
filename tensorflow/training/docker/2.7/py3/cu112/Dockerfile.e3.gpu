@@ -166,8 +166,6 @@ RUN apt-get update \
    ffmpeg \
    libsm6 \
    libxext6 \
-   # Install dependent library for OpenCV
-    libgtk2.0-dev \
    && rm -rf /var/lib/apt/lists/* \
    && apt-get clean
 
@@ -207,6 +205,7 @@ RUN ${PIP} install --no-cache-dir -U \
    tensorflow-io==0.22.0 \
    h5py==3.1.0 \
    "absl-py>=0.9,<0.11" \
+   "opencv-python>=4.3,<5" \
    "werkzeug>=2.0.2,<3"
 
 # Install AWS OFI NCCL plug-in

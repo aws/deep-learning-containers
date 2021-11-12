@@ -108,7 +108,6 @@ def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_on
         raise TFTrainingTestFailure(f"TF HVD test failed. Full output:\n{debug_stdout}") from e
 
 
-@pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("opencv")
 @pytest.mark.model("unknown_model")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -118,7 +117,6 @@ def test_tensorflow_opencv_gpu(tensorflow_training, ec2_connection, tf2_only, gp
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_OPENCV_CMD)
 
 
-@pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("opencv")
 @pytest.mark.model("unknown_model")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
