@@ -586,7 +586,7 @@ release_images:
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
                             # has already been published. Re-released image will have minor version incremented by 1.
   44:
-    framework: "huggingface_pytorch"
+    framework: "huggingface_pytorch_trcomp"
     version: "1.9.0"
     hf_transformers: "4.11.0"
     training:
@@ -598,7 +598,7 @@ release_images:
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
   45:
-    framework: "huggingface_tensorflow"
+    framework: "huggingface_tensorflow_trcomp"
     version: "2.5.1"
     hf_transformers: "4.11.0"
     training:
