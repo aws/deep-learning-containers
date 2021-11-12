@@ -1,5 +1,6 @@
 import os
 import pytest
+import time
 
 import test.test_utils.ec2 as ec2_utils
 
@@ -168,6 +169,7 @@ def test_mxnet_inference_telemetry_cpu(mxnet_inference, ec2_connection, cpu_only
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AML2_CPU_ARM64_US_WEST_2], indirect=True)
 def test_mxnet_inference_telemetry_graviton_cpu(mxnet_inference_graviton, ec2_connection):
     execute_ec2_inference_test(ec2_connection, mxnet_inference_graviton, MX_TELEMETRY_CMD)
     
