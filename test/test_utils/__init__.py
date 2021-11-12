@@ -10,6 +10,7 @@ import boto3
 import git
 import pytest
 
+import boto3
 from botocore.exceptions import ClientError
 from glob import glob
 from invoke import run
@@ -34,17 +35,23 @@ UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-044971d381e6a1109"
 AML2_GPU_DLAMI_US_WEST_2 = "ami-071cb1e434903a577"
 AML2_GPU_DLAMI_US_EAST_1 = "ami-044264d246686b043"
 AML2_CPU_ARM64_US_WEST_2 = "ami-0bccd90b9db95e2e5"
+UL18_CPU_ARM64_US_WEST_2 = "ami-00bccef9d47441ac9"
 AML2_CPU_ARM64_US_EAST_1 = "ami-01c47f32b27ed7fa0"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-078c2404eecfbe916"
+UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0f051d0c1a667a106"
+UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    UBUNTU_18_HPU_DLAMI_US_WEST_2,
+    UBUNTU_18_HPU_DLAMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    UL18_CPU_ARM64_US_WEST_2
 ]
 
 # ECS images are maintained here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
@@ -52,6 +59,7 @@ ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 ECS_AML2_GRAVITON_CPU_USWEST2 = "ami-0fb32cf53e5ab7686"
 NEURON_AL2_DLAMI = "ami-03c4cdc89eca4dbcb"
+HPU_AL2_DLAMI = "ami-052f4f716a7c7bad7"
 
 # S3 bucket for TensorFlow models
 TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
@@ -59,6 +67,7 @@ TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 DLAMI_PYTHON_MAPPING = {
     UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
     UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7",
+    UL18_CPU_ARM64_US_WEST_2: "/usr/bin/python3.8"
 }
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
@@ -107,7 +116,13 @@ def get_dockerfile_path_for_image(image_uri):
     github_repo_path = os.path.abspath(os.path.curdir).split("test", 1)[0]
 
     framework, framework_version = get_framework_and_version_from_tag(image_uri)
-    framework_path = framework.replace("_", os.path.sep) if "huggingface" in framework else framework
+
+    if "huggingface" in framework:
+        framework_path = framework.replace("_", os.path.sep)
+    elif "habana" in image_uri:
+        framework_path = os.path.join("habana", framework)
+    else:
+        framework_path = framework
 
     job_type = get_job_type_from_image(image_uri)
 
@@ -127,6 +142,7 @@ def get_dockerfile_path_for_image(image_uri):
 
     device_type = get_processor_from_image_uri(image_uri)
     cuda_version = get_cuda_version_from_tag(image_uri)
+    synapseai_version = get_synapseai_version_from_tag(image_uri)
 
     dockerfile_name = get_expected_dockerfile_filename(device_type, image_uri)
 
@@ -136,16 +152,27 @@ def get_dockerfile_path_for_image(image_uri):
         if "example" not in path
     ]
 
-    if device_type in ["gpu"]:
-        if not cuda_version and len(dockerfiles_list) > 1:
-            raise LookupError(
-                f"dockerfiles_list has more than one result, and needs cuda_version to be in image_uri to "
-                f"uniquely identify the right dockerfile:\n"
-                f"{dockerfiles_list}"
-            )
+    if device_type in ["gpu", "hpu"]:
+        if len(dockerfiles_list) > 1:
+            if device_type == "gpu" and not cuda_version:
+                raise LookupError(
+                    f"dockerfiles_list has more than one result, and needs cuda_version to be in image_uri to "
+                    f"uniquely identify the right dockerfile:\n"
+                    f"{dockerfiles_list}"
+                )
+            if device_type == "hpu" and not synapseai_version:
+                raise LookupError(
+                    f"dockerfiles_list has more than one result, and needs synapseai_version to be in image_uri to "
+                    f"uniquely identify the right dockerfile:\n"
+                    f"{dockerfiles_list}"
+                )
         for dockerfile_path in dockerfiles_list:
-            if cuda_version in dockerfile_path:
-                return dockerfile_path
+            if cuda_version:
+                if cuda_version in dockerfile_path:
+                    return dockerfile_path
+            elif synapseai_version:
+                if synapseai_version in dockerfile_path:
+                    return dockerfile_path
         raise LookupError(f"Failed to find a dockerfile path for {cuda_version} in:\n{dockerfiles_list}")
 
     assert len(dockerfiles_list) == 1, f"No unique dockerfile path in:\n{dockerfiles_list}\nfor image: {image_uri}"
@@ -167,6 +194,16 @@ def get_customer_type():
 
 def get_python_invoker(ami_id):
     return DLAMI_PYTHON_MAPPING.get(ami_id, "/usr/bin/python3")
+
+
+def get_ecr_repo_name(image_uri):
+    """
+    Retrieve ECR repository name from image URI
+    :param image_uri: str ECR Image URI
+    :return: str ECR repository name
+    """
+    ecr_repo_name = image_uri.split("/")[-1].split(":")[0]
+    return ecr_repo_name
 
 
 def is_tf_version(required_version, image_uri):
@@ -741,13 +778,7 @@ def get_e3_addon_tags(framework, version):
     fw_map = {
         "tensorflow1": {},
         "tensorflow2": {},
-        "pytorch": {
-            "latest": {
-                "cuda": "cu113",
-                "os": "ubuntu20.04",
-                "major_version": "v1"
-            }
-        },
+        "pytorch": {"latest": {"cuda": "cu113", "os": "ubuntu20.04", "major_version": "v1"}},
         "mxnet": {},
     }
 
@@ -834,10 +865,7 @@ def parse_canary_images(framework, region):
         if customer_type == "e3":
             operating_system, dlc_major_version, cuda = get_e3_addon_tags(framework, fw_version)
         images = {
-            "tensorflow1": {
-                "e3": [],
-                "sagemaker": [],
-            },
+            "tensorflow1": {"e3": [], "sagemaker": [],},
             "tensorflow2": {
                 "e3": [],
                 "sagemaker": [
@@ -1171,6 +1199,21 @@ def get_cuda_version_from_tag(image_uri):
     return cuda_framework_version
 
 
+def get_synapseai_version_from_tag(image_uri):
+    """
+    Return the synapseai version from the image tag.
+    :param image_uri: ECR image URI
+    :return: synapseai version
+    """
+    synapseai_version = None
+
+    synapseai_str = ["synapseai", "hpu"]
+    if all(keyword in image_uri for keyword in synapseai_str):
+        synapseai_version = re.search(r"synapseai(\d+(\.\d+){2})", image_uri).groups()[0]
+
+    return synapseai_version
+
+
 def get_job_type_from_image(image_uri):
     """
     Return the Job type from the image tag.
@@ -1215,9 +1258,9 @@ def get_processor_from_image_uri(image_uri):
     Assumes image uri includes -<processor> in it's tag, where <processor> is one of cpu, gpu or eia.
 
     :param image_uri: ECR image URI
-    :return: cpu, gpu, or eia
+    :return: cpu, gpu, eia, neuron or hpu
     """
-    allowed_processors = ["eia", "neuron", "graviton", "cpu", "gpu"]
+    allowed_processors = ["eia", "neuron", "graviton", "cpu", "gpu", "hpu"]
 
     for processor in allowed_processors:
         match = re.search(rf"-({processor})", image_uri)

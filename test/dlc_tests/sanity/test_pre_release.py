@@ -36,6 +36,7 @@ from test.test_utils import (
     get_python_version_from_image_uri,
     is_tf_version,
     get_processor_from_image_uri,
+    UL18_CPU_ARM64_US_WEST_2
 )
 
 
@@ -149,7 +150,7 @@ def test_framework_version_cpu(image):
         pytest.skip(
             "GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
-    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia)?", image_repo_name):
+    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
         pytest.skip(
             msg="TF inference for CPU/GPU/EIA does not have core tensorflow installed")
 
@@ -329,6 +330,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.4": ["cpu", "gpu"],
             "2.5": ["cpu", "gpu", "neuron"],
             "2.6": ["cpu", "gpu"],
+            "2.7": ["cpu", "gpu", "graviton"],
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu", "graviton"]},
         "pytorch": {"1.10": ["graviton"]},
@@ -436,8 +438,14 @@ def test_dependency_check_gpu(gpu, ec2_connection, gpu_only):
     (is_canary_context() and not is_time_for_canary_safety_scan()),
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
-def test_dependency_check_eia(eia, ec2_connection, eia_only):
+def test_dependency_check_eia(eia, ec2_connection):
     _run_dependency_check_test(eia, ec2_connection)
+
+@pytest.mark.model("N/A")
+@pytest.mark.canary("Run dependency tests regularly on production images")
+@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+def test_dependency_check_hpu(hpu, ec2_connection):
+    _run_dependency_check_test(hpu, ec2_connection, "hpu")
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -448,7 +456,7 @@ def test_dependency_check_eia(eia, ec2_connection, eia_only):
     (is_canary_context() and not is_time_for_canary_safety_scan()),
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
-def test_dependency_check_neuron(neuron, ec2_connection, neuron_only):
+def test_dependency_check_neuron(neuron, ec2_connection):
     _run_dependency_check_test(neuron, ec2_connection)
 
 
@@ -456,11 +464,12 @@ def test_dependency_check_neuron(neuron, ec2_connection, neuron_only):
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL18_CPU_ARM64_US_WEST_2], indirect=True)
 @pytest.mark.skipif(
     (is_canary_context() and not is_time_for_canary_safety_scan()),
     reason="Executing test in canaries pipeline during only a limited period of time.",
 )
-def test_dependency_check_graviton(graviton, ec2_connection, graviton_only):
+def test_dependency_check_graviton(graviton, ec2_connection):
     _run_dependency_check_test(graviton, ec2_connection)
 
 

@@ -17,8 +17,8 @@ def test_ecs_mxnet_inference_cpu(mxnet_inference, ecs_container_instance, region
 @pytest.mark.model("squeezenet")
 @pytest.mark.parametrize("ecs_instance_type", ["c6g.16xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GRAVITON_CPU_USWEST2], indirect=True)
-def test_ecs_mxnet_inference_graviton_cpu(mxnet_inference, ecs_container_instance, region, graviton_only):
-    __test_ecs_mxnet_inference_cpu(mxnet_inference, ecs_container_instance, region)
+def test_ecs_mxnet_inference_graviton_cpu(pytorch_inference_graviton, ecs_container_instance, region):
+    __test_ecs_mxnet_inference_cpu(pytorch_inference_graviton, ecs_container_instance, region)
 
 
 def __test_ecs_mxnet_inference_cpu(mxnet_inference, ecs_container_instance, region):
@@ -43,7 +43,7 @@ def __test_ecs_mxnet_inference_cpu(mxnet_inference, ecs_container_instance, regi
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", ["eia1.large"], indirect=True)
-def test_ecs_mxnet_inference_eia(mxnet_inference_eia, ecs_container_instance, ei_accelerator_type, region, eia_only):
+def test_ecs_mxnet_inference_eia(mxnet_inference_eia, ecs_container_instance, ei_accelerator_type, region):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
 

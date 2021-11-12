@@ -26,8 +26,8 @@ from packaging.version import Version
 from .... import invoke_pytorch_helper_function
 
 
-DGL_DATA_PATH = os.path.join(resources_path, 'dgl-gcn')
-DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, 'gcn.py')
+DGL_DATA_PATH = os.path.join(resources_path, "dgl-gcn")
+DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "gcn.py")
 
 
 @pytest.mark.integration("dgl")
@@ -41,10 +41,10 @@ def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
     if Version(image_framework_version) == Version("1.10"):
         pytest.skip("DGL not yet supported in PyTorch 1.10")
 
-    instance_type = instance_type or 'ml.c4.xlarge'
+    instance_type = instance_type or "ml.c4.xlarge"
     function_args = {
-            'instance_type': instance_type,
-        }
+        "instance_type": instance_type,
+    }
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
 
 
@@ -62,22 +62,22 @@ def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
     if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
         pytest.skip("DGL does not support CUDA 11 for PyTorch 1.6")
 
-    instance_type = instance_type or 'ml.p2.xlarge'
+    instance_type = instance_type or "ml.p2.xlarge"
     function_args = {
-            'instance_type': instance_type,
-        }
+        "instance_type": instance_type,
+    }
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
 
 
-def _test_dgl_training(ecr_image, sagemaker_session, instance_type):
+def _test_dgl_training(sagemaker_session, ecr_image, instance_type):
     dgl = PyTorch(
         entry_point=DGL_SCRIPT_PATH,
-        role='SageMakerRole',
+        role="SageMakerRole",
         instance_count=1,
         instance_type=instance_type,
         sagemaker_session=sagemaker_session,
         image_uri=ecr_image,
     )
     with timeout(minutes=DEFAULT_TIMEOUT):
-        job_name = utils.unique_name_from_base('test-pytorch-dgl-image')
+        job_name = utils.unique_name_from_base("test-pytorch-dgl-image")
         dgl.fit(job_name=job_name)
