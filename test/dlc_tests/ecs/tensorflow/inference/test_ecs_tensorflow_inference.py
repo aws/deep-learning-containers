@@ -8,13 +8,23 @@ from test.test_utils import (
     request_tensorflow_inference_nlp,
     is_nightly_context,
 )
-from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2
+from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2, ECS_AML2_GRAVITON_CPU_USWEST2
 
 
 @pytest.mark.model("half_plus_two")
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 def test_ecs_tensorflow_inference_cpu(tensorflow_inference, ecs_container_instance, region, cpu_only):
+    __ecs_tensorflow_inference_cpu(tensorflow_inference, ecs_container_instance, region)
+
+@pytest.mark.model("half_plus_two")
+@pytest.mark.parametrize("ecs_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_GRAVITON_CPU_USWEST2], indirect=True)
+def test_ecs_tensorflow_inference_graviton_cpu(tensorflow_inference_graviton, ecs_container_instance, region, cpu_only):
+    __ecs_tensorflow_inference_cpu(tensorflow_inference_graviton, ecs_container_instance, region)
+
+
+def __ecs_tensorflow_inference_cpu(tensorflow_inference, ecs_container_instance, region):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
 
@@ -96,6 +106,17 @@ def test_ecs_tensorflow_inference_gpu(tensorflow_inference, ecs_container_instan
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
 def test_ecs_tensorflow_inference_cpu_nlp(tensorflow_inference, ecs_container_instance, region, cpu_only):
+    __ecs_tensorflow_inference_cpu_nlp(tensorflow_inference, ecs_container_instance, region)
+
+#@pytest.mark.skipif(not is_nightly_context(), reason="Running additional model in nightly context only")
+@pytest.mark.model("albert")
+@pytest.mark.parametrize("ecs_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_GRAVITON_CPU_USWEST2], indirect=True)
+def test_ecs_tensorflow_inference_graviton_cpu_nlp(tensorflow_inference_graviton, ecs_container_instance, region, cpu_only):
+    __ecs_tensorflow_inference_cpu_nlp(tensorflow_inference_graviton, ecs_container_instance, region)
+    
+
+def __ecs_tensorflow_inference_cpu_nlp(tensorflow_inference, ecs_container_instance, region):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance
     public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
 
