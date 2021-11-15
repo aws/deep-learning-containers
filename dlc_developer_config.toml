@@ -10,9 +10,6 @@ neuron_mode = false
 # Please only set it to true if you are preparing a GRAVITON related PR
 # Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
 graviton_mode = false
-# Please only set it to True if you are preparing a HABANA related PR
-# Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
-habana_mode = false
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
 benchmark_mode = false
