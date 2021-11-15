@@ -66,6 +66,38 @@ pip_packages:
   - torchvision
   - transformers
   - xgboost
+  - habana-tensorflow
+  - habana-horovod
+  - py-cpuinfo
+  - tensorflow-datasets
+  - tensorflow-metadata
+  - tf-slim
+  - cython
+  - imgaug
+  - cloudpickle
+  - munch
+  - h5py
+  - wrapt
+  - bs4
+  - tensorflow-hub
+  - PyYAML
+  - boto3
+  - filelock
+  - sentencepiece
+  - packaging
+  - lvis
+  - gin-config
+  - mpi4py
+  - absl-py
+  - protobuf
+  - regex
+  - cffi
+  - typing-extensions
+  - setuptools
+  - ninja
+  - mkl
+  - mkl-include
+  - pybind11
 apt_packages:
   - cuda-command-line-tools
   - cuda-cufft
@@ -79,3 +111,8 @@ apt_packages:
   - libnccl
   - libnccl-dev
   - libstdc++
+  - libgcc
+  - emacs
+  - habanalabs-thunk
+  - habanalabs-firmware-tools
+  - habanalabs-graph

@@ -3,15 +3,8 @@ FROM arm64v8/ubuntu:18.04
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-# Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
-# https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
-LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
-# Specify multi-models LABEL to indicate container is capable of loading and serving multiple models concurrently
-# https://docs.aws.amazon.com/sagemaker/latest/dg/build-multi-model-build-container.html
-LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
-
 ARG MMS_VERSION=1.1.2
-ARG MX_URL=https://repo.mxnet.io/dist/python/cpu/mxnet-1.9.0b20210914-py3-none-manylinux2014_aarch64.whl
+ARG MX_URL=https://aws-mx-pypi.s3.us-west-2.amazonaws.com/1.9.0/aws_mx-1.9.0.25-py3-none-manylinux2014_aarch64.whl
 ARG PYTHON=python3
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.8.10
@@ -68,9 +61,9 @@ RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz 
  && ln -s /etc/ssl/certs /usr/local/ssl/certs
 
 # install ArmPL
-run wget https://developer.arm.com/-/media/Files/downloads/hpc/arm-performance-libraries/21-1-0/Ubuntu20.04/arm-performance-libraries_21.1_Ubuntu-20.04_gcc-9.3.tar \
- && tar -xvf arm-performance-libraries_21.1_Ubuntu-20.04_gcc-9.3.tar \
- && arm-performance-libraries_21.1_Ubuntu-20.04_gcc-9.3/arm-performance-libraries_21.1_Ubuntu-20.04.sh -a \
+RUN wget https://developer.arm.com/-/media/Files/downloads/hpc/arm-performance-libraries/21-1-0/Ubuntu18.04/arm-performance-libraries_21.1_Ubuntu-18.04_gcc-9.3.tar \
+ && tar -xvf arm-performance-libraries_21.1_Ubuntu-18.04_gcc-9.3.tar \
+ && arm-performance-libraries_21.1_Ubuntu-18.04_gcc-9.3/arm-performance-libraries_21.1_Ubuntu-18.04.sh -a \
  && export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/arm/armpl_21.1_gcc-9.3/lib/ \
  && ldconfig /opt/arm/armpl_21.1_gcc-9.3/lib/
 
@@ -87,6 +80,8 @@ RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VER
     pip \
     setuptools
 
+RUN rm -rf /tmp/tmp*
+
 WORKDIR /
 
 RUN ${PIP} install --no-cache-dir \
@@ -96,8 +91,7 @@ RUN ${PIP} install --no-cache-dir \
     gluonnlp==0.10.0 \
     gluoncv==0.8.0 \
     multi-model-server==$MMS_VERSION \
-    onnx==1.7.0 \
-    sagemaker-mxnet-inference
+    onnx==1.7.0
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
@@ -108,7 +102,7 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
  && chown -R model-server /home/model-server
 
-COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY mms-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py

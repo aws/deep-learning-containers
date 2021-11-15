@@ -92,13 +92,6 @@ You can pin your version by adding the version tag to your URL as follows:
 |TensorFlow 2.6.0   |training	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.6.0-gpu-py38-cu112-ubuntu20.04	|
 |TensorFlow 2.6.0   |inference	|Yes			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.6.0-cpu-py38-ubuntu20.04		|
 |TensorFlow 2.6.0   |inference	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.6.0-gpu-py38-cu112-ubuntu20.04	|
-|TensorFlow 1.15.5  |training	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:1.15.5-gpu-py37-cu110-ubuntu18.04	|
-|TensorFlow 1.15.5  |training	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:1.15.5-gpu-py37-cu100-ubuntu18.04	|
-|TensorFlow 1.15.5  |training	|Yes			|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:1.15.5-gpu-py36-cu100-ubuntu18.04	|
-|TensorFlow 1.15.5  |inference	|No				|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:1.15.5-gpu-py36-cu100-ubuntu18.04|
-|TensorFlow 1.15.5  |training	|Yes			|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:1.15.5-cpu-py37-ubuntu18.04		|
-|TensorFlow 1.15.5  |training	|Yes			|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:1.15.5-cpu-py36-ubuntu18.04		|
-|TensorFlow 1.15.5  |inference	|No				|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:1.15.5-cpu-py36-ubuntu18.04		|
 |MXNet 1.8.0        |training	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-training:1.8.0-gpu-py37-cu110-ubuntu16.04		|
 |MXNet 1.8.0        |training	|Yes			|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-training:1.8.0-cpu-py37-ubuntu16.04				|
 |MXNet 1.8.0        |inference	|No				|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.8.0-gpu-py37-cu110-ubuntu16.04		|
@@ -180,9 +173,10 @@ Neuron Inference Containers
 
 |Framework                                  |Job Type   |Python Version Options |Example URL                                                                                                |
 |-------------------------------------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-|PyTorch 1.7.1 with Neuron Inference        |inference 	|3.6 (py36) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-neuron:1.7.1-neuron-py36-ubuntu18.04        |
-|TensorFlow 1.15.5 with Neuron Inference    |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-neuron:1.15.5-neuron-py37-ubuntu18.04    |
-|MXNet 1.8.0 with Neuron Inference          |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py37-ubuntu18.04          |
+|PyTorch 1.9.1 with Neuron Inference        |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-neuron:1.9.1-neuron-py37-sdk1.16.1-ubuntu18.04        |
+|TensorFlow 1.15.5 with Neuron Inference    |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-neuron:1.15.5-neuron-py37-sdk1.16.1-ubuntu18.04    |
+|Tensorflow 2.5.1 with Neuron Inference     |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-neuron:2.5.1-neuron-py37-sdk1.16.1-ubuntu18.04     |
+|MXNet 1.8.0 with Neuron Inference          |inference 	|3.7 (py37) 	        |763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py37-sdk1.16.1-ubuntu18.04          |
 
 
 Prior General Framework Container Versions
@@ -198,6 +192,13 @@ Prior General Framework Container Versions
 |TensorFlow 2.4.1   |training	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-gpu-py37-cu110-ubuntu18.04	|
 |TensorFlow 2.4.1   |inference	|Yes			|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.4.1-cpu-py37-ubuntu18.04		|
 |TensorFlow 2.4.1   |inference	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.4.1-gpu-py37-cu110-ubuntu18.04	|
+|TensorFlow 1.15.5  |training	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:1.15.5-gpu-py37-cu110-ubuntu18.04	|
+|TensorFlow 1.15.5  |training	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:1.15.5-gpu-py37-cu100-ubuntu18.04	|
+|TensorFlow 1.15.5  |training	|Yes			|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:1.15.5-gpu-py36-cu100-ubuntu18.04	|
+|TensorFlow 1.15.5  |inference	|No				|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:1.15.5-gpu-py36-cu100-ubuntu18.04|
+|TensorFlow 1.15.5  |training	|Yes			|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:1.15.5-cpu-py37-ubuntu18.04		|
+|TensorFlow 1.15.5  |training	|Yes			|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:1.15.5-cpu-py36-ubuntu18.04		|
+|TensorFlow 1.15.5  |inference	|No				|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:1.15.5-cpu-py36-ubuntu18.04		|
 |PyTorch 1.8.1      |training	|Yes			|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.8.1-gpu-py36-cu111-ubuntu18.04		|
 |PyTorch 1.8.1      |training	|No				|CPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.8.1-cpu-py36-ubuntu18.04			|
 |PyTorch 1.8.1      |inference	|No			|GPU 		| 3.6 (py36)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.8.1-gpu-py36-cu111-ubuntu18.04	|
@@ -287,3 +288,6 @@ Prior Neuron Inference Container Versions
 | Framework 			                    |Job Type 	 |Python Version Options    |Example URL 			                                                                                    |
 |-------------------------------------------|------------|--------------------------|-----------------------------------------------------------------------------------------------------------|
 |PyTorch 1.5.1 with Neuron Inference        |inference 	 |3.6 (py36) 	            |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-neuron:1.5.1-neuron-py36-ubuntu16.04        |
+|PyTorch 1.7.1 with Neuron Inference        |inference       |3.6 (py36)               |763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-neuron:1.7.1-neuron-py36-ubuntu18.04        |
+|TensorFlow 1.15.5 with Neuron Inference    |inference       |3.7 (py37)               |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-neuron:1.15.5-neuron-py37-ubuntu18.04    |
+|MXNet 1.8.0 with Neuron Inference          |inference       |3.7 (py37)               |763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py37-ubuntu18.04          |

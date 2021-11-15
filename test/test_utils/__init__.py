@@ -10,6 +10,7 @@ import boto3
 import git
 import pytest
 
+import boto3
 from botocore.exceptions import ClientError
 from glob import glob
 from invoke import run
@@ -34,17 +35,23 @@ UBUNTU_18_BASE_DLAMI_US_EAST_1 = "ami-044971d381e6a1109"
 AML2_GPU_DLAMI_US_WEST_2 = "ami-071cb1e434903a577"
 AML2_GPU_DLAMI_US_EAST_1 = "ami-044264d246686b043"
 AML2_CPU_ARM64_US_WEST_2 = "ami-0bccd90b9db95e2e5"
+UL18_CPU_ARM64_US_WEST_2 = "ami-00bccef9d47441ac9"
 AML2_CPU_ARM64_US_EAST_1 = "ami-01c47f32b27ed7fa0"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-078c2404eecfbe916"
+UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0f051d0c1a667a106"
+UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    UBUNTU_18_HPU_DLAMI_US_WEST_2,
+    UBUNTU_18_HPU_DLAMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    UL18_CPU_ARM64_US_WEST_2
 ]
 
 # ECS images are maintained here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
@@ -52,10 +59,15 @@ ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
 ECS_AML2_GRAVITON_CPU_USWEST2 = "ami-0fb32cf53e5ab7686"
 NEURON_AL2_DLAMI = "ami-03c4cdc89eca4dbcb"
+HPU_AL2_DLAMI = "ami-052f4f716a7c7bad7"
+
+# S3 bucket for TensorFlow models
+TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
 DLAMI_PYTHON_MAPPING = {
     UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
     UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7",
+    UL18_CPU_ARM64_US_WEST_2: "/usr/bin/python3.8"
 }
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
@@ -104,7 +116,13 @@ def get_dockerfile_path_for_image(image_uri):
     github_repo_path = os.path.abspath(os.path.curdir).split("test", 1)[0]
 
     framework, framework_version = get_framework_and_version_from_tag(image_uri)
-    framework_path = framework.replace("_", os.path.sep) if "huggingface" in framework else framework
+
+    if "huggingface" in framework:
+        framework_path = framework.replace("_", os.path.sep)
+    elif "habana" in image_uri:
+        framework_path = os.path.join("habana", framework)
+    else:
+        framework_path = framework
 
     job_type = get_job_type_from_image(image_uri)
 
@@ -124,6 +142,7 @@ def get_dockerfile_path_for_image(image_uri):
 
     device_type = get_processor_from_image_uri(image_uri)
     cuda_version = get_cuda_version_from_tag(image_uri)
+    synapseai_version = get_synapseai_version_from_tag(image_uri)
 
     dockerfile_name = get_expected_dockerfile_filename(device_type, image_uri)
 
@@ -133,16 +152,27 @@ def get_dockerfile_path_for_image(image_uri):
         if "example" not in path
     ]
 
-    if device_type in ["gpu"]:
-        if not cuda_version and len(dockerfiles_list) > 1:
-            raise LookupError(
-                f"dockerfiles_list has more than one result, and needs cuda_version to be in image_uri to "
-                f"uniquely identify the right dockerfile:\n"
-                f"{dockerfiles_list}"
-            )
+    if device_type in ["gpu", "hpu"]:
+        if len(dockerfiles_list) > 1:
+            if device_type == "gpu" and not cuda_version:
+                raise LookupError(
+                    f"dockerfiles_list has more than one result, and needs cuda_version to be in image_uri to "
+                    f"uniquely identify the right dockerfile:\n"
+                    f"{dockerfiles_list}"
+                )
+            if device_type == "hpu" and not synapseai_version:
+                raise LookupError(
+                    f"dockerfiles_list has more than one result, and needs synapseai_version to be in image_uri to "
+                    f"uniquely identify the right dockerfile:\n"
+                    f"{dockerfiles_list}"
+                )
         for dockerfile_path in dockerfiles_list:
-            if cuda_version in dockerfile_path:
-                return dockerfile_path
+            if cuda_version:
+                if cuda_version in dockerfile_path:
+                    return dockerfile_path
+            elif synapseai_version:
+                if synapseai_version in dockerfile_path:
+                    return dockerfile_path
         raise LookupError(f"Failed to find a dockerfile path for {cuda_version} in:\n{dockerfiles_list}")
 
     assert len(dockerfiles_list) == 1, f"No unique dockerfile path in:\n{dockerfiles_list}\nfor image: {image_uri}"
@@ -164,6 +194,16 @@ def get_customer_type():
 
 def get_python_invoker(ami_id):
     return DLAMI_PYTHON_MAPPING.get(ami_id, "/usr/bin/python3")
+
+
+def get_ecr_repo_name(image_uri):
+    """
+    Retrieve ECR repository name from image URI
+    :param image_uri: str ECR Image URI
+    :return: str ECR repository name
+    """
+    ecr_repo_name = image_uri.split("/")[-1].split(":")[0]
+    return ecr_repo_name
 
 
 def is_tf_version(required_version, image_uri):
@@ -468,7 +508,13 @@ def request_pytorch_inference_densenet(
 
 
 @retry(stop_max_attempt_number=20, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
-def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501", inference_string = "'{\"instances\": [1.0, 2.0, 5.0]}'"):
+def request_tensorflow_inference(
+    model_name,
+    ip_address="127.0.0.1",
+    port="8501",
+    inference_string="'{\"instances\": [1.0, 2.0, 5.0]}'",
+    connection=None,
+):
     """
     Method to run tensorflow inference on half_plus_two model using CURL command
     :param model_name:
@@ -477,7 +523,8 @@ def request_tensorflow_inference(model_name, ip_address="127.0.0.1", port="8501"
     :connection: ec2_connection object to run the commands remotely over ssh
     :return:
     """
-    run_out = run(
+    conn_run = connection.run if connection is not None else run
+    run_out = conn_run(
         f"curl -d {inference_string} -X POST  http://{ip_address}:{port}/v1/models/{model_name}:predict", warn=True
     )
 
@@ -731,13 +778,7 @@ def get_e3_addon_tags(framework, version):
     fw_map = {
         "tensorflow1": {},
         "tensorflow2": {},
-        "pytorch": {
-            "latest": {
-                "cuda": "cu113",
-                "os": "ubuntu20.04",
-                "major_version": "v1"
-            }
-        },
+        "pytorch": {"latest": {"cuda": "cu113", "os": "ubuntu20.04", "major_version": "v1"}},
         "mxnet": {},
     }
 
@@ -824,10 +865,7 @@ def parse_canary_images(framework, region):
         if customer_type == "e3":
             operating_system, dlc_major_version, cuda = get_e3_addon_tags(framework, fw_version)
         images = {
-            "tensorflow1": {
-                "e3": [],
-                "sagemaker": [],
-            },
+            "tensorflow1": {"e3": [], "sagemaker": [],},
             "tensorflow2": {
                 "e3": [],
                 "sagemaker": [
@@ -1026,6 +1064,7 @@ def get_framework_and_version_from_tag(image_uri):
 
     return tested_framework, tag_framework_version
 
+
 # for the time being have this static table. Need to figure out a way to get this from
 # neuron github once their version manifest file is updated to the latest
 # 1.15.2 etc represent the neuron sdk version
@@ -1041,16 +1080,14 @@ NEURON_VERSION_MANIFEST = {
             "1.8.1": "1.8.1.1.5.21.0",
         },
         "tensorflow": {
-            "2.1.4" : "2.1.4.1.6.10.0",
-            "2.2.3" : "2.2.3.1.6.10.0",
+            "2.1.4": "2.1.4.1.6.10.0",
+            "2.2.3": "2.2.3.1.6.10.0",
             "2.3.3": "2.3.3.1.6.10.0",
             "2.4.2": "2.4.2.1.6.10.0",
             "2.4.2": "2.4.2.1.6.10.0",
             "2.5.0": "2.5.0.1.6.10.0",
         },
-        "mxnet" : {
-            "1.8.0": "1.8.0.1.3.4.0",
-        }
+        "mxnet": {"1.8.0": "1.8.0.1.3.4.0",},
     },
     "1.16.0": {
         "pytorch": {
@@ -1064,14 +1101,34 @@ NEURON_VERSION_MANIFEST = {
             "2.2.3": "2.2.3.2.0.3.0",
             "2.3.4": "2.3.4.2.0.3.0",
             "2.4.3": "2.4.3.2.0.3.0",
-            "2.5.1": "2.5.0.2.0.3.0",
-            "1.15.5": "1.15.5.2.0.3.0"
+            "2.5.1": "2.5.1.2.0.3.0",
+            "1.15.5": "1.15.5.2.0.3.0",
         },
         "mxnet" : {
             "1.8.0": "1.8.0.2.0.271.0",
         }
+    },
+    "1.16.1": {
+        "pytorch": {
+            "1.5.1": "1.5.1.2.0.392.0",
+            "1.7.1": "1.7.1.2.0.392.0",
+            "1.8.1": "1.8.1.2.0.392.0",
+            "1.9.1": "1.9.1.2.0.392.0",
+        },
+        "tensorflow": {
+            "2.1.4": "2.1.4.2.0.4.0",
+            "2.2.3": "2.2.3.2.0.4.0",
+            "2.3.4": "2.3.4.2.0.4.0",
+            "2.4.3": "2.4.3.2.0.4.0",
+            "2.5.1": "2.5.1.2.0.4.0",
+            "1.15.5": "1.15.5.2.0.4.0"
+        },
+        "mxnet" : {
+            "1.8.0": "1.8.0.2.0.276.0",
+        }
     }
 }
+
 
 def get_neuron_sdk_version_from_tag(image_uri):
     """
@@ -1085,6 +1142,7 @@ def get_neuron_sdk_version_from_tag(image_uri):
         neuron_sdk_version = re.search(r"sdk([\d\.]+)", image_uri).group(1)
 
     return neuron_sdk_version
+
 
 def get_neuron_framework_and_version_from_tag(image_uri):
     """
@@ -1106,6 +1164,7 @@ def get_neuron_framework_and_version_from_tag(image_uri):
     neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)
 
     return tested_framework, neuron_tag_framework_version
+
 
 def get_framework_from_image_uri(image_uri):
     return (
@@ -1138,6 +1197,21 @@ def get_cuda_version_from_tag(image_uri):
         cuda_framework_version = re.search(r"(cu\d+)-", image_uri).groups()[0]
 
     return cuda_framework_version
+
+
+def get_synapseai_version_from_tag(image_uri):
+    """
+    Return the synapseai version from the image tag.
+    :param image_uri: ECR image URI
+    :return: synapseai version
+    """
+    synapseai_version = None
+
+    synapseai_str = ["synapseai", "hpu"]
+    if all(keyword in image_uri for keyword in synapseai_str):
+        synapseai_version = re.search(r"synapseai(\d+(\.\d+){2})", image_uri).groups()[0]
+
+    return synapseai_version
 
 
 def get_job_type_from_image(image_uri):
@@ -1184,9 +1258,9 @@ def get_processor_from_image_uri(image_uri):
     Assumes image uri includes -<processor> in it's tag, where <processor> is one of cpu, gpu or eia.
 
     :param image_uri: ECR image URI
-    :return: cpu, gpu, or eia
+    :return: cpu, gpu, eia, neuron or hpu
     """
-    allowed_processors = ["eia", "neuron", "graviton", "cpu", "gpu"]
+    allowed_processors = ["eia", "neuron", "cpu", "gpu", "hpu"]
 
     for processor in allowed_processors:
         match = re.search(rf"-({processor})", image_uri)
@@ -1218,6 +1292,7 @@ def get_container_name(prefix, image_uri):
     """
     return f"{prefix}-{image_uri.split('/')[-1].replace('.', '-').replace(':', '-')}"
 
+
 def stop_and_remove_container(container_name, context):
     """
     Helper function to stop a container locally
@@ -1227,6 +1302,7 @@ def stop_and_remove_container(container_name, context):
     context.run(
         f"docker rm -f {container_name}", hide=True,
     )
+
 
 def start_container(container_name, image_uri, context):
     """
@@ -1255,3 +1331,57 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
     return context.run(
         f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
     )
+
+
+def get_tensorflow_model_base_path(image_uri):
+    """
+    Retrieve model base path based on version of TensorFlow
+    Requirement: Model defined in TENSORFLOW_MODELS_PATH should be hosted in S3 location for TF version less than 2.6. 
+                 Starting TF2.7, the models are referred locally as the support for S3 is moved to a separate python package `tensorflow-io`
+    :param image_uri: ECR image URI
+    :return: <string> model base path
+    """
+    if is_below_framework_version("2.7", image_uri, "tensorflow"):
+        model_base_path = TENSORFLOW_MODELS_BUCKET
+    else:
+        model_base_path = f"/tensorflow_model/"
+    return model_base_path
+
+
+def build_tensorflow_inference_command_tf27_and_above(model_name):
+    """
+    Construct the command to download tensorflow model from S3 and start tensorflow model server
+    :param model_name: 
+    :return: <list> command to send to the container
+    """
+    inference_command = f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tf_serving_entrypoint.sh"
+    return inference_command
+
+
+def get_tensorflow_inference_environment_variables(model_name, model_base_path):
+    """
+    Get method for environment variables for tensorflow inference for EC2 and ECS
+    :param model_name:
+    :return: <list> JSON
+    """
+    tensorflow_inference_environment_variables = [
+        {"name": "MODEL_NAME", "value": model_name},
+        {"name": "MODEL_BASE_PATH", "value": model_base_path},
+    ]
+
+    return tensorflow_inference_environment_variables
+
+
+def get_eks_k8s_test_type_label(image_uri):
+    """
+    Get node label required for k8s job to be scheduled on compatible EKS node
+    :param image_uri: ECR image URI
+    :return: <string> node label
+    """
+    if "graviton" in image_uri:
+        test_type = "graviton"
+    elif "neuron" in image_uri:
+        test_type = "neuron"
+    else:
+        test_type = "gpu"
+    return test_type
