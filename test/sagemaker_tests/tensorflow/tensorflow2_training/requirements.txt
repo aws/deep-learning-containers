@@ -1,6 +1,6 @@
 boto3
 awscli
-sagemaker>=2,<3
+sagemaker.tar.gz
 smdebug>=1
 sagemaker-experiments
 numpy
