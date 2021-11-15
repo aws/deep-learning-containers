@@ -6,7 +6,7 @@ LOG_DIR=${HOME_DIR}/logs
 
 # Use this to conditionally check TF version
 pip install packaging
-if [[ $(python -c "import tensorflow as tf; from packaging.version import Version; is_tf27_or_greater = Version(tf.__version__) >= Version('2.7'); print(is_tf27_or_greater)") == 'True']]; then
+if [[ $(python -c "import tensorflow as tf; from packaging.version import Version; is_tf27_or_greater = Version(tf.__version__) >= Version('2.7'); print(is_tf27_or_greater)") == 'True' ]]; then
     PROFILER_LOG_DIR="/logs/plugins/profile"
 else
     PROFILER_LOG_DIR="/logs/train/plugins/profile"
