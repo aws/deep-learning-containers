@@ -7,7 +7,6 @@ ARG PYTHON=python3.8
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.8.10
-#TODO: replace binary
 ARG TFS_URL=https://aws-ei-tensorflow-binaries.s3.us-west-2.amazonaws.com/serving/r2.7_aws/20211108-154512/graviton/cpu/py38/tensorflow_model_server
 
 # See http://bugs.python.org/issue19846
@@ -21,7 +20,6 @@ ENV MODEL_BASE_PATH=/models
 ENV MODEL_NAME=model
 ENV DEBIAN_FRONTEND=noninteractive
 
-# nginx + njs
 RUN apt-get update \
  && apt-get -y install --no-install-recommends \
     curl \
@@ -46,12 +44,6 @@ RUN apt-get update \
     tk-dev \
     libgdbm-dev \
     libc6-dev \
- && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
- && echo 'deb http://nginx.org/packages/ubuntu/ focal nginx' >> /etc/apt/sources.list \
- && apt-get update \
- && apt-get -y install --no-install-recommends \
-    nginx \
-    nginx-module-njs \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -117,7 +109,6 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-#add license for TF2.7
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.7/license.txt -o /license.txt
 
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
