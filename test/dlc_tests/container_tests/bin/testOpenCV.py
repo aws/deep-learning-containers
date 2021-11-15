@@ -6,6 +6,7 @@ import sys
 
 def test_transformation(img):
     print("Path of the image: ", img)
+    print('CVtest: load the image')
     img = cv2.imread(img, cv2.IMREAD_UNCHANGED)
     print('Original Dimensions: ', img.shape)
 
@@ -24,5 +25,4 @@ def test_transformation(img):
 
 
 if __name__ == '__main__':
-    print('CVtest: load the image')
     test_transformation(sys.argv[1])
