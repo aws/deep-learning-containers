@@ -16,10 +16,10 @@ BIN_DIR=${HOME_DIR}/bin
 python ${BIN_DIR}/testTensorBoard.py || exit 1
 
 # profiler: tf > 2.* and < 2.2 generates local.trace where as tf > 2.2 generates *.pb
-if [[ $(python -c 'import tensorflow as tf; print(tf.__version__)') < 2.2 ]]; then
-    LOG_RESULT=$(find $PROFILER_LOG_DIR -name "local.trace")
+if [[ $(python -c "import tensorflow as tf; from packaging.version import Version; is_less_than_tf22 = Version(tf.__version__) < Version('2.2'); print(is_less_than_tf22)") == 'True' ]]; then
+    LOG_RESULT=$(find $LOG_DIR -name "local.trace")
 else
-    LOG_RESULT=$(find $PROFILER_LOG_DIR -name "*.pb")
+    LOG_RESULT=$(find $LOG_DIR -name "*.pb")
 fi
 
 echo "Checking the logs result: $LOG_RESULT"
