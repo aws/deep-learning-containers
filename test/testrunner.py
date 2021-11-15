@@ -256,7 +256,7 @@ def main():
     # Do not create EKS cluster for when EIA Only Images are present
     is_all_images_list_eia = all("eia" in image_uri for image_uri in all_image_list)
     eks_cluster_name = None
-    benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
+    is_benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     build_context = get_build_context()
 
@@ -279,14 +279,14 @@ def main():
     if specific_test_type == "sagemaker" and is_rc_test_context() and is_pr_context():
         specific_test_type = "release_candidate_integration"
 
-    test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
+    test_path = os.path.join("benchmark", specific_test_type) if is_benchmark_mode else specific_test_type
 
     # Skipping non HuggingFace/AG specific tests to execute only sagemaker tests
     is_hf_image_present = any("huggingface" in image_uri for image_uri in all_image_list)
     is_ag_image_present = any("autogluon" in image_uri for image_uri in all_image_list)
     is_trcomp_image_present = any(("hopper" in image_uri or "trcomp" in image_uri) for image_uri in all_image_list)
     if ((is_hf_image_present or is_ag_image_present) and specific_test_type in ("ecs", "ec2", "eks", "bai")) \
-            or (is_trcomp_image_present and specific_test_type in ("ecs", "eks", "bai")):
+            or (is_trcomp_image_present and (specific_test_type in ("ecs", "eks", "bai") or is_benchmark_mode)):
         # Creating an empty file for because codebuild job fails without it
         LOGGER.info(f"NOTE: {specific_test_type} tests not supported on HF or AG. Skipping...")
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
@@ -369,7 +369,7 @@ def main():
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
     elif specific_test_type == "sagemaker":
-        if benchmark_mode:
+        if is_benchmark_mode:
             if "neuron" in dlc_images:
                 LOGGER.info(f"Skipping benchmark sm tests for Neuron. Images: {dlc_images}")
                 # Creating an empty file for because codebuild job fails without it

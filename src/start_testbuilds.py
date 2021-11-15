@@ -108,11 +108,11 @@ def is_test_job_implemented_for_framework(images_str, test_type):
         LOGGER.debug(f"Skipping {test_type} test")
         return False
         # SM Training Compiler has EC2 tests implemented so don't skip
-    if is_trcomp_image and test_type in [
+    if is_trcomp_image and (test_type in [
         constants.ECS_TESTS,
         constants.EKS_TESTS,
-    ]:
-        LOGGER.debug(f"Skipping {test_type} test")
+    ] or config.is_benchmark_mode_enabled()):
+        LOGGER.debug(f"Skipping benchmark tests for trcomp containers")
         return False
     return True
 
