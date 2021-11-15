@@ -23,7 +23,7 @@ RUN ${PIP} install --no-cache-dir -U \
     pandas==1.2.5 \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
-    "sagemaker-tensorflow>=2.6,<2.7" \
+    "sagemaker-tensorflow>=2.7,<2.8" \
     "sagemaker-tensorflow-training>=20" \
     smdebug==${SMDEBUG_VERSION} \
     smclarify
