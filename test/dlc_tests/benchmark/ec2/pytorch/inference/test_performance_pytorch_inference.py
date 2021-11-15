@@ -6,7 +6,7 @@ from src.benchmark_metrics import (
     PYTORCH_INFERENCE_CPU_THRESHOLD,
     get_threshold_for_image,
 )
-from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag
+from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, AML2_CPU_ARM64_US_WEST_2
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
     post_process_inference,
@@ -25,12 +25,7 @@ def test_performance_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection
     _, framework_version = get_framework_and_version_from_tag(pytorch_inference)
     threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_GPU_THRESHOLD)
     ec2_performance_pytorch_inference(
-        pytorch_inference,
-        "gpu",
-        ec2_connection,
-        region,
-        PT_PERFORMANCE_INFERENCE_GPU_CMD,
-        threshold,
+        pytorch_inference, "gpu", ec2_connection, region, PT_PERFORMANCE_INFERENCE_GPU_CMD, threshold,
     )
 
 
@@ -40,12 +35,18 @@ def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection
     _, framework_version = get_framework_and_version_from_tag(pytorch_inference)
     threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_CPU_THRESHOLD)
     ec2_performance_pytorch_inference(
-        pytorch_inference,
-        "cpu",
-        ec2_connection,
-        region,
-        PT_PERFORMANCE_INFERENCE_CPU_CMD,
-        threshold,
+        pytorch_inference, "cpu", ec2_connection, region, PT_PERFORMANCE_INFERENCE_CPU_CMD, threshold,
+    )
+
+
+@pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [AML2_CPU_ARM64_US_WEST_2], indirect=True)
+def test_performance_ec2_pytorch_inference_graviton_cpu(pytorch_inference_graviton, ec2_connection, region, cpu_only):
+    _, framework_version = get_framework_and_version_from_tag(pytorch_inference_graviton)
+    threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_CPU_THRESHOLD)
+    ec2_performance_pytorch_inference(
+        pytorch_inference_graviton, "cpu", ec2_connection, region, PT_PERFORMANCE_INFERENCE_CPU_CMD, threshold,
     )
 
 
