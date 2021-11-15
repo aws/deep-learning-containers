@@ -84,7 +84,8 @@ images:
       /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-  # TODO: Uncomment when Inference images will be released
+  # TODO: Inference images for tf2.6.2 have not been updated. While releasing tf2.6.2
+  # uncomment the section below.
   # BuildTensorflowCPUInferencePy3DockerImage:
   #   <<: *INFERENCE_REPOSITORY
   #   build: &TENSORFLOW_CPU_INFERENCE_PY3 false
