@@ -31,7 +31,7 @@ ARG PIP=pip3
 # disable prompts during package installation
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.6_aws/20210816_235124/cpu/py38/tensorflow_cpu-2.6.0-cp38-cp38-manylinux2010_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.6_aws/cpu/tensorflow-2.6.2-cp38-cp38-manylinux2010_x86_64.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
@@ -160,7 +160,7 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    tensorflow-io \
+    tensorflow-io==0.21.0 \
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
     horovod==0.22.1 \
