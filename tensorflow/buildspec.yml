@@ -119,7 +119,6 @@ images:
     <<: *INFERENCE_REPOSITORY
     build: &TENSORFLOW_CPU_INFERENCE_PY3 false
     image_size_baseline: 4899
-    base_image_name: BuildE3TensorflowCPUInferencePy3DockerImage
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
@@ -132,7 +131,6 @@ images:
     <<: *INFERENCE_REPOSITORY
     build: &TENSORFLOW_GPU_INFERENCE_PY3 false
     image_size_baseline: 7738
-    base_image_name: BuildE3TensorflowGPUInferencePy3DockerImage
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
