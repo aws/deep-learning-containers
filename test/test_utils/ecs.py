@@ -238,6 +238,7 @@ def register_ecs_task_definition(
     port_mappings=None,
     environment=None,
     num_gpu=None,
+    num_neurons=None,
     region=DEFAULT_REGION,
 ):
     """
@@ -255,6 +256,7 @@ def register_ecs_task_definition(
     :param port_mappings:
     :param environment:
     :param num_gpu:
+    :param num_neurons:
     :param region:
     :return: <tuple> task_family, task_revision
     """
@@ -316,6 +318,16 @@ def register_ecs_task_definition(
             arguments_dict["containerDefinitions"][0]["resourceRequirements"] = [
                 {"value": num_gpu, "type": "GPU"},
             ]
+        if num_neurons:
+            arguments_dict["containerDefinitions"][0]["linuxParameters"] = {}
+            device_list = [dict() for x in range(num_neurons)]
+            for id, elem in enumerate(device_list):
+                elem["containerPath"] = f"/dev/neuron{id}"
+                elem["hostPath"] = f"/dev/neuron{id}"
+                elem["permissions"] = ["read", "write"]
+            arguments_dict["containerDefinitions"][0]["linuxParameters"]["devices"] = device_list
+            arguments_dict["containerDefinitions"][0]["cpu"] = 0
+
         response = ecs_client.register_task_definition(**arguments_dict)
         return (
             response["taskDefinition"]["family"],
@@ -748,6 +760,7 @@ def setup_ecs_inference_service(
     worker_instance_id,
     ei_accelerator_type=None,
     num_gpus=None,
+    num_neurons=None,
     region=DEFAULT_REGION,
 ):
     """
@@ -758,12 +771,13 @@ def setup_ecs_inference_service(
     :param model_name:
     :param worker_instance_id:
     :param num_gpus:
+    :param num_neurons:
     :param region:
     :return: <tuple> service_name, task_family, revision if all steps passed else Exception
         Cleans up the resources if any step fails
     """
     datetime_suffix = datetime.datetime.now().strftime("%Y%m%d-%H-%M-%S")
-    processor = "gpu" if "gpu" in docker_image_uri else "eia" if "eia" in docker_image_uri else "cpu"
+    processor = "gpu" if "gpu" in docker_image_uri else "eia" if "eia" in docker_image_uri else "neuron" if "neuron" in docker_image_uri else "cpu"
     port_mappings = get_ecs_port_mappings(framework)
     log_group_name = f"/ecs/{framework}-inference-{processor}"
     num_cpus = ec2_utils.get_instance_num_cpus(worker_instance_id, region=region)
@@ -809,6 +823,10 @@ def setup_ecs_inference_service(
             "deviceName": "device_1",
             "deviceType": ei_accelerator_type
         }
+
+    if processor == "neuron":
+        arguments_dict["num_neurons"] = num_neurons
+
     try:
         task_family, revision = register_ecs_task_definition(**arguments_dict)
         print(f"Created Task definition - {task_family}:{revision}")
