@@ -1,0 +1,15 @@
+cpu_allowed_pbtxt_ops = set([
+    '_Recv',
+    '_Retval',
+    '_Send',
+    'Cast',
+    'Const',
+    'DeepCopy',
+    'Empty',
+    'ExpandDims',
+    'InplaceAdd',
+    'InplaceSub',
+    'InplaceUpdate',
+    'Mul',
+    'Reshape',
+])

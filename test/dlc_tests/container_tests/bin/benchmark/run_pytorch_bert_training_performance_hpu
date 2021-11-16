@@ -1,0 +1,81 @@
+#!/bin/bash
+
+PT_VERSION=$(python -c 'import torch; print(torch.__version__)')
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=`dirname $LOG_FILE`
+DATA_DIR=${HOME_DIR}/artifacts/datasets/Squad
+DOWNLOAD_DATASET="true"
+
+download_dataset()
+{
+    mkdir -p ${DATA_DIR}
+    wget https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json -P ${DATA_DIR}
+    wget https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v1.1.json -P ${DATA_DIR}
+    wget https://github.com/allenai/bi-att-flow/blob/master/squad/evaluate-v1.1.py -P ${DATA_DIR}
+}
+
+mkdir -p ${HOME_DIR}/artifacts
+mkdir -p ${BIN_DIR}
+mkdir -p ${LOG_DIR}
+
+LINUX_DIST_NAME=`cat /etc/*-release | grep "^NAME=" | sed 's#^.*=##' | tr -d '"'`
+if [ -z "$LINUX_DIST_NAME" ]; then
+    echo Unable to identify Linux distribution
+    exit 1
+elif [ "$LINUX_DIST_NAME" == "Ubuntu" ]; then
+    apt-get update
+    apt-get install -y imagemagick
+elif [ "$LINUX_DIST_NAME" == "Amazon Linux" ]; then
+    yum update -y
+    yum install -y ImageMagick
+else
+    echo Unknown Linux distribution: $LINUX_DIST_NAME
+    exit 1
+fi
+
+if [ $DOWNLOAD_DATASET == "true" ]; then
+    download_dataset
+fi
+
+git clone https://github.com/HabanaAI/Model-References.git ${HOME_DIR}/artifacts/Model-References
+cd ${HOME_DIR}/artifacts/Model-References
+git checkout ${GIT_BRANCH}
+
+BERT_DIR="${HOME_DIR}/artifacts/Model-References/PyTorch/nlp/bert"
+export PYTHONPATH=${HOME_DIR}/artifacts/Model-References:$PYTHONPATH
+
+set -e
+
+START=$(date +%s)
+TRAINING_TIME="200m"
+if [ "$PR_CONTEXT" == "1" ]
+then
+  TRAINING_TIME="150m"
+  echo Running under PR context >&2
+fi
+if [ "$CARDS_NUM" == "1" ]; then
+  WORLD_SIZE=1
+  SAVE_STEP=50000
+else
+  WORLD_SIZE=8
+  SAVE_STEP=5000
+fi
+
+timeout "${TRAINING_TIME}" python -u \
+  ${BERT_DIR}/demo_bert.py finetuning --world_size ${WORLD_SIZE} \
+  --model_name_or_path large --train_file train-v1.1.json --predict_file dev-v1.1.json \
+  --data_dir ${DATA_DIR} --task_name squad --do_eval --max_seq_length 384 \
+  --mode lazy --batch_size 24 --learning_rate 3e-05 --num_train_epochs 1 \
+  --logging_steps 1 --save_steps ${SAVE_STEP} --max_steps 200 --output_dir /tmp/SQUAD --model_type bert \
+  --doc_stride 128 --device hpu --data_type bf16 2>&1 | tee ${LOG_FILE}
+
+END=$(date +%s)
+DIFF=$(( END - START ))
+echo Script took $(( DIFF/60 )) mins to finish >> "${LOG_FILE}"
+set +e
+
+rm -rf ${HOME_DIR}/artifacts/Model-References
+
+exit 0

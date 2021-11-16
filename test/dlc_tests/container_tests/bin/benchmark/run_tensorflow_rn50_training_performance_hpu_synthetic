@@ -1,0 +1,49 @@
+#!/bin/bash
+
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=`dirname $LOG_FILE`
+
+mkdir -p ${HOME_DIR}/artifacts
+mkdir -p ${BIN_DIR}
+mkdir -p ${LOG_DIR}
+GENERATED_DATA_DIR=${BIN_DIR}/habana_tests/tensorflow/benchmark/rn50_dataset
+
+cd ${GENERATED_DATA_DIR}
+bash prep.sh
+
+git clone https://github.com/HabanaAI/Model-References.git ${HOME_DIR}/artifacts/Model-References
+cd ${HOME_DIR}/artifacts/Model-References
+git checkout ${GIT_BRANCH}
+
+RESNET_DIR="${HOME_DIR}/artifacts/Model-References/TensorFlow/computer_vision/Resnets"
+cd ${RESNET_DIR}
+export PYTHONPATH=${HOME_DIR}/artifacts/Model-References:$PYTHONPATH
+set -e
+
+START=$(date +%s)
+TRAINING_TIME="100m"
+if [ "$PR_CONTEXT" == "1" ]; then
+  TRAINING_TIME="20m"
+  echo Running under PR context >&2
+fi
+if [ "$CARDS_NUM" == "1" ]; then
+  timeout "$TRAINING_TIME" python3 ${RESNET_DIR}/resnet_keras/demo_resnet_keras.py -te 90 --dtype bf16 \
+    --optimizer LARS --log_dir ${LOG_DIR} \
+    --data_dir ${GENERATED_DATA_DIR}/tf_records 2>&1 | tee "${LOG_FILE}"
+else
+  timeout "$TRAINING_TIME" python3 ${RESNET_DIR}/resnet_keras/demo_resnet_keras.py -te 90 --dtype bf16 \
+    --optimizer LARS --log_dir ${LOG_DIR} \
+    --data_dir ${GENERATED_DATA_DIR}/tf_records \
+    --use_horovod --num_workers_per_hls ${CARDS_NUM} 2>&1 | tee "${LOG_FILE}"
+fi
+
+END=$(date +%s)
+DIFF=$(( END - START ))
+echo Script took $(( DIFF/60 )) mins to finish >> "${LOG_FILE}"
+set +e
+
+rm -rf ${HOME_DIR}/artifacts/Model-References
+
+exit 0

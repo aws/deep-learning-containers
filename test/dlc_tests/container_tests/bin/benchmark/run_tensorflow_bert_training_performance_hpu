@@ -1,0 +1,52 @@
+#!/bin/bash
+
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=`dirname $LOG_FILE`
+OUT_DIR=${HOME_DIR}/tensorflow_logs
+
+mkdir -p ${HOME_DIR}/artifacts
+mkdir -p ${BIN_DIR}
+mkdir -p ${LOG_DIR}
+mkdir -p ${OUT_DIR}
+GENERATED_DATA_DIR=${BIN_DIR}/habana_tests/tensorflow/benchmark/bert_dataset
+
+cd ${GENERATED_DATA_DIR}
+bash prep_bert_datasets.sh
+
+git clone https://github.com/HabanaAI/Model-References.git ${HOME_DIR}/artifacts/Model-References
+cd ${HOME_DIR}/artifacts/Model-References
+git checkout ${GIT_BRANCH}
+
+BERT_DIR="${HOME_DIR}/artifacts/Model-References/TensorFlow/nlp/bert"
+cd ${BERT_DIR}
+export PYTHONPATH=${HOME_DIR}/artifacts/Model-References:$PYTHONPATH
+set -e
+
+START=$(date +%s)
+TRAINING_TIME="200m"
+if [ "$PR_CONTEXT" == "1" ]; then
+  TRAINING_TIME="150m"
+  echo Running under PR context >&2
+fi
+if [ "$CARDS_NUM" == "1" ]; then
+  timeout "$TRAINING_TIME" python3 ${BERT_DIR}/demo_bert.py \
+    --model_variant=large --data_type=bf16 --output_dir=${OUT_DIR} \
+    --command=finetuning --test_set=squad --epochs=2 --batch_size=24 --max_seq_length=384 \
+    --learning_rate=3e-5 --dataset_path=${GENERATED_DATA_DIR}/SQuAD 2>&1 | tee "${LOG_FILE}"
+else
+  timeout "$TRAINING_TIME" python3 ${BERT_DIR}/demo_bert.py \
+    --model_variant=large --data_type=bf16 --output_dir=${OUT_DIR} --use_horovod=8 \
+    --command=finetuning --test_set=squad --epochs=2 --batch_size=24 --max_seq_length=384 \
+    --learning_rate=3e-5 --dataset_path=${GENERATED_DATA_DIR}/SQuAD 2>&1 | tee "${LOG_FILE}"
+fi
+
+END=$(date +%s)
+DIFF=$(( END - START ))
+echo Script took $(( DIFF/60 )) mins to finish >> "${LOG_FILE}"
+set +e
+
+rm -rf ${HOME_DIR}/artifacts/Model-References
+
+exit 0
