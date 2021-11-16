@@ -3,6 +3,7 @@ FROM arm64v8/ubuntu:20.04
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
+
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
 ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211029-184012/c6edd96c1a92892731eb1f85272ca4d878e540d7/graviton/torch-1.10.0%2Bcpu-cp38-cp38-manylinux2014_aarch64.whl

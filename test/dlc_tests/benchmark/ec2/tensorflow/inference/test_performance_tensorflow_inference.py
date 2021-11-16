@@ -76,9 +76,25 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
 
     # Run performance inference command, display benchmark results to console
     ec2_connection.run(f"pip3 install -U pip")
-    ec2_connection.run(
-        f"pip3 install boto3 grpcio 'tensorflow-serving-api<={tf_api_version}' --user --no-warn-script-location"
-    )
+    ec2_connection.run(f"pip3 install boto3 grpcio --user")
+
+    if "graviton" in image_uri:
+        # TF training binary is used that is compatible for graviton instance type
+        TF_URL="https://aws-dlc-graviton-training-binaries.s3.us-west-2.amazonaws.com/tensorflow/2.6.0/tensorflow-2.6.0-cp38-cp38-linux_aarch64.whl"
+        ec2_connection.run(
+            (
+                f"pip3 install --no-cache-dir -U {TF_URL}"
+            ), hide=True
+        )
+        ec2_connection.run(
+            (
+                f"pip3 install --no-dependencies --user tensorflow-serving-api=={tf_api_version}"
+            ), hide=True
+        )
+    else:
+        ec2_connection.run(
+            f"pip3 install 'tensorflow-serving-api<={tf_api_version}' --user --no-warn-script-location"
+        )
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S")
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
     log_file = f"synthetic_{commit_info}_{time_str}.log"

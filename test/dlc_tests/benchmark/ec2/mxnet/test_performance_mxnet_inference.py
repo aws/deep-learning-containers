@@ -59,7 +59,7 @@ def test_performance_ec2_mxnet_inference_cpu(mxnet_inference, ec2_connection, cp
 
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50_v2")
-@pytest.mark.parametrize("ec2_instance_type", MX_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GRAVITON_INSTANCE_TYPE], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [AML2_CPU_ARM64_US_WEST_2], indirect=True)
 def test_performance_ec2_mxnet_inference_graviton_cpu(mxnet_inference_graviton, ec2_connection, cpu_only):
     _, framework_version = get_framework_and_version_from_tag(mxnet_inference_graviton)
