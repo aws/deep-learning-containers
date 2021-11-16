@@ -178,6 +178,9 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
             dockerfile = [f"{dockerfile[0]}_{dockerfile[1]}"]+dockerfile[2:]
         framework_change = dockerfile[0]
 
+        if dockerfile[0] == "habana":
+            framework_change = dockerfile[1]
+            dockerfile = [f"{dockerfile[0]}_{dockerfile[1]}"]+dockerfile[2:]
         # If the modified dockerfile belongs to a different
         # framework, do nothing
         if framework_change != framework:
@@ -212,6 +215,8 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
             # Joining 1 and 2 elements to get huggingface_<framework> as a first element
             buildspec_arr = [f"{buildspec_arr[0]}_{buildspec_arr[1]}"]+buildspec_arr[2:]
         buildspec_framework = buildspec_arr[0]
+        if buildspec_arr[0] == "habana":
+            buildspec_framework = buildspec_arr[1]
         if buildspec_framework == framework:
             JobParameters.build_for_all_images()
             update_image_run_test_types(constants.ALL, constants.ALL)
@@ -421,12 +426,12 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
     """
     DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
 
-    build_disabled = not is_build_enabled()
+    build_enabled = is_build_enabled()
 
     for docker_image in images:
         if not docker_image.is_test_promotion_enabled:
             continue
-        use_preexisting_images = (build_disabled and docker_image.build_status == constants.NOT_BUILT)
+        use_preexisting_images = ((not build_enabled) and docker_image.build_status == constants.NOT_BUILT)
         if docker_image.build_status == constants.SUCCESS or use_preexisting_images:
             ecr_url_to_test = docker_image.ecr_url
             if use_latest_additional_tag and len(docker_image.additional_tags) > 0:

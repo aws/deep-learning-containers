@@ -64,6 +64,12 @@ RUN /opt/conda/bin/conda install -y \
 
 RUN /opt/conda/bin/conda clean -ya
 
+# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
+# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
+# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
+# once conda fixes the issue https://github.com/conda/conda/issues/9680
+RUN rm -rf /opt/conda/lib/libtinfo.so.6
+
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
  && cd openmpi-$OPEN_MPI_VERSION \
@@ -124,8 +130,8 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
-COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-COPY config.properties /home/model-server
+COPY torchserve-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY config.properties /home/model-server/config.properties
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
@@ -146,4 +152,4 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt -o /
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
+CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties"]
