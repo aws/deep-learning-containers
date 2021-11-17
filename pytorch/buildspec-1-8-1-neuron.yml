@@ -1,0 +1,39 @@
+account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+region: &REGION <set-$REGION-in-environment>
+framework: &FRAMEWORK pytorch
+version: &VERSION 1.8.1
+os_version: &OS_VERSION ubuntu18.04
+short_version: &SHORT_VERSION 1.8
+
+repository_info:
+  inference_repository: &INFERENCE_REPOSITORY
+      image_type: &INFERENCE_IMAGE_TYPE inference
+      root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
+      repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE, "-", neuron]
+      repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+
+context:
+  inference_context: &INFERENCE_CONTEXT
+    neuron-start:
+      source: docker/build_artifacts/neuron-start.sh
+      target: neuron-start.sh
+    neuron-entrypoint:
+      source: docker/build_artifacts/neuron-entrypoint.py
+      target: neuron-entrypoint.py
+    config:
+      source: docker/build_artifacts/config.properties
+      target: config.properties
+
+images:
+  BuildNeuronPTInferencePy3DockerImage:
+    <<: *INFERENCE_REPOSITORY
+    build: &PYTORCH_INF_INFERENCE_PY3 false
+    image_size_baseline: 10000
+    device_type: &DEVICE_TYPE neuron
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py37
+    neuron_sdk_version: &NEURON_SDK_VERSION sdk1.15.2
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *NEURON_SDK_VERSION, "-", *OS_VERSION ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *NEURON_SDK_VERSION, /Dockerfile., neuron ]
+    context:
+      <<: *INFERENCE_CONTEXT

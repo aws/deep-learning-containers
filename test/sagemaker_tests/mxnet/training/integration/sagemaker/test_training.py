@@ -16,7 +16,7 @@ import os
 
 import pytest
 from sagemaker import utils
-from sagemaker.mxnet.estimator import MXNet
+from ... import MXNetWrapper as MXNet
 
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
@@ -37,12 +37,12 @@ def test_training(sagemaker_session, ecr_image, instance_type, instance_count, f
                role='SageMakerRole',
                instance_count=instance_count,
                instance_type=instance_type,
-               sagemaker_session=sagemaker_session,
+               sagemaker_regions=sagemaker_regions,
                image_uri=ecr_image,
                framework_version=framework_version,
                hyperparameters=hyperparameters)
-    
-    mx = _disable_sm_profiler(sagemaker_session.boto_region_name, mx)
+
+    mx = _disable_sm_profiler(mx.sagemaker_session.boto_region_name, mx)
 
     with timeout(minutes=15):
         prefix = 'mxnet_mnist/{}'.format(utils.sagemaker_timestamp())
@@ -54,10 +54,11 @@ def test_training(sagemaker_session, ecr_image, instance_type, instance_count, f
         job_name = utils.unique_name_from_base('test-mxnet-image')
         mx.fit({'train': train_input, 'test': test_input}, job_name=job_name)
 
+
 def _disable_sm_profiler(region, estimator):
     """Disable SMProfiler feature for China regions
     """
-    
+
     if region in ('cn-north-1', 'cn-northwest-1'):
         estimator.disable_profiler = True
     return estimator

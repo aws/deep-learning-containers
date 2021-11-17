@@ -105,7 +105,7 @@ RUN pip uninstall -y torch \
  && pip install --no-cache-dir -U $PT_INFERENCE_URL \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U $PT_VISION_URL
- 
+
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
  && pip install torchserve==$TS_VERSION \
@@ -129,9 +129,10 @@ RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.6.0/license.txt -o /license.txt
 
 RUN conda install -y -c conda-forge "pyyaml>5.4,<5.5"
-RUN pip install pillow==8.2.0 \
+RUN pip install \
+    "pillow>=8.3.2,<8.4" \
     "awscli<2" \
-    ruamel-yaml 
+    ruamel-yaml
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

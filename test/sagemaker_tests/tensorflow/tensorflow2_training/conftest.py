@@ -22,7 +22,7 @@ import pytest
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
-from integration import NO_P2_REGIONS, NO_P3_REGIONS, NO_P4_REGIONS, get_ecr_registry, reupload_image_to_test_ecr
+from ..integration import NO_P2_REGIONS, NO_P3_REGIONS, NO_P4_REGIONS, get_ecr_registry
 
 logger = logging.getLogger(__name__)
 logging.getLogger('boto').setLevel(logging.INFO)
@@ -49,6 +49,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
+    parser.addoption('--sagemaker-regions', default="us-west-2")
 
 
 def pytest_runtest_setup(item):
@@ -99,32 +100,16 @@ def sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
 
 
-@pytest.fixture(scope='session')
-def n_virginia_region(request):
-    return "us-east-1"
-
-
-@pytest.fixture(scope='session')
-def n_virginia_sagemaker_session(n_virginia_region):
-    return Session(boto_session=boto3.Session(region_name=n_virginia_region))
+@pytest.fixture(scope='session', name='sagemaker_regions')
+def sagemaker_regions(request):
+    sagemaker_regions = request.config.getoption('--sagemaker-regions')
+    return sagemaker_regions.split(",")
 
 
 @pytest.fixture
 def efa_instance_type():
     default_instance_type = "ml.p3dn.24xlarge"
     return default_instance_type
-
-
-@pytest.fixture
-def n_virginia_ecr_image(ecr_image, n_virginia_region):
-    """
-    It uploads image to n_virginia region and return image uri
-    """
-    image_repo_uri, image_tag = ecr_image.split(":")
-    _, image_repo_name = image_repo_uri.split("/")
-    target_image_repo_name = f"{image_repo_name}"
-    n_virginia_ecr_image = reupload_image_to_test_ecr(ecr_image, target_image_repo_name, n_virginia_region)
-    return n_virginia_ecr_image
 
 
 @pytest.fixture(scope='session')

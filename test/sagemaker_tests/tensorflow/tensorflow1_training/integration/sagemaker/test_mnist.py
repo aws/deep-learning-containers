@@ -20,6 +20,7 @@ from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 from six.moves.urllib.parse import urlparse
 
+from ..... import invoke_sm_helper_function
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from .timeout import timeout
@@ -28,7 +29,12 @@ from .timeout import timeout
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.deploy_test
-def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_mnist(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_mnist_function,
+                              instance_type, framework_version)
+
+
+def _test_mnist_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
     estimator = TensorFlow(entry_point=script,
@@ -39,9 +45,9 @@ def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
                            image_uri=ecr_image,
                            framework_version=framework_version,
                            script_mode=True)
-    
+
     estimator = _disable_sm_profiler(sagemaker_session.boto_region_name, estimator)
-    
+
     inputs = estimator.sagemaker_session.upload_data(
         path=os.path.join(resource_path, 'mnist', 'data'),
         key_prefix='scriptmode/mnist')
@@ -53,7 +59,12 @@ def test_mnist(sagemaker_session, ecr_image, instance_type, framework_version):
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("no parameter server")
-def test_distributed_mnist_no_ps(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_distributed_mnist_no_ps(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_distributed_mnist_no_ps_function,
+                              instance_type, framework_version)
+
+
+def _test_distributed_mnist_no_ps_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
     estimator = TensorFlow(entry_point=script,
@@ -74,7 +85,12 @@ def test_distributed_mnist_no_ps(sagemaker_session, ecr_image, instance_type, fr
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
-def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_distributed_mnist_ps(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_distributed_mnist_ps_function,
+                              instance_type, framework_version)
+
+
+def _test_distributed_mnist_ps_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
     estimator = TensorFlow(entry_point=script,
@@ -97,7 +113,12 @@ def test_distributed_mnist_ps(sagemaker_session, ecr_image, instance_type, frame
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
-def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framework_version):
+def test_s3_plugin(ecr_image, sagemaker_regions, instance_type, region, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_s3_plugin_function,
+                              instance_type, region, framework_version)
+
+
+def _test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, region, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist_estimator.py')
     estimator = TensorFlow(entry_point=script,
@@ -131,7 +152,12 @@ def test_s3_plugin(sagemaker_session, ecr_image, instance_type, region, framewor
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.integration("hpo")
-def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_tuning(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_tuning_function,
+                              instance_type, framework_version)
+
+
+def _test_tuning_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'mnist.py')
 
@@ -168,7 +194,12 @@ def test_tuning(sagemaker_session, ecr_image, instance_type, framework_version):
 @pytest.mark.model("mnist")
 @pytest.mark.integration("smdebug")
 @pytest.mark.skip_py2_containers
-def test_tf1x_smdebug(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_tf1x_smdebug(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_tf1x_smdebug_function,
+                              instance_type, framework_version)
+
+
+def _test_tf1x_smdebug_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
     script = os.path.join(resource_path, 'mnist', 'tf1x_mnist_smdebug.py')
     hyperparameters = {'smdebug_path': '/tmp/ml/output/tensors'}
@@ -200,6 +231,7 @@ def _assert_s3_file_exists(region, s3_url):
     parsed_url = urlparse(s3_url)
     s3 = boto3.resource('s3', region_name=region)
     s3.Object(parsed_url.netloc, parsed_url.path.lstrip('/')).load()
+
 
 def _disable_sm_profiler(region, estimator):
     """Disable SMProfiler feature for China regions

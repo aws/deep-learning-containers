@@ -170,7 +170,6 @@ RUN ${PIP} install --no-cache-dir -U \
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
     horovod==0.21.1 \
-    werkzeug==1.0.1 \
     psutil==5.7.2 \
     smdebug==${SMDEBUG_VERSION} \
     smclarify
@@ -178,7 +177,7 @@ RUN ${PIP} install --no-cache-dir -U \
 # Install extra packages
 # numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
 RUN pip install --no-cache-dir -U \
-    "bokeh>=2.3,<3" \
+    "bokeh>=2.3,<2.4" \
     "imageio>=2.9,<3" \
     "opencv-python>=4.3,<5" \
     "plotly>=5.1,<6" \

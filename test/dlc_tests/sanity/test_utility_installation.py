@@ -34,9 +34,12 @@ def test_awscli(mxnet_inference):
 def test_utility_packages_using_import(training):
     """
     Verify that utility packages are installed in the Training DLC image
-
     :param training: training ECR image URI
     """
+    #TODO: revert once habana is supported on SM
+    if "hpu" in training:
+        pytest.skip("Skipping test for Habana images as SM is not yet supported")
+
     ctx = Context()
     container_name = test_utils.get_container_name("utility_packages_using_import", training)
     test_utils.start_container(container_name, training, ctx)
@@ -98,3 +101,19 @@ def test_emacs(image):
     # Make sure the following emacs sanity tests exit with code 0
     test_utils.run_cmd_on_container(container_name, ctx, "which emacs")
     test_utils.run_cmd_on_container(container_name, ctx, "emacs -version")
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("tomcat")
+@pytest.mark.canary("Ensure we don't install apache tomcat")
+def test_apache_tomcat(image):
+    """
+    Temporary canary test
+    """
+    ctx = Context()
+    container_name = test_utils.get_container_name("tomcat", image)
+    test_utils.start_container(container_name, image, ctx)
+    tomcat_output = test_utils.run_cmd_on_container(container_name, ctx, "find / -name *tomcat*").stdout.strip()
+    if tomcat_output:
+        raise RuntimeError(f"Found tomcat installation in {image}. See output: {tomcat_output}")

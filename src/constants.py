@@ -17,7 +17,7 @@ import os
 
 # Environment settings
 FRAMEWORKS = {"mxnet", "tensorflow", "pytorch", "huggingface_tensorflow", "huggingface_pytorch", "autogluon"}
-DEVICE_TYPES = {"cpu", "gpu", "eia", "inf", "graviton"}
+DEVICE_TYPES = {"cpu", "gpu", "hpu", "eia", "inf"}
 IMAGE_TYPES = {"training", "inference"}
 PYTHON_VERSIONS = {"py2", "py3", "py36"}
 ALL = "all"
@@ -30,6 +30,10 @@ FAIL_IMAGE_SIZE_LIMIT = 2
 
 # Left and right padding between text and margins in output
 PADDING = 1
+
+# Docker build stages
+PRE_PUSH_STAGE = "pre_push"
+COMMON_STAGE = "common"
 
 # Docker connections
 DOCKER_URL = "unix://var/run/docker.sock"
@@ -71,3 +75,7 @@ EC2_TESTS = "ec2"
 ECS_TESTS = "ecs"
 EKS_TESTS = "eks"
 ALL_TESTS = ["sagemaker", "ec2", "eks", "ecs"]
+
+# Timeout in seconds for Docker API client.
+API_CLIENT_TIMEOUT = 600
+MAX_WORKER_COUNT_FOR_PUSHING_IMAGES = 3

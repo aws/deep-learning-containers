@@ -28,7 +28,10 @@ ARG PYTHON_VERSION=3.8.2
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.6_aws/20210816_235124/cpu/py38/tensorflow_cpu-2.6.0-cp38-cp38-manylinux2010_x86_64.whl
+# disable prompts during package installation
+ARG DEBIAN_FRONTEND=noninteractive
+
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.6_aws/cpu/tensorflow-2.6.2-cp38-cp38-manylinux2010_x86_64.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
@@ -51,6 +54,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g-dev \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
+    && apt-get install -y -qq libkrb5-dev \
+    && apt-get install -y -qq libsasl2-dev libsasl2-modules \
+    && apt-get install -y -qq krb5-user \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Open MPI
@@ -142,16 +148,22 @@ RUN ${PIP} install --no-cache-dir -U \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.6,<2.7" \
     "sagemaker-tensorflow-training>=20" \
-
+    "shap>=0.39,<1" \
+    "boto3>1.0,<2.0" \
+    "sasl<1" \
+    "thrift_sasl<1" \
+    "PyHive<1" \
+    "sparkmagic<1" \
+    "sagemaker-studio-sparkmagic-lib<1" \
+    "sagemaker-studio-analytics-extension==0.0.2" \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    tensorflow-io \
+    tensorflow-io==0.21.0 \
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
     horovod==0.22.1 \
-    werkzeug==1.0.1 \
     psutil==5.7.2 \
     smdebug==${SMDEBUG_VERSION} \
     smclarify 
