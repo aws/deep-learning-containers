@@ -6,7 +6,6 @@ LABEL dlc_major_version="1"
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
-ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
 # Set environment variables for MKL
 # For more about MKL with TensorFlow see:
@@ -28,14 +27,7 @@ ARG PYTHON_VERSION=3.8.2
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 
-# disable prompts during package installation
-ARG DEBIAN_FRONTEND=noninteractive
-
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.6_aws/cpu/tensorflow-2.6.2-cp38-cp38-manylinux2010_x86_64.whl
-
-# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
-# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.12
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.7_aws/cpu/tensorflow-2.7.0-cp38-cp38-linux_x86_64.whl
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -54,9 +46,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g-dev \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
-    && apt-get install -y -qq libkrb5-dev \
-    && apt-get install -y -qq libsasl2-dev libsasl2-modules \
-    && apt-get install -y -qq krb5-user \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Open MPI
@@ -116,8 +105,10 @@ RUN apt-get update \
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
- && ./configure && make && make install \
- && make && make install && rm -rf ../Python-$PYTHON_VERSION*
+ && ./configure \
+ && make -j $(nproc) \
+ && make install \ 
+ && rm -rf ../Python-$PYTHON_VERSION*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
@@ -131,51 +122,28 @@ RUN apt-get update && apt-get -y install protobuf-compiler
 
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
-RUN ${PIP} install --no-cache-dir -U \
+RUN ${PIP} install --no-cache-dir -U \ 
     pybind11 \
     cmake==3.18.2.post1 \
     numpy==1.19.5 \
     scipy==1.7.0 \
-    scikit-learn==0.24.2 \
-    pandas==1.2.5 \
     "Pillow>=8.3,<8.4" \
     python-dateutil==2.8.1 \
     "pyYAML>=5.4,<5.5" \
     requests==2.24.0 \
     "awscli<2" \
     mpi4py==3.0.3 \
-    "sagemaker>=2,<3" \
-    sagemaker-experiments==0.* \
-    "sagemaker-tensorflow>=2.6,<2.7" \
-    "sagemaker-tensorflow-training>=20" \
-    "shap>=0.39,<1" \
-    "boto3>1.0,<2.0" \
-    "sasl<1" \
-    "thrift_sasl<1" \
-    "PyHive<1" \
-    "sparkmagic<1" \
-    "sagemaker-studio-sparkmagic-lib<1" \
-    "sagemaker-studio-analytics-extension==0.0.2" \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    tensorflow-io==0.21.0 \
+    tensorflow-io==0.22.0 \ 
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
-    horovod==0.22.1 \
-    psutil==5.7.2 \
-    smdebug==${SMDEBUG_VERSION} \
-    smclarify 
-
-# Install extra packages
-RUN pip install --no-cache-dir -U \
-    "bokeh>=2.3,<2.4" \
-    "imageio>=2.9,<3" \
+    horovod==0.23.0 \
     "opencv-python>=4.3,<5" \
-    "plotly>=5.1,<6" \
-    "seaborn>=0.11,<1" \
-    "shap>=0.39,<1"
+    "werkzeug>=2.0.2,<3" \
+    psutil==5.7.2
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -190,6 +158,6 @@ RUN HOME_DIR=/root \
    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
    && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.6/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.7/license.txt -o /license.txt
 
 CMD ["/bin/bash"]
