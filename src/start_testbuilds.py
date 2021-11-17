@@ -112,7 +112,7 @@ def is_test_job_implemented_for_framework(images_str, test_type):
         constants.ECS_TESTS,
         constants.EKS_TESTS,
     ] or config.is_benchmark_mode_enabled()):
-        LOGGER.debug(f"Skipping benchmark tests for trcomp containers")
+        LOGGER.debug(f"Skipping {test_type} tests for trcomp containers")
         return False
     return True
 
