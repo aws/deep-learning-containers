@@ -824,7 +824,7 @@ def setup_ecs_inference_service(
             "deviceType": ei_accelerator_type
         }
 
-    if processor == "neuron":
+    if processor == "neuron" and num_neurons:
         arguments_dict["num_neurons"] = num_neurons
 
     try:
