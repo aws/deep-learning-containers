@@ -27,7 +27,7 @@ context:
 images:
   BuildE3PytorchGravitonCPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
-    build: &PYTORCH_GRAVITON_INFERENCE_PY3 false
+    build: &PYTORCH_INF_INFERENCE_PY3 false
     image_size_baseline: 10000
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
