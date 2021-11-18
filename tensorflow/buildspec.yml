@@ -64,9 +64,9 @@ images:
     cuda_version: &CUDA_VERSION cu110
     os_version: &OS_VERSION ubuntu18.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
-      "-", *OS_VERSION, "-e3" ]
+      "-", *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION,
-      /Dockerfile.e3., *DEVICE_TYPE ]
+      /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
   BuildTensorflowExampleGpuPy37Cu110TrainingDockerImage:
@@ -80,7 +80,7 @@ images:
     cuda_version: &CUDA_VERSION cu110
     os_version: &OS_VERSION ubuntu18.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
-      "-", *OS_VERSION, "-e3-example" ]
+      "-", *OS_VERSION, "-example" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /example,
       /Dockerfile., *DEVICE_TYPE ]
     context:
