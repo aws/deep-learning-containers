@@ -195,7 +195,7 @@ def fixture_sagemaker_session(region):
 @pytest.fixture(scope='session', name='sagemaker_regions')
 def sagemaker_regions(request):
     fixture_sagemaker_regions = request.config.getoption('--sagemaker-regions')
-    return sagemaker_regions.split(",")
+    return fixture_sagemaker_regions.split(",")
 
 
 @pytest.fixture(scope='session', name='sagemaker_local_session')
