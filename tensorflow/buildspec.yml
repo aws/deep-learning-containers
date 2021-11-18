@@ -50,7 +50,7 @@ images:
     os_version: &OS_VERSION ubuntu18.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION
       ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.e3.,
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.,
       *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
