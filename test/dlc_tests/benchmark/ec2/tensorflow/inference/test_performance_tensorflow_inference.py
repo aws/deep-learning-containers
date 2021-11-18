@@ -14,7 +14,7 @@ from test.test_utils import (
     is_pr_context,
     is_tf_version,
     get_python_invoker,
-    AML2_CPU_ARM64_US_WEST_2,
+    UL18_CPU_ARM64_US_WEST_2,
 )
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
@@ -51,7 +51,7 @@ def test_performance_ec2_tensorflow_inference_cpu(
 
 @pytest.mark.model("inception, RCNN-Resnet101-kitti, resnet50_v2, mnist, SSDResnet50Coco")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [AML2_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL18_CPU_ARM64_US_WEST_2], indirect=True)
 def test_performance_ec2_tensorflow_inference_graviton_cpu(
     tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, region, cpu_only
 ):
