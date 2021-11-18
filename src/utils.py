@@ -517,7 +517,10 @@ def get_root_folder_path():
     """
     root_dir_pattern = re.compile(r"^(\S+deep-learning-containers)")
     pwd = os.getcwd()
-    return os.getenv("CODEBUILD_SRC_DIR", root_dir_pattern.match(pwd).group(1))
+    codebuild_src_dir_env = os.getenv("CODEBUILD_SRC_DIR")
+    root_folder_path = codebuild_src_dir_env if codebuild_src_dir_env else root_dir_pattern.match(pwd).group(1)
+
+    return root_folder_path
 
 
 def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
