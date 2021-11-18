@@ -394,6 +394,22 @@ def get_instance_memory(instance_id, region=DEFAULT_REGION):
     instance_info = get_instance_details(instance_id, region=region)
     return instance_info["MemoryInfo"]["SizeInMiB"]
 
+@retry(stop_max_attempt_number=30, wait_fixed=10000)
+def get_instance_num_inferentias(instance_id=None, instance_type=None, region=DEFAULT_REGION):
+    """
+    Get total number of neurons on instance with given instance ID
+    :param instance_id: Instance ID to be queried
+    :param instance_type: Instance Type to be queried
+    :param region: Region where query will be performed
+    :return: <int> Number of neurons on instance with matching instance ID
+    """
+    assert instance_id or instance_type, "Input must be either instance_id or instance_type"
+    instance_info = (
+        get_instance_type_details(instance_type, region=region)
+        if instance_type
+        else get_instance_details(instance_id, region=region)
+    )
+    return sum(neuron_type["Count"] for neuron_type in instance_info["InferenceAcceleratorInfo"]["Accelerators"] if neuron_type["Name"]=="Inferentia")
 
 @retry(stop_max_attempt_number=30, wait_fixed=10000)
 def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_REGION):
