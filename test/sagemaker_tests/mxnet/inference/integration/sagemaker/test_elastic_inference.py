@@ -29,6 +29,11 @@ MODEL_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model.tar.gz')
 DEFAULT_SCRIPT_PATH = os.path.join(DEFAULT_HANDLER_PATH, 'model', 'code', 'eia_module.py')
 
 
+@pytest.fixture(autouse=True)
+def skip_if_no_accelerator(accelerator_type):
+    if accelerator_type is None:
+        pytest.skip('Skipping because accelerator type was not provided')
+
 
 @pytest.fixture(autouse=True)
 def skip_if_non_supported_ei_region(region):
