@@ -35,6 +35,7 @@ RUN apt-get update \
     ffmpeg \
     libsm6 \
     libxext6 \
+    gdal-bin \
     emacs \
     vim \
  && apt-get autoremove -y \
@@ -91,7 +92,9 @@ RUN source activate rapids \
 
 # Catboost 0.26 updates version of scala 2.11 for security reasons
 # https://github.com/catboost/catboost/issues/1632
-RUN pip install --no-cache-dir -U catboost==0.26.1
+# Dask security patching
+RUN pip install --no-cache-dir -U catboost==0.26.1 \
+ && pip install --no-cache-dir -U dask dask-cuda dask-cudf
 
 WORKDIR /
 
