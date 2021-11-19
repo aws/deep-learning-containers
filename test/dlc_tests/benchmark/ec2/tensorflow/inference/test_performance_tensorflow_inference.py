@@ -76,6 +76,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
 
     # Run performance inference command, display benchmark results to console
     ec2_connection.run(f"pip3 install -U pip")
+    ec2_connection.run(f"pip3 install --upgrade awscli --user")
     ec2_connection.run(f"pip3 install boto3 grpcio --user")
 
     if "graviton" in image_uri:
