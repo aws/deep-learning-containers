@@ -232,6 +232,7 @@ RUN ${PIP} install --no-cache-dir -U \
     ${ESTIMATOR_URL} \
     h5py==2.10.0 \
     "absl-py>=0.9,<0.11" \
+    werkzeug==2.0.2 \
     smdebug==${SMDEBUG_VERSION} \
     smclarify
 
