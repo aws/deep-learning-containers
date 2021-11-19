@@ -21,7 +21,7 @@ TF_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_instance_type(default="inf1.xlarge", pr
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
 )
-TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", processor="graviton")
+TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", processor="cpu")
 
 
 @pytest.mark.model("mnist")
@@ -85,13 +85,13 @@ def test_ec2_tensorflow_inference_cpu_telemetry(tensorflow_inference, ec2_connec
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
-def test_ec2_tensorflow_inference_graviton(tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, region):
+def test_ec2_tensorflow_inference_graviton_cpu(tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, region, cpu_only):
     run_ec2_tensorflow_inference(tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, "8500", region)
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL18_CPU_ARM64_US_WEST_2], indirect=True)
-def test_ec2_tensorflow_inference_graviton_telemetry(tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, region):
+def test_ec2_tensorflow_inference_graviton_cpu_telemetry(tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, region, cpu_only):
     run_ec2_tensorflow_inference(tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, "8500", region, True)
     
 

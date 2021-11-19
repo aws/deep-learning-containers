@@ -8,7 +8,7 @@ from test.test_utils import (
     request_tensorflow_inference_nlp,
     is_nightly_context,
 )
-from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2, ECS_AML2_GRAVITON_CPU_USWEST2
+from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2, ECS_AML2_NEURON_USWEST2, ECS_AML2_GRAVITON_CPU_USWEST2
 
 
 @pytest.mark.model("half_plus_two")
@@ -20,7 +20,7 @@ def test_ecs_tensorflow_inference_cpu(tensorflow_inference, ecs_container_instan
 @pytest.mark.model("half_plus_two")
 @pytest.mark.parametrize("ecs_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GRAVITON_CPU_USWEST2], indirect=True)
-def test_ecs_tensorflow_inference_graviton_cpu(tensorflow_inference_graviton, ecs_container_instance, region):
+def test_ecs_tensorflow_inference_graviton_cpu(tensorflow_inference_graviton, ecs_container_instance, region, cpu_only):
     __ecs_tensorflow_inference_cpu(tensorflow_inference_graviton, ecs_container_instance, region)
 
 
@@ -72,6 +72,32 @@ def test_ecs_tensorflow_inference_eia(
     finally:
         ecs_utils.tear_down_ecs_inference_service(ecs_cluster_arn, service_name, task_family, revision)
 
+@pytest.mark.model("simple")
+@pytest.mark.parametrize("ecs_instance_type", ["inf1.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_NEURON_USWEST2], indirect=True)
+def test_ecs_tensorflow_inference_neuron(tensorflow_inference_neuron, ecs_container_instance, region):
+    worker_instance_id, ecs_cluster_arn = ecs_container_instance
+    public_ip_address = ec2_utils.get_public_ip(worker_instance_id, region=region)
+    num_neurons = ec2_utils.get_instance_num_inferentias(worker_instance_id)
+
+    model_name = "simple"
+    service_name = task_family = revision = None
+    try:
+        service_name, task_family, revision = ecs_utils.setup_ecs_inference_service(
+            tensorflow_inference_neuron,
+            "tensorflow",
+            ecs_cluster_arn,
+            model_name,
+            worker_instance_id,
+            num_neurons=num_neurons,
+            region=region,
+        )
+        model_name = get_tensorflow_model_name("neuron", model_name)
+        inference_result = request_tensorflow_inference(model_name, ip_address=public_ip_address, inference_string="'{\"instances\": [[1.0, 2.0, 5.0]]}'")
+        assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
+
+    finally:
+        ecs_utils.tear_down_ecs_inference_service(ecs_cluster_arn, service_name, task_family, revision)
 
 @pytest.mark.model("half_plus_two")
 @pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
@@ -112,7 +138,7 @@ def test_ecs_tensorflow_inference_cpu_nlp(tensorflow_inference, ecs_container_in
 @pytest.mark.model("albert")
 @pytest.mark.parametrize("ecs_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GRAVITON_CPU_USWEST2], indirect=True)
-def test_ecs_tensorflow_inference_graviton_cpu_nlp(tensorflow_inference_graviton, ecs_container_instance, region):
+def test_ecs_tensorflow_inference_graviton_cpu_nlp(tensorflow_inference_graviton, ecs_container_instance, region, cpu_only):
     __ecs_tensorflow_inference_cpu_nlp(tensorflow_inference_graviton, ecs_container_instance, region)
     
 
