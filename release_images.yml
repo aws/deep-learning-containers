@@ -3,7 +3,6 @@ release_images:
   1:
     framework: "mxnet"
     version: "1.8.0"
-    arch_type: "x86"
     training:
       device_types: ["cpu", "gpu"]
       python_versions: ["py37"]
@@ -23,7 +22,6 @@ release_images:
   2:
     framework: "mxnet"
     version: "1.8.0"
-    arch_type: "x86"
     training:
       device_types: ["gpu"]
       python_versions: ["py37"]
@@ -35,7 +33,6 @@ release_images:
   3:
     framework: "mxnet"
     version: "1.7.0"
-    arch_type: "x86"
     training:
       device_types: ["cpu","gpu"]
       python_versions: ["py36"]
@@ -55,7 +52,6 @@ release_images:
   4:
     framework: "mxnet"
     version: "1.7.0"
-    arch_type: "x86"
     training:
       device_types: ["gpu"]
       python_versions: ["py36"]
@@ -67,7 +63,6 @@ release_images:
   5:
     framework: "tensorflow"
     version: "2.4.3"
-    arch_type: "x86"
     training:
       device_types: ["cpu","gpu"]
       python_versions: ["py37"]
@@ -87,7 +82,6 @@ release_images:
   6:
     framework: "tensorflow"
     version: "2.4.3"
-    arch_type: "x86"
     training:
       device_types: ["gpu"]
       python_versions: ["py37"]
@@ -99,7 +93,6 @@ release_images:
   7:
     framework: "pytorch"
     version: "1.8.1"
-    arch_type: "x86"
     training:
       device_types: ["cpu", "gpu"]
       python_versions: ["py36"]
@@ -123,7 +116,6 @@ release_images:
   8:
     framework: "pytorch"
     version: "1.8.1"
-    arch_type: "x86"
     training:
       device_types: ["gpu"]
       python_versions: ["py36"]
@@ -135,7 +127,6 @@ release_images:
   9:
     framework: "pytorch"
     version: "1.5.1"
-    arch_type: "x86"
     inference:
       device_types: ["eia"]
       python_versions: ["py36"]
@@ -148,7 +139,6 @@ release_images:
     framework: "huggingface_tensorflow"
     version: "2.4.3"
     hf_transformers: "4.10.2"
-    arch_type: "x86"
     inference:
       device_types: ["cpu", "gpu"]
       python_versions: [ "py37" ]
@@ -161,7 +151,6 @@ release_images:
     framework: "huggingface_pytorch"
     version: "1.7.1"
     hf_transformers: "4.6.1"
-    arch_type: "x86"
     inference:
       device_types: ["cpu", "gpu"]
       python_versions: [ "py36" ]
@@ -174,7 +163,6 @@ release_images:
     framework: "huggingface_pytorch"
     version: "1.6.0"
     hf_transformers: "4.6.1"
-    arch_type: "x86"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py36" ]
@@ -186,7 +174,6 @@ release_images:
   13:
     framework: "tensorflow"
     version: "2.5.1"
-    arch_type: "x86"
     training:
       device_types: ["cpu","gpu"]
       python_versions: ["py37"]
@@ -198,7 +185,6 @@ release_images:
   14:
     framework: "tensorflow"
     version: "2.5.1"
-    arch_type: "x86"
     training:
       device_types: ["gpu"]
       python_versions: ["py37"]
@@ -210,7 +196,6 @@ release_images:
   15:
     framework: "tensorflow"
     version: "2.5.1"
-    arch_type: "x86"
     inference:
       device_types: ["cpu","gpu"]
       python_versions: ["py37"]
@@ -223,7 +208,6 @@ release_images:
     framework: "huggingface_pytorch"
     version: "1.8.1"
     hf_transformers: "4.10.2"
-    arch_type: "x86"
     training:
       device_types: ["gpu"]
       python_versions: [ "py36" ]
@@ -236,7 +220,6 @@ release_images:
     framework: "pytorch"
     version: "1.9.0"
     customer_type: "e3"
-    arch_type: "x86"
     training:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
@@ -261,7 +244,6 @@ release_images:
     framework: "pytorch"
     version: "1.9.0"
     customer_type: "e3"
-    arch_type: "x86"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py38" ]
@@ -273,7 +255,6 @@ release_images:
   19:
     framework: "autogluon"
     version: "0.2.1"
-    arch_type: "x86"
     training:
       device_types: ["cpu","gpu"]
       python_versions: ["py37"]
@@ -286,7 +267,6 @@ release_images:
     framework: "huggingface_pytorch"
     version: "1.8.1"
     hf_transformers: "4.10.2"
-    arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py36" ]
@@ -299,7 +279,6 @@ release_images:
     framework: "huggingface_tensorflow"
     version: "2.4.3"
     hf_transformers: "4.10.2"
-    arch_type: "x86"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py37" ]
@@ -311,7 +290,6 @@ release_images:
   22:
     framework: "tensorflow"
     version: "2.6.0"
-    arch_type: "x86"
     training:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
@@ -335,7 +313,6 @@ release_images:
   23:
     framework: "tensorflow"
     version: "2.6.0"
-    arch_type: "x86"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py38" ]
@@ -347,7 +324,6 @@ release_images:
   24:
     framework: "autogluon"
     version: "0.3.1"
-    arch_type: "x86"
     training:
       device_types: ["cpu","gpu"]
       python_versions: ["py37"]
@@ -360,7 +336,6 @@ release_images:
   25:
     framework: "autogluon"
     version: "0.3.1"
-    arch_type: "x86"
     inference:
       device_types: ["cpu"]
       python_versions: [ "py37" ]
@@ -372,7 +347,6 @@ release_images:
     framework: "huggingface_tensorflow"
     version: "2.5.1"
     hf_transformers: "4.10.2"
-    arch_type: "x86"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py37" ]
@@ -385,7 +359,6 @@ release_images:
     framework: "huggingface_tensorflow"
     version: "2.5.1"
     hf_transformers: "4.10.2"
-    arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py37" ]
@@ -398,7 +371,6 @@ release_images:
     framework: "huggingface_pytorch"
     version: "1.9.0"
     hf_transformers: "4.10.2"
-    arch_type: "x86"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py38" ]
@@ -411,7 +383,6 @@ release_images:
     framework: "huggingface_pytorch"
     version: "1.9.0"
     hf_transformers: "4.10.2"
-    arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
@@ -423,7 +394,6 @@ release_images:
   30:
     framework: "pytorch"
     version: "1.7.1"
-    arch_type: "x86"
     training:
       device_types: [ "hpu" ]
       python_versions: [ "py37" ]
@@ -435,7 +405,6 @@ release_images:
   31:
     framework: "pytorch"
     version: "1.7.1"
-    arch_type: "x86"
     training:
       device_types: [ "hpu" ]
       python_versions: [ "py37" ]
@@ -447,7 +416,6 @@ release_images:
   32:
     framework: "tensorflow"
     version: "2.5.0"
-    arch_type: "x86"
     training:
       device_types: [ "hpu" ]
       python_versions: [ "py37" ]
@@ -459,7 +427,6 @@ release_images:
   33:
     framework: "tensorflow"
     version: "2.5.0"
-    arch_type: "x86"
     training:
       device_types: [ "hpu" ]
       python_versions: [ "py37" ]
@@ -472,7 +439,6 @@ release_images:
     framework: "pytorch"
     version: "1.9.0"
     customer_type: "sagemaker"
-    arch_type: "x86"
     training:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
@@ -497,7 +463,6 @@ release_images:
     framework: "huggingface_pytorch_trcomp"
     version: "1.9.0"
     hf_transformers: "4.11.0"
-    arch_type: "x86"
     training:
       device_types: ["gpu"]
       python_versions: [ "py38" ]
@@ -510,7 +475,6 @@ release_images:
     framework: "huggingface_tensorflow_trcomp"
     version: "2.5.1"
     hf_transformers: "4.11.0"
-    arch_type: "x86"
     training:
       device_types: [ "gpu" ]
       python_versions: [ "py37" ]
@@ -519,31 +483,4 @@ release_images:
       example: False
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
-  37:
-    framework: "pytorch"
-    version: "1.10.0"
-    customer_type: "e3"
-    arch_type: "graviton"
-    inference:
-      device_types: ["cpu"]
-      python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-      # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-      # has already been published. Re-released image will have minor version incremented by 1.
-  38:
-    framework: "tensorflow"
-    version: "2.7.0"
-    customer_type: "e3"
-    arch_type: "graviton"
-    inference:
-      device_types: ["cpu"]
-      python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-      # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-      # has already been published. Re-released image will have minor version incremented by 1.
+
