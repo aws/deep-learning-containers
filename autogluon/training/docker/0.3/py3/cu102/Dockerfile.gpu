@@ -57,7 +57,7 @@ RUN conda update conda -y \
  && conda clean --all -y
 
 RUN source activate rapids \
- && conda remove gdal libgdal dask dask-core dask-cuda dask-cudf distributed -y \
+ && conda remove gdal libgdal dask dask-core dask-cuda dask-cudf distributed markdown -y \
  && conda update --all -y \
  && conda clean --all -y
 
