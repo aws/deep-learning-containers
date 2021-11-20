@@ -141,7 +141,7 @@ RUN pip install --no-cache-dir -U \
 # https://github.com/catboost/catboost/issues/1632
 # Dask security patching
 RUN pip install --no-cache-dir -U catboost==0.26.1 \
- && pip install --no-cache-dir -U "dask>=2021.09.1" "distributed>=2021.09.1"
+ && pip install --no-cache-dir -U "dask>2021.09.1" "distributed>2021.09.1"
 
 
 # Allow OpenSSH to talk to containers without asking for confirmation

@@ -45,7 +45,7 @@ RUN pip --no-cache-dir install --upgrade --trusted-host pypi.org --trusted-host 
 # The package pillow from 5.2.0 and before 8.3.2 is vulnerable to Regular Expression Denial of Service (ReDoS) via the getrgb function.                |
 # Dask security patching
 RUN pip install --no-cache-dir -U catboost==0.26.1 \
- && pip install --no-cache-dir -U "dask>=2021.09.1" "distributed>=2021.09.1" \
+ && pip install --no-cache-dir -U "dask>2021.09.1" "distributed>2021.09.1" \
  && pip install --no-cache-dir -U 'Pillow>=8.3.2,<8.4.0'
 
 EXPOSE 8080 8081
