@@ -61,6 +61,8 @@ def is_private_artifact_label_required(artifact_uri, image_repo_uri):
     """
     if re.fullmatch(r"\bs3:\/\/sagemaker-python-sdk-\d+\/dist\/sagemaker.tar.gz\b", artifact_uri):
         return False
+    if re.fullmatch(r"\bs3:\/\/sagemaker-python-sdk-\d+\/boto3\/(boto3|botocore|awscli).tar.gz\b", artifact_uri):
+        return False
     return not ("s3://" in artifact_uri.lower() and any(keyword in image_repo_uri.lower() for keyword in ["hopper"]))
 
 

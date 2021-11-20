@@ -56,6 +56,18 @@ images:
         type: s3
         URI: s3://sagemaker-python-sdk-047976067574/dist/sagemaker.tar.gz
         VAR_IN_DOCKERFILE: SAGEMAKER_BINARY
+      botocore_whl:
+        type: s3
+        URI: s3://sagemaker-python-sdk-047976067574/boto3/botocore.tar.gz
+        VAR_IN_DOCKERFILE: BOTOCORE_BINARY
+      boto3_whl:
+        type: s3
+        URI: s3://sagemaker-python-sdk-047976067574/boto3/boto3.tar.gz
+        VAR_IN_DOCKERFILE: BOTO3_BINARY
+      awscli_whl:
+        type: s3
+        URI: s3://sagemaker-python-sdk-047976067574/boto3/awscli.tar.gz
+        VAR_IN_DOCKERFILE: AWSCLI_BINARY
     context:
       <<: *TRAINING_CONTEXT
   BuildTensorflowGpuCu112Py38TrainingDockerImage:
@@ -76,6 +88,18 @@ images:
         type: s3
         URI: s3://sagemaker-python-sdk-047976067574/dist/sagemaker.tar.gz
         VAR_IN_DOCKERFILE: SAGEMAKER_BINARY
+      botocore_whl:
+        type: s3
+        URI: s3://sagemaker-python-sdk-047976067574/boto3/botocore.tar.gz
+        VAR_IN_DOCKERFILE: BOTOCORE_BINARY
+      boto3_whl:
+        type: s3
+        URI: s3://sagemaker-python-sdk-047976067574/boto3/boto3.tar.gz
+        VAR_IN_DOCKERFILE: BOTO3_BINARY
+      awscli_whl:
+        type: s3
+        URI: s3://sagemaker-python-sdk-047976067574/boto3/awscli.tar.gz
+        VAR_IN_DOCKERFILE: AWSCLI_BINARY
     context:
       <<: *TRAINING_CONTEXT
   BuildTensorflowExampleGpuCu112Py38TrainingDockerImage:

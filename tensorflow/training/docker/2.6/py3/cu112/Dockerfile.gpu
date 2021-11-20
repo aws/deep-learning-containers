@@ -213,11 +213,17 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 
 # Install  Sagemaker PythonSDK
 ARG SAGEMAKER_BINARY
+ARG BOTOCORE_BINARY
+ARG BOTO3_BINARY
+ARG AWSCLI_BINARY
 
 COPY ${SAGEMAKER_BINARY} .
+COPY ${BOTOCORE_BINARY} .
+COPY ${BOTO3_BINARY} .
+COPY ${AWSCLI_BINARY} .
 
-RUN pip install --no-cache-dir ${SAGEMAKER_BINARY} \
- && rm -rf ${SAGEMAKER_BINARY}
+RUN pip install --no-cache-dir ${SAGEMAKER_BINARY} ${BOTOCORE_BINARY} ${BOTO3_BINARY} ${AWSCLI_BINARY} \
+ && rm -rf ${SAGEMAKER_BINARY} ${BOTOCORE_BINARY} ${BOTO3_BINARY} ${AWSCLI_BINARY}
 
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
@@ -232,13 +238,11 @@ RUN ${PIP} install --no-cache-dir -U \
    python-dateutil==2.8.1 \
    "pyYAML>=5.4,<5.5" \
    requests==2.25.1 \
-   "awscli<2" \
    mpi4py==3.0.3 \
    sagemaker-experiments==0.* \
    "sagemaker-tensorflow>=2.6,<2.7" \
    "sagemaker-tensorflow-training>=20" \
    "shap>=0.39,<1" \
-   "boto3>1.0,<2.0" \
    "sasl<1" \
    "thrift_sasl<1" \
    "PyHive<1" \

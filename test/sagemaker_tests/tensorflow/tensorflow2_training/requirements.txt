@@ -1,5 +1,6 @@
-boto3
-awscli
+botocore.tar.gz
+boto3.tar.gz
+awscli.tar.gz
 sagemaker.tar.gz
 smdebug>=1
 sagemaker-experiments

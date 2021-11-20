@@ -40,12 +40,14 @@ class DLCSageMakerLocalTestFailure(Exception):
     pass
 
 
-def get_pysdk_s3_uri(image):
-    keynote2_uri = "s3://sagemaker-python-sdk-524001406597/dist/sagemaker.tar.gz"
-    keynote3_uri = "s3://sagemaker-python-sdk-047976067574/dist/sagemaker.tar.gz"
+def get_s3_uri_list(image):
+    keynote2_uri = "s3://sagemaker-python-sdk-524001406597/"
+    keynote3_uri = "s3://sagemaker-python-sdk-047976067574/"
+    wheel_paths = ["dist/sagemaker.tar.gz"]
     if "hopper" in image or "trcomp" in image:
-        return keynote2_uri
-    return keynote3_uri
+        return [keynote2_uri + whl_path for whl_path in wheel_paths]
+    wheel_paths += ["boto3/botocore.tar.gz", "boto3/boto3.tar.gz", "boto3/awscli.tar.gz"]
+    return [keynote3_uri + whl_path for whl_path in wheel_paths]
 
 def assign_sagemaker_remote_job_instance_type(image):
     if "neuron" in image:
@@ -212,7 +214,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
-def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_instance_ami, pysdk_s3_uri=None):
+def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_instance_ami, s3_uri_list=None):
     """
     Install sagemaker local test dependencies
     :param framework: str
@@ -230,9 +232,11 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_inst
     if framework == "pytorch":
         # The following distutils package conflict with test dependencies
         ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
-    if pysdk_s3_uri:
-        ec2_conn.run(f"aws s3 cp {pysdk_s3_uri} .", warn=True)
+    if s3_uri_list:
+        for s3_uri in s3_uri_list:
+            ec2_conn.run(f"aws s3 cp {s3_uri} .", warn=True)
     ec2_conn.run(f"sudo {python_invoker} -m pip install -r requirements.txt ", warn=True)
+    ec2_conn.run(f"""pip list | grep 'sagemaker\|boto\|aws' """, warn=True)
 
 
 def kill_background_processes_and_run_apt_get_update(ec2_conn):
@@ -316,9 +320,9 @@ def execute_local_tests(image, pytest_cache_params):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
-            pysdk_s3_uri = get_pysdk_s3_uri(image)
-            print(f"SM Local tests ==> fetching {pysdk_s3_uri} for image {image}")
-            install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id, pysdk_s3_uri)
+            s3_uri_list = get_s3_uri_list(image)
+            print(f"SM Local tests ==> fetching {s3_uri_list} for image {image}")
+            install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id, s3_uri_list)
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
@@ -363,12 +367,14 @@ def execute_sagemaker_remote_tests(image):
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
     context = Context()
     with context.cd(path):
-        pysdk_s3_uri = get_pysdk_s3_uri(image)
-        print(f"SM Remote tests ==> fetching {pysdk_s3_uri} for image {image}")
-        context.run(f"aws s3 cp {pysdk_s3_uri} .", warn=True)
+        s3_uri_list = get_s3_uri_list(image)
+        print(f"SM Remote tests ==> fetching {s3_uri_list} for image {image}")
+        for s3_uri in s3_uri_list:
+            context.run(f"aws s3 cp {s3_uri} .", warn=True)
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
+            context.run(f"""pip list | grep 'sagemaker\|boto\|aws' """, warn=True)
             res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
             if res.failed:
