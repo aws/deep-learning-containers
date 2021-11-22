@@ -59,6 +59,7 @@ UL_AMI_LIST = [
 # ECS images are maintained here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
+ECS_AML2_NEURON_USWEST2 = "ami-0c7321fe2b2340dd5"
 ECS_AML2_GRAVITON_CPU_USWEST2 = "ami-0fb32cf53e5ab7686"
 NEURON_AL2_DLAMI = "ami-03c4cdc89eca4dbcb"
 HPU_AL2_DLAMI = "ami-052f4f716a7c7bad7"
@@ -656,6 +657,7 @@ def get_tensorflow_model_name(processor, model_name):
         },
         "albert": {"cpu": "albert", "gpu": "albert", "eia": "albert",},
         "saved_model_half_plus_three": {"eia": "saved_model_half_plus_three"},
+        "simple": {"neuron": "simple"},
     }
     if model_name in tensorflow_models:
         return tensorflow_models[model_name][processor]

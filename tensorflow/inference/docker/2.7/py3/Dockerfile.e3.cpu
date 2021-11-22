@@ -8,7 +8,7 @@ ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.8.9
 ARG TFS_SHORT_VERSION=2.7
-ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serve/r2.7_aws/cpu/tensorflow_model_server
+ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.7_aws/cpu/tensorflow_model_server
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
 # Python won’t try to write .pyc or .pyo files on the import of source modules
