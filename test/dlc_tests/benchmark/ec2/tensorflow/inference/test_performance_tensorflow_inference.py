@@ -14,7 +14,7 @@ from test.test_utils import (
     is_pr_context,
     is_tf_version,
     get_python_invoker,
-    UL18_CPU_ARM64_US_WEST_2,
+    UL18_BENCHMARK_CPU_ARM64_US_WEST_2,
 )
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
@@ -51,7 +51,7 @@ def test_performance_ec2_tensorflow_inference_cpu(
 
 @pytest.mark.model("inception, RCNN-Resnet101-kitti, resnet50_v2, mnist, SSDResnet50Coco")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL18_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL18_BENCHMARK_CPU_ARM64_US_WEST_2], indirect=True)
 def test_performance_ec2_tensorflow_inference_graviton_cpu(
     tensorflow_inference_graviton, ec2_connection, ec2_instance_ami, region, cpu_only
 ):
@@ -75,16 +75,18 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
     ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
 
     # Run performance inference command, display benchmark results to console
-    ec2_connection.run(f"pip3 install -U pip")
-    ec2_connection.run(f"pip3 install --upgrade awscli --user")
-    ec2_connection.run(f"pip3 install boto3 grpcio --user")
 
     if "graviton" in image_uri:
         # TF training binary is used that is compatible for graviton instance type
-        TF_URL="https://aws-dlc-graviton-training-binaries.s3.us-west-2.amazonaws.com/tensorflow/2.6.0/tensorflow-2.6.0-cp38-cp38-linux_aarch64.whl"
+    
         ec2_connection.run(
             (
-                f"pip3 install --no-cache-dir -U {TF_URL}"
+                f"sudo apt install python3-pip"
+            ), hide=True
+        )
+        ec2_connection.run(
+            (
+                f"pip3 install --user awscli boto3 grpcio"
             ), hide=True
         )
         ec2_connection.run(
@@ -93,8 +95,9 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
             ), hide=True
         )
     else:
+        ec2_connection.run(f"pip3 install -U pip")
         ec2_connection.run(
-            f"pip3 install 'tensorflow-serving-api<={tf_api_version}' --user --no-warn-script-location"
+            f"pip3 install boto3 grpcio 'tensorflow-serving-api<={tf_api_version}' --user --no-warn-script-location"
         )
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S")
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
