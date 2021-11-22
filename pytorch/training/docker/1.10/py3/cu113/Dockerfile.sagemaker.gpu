@@ -19,7 +19,7 @@ ARG SMDEBUG_VERSION=1.0.9
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
-# swap the pytorch training wheel with additional smdebug and rubik features
+# swap the pytorch training wheel with additional smdebug and smmdp features
 ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.10.0_aws_v3/20211102-104200/66c710e4b1cb2f96a29c556c58d0d0b82f92e496/gpu/torch-1.10.0%2Bcu113-cp38-cp38-manylinux1_x86_64.whl
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.10.0/build-artifacts/2021-11-05-16-39/smdistributed_modelparallel-1.5.0-cp38-cp38-linux_x86_64.whl
 ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.10.0/cu113/2021-11-03/smdistributed_dataparallel-1.2.2-cp38-cp38-linux_x86_64.whl
