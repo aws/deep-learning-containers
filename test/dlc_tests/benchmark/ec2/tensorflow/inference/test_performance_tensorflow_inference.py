@@ -86,7 +86,7 @@ def ec2_performance_tensorflow_inference(image_uri, processor, ec2_connection, e
         )
         ec2_connection.run(
             (
-                f"pip3 install --user awscli boto3 grpcio"
+                f"pip3 install --user --upgrade awscli boto3 && pip3 install --user grpcio"
             ), hide=True
         )
         ec2_connection.run(
