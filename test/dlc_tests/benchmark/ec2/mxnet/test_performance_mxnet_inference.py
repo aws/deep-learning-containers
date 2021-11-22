@@ -57,6 +57,8 @@ def test_performance_ec2_mxnet_inference_cpu(mxnet_inference, ec2_connection, cp
     )
 
 
+# TODO: Enable when releasing MXNet Graviton images
+@pytest.mark.skip(reason="Enable when releasing MXNet Graviton Images")
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50_v2")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GRAVITON_INSTANCE_TYPE], indirect=True)
