@@ -128,8 +128,9 @@ RUN ${PIP} install -U --no-cache-dir \
     grpcio==1.24.1 \
     protobuf==3.10.0 \
 # using --no-dependencies to avoid installing tensorflow binary
- && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api-gpu==1.15.0
+ && ${PIP} install --no-cache-dir \
+    tensorflow-serving-api-gpu==1.15 \
+    tensorflow-gpu==1.15.5
 
 COPY sagemaker /sagemaker
 
