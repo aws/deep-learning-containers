@@ -15,8 +15,8 @@ from test.test_utils.ec2 import (
 PT_PERFORMANCE_INFERENCE_SCRIPT = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inference_performance.py"
 )
-PT_PERFORMANCE_INFERENCE_CPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT}  --iterations 500"
-PT_PERFORMANCE_INFERENCE_GPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT}  --iterations 1000 --gpu"
+PT_PERFORMANCE_INFERENCE_CPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT} --iterations 500"
+PT_PERFORMANCE_INFERENCE_GPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT} --iterations 1000 --gpu"
 
 
 @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
