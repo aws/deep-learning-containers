@@ -34,6 +34,8 @@ PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
 # Instance type and AMI to be updated once the EC2 Gaudi instance is available
 PT_EC2_HPU_INSTANCE_TYPE = "t2.nano"
 
+
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE], indirect=True)
 def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu_only, py3_only):
@@ -49,6 +51,7 @@ def test_performance_pytorch_gpu_synthetic(pytorch_training, ec2_connection, gpu
     )
 
 
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.skip(reason="Current infrastructure issues are causing this to timeout.")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_ami", [PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2], indirect=True)
@@ -58,12 +61,14 @@ def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD
     )
 
+
 # Placeholder for habana benchmark test
 @pytest.mark.model('N/A')
 #@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
 #@pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
 def test_performance_tensorflow_hpu_imagenet(pytorch_training_habana):
     pass  
+
 
 def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     connection, ecr_uri, test_cmd, region=DEFAULT_REGION
