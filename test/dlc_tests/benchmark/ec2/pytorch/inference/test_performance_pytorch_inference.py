@@ -6,7 +6,7 @@ from src.benchmark_metrics import (
     PYTORCH_INFERENCE_CPU_THRESHOLD,
     get_threshold_for_image,
 )
-from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, AML2_CPU_ARM64_US_WEST_2
+from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, AML2_CPU_ARM64_US_WEST_2, LOGGER
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
     post_process_inference,
@@ -65,12 +65,16 @@ def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, regi
     # Run performance inference command, display benchmark results to console
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
     log_file = f"synthetic_{commit_info}_{time_str}.log"
+    LOGGER.info(f"DEBUG: Running container {container_name}")
     ec2_connection.run(
         f"{docker_cmd} run -d --name {container_name}  -e OMP_NUM_THREADS=1 "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
     )
+    LOGGER.info(f"DEBUG: Running test command {test_cmd}")
     ec2_connection.run(f"{docker_cmd} exec {container_name} " f"python {test_cmd} " f"2>&1 | tee {log_file}")
+    LOGGER.info(f"DEBUG: Deleting container {container_name}")
     ec2_connection.run(f"docker rm -f {container_name}")
+    LOGGER.info(f"DEBUG: Pushing results to s3 for log file {log_file}")
     ec2_performance_upload_result_to_s3_and_validate(
         ec2_connection, image_uri, log_file, "synthetic", threshold, post_process_inference, log_file,
     )
