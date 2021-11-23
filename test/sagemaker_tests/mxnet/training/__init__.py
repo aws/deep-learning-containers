@@ -18,22 +18,21 @@ from sagemaker.mxnet.estimator import MXNet as MXNet
 
 class MXNetWrapper(MXNet):
     def __init__(self, image_uri, sagemaker_regions, **kwargs):
-        from ... import get_ecr_image_region, get_sagemaker_session, get_ecr_image
+        from ... import get_ecr_image_region, get_ecr_image
 
         self.sagemaker_regions = sagemaker_regions
         if self.sagemaker_regions[0] != get_ecr_image_region(image_uri):
             self.image_uri = get_ecr_image(image_uri, self.sagemaker_regions[0])
         else:
             self.image_uri = image_uri
-        self.sagemaker_session = get_sagemaker_session(self.sagemaker_regions[0])
+        self.sagemaker_session = self.create_sagemaker_session(self.sagemaker_regions[0])
         super().__init__(image_uri=self.image_uri, **kwargs)
 
     def fit(self, inputs=None, wait=True, logs="All", job_name=None, experiment_config=None, **kwargs):
-        from ... import get_ecr_image_region, get_sagemaker_session, get_ecr_image
+        from ... import get_ecr_image_region, get_ecr_image
 
         for region in self.sagemaker_regions:
-            bucket_name = "sagemaker-{}-{}".format(region, self.sagemaker_session.account_id())
-            self.sagemaker_session = get_sagemaker_session(region, bucket_name)
+            self.sagemaker_session = self.create_sagemaker_session(region)
             # Upload the image to test region if needed
             if region != get_ecr_image_region(self.image_uri):
                 self.image_uri = get_ecr_image(self.image_uri, region)
@@ -52,3 +51,8 @@ class MXNetWrapper(MXNet):
                     continue
                 else:
                     raise e
+
+    def create_sagemaker_session(self, region):
+        from ... import get_sagemaker_session
+        bucket_name = "sagemaker-{}-{}".format(region, self.sagemaker_session.account_id())
+        return get_sagemaker_session(region, bucket_name)
