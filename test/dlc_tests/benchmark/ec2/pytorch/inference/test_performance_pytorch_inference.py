@@ -46,11 +46,11 @@ def test_performance_ec2_pytorch_inference_graviton_cpu(pytorch_inference_gravit
     _, framework_version = get_framework_and_version_from_tag(pytorch_inference_graviton)
     threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_CPU_THRESHOLD)
     ec2_performance_pytorch_inference(
-        pytorch_inference_graviton, "cpu", ec2_connection, region, PT_PERFORMANCE_INFERENCE_CPU_CMD, threshold,
+        pytorch_inference_graviton, "cpu", ec2_connection, region, PT_PERFORMANCE_INFERENCE_CPU_CMD, threshold, timeout=1800
     )
 
 
-def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, region, test_cmd, threshold):
+def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, region, test_cmd, threshold, timeout=None):
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
@@ -71,7 +71,16 @@ def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, regi
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
     )
     LOGGER.info(f"DEBUG: Running test command {test_cmd}")
-    ec2_connection.run(f"{docker_cmd} exec {container_name} " f"python {test_cmd} " f"2>&1 | tee {log_file}")
+    try:
+        ec2_connection.run(
+            f"{docker_cmd} exec {container_name} python {test_cmd} 2>&1 | tee {log_file}", hide=True, timeout=timeout
+        )
+    except Exception as e:
+        output = ec2_connection.run(f"tail --lines=1 {log_file}", hide=True, warn=True)
+        if "InceptionV3: p99 Latency:" in output.stdout and output.return_code == 0:
+            pass
+        else:
+            raise RuntimeError(f"PT inference test failed. Last line of log file {output.stdout}") from e
     LOGGER.info(f"DEBUG: Deleting container {container_name}")
     ec2_connection.run(f"docker rm -f {container_name}")
     LOGGER.info(f"DEBUG: Pushing results to s3 for log file {log_file}")
