@@ -18,8 +18,9 @@ from sagemaker.mxnet.estimator import MXNet as MXNet
 
 class MXNetWrapper(MXNet):
     def __init__(self, image_uri, sagemaker_regions, **kwargs):
-        from ... import get_ecr_image_region, get_ecr_image
-
+        from ... import get_ecr_image_region, get_ecr_image, get_account_id_from_image_uri
+        
+        self.account_id = get_account_id_from_image_uri(image_uri)
         self.sagemaker_regions = sagemaker_regions
         if self.sagemaker_regions[0] != get_ecr_image_region(image_uri):
             self.image_uri = get_ecr_image(image_uri, self.sagemaker_regions[0])
@@ -54,5 +55,5 @@ class MXNetWrapper(MXNet):
 
     def create_sagemaker_session(self, region):
         from ... import get_sagemaker_session
-        bucket_name = "sagemaker-{}-{}".format(region, self.sagemaker_session.account_id())
+        bucket_name = "sagemaker-{}-{}".format(region, self.account_id)
         return get_sagemaker_session(region, bucket_name)
