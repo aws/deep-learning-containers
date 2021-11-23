@@ -44,8 +44,8 @@ def main():
     # TODO: Remove when we remove these jobs completely
     build_arn = utils.get_codebuild_build_arn()
     if build_context == "PR":
-        tf_1_build_regex = re.compile(r"dlc-pr-tensorflow-1:")
-        if tf_1_build_regex.search(build_arn):
+        tf_2_build_regex = re.compile(r"dlc-pr-tensorflow-2:")
+        if tf_2_build_regex.search(build_arn):
             return
 
     # A general will work if in non-EI, non-NEURON and non-GRAVITON mode and its framework not been disabled
