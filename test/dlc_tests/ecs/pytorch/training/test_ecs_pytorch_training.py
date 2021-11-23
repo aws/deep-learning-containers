@@ -132,8 +132,8 @@ def test_ecs_pytorch_training_dgl_cpu(
     """
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     # TODO: Remove when DGL supports PT 1.10
-    if Version(image_framework_version) == Version("1.10"):
-        pytest.skip("Official DGL releases do not yet support PyTorch 1.10")
+    # if Version(image_framework_version) == Version("1.10"):
+    #     pytest.skip("Official DGL releases do not yet support PyTorch 1.10")
     instance_id, cluster_arn = ecs_container_instance
 
     ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id)
@@ -163,8 +163,8 @@ def test_ecs_pytorch_training_dgl_gpu(
     if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
         pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
     # TODO: Remove when DGL supports PT1.10 cu113
-    if Version(image_framework_version) == Version("1.10") and image_cuda_version == "cu113":
-        pytest.skip("DGL CUDA 11.3 was not introduced in PyTorch 1.10")
+    # if Version(image_framework_version) == Version("1.10") and image_cuda_version == "cu113":
+    #     pytest.skip("DGL CUDA 11.3 was not introduced in PyTorch 1.10")
 
     instance_id, cluster_arn = ecs_container_instance
 
