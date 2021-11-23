@@ -24,7 +24,7 @@ skip_frameworks = ["tensorflow", "pytorch", "autogluon", "huggingface-tensorflow
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = true
+do_build = false
 
 [test]
 ### On by default
