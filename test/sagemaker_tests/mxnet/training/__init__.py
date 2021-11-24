@@ -26,7 +26,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 class MXNetWrapper(MXNet):
     def __init__(self, image_uri, sagemaker_regions, **kwargs):
         from ... import get_ecr_image_region, get_ecr_image, get_account_id_from_image_uri
-        
+
         self.account_id = get_account_id_from_image_uri(image_uri)
         self.sagemaker_regions = sagemaker_regions
         LOGGER.info(f"sagemaker_regions - {sagemaker_regions}, \n image_uri - {image_uri},\n ")
@@ -37,6 +37,7 @@ class MXNetWrapper(MXNet):
         self.sagemaker_session = self.create_sagemaker_session(self.sagemaker_regions[0])
         LOGGER.info(f"sagemaker_regions - {sagemaker_regions}, \n image_uri - {self.image_uri},\n sagemaker_session.default_bucket() - {self.sagemaker_session.default_bucket()}")
         super().__init__(image_uri=self.image_uri, **kwargs)
+        LOGGER.info(f"sagemaker_regions - {sagemaker_regions}, \n image_uri - {self.image_uri},\n sagemaker_session.default_bucket() - {self.sagemaker_session.default_bucket()}")
 
     def fit(self, inputs=None, wait=True, logs="All", job_name=None, experiment_config=None, **kwargs):
         from ... import get_ecr_image_region, get_ecr_image
