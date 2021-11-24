@@ -25,7 +25,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 class MXNetWrapper(MXNet):
     def __init__(self, image_uri, sagemaker_regions, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(image_uri=image_uri, **kwargs)
         from ... import get_ecr_image_region, get_ecr_image, get_account_id_from_image_uri
 
         self.account_id = get_account_id_from_image_uri(image_uri)
