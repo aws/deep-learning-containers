@@ -305,6 +305,10 @@ def is_empty_build_context():
     return not os.getenv("BUILD_CONTEXT")
 
 
+def is_graviton_architecture():
+    return os.getenv("ARCH_TYPE") == "graviton"
+
+
 def is_dlc_cicd_context():
     return os.getenv("BUILD_CONTEXT") in ["PR", "CANARY", "NIGHTLY", "MAINLINE"]
 
