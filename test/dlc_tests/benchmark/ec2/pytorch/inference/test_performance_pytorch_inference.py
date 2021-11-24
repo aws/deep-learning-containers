@@ -39,6 +39,7 @@ def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection
     )
 
 
+@pytest.mark.skip(reason="PT graviton benchmarks are still in development due to latency and timeouts")
 @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [AML2_CPU_ARM64_US_WEST_2], indirect=True)
@@ -46,11 +47,10 @@ def test_performance_ec2_pytorch_inference_graviton_cpu(pytorch_inference_gravit
     _, framework_version = get_framework_and_version_from_tag(pytorch_inference_graviton)
     threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_CPU_THRESHOLD)
     ec2_performance_pytorch_inference(
-        pytorch_inference_graviton, "cpu", ec2_connection, region, PT_PERFORMANCE_INFERENCE_CPU_CMD, threshold, timeout=1800
-    )
+        pytorch_inference_graviton, "cpu", ec2_connection, region, PT_PERFORMANCE_INFERENCE_CPU_CMD, threshold)
 
 
-def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, region, test_cmd, threshold, timeout=None):
+def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, region, test_cmd, threshold):
     docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
@@ -65,25 +65,12 @@ def ec2_performance_pytorch_inference(image_uri, processor, ec2_connection, regi
     # Run performance inference command, display benchmark results to console
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
     log_file = f"synthetic_{commit_info}_{time_str}.log"
-    LOGGER.info(f"DEBUG: Running container {container_name}")
     ec2_connection.run(
         f"{docker_cmd} run -d --name {container_name}  -e OMP_NUM_THREADS=1 "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
     )
-    LOGGER.info(f"DEBUG: Running test command {test_cmd}")
-    try:
-        ec2_connection.run(
-            f"{docker_cmd} exec {container_name} python {test_cmd} 2>&1 | tee {log_file}", hide=True, timeout=timeout
-        )
-    except Exception as e:
-        output = ec2_connection.run(f"tail --lines=1 {log_file}", hide=True, warn=True)
-        if "InceptionV3: p99 Latency:" in output.stdout and output.return_code == 0:
-            pass
-        else:
-            raise RuntimeError(f"PT inference test failed. Last line of log file {output.stdout}") from e
-    LOGGER.info(f"DEBUG: Deleting container {container_name}")
+    ec2_connection.run(f"{docker_cmd} exec {container_name} " f"python {test_cmd} " f"2>&1 | tee {log_file}")
     ec2_connection.run(f"docker rm -f {container_name}")
-    LOGGER.info(f"DEBUG: Pushing results to s3 for log file {log_file}")
     ec2_performance_upload_result_to_s3_and_validate(
         ec2_connection, image_uri, log_file, "synthetic", threshold, post_process_inference, log_file,
     )
