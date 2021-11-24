@@ -11,16 +11,13 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
-import os
 import sagemaker
 import boto3
-import subprocess
 import re
-import time
 from test.test_utils.ecr import reupload_image_to_test_ecr
 
-def get_sagemaker_session(region):
-    return sagemaker.Session(boto_session=boto3.Session(region_name=region))
+def get_sagemaker_session(region, default_bucket=None):
+    return sagemaker.Session(boto_session=boto3.Session(region_name=region), default_bucket=default_bucket)
 
 
 def get_unique_name_from_tag(image_uri):
