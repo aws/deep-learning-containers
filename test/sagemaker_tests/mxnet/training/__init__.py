@@ -12,15 +12,8 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import sys
 import sagemaker
-import logging
-
 from sagemaker.mxnet.estimator import MXNet as MXNet
-
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
-LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
 class MXNetWrapper(MXNet):
@@ -30,13 +23,11 @@ class MXNetWrapper(MXNet):
 
         self.account_id = get_account_id_from_image_uri(image_uri)
         self.sagemaker_regions = sagemaker_regions
-        LOGGER.info(f"sagemaker_regions - {sagemaker_regions}, \n image_uri - {image_uri},\n ")
         if self.sagemaker_regions[0] != get_ecr_image_region(image_uri):
             self.image_uri = get_ecr_image(image_uri, self.sagemaker_regions[0])
         else:
             self.image_uri = image_uri
         self.sagemaker_session = self.create_sagemaker_session(self.sagemaker_regions[0])
-        LOGGER.info(f"sagemaker_regions - {sagemaker_regions}, \n image_uri - {self.image_uri},\n sagemaker_session.default_bucket() - {self.sagemaker_session.default_bucket()}")
 
     def fit(self, inputs=None, wait=True, logs="All", job_name=None, experiment_config=None, **kwargs):
         from ... import get_ecr_image_region, get_ecr_image
