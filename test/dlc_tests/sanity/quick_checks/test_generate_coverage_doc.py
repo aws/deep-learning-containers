@@ -6,7 +6,7 @@ import pytest
 from botocore.exceptions import ClientError
 from invoke.context import Context
 
-from test.test_utils import LOGGER, is_mainline_context
+from test.test_utils import LOGGER, is_mainline_context, is_graviton_architecture
 from test.test_utils.test_reporting import get_test_coverage_file_path
 
 
@@ -21,6 +21,10 @@ def test_generate_coverage_doc():
     """
     Test generating the test coverage doc
     """
+
+    if is_mainline_context and is_graviton_architecture:
+        pytest.skip("Skipping the test for Graviton image build in mainline context as ARM image is used as a base")
+
     test_coverage_file = get_test_coverage_file_path()
     ctx = Context()
     # Set DLC_IMAGES to 'test' to avoid image names affecting function metadata (due to parametrization)
@@ -39,8 +43,9 @@ def test_generate_coverage_doc():
         client = boto3.client("s3")
         with open(test_coverage_file, "rb") as test_file:
             try:
-                client.put_object(Bucket=TEST_COVERAGE_REPORT_BUCKET, Key=os.path.basename(test_coverage_file),
-                                  Body=test_file)
+                client.put_object(
+                    Bucket=TEST_COVERAGE_REPORT_BUCKET, Key=os.path.basename(test_coverage_file), Body=test_file
+                )
             except ClientError as e:
                 LOGGER.error(f"Unable to upload report to bucket {TEST_COVERAGE_REPORT_BUCKET}. Error: {e}")
                 raise
