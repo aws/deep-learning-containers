@@ -22,15 +22,17 @@ from ...integration import RESOURCE_PATH
 from .timeout import timeout
 
 DATA_PATH = os.path.join(RESOURCE_PATH, 'mnist')
-SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist.py')
+SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist_gluon_basic_hook_demo.py')
 
 
+@pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
-@pytest.mark.integration("smexperiments")
-@pytest.mark.skip_test_in_region
+@pytest.mark.skip_py2_containers
 def test_training(sagemaker_regions, ecr_image, instance_type, instance_count, framework_version):
-    hyperparameters = {'sagemaker_parameter_server_enabled': True} if instance_count > 1 else {}
-    hyperparameters['epochs'] = 1
+    hyperparameters = {'random_seed': True,
+                       'num_steps': 50,
+                       'smdebug_path': '/tmp/ml/output/tensors',
+                       'epochs': 1}
 
     mx = MXNet(entry_point=SCRIPT_PATH,
                role='SageMakerRole',
@@ -41,10 +43,8 @@ def test_training(sagemaker_regions, ecr_image, instance_type, instance_count, f
                framework_version=framework_version,
                hyperparameters=hyperparameters)
 
-    mx = _disable_sm_profiler(mx.sagemaker_session.boto_region_name, mx)
-
     with timeout(minutes=15):
-        prefix = 'mxnet_mnist/{}'.format(utils.sagemaker_timestamp())
+        prefix = 'mxnet_mnist_gluon_basic_hook_demo/{}'.format(utils.sagemaker_timestamp())
         train_input = mx.sagemaker_session.upload_data(path=os.path.join(DATA_PATH, 'train'),
                                                        key_prefix=prefix + '/train')
         test_input = mx.sagemaker_session.upload_data(path=os.path.join(DATA_PATH, 'test'),
@@ -52,12 +52,3 @@ def test_training(sagemaker_regions, ecr_image, instance_type, instance_count, f
 
         job_name = utils.unique_name_from_base('test-mxnet-image')
         mx.fit({'train': train_input, 'test': test_input}, job_name=job_name)
-
-
-def _disable_sm_profiler(region, estimator):
-    """Disable SMProfiler feature for China regions
-    """
-
-    if region in ('cn-north-1', 'cn-northwest-1'):
-        estimator.disable_profiler = True
-    return estimator
