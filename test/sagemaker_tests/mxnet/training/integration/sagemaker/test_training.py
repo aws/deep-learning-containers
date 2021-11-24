@@ -13,6 +13,8 @@
 from __future__ import absolute_import
 
 import os
+import sys
+import logging
 
 import pytest
 from sagemaker import utils
@@ -23,6 +25,9 @@ from .timeout import timeout
 
 DATA_PATH = os.path.join(RESOURCE_PATH, 'mnist')
 SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist.py')
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
 @pytest.mark.model("mnist")
@@ -49,6 +54,7 @@ def test_training(sagemaker_regions, ecr_image, instance_type, instance_count, f
                                                        key_prefix=prefix + '/train')
         test_input = mx.sagemaker_session.upload_data(path=os.path.join(DATA_PATH, 'test'),
                                                       key_prefix=prefix + '/test')
+        LOGGER.info(f"mx.sagemaker_session.default_bucket() - {mx.sagemaker_session.default_bucket()} \n train_input - {train_input}")
 
         job_name = utils.unique_name_from_base('test-mxnet-image')
         mx.fit({'train': train_input, 'test': test_input}, job_name=job_name)
