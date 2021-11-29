@@ -73,6 +73,19 @@ You can then pull these Docker images from ECR by running:
 
     docker pull <name of container image>
 
+DLC Available Image User Guide
+============================
+
+To use the following tables, select your desired framework, as well as
+the kind of job you're starting, and the desired Python version. Your
+job type is either ``training`` or ``inference``. Your Python version is
+either ``py27``, ``py36``, or ``py37`` depending on availability. Plug this information into the replaceable
+portions of the URL as shown in the example URL.
+
+You can pin your version by adding the version tag to your URL as follows:
+
+     763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04-v1.0
+
 E3 Framework Containers (EC2, ECS, and EKS support only)
 ============================
 
@@ -99,16 +112,6 @@ Sagemaker Framework Containers (SM support only)
 
  General Framework Containers (EC2, ECS, EKS, & SM support)
 ============================
-
-To use the following table, select your desired framework, as well as
-the kind of job you're starting, and the desired Python version. Your
-job type is either ``training`` or ``inference``. Your Python version is
-either ``py27``, ``py36``, or ``py37`` depending on availability. Plug this information into the replaceable
-portions of the URL as shown in the example URL.
-
-You can pin your version by adding the version tag to your URL as follows:
-
-     763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04-v1.0
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
