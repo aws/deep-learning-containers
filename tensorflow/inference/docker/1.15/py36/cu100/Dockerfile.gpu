@@ -12,6 +12,7 @@ ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.6.13
 ARG TFS_SHORT_VERSION=1.15
+ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r1.15_aws/20210225-220854/gpu/cu100/py36/tensorflow_gpu-1.15.5-cp36-cp36m-manylinux2010_x86_64.whl
 ARG TF_MODEL_SERVER_SOURCE=https://tensorflow-aws.s3-us-west-2.amazonaws.com/1.15.3/Serving/GPU/tensorflow_model_server
 
 # See http://bugs.python.org/issue19846
@@ -127,10 +128,11 @@ RUN ${PIP} install -U --no-cache-dir \
     requests==2.22.0 \
     grpcio==1.24.1 \
     protobuf==3.10.0 \
+ && pip install --force-reinstall --no-cache-dir -U \
+    ${TF_URL} \
 # using --no-dependencies to avoid installing tensorflow binary
- && ${PIP} install --no-cache-dir \
-    tensorflow-serving-api-gpu==1.15 \
-    tensorflow-gpu==1.15.5
+ && ${PIP} install --no-dependencies --no-cache-dir \
+    tensorflow-serving-api-gpu==1.15
 
 COPY sagemaker /sagemaker
 
