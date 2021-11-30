@@ -246,3 +246,13 @@ def disable_test(request):
 
     if build_name and version and _is_test_disabled(test_name, build_name, version):
         pytest.skip(f"Skipping {test_name} test because it has been disabled.")
+
+
+@pytest.fixture(autouse=True)
+def skip_successfully_executed_test(request):
+    test_name = request.node.name
+    lastfailed = request.config.cache.get("cache/lastfailed", None)
+    logger.info(f"test_name - {test_name}, lastfailed - {lastfailed}")
+
+    if lastfailed is not None and test_name not in lastfailed.keys():
+        pytest.skip(f"Skipping {test_name} test because it was already successfully executed for this commit.")
