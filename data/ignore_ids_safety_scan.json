@@ -12,7 +12,10 @@
             "py3": {
                 "41161":"TF 2.6.0 is the last version for 2.6 series and does not have a fix yet.",
                 "42098":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
-                "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images."
+                "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
+                "42815":"Can't upgrade bokeh version version as it brings typing-extensions 3.10 which is not compatible with TF2.6.2",
+                "42772":"Can't upgrade bokeh version version as it brings typing-extensions 3.10 which is not compatible with TF2.6.2",
+                "42814":"Can't upgrade bokeh version version as it brings typing-extensions 3.10 which is not compatible with TF2.6.2"
             }
         },
         "inference":{
