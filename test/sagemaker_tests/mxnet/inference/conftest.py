@@ -251,8 +251,12 @@ def disable_test(request):
 @pytest.fixture(autouse=True)
 def skip_successfully_executed_test(request):
     test_name = request.node.name
+    test_file_name = str(request.node.fspath)
+    file_and_test_name = f"{test_file_name}::{test_name}"
     lastfailed = request.config.cache.get("cache/lastfailed", None)
-    logger.info(f"test_name - {test_name}, lastfailed - {lastfailed}")
+    logger.warning(f"test_name - {test_name}, lastfailed - {lastfailed}")
+    print(f"test_name - {test_name}, lastfailed - {lastfailed}")
 
-    if lastfailed is not None and test_name not in lastfailed.keys():
+    if lastfailed is not None \
+            and not any(file_and_test_name in failed_test_name for failed_test_name in lastfailed.keys()):
         pytest.skip(f"Skipping {test_name} test because it was already successfully executed for this commit.")
