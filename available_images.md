@@ -171,7 +171,7 @@ HuggingFace inference containers
 |TensorFlow 2.5.1 with HuggingFace transformers |inference	|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.5.1-transformers4.12.3-cpu-py37-ubuntu18.04 	|
 |TensorFlow 2.5.1 with HuggingFace transformers |inference	|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.5.1-transformers4.12.3-gpu-py37-cu112-ubuntu18.04 	|
 
-Sagemaker Training compiler containers
+Sagemaker Training Compiler containers
 ===============================
 
 | Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
