@@ -176,8 +176,8 @@ Sagemaker Training Compiler containers
 
 | Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-----------------------------------------------|-----------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-|PyTorch 1.9.0 with HuggingFace transformers    |training	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-trcomp-training:1.9.0-transformers4.11.0-gpu-py38-cu111-ubuntu20.04      |
-|TensorFlow 2.5.1 with HuggingFace transformers |training	|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-trcomp-training:2.5.1-transformers4.11.0-gpu-py37-cu112-ubuntu18.04 	|
+|PyTorch 1.9.0 with HuggingFace transformers and SageMaker Training Compiler    |training	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-trcomp-training:1.9.0-transformers4.11.0-gpu-py38-cu111-ubuntu20.04      |
+|TensorFlow 2.5.1 with HuggingFace transformers and SageMaker Training Compiler |training	|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-trcomp-training:2.5.1-transformers4.11.0-gpu-py37-cu112-ubuntu18.04 	|
 
 
 Elastic Inference Containers
