@@ -1,5 +1,6 @@
-boto3
-awscli
+botocore==1.23.7
+boto3==1.20.7
+awscli==1.22.7
 sagemaker>=2,<3
 smdebug>=1
 coverage==4.5.3
