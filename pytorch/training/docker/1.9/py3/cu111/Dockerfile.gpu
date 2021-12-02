@@ -191,9 +191,9 @@ WORKDIR /root
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install --no-cache-dir -U \
     opencv-python==4.5.2.54 \
-    "botocore==1.23.7" \
-    "boto3==1.20.7" \
-    "awscli==1.22.7" \
+    "botocore>1.0,<2.0" \
+    "boto3>1.0,<2.0" \
+    "awscli<2" \
     smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
