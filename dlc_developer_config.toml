@@ -19,6 +19,7 @@ benchmark_mode = false
 
 [build]
 # Frameworks for which you want to disable both builds and tests
+# available farameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "tensorflow", "mxnet", "pytorch"]
 skip_frameworks = ["tensorflow","mxnet","huggingface_tensorflow","huggingface_pytorch","autogluon"]
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = true
