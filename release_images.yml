@@ -409,45 +409,6 @@ release_images:
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
       force_release: False
   30:
-    framework: "pytorch"
-    version: "1.10.0"
-    customer_type: "e3"
-    arch_type: "x86"
-    training:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu113"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-      # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-      # has already been published. Re-released image will have minor version incremented by 1.
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu113"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-      # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-      # has already been published. Re-released image will have minor version incremented by 1.
-  31:
-    framework: "pytorch"
-    version: "1.10.0"
-    customer_type: "e3"
-    arch_type: "x86"
-    training:
-      device_types: [ "gpu" ]
-      python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu113"
-      example: True
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
-
-  32:
     framework: "mxnet"
     version: "1.8.0"
     arch_type: "x86"
@@ -459,8 +420,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-
-  33:
+  31:
     framework: "tensorflow"
     version: "2.5.1"
     arch_type: "x86"
@@ -472,8 +432,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-
-  34:
+  32:
     framework: "tensorflow"
     version: "1.15.5"
     arch_type: "x86"
@@ -485,70 +444,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  35:
-    framework: "tensorflow"
-    version: "2.7.0"
-    customer_type: "e3"
-    arch_type: "x86"
-    training:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu112"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-      # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-      # has already been published. Re-released image will have minor version incremented by 1.
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu112"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-      # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-      # has already been published. Re-released image will have minor version incremented by 1.
-  36:
-    framework: "tensorflow"
-    version: "2.7.0"
-    customer_type: "e3"
-    arch_type: "x86"
-    training:
-      device_types: [ "gpu" ]
-      python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu112"
-      example: True
-      disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
-  37:
-    framework: "pytorch"
-    version: "1.10.0"
-    customer_type: "sagemaker"
-    arch_type: "x86"
-    training:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu113"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-      # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-      # has already been published. Re-released image will have minor version incremented by 1.
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py38" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu113"
-      example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-      # to images being published.
-      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
-      # has already been published. Re-released image will have minor version incremented by 1.
-  38:
+  33:
     framework: "pytorch"
     version: "1.10.0"
     customer_type: "e3"
@@ -560,9 +456,9 @@ release_images:
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
       # to images being published.
-      force_release: True  # [Default: False] Set to True to force images to be published even if the same image
+      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
       # has already been published. Re-released image will have minor version incremented by 1.
-  39:
+  34:
     framework: "tensorflow"
     version: "2.7.0"
     customer_type: "e3"
@@ -574,5 +470,5 @@ release_images:
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
       # to images being published.
-      force_release: True  # [Default: False] Set to True to force images to be published even if the same image
+      force_release: False  # [Default: False] Set to True to force images to be published even if the same image
       # has already been published. Re-released image will have minor version incremented by 1.
