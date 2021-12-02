@@ -117,9 +117,9 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip install --no-cache-dir -U \
     "pyyaml>=5.4,<5.5" \
     opencv-python==4.5.2.54 \
-    "botocore==1.23.7" \
-    "boto3==1.20.7" \
-    "awscli==1.22.7" \
+    "botocore>1.0,<2.0" \
+    "boto3>1.0,<2.0" \
+    "awscli<2" \
     scipy \
     click \
     "cryptography>3.2" \
