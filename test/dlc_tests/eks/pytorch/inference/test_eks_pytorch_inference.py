@@ -58,6 +58,17 @@ def test_eks_pytorch_neuron_inference(pytorch_inference_neuron):
 
 @pytest.mark.model("densenet")
 def test_eks_pytorch_densenet_inference(pytorch_inference):
+    __test_eks_pytorch_densenet_inference(pytorch_inference)
+
+
+# TODO: Enable after adding EKS infrastructure to support graviton
+@pytest.mark.skip(reason="EKS graviton tests require further development")
+@pytest.mark.model("densenet")
+def test_eks_pytorch_densenet_inference_graviton(pytorch_inference_graviton):
+    __test_eks_pytorch_densenet_inference(pytorch_inference_graviton)
+
+
+def __test_eks_pytorch_densenet_inference(pytorch_inference):
     server_type = test_utils.get_inference_server_type(pytorch_inference)
     if server_type == "ts":
         model = "pytorch-densenet=https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar"
