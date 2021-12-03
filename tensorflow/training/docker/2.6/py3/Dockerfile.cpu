@@ -57,28 +57,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install -y -qq libkrb5-dev \
     && apt-get install -y -qq libsasl2-dev libsasl2-modules \
     && apt-get install -y -qq krb5-user \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Open MPI
 RUN mkdir /tmp/openmpi \
- && cd /tmp/openmpi \
- && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz \
- && tar zxf openmpi-4.0.4.tar.gz \
- && cd openmpi-4.0.4 \
- && ./configure --enable-orterun-prefix-by-default \
- && make -j $(nproc) all \
- && make install \
- && ldconfig \
- && rm -rf /tmp/openmpi
+    && cd /tmp/openmpi \
+    && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz \
+    && tar zxf openmpi-4.0.4.tar.gz \
+    && cd openmpi-4.0.4 \
+    && ./configure --enable-orterun-prefix-by-default \
+    && make -j $(nproc) all \
+    && make install \
+    && ldconfig \
+    && rm -rf /tmp/openmpi
 
 # Create a wrapper for OpenMPI to allow running as root by default
 RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real \
- && echo '#!/bin/bash' > /usr/local/bin/mpirun \
- && echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun \
- && chmod a+x /usr/local/bin/mpirun
+    && echo '#!/bin/bash' > /usr/local/bin/mpirun \
+    && echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun \
+    && chmod a+x /usr/local/bin/mpirun
 
 RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf \
- && echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
+    && echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
 
 ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
 ENV PATH /usr/local/openmpi/bin/:$PATH
@@ -88,15 +88,15 @@ RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so
 
 # Create SSH key.
 RUN mkdir -p /root/.ssh/ \
- && mkdir -p /var/run/sshd \
- && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
- && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
- && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
+    && mkdir -p /var/run/sshd \
+    && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
+    && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+    && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 WORKDIR /
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends \
     libbz2-dev \
     libc6-dev \
     libffi-dev \
@@ -110,14 +110,14 @@ RUN apt-get update \
     ffmpeg \
     libsm6 \
     libxext6 \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
- && tar -xvf Python-$PYTHON_VERSION.tgz \
- && cd Python-$PYTHON_VERSION \
- && ./configure && make && make install \
- && make && make install && rm -rf ../Python-$PYTHON_VERSION*
+    && tar -xvf Python-$PYTHON_VERSION.tgz \
+    && cd Python-$PYTHON_VERSION \
+    && ./configure && make && make install \
+    && make && make install && rm -rf ../Python-$PYTHON_VERSION*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
@@ -125,7 +125,7 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
- && ln -s $(which ${PIP}) /usr/bin/pip
+    && ln -s $(which ${PIP}) /usr/bin/pip
 
 RUN apt-get update && apt-get -y install protobuf-compiler
 
@@ -158,7 +158,7 @@ RUN ${PIP} install --no-cache-dir -U \
     "sagemaker-studio-analytics-extension<1" \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
- && ${PIP} install --no-cache-dir -U \
+    && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     tensorflow-io \
     h5py==3.1.0 \
@@ -182,13 +182,14 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN HOME_DIR=/root \
-   && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
-   && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
-   && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
-   && chmod +x /usr/local/bin/testOSSCompliance \
-   && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
-   && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
-   && rm -rf ${HOME_DIR}/oss_compliance*
+    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+    && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+    && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+    && chmod +x /usr/local/bin/testOSSCompliance \
+    && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+    && rm -rf ${HOME_DIR}/oss_compliance* \
+    && ${HOME_DIR}/opt/conda/bin/jupyter-kernelspec remove -fy python3
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.6/license.txt -o /license.txt
 
