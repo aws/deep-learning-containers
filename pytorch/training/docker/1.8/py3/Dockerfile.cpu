@@ -147,6 +147,9 @@ RUN pip install --no-cache-dir -U \
     "sagemaker-studio-sparkmagic-lib<1" \
     "sagemaker-studio-analytics-extension<1"
 
+# Remove python kernel installed by sparkmagic
+RUN /opt/conda/bin/jupyter-kernelspec remove -fy python3
+
 # Install PT S3 plugin
 RUN pip install -U ${PT_S3_WHL}
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
@@ -163,8 +166,7 @@ RUN HOME_DIR=/root \
  && chmod +x /usr/local/bin/testOSSCompliance \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance* \
- && /opt/conda/bin/jupyter-kernelspec remove -fy python3
+ && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.8/license.txt
 
