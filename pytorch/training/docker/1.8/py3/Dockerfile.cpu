@@ -35,37 +35,37 @@ ARG PT_S3_WHL=https://aws-s3-plugin.s3-us-west-2.amazonaws.com/binaries/0.0.1/93
 WORKDIR /
 
 RUN apt-get update \
-   && apt-get install -y --no-install-recommends \
-   build-essential \
-   ca-certificates \
-   cmake \
-   curl \
-   emacs \
-   git \
-   jq \
-   libglib2.0-0 \
-   libgl1-mesa-glx \
-   libsm6 \
-   libxext6 \
-   libxrender-dev \
-   software-properties-common \
-   wget \
-   unzip \
-   vim \
-   zlib1g-dev \
-   && apt-get install -y -qq libkrb5-dev \
-   && apt-get install -y -qq libsasl2-dev libsasl2-modules \
-   && apt-get install -y -qq krb5-user \
-   && rm -rf /var/lib/apt/lists/*
+ && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    cmake \
+    curl \
+    emacs \
+    git \
+    jq \
+    libglib2.0-0 \
+    libgl1-mesa-glx \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    software-properties-common \
+    wget \
+    unzip \
+    vim \
+    zlib1g-dev \
+    && apt-get install -y -qq libkrb5-dev \
+    && apt-get install -y -qq libsasl2-dev libsasl2-modules \
+    && apt-get install -y -qq krb5-user \
+ && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
-   && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
-   && cd openmpi-$OPEN_MPI_VERSION \
-   && ./configure --prefix=/home/.openmpi \
-   && make all install \
-   && cd .. \
-   && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
-   && rm -rf openmpi-$OPEN_MPI_VERSION
+ && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
+ && cd openmpi-$OPEN_MPI_VERSION \
+ && ./configure --prefix=/home/.openmpi \
+ && make all install \
+ && cd .. \
+ && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
+ && rm -rf openmpi-$OPEN_MPI_VERSION
 
 # The ENV variables declared below are changed in the previous section
 # Grouping these ENV variables in the first section causes
@@ -79,73 +79,73 @@ COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-   && chmod +x ~/miniconda.sh \
-   && ~/miniconda.sh -b -p /opt/conda \
-   && rm ~/miniconda.sh \
-   && /opt/conda/bin/conda update conda \
-   && /opt/conda/bin/conda install -c conda-forge \
-   python=$PYTHON_VERSION \
-   && /opt/conda/bin/conda install -y -c anaconda \
-   # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
-   ruamel_yaml==0.15.100 \
-   numpy \
-   ipython \
-   mkl \
-   mkl-include \
-   cython \
-   typing \
-   "pyopenssl>=17.5.0" \
-   && conda install -c conda-forge \
-   opencv \
-   && conda install -y \
-   scikit-learn \
-   pandas \
-   h5py \
-   requests \
-   && conda install -c dglteam -y dgl==0.6.1 \
-   && /opt/conda/bin/conda clean -ya \
-   && conda clean -ya
+ && chmod +x ~/miniconda.sh \
+ && ~/miniconda.sh -b -p /opt/conda \
+ && rm ~/miniconda.sh \
+ && /opt/conda/bin/conda update conda \
+ && /opt/conda/bin/conda install -c conda-forge \
+    python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -y -c anaconda \
+    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.100 \
+    numpy \
+    ipython \
+    mkl \
+    mkl-include \
+    cython \
+    typing \
+    "pyopenssl>=17.5.0" \
+ && conda install -c conda-forge \
+    opencv \
+ && conda install -y \
+    scikit-learn \
+    pandas \
+    h5py \
+    requests \
+ && conda install -c dglteam -y dgl==0.6.1 \
+ && /opt/conda/bin/conda clean -ya \
+ && conda clean -ya
 
 # The following section uninstalls torch and torchvision before installing the
 # custom versions from an S3 bucket. This will need to be removed in the future
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
-   && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
-   && pip install --no-cache-dir -U \
-   "pyyaml>=5.4,<5.5" \
-   "awscli<2" \
-   fastai==1.0.61 \
-   scipy==1.2.2 \
-   click \
-   "cryptography>3.2" \
-   smdebug==${SMDEBUG_VERSION} \
-   smclarify \
-   "sagemaker>=2,<3" \
-   sagemaker-experiments==0.* \
-   # Pin SM Training toolkit as the latest version (4.0.0) dropped py36 support
-   "sagemaker-training<4" \
-   "sagemaker-pytorch-training<3" \
-   psutil==5.6.7 \
-   "pillow>=8.2.2,<8.4" \
-   && pip uninstall -y torch \
-   && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
-   && pip uninstall -y torchvision \
-   && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && pip install --no-cache-dir -U \
+    "pyyaml>=5.4,<5.5" \
+    "awscli<2" \
+    fastai==1.0.61 \
+    scipy==1.2.2 \
+    click \
+    "cryptography>3.2" \
+    smdebug==${SMDEBUG_VERSION} \
+    smclarify \
+    "sagemaker>=2,<3" \
+    sagemaker-experiments==0.* \
+    # Pin SM Training toolkit as the latest version (4.0.0) dropped py36 support
+    "sagemaker-training<4" \
+    "sagemaker-pytorch-training<3" \
+    psutil==5.6.7 \
+    "pillow>=8.2.2,<8.4" \
+ && pip uninstall -y torch \
+ && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
+ && pip uninstall -y torchvision \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \
-   "bokeh>=2.3,<3" \
-   "imageio>=2.9,<3" \
-   "opencv-python>=4.3,<5" \
-   "plotly>=5.1,<6" \
-   "seaborn>=0.11,<1" \
-   "shap>=0.39,<1" \
-   "boto3>1.0,<2.0" \
-   "sasl<1" \
-   "thrift_sasl<1" \
-   "PyHive<1" \
-   "sparkmagic<1" \
-   "sagemaker-studio-sparkmagic-lib<1" \
-   "sagemaker-studio-analytics-extension<1"
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "shap>=0.39,<1" \
+    "boto3>1.0,<2.0" \
+    "sasl<1" \
+    "thrift_sasl<1" \
+    "PyHive<1" \
+    "sparkmagic<1" \
+    "sagemaker-studio-sparkmagic-lib<1" \
+    "sagemaker-studio-analytics-extension<1"
 
 # Install PT S3 plugin
 RUN pip install -U ${PT_S3_WHL}
@@ -154,7 +154,7 @@ RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pk
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
-   && chmod +x /usr/local/bin/deep_learning_container.py
+ && chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
