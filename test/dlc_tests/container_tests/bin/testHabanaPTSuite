@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Pytorch test suite
+
+HOME_DIR=/test
+
+cd ${HOME_DIR}/bin/habana_tests/pytorch
+
+pip install pytest
+
+git clone https://github.com/pytorch/pytorch.git
+cd pytorch
+git checkout remotes/origin/1.7
+cd ..
+
+cp conftest.py pytorch/test
+cp habana_tests.json pytorch/test
+
+cd pytorch/test
+python -um pytest test_torch.py -v -m PASSING_TESTS
+
+if [ $? -eq 0 ];
+then
+    echo "PyTorch test suite executed successfully"
+    exit 0
+else
+    echo "PyTorch test suite terminated unsuccessfully"
+    exit 1
+fi

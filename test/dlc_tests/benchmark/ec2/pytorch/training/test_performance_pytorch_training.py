@@ -2,25 +2,36 @@ import os
 import time
 import pytest
 import re
+import statistics
 
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
+    HPU_AL2_DLAMI,
     DEFAULT_REGION,
     get_framework_and_version_from_tag,
+    get_synapseai_version_from_tag,
     is_pr_context,
-    HPU_AL2_DLAMI,
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_performance_test,
     ec2_performance_upload_result_to_s3_and_validate,
 )
 from src.benchmark_metrics import (
+    PYTORCH_TRAINING_RN50_HPU_SYNTHETIC_1_CARD_THRESHOLD,
+    PYTORCH_TRAINING_RN50_HPU_SYNTHETIC_8_CARD_THRESHOLD,
+    PYTORCH_TRAINING_BERT_HPU_THRESHOLD,
     PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD,
     PYTORCH_TRAINING_GPU_IMAGENET_THRESHOLD,
     get_threshold_for_image,
 )
 
+PT_PERFORMANCE_RN50_TRAINING_HPU_SYNTHETIC_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_rn50_training_performance_hpu_synthetic",
+)
+PT_PERFORMANCE_BERT_TRAINING_HPU_CMD = os.path.join(
+    CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_bert_training_performance_hpu",
+)
 PT_PERFORMANCE_TRAINING_GPU_SYNTHETIC_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_training_performance_gpu_synthetic",
 )
@@ -30,9 +41,7 @@ PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
 
 PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "p3.16xlarge"
 PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "p3.16xlarge"
-#Placeholder for habana instance type. 
-# Instance type and AMI to be updated once the EC2 Gaudi instance is available
-PT_EC2_HPU_INSTANCE_TYPE = "t2.nano"
+PT_EC2_HPU_INSTANCE_TYPE = "dl1.24xlarge"
 
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE], indirect=True)
@@ -58,12 +67,53 @@ def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_
         ec2_connection, pytorch_training, PT_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD
     )
 
-# Placeholder for habana benchmark test
-@pytest.mark.model('N/A')
-#@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
-#@pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
-def test_performance_tensorflow_hpu_imagenet(pytorch_training_habana):
-    pass  
+@pytest.mark.model("resnet50")
+@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
+# TODO: Ensure 8 card instance is used
+@pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
+@pytest.mark.parametrize('cards_num', [1, 8])
+def test_performance_pytorch_rn50_hpu_synthetic(pytorch_training_habana, ec2_connection, cards_num):
+    _, framework_version = get_framework_and_version_from_tag(pytorch_training_habana)
+    synapseai_version = get_synapseai_version_from_tag(pytorch_training_habana)
+    threshold_1 = get_threshold_for_image(framework_version, PYTORCH_TRAINING_RN50_HPU_SYNTHETIC_1_CARD_THRESHOLD)
+    threshold_8 = get_threshold_for_image(framework_version, PYTORCH_TRAINING_RN50_HPU_SYNTHETIC_8_CARD_THRESHOLD)
+    expected_perf = (threshold_8/8) if cards_num > 1 else threshold_1    # Logs show per card performance for multicard
+    allowed_regression = expected_perf * 0.1
+    threshold = expected_perf - allowed_regression
+    execute_ec2_training_performance_test(
+        ec2_connection,
+        pytorch_training_habana,
+        PT_PERFORMANCE_RN50_TRAINING_HPU_SYNTHETIC_CMD,
+        post_process=post_process_pytorch_hpu_py3_synthetic_ec2_training_performance,
+        data_source="synthetic",
+        threshold={"Throughput": threshold},
+        cards_num=cards_num,
+        synapseai_version=synapseai_version
+    )
+
+@pytest.mark.model("bert")
+@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
+# TODO: Ensure 8 card instance is used
+@pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
+@pytest.mark.parametrize('cards_num', [1, 8])
+def test_performance_pytorch_bert_hpu(pytorch_training_habana, ec2_connection, cards_num):
+    _, framework_version = get_framework_and_version_from_tag(pytorch_training_habana)
+    synapseai_version = get_synapseai_version_from_tag(pytorch_training_habana)
+    threshold = get_threshold_for_image(framework_version, PYTORCH_TRAINING_BERT_HPU_THRESHOLD)
+    perf_factor = 0.95 if cards_num > 1 else 1  # Rough scaling factor
+    expected_perf = threshold * perf_factor
+    allowed_regression = expected_perf * 0.1
+    threshold = expected_perf - allowed_regression
+    execute_ec2_training_performance_test(
+        ec2_connection,
+        pytorch_training_habana,
+        PT_PERFORMANCE_BERT_TRAINING_HPU_CMD,
+        post_process=post_process_pytorch_hpu_py3_synthetic_ec2_training_performance,
+        data_source="synthetic",
+        threshold={"Throughput": threshold},
+        cards_num=cards_num,
+        synapseai_version=synapseai_version
+    )
 
 def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     connection, ecr_uri, test_cmd, region=DEFAULT_REGION
@@ -104,6 +154,14 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
         log_name,
     )
 
+def post_process_pytorch_hpu_py3_synthetic_ec2_training_performance(connection, log_location):
+    log_lines = connection.run(f"tail -n 20 {log_location}").stdout.split("\n")
+    throughput = 0
+    for line in reversed(log_lines):
+        if "Validating result: actual" in line:
+            throughput = float(line.split(" ")[2])
+            break
+    return {"Throughput": throughput}
 
 def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance(connection, log_location):
     last_lines = connection.run(f"tail -n 20 {log_location}").stdout.split("\n")

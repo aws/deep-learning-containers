@@ -1,0 +1,56 @@
+#!/bin/bash
+
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=`dirname $LOG_FILE`
+OUT_DIR=${HOME_DIR}/tensorflow_logs
+
+mkdir -p ${HOME_DIR}/artifacts
+mkdir -p ${BIN_DIR}
+mkdir -p ${LOG_DIR}
+mkdir -p ${OUT_DIR}
+GENERATED_DATA_DIR=${BIN_DIR}/habana_tests/tensorflow/benchmark/maskrcnn_dataset
+
+git clone https://github.com/HabanaAI/Model-References.git ${HOME_DIR}/artifacts/Model-References
+cd ${HOME_DIR}/artifacts/Model-References
+git checkout ${GIT_BRANCH}
+
+MASKRCNN_DIR="${HOME_DIR}/artifacts/Model-References/TensorFlow/computer_vision/maskrcnn"
+cd ${MASKRCNN_DIR}
+
+pip install pycocotools
+
+cp ${GENERATED_DATA_DIR}/* .
+bash prepare_mask_nv_dataset.sh
+bash download_and_process_pretrained_weights.sh
+
+export PYTHONPATH=${HOME_DIR}/artifacts/Model-References:$PYTHONPATH
+set -e
+
+START=$(date +%s)
+TRAINING_TIME="100m"
+if [ "$PR_CONTEXT" == "1" ]; then
+  TRAINING_TIME="20m"
+  echo Running under PR context >&2
+fi
+if [ "$CARDS_NUM" == "1" ]; then
+  timeout "$TRAINING_TIME" python3 ${MASKRCNN_DIR}/demo_mask_rcnn.py \
+    --dataset=${MASKRCNN_DIR}/maskrcnn_tfrecords --model_dir=${OUT_DIR} \
+    --total_steps=1000 --dtype=bf16 \
+    --save_summary_steps=100 -t 2>&1 | tee "${LOG_FILE}"
+else
+  timeout "$TRAINING_TIME" python3 ${MASKRCNN_DIR}/demo_mask_rcnn.py \
+    --dataset=${MASKRCNN_DIR}/maskrcnn_tfrecords --model_dir=${OUT_DIR} \
+    --total_steps=1000 --hvd_workers=8 --dtype=bf16 \
+    --save_summary_steps=100 -t 2>&1 | tee "${LOG_FILE}"
+fi
+
+END=$(date +%s)
+DIFF=$(( END - START ))
+echo Script took $(( DIFF/60 )) mins to finish >> "${LOG_FILE}"
+set +e
+
+rm -rf ${HOME_DIR}/artifacts/Model-References
+
+exit 0
