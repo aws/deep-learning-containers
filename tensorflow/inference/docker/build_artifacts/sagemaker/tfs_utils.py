@@ -109,12 +109,15 @@ def tfs_command(tfs_grpc_port,
                 tfs_inter_op_parallelism=None,
                 tfs_enable_gpu_memory_fraction=False,
                 tfs_gpu_memory_fraction=None):
-    cmd = "tensorflow_model_server " \
+    tf = "tensorflow_model_server"
+    if os.environ.get("NEURON_CORE_HOST_TOTAL", None) is not None:
+        tf = "tensorflow_model_server_neuron"
+    cmd = "{} " \
           "--port={} " \
           "--rest_api_port={} " \
           "--model_config_file={} " \
           "--max_num_load_retries=0 {} {} {} {}"\
-        .format(tfs_grpc_port, tfs_rest_port, tfs_config_path,
+        .format(tf, tfs_grpc_port, tfs_rest_port, tfs_config_path,
                 get_tfs_batching_args(tfs_enable_batching, tfs_batching_config_file),
                 get_tensorflow_intra_op_parallelism_args(tfs_intra_op_parallelism),
                 get_tensorflow_inter_op_parallelism_args(tfs_inter_op_parallelism),

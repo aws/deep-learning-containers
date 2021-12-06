@@ -276,7 +276,10 @@ class ServiceManager(object):
         return round((1 - self._tfs_gpu_margin) / float(self._tfs_instance_count), 4)
 
     def _start_tfs(self):
-        self._log_version("tensorflow_model_server --version", "tensorflow version info:")
+        tf = "tensorflow_model_server"
+        if os.environ.get("NEURON_CORE_HOST_TOTAL", None) is not None:
+            tf = "tensorflow_model_server_neuron"
+        self._log_version(f"{tf} --version", "tensorflow version info:")
 
         for i in range(self._tfs_instance_count):
             p = self._start_single_tfs(i)
