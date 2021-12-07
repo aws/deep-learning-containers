@@ -80,6 +80,25 @@ function delete_cluster() {
 
 }
 
+# new operation function
+#
+# Invokes new_operation.sh script to add graviton nodegroup on the EKS cluster
+function new_operation() {
+
+  cd eks_infrastructure
+  for CONTEXT in "${CONTEXTS[@]}"; do
+    for CLUSTER in "${EKS_CLUSTERS[@]}"; do
+      CLUSTER_NAME=${CLUSTER}-${CONTEXT}
+      if check_cluster_status $CLUSTER_NAME; then
+        ./new_operation.sh $CLUSTER_NAME $EKS_VERSION
+      else
+        echo "EKS Cluster :: ${CLUSTER_NAME} :: does not exists. Skipping delete operation."
+      fi
+    done
+  done
+
+}
+
 function check_cluster_status() {
   aws eks describe-cluster --name ${1} --region ${AWS_REGION} --query cluster.status --out text | grep -q ACTIVE
 }
@@ -96,6 +115,10 @@ upgrade)
 
 delete)
   delete_cluster
+  ;;
+
+new_operation)
+  new_operation
   ;;
 *)
   echo "Specify valid operation"
