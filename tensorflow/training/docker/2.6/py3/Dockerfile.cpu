@@ -169,7 +169,7 @@ RUN ${PIP} install --no-cache-dir -U \
     smclarify 
 
 # Remove python kernel installed by sparkmagic
-RUN /opt/conda/bin/jupyter-kernelspec remove -fy python3
+RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \
