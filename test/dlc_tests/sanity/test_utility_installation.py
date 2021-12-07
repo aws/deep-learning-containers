@@ -63,7 +63,9 @@ def test_utility_packages_using_import(training):
     packages_to_import = UTILITY_PACKAGES_IMPORT
 
     for package in packages_to_import:
-        version = test_utils.run_cmd_on_container(container_name, ctx, f"import {package}; print({package}.__version__)", executable="python").stdout.strip()
+        version = test_utils.run_cmd_on_container(
+            container_name, ctx, f"import {package}; print({package}.__version__)", executable="python"
+        ).stdout.strip()
         if package == "sagemaker":
             assert Version(version) > Version("2"), f"Sagemaker version should be > 2.0. Found version {version}"
 
@@ -82,7 +84,7 @@ def test_boto3(mxnet_inference):
     container_name = test_utils.get_container_name("boto3", image)
     test_utils.start_container(container_name, image, ctx)
 
-    test_utils.run_cmd_on_container(container_name, ctx, 'import boto3', executable="python")
+    test_utils.run_cmd_on_container(container_name, ctx, "import boto3", executable="python")
 
 
 @pytest.mark.usefixtures("sagemaker")
