@@ -22,7 +22,7 @@ def handler(data, context):
     image = np.concatenate([image[np.newaxis, :, :]] * batch_size)
 
     request = predict_pb2.PredictRequest()
-    request.model_spec.name = 'model'
+    request.model_spec.name = context.model_name
     request.model_spec.signature_name = 'serving_default'
     request.inputs['images'].CopyFrom(
         tf.compat.v1.make_tensor_proto(image, shape=image.shape, dtype=tf.float32))
