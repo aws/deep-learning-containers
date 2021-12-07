@@ -172,9 +172,9 @@ def test_python_model_with_lib(boto_session, sagemaker_client,
 
 @pytest.mark.model("resnet50")
 def test_resnet_with_inference_handler(
-    boto_session, image_uri, instance_type, resnet_model_tar_path, framework_version
+    boto_session, image_uri, instance_type, resnet_model_tar_path, version
 ):
-    if Version(framework_version) >= Version("2.6"):
+    if Version(version) >= Version("2.6"):
         pytest.skip("The inference script currently uses v1 compat features, making it incompatible with TF>=2.6")
 
     sagemaker_session = sagemaker.Session(boto_session=boto_session)

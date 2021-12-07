@@ -270,11 +270,11 @@ def resnet_model_tar_path():
     model_s3_location = "tensorflow/resnet50_v1/model"
     for obj in models_bucket.objects.filter(Prefix=model_s3_location):
         local_file = os.path.join(model_path, "model", os.path.relpath(obj.key, model_s3_location))
-        if not os.path.exists(os.path.dirname(local_file)):
-            os.makedirs(os.path.dirname(local_file))
-        if obj.key[-1] == '/':
-            continue
-        models_bucket.download_file(obj.key, local_file)
+        local_dir = os.path.dirname(local_file)
+        if not os.path.isdir(local_dir):
+            os.makedirs(local_dir)
+        if not obj.key.endswith("/"):
+            models_bucket.download_file(obj.key, local_file)
     with tarfile.open(model_tar_path, "w:gz") as model_tar:
         model_tar.add(os.path.join(model_path, "code"), arcname="code")
         model_tar.add(os.path.join(model_path, "model"), arcname="model")
