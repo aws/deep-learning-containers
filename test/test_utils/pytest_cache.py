@@ -157,10 +157,13 @@ class PytestCache:
         :param build_context
         :param test_type
         """
+        if len(cache_json) == 0:
+            LOGGER.info("No cache was generated. Skip uploading.")
+            return
         s3_file_dir = self.__make_s3_path(commit_id, framework, version, build_context, test_type)
         s3_file_path = os.path.join(s3_file_dir, "lastfailed")
         with open("tmp_file_for_cache_json", "w") as f:
-            f.write(json.dumps(cache_json))
+            f.write(json.dumps({**cache_json}))
         self.__upload_cache_to_s3("tmp_file_for_cache_json", s3_file_path)
 
     def merge_cache_and_upload_from_local_to_s3(self,
