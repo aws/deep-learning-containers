@@ -648,7 +648,11 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                     instance_tag = ""
                     for processor in allowed_processors:
                         if processor in image:
-                            instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE")
+                            if "graviton" in image:
+                                instance_type_env = f"EC2_{processor.upper()}_GRAVITON_INSTANCE_TYPE"
+                            else:
+                                instance_type_env = f"EC2_{processor.upper()}_INSTANCE_TYPE"
+                            instance_type = os.getenv(instance_type_env)
                             if instance_type:
                                 instance_tag = f"-{instance_type.replace('.', '-')}"
                                 break

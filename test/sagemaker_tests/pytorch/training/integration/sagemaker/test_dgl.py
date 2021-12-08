@@ -69,7 +69,7 @@ def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
 
 
-def _test_dgl_training(sagemaker_session, ecr_image, instance_type):
+def _test_dgl_training(ecr_image, sagemaker_session, instance_type):
     dgl = PyTorch(
         entry_point=DGL_SCRIPT_PATH,
         role="SageMakerRole",
