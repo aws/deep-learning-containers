@@ -349,13 +349,13 @@ def execute_sagemaker_remote_tests(thread_id, image, pytest_cache, pytest_cache_
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
             pytest_cache_util.download_pytest_cache_from_s3_to_local(path, **pytest_cache_params, custom_cache_directory=thread_id)
-            print(f"pytest_cache - {pytest_cache}")
-            pytest_command = pytest_command + f" -o cache_dir={os.path.join(path, str(thread_id), '.pytest_cache')}"
+            pytest_command = pytest_command + f" -o cache_dir={os.path.join(str(thread_id), '.pytest_cache')}"
             context.run("pytest --cache-show", warn=True)
             res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
             cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(path, custom_cache_directory=thread_id)
             pytest_cache = {**pytest_cache, **cache_json}
+            print(f"pytest_cache - {pytest_cache}")
             print(cache_json, pytest_cache)
             if res.failed:
                 raise DLCSageMakerRemoteTestFailure(
