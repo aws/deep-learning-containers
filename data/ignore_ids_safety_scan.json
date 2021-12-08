@@ -118,6 +118,9 @@
                 "38452":"for shipping pillow<=6.2.2 - the last available version for py2"
             },
             "py3": {
+                "42772": "for shipping bokeh<=2.3.3 - the last available version for py3.6",
+                "42814": "for shipping bokeh<=2.3.3 - the last available version for py3.6",
+                "42815": "for shipping bokeh<=2.3.3 - the last available version for py3.6"
             }
         },
         "inference": {
