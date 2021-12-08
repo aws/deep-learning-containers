@@ -65,6 +65,18 @@ class ServiceManager(object):
         self._tfs_intra_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)
         self._gunicorn_worker_class = os.environ.get("SAGEMAKER_GUNICORN_WORKER_CLASS", 'gevent')
 
+        # Neuron relies on NEURON_RT_NUM_CORES to use up cores for the model. Customer can set
+        # NEURON_RT_NUM_CORES ans SAGEMAKER_TFS_INSTANCE_COUNT to use up all the cores.
+        # Model uses 1 core and total core is 4:
+        #   SAGEMAKER_TFS_INSTANCE_COUNT = 4, NEURON_RT_NUM_CORES = 1
+        # Model uses 2 core and total core is 4:
+        #   SAGEMAKER_TFS_INSTANCE_COUNT = 2, NEURON_RT_NUM_CORES = 2
+
+        # Also NEUROCORE_GROUP_SIZES is going to be deprecated and just for backward
+        # compatibility for customers already using NEURONCORE_GROUP_SIZES, set the NEURON_RT_NUM_CORES
+        if os.environ.get("NEURONCORE_GROUP_SIZES") != None and os.environ.get("NEURON_RT_NUM_CORES") is None:
+            os.environ["NEURON_RT_NUM_CORES"] = os.environ.get("NEURONCORE_GROUP_SIZES")
+
         if os.environ.get("OMP_NUM_THREADS") is None:
             os.environ["OMP_NUM_THREADS"] = "1"
 
@@ -384,7 +396,8 @@ class ServiceManager(object):
             tfs_gpu_memory_fraction=self._calculate_per_process_gpu_memory_fraction()
         )
         log.info("tensorflow serving command: {}".format(cmd))
-        p = subprocess.Popen(cmd.split())
+        env = os.environ.copy()
+        p = subprocess.Popen(cmd.split(), env=env)
         log.info("started tensorflow serving (pid: %d)", p.pid)
         return p
 
