@@ -180,7 +180,7 @@ def test_smmodelparallel_mnist_multigpu_singlenode(ecr_image, instance_type, sag
                        'manual_partition': 1
                        }
     train = sagemaker.session.s3_input(
-        "s3://rubik-mp-benchmarks/pytorch_gpt2/train_synthetic/",
+        "s3://rubik-mp-benchmarks/pytorch_gpt2/train_synthetic_small/",
         distribution="FullyReplicated",
         content_type="application/tfrecord",
         s3_data_type="S3Prefix",
