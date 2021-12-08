@@ -223,7 +223,10 @@ RUN pip install --no-cache-dir -U \
     "PyHive<1" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
-    "sagemaker-studio-analytics-extension==0.0.2"
+    "sagemaker-studio-analytics-extension<1"
+
+# Remove python kernel installed by sparkmagic
+RUN /opt/conda/bin/jupyter-kernelspec remove -fy python3
 
 # install metis
 RUN wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
