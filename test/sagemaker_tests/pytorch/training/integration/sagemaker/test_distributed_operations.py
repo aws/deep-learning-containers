@@ -16,6 +16,7 @@ import os
 
 import boto3
 import pytest
+import sagemaker
 from sagemaker import utils
 from sagemaker.pytorch import PyTorch
 from sagemaker import Session
