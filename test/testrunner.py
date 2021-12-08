@@ -188,6 +188,7 @@ def run_sagemaker_remote_tests(images, pytest_cache_params):
             return
         pool_number = len(images)
         pytest_cache = Manager().dict()
+        cache = []
         try:
             with Pool(pool_number) as p:
                 cache = p.starmap(sm_utils.execute_sagemaker_remote_tests,
