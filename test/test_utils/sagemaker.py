@@ -356,13 +356,12 @@ def execute_sagemaker_remote_tests(thread_id, image, pytest_cache, pytest_cache_
             cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(path, custom_cache_directory=thread_id)
             pytest_cache = {**pytest_cache, **cache_json}
             print(f"pytest_cache - {pytest_cache}")
-            print(cache_json, pytest_cache)
             if res.failed:
                 raise DLCSageMakerRemoteTestFailure(
                     f"{pytest_command} failed with error code: {res.return_code}\n"
                     f"Traceback:\n{res.stdout}"
                 )
-    return None
+    return pytest_cache
 
 
 def generate_empty_report(report, test_type, case):
