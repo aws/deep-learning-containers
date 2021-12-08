@@ -41,7 +41,7 @@ class PytestCache:
         """
 
         if custom_cache_directory != "":
-            current_dir = os.path.join(current_dir, custom_cache_directory)
+            current_dir = os.path.join(current_dir, str(custom_cache_directory))
         local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
         local_file_path = os.path.join(local_file_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(commit_id, framework, version, build_context, test_type)
@@ -170,7 +170,7 @@ class PytestCache:
                                           custom_cache_directory=""):
 
         if custom_cache_directory != "":
-            current_dir = os.path.join(current_dir, custom_cache_directory)
+            current_dir = os.path.join(current_dir, str(custom_cache_directory))
         local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
         local_file_path = os.path.join(local_file_dir, "lastfailed")
         return self.get_json_from_file(local_file_path)
