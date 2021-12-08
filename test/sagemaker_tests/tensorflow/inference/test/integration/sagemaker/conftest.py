@@ -254,3 +254,20 @@ def disable_test(request):
 
     if build_name and version and _is_test_disabled(test_name, build_name, version):
         pytest.skip(f"Skipping {test_name} test because it has been disabled.")
+
+
+@pytest.fixture(autouse=True)
+def skip_test_successfully_executed_before(request):
+    """
+    "cache/lastfailed" contains information about failed tests only. We're running SM tests in separate threads for each image.
+    So when we retry SM tests, successfully executed tests executed again because pytest doesn't have that info in /.cache.
+    But the flag "--last-failed-no-failures all" requires pytest to execute all the available tests.
+    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.  
+    The method checks whether lastfailed file exists and the test name is not in it.
+    """
+    test_name = request.node.name
+    lastfailed = request.config.cache.get("cache/lastfailed", None)
+
+    if lastfailed is not None \
+            and not any(test_name in failed_test_name for failed_test_name in lastfailed.keys()):
+        pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")
