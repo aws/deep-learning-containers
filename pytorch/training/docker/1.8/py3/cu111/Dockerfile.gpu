@@ -211,7 +211,7 @@ RUN pip install --no-cache-dir -U \
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \
-    "bokeh>=2.4,<3" \
+    "bokeh>=2.3,<3" \
     "imageio>=2.9,<3" \
     "opencv-python>=4.3,<5" \
     "plotly>=5.1,<6" \
