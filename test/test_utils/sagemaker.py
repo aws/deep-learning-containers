@@ -334,7 +334,7 @@ def execute_local_tests(image, pytest_cache_params):
         return None
 
 
-def execute_sagemaker_remote_tests(image, pytest_cache_params):
+def execute_sagemaker_remote_tests(thread_id, image, pytest_cache, pytest_cache_params):
     """
     Run pytest in a virtual env for a particular image
     Expected to run via multiprocessing
@@ -348,10 +348,14 @@ def execute_sagemaker_remote_tests(image, pytest_cache_params):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
-            pytest_cache_util.download_pytest_cache_from_s3_to_local(path, **pytest_cache_params)
+            pytest_cache_util.download_pytest_cache_from_s3_to_local(path, **pytest_cache_params, custom_cache_directory=thread_id)
+            pytest_command = pytest_command + f" -o cache_dir={os.path.join(thread_id, '.pytest_cache')}"
+            context.run("pytest --cache-show", warn=True)
             res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
-            pytest_cache_util.merge_cache_and_upload_from_local_to_s3(path, **pytest_cache_params)
+            cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(path, custom_cache_directory=thread_id)
+            pytest_cache = {**pytest_cache, **cache_json}
+            print(cache_json, pytest_cache)
             if res.failed:
                 raise DLCSageMakerRemoteTestFailure(
                     f"{pytest_command} failed with error code: {res.return_code}\n"

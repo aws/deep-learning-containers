@@ -24,10 +24,11 @@ class PytestCache:
                                                framework,
                                                version,
                                                build_context,
-                                               test_type):
+                                               test_type,
+                                               custom_cache_directory=""):
         """
         Download pytest cache file from directory in s3 to local box
-        
+
         :param current_dir: directory where the script is executed. .pytest_cache directory will be created in this
         local directory.
                 Following parameters are required to create a path to cache file in s3:
@@ -36,7 +37,11 @@ class PytestCache:
         :param version
         :param build_context
         :param test_type
+        :param custom_cache_directory
         """
+
+        if custom_cache_directory != "":
+            current_dir = os.path.join(current_dir, custom_cache_directory)
         local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
         local_file_path = os.path.join(local_file_dir, "lastfailed")
         s3_file_dir = self.__make_s3_path(commit_id, framework, version, build_context, test_type)
@@ -160,6 +165,16 @@ class PytestCache:
         s3_file_path = os.path.join(s3_file_dir, "lastfailed")
         self.__upload_cache_to_s3(tmp_file_name, s3_file_path)
 
+    def convert_pytest_cache_file_to_json(self,
+                                          current_dir,
+                                          custom_cache_directory=""):
+
+        if custom_cache_directory != "":
+            current_dir = os.path.join(current_dir, custom_cache_directory)
+        local_file_dir = os.path.join(current_dir, ".pytest_cache", "v", "cache")
+        local_file_path = os.path.join(local_file_dir, "lastfailed")
+        return self.get_json_from_file(local_file_path)
+
     def __make_s3_path(self, commit_id, framework, version, build_context, test_type):
         return os.path.join(commit_id, framework, version, build_context, test_type)
 
@@ -184,16 +199,8 @@ class PytestCache:
         :param cache_file_2
         :param save_to: filename where to save result JSON
         """
-        if self.__is_file_exist_and_not_empty(cache_file_1):
-            with open(cache_file_1) as tmp1:
-                json1 = json.load(tmp1)
-        else:
-            json1 = {}
-        if self.__is_file_exist_and_not_empty(cache_file_2):
-            with open(cache_file_2) as tmp2:
-                json2 = json.load(tmp2)
-        else:
-            json2 = {}
+        json1 = self.get_json_from_file(cache_file_1)
+        json2 = self.get_json_from_file(cache_file_2)
 
         merged_json = {**json1, **json2}
         if len(merged_json) != 0:
@@ -227,3 +234,11 @@ class PytestCache:
 
     def __delete_file_on_ec2(self, ec2_connection, ec2_file):
         ec2_connection.run(f"rm -f {ec2_file}")
+
+    def get_json_from_file(self, file):
+        if self.__is_file_exist_and_not_empty(file):
+            with open(file) as tmp1:
+                json_obj = json.load(tmp1)
+        else:
+            json_obj = {}
+        return json_obj
