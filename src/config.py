@@ -14,7 +14,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
 def get_dlc_developer_config_path():
-    root_dir_pattern = re.compile(r"^(\S+deep-learning-containers)")
+    root_dir_pattern = re.compile(r"^(\S+DLC)")
     pwd = os.getcwd()
     dev_config_parent_dir = os.getenv("CODEBUILD_SRC_DIR")
 
