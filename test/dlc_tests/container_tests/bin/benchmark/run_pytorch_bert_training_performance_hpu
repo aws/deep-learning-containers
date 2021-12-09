@@ -26,7 +26,7 @@ fi
 
 git clone https://github.com/HabanaAI/gaudi-test-suite.git ${HOME_DIR}/artifacts/gaudi-test-suite
 cd ${HOME_DIR}/artifacts/gaudi-test-suite
-git checkout ${GIT_BRANCH}
+git checkout r${GIT_BRANCH}
 python3 -m pip install -r requirements.txt
 python3 -m pip install -r test/benchmark/pt-requirements.txt
 
