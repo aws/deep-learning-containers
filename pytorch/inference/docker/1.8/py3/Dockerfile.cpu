@@ -48,14 +48,19 @@ RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeysto
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
-RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+RUN curl -L -o ~/miniconda.sh https://github.com/conda-forge/miniforge/releases/download/4.10.2-0/Mambaforge-4.10.2-0-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
- && rm ~/miniconda.sh \
- && /opt/conda/bin/conda update conda \
- && /opt/conda/bin/conda install -c conda-forge \
+ && rm ~/miniconda.sh
+
+RUN /opt/conda/bin/conda config --set auto_update_conda False
+RUN /opt/conda/bin/conda config --add channels main
+RUN /opt/conda/bin/conda config --add channels anaconda
+RUN /opt/conda/bin/conda config --add channels conda-forge
+
+RUN /opt/conda/bin/mamba install -c conda-forge \
     python=$PYTHON_VERSION \
- && /opt/conda/bin/conda install -y \
+ && /opt/conda/bin/mamba install -y \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
     cython==0.29.12 \

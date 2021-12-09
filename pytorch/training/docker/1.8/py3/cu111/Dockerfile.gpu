@@ -129,13 +129,19 @@ ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
- && curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+ && curl -L -o ~/miniconda.sh https://github.com/conda-forge/miniforge/releases/download/4.10.2-0/Mambaforge-4.10.2-0-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p ${CONDA_PREFIX} \
- && rm ~/miniconda.sh \
- && ${CONDA_PREFIX}/bin/conda install -c conda-forge \
+ && rm ~/miniconda.sh
+
+RUN /opt/conda/bin/conda config --set auto_update_conda False
+RUN /opt/conda/bin/conda config --add channels main
+RUN /opt/conda/bin/conda config --add channels anaconda
+RUN /opt/conda/bin/conda config --add channels conda-forge
+
+RUN ${CONDA_PREFIX}/bin/mamba install -c conda-forge \
     python=$PYTHON_VERSION \
- && ${CONDA_PREFIX}/bin/conda install -y \
+ && ${CONDA_PREFIX}/bin/mamba install -y \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
  && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
