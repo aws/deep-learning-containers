@@ -187,16 +187,13 @@ def run_sagemaker_remote_tests(images, pytest_cache_params):
         if not images:
             return
         pool_number = len(images)
-        pytest_cache = Manager().dict()
-        cache = []
+        global_pytest_cache = Manager().dict()
         try:
             with Pool(pool_number) as p:
-                cache = p.starmap(sm_utils.execute_sagemaker_remote_tests,
-                                  [[i, images[i], pytest_cache, pytest_cache_params] for i in range(0, pool_number)])
+                p.starmap(sm_utils.execute_sagemaker_remote_tests,
+                                  [[i, images[i], global_pytest_cache, pytest_cache_params] for i in range(0, pool_number)])
         finally:
-            LOGGER.info(f"Pytest cache - {pytest_cache}")
-            LOGGER.info(f"List of cache results - {cache}")
-            pytest_cache_util.convert_cache_json_and_upload_to_s3(pytest_cache, **pytest_cache_params)
+            pytest_cache_util.convert_cache_json_and_upload_to_s3(global_pytest_cache, **pytest_cache_params)
 
 
 
