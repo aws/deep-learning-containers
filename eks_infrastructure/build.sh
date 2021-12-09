@@ -3,13 +3,6 @@
 
 set -ex
 
-# Parse parameters from build_param.json config file
-OPERATION=$(jq -r '.operation' eks_infrastructure/build_param.json)
-EKS_CLUSTERS=($(jq -r '.eks_clusters[]' eks_infrastructure/build_param.json))
-CONTEXTS=($(jq -r '.contexts[]' eks_infrastructure/build_param.json))
-EKS_VERSION=$(jq -r '.eks_version' eks_infrastructure/build_param.json)
-CLUSTER_AUTOSCALAR_IMAGE_VERSION=$(jq -r '.cluster_autoscalar_image_version' eks_infrastructure/build_param.json)
-
 # Create operation function
 #
 # Invokes create_cluster.sh script to create EKS cluster nodegroups and namespaces.
@@ -103,6 +96,35 @@ function check_cluster_status() {
   aws eks describe-cluster --name ${1} --region ${AWS_REGION} --query cluster.status --out text | grep -q ACTIVE
 }
 
+#configure the pre stage build here
+
+# Check for input arguments
+if [ $# -ne 2 ]; then
+  if [ -z "$1" ]
+    EKS_CLUSTERS=($(jq -r '.eks_clusters[]' eks_infrastructure/build_param.json))
+  else
+    EKS_CLUSTERS="predeploy"-`date +%s`
+
+  if [ -z "$2" ]
+    CONTEXTS=($(jq -r '.contexts[]' eks_infrastructure/build_param.json))
+  else 
+    CONTEXTS="pre-deploy"
+  fi
+
+fi
+
+# Parse parameters from build_param.json config file
+OPERATION=$(jq -r '.operation' eks_infrastructure/build_param.json)
+EKS_VERSION=$(jq -r '.eks_version' eks_infrastructure/build_param.json)
+CLUSTER_AUTOSCALAR_IMAGE_VERSION=$(jq -r '.cluster_autoscalar_image_version' eks_infrastructure/build_param.json)
+
+# Create a cluster if the context is predeploy and operation is other than create
+if [ ${CONTEXT} -eq "pre-deploy" && ${OPERATION} -ne "create" ]; then
+  echo "Create a cluster inorder to perform operations other than creating cluster"
+  create_cluster
+fi
+
+
 case ${OPERATION} in
 
 create)
@@ -124,3 +146,9 @@ new_operation)
   echo "Specify valid operation"
   ;;
 esac
+
+# Ckeanup the EKS cluster if the context is predeploy
+if [ ${CONTEXT} -eq "pre-deploy" ]; then
+  echo "Delete the pre-deploy cluster"
+  delete_cluster
+fi
