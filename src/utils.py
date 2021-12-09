@@ -515,7 +515,7 @@ def get_root_folder_path():
 
     :return: str
     """
-    root_dir_pattern = re.compile(r"^(\S+DLC)")
+    root_dir_pattern = re.compile(r"^(\S+deep-learning-containers)")
     pwd = os.getcwd()
     codebuild_src_dir_env = os.getenv("CODEBUILD_SRC_DIR")
     root_folder_path = codebuild_src_dir_env if codebuild_src_dir_env else root_dir_pattern.match(pwd).group(1)

@@ -25,10 +25,6 @@ NLP_DATA_PATH = os.path.join(RESOURCE_PATH, 'nlp')
 NLP_SCRIPT_PATH = os.path.join(NLP_DATA_PATH, 'word_embedding.py')
 
 
-def test_always_broken():
-    assert False
-
-
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("word_embeddings")
 @pytest.mark.skip_py2_containers
