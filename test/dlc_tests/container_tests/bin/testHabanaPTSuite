@@ -3,27 +3,48 @@
 # Pytorch test suite
 
 HOME_DIR=/test
+LOG_DIR=`dirname $LOG_FILE`
 
-cd ${HOME_DIR}/bin/habana_tests/pytorch
 
-pip install pytest
+mkdir -p ${HOME_DIR}/artifacts
+mkdir -p ${LOG_DIR}
 
-git clone https://github.com/pytorch/pytorch.git
-cd pytorch
-git checkout remotes/origin/1.7
-cd ..
-
-cp conftest.py pytorch/test
-cp habana_tests.json pytorch/test
-
-cd pytorch/test
-python -um pytest test_torch.py -v -m PASSING_TESTS
-
-if [ $? -eq 0 ];
-then
-    echo "PyTorch test suite executed successfully"
-    exit 0
+LINUX_DIST_NAME=`cat /etc/*-release | grep "^NAME=" | sed 's#^.*=##' | tr -d '"'`
+if [ -z "$LINUX_DIST_NAME" ]; then
+    echo Unable to identify Linux distribution
+    exit 1
+elif [ "$LINUX_DIST_NAME" == "Ubuntu" ]; then
+    apt-get update
+    apt-get install -y imagemagick
+elif [ "$LINUX_DIST_NAME" == "Amazon Linux" ]; then
+    yum update -y
+    yum install -y ImageMagick
 else
-    echo "PyTorch test suite terminated unsuccessfully"
+    echo Unknown Linux distribution: $LINUX_DIST_NAME
     exit 1
 fi
+
+set -e
+
+START=$(date +%s)
+
+python3 gaudi_test_suite.py -tm framework -f pt 2>&1 | tee ${LOG_FILE}
+
+RETURNVAL=$?
+if [ $RETURNVAL -eq 0 ];
+then
+    echo "PyTorch framework test executed successfully"
+    exitcode=0
+else
+    echo "PyTorch framework test terminated unsuccessfully"
+    exitcode=$RETURNVAL
+fi
+
+END=$(date +%s)
+DIFF=$(( END - START ))
+echo Script took $(( DIFF/60 )) mins to finish >> "${LOG_FILE}"
+set +e
+
+rm -rf ${HOME_DIR}/artifacts/gaudi-test-suite
+
+exit 0

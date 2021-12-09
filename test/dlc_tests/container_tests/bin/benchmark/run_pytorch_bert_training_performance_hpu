@@ -28,11 +28,12 @@ git clone https://github.com/HabanaAI/gaudi-test-suite.git ${HOME_DIR}/artifacts
 cd ${HOME_DIR}/artifacts/gaudi-test-suite
 git checkout ${GIT_BRANCH}
 
+python3 -m pip install -r requirements.txt
 
 set -e
 
 START=$(date +%s)
-TRAINING_TIME="200m"
+TRAINING_TIME="100m"
 if [ "$PR_CONTEXT" == "1" ]
 then
   TRAINING_TIME="150m"
@@ -40,6 +41,16 @@ then
 fi
 
 python3 gaudi_test_suite.py -tm benchmark -f pt -m bert -c "${CARDS_NUM}" -t "${TRAINING_TIME}" 2>&1 | tee ${LOG_FILE}
+
+RETURNVAL=$?
+if [ $RETURNVAL -eq 0 ];
+then
+    echo "PyTorch BERT test executed successfully"
+    exitcode=0
+else
+    echo "PyTorch BERT test terminated unsuccessfully"
+    exitcode=$RETURNVAL
+fi
 
 END=$(date +%s)
 DIFF=$(( END - START ))
