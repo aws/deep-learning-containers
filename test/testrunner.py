@@ -187,6 +187,7 @@ def run_sagemaker_remote_tests(images, pytest_cache_params):
         if not images:
             return
         pool_number = len(images)
+        # Using Manager().dict() since it's a tread safe dictionary
         global_pytest_cache = Manager().dict()
         try:
             with Pool(pool_number) as p:

@@ -37,7 +37,7 @@ class PytestCache:
         :param version
         :param build_context
         :param test_type
-        :param custom_cache_directory
+        :param custom_cache_directory - the prefix used to create custom pytest cache directories.
         """
 
         if custom_cache_directory != "":
@@ -146,11 +146,9 @@ class PytestCache:
                                             build_context,
                                             test_type):
         """
-        Copy pytest cache file from local box to directory in s3. .pytest_cache directory will be copied from 
-        :param current_dir ec2 directory to s3 directory generated from parameters.
-
+        Copy pytest cache from json and send to directory in s3. 
+        :param cache_json - json object with pytest cache
                 Following parameters are required to create a path to cache file in s3:
-        :param current_dir: directory on ec2 instance
         :param commit_id
         :param framework
         :param version
