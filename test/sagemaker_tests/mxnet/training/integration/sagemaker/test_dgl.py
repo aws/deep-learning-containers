@@ -16,7 +16,8 @@ import os
 
 import pytest
 from sagemaker import utils
-from ... import MXNetWrapper as MXNet
+from sagemaker.mxnet.estimator import MXNet
+from ..... import invoke_sm_helper_function
 
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
@@ -29,13 +30,17 @@ DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, 'gcn.py')
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.skip_py2_containers
-def test_dgl_training(sagemaker_regions, ecr_image, instance_type, framework_version):
+def test_dgl_training(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_dgl_training,
+                              instance_type, framework_version)
 
+
+def _test_dgl_training(ecr_image, sagemaker_session, instance_type, framework_version):
     dgl = MXNet(entry_point=DGL_SCRIPT_PATH,
                 role='SageMakerRole',
                 instance_count=1,
                 instance_type=instance_type,
-                sagemaker_regions=sagemaker_regions,
+                sagemaker_session=sagemaker_session,
                 image_uri=ecr_image,
                 framework_version=framework_version)
 

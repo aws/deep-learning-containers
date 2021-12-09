@@ -56,6 +56,8 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
     __test_eks_mxnet_squeezenet_inference(mxnet_inference)
 
 
+# TODO: Enable after adding EKS infrastructure to support graviton
+@pytest.mark.skip(reason="EKS graviton tests require further development")
 @pytest.mark.model("squeezenet")
 def test_eks_mxnet_squeezenet_inference_graviton(mxnet_inference_graviton):
     __test_eks_mxnet_squeezenet_inference(mxnet_inference_graviton)
@@ -104,7 +106,8 @@ def __test_eks_mxnet_squeezenet_inference(mxnet_inference):
 
 
 @pytest.mark.skip(
-    "Flaky test. Same test passes on EC2. Fails for gpu-inference for mx1.7. Refer: https://github.com/aws/deep-learning-containers/issues/587"
+    "Flaky test. Same test passes on EC2. Fails for gpu-inference for mx1.7. "
+    "Refer: https://github.com/aws/deep-learning-containers/issues/587"
 )
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("bert_sst")
@@ -113,7 +116,8 @@ def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
 
 
 @pytest.mark.skip(
-    "Flaky test. Same test passes on EC2. Fails for gpu-inference for mx1.7. Refer: https://github.com/aws/deep-learning-containers/issues/587"
+    "Flaky test. Same test passes on EC2. Fails for gpu-inference for mx1.7. "
+    "Refer: https://github.com/aws/deep-learning-containers/issues/587"
 )
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("bert_sst")

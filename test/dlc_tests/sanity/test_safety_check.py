@@ -45,7 +45,10 @@ IGNORE_SAFETY_IDS = {
                 # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
                 "42098",
                 "42062",
-                "41994"
+                "41994",
+                "42815",
+                "42772",
+                "42814"
             ],
         },
         "inference": {
