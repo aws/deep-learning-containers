@@ -9,11 +9,9 @@ LOG_DIR=`dirname $LOG_FILE`
 mkdir -p ${HOME_DIR}/artifacts
 mkdir -p ${LOG_DIR}
 
-
 git clone https://github.com/HabanaAI/gaudi-test-suite.git ${HOME_DIR}/artifacts/gaudi-test-suite
 cd ${HOME_DIR}/artifacts/gaudi-test-suite
 git checkout ${GIT_BRANCH}
-
 python3 -m pip install -r requirements.txt
 
 set -e
@@ -27,8 +25,7 @@ then
 fi
 
 python3 gaudi_test_suite.py -tm benchmark -f tf -m bert -c "${CARDS_NUM}" -t "${TRAINING_TIME}" 2>&1 | tee ${LOG_FILE}
-
-RETURNVAL=$?
+RETURNVAL=${PIPESTATUS[0]}
 if [ $RETURNVAL -eq 0 ];
 then
     echo "Tensorflow BERT test executed successfully"
@@ -45,4 +42,4 @@ set +e
 
 rm -rf ${HOME_DIR}/artifacts/gaudi-test-suite
 
-exit 0
+exit ${exitcode}

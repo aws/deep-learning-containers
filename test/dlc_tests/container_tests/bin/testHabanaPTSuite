@@ -5,46 +5,28 @@
 HOME_DIR=/test
 LOG_DIR=`dirname $LOG_FILE`
 
-
 mkdir -p ${HOME_DIR}/artifacts
 mkdir -p ${LOG_DIR}
 
-LINUX_DIST_NAME=`cat /etc/*-release | grep "^NAME=" | sed 's#^.*=##' | tr -d '"'`
-if [ -z "$LINUX_DIST_NAME" ]; then
-    echo Unable to identify Linux distribution
-    exit 1
-elif [ "$LINUX_DIST_NAME" == "Ubuntu" ]; then
-    apt-get update
-    apt-get install -y imagemagick
-elif [ "$LINUX_DIST_NAME" == "Amazon Linux" ]; then
-    yum update -y
-    yum install -y ImageMagick
-else
-    echo Unknown Linux distribution: $LINUX_DIST_NAME
-    exit 1
-fi
-
 set -e
 
-START=$(date +%s)
+git clone https://github.com/HabanaAI/gaudi-test-suite.git ${HOME_DIR}/artifacts/gaudi-test-suite
+cd ${HOME_DIR}/artifacts/gaudi-test-suite
+git checkout ${GIT_BRANCH}
+python3 -m pip install -r requirements.txt
+python3 -m pip install -r test/framework/pytorch_test_suite/requirements.txt
 
 python3 gaudi_test_suite.py -tm framework -f pt 2>&1 | tee ${LOG_FILE}
-
-RETURNVAL=$?
+RETURNVAL=${PIPESTATUS[0]}
 if [ $RETURNVAL -eq 0 ];
 then
-    echo "PyTorch framework test executed successfully"
+    echo "PyTorch framework test suite executed successfully"
     exitcode=0
 else
-    echo "PyTorch framework test terminated unsuccessfully"
+    echo "PyTorch framework test suite terminated unsuccessfully"
     exitcode=$RETURNVAL
 fi
 
-END=$(date +%s)
-DIFF=$(( END - START ))
-echo Script took $(( DIFF/60 )) mins to finish >> "${LOG_FILE}"
-set +e
-
 rm -rf ${HOME_DIR}/artifacts/gaudi-test-suite
 
-exit 0
+exit ${exitcode}

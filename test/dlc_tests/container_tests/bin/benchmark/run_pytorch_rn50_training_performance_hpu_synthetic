@@ -5,7 +5,6 @@ PT_VERSION=$(python -c 'import torch; print(torch.__version__)')
 HOME_DIR=/test
 LOG_DIR=`dirname $LOG_FILE`
 
-
 mkdir -p ${HOME_DIR}/artifacts
 mkdir -p ${LOG_DIR}
 
@@ -27,21 +26,29 @@ fi
 git clone https://github.com/HabanaAI/gaudi-test-suite.git ${HOME_DIR}/artifacts/gaudi-test-suite
 cd ${HOME_DIR}/artifacts/gaudi-test-suite
 git checkout ${GIT_BRANCH}
-
 python3 -m pip install -r requirements.txt
+python3 -m pip install -r test/benchmark/pt-requirements.txt
 
 set -e
 
 START=$(date +%s)
-TRAINING_TIME="200m"
+TRAINING_TIME="100m"
 if [ "$PR_CONTEXT" == "1" ]
 then
-  TRAINING_TIME="150m"
+  TRAINING_TIME="60m"
   echo Running under PR context >&2
 fi
 
-
 python3 gaudi_test_suite.py -tm benchmark -f pt -m resnet50 -c "${CARDS_NUM}" -t "${TRAINING_TIME}" 2>&1 | tee ${LOG_FILE}
+RETURNVAL=${PIPESTATUS[0]}
+if [ $RETURNVAL -eq 0 ];
+then
+    echo "PyTorch Resnet test executed successfully"
+    exitcode=0
+else
+    echo "PyTorch Resnet test terminated unsuccessfully"
+    exitcode=$RETURNVAL
+fi
 
 END=$(date +%s)
 DIFF=$(( END - START ))
@@ -50,4 +57,4 @@ set +e
 
 rm -rf ${HOME_DIR}/artifacts/gaudi-test-suite
 
-exit 0
+exit ${exitcode}
