@@ -22,9 +22,9 @@ from ..... import invoke_sm_helper_function
 from ...integration import RESOURCE_PATH
 
 
-def test_inference_always_broken():
+def test_always_broken():
     assert False
 
 
-def test_inference_always_works():
-    assert True
+def test_always_works():
+    assert False
