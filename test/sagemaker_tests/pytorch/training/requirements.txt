@@ -22,9 +22,3 @@ fabric
 retrying
 gitpython
 toml
-transformers==4.4.2
-datasets
-numpy
-torchnet
-scipy
-humanize
