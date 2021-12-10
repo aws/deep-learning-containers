@@ -156,12 +156,9 @@ RUN /opt/conda/bin/mamba install -c conda-forge \
  && mamba install -y -c dglteam dgl-cuda11.1==0.6.1 \
  && /opt/conda/bin/mamba clean -ya
 
-
-ARG CONDA_PREFIX=/opt/conda
-
-RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
+RUN /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 RUN conda install -c pytorch magma-cuda111==2.5.2 \
  && conda install -c conda-forge \
@@ -178,11 +175,11 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.
   && tar -xzf boost_1_73_0.tar.gz \
   && cd boost_1_73_0 \
   && ./bootstrap.sh \
-  && ./b2 threading=multi --prefix=${CONDA_PREFIX} -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
+  && ./b2 threading=multi --prefix=/opt/conda -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
   && cd .. \
   && rm -rf boost_1_73_0.tar.gz \
   && rm -rf boost_1_73_0 \
-  && cd ${CONDA_PREFIX}/include/boost
+  && cd /opt/conda/include/boost
 
 WORKDIR /opt/pytorch
 
