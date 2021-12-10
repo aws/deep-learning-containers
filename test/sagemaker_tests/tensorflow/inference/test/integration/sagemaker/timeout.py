@@ -12,13 +12,15 @@
 # language governing permissions and limitations under the License.
 # TODO: this is used in all containers and sdk. We should move it to container support or sdk test utils.
 from __future__ import absolute_import
-import signal
-from contextlib import contextmanager
+
 import logging
+import signal
+
+from contextlib import contextmanager
 
 from botocore.exceptions import ClientError
 
-LOGGER = logging.getLogger('timeout')
+LOGGER = logging.getLogger("timeout")
 
 
 class TimeoutError(Exception):
@@ -41,7 +43,7 @@ def timeout(seconds=0, minutes=0, hours=0):
     limit = seconds + 60 * minutes + 3600 * hours
 
     def handler(signum, frame):
-        raise TimeoutError('timed out after {} seconds'.format(limit))
+        raise TimeoutError(f"timed out after {limit} seconds")
 
     try:
         signal.signal(signal.SIGALRM, handler)
@@ -53,19 +55,19 @@ def timeout(seconds=0, minutes=0, hours=0):
 
 
 @contextmanager
-def timeout_and_delete_endpoint(endpoint_name, sagemaker_session,
-                                seconds=0, minutes=0, hours=0):
+def timeout_and_delete_endpoint(endpoint_name, sagemaker_session, seconds=0, minutes=0, hours=0):
     with timeout(seconds=seconds, minutes=minutes, hours=hours) as t:
         try:
             yield [t]
         finally:
             try:
                 sagemaker_session.delete_endpoint(endpoint_name)
-                LOGGER.info("deleted endpoint {}".format(endpoint_name))
+                LOGGER.info(f"deleted endpoint {endpoint_name}")
             except ClientError as ce:
-                if ce.response['Error']['Code'] == 'ValidationException':
+                if ce.response["Error"]["Code"] == "ValidationException":
                     # avoids the inner exception to be overwritten
                     pass
+                raise
 
 
 @contextmanager
@@ -76,8 +78,9 @@ def timeout_and_delete_endpoint_by_name(endpoint_name, sagemaker_session, second
         finally:
             try:
                 sagemaker_session.delete_endpoint(endpoint_name)
-                LOGGER.info('deleted endpoint {}'.format(endpoint_name))
+                LOGGER.info(f"deleted endpoint {endpoint_name}")
             except ClientError as ce:
-                if ce.response['Error']['Code'] == 'ValidationException':
+                if ce.response["Error"]["Code"] == "ValidationException":
                     # avoids the inner exception to be overwritten
                     pass
+                raise

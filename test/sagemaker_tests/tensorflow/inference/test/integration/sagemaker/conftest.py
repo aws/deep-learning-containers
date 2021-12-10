@@ -258,6 +258,20 @@ def disable_test(request):
 
 @pytest.fixture(scope="session")
 def resnet_model_tar_path():
+    """
+    This is a fixture to download a resnet50 model that has been frozen as per the recommendation at
+    https://docs.aws.amazon.com/sagemaker/latest/dg/neo-compilation-preparing-model.html in order to make it
+    compatible with Neo compilation, so that it makes adding a SageMaker Inference Recommender test for TF inference
+    much easier at a later date.
+
+    The model consists of the frozen model and its weights stored as a saved_model.pb file on S3, with an accompanying
+    inference script and requirements.txt file stored in the SM TF Inference test resources on this repo. We do not
+    want to store the model itself as part of the code, due to its size. Therefore, the inference handler is committed
+    as code in this repository, while the model is stored as a publicly readable S3 object. These can be packaged
+    together to create a model.tar.gz to be supplied to a TF SM Inference Endpoint.
+
+    :return: str path to the model.tar.gz file within the filesystem of the test runner
+    """
     model_path = os.path.join(RESOURCES_PATH, "models", "resnet50_v1")
     model_tar_path = os.path.join(model_path, "model.tar.gz")
     if os.path.exists(model_tar_path):
