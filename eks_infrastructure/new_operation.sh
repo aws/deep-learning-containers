@@ -13,6 +13,17 @@ function create_ec2_key_pair() {
     --output text >./${1}.pem
 }
 
+# Function to update kubeconfig at ~/.kube/config
+function update_kubeconfig() {
+
+  eksctl utils write-kubeconfig \
+    --cluster ${1} \
+    --authenticator-role-arn ${2} \
+    --region ${3}
+
+  kubectl config get-contexts
+}
+
 # Attach IAM policy to nodegroup IAM role
 function add_iam_policy() {
   NODE_GROUP_NAME=${1}
@@ -117,6 +128,10 @@ fi
 
 CLUSTER=${1}
 EKS_VERSION=${2}
+
+if [ -n "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
+  update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
+fi
 
 create_graviton_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
 add_tags_asg ${CLUSTER} ${AWS_REGION}
