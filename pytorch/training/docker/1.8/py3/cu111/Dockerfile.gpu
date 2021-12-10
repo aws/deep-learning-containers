@@ -154,9 +154,6 @@ RUN curl -L -o ~/miniconda.sh https://github.com/conda-forge/miniforge/releases/
  && mamba install -y -c dglteam dgl-cuda11.1==0.6.1 \
  && mamba clean -ya
 
-
-ARG CONDA_PREFIX=/opt/conda
-
 RUN /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
