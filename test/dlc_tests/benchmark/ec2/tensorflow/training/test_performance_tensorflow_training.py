@@ -91,9 +91,9 @@ def post_process_tensorflow_training_performance(connection, log_location):
     for line in reversed(last_lines):
         if "images/sec:" in line:
             throughput = float(re.search(r"(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput"))
+            if throughput == 0:
+                throughput = threshold_avg_calculated_from_all_steps(connection, log_location)
             break
-    if throughput == 0:
-        throughput = threshold_avg_calculated_from_all_steps(connection, log_location)
     return {"Throughput": throughput}
 
 
