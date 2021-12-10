@@ -67,7 +67,7 @@ def timeout_and_delete_endpoint(endpoint_name, sagemaker_session, seconds=0, min
                 if ce.response["Error"]["Code"] == "ValidationException":
                     # avoids the inner exception to be overwritten
                     pass
-                raise
+                LOGGER.error(str(ce.response["Error"]))
 
 
 @contextmanager
@@ -83,4 +83,4 @@ def timeout_and_delete_endpoint_by_name(endpoint_name, sagemaker_session, second
                 if ce.response["Error"]["Code"] == "ValidationException":
                     # avoids the inner exception to be overwritten
                     pass
-                raise
+                LOGGER.error(str(ce.response["Error"]))
