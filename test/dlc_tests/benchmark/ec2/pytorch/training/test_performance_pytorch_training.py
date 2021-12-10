@@ -159,7 +159,7 @@ def post_process_pytorch_hpu_py3_synthetic_ec2_training_performance(connection, 
     throughput = 0
     for line in reversed(log_lines):
         if "Validating result: actual" in line:
-            throughput = float(line.split(" ")[2])
+            throughput = float(line.split(" ")[6].strip(","))
             break
     return {"Throughput": throughput}
 

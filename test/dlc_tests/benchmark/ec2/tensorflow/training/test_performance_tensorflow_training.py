@@ -168,7 +168,7 @@ def post_process_tensorflow_hpu_training_performance(connection, log_location):
     throughput = 0
     for line in reversed(log_lines):
         if "Validating result: actual" in line:
-            throughput = float(line.split(" ")[2])
+            throughput = float(line.split(" ")[6].strip(","))
             break
     return {"Throughput": throughput}
 
