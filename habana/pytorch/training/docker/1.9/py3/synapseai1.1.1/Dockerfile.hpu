@@ -1,12 +1,12 @@
-FROM vault.habana.ai/gaudi-docker/1.1.1/ubuntu18.04/habanalabs/pytorch-installer:1.1.1-94
+FROM vault.habana.ai/gaudi-docker/1.1.1/ubuntu20.04/habanalabs/pytorch-installer:1.1.1-94
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 # Python versions
-ARG PYTHON=python3.7
+ARG PYTHON=python3.8
 ARG PYTHON_PIP=python3-pip
-ARG PIP=pip3.7
+ARG PIP=pip3.8
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
