@@ -15,7 +15,6 @@ ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
-ENV TEMP=/home/model-server/tmp
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends software-properties-common \
@@ -59,8 +58,9 @@ RUN /opt/conda/bin/conda config --add channels anaconda
 RUN /opt/conda/bin/conda config --add channels conda-forge
 
 RUN /opt/conda/bin/mamba install -c conda-forge \
-    python=$PYTHON_VERSION \
- && /opt/conda/bin/mamba install -y \
+    python=$PYTHON_VERSION
+
+RUN /opt/conda/bin/mamba install -y \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
     cython==0.29.12 \
