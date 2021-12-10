@@ -1,0 +1,79 @@
+# Copyright 2019-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"). You
+# may not use this file except in compliance with the License. A copy of
+# the License is located at
+#
+#     http://aws.amazon.com/apache2.0/
+#
+# or in the "license" file accompanying this file. This file is
+# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
+# ANY KIND, either express or implied. See the License for the specific
+# language governing permissions and limitations under the License.
+from __future__ import absolute_import
+
+import os
+
+import pytest
+import sagemaker
+from sagemaker.model import Model
+from sagemaker.predictor import Predictor
+from sagemaker.serializers import JSONSerializer
+from sagemaker.deserializers import JSONDeserializer
+
+
+from ...integration import model_dir, pt_neuron_model,pt_neuron_script
+from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
+from .... import invoke_pytorch_helper_function
+
+
+@pytest.mark.model("tiny-distilbert")
+@pytest.mark.processor("neuron")
+@pytest.mark.neuron_test
+def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
+    instance_type = instance_type or 'ml.inf1.xlarge'
+ 
+    _test_pt_neuron(ecr_image, sagemaker_regions,framework_version ,instance_type, model_dir)
+
+
+def _test_pt_neuron(
+        ecr_image, sagemaker_session, framework_version, instance_type, model_dir, accelerator_type=None
+):
+    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-neuron-serving")
+
+    model_data = sagemaker_session.upload_data(
+        path=model_dir,
+        key_prefix="sagemaker-huggingface-neuron-serving/models",
+    )
+
+    if "pytorch" in ecr_image:
+        model_file = pt_neuron_model
+        entry_point = pt_neuron_script
+    else:
+        raise ValueError(f"Unsupported framework for image: {ecr_image}")
+
+    hf_model = Model(
+        model_data=f"{model_data}/{model_file}",
+        role="SageMakerRole",
+        image_uri=ecr_image,
+        sagemaker_session=sagemaker_session,
+        entry_point=entry_point,
+        predictor_cls=Predictor,
+    )
+
+    with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
+        predictor = hf_model.deploy(
+            initial_instance_count=1,
+            instance_type=instance_type,
+            endpoint_name=endpoint_name,
+        )
+
+        data = {
+            "inputs": "Camera - You are awarded a SiPix Digital Camera! call 09061221066 fromm landline. Delivery within 28 days."
+        }
+        predictor.serializer = JSONSerializer()
+        predictor.deserializer = JSONDeserializer()
+
+        output = predictor.predict(data)
+
+        assert "score" in output[0]
