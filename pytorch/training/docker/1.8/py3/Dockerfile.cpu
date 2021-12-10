@@ -100,15 +100,14 @@ RUN /opt/conda/bin/mamba install -c conda-forge \
     cython \
     typing \
     "pyopenssl>=17.5.0" \
- && conda install -c conda-forge \
+ && mamba install -c conda-forge \
     opencv \
- && conda install -y \
+ && mamba install -y \
     scikit-learn \
     pandas \
     h5py \
     requests \
- && conda install -c dglteam -y dgl==0.6.1 \
- && /opt/conda/bin/conda clean -ya \
+ && mamba install -c dglteam -y dgl==0.6.1 \
  && conda clean -ya
 
 # The following section uninstalls torch and torchvision before installing the
