@@ -1,10 +1,13 @@
 {
     "operation": "new_operation",
     "contexts":[
-        "PR"
+        "PR",
+        "MAINLINE"
     ],
     "eks_clusters":[
-        "mxnet"
+        "mxnet",
+        "pytorch",
+        "tensorflow"
     ],
     "eks_version": "1.20",
     "cluster_autoscalar_image_version": "v1.20.0"
