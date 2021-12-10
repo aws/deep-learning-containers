@@ -81,17 +81,15 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-RUN curl -L -o ~/miniconda.sh https://github.com/conda-forge/miniforge/releases/download/4.10.2-0/Mambaforge-4.10.2-0-Linux-x86_64.sh \
+RUN curl -L -o ~/miniconda.sh https://github.com/conda-forge/miniforge/releases/download/4.10.3-7/Mambaforge-4.10.3-7-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
- && rm ~/miniconda.sh
-
-RUN /opt/conda/bin/conda config --set auto_update_conda False
-RUN /opt/conda/bin/conda config --add channels main
-RUN /opt/conda/bin/conda config --add channels anaconda
-RUN /opt/conda/bin/conda config --add channels conda-forge
-
-RUN /opt/conda/bin/mamba install -c conda-forge \
+ && rm ~/miniconda.sh \
+ && /opt/conda/bin/conda config --set auto_update_conda False\
+ && /opt/conda/bin/conda config --add channels main\
+ && /opt/conda/bin/conda config --add channels anaconda\
+ && /opt/conda/bin/conda config --add channels conda-forge\
+ && /opt/conda/bin/mamba install -c conda-forge \
     python=$PYTHON_VERSION \
  && /opt/conda/bin/mamba install -y \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
@@ -104,9 +102,7 @@ RUN /opt/conda/bin/mamba install -c conda-forge \
     parso==0.8.0 \
     scipy==1.3.0 \
     typing==3.6.4 \
- && /opt/conda/bin/conda clean -ya
-
-RUN mamba install -c \
+ && mamba install -c \
     pytorch magma-cuda111 \
  && mamba install -c \
     conda-forge \
@@ -116,9 +112,10 @@ RUN mamba install -c \
     pandas==0.25.0 \
     h5py==2.9.0 \
     requests==2.22.0 \
- && conda clean -ya \
- && /opt/conda/bin/mamba config --set ssl_verify False \
- && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && mamba clean -ya \
+ && /opt/conda/bin/mamba config --set ssl_verify False
+
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
@@ -130,7 +127,7 @@ RUN pip uninstall -y torch \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL
 
-RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
+RUN mamba install -y -c conda-forge "pyyaml>=5.4,<5.5"
 RUN pip install "pillow>=8.2.2,<8.4" "awscli<2"
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
