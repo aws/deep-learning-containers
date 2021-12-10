@@ -13,6 +13,63 @@ function create_ec2_key_pair() {
     --output text >./${1}.pem
 }
 
+# Attach IAM policy to nodegroup IAM role
+function add_iam_policy() {
+  NODE_GROUP_NAME=${1}
+  CLUSTER_NAME=${2}
+  REGION=${3}
+
+  ROLE_ARN=$(aws eks describe-nodegroup --nodegroup-name ${NODE_GROUP_NAME} --cluster-name ${CLUSTER_NAME} --region ${REGION} | jq -r '.nodegroup.nodeRole')
+  ROLE_NAME=$(echo ${ROLE_ARN} | grep -oP 'arn:aws:iam::\d+:role/\K\S+')
+
+  declare -a POLICY_ARN=("arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess")
+
+  for policy in ${POLICY_ARN[@]}; do
+    aws iam attach-role-policy \
+      --role-name $ROLE_NAME \
+      --policy-arn $policy \
+      --region ${REGION}
+  done
+
+}
+
+function add_iam_permissions_nodegroup() {
+  CLUSTER_NAME=${1}
+  REGION=${2}
+  LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${CLUSTER_NAME} --region ${REGION} -o json | jq -r '.[].Name')
+
+  if [ -n "${LIST_NODE_GROUPS}" ]; then
+    for NODEGROUP in ${LIST_NODE_GROUPS}; do
+      if [[ ${NODEGROUP} == *"graviton"* ]]; then
+        add_iam_policy ${NODEGROUP} ${CLUSTER_NAME} ${REGION}
+      fi
+    done
+  else
+    echo "No Nodegroups present in the EKS cluster ${CLUSTER_NAME}"
+  fi
+}
+
+#/ Tags added to the nodegroup do not propogate to the underlying Auto Scaling Group.
+#/ Hence adding the tags explicitly as it is required for cluster autoscalar functionality
+#/ See https://github.com/aws/containers-roadmap/issues/608
+function add_tags_asg() {
+
+  CLUSTER_NAME=${1}
+  REGION=${2}
+
+  for details in $(eksctl get nodegroup --cluster ${CLUSTER_NAME} --region ${REGION} -o json | jq -c '.[]'); do
+    nodegroup_name=$(echo $details | jq -r '.Name')
+    asg_name=$(echo $details | jq -r '.AutoScalingGroupName')
+
+    if [[ ${nodegroup_name} == *"graviton"* ]]; then
+      aws autoscaling create-or-update-tags \
+        --tags ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/test_type,Value=graviton,PropagateAtLaunch=true
+    fi
+
+  done
+
+}
+
 # Function to create graviton nodegroup in EKS cluster
 function create_graviton_node_group() {
 
@@ -59,5 +116,8 @@ else
 fi
 
 CLUSTER=${1}
+EKS_VERSION=${2}
 
 create_graviton_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
+add_tags_asg ${CLUSTER} ${AWS_REGION}
+add_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}

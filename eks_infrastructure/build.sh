@@ -10,7 +10,6 @@ set -ex
 # and test IAM role authentication to the cluster.
 # Invokes install_cluster_components.sh script to install cluster autoscalar and kubeflow components in the cluster.
 function create_cluster() {
-  cd eks_infrastructure
 
   for CONTEXT in "${CONTEXTS[@]}"; do
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
@@ -39,8 +38,6 @@ function create_cluster() {
 # 4. Upgrade core k8s components
 # 5. Scale cluster autoscalar back to 1
 function upgrade_cluster() {
-
-  cd eks_infrastructure
   for CONTEXT in "${CONTEXTS[@]}"; do
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
       CLUSTER_NAME=${CLUSTER}-${CONTEXT}
@@ -58,8 +55,6 @@ function upgrade_cluster() {
 #
 # Invokes delete_cluster.sh script to delete EKS cluster, nodegroups and other related components
 function delete_cluster() {
-
-  cd eks_infrastructure
   for CONTEXT in "${CONTEXTS[@]}"; do
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
       CLUSTER_NAME=${CLUSTER}-${CONTEXT}
@@ -78,7 +73,6 @@ function delete_cluster() {
 # Invokes new_operation.sh script to add graviton nodegroup on the EKS cluster
 function new_operation() {
 
-  cd eks_infrastructure
   for CONTEXT in "${CONTEXTS[@]}"; do
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
       CLUSTER_NAME=${CLUSTER}-${CONTEXT}
@@ -96,30 +90,27 @@ function check_cluster_status() {
   aws eks describe-cluster --name ${1} --region ${AWS_REGION} --query cluster.status --out text | grep -q ACTIVE
 }
 
-#configure the pre stage build here
-
 # Check for input arguments
-if [ $# -ne 2 ]; then
-  if [ -z "$1" ]
-    EKS_CLUSTERS=($(jq -r '.eks_clusters[]' eks_infrastructure/build_param.json))
-  else
-    EKS_CLUSTERS="predeploy"-`date +%s`
-
-  if [ -z "$2" ]
-    CONTEXTS=($(jq -r '.contexts[]' eks_infrastructure/build_param.json))
-  else 
-    CONTEXTS="pre-deploy"
-  fi
-
+if [ -z "$1" ]; then
+  EKS_CLUSTERS=($(jq -r '.eks_clusters[]' build_param.json))
+else
+  EKS_CLUSTERS=${1}-`date +%s`
 fi
 
+if [ -z "$2" ]; then
+  CONTEXTS=($(jq -r '.contexts[]' build_param.json))
+else
+  CONTEXTS=${2}
+fi
+
+
 # Parse parameters from build_param.json config file
-OPERATION=$(jq -r '.operation' eks_infrastructure/build_param.json)
-EKS_VERSION=$(jq -r '.eks_version' eks_infrastructure/build_param.json)
-CLUSTER_AUTOSCALAR_IMAGE_VERSION=$(jq -r '.cluster_autoscalar_image_version' eks_infrastructure/build_param.json)
+OPERATION=$(jq -r '.operation' build_param.json)
+EKS_VERSION=$(jq -r '.eks_version' build_param.json)
+CLUSTER_AUTOSCALAR_IMAGE_VERSION=$(jq -r '.cluster_autoscalar_image_version' build_param.json)
 
 # Create a cluster if the context is predeploy and operation is other than create
-if [ ${CONTEXT} -eq "pre-deploy" && ${OPERATION} -ne "create" ]; then
+if [ "${CONTEXTS}" = "beta" ] && [ "${OPERATION}" != "create" ]; then
   echo "Create a cluster inorder to perform operations other than creating cluster"
   create_cluster
 fi
@@ -147,8 +138,8 @@ new_operation)
   ;;
 esac
 
-# Ckeanup the EKS cluster if the context is predeploy
-if [ ${CONTEXT} -eq "pre-deploy" ]; then
+# Cleanup the EKS cluster if the context is predeploy
+if [ "${CONTEXT}" = "beta" ]; then
   echo "Delete the pre-deploy cluster"
   delete_cluster
 fi
