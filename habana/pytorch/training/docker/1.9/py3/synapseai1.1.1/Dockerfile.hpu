@@ -34,7 +34,7 @@ RUN apt-get update \
 ARG PT_TRAINING_URL
 COPY ${PT_TRAINING_URL} .
 
-ARG PT_TORCHVISION_URL=https://torchvision-build.s3.us-west-2.amazonaws.com/1.7.1/cpu/torchvision-0.8.2-cp37-cp37m-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://aws-habana-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.9.1_aws_habana/torchvision/torchvision-0.10.1-cp38-cp38-linux_x86_64.whl
 
 RUN pip --no-cache-dir install --upgrade \
     pip \

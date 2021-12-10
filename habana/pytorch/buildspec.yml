@@ -33,9 +33,9 @@ images:
     image_size_baseline: &IMAGE_SIZE_BASELINE 8000
     device_type: &DEVICE_TYPE hpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py37
+    tag_python_version: &TAG_PYTHON_VERSION py38
     synapseai_version: &SYNAPSEAI_VERSION synapseai1.1.1
-    os_version: &OS_VERSION ubuntu18.04
+    os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *SYNAPSEAI_VERSION,
       "-", *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *SYNAPSEAI_VERSION,
@@ -43,7 +43,7 @@ images:
     download_artifacts:
       pytorch_binary:
         type: s3
-        URI: s3://aws-habana-pytorch-cicd-v3-binaries/r1.7.1_aws_habana/20210622-172918/0cb25bd8fb68c6f044a37763a3366a1d48751a57/cpu/torch-1.7.1-cp37-cp37m-manylinux1_x86_64.whl
+        URI: s3://aws-habana-pytorch-cicd-v3-binaries/r1.9.1_aws_habana/20211207-233031/d3f8a7e020c39dcffb227c3f380efae8b24d7d1f/al2/torch-1.9.1-cp38-cp38-manylinux1_x86_64.whl
         VAR_IN_DOCKERFILE: PT_TRAINING_URL
     context:
       <<: *TRAINING_CONTEXT
@@ -54,9 +54,9 @@ images:
     base_image_name: BuildHabanaPytorchPy37SypAI111TrainingDockerImage
     device_type: &DEVICE_TYPE hpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py37
+    tag_python_version: &TAG_PYTHON_VERSION py38
     synapseai_version: &SYNAPSEAI_VERSION synapseai1.1.1
-    os_version: &OS_VERSION ubuntu18.04
+    os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *SYNAPSEAI_VERSION,
       "-", *OS_VERSION, "-example" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /example,
@@ -64,7 +64,7 @@ images:
     download_artifacts:
       pytorch_binary:
         type: s3
-        URI: s3://aws-habana-pytorch-cicd-v3-binaries/r1.7.1_aws_habana/20210610-203027/25cdb4b4e75284198d6cbaeb84af961047803908/cpu/torch-1.7.1-cp37-cp37m-manylinux1_x86_64.whl
+        URI: s3://aws-habana-pytorch-cicd-v3-binaries/r1.9.1_aws_habana/20211207-233031/d3f8a7e020c39dcffb227c3f380efae8b24d7d1f/al2/torch-1.9.1-cp38-cp38-manylinux1_x86_64.whl
         VAR_IN_DOCKERFILE: PT_TRAINING_URL
     context:
       <<: *TRAINING_CONTEXT
