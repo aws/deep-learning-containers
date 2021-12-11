@@ -68,6 +68,11 @@ RUN curl -L -o ~/miniconda.sh https://github.com/conda-forge/miniforge/releases/
     parso==0.8.0 \
     scipy==1.3.0 \
     typing==3.6.4 \
+    opencv==4.0.1 \
+    scikit-learn==0.21.2 \
+    pandas==0.25.0 \
+    h5py==2.9.0 \
+    requests==2.22.0 \
  && mamba clean -ya
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
@@ -86,19 +91,11 @@ ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
-RUN mamba install -c \
-    conda-forge \
-    opencv==4.0.1 \
- && mamba install -y \
-    scikit-learn==0.21.2 \
-    pandas==0.25.0 \
-    h5py==2.9.0 \
-    requests==2.22.0 \
- && mamba clean -ya \
- && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
+    "prompt-toolkit>=2.0.0,<2.1.0" \
     "cryptography>=3.3.2"
 
 # Uninstall and re-install torch and torchvision from the PyTorch website

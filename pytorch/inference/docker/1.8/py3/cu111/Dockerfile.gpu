@@ -95,23 +95,23 @@ RUN curl -L -o ~/miniconda.sh https://github.com/conda-forge/miniforge/releases/
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
     cython==0.29.12 \
-    ipython==7.7.0 \
+    ipython==7.16.1 \
     mkl-include==2019.4 \
     mkl==2019.4 \
     numpy==1.19.1 \
     parso==0.8.0 \
     scipy==1.3.0 \
     typing==3.6.4 \
- && mamba install -c \
-    pytorch magma-cuda111 \
- && mamba install -c \
-    conda-forge \
     opencv==4.0.1 \
- && mamba install -y \
     scikit-learn==0.21.2 \
     pandas==0.25.0 \
     h5py==2.9.0 \
     requests==2.22.0 \
+    pybind11 \
+ && mamba install -y -c \
+    pytorch magma-cuda111 \
+ && mamba install -y -c \
+    conda-forge "pyyaml>=5.4,<5.5" \
  && mamba clean -ya \
  && /opt/conda/bin/mamba config --set ssl_verify False
 
@@ -119,6 +119,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
+    "prompt-toolkit>=2.0.0,<2.1.0" \
     "cryptography>=3.3.2"
 
 # Uninstall and re-install torch and torchvision from the PyTorch website
@@ -127,7 +128,6 @@ RUN pip uninstall -y torch \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL
 
-RUN mamba install -y -c conda-forge "pyyaml>=5.4,<5.5"
 RUN pip install "pillow>=8.2.2,<8.4" "awscli<2"
 
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
