@@ -10,6 +10,7 @@ ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 
 ARG CUDA_HOME=/usr/local/cuda
+ARG CONDA_PREFIX=/opt/conda
 ARG METIS=metis-5.1.0
 ARG RMM_VERSION=0.15.0
 
@@ -127,22 +128,17 @@ RUN mkdir /tmp/openmpi && \
 ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
-RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
-
-RUN curl -L -o ~/miniconda.sh https://github.com/conda-forge/miniforge/releases/download/4.10.3-7/Mambaforge-4.10.3-7-Linux-x86_64.sh \
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
+ && curl -L -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-4.5.1-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p /opt/conda \
+ && ~/miniconda.sh -b -p ${CONDA_PREFIX} \
  && rm ~/miniconda.sh \
- && /opt/conda/bin/conda config --set auto_update_conda False\
- && /opt/conda/bin/conda config --add channels main\
- && /opt/conda/bin/conda config --add channels anaconda\
- && /opt/conda/bin/conda config --add channels conda-forge\
- && /opt/conda/bin/mamba install -c conda-forge \
+ && ${CONDA_PREFIX}/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
- && /opt/conda/bin/mamba install -y \
+ && ${CONDA_PREFIX}/bin/conda install -y \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
- && /opt/conda/bin/mamba install -y -c anaconda \
+ && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
     numpy \
     ipython \
     mkl \
@@ -151,12 +147,12 @@ RUN curl -L -o ~/miniconda.sh https://github.com/conda-forge/miniforge/releases/
     typing \
     future \
     "pyopenssl>=17.5.0" \
- && mamba install -y -c dglteam dgl-cuda11.1==0.6.1 \
- && mamba clean -ya
+ && conda install -y -c dglteam dgl-cuda11.1==0.6.1 \
+ && ${CONDA_PREFIX}/bin/conda clean -ya
 
-RUN /opt/conda/bin/conda config --set ssl_verify False \
+RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+ && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
 
 RUN conda install -c pytorch magma-cuda111==2.5.2 \
  && conda install -c conda-forge \
@@ -173,11 +169,11 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.
   && tar -xzf boost_1_73_0.tar.gz \
   && cd boost_1_73_0 \
   && ./bootstrap.sh \
-  && ./b2 threading=multi --prefix=/opt/conda -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
+  && ./b2 threading=multi --prefix=${CONDA_PREFIX} -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
   && cd .. \
   && rm -rf boost_1_73_0.tar.gz \
   && rm -rf boost_1_73_0 \
-  && cd /opt/conda/include/boost
+  && cd ${CONDA_PREFIX}/include/boost
 
 WORKDIR /opt/pytorch
 
