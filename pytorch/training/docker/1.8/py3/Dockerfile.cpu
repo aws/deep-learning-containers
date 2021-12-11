@@ -78,19 +78,14 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
-RUN curl -L -o ~/miniconda.sh https://github.com/conda-forge/miniforge/releases/download/4.10.2-0/Mambaforge-4.10.2-0-Linux-x86_64.sh \
+RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
- && rm ~/miniconda.sh
-
-RUN /opt/conda/bin/conda config --set auto_update_conda False
-RUN /opt/conda/bin/conda config --add channels main
-RUN /opt/conda/bin/conda config --add channels anaconda
-RUN /opt/conda/bin/conda config --add channels conda-forge
-
-RUN /opt/conda/bin/mamba install -c conda-forge \
+ && rm ~/miniconda.sh \
+ && /opt/conda/bin/conda update conda \
+ && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
- && /opt/conda/bin/mamba install -y -c anaconda \
+ && /opt/conda/bin/conda install -y -c anaconda \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
     numpy \
@@ -100,16 +95,16 @@ RUN /opt/conda/bin/mamba install -c conda-forge \
     cython \
     typing \
     "pyopenssl>=17.5.0" \
- && mamba install -c conda-forge \
+ && conda install -c conda-forge \
     opencv \
- && mamba install -y \
+ && conda install -y \
     scikit-learn \
     pandas \
     h5py \
     requests \
- && mamba install -c dglteam -y dgl==0.6.1 \
+ && conda install -c dglteam -y dgl==0.6.1 \
  && /opt/conda/bin/conda clean -ya \
- && mamba clean -ya
+ && conda clean -ya
 
 # The following section uninstalls torch and torchvision before installing the
 # custom versions from an S3 bucket. This will need to be removed in the future
