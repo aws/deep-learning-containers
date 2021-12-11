@@ -95,7 +95,7 @@ RUN curl -L -o ~/miniconda.sh https://github.com/conda-forge/miniforge/releases/
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
     cython==0.29.12 \
-    ipython==7.16.1 \
+    ipython==7.7.0 \
     mkl-include==2019.4 \
     mkl==2019.4 \
     numpy==1.19.1 \
