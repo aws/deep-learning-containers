@@ -165,3 +165,4 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.8/license.txt -o /l
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
+
