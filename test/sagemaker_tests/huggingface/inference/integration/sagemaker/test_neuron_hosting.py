@@ -16,10 +16,8 @@ import os
 
 import pytest
 import sagemaker
-from sagemaker.model import FrameworkModel
-from sagemaker.predictor import Predictor
-from sagemaker.serializers import JSONSerializer
-from sagemaker.deserializers import JSONDeserializer
+from sagemaker.huggingface import HuggingFaceModel
+
 
 
 from ...integration import model_dir, pt_neuron_model,script_dir,pt_neuron_script,dump_logs_from_cloudwatch
@@ -29,16 +27,16 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("neuron")
 @pytest.mark.neuron_test
-def test_neuron_hosting(sagemaker_session, framework_version, ecr_image, instance_type, region):
+def test_neuron_hosting(sagemaker_session, framework_version, ecr_image, instance_type, region,py_version):
     instance_type = instance_type or 'ml.inf1.xlarge'
     try:
-        _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_type, model_dir,script_dir)
+        _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_type, model_dir,script_dir,py_version)
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
 
 
-def _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_type, model_dir,script_dir, accelerator_type=None):
+def _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_type, model_dir,script_dir,py_version, accelerator_type=None):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-neuron-serving")
 
     model_data = sagemaker_session.upload_data(
@@ -52,14 +50,15 @@ def _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_ty
     else:
         raise ValueError(f"Unsupported framework for image: {ecr_image}")
 
-    hf_model = FrameworkModel(
+    hf_model = HuggingFaceModel(
         model_data=f"{model_data}/{model_file}",
         role="SageMakerRole",
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
         entry_point=entry_point,
         source_dir=script_dir,
-        predictor_cls=Predictor,
+        py_version=py_version,
+        
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
@@ -72,9 +71,6 @@ def _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_ty
         data = {
             "inputs": "Camera - You are awarded a SiPix Digital Camera! call 09061221066 fromm landline. Delivery within 28 days."
         }
-        predictor.serializer = JSONSerializer()
-        predictor.deserializer = JSONDeserializer()
-
         output = predictor.predict(data)
 
         assert "score" in output[0]
