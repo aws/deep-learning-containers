@@ -32,13 +32,13 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 def test_neuron_hosting(sagemaker_session, framework_version, ecr_image, instance_type, region):
     instance_type = instance_type or 'ml.inf1.xlarge'
     try:
-        _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+        _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_type, model_dir,script_dir)
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
 
 
-def _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None):
+def _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_type, model_dir,script_dir, accelerator_type=None):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-neuron-serving")
 
     model_data = sagemaker_session.upload_data(
