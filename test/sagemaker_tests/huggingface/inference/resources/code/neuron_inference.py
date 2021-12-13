@@ -1,6 +1,5 @@
 import os
 from transformers import AutoTokenizer, PretrainedConfig
-import tensorflow  # to workaround a protobuf version conflict issue
 import torch
 import numpy as np
 import torch.neuron
