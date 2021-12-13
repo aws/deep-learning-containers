@@ -16,7 +16,7 @@ import os
 
 import pytest
 import sagemaker
-from sagemaker.model import Model
+from sagemaker.model import FrameworkModel
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 from sagemaker.deserializers import JSONDeserializer
@@ -52,7 +52,7 @@ def _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_ty
     else:
         raise ValueError(f"Unsupported framework for image: {ecr_image}")
 
-    hf_model = Model(
+    hf_model = FrameworkModel(
         model_data=f"{model_data}/{model_file}",
         role="SageMakerRole",
         image_uri=ecr_image,
