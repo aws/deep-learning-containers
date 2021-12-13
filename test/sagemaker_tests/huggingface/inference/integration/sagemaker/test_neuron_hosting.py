@@ -22,22 +22,23 @@ from sagemaker.serializers import JSONSerializer
 from sagemaker.deserializers import JSONDeserializer
 
 
-from ...integration import model_dir, pt_neuron_model,pt_neuron_script
+from ...integration import model_dir, pt_neuron_model,pt_neuron_script,dump_logs_from_cloudwatch
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.processor("neuron")
 @pytest.mark.neuron_test
-def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_regions):
+def test_neuron_hosting(sagemaker_session, framework_version, ecr_image, instance_type, region):
     instance_type = instance_type or 'ml.inf1.xlarge'
- 
-    _test_pt_neuron(ecr_image, sagemaker_regions,framework_version ,instance_type, model_dir)
+    try:
+        _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+    except Exception as e:
+        dump_logs_from_cloudwatch(e, region)
+        raise
 
 
-def _test_pt_neuron(
-        ecr_image, sagemaker_session, framework_version, instance_type, model_dir, accelerator_type=None
-):
+def _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-neuron-serving")
 
     model_data = sagemaker_session.upload_data(
