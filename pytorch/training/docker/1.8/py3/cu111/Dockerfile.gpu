@@ -158,7 +158,7 @@ RUN conda install -c pytorch magma-cuda111==2.5.2 \
  && conda install -c conda-forge \
     opencv \
  && conda install -y scikit-learn \
-    pandas \
+    pandas==1.2.4 \
     h5py \
     requests \
     libgcc \
@@ -212,9 +212,9 @@ RUN pip install --no-cache-dir -U \
 # Install extra packages
 RUN pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
-    "imageio>=2.9,<3" \
+    "imageio>=2.10.3" \
     "opencv-python>=4.3,<5" \
-    "plotly>=5.1,<6" \
+    "plotly>=5.3.1" \
     "seaborn>=0.11,<1" \
     "shap>=0.39,<1" \
     "boto3>1.0,<2.0" \
