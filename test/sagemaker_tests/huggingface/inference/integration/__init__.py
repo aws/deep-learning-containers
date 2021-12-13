@@ -26,7 +26,8 @@ pt_model = "pt_model.tar.gz"
 tf_model = "tf_model.tar.gz"
 pt_neuron_model = "pt_neuron_model.tar.gz"
 # TODO: current local test, tests without custom script
-pt_neuron_script = os.path.join(resources_path, 'code','neuron_inference.py')
+script_dir = os.path.join(resources_path, 'code')
+pt_neuron_script = "neuron_inference.py"
 
 
 ROLE = "dummy/unused-role"

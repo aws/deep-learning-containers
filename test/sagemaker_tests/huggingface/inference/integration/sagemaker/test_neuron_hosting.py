@@ -22,7 +22,7 @@ from sagemaker.serializers import JSONSerializer
 from sagemaker.deserializers import JSONDeserializer
 
 
-from ...integration import model_dir, pt_neuron_model,pt_neuron_script,dump_logs_from_cloudwatch
+from ...integration import model_dir, pt_neuron_model,script_dir,pt_neuron_script,dump_logs_from_cloudwatch
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
@@ -58,6 +58,7 @@ def _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_ty
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
         entry_point=entry_point,
+        source_dir=script_dir,
         predictor_cls=Predictor,
     )
 

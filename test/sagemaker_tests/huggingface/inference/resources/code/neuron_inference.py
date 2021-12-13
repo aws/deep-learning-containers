@@ -10,6 +10,8 @@ AWS_NEURON_TRACED_WEIGHTS_NAME = "neuron_traced_model.pt"
 
 model_id2label = {"0": "NEGATIVE", "1": "POSITIVE"}
 
+print("running Neuron... test")
+
 def model_fn(model_dir):
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
     model = torch.jit.load(os.path.join(model_dir, AWS_NEURON_TRACED_WEIGHTS_NAME))
