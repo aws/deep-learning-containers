@@ -24,7 +24,6 @@ from sagemaker.deserializers import JSONDeserializer
 
 from ...integration import model_dir, pt_neuron_model,pt_neuron_script
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
-from .... import invoke_pytorch_helper_function
 
 
 @pytest.mark.model("tiny-distilbert")
