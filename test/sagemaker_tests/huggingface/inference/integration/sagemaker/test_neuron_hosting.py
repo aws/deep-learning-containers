@@ -58,8 +58,10 @@ def _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_ty
         entry_point=entry_point,
         source_dir=script_dir,
         py_version=py_version,
-        
+        env={"AWS_NEURON_VISIBLE_DEVICES": "ALL"}
     )
+    hf_model._is_compiled_model = True
+
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
         predictor = hf_model.deploy(
