@@ -27,7 +27,7 @@ context:
       target: config.properties
 
 images:
-  BuildHuggingFacePytorchGpuPy38Cu111TrainingDockerImage:
+  BuildHuggingFacePytorchGpuPy38Cu113TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 15000
@@ -55,7 +55,7 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
-  BuildHuggingFacePytorchGpuPy38Cu111InferenceDockerImage:
+  BuildHuggingFacePytorchGpuPy38Cu113InferenceDockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_GPU_INFERENCE_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 15000
