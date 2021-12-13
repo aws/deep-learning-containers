@@ -158,7 +158,7 @@ RUN conda install -c pytorch magma-cuda111==2.5.2 \
  && conda install -c conda-forge \
     opencv \
  && conda install -y scikit-learn \
-    pandas==1.2.4 \
+    pandas==1.1.5 \
     h5py \
     requests \
     libgcc \

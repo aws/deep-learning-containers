@@ -99,7 +99,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-4.5
     opencv \
  && conda install -y \
     scikit-learn \
-    pandas==1.2.4 \
+    pandas==1.1.5 \
     h5py \
     requests \
  && conda install -c dglteam -y dgl==0.6.1 \
