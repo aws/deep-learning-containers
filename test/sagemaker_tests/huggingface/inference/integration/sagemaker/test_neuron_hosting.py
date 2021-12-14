@@ -58,6 +58,7 @@ def _test_pt_neuron(sagemaker_session, framework_version, ecr_image, instance_ty
         entry_point=entry_point,
         source_dir=script_dir,
         py_version=py_version,
+        model_server_workers=1,
         env={"AWS_NEURON_VISIBLE_DEVICES": "ALL"}
     )
     hf_model._is_compiled_model = True
