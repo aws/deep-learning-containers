@@ -78,11 +78,11 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
-RUN curl -L -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-4.5.1-Linux-x86_64.sh \
+RUN curl -L -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-py37_4.10.3-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
- && /opt/conda/bin/conda update conda \
+#  && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y -c anaconda \
@@ -99,7 +99,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-4.5
     opencv \
  && conda install -y \
     scikit-learn \
-    pandas==1.1.5 \
+    pandas \
     h5py \
     requests \
  && conda install -c dglteam -y dgl==0.6.1 \
@@ -134,9 +134,9 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 # Install extra packages
 RUN pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
-    "imageio==2.10.3" \
+    "imageio>=2.9,<3" \
     "opencv-python>=4.3,<5" \
-    "plotly>=5.3.1" \
+    "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
     "shap>=0.39,<1" \
     "boto3>1.0,<2.0" \
@@ -173,4 +173,3 @@ RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.8/l
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
-

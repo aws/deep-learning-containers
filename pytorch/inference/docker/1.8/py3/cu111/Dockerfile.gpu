@@ -81,11 +81,11 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-RUN curl -L -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-4.5.1-Linux-x86_64.sh \
+RUN curl -L -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-py37_4.10.3-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
- && /opt/conda/bin/conda update conda \
+#  && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y \

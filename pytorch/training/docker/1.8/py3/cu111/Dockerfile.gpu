@@ -129,7 +129,7 @@ ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
- && curl -L -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-4.5.1-Linux-x86_64.sh \
+ && curl -L -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-py37_4.10.3-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p ${CONDA_PREFIX} \
  && rm ~/miniconda.sh \
@@ -158,7 +158,7 @@ RUN conda install -c pytorch magma-cuda111==2.5.2 \
  && conda install -c conda-forge \
     opencv \
  && conda install -y scikit-learn \
-    pandas==1.1.5 \
+    pandas \
     h5py \
     requests \
     libgcc \
@@ -212,9 +212,9 @@ RUN pip install --no-cache-dir -U \
 # Install extra packages
 RUN pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
-    "imageio>=2.10.3" \
+    "imageio>=2.9,<3" \
     "opencv-python>=4.3,<5" \
-    "plotly>=5.3.1" \
+    "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
     "shap>=0.39,<1" \
     "boto3>1.0,<2.0" \
@@ -344,4 +344,3 @@ RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.8/l
 # Starts framework
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
-
