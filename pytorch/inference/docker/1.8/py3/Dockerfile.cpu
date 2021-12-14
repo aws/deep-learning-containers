@@ -48,11 +48,11 @@ RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeysto
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
+# py37 is the oldest python version supported by Miniconda 4.10.3, py36 is installed below and will override py37 environment
 RUN curl -L -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-py37_4.10.3-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
-#  && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y \
