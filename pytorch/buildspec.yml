@@ -168,3 +168,4 @@ images:
                          *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
+      
