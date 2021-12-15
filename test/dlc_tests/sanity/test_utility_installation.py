@@ -121,7 +121,7 @@ def test_apache_tomcat(image):
         raise RuntimeError(f"Found tomcat installation in {image}. See output: {tomcat_output}")
 
 
-@pytest.mark.usefixtures("sagmaker_only")
+@pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("sagemaker_studio_analytics_extension")
 @pytest.mark.parametrize(
