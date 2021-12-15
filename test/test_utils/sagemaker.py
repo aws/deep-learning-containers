@@ -334,12 +334,12 @@ def execute_local_tests(image, pytest_cache_params):
         return None
 
 
-def execute_sagemaker_remote_tests(thread_id, image, global_pytest_cache, pytest_cache_params):
+def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, pytest_cache_params):
     """
     Run pytest in a virtual env for a particular image. Creates a custom directory for each thread for pytest cache file.
     Stores pytest cache in a shared dict.  
     Expected to run via multiprocessing
-    :param thread_id - id for process. Used to create a custom cache dir 
+    :param process_index - id for process. Used to create a custom cache dir 
     :param image - ECR url
     :param global_pytest_cache - shared Manager().dict() for cache merging
     :param pytest_cache_params - parameters required for s3 file path building
@@ -352,12 +352,12 @@ def execute_sagemaker_remote_tests(thread_id, image, global_pytest_cache, pytest
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
-            pytest_cache_util.download_pytest_cache_from_s3_to_local(path, **pytest_cache_params, custom_cache_directory=thread_id)
+            pytest_cache_util.download_pytest_cache_from_s3_to_local(path, **pytest_cache_params, custom_cache_directory=str(process_index))
             # adding -o cache_dir with a custom directory name
-            pytest_command = pytest_command + f" -o cache_dir={os.path.join(str(thread_id), '.pytest_cache')}"
+            pytest_command += f" -o cache_dir={os.path.join(str(process_index), '.pytest_cache')}"
             res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
-            cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(path, custom_cache_directory=thread_id)
+            cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(path, custom_cache_directory=str(process_index))
             global_pytest_cache.update(cache_json)
             if res.failed:
                 raise DLCSageMakerRemoteTestFailure(
