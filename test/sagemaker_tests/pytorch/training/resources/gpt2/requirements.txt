@@ -1,0 +1,7 @@
+datasets
+numpy
+scipy
+torchnet
+transformers==4.4.2
+smdebug
+humanize
