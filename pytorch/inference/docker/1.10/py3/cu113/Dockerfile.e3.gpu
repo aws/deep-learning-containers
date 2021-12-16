@@ -11,7 +11,7 @@ ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.1
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.11.1%2Bcu113-cp38-cp38-linux_x86_64.whl
 
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.4.2
+ARG TS_VERSION=0.5.1
 ARG CUBLAS_VERSION=11.5.1.109
 
 ARG DEBIAN_FRONTEND=noninteractive
