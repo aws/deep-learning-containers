@@ -16,6 +16,8 @@ phases:
       - python src/send_status.py --status 2
   build:
     commands:
+      - export FRAMEWORK="huggingface_tensorflow"
+      - export BUILD_CONTEXT="CANARY"
       - echo Build started on `date`
       - echo Building the Docker image...
       - |
