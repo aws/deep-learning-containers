@@ -12,7 +12,7 @@ phases:
       - python src/parse_partner_developers.py
   build:
     commands:
-      - export FRAMEWORK="huggingface_tensorflow"
+      - export FRAMEWORK="huggingface_pytorch"
       - export BUILD_CONTEXT="CANARY"
       - export TEST_TYPE="canary"
       - echo Logging in to Amazon ECR...
