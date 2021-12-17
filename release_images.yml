@@ -145,7 +145,7 @@ release_images:
       cuda_version: "cu111"
       example: True
       disable_sm_tag: False  # [Default: False] This option is not used by Example images
-      force_release: False
+      force_release: True
   10:
     framework: "pytorch"
     version: "1.7.1"
