@@ -46,9 +46,9 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    cuda-command-line-tools-11-1 \
-    cuda-cudart-11-1 \
-    cuda-libraries-dev-11-1 \
+    cuda-command-line-tools-11-3 \
+    cuda-cudart-11-3 \
+    cuda-libraries-dev-11-3 \
     curl \
     emacs \
     git \
