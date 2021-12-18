@@ -561,6 +561,7 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
     install_safety_cmd = "pip install safety"
     docker_exec_cmd = f"docker exec -i {container_id}"
     ctx.run(f"{docker_exec_cmd} {install_safety_cmd}", hide=True, warn=True)
+    LOGGER.info(f"IMAGE_INFO FRAMEWORK: {image_info['framework']}")
     ignore_dict = get_safety_ignore_dict(
         image_uri, image_info["framework"], image_info["python_version"], image_info["image_type"]
     )
