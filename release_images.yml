@@ -547,3 +547,18 @@ release_images:
       # to images being published.
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
       # has already been published. Re-released image will have minor version incremented by 1.
+  39:
+    framework: "huggingface_pytorch"
+    version: "1.9.1"
+    hf_transformers: 4.12.3
+    arch_type: "x86"
+    inference:
+      device_types: ["neuron"]
+      python_versions: ["py37"]
+      os_version: "ubuntu20.04"
+      neuron_sdk_version: "sdk1.16.1"
+      example: False        # [Default: False] Set to True to denote that this image is an Example image
+      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
+      # to images being published.
+      force_release: False   # [Default: False] Set to True to force images to be published even if the same image
+      # has already been published. Re-released image will have minor version incremented by 1.
