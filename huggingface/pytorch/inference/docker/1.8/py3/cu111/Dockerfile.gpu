@@ -7,7 +7,7 @@ LABEL dlc_major_version="1"
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
-ARG MMS_VERSION=1.1.6
+ARG MMS_VERSION=1.1.7
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.6.13
 ARG OPEN_MPI_VERSION=4.0.1
