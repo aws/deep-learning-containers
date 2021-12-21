@@ -8,7 +8,7 @@ ARG PYTHON_VERSION=3.8.12
 ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211117-055259/7af6f8360b1e31f4bad44bdec916cf15efc9b8a5/graviton/torch-1.10.0%2Bcpu-cp38-cp38-manylinux2014_aarch64.whl
 ARG ARMCL_BRANCH=v21.05
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.5.2
+ARG TS_VERSION=0.3.1
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
@@ -120,10 +120,8 @@ RUN pip install pillow==8.3.2 "awscli<2"
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
- && git clone https://www.github.com/pytorch/serve.git \
- && cd serve && git checkout --track origin/release_${TS_VERSION} \
- && pip install . && pip install model-archiver/. \
- && cd .. && rm -rf serve/
+ && pip install torchserve==$TS_VERSION \
+ && pip install torch-model-archiver==$TS_VERSION
 
 RUN cd tmp/ \
  && rm -rf tmp*
