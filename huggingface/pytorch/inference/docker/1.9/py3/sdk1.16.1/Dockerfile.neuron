@@ -7,7 +7,7 @@ LABEL dlc_major_version="1"
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
-ARG TS_VERSION=0.4.0
+ARG MMS_VERSION=1.1.6
 ARG PYTHON=python3.7
 ARG PYTHON_VERSION=3.7.10
 # Pin torch neuron version to sdk1.16.1
@@ -95,8 +95,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 WORKDIR /
 
 RUN pip install --no-cache-dir \
-    torchserve==$TS_VERSION --no-deps \
-    torch-model-archiver==$TS_VERSION \
+    multi-model-server==$MMS_VERSION \
     sagemaker-inference
 
 RUN useradd -m model-server \
