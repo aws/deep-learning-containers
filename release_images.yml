@@ -2,14 +2,15 @@
 release_images:
 # Check .release_images_template.yml for reference
   1:
-    framework: "mxnet"
-    version: "1.8.0"
+    framework: "huggingface_pytorch"
+    version: "1.9.1"
+    hf_transformers: "4.12.3"
     arch_type: "x86"
     inference:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py37"]
-      os_version: "ubuntu16.04"
-      cuda_version: "cu110"
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py38" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu111"
       example: False
       disable_sm_tag: False
       force_release: False
