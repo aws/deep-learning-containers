@@ -169,7 +169,7 @@ RUN pip uninstall -y model-archiver multi-model-server \
  && git clone https://www.github.com/pytorch/serve.git \
  && cd serve && git checkout --track origin/release_${TS_VERSION} \
  && pip install . && pip install model-archiver/. \
- && cd .. && rm -rf serve/ && rm -rf $HOME/.gradle/caches/ 
+ && cd .. && rm -rf serve/ && rm -rf $HOME/.gradle
 
 RUN cd tmp/ \
  && rm -rf tmp*
