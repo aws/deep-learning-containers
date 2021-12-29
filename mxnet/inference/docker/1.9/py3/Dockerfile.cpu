@@ -11,7 +11,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON_VERSION=3.8.10
-ARG MMS_VERSION=1.1.4
+ARG MMS_VERSION=1.1.7
 ARG MX_URL=https://aws-mx-pypi.s3.us-west-2.amazonaws.com/1.9.0/aws_mx-1.9.0b20211227.164-py3-none-manylinux2014_x86_64.whl
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -60,7 +60,8 @@ RUN apt-get update \
 
 WORKDIR /
 
-RUN python -m pip install --no-cache-dir \
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && pip install --no-cache-dir \
     "awscli<2" \
     boto3 \
     ${MX_URL} \

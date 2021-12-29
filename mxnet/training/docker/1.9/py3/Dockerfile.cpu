@@ -85,7 +85,8 @@ ENV PATH=/usr/local/bin:$PATH
 
 WORKDIR /
 
-RUN python -m pip install --no-cache --upgrade \
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && pip install --no-cache --upgrade \
     h5py==2.10.0 \
     onnx==1.8.1 \
     numpy==1.19.1 \
@@ -114,7 +115,7 @@ RUN python -m pip install --no-cache --upgrade \
     smclarify
 
 # Install extra packages
-RUN python -m pip install --no-cache-dir -U \
+RUN pip install --no-cache-dir -U \
     bokeh \
     imageio \
     opencv-python \
@@ -123,7 +124,7 @@ RUN python -m pip install --no-cache-dir -U \
     shap
 
 # Install Horovod
-RUN python -m pip install --no-cache-dir horovod
+RUN pip install --no-cache-dir horovod
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
