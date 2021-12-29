@@ -144,7 +144,7 @@ RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VER
  && ln -s /usr/local/bin/$PYTHON /usr/local/bin/python \
  && ${PIP} --no-cache-dir install --upgrade \
     pip \
-    setuptools
+    "setuptools<60.1.0"
 
 WORKDIR /
 
