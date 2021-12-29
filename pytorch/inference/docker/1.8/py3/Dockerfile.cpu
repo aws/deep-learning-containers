@@ -48,11 +48,11 @@ RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeysto
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
-RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+# py37 is the oldest python version supported by Miniconda 4.10.3, py36 is installed below and will override py37 environment
+RUN curl -L -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-py37_4.10.3-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
  && rm ~/miniconda.sh \
- && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y \
@@ -106,7 +106,7 @@ RUN pip uninstall -y torch \
  && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL
 
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
-RUN pip install pillow==8.2.0 "awscli<2"
+RUN pip install "pillow>=8.2.2,<8.4" "awscli<2"
 RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
 RUN pip uninstall -y model-archiver multi-model-server \
@@ -144,3 +144,4 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.8/license.txt -o /l
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
+

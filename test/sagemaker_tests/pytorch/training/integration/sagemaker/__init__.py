@@ -11,7 +11,7 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
-from .... import get_ecr_image, get_ecr_image_region, get_sagemaker_session
+from ..... import get_ecr_image, get_ecr_image_region, get_sagemaker_session
 import sagemaker
 from sagemaker.pytorch import PyTorch
 import time

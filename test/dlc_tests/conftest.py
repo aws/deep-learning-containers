@@ -22,6 +22,8 @@ from test.test_utils import (
     get_job_type_from_image,
     is_tf_version,
     is_below_framework_version,
+    is_e3_image,
+    is_sagemaker_image,
     DEFAULT_REGION,
     P3DN_REGION,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
@@ -31,6 +33,7 @@ from test.test_utils import (
     AML2_GPU_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
+    get_ecr_repo_name,
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -40,32 +43,47 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Immutable constant for framework specific image fixtures
 FRAMEWORK_FIXTURES = (
-    "pytorch_inference",
+    # ECR repo name fixtures
+    # PyTorch
     "pytorch_training",
-    "autogluon_training",
-    "mxnet_inference",
-    "mxnet_training",
-    "tensorflow_inference",
-    "tensorflow_training",
-    "training",
-    "inference",
-    "gpu",
-    "cpu",
-    "eia",
-    "neuron",
+    "pytorch_training_habana",
+    "pytorch_inference",
     "pytorch_inference_eia",
-    "mxnet_inference_eia",
+    "pytorch_inference_neuron",
+    "pytorch_inference_graviton",
+    # TensorFlow
+    "tensorflow_training",
+    "tensorflow_inference",
     "tensorflow_inference_eia",
     "tensorflow_inference_neuron",
-    "pytorch_inference_neuron",
+    "tensorflow_training_habana",
+    "tensorflow_inference_graviton",
+    # MxNET
+    "mxnet_training",
+    "mxnet_inference",
+    "mxnet_inference_eia",
     "mxnet_inference_neuron",
+    "mxnet_inference_graviton",
+    # HuggingFace
     "huggingface_tensorflow_training",
     "huggingface_pytorch_training",
     "huggingface_mxnet_training",
     "huggingface_tensorflow_inference",
     "huggingface_pytorch_inference",
     "huggingface_mxnet_inference",
+    # Autogluon
     "autogluon_training",
+    # Processor fixtures
+    "gpu",
+    "cpu",
+    "eia",
+    "neuron",
+    "hpu",
+    # Architecture
+    "graviton",
+    # Job Type fixtures
+    "training",
+    "inference",
 )
 
 # Ignore container_tests collection, as they will be called separately from test functions
@@ -75,40 +93,22 @@ collect_ignore = [os.path.join("container_tests")]
 def pytest_addoption(parser):
     default_images = test_utils.get_dlc_images()
     parser.addoption(
-        "--images",
-        default=default_images.split(" "),
-        nargs="+",
-        help="Specify image(s) to run",
+        "--images", default=default_images.split(" "), nargs="+", help="Specify image(s) to run",
     )
     parser.addoption(
-        "--canary",
-        action="store_true",
-        default=False,
-        help="Run canary tests",
+        "--canary", action="store_true", default=False, help="Run canary tests",
     )
     parser.addoption(
-        "--generate-coverage-doc",
-        action="store_true",
-        default=False,
-        help="Generate a test coverage doc",
+        "--generate-coverage-doc", action="store_true", default=False, help="Generate a test coverage doc",
     )
     parser.addoption(
-        "--multinode",
-        action="store_true",
-        default=False,
-        help="Run only multi-node tests",
+        "--multinode", action="store_true", default=False, help="Run only multi-node tests",
     )
     parser.addoption(
-        "--efa",
-        action="store_true",
-        default=False,
-        help="Run only efa tests",
+        "--efa", action="store_true", default=False, help="Run only efa tests",
     )
     parser.addoption(
-        "--quick_checks",
-        action="store_true",
-        default=False,
-        help="Run quick check tests",
+        "--quick_checks", action="store_true", default=False, help="Run quick check tests",
     )
 
 
@@ -122,6 +122,21 @@ def ec2_key_name(request):
     return request.param
 
 
+@pytest.fixture(scope="function")
+def ec2_key_file_name(request):
+    return request.param
+
+
+@pytest.fixture(scope="function")
+def ec2_user_name(request):
+    return request.param
+
+
+@pytest.fixture(scope="function")
+def ec2_public_ip(request):
+    return request.param
+
+
 @pytest.fixture(scope="session")
 def region():
     return os.getenv("AWS_REGION", DEFAULT_REGION)
@@ -130,8 +145,7 @@ def region():
 @pytest.fixture(scope="session")
 def docker_client(region):
     test_utils.run_subprocess_cmd(
-        f"$(aws ecr get-login --no-include-email --region {region})",
-        failure="Failed to log into ECR.",
+        f"$(aws ecr get-login --no-include-email --region {region})", failure="Failed to log into ECR.",
     )
     return docker.from_env()
 
@@ -199,6 +213,7 @@ def ec2_instance(
                 if ec2_instance_ami == AML2_GPU_DLAMI_US_WEST_2
                 else UBUNTU_18_BASE_DLAMI_US_EAST_1
             )
+
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
@@ -226,35 +241,27 @@ def ec2_instance(
     volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
 
     if (
-        ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
-        and (
-            ("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames)
-            or "mxnet_inference" in request.fixturenames
+        (
+            ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
+            and (
+                ("mxnet_training" in request.fixturenames and "gpu_only" in request.fixturenames)
+                or "mxnet_inference" in request.fixturenames
+            )
         )
-    ) or (
-        "tensorflow_training" in request.fixturenames
-        and "gpu_only" in request.fixturenames
-        and "horovod" in ec2_key_name
+        or (is_neuron_image)
+        or (
+            "tensorflow_training" in request.fixturenames
+            and "gpu_only" in request.fixturenames
+            and "horovod" in ec2_key_name
+        )
+        or ("tensorflow_inference" in request.fixturenames and "graviton_compatible_only" in request.fixturenames)
+        or ("graviton" in request.fixturenames)
     ):
-        params["BlockDeviceMappings"] = [
-            {
-                "DeviceName": volume_name,
-                "Ebs": {
-                    "VolumeSize": 300,
-                },
-            }
-        ]
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 300,},}]
     else:
         # Using private AMI, the EBS volume size is reduced to 28GB as opposed to 50GB from public AMI. This leads to space issues on test instances
         # TODO: Revert the configuration once DLAMI is public
-        params["BlockDeviceMappings"] = [
-            {
-                "DeviceName": volume_name,
-                "Ebs": {
-                    "VolumeSize": 90,
-                },
-            }
-        ]
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 90,},}]
     if ei_accelerator_type:
         params["ElasticInferenceAccelerators"] = [{"Type": ei_accelerator_type, "Count": 1}]
         availability_zones = {
@@ -292,6 +299,20 @@ def ec2_instance(
     return instance_id, key_filename
 
 
+def is_neuron_image(fixtures):
+    """
+    Returns true if a neuron fixture is present in request.fixturenames
+    :param request.fixturenames: active fixtures in the request
+    :return: bool
+    """
+    neuron_fixtures = ["tensorflow_inference_neuron", "mxnet_inference_neuron", "pytorch_inference_neuron"]
+
+    for fixture in neuron_fixtures:
+        if fixture in fixtures:
+            return True
+    return False
+
+
 @pytest.fixture(scope="function")
 def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, region):
     """
@@ -309,11 +330,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
     LOGGER.info(f"Connecting to {user}@{ip_address}")
-    conn = Connection(
-        user=user,
-        host=ip_address,
-        connect_kwargs={"key_filename": [instance_pem_file]},
-    )
+    conn = Connection(user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]},)
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 100000)
@@ -333,6 +350,35 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     if test_utils.is_canary_context():
         public_registry = test_utils.PUBLIC_DLC_REGISTRY
         test_utils.login_to_ecr_registry(conn, public_registry, region)
+
+    return conn
+
+
+@pytest.fixture(scope="function")
+def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, ec2_public_ip):
+    """
+    Fixture to establish connection with EC2 instance if necessary
+    :param request: pytest test request
+    :param ec2_key_file_name: ec2 key file name
+    :param ec2_user_name: username of the ec2 instance to login
+    :param ec2_public_ip: public ip address of the instance
+    :return: Fabric connection object
+    """
+    conn = Connection(user=ec2_user_name, host=ec2_public_ip, connect_kwargs={"key_filename": [ec2_key_file_name]},)
+
+    random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
+    unique_id = random.randint(1, 100000)
+    ec2_key_name = ec2_public_ip.split(".")[0]
+    artifact_folder = f"{ec2_key_name}-{unique_id}-folder"
+    s3_test_artifact_location = test_utils.upload_tests_to_s3(artifact_folder)
+
+    def delete_s3_artifact_copy():
+        test_utils.delete_uploaded_tests_from_s3(s3_test_artifact_location)
+
+    request.addfinalizer(delete_s3_artifact_copy)
+
+    conn.run(f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests")
+    conn.run(f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*")
 
     return conn
 
@@ -369,12 +415,22 @@ def gpu_only():
 
 
 @pytest.fixture(scope="session")
-def eia_only():
+def x86_compatible_only():
     pass
 
 
 @pytest.fixture(scope="session")
-def neuron_only():
+def graviton_compatible_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def sagemaker():
+    pass
+
+
+@pytest.fixture(scope="session")
+def sagemaker_only():
     pass
 
 
@@ -510,7 +566,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
-    config.addinivalue_line("markers", "processor(cpu/gpu/eia): explicitly mark which processor is used")
+    config.addinivalue_line("markers", "processor(cpu/gpu/eia/hpu): explicitly mark which processor is used")
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
 
@@ -588,11 +644,15 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                 for index, image in enumerate(images_to_parametrize):
 
                     # Tag fixtures with EC2 instance types if env variable is present
-                    allowed_processors = ("gpu", "cpu", "eia", "neuron")
+                    allowed_processors = ("gpu", "cpu", "eia", "neuron", "hpu")
                     instance_tag = ""
                     for processor in allowed_processors:
                         if processor in image:
-                            instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE")
+                            if "graviton" in image:
+                                instance_type_env = f"EC2_{processor.upper()}_GRAVITON_INSTANCE_TYPE"
+                            else:
+                                instance_type_env = f"EC2_{processor.upper()}_INSTANCE_TYPE"
+                            instance_type = os.getenv(instance_type_env)
                             if instance_type:
                                 instance_tag = f"-{instance_type.replace('.', '-')}"
                                 break
@@ -614,6 +674,28 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
     return fixtures_parametrized
 
 
+def lookup_condition(lookup, image):
+    """
+    Return true if the ECR repo name ends with the lookup or lookup contains job type or device type part of the image uri.
+    """
+    # Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
+    repo_name = get_ecr_repo_name(image)
+
+    job_types = (
+        "training",
+        "inference",
+    )
+    device_types = ("cpu", "gpu", "eia", "neuron", "hpu", "graviton")
+
+    if not repo_name.endswith(lookup):
+        if (lookup in job_types or lookup in device_types) and lookup in image:
+            return True
+        else:
+            return False
+    else:
+        return True
+
+
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
@@ -627,36 +709,43 @@ def pytest_generate_tests(metafunc):
             lookup = fixture.replace("_", "-")
             images_to_parametrize = []
             for image in images:
-                if lookup in image:
+                if lookup_condition(lookup, image):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_huggingface_lookup = (
-                            ("huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames)
-                            and "huggingface" in image
-                    )
+                        "huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames
+                    ) and "huggingface" in image
                     is_standard_lookup = all(
                         fixture_name not in metafunc.fixturenames
                         for fixture_name in ["example_only", "huggingface_only"]
                     ) and all(keyword not in image for keyword in ["example", "huggingface"])
+                    if "sagemaker_only" in metafunc.fixturenames and is_e3_image(image):
+                        LOGGER.info(f"Not running E3 image {image} on sagemaker_only test")
+                        continue
+                    if is_sagemaker_image(image):
+                        if "sagemaker_only" not in metafunc.fixturenames and "sagemaker" not in metafunc.fixturenames:
+                            LOGGER.info(
+                                f"Skipping test, as this function is not marked as 'sagemaker_only' or 'sagemaker'"
+                            )
+                            continue
                     if not framework_version_within_limit(metafunc, image):
                         continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
                         continue
                     if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue
+                    if "x86_compatible_only" in metafunc.fixturenames and "graviton" in image:
+                        continue
                     if is_example_lookup or is_huggingface_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
-                        elif "eia_only" in metafunc.fixturenames and "eia" in image:
-                            images_to_parametrize.append(image)
-                        elif "neuron_only" in metafunc.fixturenames and "neuron" in image:
+                        elif "graviton_compatible_only" in metafunc.fixturenames and "graviton" in image:
                             images_to_parametrize.append(image)
                         elif (
                             "cpu_only" not in metafunc.fixturenames
                             and "gpu_only" not in metafunc.fixturenames
-                            and "eia_only" not in metafunc.fixturenames
-                            and "neuron_only" not in metafunc.fixturenames
+                            and "graviton_compatible_only" not in metafunc.fixturenames
                         ):
                             images_to_parametrize.append(image)
 

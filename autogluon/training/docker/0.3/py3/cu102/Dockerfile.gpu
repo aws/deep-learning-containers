@@ -12,6 +12,7 @@ LABEL dlc_major_version="1"
 
 ARG CUDA_VER
 
+ARG OPENSSL_VERSION=1.1.1l
 ARG AUTOGLUON_VERSION=0.3.1
 
 ARG MXNET_VER=1.7.*
@@ -41,9 +42,29 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/*
 
+# install OpenSSL
+RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && tar -xzf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make -j $(nproc) && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-* \
+ && rmdir /usr/local/ssl/certs \
+ && ln -s /etc/ssl/certs /usr/local/ssl/certs
+
+RUN conda update conda -y \
+ && conda update --all -y \
+ && conda clean --all -y
+
+RUN source activate rapids \
+ && conda remove gdal libgdal dask dask-core dask-cuda dask-cudf distributed markdown -y \
+ && conda update --all -y \
+ && conda clean --all -y
+
 RUN source activate rapids \
  && pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools wheel \
+ && pip install --no-cache-dir -U "dask>2021.09.1" "distributed>2021.09.1" \
  && pip install --no-cache-dir -U --no-use-pep517 mxnet-cu$(echo ${CUDA_VER} | sed 's/\.//')==${MXNET_VER} \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && pip install --no-cache-dir -U sagemaker-mxnet-training \
@@ -75,6 +96,10 @@ RUN source activate rapids \
     traitlets \
     websockets \
     widgetsnbextension 
+
+# Catboost 0.26 updates version of scala 2.11 for security reasons
+# https://github.com/catboost/catboost/issues/1632
+RUN pip install --no-cache-dir -U catboost==0.26.1
 
 WORKDIR /
 

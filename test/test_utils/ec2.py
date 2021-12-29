@@ -42,7 +42,7 @@ def filter_not_heavy_instance_types(instance_type_list):
     return filtered_list
 
 
-def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=False):
+def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=False, arch_type=""):
     """
     Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
     for contexts where the variable is not present (i.e. PR, Nightly, local testing)
@@ -56,7 +56,7 @@ def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=F
     :return: one item list of instance type -- this is used to parametrize tests, and parameter is required to be
     a list.
     """
-    allowed_processors = ("cpu", "gpu", "neuron")
+    allowed_processors = ("cpu", "gpu", "neuron", "hpu")
     if processor not in allowed_processors:
         raise RuntimeError(
             f"Aborting EC2 test run. Unrecognized processor type {processor}. "
@@ -65,6 +65,8 @@ def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=F
     if default in HEAVY_INSTANCE_LIST and not efa:
         raise RuntimeError(f"Default instance type should never be one of {HEAVY_INSTANCE_LIST}, but it is {default}")
     instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE")
+    if arch_type == "graviton":
+        instance_type = os.getenv(f"EC2_{processor.upper()}_{arch_type.upper()}_INSTANCE_TYPE")
     if not instance_type and is_mainline_context():
         return []
 
@@ -394,6 +396,22 @@ def get_instance_memory(instance_id, region=DEFAULT_REGION):
     instance_info = get_instance_details(instance_id, region=region)
     return instance_info["MemoryInfo"]["SizeInMiB"]
 
+@retry(stop_max_attempt_number=30, wait_fixed=10000)
+def get_instance_num_inferentias(instance_id=None, instance_type=None, region=DEFAULT_REGION):
+    """
+    Get total number of neurons on instance with given instance ID
+    :param instance_id: Instance ID to be queried
+    :param instance_type: Instance Type to be queried
+    :param region: Region where query will be performed
+    :return: <int> Number of neurons on instance with matching instance ID
+    """
+    assert instance_id or instance_type, "Input must be either instance_id or instance_type"
+    instance_info = (
+        get_instance_type_details(instance_type, region=region)
+        if instance_type
+        else get_instance_details(instance_id, region=region)
+    )
+    return sum(neuron_type["Count"] for neuron_type in instance_info["InferenceAcceleratorInfo"]["Accelerators"] if neuron_type["Name"]=="Inferentia")
 
 @retry(stop_max_attempt_number=30, wait_fixed=10000)
 def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_REGION):
@@ -444,6 +462,7 @@ def execute_ec2_training_test(
     host_network=False,
     container_name="ec2_training_container",
     timeout=3000,
+    bin_bash_entrypoint=False,
 ):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
@@ -458,9 +477,10 @@ def execute_ec2_training_test(
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
     network = '--network="host" ' if host_network else ""
+    bin_bash_cmd = "--entrypoint /bin/bash " if bin_bash_entrypoint else ""
     connection.run(
         f"{docker_cmd} run --name {container_name} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
-        f" {shm_setting} -itd {ecr_uri}",
+        f" {shm_setting} -itd {bin_bash_cmd}{ecr_uri}",
         hide=True,
     )
     return connection.run(

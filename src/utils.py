@@ -23,11 +23,21 @@ import constants
 from config import is_build_enabled
 from invoke.context import Context
 from botocore.exceptions import ClientError
+from safety_report_generator import SafetyReportGenerator
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
+
+
+def get_codebuild_build_arn():
+    """
+    Get env variable CODEBUILD_BUILD_ARN
+
+    @return: value or empty string if not set
+    """
+    return os.getenv("CODEBUILD_BUILD_ARN", "")
 
 
 class JobParameters:
@@ -168,6 +178,9 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
             dockerfile = [f"{dockerfile[0]}_{dockerfile[1]}"]+dockerfile[2:]
         framework_change = dockerfile[0]
 
+        if dockerfile[0] == "habana":
+            framework_change = dockerfile[1]
+            dockerfile = [f"{dockerfile[0]}_{dockerfile[1]}"]+dockerfile[2:]
         # If the modified dockerfile belongs to a different
         # framework, do nothing
         if framework_change != framework:
@@ -202,6 +215,8 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
             # Joining 1 and 2 elements to get huggingface_<framework> as a first element
             buildspec_arr = [f"{buildspec_arr[0]}_{buildspec_arr[1]}"]+buildspec_arr[2:]
         buildspec_framework = buildspec_arr[0]
+        if buildspec_arr[0] == "habana":
+            buildspec_framework = buildspec_arr[1]
         if buildspec_framework == framework:
             JobParameters.build_for_all_images()
             update_image_run_test_types(constants.ALL, constants.ALL)
@@ -379,10 +394,10 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
     enable_build = is_build_enabled()
 
     if build_context == "PR":
-        pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
+        pr_number = os.getenv("PR_NUMBER")
         LOGGER.info(f"pr number: {pr_number}")
         if pr_number is not None:
-            pr_number = int(pr_number.split("/")[-1])
+            pr_number = int(pr_number)
         device_types, image_types, py_versions = pr_build_setup(pr_number, framework)
 
     if device_types != constants.ALL:
@@ -403,7 +418,7 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
                     os.environ[env_variable] = "true"
 
 
-def fetch_dlc_images_for_test_jobs(images):
+def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
     """
     use the JobParamters.run_test_types values to pass on image ecr urls to each test type.
     :param images: list
@@ -411,13 +426,19 @@ def fetch_dlc_images_for_test_jobs(images):
     """
     DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
 
-    build_disabled = not is_build_enabled()
+    build_enabled = is_build_enabled()
 
     for docker_image in images:
-        use_preexisting_images = (build_disabled and docker_image.build_status == constants.NOT_BUILT)
+        if not docker_image.is_test_promotion_enabled:
+            continue
+        use_preexisting_images = ((not build_enabled) and docker_image.build_status == constants.NOT_BUILT)
         if docker_image.build_status == constants.SUCCESS or use_preexisting_images:
+            ecr_url_to_test = docker_image.ecr_url
+            if use_latest_additional_tag and len(docker_image.additional_tags) > 0:
+                ecr_url_to_test = f"{docker_image.repository}:{docker_image.additional_tags[-1]}"
+
             # Run sanity tests on the all images built
-            DLC_IMAGES["sanity"].append(docker_image.ecr_url)
+            DLC_IMAGES["sanity"].append(ecr_url_to_test)
             image_job_type = docker_image.info.get("image_type")
             image_device_type = docker_image.info.get("device_type")
             image_python_version = docker_image.info.get("python_version")
@@ -429,12 +450,12 @@ def fetch_dlc_images_for_test_jobs(images):
                     constants.ALL_TESTS if constants.ALL in run_tests else run_tests
                 )
                 for test in run_tests:
-                    DLC_IMAGES[test].append(docker_image.ecr_url)
+                    DLC_IMAGES[test].append(ecr_url_to_test)
             # when key is training or inference values can be  (ecs, eks, ec2, sagemaker)
             if image_job_type in JobParameters.image_run_test_types.keys():
                 run_tests = JobParameters.image_run_test_types.get(image_job_type)
                 for test in run_tests:
-                    DLC_IMAGES[test].append(docker_image.ecr_url)
+                    DLC_IMAGES[test].append(ecr_url_to_test)
             # when key is image_tag (training-cpu-py3) values can be (ecs, eks, ec2, sagemaker)
             if image_tag in JobParameters.image_run_test_types.keys():
                 run_tests = JobParameters.image_run_test_types.get(image_tag)
@@ -442,7 +463,7 @@ def fetch_dlc_images_for_test_jobs(images):
                     constants.ALL_TESTS if constants.ALL in run_tests else run_tests
                 )
                 for test in run_tests:
-                    DLC_IMAGES[test].append(docker_image.ecr_url)
+                    DLC_IMAGES[test].append(ecr_url_to_test)
 
     for test_type in DLC_IMAGES.keys():
         test_images = DLC_IMAGES[test_type]
@@ -456,7 +477,7 @@ def write_to_json_file(file_name, content):
         json.dump(content, fp)
 
 
-def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
+def set_test_env(images, use_latest_additional_tag=False, images_env="DLC_IMAGES", **kwargs):
     """
     Util function to write a file to be consumed by test env with necessary environment variables
 
@@ -469,7 +490,7 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
     """
     test_envs = []
 
-    test_images_dict = fetch_dlc_images_for_test_jobs(images)
+    test_images_dict = fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=use_latest_additional_tag)
 
     # dumping the test_images to dict that can be used in src/start_testbuilds.py
     write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, test_images_dict)
@@ -486,3 +507,66 @@ def set_test_env(images, images_env="DLC_IMAGES", **kwargs):
 def get_codebuild_project_name():
     # Default value for codebuild project name is "local_test" when run outside of CodeBuild
     return os.getenv("CODEBUILD_BUILD_ID", "local_test").split(":")[0]
+
+
+def get_root_folder_path():
+    """
+    Extract the root folder path for the repository.
+
+    :return: str
+    """
+    root_dir_pattern = re.compile(r"^(\S+deep-learning-containers)")
+    pwd = os.getcwd()
+    codebuild_src_dir_env = os.getenv("CODEBUILD_SRC_DIR")
+    root_folder_path = codebuild_src_dir_env if codebuild_src_dir_env else root_dir_pattern.match(pwd).group(1)
+
+    return root_folder_path
+
+
+def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
+    """
+    Get a dict of known safety check issue IDs to ignore, if specified in file ../data/ignore_ids_safety_scan.json.
+
+    :param image_uri: str, consists of f"{image_repo}:{image_tag}"
+    :param framework: str, framework like tensorflow, mxnet etc.
+    :param python_version: str, py2 or py3
+    :param job_type: str, type of training job. Can be "training"/"inference"
+    :return: dict, key is the ignored vulnerability id and value is the reason to ignore it
+    """
+    if job_type == "inference":
+        job_type = (
+            "inference-eia" if "eia" in image_uri else "inference-neuron" if "neuron" in image_uri else "inference"
+        )
+
+    ignore_safety_ids = {}
+    ignore_data_file = os.path.join(os.sep, get_root_folder_path(), "data", "ignore_ids_safety_scan.json")
+    with open(ignore_data_file) as f:
+        ignore_safety_ids = json.load(f)
+
+    return ignore_safety_ids.get(framework, {}).get(job_type, {}).get(python_version, {})
+
+
+def generate_safety_report_for_image(image_uri, image_info, storage_file_path=None):
+    """
+    Genereate safety scan reports for an image and store it at the location specified 
+
+    :param image_uri: str, consists of f"{image_repo}:{image_tag}"
+    :param image_info: dict, should consist of 3 keys - "framework", "python_version" and "image_type".
+    :param storage_file_path: str, looks like "storage_location.json"
+    :return: list[dict], safety report generated by SafetyReportGenerator
+    """
+    ctx = Context()
+    docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image_uri} "
+    container_id = ctx.run(f"{docker_run_cmd}", hide=True, warn=True).stdout.strip()
+    install_safety_cmd = "pip install safety"
+    docker_exec_cmd = f"docker exec -i {container_id}"
+    ctx.run(f"{docker_exec_cmd} {install_safety_cmd}", hide=True, warn=True)
+    ignore_dict = get_safety_ignore_dict(
+        image_uri, image_info["framework"], image_info["python_version"], image_info["image_type"]
+    )
+    safety_scan_output = SafetyReportGenerator(container_id, ignore_dict=ignore_dict).generate()
+    ctx.run(f"docker rm -f {container_id}", hide=True, warn=True)
+    if storage_file_path:
+        with open(storage_file_path, "w", encoding="utf-8") as f:
+            json.dump(safety_scan_output, f, indent=4)
+    return safety_scan_output
