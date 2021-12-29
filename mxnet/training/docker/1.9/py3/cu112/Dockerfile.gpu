@@ -132,7 +132,7 @@ RUN python -m pip install --no-cache --upgrade \
     sagemaker-experiments==0.* \
     # install PyYAML>=5.4,<5.5 to avoid conflict with latest awscli
     "PyYAML>=5.4,<5.5" \
-    mpi4py \
+    mpi4py==3.0.3 \
     sagemaker-mxnet-training \
     ${MX_URL} \
     smdebug==${SMDEBUG_VERSION} \
