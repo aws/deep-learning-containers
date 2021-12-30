@@ -65,7 +65,7 @@ images:
   BuildMXNetCPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &MXNET_CPU_INFERENCE_PY3 false
-    image_size_baseline: 1687
+    image_size_baseline: 2037
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
