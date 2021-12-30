@@ -222,7 +222,9 @@ class DockerImage:
         if self.summary["image_size"] > self.info["image_size_baseline"] * 1.20:
             response.append("Image size baseline exceeded")
             response.append(f"{self.summary['image_size']} > 1.2 * {self.info['image_size_baseline']}")
+            LOGGER.warning(f"Image size ({self.summary['image_size']}) exceeded baseline ({self.info['image_size_baseline'] * 1.20}).")
             response += self.collect_installed_packages_information()
+            LOGGER.warning("Completed collecting package information and purging container.")
             self.build_status = constants.FAIL_IMAGE_SIZE_LIMIT
         else:
             response.append(f"Image Size Check Succeeded for {self.repository}:{self.tag}")
