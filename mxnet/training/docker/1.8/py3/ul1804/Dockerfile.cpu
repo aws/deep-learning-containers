@@ -49,6 +49,8 @@ RUN apt-get update \
     libffi-dev \
     cmake \
     libgtk2.0-dev \
+    openssl \
+    systemd \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
