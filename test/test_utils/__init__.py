@@ -1207,6 +1207,15 @@ def get_cuda_version_from_tag(image_uri):
     return cuda_framework_version
 
 
+def get_cuda_compare_string(cuda_version):
+    """
+    Return the cuda version string for comparison with packaging.version.Version
+    :param cuda_version: cuda version
+    :return: cuda version compare string
+    """
+    return cuda_version[-3:-1] + '.' +  cuda_version[-1:]
+
+
 def get_synapseai_version_from_tag(image_uri):
     """
     Return the synapseai version from the image tag.
