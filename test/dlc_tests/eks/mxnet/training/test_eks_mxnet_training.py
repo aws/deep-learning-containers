@@ -8,7 +8,7 @@ from invoke import run
 from invoke.context import Context
 
 import test.test_utils.eks as eks_utils
-from test.test_utils import get_cuda_version_from_tag, get_cuda_version_from_tag
+from test.test_utils import get_cuda_version_from_tag, get_cuda_compare_string
 
 from packaging.version import Version
 
