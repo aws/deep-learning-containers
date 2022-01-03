@@ -314,6 +314,8 @@ def _run_dependency_check_test(image, ec2_connection):
         "CVE-2016-2182",
         # CVE-2020-13936: vulnerability found in apache velocity package which is a dependency for dependency-check package. Hence, ignoring.
         "CVE-2020-13936",
+        # CVE-2021-42550: affected file is part of dependency-check lib at path "dependency-check/lib/logback-core-1.2.3.jar" so we can ignore.
+        "CVE-2021-42550",
     }
 
     processor = get_processor_from_image_uri(image)
@@ -410,10 +412,10 @@ def _run_dependency_check_test(image, ec2_connection):
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
-# @pytest.mark.skipif(
-#     (is_canary_context() and not is_time_for_canary_safety_scan()),
-#     reason="Executing test in canaries pipeline during only a limited period of time.",
-# )
+@pytest.mark.skipif(
+    (is_canary_context() and not is_time_for_canary_safety_scan()),
+    reason="Executing test in canaries pipeline during only a limited period of time.",
+)
 def test_dependency_check_cpu(cpu, ec2_connection, cpu_only, x86_compatible_only):
     _run_dependency_check_test(cpu, ec2_connection)
 
@@ -422,10 +424,10 @@ def test_dependency_check_cpu(cpu, ec2_connection, cpu_only, x86_compatible_only
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-# @pytest.mark.skipif(
-#     (is_canary_context() and not is_time_for_canary_safety_scan()),
-#     reason="Executing test in canaries pipeline during only a limited period of time.",
-# )
+@pytest.mark.skipif(
+    (is_canary_context() and not is_time_for_canary_safety_scan()),
+    reason="Executing test in canaries pipeline during only a limited period of time.",
+)
 def test_dependency_check_gpu(gpu, ec2_connection, gpu_only):
     _run_dependency_check_test(gpu, ec2_connection)
 
