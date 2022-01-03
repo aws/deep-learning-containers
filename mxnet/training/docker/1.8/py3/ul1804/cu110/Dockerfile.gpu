@@ -65,6 +65,7 @@ RUN apt-get update \
     cmake \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
+ && apt-get upgrade -y \
     openssl \
     systemd \
  && apt-get clean \
