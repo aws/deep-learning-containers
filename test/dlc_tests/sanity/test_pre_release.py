@@ -312,6 +312,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "CVE-2016-2177",
         "CVE-2016-6303",
         "CVE-2016-2182",
+        "CVE-2021-3711", # fixed in ubuntu release '1.1.1-1ubuntu2.1~18.04.13' for ubuntu 18.04 https://ubuntu.com/security/CVE-2021-3711
         # CVE-2020-13936: vulnerability found in apache velocity package which is a dependency for dependency-check package. Hence, ignoring.
         "CVE-2020-13936",
         # CVE-2021-42550: affected file is part of dependency-check lib at path "dependency-check/lib/logback-core-1.2.3.jar" so we can ignore.
