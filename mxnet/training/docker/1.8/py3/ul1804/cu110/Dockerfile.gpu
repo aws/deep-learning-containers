@@ -158,7 +158,7 @@ RUN ${PIP} install --no-cache --upgrade \
     "numpy>1.16.0,<1.19.1" \
     pandas \
     Pillow \
-    "requests>=2.18.4,<=2.22.0" \
+    "requests>=2.18.4,<3" \
     scikit-learn \
     "scipy>=1.2.2,<=1.4.1" \
     # disabling DGL until a release is built for cuda 11.0
