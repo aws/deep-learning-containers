@@ -1168,6 +1168,10 @@ def get_neuron_framework_and_version_from_tag(image_uri):
     if neuron_sdk_version not in NEURON_VERSION_MANIFEST:
         raise KeyError(f"Cannot find neuron sdk version {neuron_sdk_version} ")
 
+    # Framework name may include huggingface
+    if tested_framework.startswith('huggingface_'):
+        tested_framework = tested_framework[len("huggingface_"):]
+
     neuron_framework_versions = NEURON_VERSION_MANIFEST[neuron_sdk_version][tested_framework]
     neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)
 
