@@ -50,7 +50,6 @@ RUN apt-get update \
     libbz2-dev \
     tk-dev \
     libffi-dev \
- && apt-get upgrade -y \
     openssl \
     systemd \
  && apt-get clean \

@@ -49,7 +49,6 @@ RUN apt-get update \
     libffi-dev \
     cmake \
     libgtk2.0-dev \
- && apt-get upgrade -y \
     openssl \
     systemd \
  && apt-get clean \
