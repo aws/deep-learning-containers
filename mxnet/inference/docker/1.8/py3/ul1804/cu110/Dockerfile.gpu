@@ -48,6 +48,7 @@ RUN apt-get update \
     libc6-dev \
     libbz2-dev \
     libffi-dev \
+ && apt-get upgrade -y \
     openssl \
     systemd \
  && apt-get clean \
