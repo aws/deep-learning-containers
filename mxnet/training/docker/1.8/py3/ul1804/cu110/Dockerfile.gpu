@@ -65,7 +65,6 @@ RUN apt-get update \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
  && apt-get upgrade -y \
-    openssl \
     systemd \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
