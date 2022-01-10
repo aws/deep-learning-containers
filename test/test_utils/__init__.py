@@ -829,8 +829,8 @@ def parse_canary_images(framework, region):
         "tensorflow2": rf"tf{customer_type_tag}-(2.\d+)",
         "mxnet": rf"mx{customer_type_tag}-(\d+.\d+)",
         "pytorch": rf"pt{customer_type_tag}-(\d+.\d+)",
-        "huggingface_pytorch": r"hf-pt-(\d+.\d+)",
-        "huggingface_tensorflow": r"hf-tf-(\d+.\d+)",
+        "huggingface_pytorch": r"hf-\S*pt-(\d+.\d+)",
+        "huggingface_tensorflow": r"hf-\S*tf-(\d+.\d+)",
         "autogluon": r"ag-(\d+.\d+)",
     }
 
@@ -853,9 +853,9 @@ def parse_canary_images(framework, region):
             elif "inf" in tag_str:
                 versions_counter[version]["inf"] = True
 
-    # Adding huggingface here since we dont have inference HF containers now
     versions = []
     for v, inf_train in versions_counter.items():
+        # Earlier versions of huggingface did not have inference
         if (inf_train["inf"] and inf_train["tr"]) or framework.startswith("huggingface"):
             versions.append(v)
 
@@ -912,8 +912,8 @@ def parse_canary_images(framework, region):
                 "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py3_version}",
                     # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py3_version}",
                 ],
             },
             "huggingface_tensorflow": {
@@ -921,8 +921,8 @@ def parse_canary_images(framework, region):
                 "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py3_version}",
                     # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py3_version}",
                 ],
             },
             "autogluon": {
@@ -1167,6 +1167,10 @@ def get_neuron_framework_and_version_from_tag(image_uri):
 
     if neuron_sdk_version not in NEURON_VERSION_MANIFEST:
         raise KeyError(f"Cannot find neuron sdk version {neuron_sdk_version} ")
+
+    # Framework name may include huggingface
+    if tested_framework.startswith('huggingface_'):
+        tested_framework = tested_framework[len("huggingface_"):]
 
     neuron_framework_versions = NEURON_VERSION_MANIFEST[neuron_sdk_version][tested_framework]
     neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)

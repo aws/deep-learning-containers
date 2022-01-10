@@ -145,7 +145,12 @@ IGNORE_SAFETY_IDS = {
                 "38451",
                 "38452",
             ],
-            "py3": [],
+            "py3": [
+                # for shipping bokeh<=2.3.3 - the last available version for py3.6
+                "42772",
+                "42814",
+                "42815",
+            ],
         },
         "inference": {"py3": []},
         "inference-eia": {"py3": []},
