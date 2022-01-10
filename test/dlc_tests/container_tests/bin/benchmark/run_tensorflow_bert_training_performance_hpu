@@ -1,10 +1,10 @@
 #!/bin/bash
+set -e
 
 TF_VERSION=$(python -c 'import tensorflow; print(tensorflow.__version__)')
 
 HOME_DIR=/test
 LOG_DIR=`dirname $LOG_FILE`
-
 
 mkdir -p ${HOME_DIR}/artifacts
 mkdir -p ${LOG_DIR}
@@ -14,8 +14,6 @@ cd ${HOME_DIR}/artifacts/gaudi-test-suite
 git checkout r${GIT_BRANCH}
 python3 -m pip install -r requirements.txt
 
-set -e
-
 START=$(date +%s)
 TRAINING_TIME="200m"
 if [ "$PR_CONTEXT" == "1" ]
@@ -24,8 +22,9 @@ then
   echo Running under PR context >&2
 fi
 
-python3 gaudi_test_suite.py -tm benchmark -f tf -m bert -c "${CARDS_NUM}" -t "${TRAINING_TIME}" 2>&1 | tee ${LOG_FILE}
+python3 gaudi_test_suite.py -tm benchmark -f tf -m bert -c ${CARDS_NUM} -t ${TRAINING_TIME} -o ${HOME_DIR}/artifacts 2>&1 | tee ${LOG_FILE}
 RETURNVAL=${PIPESTATUS[0]}
+
 if [ $RETURNVAL -eq 0 ];
 then
     echo "Tensorflow BERT test executed successfully"
@@ -38,7 +37,6 @@ fi
 END=$(date +%s)
 DIFF=$(( END - START ))
 echo Script took $(( DIFF/60 )) mins to finish >> "${LOG_FILE}"
-set +e
 
 rm -rf ${HOME_DIR}/artifacts/gaudi-test-suite
 
