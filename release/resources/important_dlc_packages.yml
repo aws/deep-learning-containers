@@ -63,6 +63,8 @@ pip_packages:
   - torch
   - torchaudio
   - torchnet
+  - torchserve
+  - torch-model-archiver
   - torchvision
   - transformers
   - xgboost
