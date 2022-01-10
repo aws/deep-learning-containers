@@ -2,7 +2,6 @@ import os
 import re
 import pytest
 
-from invoke import run
 from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, HPU_AL2_DLAMI
 from test.test_utils.ec2 import execute_ec2_training_performance_test
 from src.benchmark_metrics import (
