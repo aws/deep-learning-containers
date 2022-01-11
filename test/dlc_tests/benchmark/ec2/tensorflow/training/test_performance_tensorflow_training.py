@@ -91,4 +91,28 @@ def post_process_tensorflow_training_performance(connection, log_location):
         if "images/sec:" in line:
             throughput = float(re.search(r"(images/sec:[ ]*)(?P<throughput>[0-9]+\.?[0-9]+)", line).group("throughput"))
             break
+    if throughput == 0:
+        throughput = threshold_avg_calculated_from_all_steps(connection, log_location)
     return {"Throughput": throughput}
+
+
+def threshold_avg_calculated_from_all_steps(connection, log_location):
+    """
+    This is a temporary fix for the flaky benchmark tests. This method is only called when the
+    benchmark tests do not sleep peacefully and hence get a throughput value printed as 0. This 
+    method reads the throughput at each step and finds the average of all the throughput values.
+    """
+    lines = connection.run(f"cat {log_location}", hide=True).stdout.split("\n")
+    lines_with_images_sec = 0
+    throughput_sum = 0.0
+    step_count_of_last_line = 0
+    for line in lines:
+        splitted_arr = line.split()
+        if len(splitted_arr) >= 3 and splitted_arr[1] == "images/sec:":
+            lines_with_images_sec += 1
+            throughput_sum += float(splitted_arr[2])
+            step_count_of_last_line = int(splitted_arr[0])
+
+    throughput_average = throughput_sum / float(lines_with_images_sec)
+    assert lines_with_images_sec == int(step_count_of_last_line / 10) + 1, "Number of steps not as expected!!"
+    return throughput_average
