@@ -31,6 +31,15 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
+def get_codebuild_build_arn():
+    """
+    Get env variable CODEBUILD_BUILD_ARN
+
+    @return: value or empty string if not set
+    """
+    return os.getenv("CODEBUILD_BUILD_ARN", "")
+
+
 class JobParameters:
     image_types = []
     device_types = []
@@ -169,6 +178,9 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
             dockerfile = [f"{dockerfile[0]}_{dockerfile[1]}"]+dockerfile[2:]
         framework_change = dockerfile[0]
 
+        if dockerfile[0] == "habana":
+            framework_change = dockerfile[1]
+            dockerfile = [f"{dockerfile[0]}_{dockerfile[1]}"]+dockerfile[2:]
         # If the modified dockerfile belongs to a different
         # framework, do nothing
         if framework_change != framework:
@@ -203,6 +215,8 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
             # Joining 1 and 2 elements to get huggingface_<framework> as a first element
             buildspec_arr = [f"{buildspec_arr[0]}_{buildspec_arr[1]}"]+buildspec_arr[2:]
         buildspec_framework = buildspec_arr[0]
+        if buildspec_arr[0] == "habana":
+            buildspec_framework = buildspec_arr[1]
         if buildspec_framework == framework:
             JobParameters.build_for_all_images()
             update_image_run_test_types(constants.ALL, constants.ALL)
@@ -380,10 +394,10 @@ def build_setup(framework, device_types=None, image_types=None, py_versions=None
     enable_build = is_build_enabled()
 
     if build_context == "PR":
-        pr_number = os.getenv("CODEBUILD_SOURCE_VERSION")
+        pr_number = os.getenv("PR_NUMBER")
         LOGGER.info(f"pr number: {pr_number}")
         if pr_number is not None:
-            pr_number = int(pr_number.split("/")[-1])
+            pr_number = int(pr_number)
         device_types, image_types, py_versions = pr_build_setup(pr_number, framework)
 
     if device_types != constants.ALL:
@@ -412,12 +426,12 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
     """
     DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": []}
 
-    build_disabled = not is_build_enabled()
+    build_enabled = is_build_enabled()
 
     for docker_image in images:
         if not docker_image.is_test_promotion_enabled:
             continue
-        use_preexisting_images = (build_disabled and docker_image.build_status == constants.NOT_BUILT)
+        use_preexisting_images = ((not build_enabled) and docker_image.build_status == constants.NOT_BUILT)
         if docker_image.build_status == constants.SUCCESS or use_preexisting_images:
             ecr_url_to_test = docker_image.ecr_url
             if use_latest_additional_tag and len(docker_image.additional_tags) > 0:
@@ -503,7 +517,10 @@ def get_root_folder_path():
     """
     root_dir_pattern = re.compile(r"^(\S+deep-learning-containers)")
     pwd = os.getcwd()
-    return os.getenv("CODEBUILD_SRC_DIR", root_dir_pattern.match(pwd).group(1))
+    codebuild_src_dir_env = os.getenv("CODEBUILD_SRC_DIR")
+    root_folder_path = codebuild_src_dir_env if codebuild_src_dir_env else root_dir_pattern.match(pwd).group(1)
+
+    return root_folder_path
 
 
 def get_safety_ignore_dict(image_uri, framework, python_version, job_type):

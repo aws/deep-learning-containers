@@ -110,7 +110,8 @@ bandwidth = []
 artime = []
 
 
-def test(warmup=False, size=104857600, num_tensors=100, iterations=1):
+def test(warmup=False, size=104857600, num_tensors=100, iterations=1,
+         first_iteration=False):
     if rank == 0: print("Warmup  " if warmup else "\n", end="\t")
 
     # SETUP
@@ -133,9 +134,13 @@ def test(warmup=False, size=104857600, num_tensors=100, iterations=1):
         for i, test_array in enumerate(tests):
             if i < len(tests):
                 if not args.nccl:
+                    if (first_iteration):
+                        out = test_array.data_ptr()
+                    else:
+                        out = 0
                     results.append(
                         hm.allReduce(test_array.data_ptr(),
-                                     test_array.data_ptr(), HDTYPE,
+                                     out, HDTYPE,
                                      test_array.numel(), i, len(tests),
                                      h._get_id_for_herring_task()).request)
                 else:
@@ -163,6 +168,13 @@ def test(warmup=False, size=104857600, num_tensors=100, iterations=1):
 
 
 get_size = lambda: int(args.size * 1024 * 1024)
+test(
+    True,
+    size=get_size(),
+    num_tensors=args.num_tensors,
+    iterations=1,
+    first_iteration=True,
+)
 test(True,
      size=get_size(),
      num_tensors=args.num_tensors,

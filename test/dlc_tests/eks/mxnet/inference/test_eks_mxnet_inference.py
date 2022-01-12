@@ -9,10 +9,10 @@ from invoke import run
 import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
 
+
 @pytest.mark.model("resnet50")
-def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
-    if "eia" in mxnet_inference or "neuron" not in mxnet_inference:
-        pytest.skip("Skipping EKS Neuron Test for EIA and Non Neuron Images")
+def test_eks_mxnet_neuron_inference(mxnet_inference_neuron):
+    
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
@@ -27,12 +27,11 @@ def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference,
-        "<SERVER_CMD>": server_cmd
+        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference_neuron,
+        "<SERVER_CMD>": server_cmd,
     }
 
     search_replace_dict["<NUM_INF1S>"] = "1"
-
 
     eks_utils.write_eks_yaml_file_from_template(
         eks_utils.get_single_node_inference_template_path("mxnet", processor), yaml_path, search_replace_dict
@@ -47,22 +46,30 @@ def test_eks_mxnet_neuron_inference(mxnet_inference, neuron_only):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8080")
 
         assert test_utils.request_mxnet_inference(port=port_to_forward, model="mxnet-resnet50")
-    except ValueError as excp:
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
     finally:
-        run("kubectl cluster-info dump")
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
 
+
 @pytest.mark.model("squeezenet")
 def test_eks_mxnet_squeezenet_inference(mxnet_inference):
-    if "eia" in mxnet_inference or "neuron" in mxnet_inference:
-        pytest.skip("Skipping EKS Test for EIA and neuron images")
+    __test_eks_mxnet_squeezenet_inference(mxnet_inference)
+
+
+# TODO: Enable after adding EKS infrastructure to support graviton
+@pytest.mark.skip(reason="EKS graviton tests require further development")
+@pytest.mark.model("squeezenet")
+def test_eks_mxnet_squeezenet_inference_graviton(mxnet_inference_graviton):
+    __test_eks_mxnet_squeezenet_inference(mxnet_inference_graviton)
+
+
+def __test_eks_mxnet_squeezenet_inference(mxnet_inference):
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
 
     processor = "gpu" if "gpu" in mxnet_inference else "cpu"
+    test_type = test_utils.get_eks_k8s_test_type_label(mxnet_inference)
 
     model = "squeezenet=https://s3.amazonaws.com/model-server/models/squeezenet_v1.1/squeezenet_v1.1.model"
     yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_{processor}_inference_{rand_int}.yaml")
@@ -73,7 +80,8 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference
+        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference,
+        "<TEST_TYPE>": test_type,
     }
 
     if processor == "gpu":
@@ -92,19 +100,32 @@ def test_eks_mxnet_squeezenet_inference(mxnet_inference):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8080")
 
         assert test_utils.request_mxnet_inference(port=port_to_forward)
-    except ValueError as excp:
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
 
 
-@pytest.mark.skip("Flaky test. Same test passes on EC2. Fails for gpu-inference for mx1.7. Refer: https://github.com/aws/deep-learning-containers/issues/587")
+@pytest.mark.skip(
+    "Flaky test. Same test passes on EC2. Fails for gpu-inference for mx1.7. "
+    "Refer: https://github.com/aws/deep-learning-containers/issues/587"
+)
 @pytest.mark.integration("gluonnlp")
 @pytest.mark.model("bert_sst")
 def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
-    if "eia" in mxnet_inference:
-        pytest.skip("Skipping EKS Test for EIA")
+    __test_eks_mxnet_gluonnlp_inference(mxnet_inference)
+
+
+@pytest.mark.skip(
+    "Flaky test. Same test passes on EC2. Fails for gpu-inference for mx1.7. "
+    "Refer: https://github.com/aws/deep-learning-containers/issues/587"
+)
+@pytest.mark.integration("gluonnlp")
+@pytest.mark.model("bert_sst")
+def test_eks_mxnet_gluonnlp_inference_graviton(mxnet_inference_graviton):
+    __test_eks_mxnet_gluonnlp_inference(mxnet_inference_graviton)
+
+
+def __test_eks_mxnet_gluonnlp_inference(mxnet_inference):
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
@@ -120,7 +141,7 @@ def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
         "<NUM_REPLICAS>": num_replicas,
         "<SELECTOR_NAME>": selector_name,
         "<INFERENCE_SERVICE_NAME>": inference_service_name,
-        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference
+        "<DOCKER_IMAGE_BUILD_ID>": mxnet_inference,
     }
 
     if processor == "gpu":
@@ -139,8 +160,6 @@ def test_eks_mxnet_gluonnlp_inference(mxnet_inference, py3_only):
             eks_utils.eks_forward_port_between_host_and_container(selector_name, port_to_forward, "8080")
 
         assert test_utils.request_mxnet_inference_gluonnlp(port=port_to_forward)
-    except ValueError as excp:
-        eks_utils.LOGGER.error("Service is not running: %s", excp)
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")

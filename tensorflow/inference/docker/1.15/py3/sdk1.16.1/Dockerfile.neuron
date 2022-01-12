@@ -1,0 +1,187 @@
+FROM ubuntu:18.04
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+# Specify LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
+# https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+
+
+# Define framework-related package sources
+ARG PYTHON=python3
+ARG PYTHON_PIP=python3-pip
+ARG PIP=pip3
+ARG PYTHON_VERSION=3.7.10
+ARG TFS_SHORT_VERSION=1.15.5
+ARG TF_S3_URL=https://tensorflow-aws.s3-us-west-2.amazonaws.com
+
+# Prevent docker build get stopped by requesting user interaction
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN=true
+# Set environment variables for MKL
+# https://www.tensorflow.org/performance/performance_guide#tensorflow_with_intel%C2%AE_mkl_dnn
+ENV KMP_AFFINITY=granularity=fine,compact,1,0
+ENV KMP_BLOCKTIME=1
+ENV KMP_SETTINGS=0
+# Python won’t try to write .pyc or .pyo files on the import of source modules
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+# See http://bugs.python.org/issue19846
+ENV PYTHONIOENCODING=UTF-8
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+# Specify the location of module that contains the training logic for SageMaker
+# https://docs.aws.amazon.com/sagemaker/latest/dg/docker-container-environmental-variables-entrypoint.html
+ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
+ENV PATH="$PATH:/sagemaker"
+ENV LD_LIBRARY_PATH='/usr/local/lib:$LD_LIBRARY_PATH'
+ENV MODEL_BASE_PATH=/models
+# The only required piece is the model name in order to differentiate endpoints
+ENV MODEL_NAME=model
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    curl \
+    emacs \
+    git \
+    gnupg2 \
+    libssl1.1 \
+    openssh-client \
+    openssh-server \
+    openssl \
+    vim \
+    wget \
+    unzip \
+    zlib1g-dev \
+ && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
+ && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
+ && apt-get update \
+ && apt-get -y install --no-install-recommends \
+    nginx \
+    nginx-module-njs \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+# Create SSH key.
+RUN mkdir -p /root/.ssh/ \
+ && mkdir -p /var/run/sshd \
+ && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
+ && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+ && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
+
+WORKDIR /
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    libbz2-dev \
+    libc6-dev \
+    libffi-dev \
+    libgdbm-dev \
+    libncursesw5-dev \
+    libreadline-gplv2-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    libcap-dev \
+    tk-dev \
+    python3-venv \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xvf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure && make && make install \
+ && make && make install && rm -rf ../Python-$PYTHON_VERSION*
+
+RUN echo "deb https://apt.repos.neuron.amazonaws.com bionic main" > /etc/apt/sources.list.d/neuron.list
+RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
+RUN apt-get update
+
+RUN apt-get install -y \
+    tensorflow-model-server-neuron=1.15.* \
+    aws-neuron-tools
+
+RUN ${PIP} --no-cache-dir install --upgrade \
+    pip \
+    setuptools
+
+# Some TF tools expect a "python" binary
+RUN ln -s $(which python3) /usr/local/bin/python \
+ && ln -s $(which pip3) /usr/bin/pip
+
+RUN ${PIP} install --no-cache-dir -U \
+    numpy==1.17.4 \
+    scipy==1.2.2 \
+    scikit-learn==0.20.3 \
+    pandas==0.24.2 \
+    Pillow \
+    h5py==2.10.0 \
+    boto3 \
+    "pyYAML>=5.4,<5.5" \
+    cython==0.29.12 \
+    falcon==2.0.0 \
+    gunicorn==20.0.4 \
+    gevent==1.4.0 \
+    requests==2.22.0 \
+    grpcio==1.34.1 \
+    protobuf==3.10.0 \
+    gast==0.2.2 \
+    "awscli<2"
+
+# pip install statements have been separated out into multiple sequentially executed statements to
+# resolve package dependencies during installation.
+RUN ${PIP} install tensorflow_serving_api==1.15 --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install "tensorboard-neuron>=1.15,<1.16" --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install neuron-cc --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && ${PIP} install "tensorflow-neuron>=1.15.5,<1.15.6" --extra-index-url https://pip.repos.neuron.amazonaws.com
+
+
+COPY ./sagemaker /sagemaker
+
+
+RUN curl ${TF_S3_URL}/MKL-Libraries/libiomp5.so -o /usr/local/lib/libiomp5.so \
+ && curl ${TF_S3_URL}/MKL-Libraries/libmklml_intel.so -o /usr/local/lib/libmklml_intel.so
+
+
+# Expose ports
+# gRPC and REST
+EXPOSE 8500 8501
+
+# Set where models should be stored in the container
+RUN mkdir -p ${MODEL_BASE_PATH}
+
+# Create a script that runs the model server so we can use environment variables
+# while also passing in arguments from the docker command line
+RUN echo '#!/bin/bash \n\n' > /usr/local/bin/entrypoint.sh \
+ && echo '/usr/local/bin/tensorflow_model_server_neuron --port=8500 --rest_api_port=8501 --model_name=${MODEL_NAME} --model_base_path=${MODEL_BASE_PATH}/${MODEL_NAME} "$@"' >> /usr/local/bin/entrypoint.sh \
+ && chmod +x /usr/local/bin/entrypoint.sh
+
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+ 
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow/license.txt -o /license.txt
+
+COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY neuron-monitor.sh /usr/local/bin/neuron-monitor.sh
+
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py \
+ && chmod +x /usr/local/bin/neuron-monitor.sh
+
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["/usr/local/bin/entrypoint.sh"]

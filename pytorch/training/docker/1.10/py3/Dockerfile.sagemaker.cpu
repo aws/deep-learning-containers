@@ -1,0 +1,67 @@
+# Expecting base image to be the image built by ./Dockerfile.e3.cpu
+ARG BASE_IMAGE=""
+
+FROM $BASE_IMAGE
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ARG PYTHON=python3
+# Add arguments to achieve the version, python and url
+ARG PYTHON_VERSION=3.8.10
+
+# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
+# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
+ARG SMDEBUG_VERSION=1.0.9
+
+ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
+
+# swap the pytorch training wheel with additional smdebug and smmdp features
+ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.10.0_aws_v3/20211102-104200/66c710e4b1cb2f96a29c556c58d0d0b82f92e496/cpu/torch-1.10.0%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
+
+WORKDIR /
+
+# Copy workaround script for incorrect hostname
+COPY changehostname.c /
+COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+
+# Install scikit-learn and pandas
+RUN conda install -y \
+    scikit-learn \
+    pandas
+
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && pip install --no-cache-dir -U \
+    smdebug==${SMDEBUG_VERSION} \
+    smclarify \
+    "sagemaker>=2,<3" \
+    sagemaker-experiments==0.* \
+    "sagemaker-pytorch-training<3" \
+ && pip uninstall -y torch \
+ && pip install --no-cache-dir -U ${PT_TRAINING_URL}
+
+# Install extra packages
+# numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
+RUN pip install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "numba<0.54" \
+    "shap>=0.39,<1"
+
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance* \
+ && rm -rf /tmp/tmp*
+
+ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
+CMD ["/bin/bash"]

@@ -13,6 +13,7 @@ from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
     CVESeverity, ScanVulnerabilityList, ECRScanFailureException, get_ecr_scan_allowlist_path
 )
+from src.config import is_ecr_scan_allowlist_feature_enabled
 
 
 MINIMUM_SEV_THRESHOLD = "HIGH"
@@ -204,25 +205,36 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
     ecr_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
     ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
 
-    new_image_uri = get_new_image_uri(image)
-    run_upgrade_on_image_and_push(image, new_image_uri)
-    run_scan(ecr_client, new_image_uri)
-    scan_results_with_upgrade = ecr_utils.get_ecr_image_scan_results(ecr_client, new_image_uri, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
-    scan_results_with_upgrade = ecr_utils.populate_ecr_scan_with_web_scraper_results(new_image_uri, scan_results_with_upgrade)
-    upgraded_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
-    upgraded_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results_with_upgrade)
+    remaining_vulnerabilities = ecr_image_vulnerability_list
 
-    image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
-    image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
-    if os.path.exists(image_scan_allowlist_path):
-        image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
+    # TODO: Once this feature is enabled, remove "if" condition and second assertion statement
+    # TODO: Ensure this works on the canary tags before removing feature flag
+    if is_ecr_scan_allowlist_feature_enabled():
+        new_image_uri = get_new_image_uri(image)
+        run_upgrade_on_image_and_push(image, new_image_uri)
+        run_scan(ecr_client, new_image_uri)
+        scan_results_with_upgrade = ecr_utils.get_ecr_image_scan_results(ecr_client, new_image_uri, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
+        scan_results_with_upgrade = ecr_utils.populate_ecr_scan_with_web_scraper_results(new_image_uri, scan_results_with_upgrade)
+        upgraded_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
+        upgraded_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results_with_upgrade)
 
-    remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
+        image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
+        image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
+        if os.path.exists(image_scan_allowlist_path):
+            image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
 
-    if remaining_vulnerabilities:
-        conduct_failure_routine(image, image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list)
+        remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
 
-    assert not remaining_vulnerabilities, (
+        if remaining_vulnerabilities:
+            conduct_failure_routine(image, image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list)
+
+        assert not remaining_vulnerabilities, (
+            f"The following vulnerabilities need to be fixed on {image}:\n"
+            f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
+        )
+        return
+
+    assert not remaining_vulnerabilities.vulnerability_list, (
         f"The following vulnerabilities need to be fixed on {image}:\n"
         f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
     )

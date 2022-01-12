@@ -48,7 +48,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py37
     os_version: &OS_VERSION ubuntu18.04
     enable_test_promotion: false
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-diy"
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-e3"
       ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.diy.,
       *DEVICE_TYPE ]
@@ -80,7 +80,7 @@ images:
     os_version: &OS_VERSION ubuntu18.04
     enable_test_promotion: false
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
-      "-", *OS_VERSION, "-diy" ]
+      "-", *OS_VERSION, "-e3" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION,
       /Dockerfile.diy., *DEVICE_TYPE ]
     context:
@@ -127,7 +127,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py37
     os_version: &OS_VERSION ubuntu18.04
     # TODO: To be reverted once TF Training 2.5.1 is released
-    tag: !join [ "2.5.1", "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-diy" ]
+    tag: !join [ "2.5.1", "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-e3" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.diy., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
@@ -156,7 +156,7 @@ images:
     os_version: &OS_VERSION ubuntu18.04
     enable_test_promotion: false
     # TODO: To be reverted once TF Training 2.5.1 is released
-    tag: !join [ "2.5.1", "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-diy" ]
+    tag: !join [ "2.5.1", "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-e3" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.diy., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT

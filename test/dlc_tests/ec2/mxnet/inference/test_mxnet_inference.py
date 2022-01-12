@@ -24,13 +24,14 @@ MX_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu,
 )
 MX_EC2_NEURON_INSTANCE_TYPE = get_ec2_instance_type(default="inf1.xlarge", processor="neuron")
+MX_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", processor="cpu", arch_type="graviton")
 
 MX_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_mx_dlc_telemetry_test")
 
 @pytest.mark.model("mxnet-resnet-neuron")
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_NEURON_INSTANCE_TYPE, indirect=True)
-def test_ec2_mxnet_inference_neuron(mxnet_inference_neuron, ec2_connection, region, neuron_only):
+def test_ec2_mxnet_inference_neuron(mxnet_inference_neuron, ec2_connection, region):
     run_ec2_mxnet_inference(mxnet_inference_neuron, "mxnet-resnet-neuron", "resnet", ec2_connection, "neuron", region, 80, 8081)
 
 
@@ -63,7 +64,7 @@ def test_ec2_mxnet_squeezenet_inference_cpu(mxnet_inference, ec2_connection, reg
 @pytest.mark.model(RESNET_EIA_MODEL)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", MX_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
-def test_ec2_mxnet_resnet_inference_eia_cpu(mxnet_inference_eia, ec2_connection, region, eia_only):
+def test_ec2_mxnet_resnet_inference_eia_cpu(mxnet_inference_eia, ec2_connection, region):
     model_name = RESNET_EIA_MODEL
     image_framework, image_framework_version = get_framework_and_version_from_tag(mxnet_inference_eia)
     if image_framework_version == "1.5.1":
@@ -75,12 +76,19 @@ def test_ec2_mxnet_resnet_inference_eia_cpu(mxnet_inference_eia, ec2_connection,
 @pytest.mark.model(RESNET_EIA_MODEL)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_EIA_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ei_accelerator_type", MX_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
-def test_ec2_mxnet_resnet_inferencei_eia_gpu(mxnet_inference_eia, ec2_connection, region, eia_only):
+def test_ec2_mxnet_resnet_inferencei_eia_gpu(mxnet_inference_eia, ec2_connection, region):
     model_name = RESNET_EIA_MODEL
     image_framework, image_framework_version = get_framework_and_version_from_tag(mxnet_inference_eia)
     if image_framework_version == "1.5.1":
         model_name = "resnet-152-eia-1-5-1"
     run_ec2_mxnet_inference(mxnet_inference_eia, model_name, "resnet-152-eia", ec2_connection, "eia", region, 80, 8081)
+
+
+@pytest.mark.model(SQUEEZENET_MODEL)
+@pytest.mark.parametrize("ec2_instance_type", MX_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AML2_CPU_ARM64_US_WEST_2], indirect=True)
+def test_ec2_mxnet_inference_graviton_cpu(mxnet_inference_graviton, ec2_connection, region, cpu_only):
+    run_ec2_mxnet_inference(mxnet_inference_graviton, SQUEEZENET_MODEL, "squeezenet", ec2_connection, "cpu", region, 80, 8081)
 
 
 @pytest.mark.integration("gluonnlp")
@@ -96,7 +104,6 @@ def run_ec2_mxnet_inference(image_uri, model_name, container_tag, ec2_connection
     docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
     mms_inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
     if processor == "neuron":
-        ec2_connection.run("sudo systemctl stop neuron-rtd")  # Stop neuron-rtd in host env for DLC to start it
         docker_run_cmd = (
             f"{docker_cmd} run -itd --name {container_name}"
             f" -p {target_port}:8080 -p {target_management_port}:8081"
@@ -155,3 +162,13 @@ def test_mxnet_inference_telemetry_gpu(mxnet_inference, ec2_connection, gpu_only
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_inference_telemetry_cpu(mxnet_inference, ec2_connection, cpu_only):
     execute_ec2_inference_test(ec2_connection, mxnet_inference, MX_TELEMETRY_CMD)
+
+
+@pytest.mark.flaky(reruns=3)
+@pytest.mark.integration("telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", MX_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AML2_CPU_ARM64_US_WEST_2], indirect=True)
+def test_mxnet_inference_telemetry_graviton_cpu(mxnet_inference_graviton, ec2_connection, cpu_only):
+    execute_ec2_inference_test(ec2_connection, mxnet_inference_graviton, MX_TELEMETRY_CMD)
+    

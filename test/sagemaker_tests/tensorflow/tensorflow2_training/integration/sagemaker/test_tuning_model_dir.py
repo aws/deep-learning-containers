@@ -19,12 +19,18 @@ import pytest
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 
+from ..... import invoke_sm_helper_function
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 
 
 @pytest.mark.integration("hpo")
 @pytest.mark.model("N/A")
-def test_model_dir_with_training_job_name(sagemaker_session, ecr_image, instance_type, framework_version):
+def test_model_dir_with_training_job_name(ecr_image, sagemaker_regions, instance_type, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_model_dir_with_training_job_name_function,
+                              instance_type, framework_version)
+
+
+def _test_model_dir_with_training_job_name_function(ecr_image, sagemaker_session, instance_type, framework_version):
     resource_path = os.path.join(os.path.dirname(__file__), '../..', 'resources')
     script = os.path.join(resource_path, 'tuning_model_dir', 'entry.py')
 

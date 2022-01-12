@@ -7,6 +7,7 @@ pytest-rerunfailures==9.0
 pytest-timeout
 pytest-json-report
 pytest-xdist==1.31.0
+sagemaker>=2,<3
 xmltodict
 boto3
 retrying
