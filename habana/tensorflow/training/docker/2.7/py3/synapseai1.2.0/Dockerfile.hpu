@@ -1,4 +1,4 @@
-FROM vault.habana.ai/gaudi-docker/1.1.1/ubuntu20.04/habanalabs/tensorflow-installer-tf-cpu-2.7.0:1.1.1-94
+FROM vault.habana.ai/gaudi-docker/1.2.0/ubuntu20.04/habanalabs/tensorflow-installer-tf-cpu-2.7.0:latest
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"

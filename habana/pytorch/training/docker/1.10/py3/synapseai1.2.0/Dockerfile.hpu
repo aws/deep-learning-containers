@@ -1,4 +1,4 @@
-FROM vault.habana.ai/gaudi-docker/1.1.1/ubuntu20.04/habanalabs/pytorch-installer-1.9.1:1.1.1-94
+FROM vault.habana.ai/gaudi-docker/1.2.0/ubuntu20.04/habanalabs/pytorch-installer-1.10.0:latest
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -42,7 +42,7 @@ RUN pip --no-cache-dir install --upgrade \
 
 # The following section uninstalls torch and torchvision before installing the
 # custom versions from an S3 bucket.
-RUN pip install --no-cache-dir --user -U \ 
+RUN pip install --no-cache-dir --user -U \
     fastai==1.0.61 \
     "pyyaml>=5.4,<5.5" \
     "awscli<2" \
