@@ -170,6 +170,7 @@ def image_builder(buildspec):
             stage=constants.PRE_PUSH_STAGE,
             context=context,
             additional_tags=[image_tag],
+            target=image_config.get("target")
         )
 
         ##### Create Common stage docker object #####
