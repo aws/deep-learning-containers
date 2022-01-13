@@ -190,7 +190,7 @@ def test_framework_version_cpu(image):
     stop_and_remove_container(container_name, ctx)
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 def test_framework_and_neuron_sdk_version(neuron):
     """
@@ -213,6 +213,9 @@ def test_framework_and_neuron_sdk_version(neuron):
         else:
             pytest.skip(msg="Neuron SDK tag is not there as part of image")
 
+    # Framework name may include huggingface
+    if tested_framework.startswith('huggingface_'):
+        tested_framework = tested_framework[len("huggingface_"):]
 
     if tested_framework == "pytorch":
         tested_framework = "torch_neuron"
@@ -450,7 +453,7 @@ def test_dependency_check_hpu(hpu, ec2_connection):
     _run_dependency_check_test(hpu, ec2_connection, "hpu")
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
