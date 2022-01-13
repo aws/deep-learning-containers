@@ -32,6 +32,9 @@ context:
     entrypoint:
       source: docker/artifacts/mms-entrypoint.py
       target:  mms-entrypoint.py
+    e3-entrypoint:
+      source: docker/artifacts/mms-entrypoint.py
+      target: mms-e3-entrypoint.py
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
