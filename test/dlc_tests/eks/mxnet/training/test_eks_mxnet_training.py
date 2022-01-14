@@ -92,7 +92,8 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
     yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"mxnet-single-node-training-dgl-{rand_int}"
 
-    dgl_branch = "0.4.x"
+    dgl_version = run(f"""docker run {mxnet_training} "python -c 'import dgl; print(dgl.__version__)'" """).stdout.strip()
+    dgl_branch = f"{re.search(r'(^\d+.\d+).', dgl_version).group(1)}.x"
 
     args = (
         f"git clone -b {dgl_branch} https://github.com/dmlc/dgl.git && "

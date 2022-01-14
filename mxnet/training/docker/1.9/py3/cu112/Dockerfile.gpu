@@ -112,7 +112,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     onnx==1.8.1 \
     numpy==1.19.1 \
     pandas==1.3.0 \
-    "Pillow>=8.3,<8.4" \
+    "Pillow>=9.0,<10.0" \
     requests==2.22.0 \
     scikit-learn \
     # disabling DGL until a release is built for cuda 11.2
@@ -121,7 +121,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     gluonnlp==0.10.0 \
     gluoncv==0.8.0 \
     # Putting a cap in versions number to avoid potential issues with a new major version
-    "urllib3>=1.25.10,<1.26.0" \
+    "urllib3<2" \
     # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
     python-dateutil==2.8.0 \
     tqdm==4.39.0 \

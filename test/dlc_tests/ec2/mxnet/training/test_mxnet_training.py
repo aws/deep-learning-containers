@@ -132,6 +132,7 @@ def test_mxnet_with_horovod_cpu(mxnet_training, ec2_connection, cpu_only, ec2_in
 
 
 @pytest.mark.flaky(reruns=3)
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
@@ -142,6 +143,7 @@ def test_mxnet_telemetry_gpu(mxnet_training, ec2_connection, gpu_only, ec2_insta
 
 
 @pytest.mark.flaky(reruns=3)
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
