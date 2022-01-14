@@ -107,7 +107,30 @@ def invoke_lambda(function_name, payload_dict = {}):
     if status_code != 202:
         raise ValueError("Lambda call not made properly. Status code returned {status_code}")
 
-def save_to_s3(image, vulnerability_list):
+def create_and_save_package_list_to_s3(old_filepath, new_packages, new_filepath):
+    """
+    This method conducts the union of packages present in the original apt-get-upgrade
+    list and new list of packages passed as an argument. It makes a new file and stores
+    the results in it.
+    :param old_filpath: str, path of original file
+    :param new_packages: list[str], consists of list of packages
+    :param new_filpath: str, path of new file that will have the results of union
+    """
+    file1 = open(old_filepath,"r")
+    lines = file1.readlines()
+    current_packages = [line.strip() for line in lines]
+    package_list = current_packages + new_packages
+    package_list = [f"{package_name}\n" for package_name in package_list]
+    file1.close()
+    run(f"rm -rf {new_filepath}")
+    file2 = open(new_filepath,"w")
+    file2.writelines(package_list)
+    file2.close()
+    s3_bucket_name = "trshanta-bucket"
+    s3_client = boto3.client("s3")
+    s3_client.upload_file(Filename=new_filepath, Bucket=s3_bucket_name, Key=new_filepath)
+
+def save_allowlist_to_s3(image, vulnerability_list):
     """
     Saves the vulnerability list in the s3 bucket. It uses image to decide the name of the file on 
     the s3 bucket.
@@ -149,14 +172,19 @@ def get_vulnerabilites_fixable_by_upgrade(image_allowlist, ecr_image_vulnerabili
 
 
 def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list):
-    s3_filename = save_to_s3(image, upgraded_image_vulnerability_list)
-    original_filepath = get_ecr_scan_allowlist_path(image)
+    s3_filename_for_allowlist = save_allowlist_to_s3(image, upgraded_image_vulnerability_list)
+    original_filepath_for_allowlist = get_ecr_scan_allowlist_path(image)
+    edited_files = [{"s3_filename": s3_filename_for_allowlist, "github_filepath": original_filepath_for_allowlist}]
     vulnerabilities_fixable_by_upgrade = get_vulnerabilites_fixable_by_upgrade(image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list)
     non_fixable_vulnerabilites = upgraded_image_vulnerability_list - image_allowlist
-    edited_files = [{"s3_filename": s3_filename, "github_filepath": original_filepath}]
     fixable_list = []
     if vulnerabilities_fixable_by_upgrade:
         fixable_list = vulnerabilities_fixable_by_upgrade.vulnerability_list
+    s3_filename_for_apt_upgrade_list = s3_filename_for_allowlist.replace("allowlist.json","apt-upgrade-list.txt")
+    original_filepath_for_apt_upgrade_list = '/'.join(original_filepath_for_allowlist.split('/')[:-1] + ["apt-upgrade-list.txt"])
+    new_package_list = fixable_list if isinstance(fixable_list, list) else list(fixable_list.keys())
+    create_and_save_package_list_to_s3(original_filepath_for_apt_upgrade_list, new_package_list, s3_filename_for_apt_upgrade_list)
+    edited_files.append({"s3_filename": s3_filename_for_apt_upgrade_list, "github_filepath": original_filepath_for_apt_upgrade_list})
     non_fixable_list = []
     if non_fixable_vulnerabilites:
         non_fixable_list = non_fixable_vulnerabilites.vulnerability_list
