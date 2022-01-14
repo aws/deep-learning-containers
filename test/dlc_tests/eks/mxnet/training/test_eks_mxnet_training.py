@@ -8,7 +8,7 @@ from invoke import run
 from invoke.context import Context
 
 import test.test_utils.eks as eks_utils
-from test.test_utils import get_cuda_version_from_tag, get_cuda_compare_string
+from test.test_utils import get_cuda_version_from_tag, get_cuda_compare_string, get_container_name
 
 from packaging.version import Version
 
@@ -86,13 +86,24 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
         :param mxnet_training: the ECR URI
     """
 
+    if "gpu" in mxnet_training:
+        cuda_ver = get_cuda_version_from_tag(mxnet_training)
+        # TODO: remove/update this when DGL supports cuda > 11.1
+        if Version(get_cuda_compare_string(cuda_ver)) > Version('11.1'):
+            pytest.skip("Skipping DGL tests for GPU until dgl-cu112 is available.")
+
     training_result = False
     rand_int = random.randint(4001, 6000)
 
     yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"mxnet-single-node-training-dgl-{rand_int}"
 
-    dgl_version = run(f"""docker run {mxnet_training} "python -c 'import dgl; print(dgl.__version__)'" """).stdout.strip()
+    ctx = Context()
+    # Run container to determine dgl version
+    container_name = get_container_name("dgl-mx", mxnet_training)
+    ctx.run(f"docker run --name {container_name} -itd {mxnet_training}")
+
+    dgl_version = ctx.run(f"docker exec --user root {container_name} python -c 'import dgl; print(dgl.__version__)'").stdout.strip()
     dgl_major_minor = re.search(r'(^\d+.\d+).', dgl_version).group(1)
     dgl_branch = f"{dgl_major_minor}.x"
 
@@ -106,10 +117,6 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
     cpu_limit = str(int(cpu_limit) / 2)
 
     if "gpu" in mxnet_training:
-        cuda_ver = get_cuda_version_from_tag(mxnet_training)
-        # TODO: remove/update this when DGL supports cuda > 11.1
-        if Version(get_cuda_compare_string(cuda_ver)) > Version('11.1'):
-            pytest.skip("Skipping DGL tests for GPU until dgl-cu112 is available.")
         args = args + " --gpu 0"
     else:
         args = args + " --gpu -1"
