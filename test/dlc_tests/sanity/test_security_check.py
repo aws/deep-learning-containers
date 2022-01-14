@@ -18,6 +18,7 @@ from src.config import is_ecr_scan_allowlist_feature_enabled
 
 MINIMUM_SEV_THRESHOLD = "HIGH"
 
+LOWER_THRESHOLD_IMAGES = {"mxnet":["1.8","1.9"]}
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
@@ -168,6 +169,22 @@ def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list
     print(message_body)
 
 
+def set_minimum_threshold_level(image):
+    """
+    This method sets the value for MINIMUM_SEV_THRESHOLD
+
+    :param image: str Image URI for which threshold has to be set
+    """
+    global MINIMUM_SEV_THRESHOLD
+    for framework in LOWER_THRESHOLD_IMAGES.keys():
+        if framework in image:
+            if any(version in image for version in LOWER_THRESHOLD_IMAGES[framework]):
+                MINIMUM_SEV_THRESHOLD = "MEDIUM"
+                return
+            return
+    MINIMUM_SEV_THRESHOLD = "HIGH"
+
+
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run ECR Scan test regularly on production images")
@@ -198,6 +215,8 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         _, image_repo_name = image_repo_uri.split("/")
         target_image_repo_name = f"beta-{image_repo_name}"
         image = ecr_utils.reupload_image_to_test_ecr(image, target_image_repo_name, region)
+    
+    set_minimum_threshold_level(image)
 
     run_scan(ecr_client, image)
     scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
