@@ -36,6 +36,7 @@ AML2_GPU_DLAMI_US_WEST_2 = "ami-071cb1e434903a577"
 AML2_GPU_DLAMI_US_EAST_1 = "ami-044264d246686b043"
 AML2_CPU_ARM64_US_WEST_2 = "ami-0bccd90b9db95e2e5"
 UL18_CPU_ARM64_US_WEST_2 = "ami-00bccef9d47441ac9"
+UL18_BENCHMARK_CPU_ARM64_US_WEST_2 = "ami-0ababa2deb802b069"
 AML2_CPU_ARM64_US_EAST_1 = "ami-01c47f32b27ed7fa0"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
@@ -51,12 +52,14 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
-    UL18_CPU_ARM64_US_WEST_2
+    UL18_CPU_ARM64_US_WEST_2,
+    UL18_BENCHMARK_CPU_ARM64_US_WEST_2,
 ]
 
 # ECS images are maintained here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
 ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
 ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
+ECS_AML2_NEURON_USWEST2 = "ami-0c7321fe2b2340dd5"
 ECS_AML2_GRAVITON_CPU_USWEST2 = "ami-0fb32cf53e5ab7686"
 NEURON_AL2_DLAMI = "ami-03c4cdc89eca4dbcb"
 HPU_AL2_DLAMI = "ami-052f4f716a7c7bad7"
@@ -300,6 +303,10 @@ def is_nightly_context():
 
 def is_empty_build_context():
     return not os.getenv("BUILD_CONTEXT")
+
+
+def is_graviton_architecture():
+    return os.getenv("ARCH_TYPE") == "graviton"
 
 
 def is_dlc_cicd_context():
@@ -654,6 +661,7 @@ def get_tensorflow_model_name(processor, model_name):
         },
         "albert": {"cpu": "albert", "gpu": "albert", "eia": "albert",},
         "saved_model_half_plus_three": {"eia": "saved_model_half_plus_three"},
+        "simple": {"neuron": "simple"},
     }
     if model_name in tensorflow_models:
         return tensorflow_models[model_name][processor]
@@ -821,8 +829,8 @@ def parse_canary_images(framework, region):
         "tensorflow2": rf"tf{customer_type_tag}-(2.\d+)",
         "mxnet": rf"mx{customer_type_tag}-(\d+.\d+)",
         "pytorch": rf"pt{customer_type_tag}-(\d+.\d+)",
-        "huggingface_pytorch": r"hf-pt-(\d+.\d+)",
-        "huggingface_tensorflow": r"hf-tf-(\d+.\d+)",
+        "huggingface_pytorch": r"hf-\S*pt-(\d+.\d+)",
+        "huggingface_tensorflow": r"hf-\S*tf-(\d+.\d+)",
         "autogluon": r"ag-(\d+.\d+)",
     }
 
@@ -845,9 +853,9 @@ def parse_canary_images(framework, region):
             elif "inf" in tag_str:
                 versions_counter[version]["inf"] = True
 
-    # Adding huggingface here since we dont have inference HF containers now
     versions = []
     for v, inf_train in versions_counter.items():
+        # Earlier versions of huggingface did not have inference
         if (inf_train["inf"] and inf_train["tr"]) or framework.startswith("huggingface"):
             versions.append(v)
 
@@ -904,8 +912,8 @@ def parse_canary_images(framework, region):
                 "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py3_version}",
                     # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py3_version}",
                 ],
             },
             "huggingface_tensorflow": {
@@ -913,8 +921,8 @@ def parse_canary_images(framework, region):
                 "sagemaker": [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py3_version}",
                     # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py3_version}",
+                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py3_version}",
                 ],
             },
             "autogluon": {
@@ -1159,6 +1167,10 @@ def get_neuron_framework_and_version_from_tag(image_uri):
 
     if neuron_sdk_version not in NEURON_VERSION_MANIFEST:
         raise KeyError(f"Cannot find neuron sdk version {neuron_sdk_version} ")
+
+    # Framework name may include huggingface
+    if tested_framework.startswith('huggingface_'):
+        tested_framework = tested_framework[len("huggingface_"):]
 
     neuron_framework_versions = NEURON_VERSION_MANIFEST[neuron_sdk_version][tested_framework]
     neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)

@@ -130,7 +130,7 @@ ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
- && curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+ && curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-py38_4.10.3-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p ${CONDA_PREFIX} \
  && rm ~/miniconda.sh \
@@ -163,7 +163,7 @@ RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
 
 RUN conda install -c pytorch magma-cuda111==2.5.2 \
  && conda install -y scikit-learn \
-    pandas \
+    pandas==1.2.4 \
     h5py \
     requests \
     libgcc \
@@ -191,13 +191,15 @@ WORKDIR /root
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install --no-cache-dir -U \
     opencv-python==4.5.2.54 \
+    "botocore>1.0,<2.0" \
+    "boto3>1.0,<2.0" \
+    "awscli<2" \
     smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training \
     "pyyaml>=5.4,<5.5" \
-    "awscli<2" \
     psutil \
     "Pillow>=8.3.2,<8.4" \
     scipy \
@@ -216,12 +218,19 @@ RUN pip install --no-cache-dir -U \
 # numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
 RUN pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
-    "imageio>=2.9,<3" \
+    "imageio==2.10.3" \
     "opencv-python>=4.3,<5" \
-    "plotly>=5.1,<6" \
+    "plotly==5.3.1" \
     "seaborn>=0.11,<1" \
-    "numba<0.54" \
-    "shap>=0.39,<1"
+    "numba==0.53.1" \
+    "shap>=0.39,<1" \
+    "jsii==1.43.0" \
+    "marshmallow==3.14.0" \
+    "matplotlib==3.4.3" \
+    "packaging==21.2" \
+    "pyarrow==6.0.0" \
+    "pyinstrument==4.0.4" \
+    "pyparsing==2.4.7"
 
 # install metis
 RUN rm /etc/apt/sources.list.d/* \

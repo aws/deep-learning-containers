@@ -5,10 +5,10 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
-ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211029-184012/c6edd96c1a92892731eb1f85272ca4d878e540d7/graviton/torch-1.10.0%2Bcpu-cp38-cp38-manylinux2014_aarch64.whl
+ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211117-055259/7af6f8360b1e31f4bad44bdec916cf15efc9b8a5/graviton/torch-1.10.0%2Bcpu-cp38-cp38-manylinux2014_aarch64.whl
 ARG ARMCL_BRANCH=v21.05
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.3.1
+ARG TS_VERSION=0.5.2
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
@@ -146,6 +146,7 @@ RUN HOME_DIR=/root \
  && chmod +x /usr/local/bin/testOSSCompliance \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && cp ${HOME_DIR}/oss_compliance/build_from_source_packages/BUILD_FROM_SOURCE_PACKAGES_LICENCES_AARCH64_IMAGES ${HOME_DIR} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt -o /license.txt
