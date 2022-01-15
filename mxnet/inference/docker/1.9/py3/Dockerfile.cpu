@@ -98,6 +98,7 @@ ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
 
 FROM e3 AS sagemaker
+
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
