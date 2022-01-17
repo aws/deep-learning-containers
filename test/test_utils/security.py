@@ -4,6 +4,7 @@ from enum import IntEnum
 
 from test import test_utils
 
+import copy, collections
 
 class ECRScanFailureException(Exception):
     """
@@ -79,11 +80,37 @@ class ScanVulnerabilityList:
                 for vulnerability in package_vulnerabilities
             ]
         return None
-    
+
+    def sort_dictionary_in_custom_way(self, input_dict):
+        """
+        This method is specifically made to sort the vulnerability list which is actually a dict 
+        and has the following structure:
+        {
+            "packge_name1":[
+                {"name":"cve-id1", "uri":"http.." ..},
+                {"name":"cve-id2", "uri":"http.." ..}
+            ],
+            "packge_name2":[
+                {"name":"cve-id1", "uri":"http.." ..},
+                {"name":"cve-id2", "uri":"http.." ..}
+            ]
+        }
+        We want to first sort the innermost list of dicts based on the "name" of each dict and then we sort the
+        otermost dict based on keys i.e. package_name1 and package_name2
+        :param input_dict: dict(key, list(dict)), represents vulnerability_list
+        :return: dict, input_dict sorted in a custom way
+        """
+        copy_dict = copy.deepcopy(input_dict)
+        for _,list_of_dict in copy_dict.items():
+            list_of_dict.sort(key=lambda dict_element:dict_element["name"])
+        od = collections.OrderedDict(sorted(copy_dict.items()))
+        return dict(od)
+
     def save_vulnerability_list(self, path):
         if self.vulnerability_list:
+            sorted_vulnerability_list = self.sort_dictionary_in_custom_way(self.vulnerability_list)
             with open(path, 'w') as f:
-                json.dump(self.vulnerability_list, f, indent=4, sort_keys=True)
+                json.dump(sorted_vulnerability_list, f, indent=4)
 
     def __contains__(self, vulnerability):
         """
