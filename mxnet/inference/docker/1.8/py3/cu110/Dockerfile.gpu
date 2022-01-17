@@ -50,6 +50,11 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+COPY apt-upgrade-list.txt /tmp/apt-upgrade-list.txt
+RUN apt-get update \
+    && apt-get install --only-upgrade $(cat /tmp/apt-upgrade-list.txt) \
+    && rm -rf /tmp/apt-upgrade-list.txt
+
 # install OpenSSL
 RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
  && tar -xzf openssl-${OPENSSL_VERSION}.tar.gz \
