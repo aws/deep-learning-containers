@@ -8,7 +8,7 @@ from invoke import run
 from invoke.context import Context
 
 import test.test_utils.eks as eks_utils
-from test.test_utils import get_cuda_version_from_tag, get_cuda_compare_string, get_container_name
+from test.test_utils import get_container_name, get_cuda_major_minor_version_from_tag
 
 from packaging.version import Version
 
@@ -87,9 +87,8 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
     """
 
     if "gpu" in mxnet_training:
-        cuda_ver = get_cuda_version_from_tag(mxnet_training)
         # TODO: remove/update this when DGL supports cuda > 11.1
-        if Version(get_cuda_compare_string(cuda_ver)) > Version('11.1'):
+        if Version(get_cuda_major_minor_version_from_tag(mxnet_training)) > Version('11.1'):
             pytest.skip("Skipping DGL tests for GPU until dgl-cu112 is available.")
 
     training_result = False
