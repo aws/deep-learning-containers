@@ -7,7 +7,6 @@ import test.test_utils.ec2 as ec2_utils
 
 from test.test_utils import CONTAINER_TESTS_PREFIX
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
-from test.test_utils import get_cuda_major_minor_version_from_tag
 
 from packaging.version import Version
 
@@ -84,9 +83,10 @@ def test_mxnet_keras_cpu(mxnet_training, ec2_connection, cpu_only):
 def test_mxnet_train_dgl_gpu(mxnet_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(mxnet_training, ec2_instance_type):
         pytest.skip(f"Image {mxnet_training} is incompatible with instance type {ec2_instance_type}")
-    # TODO: remove/update this when DGL supports cuda > 11.1
-    if Version(get_cuda_major_minor_version_from_tag(mxnet_training)) > Version('11.1'):
-        pytest.skip("Skipping DGL tests for GPU until dgl-cu112 is available.")
+    # TODO: remove/update this when DGL supports MXNet 1.9
+    _, framework_version = test_utils.get_framework_and_version_from_tag(mxnet_training)
+    if Version(framework_version) >= Version('1.9.0'):
+        pytest.skip("Skipping DGL tests as DGL does not yet support MXNet 1.9")
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_DGL_CMD)
 
 

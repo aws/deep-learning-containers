@@ -98,7 +98,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "Pillow>=9.0,<10.0" \
     "requests<3" \
     scikit-learn \
-    dgl==0.6.* \
+    # disabling DGL until a release is built for MXNet 1.9
+    # dgl==0.6.* \
     scipy==1.7.0 \
     gluonnlp==0.10.0 \
     gluoncv==0.8.0 \

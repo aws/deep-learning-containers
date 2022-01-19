@@ -5,7 +5,6 @@ import pytest
 from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2, CONTAINER_TESTS_PREFIX
 from test.test_utils import ecs as ecs_utils
 from test.test_utils import ec2 as ec2_utils
-from test.test_utils import get_cuda_major_minor_version_from_tag
 
 from packaging.version import Version
 
@@ -94,9 +93,10 @@ def test_ecs_mxnet_training_dgl_gpu(gpu_only, py3_only, ecs_container_instance, 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
     """
-    # TODO: remove/update this when DGL supports cuda > 11.1
-    if Version(get_cuda_major_minor_version_from_tag(mxnet_training)) > Version('11.1'):
-        pytest.skip("Skipping DGL tests for GPU until dgl-cu112 is available.")
+    # TODO: remove/update this when DGL supports MXNet 1.9
+    _, framework_version = test_utils.get_framework_and_version_from_tag(mxnet_training)
+    if Version(framework_version) >= Version('1.9.0'):
+        pytest.skip("Skipping DGL tests as DGL does not yet support MXNet 1.9")
     instance_id, cluster_arn = ecs_container_instance
 
     num_gpus = ec2_utils.get_instance_num_gpus(instance_id)

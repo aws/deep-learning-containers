@@ -124,7 +124,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "Pillow>=9.0,<10.0" \
     "requests<3" \
     scikit-learn \
-    # disabling DGL until a release is built for cuda 11.2
+    # disabling DGL until a release is built for MXNet 1.9 and CUDA 11.2
     # dgl-cu112 \
     scipy==1.7.0 \
     gluonnlp==0.10.0 \

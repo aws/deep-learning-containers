@@ -8,7 +8,7 @@ from invoke import run
 from invoke.context import Context
 
 import test.test_utils.eks as eks_utils
-from test.test_utils import get_container_name, get_cuda_major_minor_version_from_tag
+from test.test_utils import get_container_name
 
 from packaging.version import Version
 
@@ -86,10 +86,10 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
         :param mxnet_training: the ECR URI
     """
 
-    if "gpu" in mxnet_training:
-        # TODO: remove/update this when DGL supports cuda > 11.1
-        if Version(get_cuda_major_minor_version_from_tag(mxnet_training)) > Version('11.1'):
-            pytest.skip("Skipping DGL tests for GPU until dgl-cu112 is available.")
+    # TODO: remove/update this when DGL supports MXNet 1.9
+    _, framework_version = test_utils.get_framework_and_version_from_tag(mxnet_training)
+    if Version(framework_version) >= Version('1.9.0'):
+        pytest.skip("Skipping DGL tests as DGL does not yet support MXNet 1.9")
 
     training_result = False
     rand_int = random.randint(4001, 6000)
