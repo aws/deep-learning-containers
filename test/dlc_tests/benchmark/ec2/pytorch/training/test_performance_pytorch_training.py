@@ -69,7 +69,6 @@ def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_
 
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
-# TODO: Ensure 8 card instance is used
 @pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
 @pytest.mark.parametrize('cards_num', [1, 8])
 def test_performance_pytorch_rn50_hpu_synthetic(pytorch_training_habana, ec2_connection, cards_num):
@@ -93,7 +92,6 @@ def test_performance_pytorch_rn50_hpu_synthetic(pytorch_training_habana, ec2_con
 
 @pytest.mark.model("bert")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
-# TODO: Ensure 8 card instance is used
 @pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
 @pytest.mark.parametrize('cards_num', [1, 8])
 def test_performance_pytorch_bert_hpu(pytorch_training_habana, ec2_connection, cards_num):

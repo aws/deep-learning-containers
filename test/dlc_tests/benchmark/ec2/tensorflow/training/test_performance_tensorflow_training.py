@@ -91,7 +91,6 @@ def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection
 @pytest.mark.integration("synthetic dataset")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)
-# TODO: Ensure 8 card instance is used
 @pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
 @pytest.mark.parametrize('cards_num', [1, 8])
 def test_performance_tensorflow_rn50_hpu_synthetic(tensorflow_training_habana, ec2_connection, cards_num):
@@ -116,7 +115,6 @@ def test_performance_tensorflow_rn50_hpu_synthetic(tensorflow_training_habana, e
 @pytest.mark.integration("squad dataset")
 @pytest.mark.model("bert")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)
-# TODO: Ensure 8 card instance is used
 @pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
 @pytest.mark.parametrize('cards_num', [1, 8])
 def test_performance_tensorflow_bert_hpu(tensorflow_training_habana, ec2_connection, cards_num):
@@ -141,7 +139,6 @@ def test_performance_tensorflow_bert_hpu(tensorflow_training_habana, ec2_connect
 @pytest.mark.integration("coco_like dataset")
 @pytest.mark.model("maskrcnn")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)
-# TODO: Ensure 8 card instance is used
 @pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
 @pytest.mark.parametrize('cards_num', [1])
 def test_performance_tensorflow_maskrcnn_hpu(tensorflow_training_habana, ec2_connection, cards_num):
