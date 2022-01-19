@@ -1211,29 +1211,6 @@ def get_cuda_version_from_tag(image_uri):
     return cuda_framework_version
 
 
-def get_cuda_major_minor_version_from_tag(image_uri):
-    """
-    Get cuda version from tag (i.e. cu111) and convert it to major.minor (11.1)
-    @param image_uri: ECR iamge URI
-    @return: major.minor cuda version
-    """
-    cuda_framework_version = None
-    cuda_str = ["cu", "gpu"]
-    if all(keyword in image_uri for keyword in cuda_str):
-        cuda_framework_version = re.search(r"cu(\d+)-", image_uri).group(1)
-
-    if not cuda_framework_version:
-        return cuda_framework_version
-
-    cuda_version_length = len(cuda_framework_version)
-    if cuda_version_length < 2 or cuda_version_length > 4:
-        raise RuntimeError(f"Cannot parse ambiguous cuda version {cuda_framework_version} from image {image_uri}")
-    if len(cuda_framework_version) == 2:
-        return f"{cuda_framework_version[0]}.{cuda_framework_version[1]}"
-    else:
-        return f"{cuda_framework_version[:2]}.{cuda_framework_version[2:]}"
-
-
 def get_synapseai_version_from_tag(image_uri):
     """
     Return the synapseai version from the image tag.
