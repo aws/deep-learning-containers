@@ -43,7 +43,7 @@ images:
     download_artifacts:
       pytorch_binary:
         type: s3
-        URI: s3://aws-habana-pytorch-cicd-v3-binaries/r1.10.0_aws_v3_habana/20220107-222153/03502bc4a7e2e6c2254a4345e64d0e69e5bf5cf0/al2/torch-1.10.0-cp38-cp38-manylinux1_x86_64.whl
+        URI: s3://aws-habana-pytorch-cicd-v3-binaries/r1.10.0_aws_v3_habana/20220119-001148/972afcbe0f5754fd4f41d087730bd2870967c606/al2/torch-1.10.0-cp38-cp38-manylinux1_x86_64.whl
         VAR_IN_DOCKERFILE: PT_TRAINING_URL
     context:
       <<: *TRAINING_CONTEXT
@@ -64,7 +64,7 @@ images:
     download_artifacts:
       pytorch_binary:
         type: s3
-        URI: s3://aws-habana-pytorch-cicd-v3-binaries/r1.10.0_aws_v3_habana/20220107-222153/03502bc4a7e2e6c2254a4345e64d0e69e5bf5cf0/al2/torch-1.10.0-cp38-cp38-manylinux1_x86_64.whl
+        URI: s3://aws-habana-pytorch-cicd-v3-binaries/r1.10.0_aws_v3_habana/20220119-001148/972afcbe0f5754fd4f41d087730bd2870967c606/al2/torch-1.10.0-cp38-cp38-manylinux1_x86_64.whl
         VAR_IN_DOCKERFILE: PT_TRAINING_URL
     context:
       <<: *TRAINING_CONTEXT
