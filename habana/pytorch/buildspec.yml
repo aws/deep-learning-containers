@@ -40,11 +40,6 @@ images:
       "-", *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *SYNAPSEAI_VERSION,
       /Dockerfile., *DEVICE_TYPE ]
-    download_artifacts:
-      pytorch_binary:
-        type: s3
-        URI: s3://aws-habana-pytorch-cicd-v3-binaries/r1.10.0_aws_v3_habana/20220119-001148/972afcbe0f5754fd4f41d087730bd2870967c606/al2/torch-1.10.0-cp38-cp38-manylinux1_x86_64.whl
-        VAR_IN_DOCKERFILE: PT_TRAINING_URL
     context:
       <<: *TRAINING_CONTEXT
   BuildHabanaPytorchExamplePy37SypAI120TrainingDockerImage:
@@ -61,10 +56,5 @@ images:
       "-", *OS_VERSION, "-example" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /example,
       /Dockerfile., *DEVICE_TYPE ]
-    download_artifacts:
-      pytorch_binary:
-        type: s3
-        URI: s3://aws-habana-pytorch-cicd-v3-binaries/r1.10.0_aws_v3_habana/20220119-001148/972afcbe0f5754fd4f41d087730bd2870967c606/al2/torch-1.10.0-cp38-cp38-manylinux1_x86_64.whl
-        VAR_IN_DOCKERFILE: PT_TRAINING_URL
     context:
       <<: *TRAINING_CONTEXT
