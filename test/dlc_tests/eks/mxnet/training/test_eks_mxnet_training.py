@@ -8,7 +8,7 @@ from invoke import run
 from invoke.context import Context
 
 import test.test_utils.eks as eks_utils
-from test.test_utils import get_container_name
+from test.test_utils import get_container_name, get_framework_and_version_from_tag
 
 from packaging.version import Version
 
@@ -87,7 +87,7 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
     """
 
     # TODO: remove/update this when DGL supports MXNet 1.9
-    _, framework_version = test_utils.get_framework_and_version_from_tag(mxnet_training)
+    _, framework_version = get_framework_and_version_from_tag(mxnet_training)
     if Version(framework_version) >= Version('1.9.0'):
         pytest.skip("Skipping DGL tests as DGL does not yet support MXNet 1.9")
 

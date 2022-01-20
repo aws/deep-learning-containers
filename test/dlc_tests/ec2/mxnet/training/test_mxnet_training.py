@@ -94,6 +94,10 @@ def test_mxnet_train_dgl_gpu(mxnet_training, ec2_connection, gpu_only, py3_only,
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_mxnet_train_dgl_cpu(mxnet_training, ec2_connection, cpu_only, py3_only):
+    # TODO: remove/update this when DGL supports MXNet 1.9
+    _, framework_version = test_utils.get_framework_and_version_from_tag(mxnet_training)
+    if Version(framework_version) >= Version('1.9.0'):
+        pytest.skip("Skipping DGL tests as DGL does not yet support MXNet 1.9")
     execute_ec2_training_test(ec2_connection, mxnet_training, MX_DGL_CMD)
 
 
