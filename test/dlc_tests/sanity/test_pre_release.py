@@ -453,7 +453,7 @@ def test_dependency_check_hpu(hpu, ec2_connection):
     _run_dependency_check_test(hpu, ec2_connection, "hpu")
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
