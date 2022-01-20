@@ -55,6 +55,7 @@ RUN pip install --no-cache-dir --user -U \
     torchnet \
     "cryptography>3.2" \
     werkzeug \
+ && pip uninstall -y dataclasses typing \
  && pip install --no-cache-dir --user -U boto3 --upgrade \
  && pip uninstall -y torch \
  && pip uninstall -y hb-torch \

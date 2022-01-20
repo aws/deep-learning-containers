@@ -94,7 +94,7 @@ RUN ${PIP} uninstall -y tensorflow-cpu \
     scipy==1.5.2 \
     scikit-learn==0.23 \
     pandas==1.1 \
-    "Pillow>=8.3,<8.4" \
+    Pillow \
     # python-dateutil==2.8.1 to satisfy botocore associated with latest awscli
     python-dateutil==2.8.1 \
     # install PyYAML>=5.4 to avoid conflict with latest awscli
