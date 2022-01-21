@@ -315,10 +315,6 @@ def _run_dependency_check_test(image, ec2_connection):
         "CVE-2016-2177",
         "CVE-2016-6303",
         "CVE-2016-2182",
-        # CVE-2020-13936: vulnerability found in apache velocity package which is a dependency for dependency-check package. Hence, ignoring.
-        "CVE-2020-13936",
-        # CVE-2021-42550: affected file is part of dependency-check lib at path "dependency-check/lib/logback-core-1.2.3.jar" so we can ignore.
-        "CVE-2021-42550",
     }
 
     processor = get_processor_from_image_uri(image)
