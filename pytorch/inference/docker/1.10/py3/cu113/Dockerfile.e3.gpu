@@ -166,10 +166,8 @@ RUN pip install \
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
- && git clone https://www.github.com/pytorch/serve.git \
- && cd serve && git checkout --track origin/release_${TS_VERSION} \
- && pip install . && pip install model-archiver/. \
- && cd .. && rm -rf serve/ && rm -rf $HOME/.gradle
+ && pip install torchserve==${TS_VERSION} \
+ && pip install torch-model-archiver==${TS_VERSION} 
 
 RUN cd tmp/ \
  && rm -rf tmp*
