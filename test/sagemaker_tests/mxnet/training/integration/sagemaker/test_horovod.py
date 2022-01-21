@@ -17,7 +17,8 @@ import os
 import pytest
 
 import sagemaker
-from ... import MXNetWrapper as MXNet
+from sagemaker.mxnet.estimator import MXNet
+from ..... import invoke_sm_helper_function
 
 from ...integration import RESOURCE_PATH
 from ...integration.utils import unique_name_from_base
@@ -26,12 +27,16 @@ from ...integration.utils import unique_name_from_base
 @pytest.mark.multinode(2)
 @pytest.mark.integration("horovod")
 @pytest.mark.model("mnist")
-def test_distributed_training_horovod(sagemaker_regions,
+def test_distributed_training_horovod(ecr_image,
+                                      sagemaker_regions,
                                       instance_type,
-                                      ecr_image,
                                       tmpdir,
                                       framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_distributed_training_horovod,
+                              instance_type, tmpdir, framework_version)
 
+
+def _test_distributed_training_horovod(ecr_image, sagemaker_session, instance_type, tmpdir, framework_version):
     mpi_options = '-verbose -x orte_base_help_aggregate=0'
     estimator = MXNet(
         entry_point=os.path.join(RESOURCE_PATH, 'mnist', 'horovod_mnist.py'),
@@ -44,13 +49,13 @@ def test_distributed_training_horovod(sagemaker_regions,
         hyperparameters={'sagemaker_mpi_enabled': True,
                          'sagemaker_mpi_custom_mpi_options': mpi_options,
                          'sagemaker_mpi_num_of_processes_per_host': 1},
-        sagemaker_regions=sagemaker_regions
+        sagemaker_session=sagemaker_session
     )
 
     estimator.fit(job_name=unique_name_from_base('test-mx-horovod'))
 
     model_data_source = sagemaker.local.data.get_data_source_instance(
-        estimator.model_data, estimator.sagemaker_session)
+        estimator.model_data, sagemaker_session)
 
     for filename in model_data_source.get_file_list():
         assert os.path.basename(filename) == 'model.tar.gz'

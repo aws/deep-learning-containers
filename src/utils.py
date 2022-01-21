@@ -178,6 +178,9 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
             dockerfile = [f"{dockerfile[0]}_{dockerfile[1]}"]+dockerfile[2:]
         framework_change = dockerfile[0]
 
+        if dockerfile[0] == "habana":
+            framework_change = dockerfile[1]
+            dockerfile = [f"{dockerfile[0]}_{dockerfile[1]}"]+dockerfile[2:]
         # If the modified dockerfile belongs to a different
         # framework, do nothing
         if framework_change != framework:
@@ -212,6 +215,8 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
             # Joining 1 and 2 elements to get huggingface_<framework> as a first element
             buildspec_arr = [f"{buildspec_arr[0]}_{buildspec_arr[1]}"]+buildspec_arr[2:]
         buildspec_framework = buildspec_arr[0]
+        if buildspec_arr[0] == "habana":
+            buildspec_framework = buildspec_arr[1]
         if buildspec_framework == framework:
             JobParameters.build_for_all_images()
             update_image_run_test_types(constants.ALL, constants.ALL)
@@ -512,7 +517,10 @@ def get_root_folder_path():
     """
     root_dir_pattern = re.compile(r"^(\S+deep-learning-containers)")
     pwd = os.getcwd()
-    return os.getenv("CODEBUILD_SRC_DIR", root_dir_pattern.match(pwd).group(1))
+    codebuild_src_dir_env = os.getenv("CODEBUILD_SRC_DIR")
+    root_folder_path = codebuild_src_dir_env if codebuild_src_dir_env else root_dir_pattern.match(pwd).group(1)
+
+    return root_folder_path
 
 
 def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
