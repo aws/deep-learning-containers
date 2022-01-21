@@ -54,6 +54,8 @@ def assign_sagemaker_remote_job_instance_type(image):
 def assign_sagemaker_local_job_instance_type(image):
     if "tensorflow" in image and "inference" in image and "gpu" in image:
         return "p2.xlarge"
+    elif "autogluon" in image and "gpu" in image:
+        return "p3.2xlarge"
     return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
 
 
@@ -116,7 +118,15 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     accelerator_type_arg = "--accelerator-type"
     framework_version_arg = "--framework-version"
     eia_arg = "ml.eia1.large"
-    processor = "neuron" if "neuron" in image else "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
+    processor = (
+        "neuron"
+        if "neuron" in image
+        else "gpu"
+        if "gpu" in image
+        else "eia"
+        if "eia" in image
+        else "cpu"
+    )
     py_version = re.search(r"py\d+", tag).group()
     sm_local_py_version = "37" if py_version == "py37" else "38" if py_version == "py38" else "2" if py_version == "py27" else "3"
     if framework == "tensorflow" and job_type == "inference":
@@ -324,25 +334,30 @@ def execute_local_tests(image, pytest_cache_params):
         return None
 
 
-def execute_sagemaker_remote_tests(image):
+def execute_sagemaker_remote_tests(image, pytest_cache_params):
     """
     Run pytest in a virtual env for a particular image
     Expected to run via multiprocessing
     :param image: ECR url
     """
+    account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
+    pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
     context = Context()
     with context.cd(path):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
+            pytest_cache_util.download_pytest_cache_from_s3_to_local(path, **pytest_cache_params)
             res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
+            pytest_cache_util.merge_cache_and_upload_from_local_to_s3(path, **pytest_cache_params)
             if res.failed:
                 raise DLCSageMakerRemoteTestFailure(
                     f"{pytest_command} failed with error code: {res.return_code}\n"
                     f"Traceback:\n{res.stdout}"
                 )
+    return None
 
 
 def generate_empty_report(report, test_type, case):

@@ -170,14 +170,15 @@ def image_builder(buildspec):
             stage=constants.PRE_PUSH_STAGE,
             context=context,
             additional_tags=[image_tag],
+            target=image_config.get("target")
         )
 
         ##### Create Common stage docker object #####
         # If for a pre_push stage image we create a common stage image, then we do not push the pre_push stage image
         # to the repository. Instead, we just push its common stage image to the repository. Therefore,
         # inside function get_common_stage_image_object we make pre_push_stage_image_object non pushable.
-        # common_stage_image_object = generate_common_stage_image_object(pre_push_stage_image_object, image_tag)
-        # COMMON_STAGE_IMAGES.append(common_stage_image_object)
+        common_stage_image_object = generate_common_stage_image_object(pre_push_stage_image_object, image_tag)
+        COMMON_STAGE_IMAGES.append(common_stage_image_object)
 
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()

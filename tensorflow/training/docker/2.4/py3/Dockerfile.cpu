@@ -151,7 +151,7 @@ RUN ${PIP} install --no-cache-dir -U \
     h5py==2.10.0 \
     "absl-py>=0.9,<0.11" \
     horovod==0.21.0 \
-    werkzeug==1.0.1 \
+    werkzeug==2.0.2 \
     psutil==5.7.2 \
     smdebug==${SMDEBUG_VERSION} \
     smclarify

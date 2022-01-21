@@ -145,7 +145,7 @@ def send_scheduler_requests(requester, image):
             break
 
 
-def run_sagemaker_remote_tests(images):
+def run_sagemaker_remote_tests(images, pytest_cache_params):
     """
     Function to set up multiprocessing for SageMaker tests
     :param images: <list> List of all images to be used in SageMaker tests
@@ -188,7 +188,7 @@ def run_sagemaker_remote_tests(images):
             return
         pool_number = len(images)
         with Pool(pool_number) as p:
-            p.map(sm_utils.execute_sagemaker_remote_tests, images)
+            p.starmap(sm_utils.execute_sagemaker_remote_tests, [[image, pytest_cache_params] for image in images])
 
 
 def pull_dlc_images(images):
@@ -389,7 +389,7 @@ def main():
                 for image in standard_images_list
                 if not (("tensorflow-inference" in image and "py2" in image) or is_e3_image(image))
             ]
-            run_sagemaker_remote_tests(sm_remote_images)
+            run_sagemaker_remote_tests(sm_remote_images, pytest_cache_params)
             if standard_images_list and not sm_remote_images:
                 report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
                 sm_utils.generate_empty_report(report, test_type, "sm_remote_unsupported")
