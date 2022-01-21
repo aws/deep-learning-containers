@@ -201,7 +201,7 @@ RUN pip install --no-cache-dir -U \
     sagemaker-pytorch-training \
     "pyyaml>=5.4,<5.5" \
     psutil \
-    "Pillow>=8.3.2,<8.4" \
+    "Pillow>=9.0.0,<10.0" \
     scipy \
     pybind11 \
     click \

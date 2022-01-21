@@ -171,7 +171,7 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     boto3 \
     psutil \
-    "Pillow>=8.3.2" \
+    "Pillow>=9.0.0,<10.0" \
     scipy \
     pybind11 \
     click \
