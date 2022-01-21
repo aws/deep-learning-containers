@@ -30,7 +30,7 @@ from image import DockerImage
 from common_stage_image import CommonStageImage
 from buildspec import Buildspec
 from output import OutputFormatter
-from config import parse_dlc_developer_configs
+from config import parse_dlc_developer_configs, is_build_enabled
 
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
@@ -170,14 +170,15 @@ def image_builder(buildspec):
             stage=constants.PRE_PUSH_STAGE,
             context=context,
             additional_tags=[image_tag],
+            target=image_config.get("target")
         )
 
         ##### Create Common stage docker object #####
         # If for a pre_push stage image we create a common stage image, then we do not push the pre_push stage image
         # to the repository. Instead, we just push its common stage image to the repository. Therefore,
         # inside function get_common_stage_image_object we make pre_push_stage_image_object non pushable.
-        # common_stage_image_object = generate_common_stage_image_object(pre_push_stage_image_object, image_tag)
-        # COMMON_STAGE_IMAGES.append(common_stage_image_object)
+        common_stage_image_object = generate_common_stage_image_object(pre_push_stage_image_object, image_tag)
+        COMMON_STAGE_IMAGES.append(common_stage_image_object)
 
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()
@@ -214,8 +215,14 @@ def image_builder(buildspec):
     # Set environment variables to be consumed by test jobs
     test_trigger_job = utils.get_codebuild_project_name()
     # Tests should only run on images that were pushed to the repository
+    if not is_build_enabled():
+        # Ensure we have images populated if do_build is false, so that tests can proceed if needed
+        images_to_test = [image for image in ALL_IMAGES if image.to_push]
+    else:
+        images_to_test = IMAGES_TO_PUSH
+
     utils.set_test_env(
-        IMAGES_TO_PUSH, 
+        images_to_test,
         use_latest_additional_tag=True, 
         BUILD_CONTEXT=os.getenv("BUILD_CONTEXT"), 
         TEST_TRIGGER=test_trigger_job
@@ -412,6 +419,7 @@ def push_images(images):
             THREADS[image.name] = executor.submit(image.push_image)
     FORMATTER.progress(THREADS)
 
+
 def retag_and_push_images(images):
     """
     Takes a list of images, retags them and pushes to the repository
@@ -424,9 +432,10 @@ def retag_and_push_images(images):
             THREADS[image.name] = executor.submit(image.push_image_with_additional_tags)
     FORMATTER.progress(THREADS)
 
+
 def tag_image_with_pr_number(image_tag):
-    pr_number = os.getenv("CODEBUILD_SOURCE_VERSION").replace("/", "-")
-    return f"{image_tag}-{pr_number}"
+    pr_number = os.getenv("PR_NUMBER")
+    return f"{image_tag}-pr-{pr_number}"
 
 
 def tag_image_with_datetime(image_tag):

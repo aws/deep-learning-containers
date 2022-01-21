@@ -14,6 +14,9 @@ ARG CONDA_PREFIX=/opt/conda
 ARG METIS=metis-5.1.0
 ARG RMM_VERSION=0.15.0
 
+# disable prompts during package installation
+ARG DEBIAN_FRONTEND=noninteractive
+
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
 ARG SMDEBUG_VERSION=1.0.9
@@ -44,8 +47,8 @@ ENV RDMAV_FORK_SAFE=1
 
 ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.8.1_aws/20210325-012734/e1343088f0beb99438343e1e99e8d71ffb972b47/gpu/torch-1.8.1-cp36-cp36m-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.8.1/gpu/torchvision-0.9.1-cp36-cp36m-linux_x86_64.whl
-ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.amazonaws.com/pytorch-1.8/build-artifacts/2021-03-26-22-01/smdistributed_modelparallel-1.3.1-cp36-cp36m-linux_x86_64.whl
-ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.8.1/cu111/2021-04-28/smdistributed_dataparallel-1.2.0-cp36-cp36m-linux_x86_64.whl
+ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.8.1/build-artifacts/2021-12-14-00-46/smdistributed_modelparallel-1.6.0-cp36-cp36m-linux_x86_64.whl
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.8.1/cu111/2021-12-13/smdistributed_dataparallel-1.2.3-cp36-cp36m-linux_x86_64.whl
 ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3-us-west-2.amazonaws.com/binaries/0.0.1/93fdaed/awsio-0.0.1-cp36-cp36m-manylinux1_x86_64.whl
 
 RUN apt-get update \
@@ -87,6 +90,9 @@ RUN apt-get update \
     unzip \
     zlib1g-dev \
     jq \
+    && apt-get install -y -qq libkrb5-dev \
+    && apt-get install -y -qq libsasl2-dev libsasl2-modules \
+    && apt-get install -y -qq krb5-user \
  && rm -rf /var/lib/apt/lists/*
 
 RUN cd /tmp \
@@ -122,8 +128,9 @@ RUN mkdir /tmp/openmpi && \
 ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
+# py37 is the oldest python version supported by Miniconda 4.10.3, py36 is installed below and will override py37 environment
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
- && curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+ && curl -L -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-py37_4.10.3-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p ${CONDA_PREFIX} \
  && rm ~/miniconda.sh \
@@ -141,7 +148,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     typing \
     future \
     "pyopenssl>=17.5.0" \
- && conda install -y -c dglteam dgl-cuda11.1 \
+ && conda install -y -c dglteam dgl-cuda11.1==0.6.1 \
  && ${CONDA_PREFIX}/bin/conda clean -ya
 
 RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
@@ -183,6 +190,8 @@ RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
+    # Pin SM Training toolkit as the latest version (4.0.0) dropped py36 support
+    "sagemaker-training<4" \
     sagemaker-pytorch-training \
     --no-cache-dir fastai==1.0.61 \
     "pyyaml>=5.4,<5.5" \
@@ -208,7 +217,17 @@ RUN pip install --no-cache-dir -U \
     "opencv-python>=4.3,<5" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
-    "shap>=0.39,<1"
+    "shap>=0.39,<1" \
+    "boto3>1.0,<2.0" \
+    "sasl<1" \
+    "thrift_sasl<1" \
+    "PyHive<1" \
+    "sparkmagic<1" \
+    "sagemaker-studio-sparkmagic-lib<1" \
+    "sagemaker-studio-analytics-extension<1"
+
+# Remove python kernel installed by sparkmagic
+RUN /opt/conda/bin/jupyter-kernelspec remove -fy python3
 
 # install metis
 RUN wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
@@ -292,11 +311,11 @@ RUN pip uninstall -y horovod \
  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.1 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
-# Install SM Distributed Modelparallel binary
-RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
-
 # Install SM Distributed DataParallel binary
 RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
+
+# Install SM Distributed Modelparallel binary
+RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
 
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python3.6/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 

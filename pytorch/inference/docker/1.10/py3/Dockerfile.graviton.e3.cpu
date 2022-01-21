@@ -1,0 +1,156 @@
+FROM arm64v8/ubuntu:20.04
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ARG PYTHON=python3
+ARG PYTHON_VERSION=3.8.12
+ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211117-055259/7af6f8360b1e31f4bad44bdec916cf15efc9b8a5/graviton/torch-1.10.0%2Bcpu-cp38-cp38-manylinux2014_aarch64.whl
+ARG ARMCL_BRANCH=v21.05
+ARG OPEN_MPI_VERSION=4.0.1
+ARG TS_VERSION=0.5.2
+ENV LANG C.UTF-8
+ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
+ENV PATH /opt/conda/bin:$PATH
+ENV TEMP=/home/model-server/tmp
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends software-properties-common \
+ && add-apt-repository ppa:openjdk-r/ppa \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    cmake \
+    curl \
+    emacs \
+    git \
+    jq \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    openjdk-11-jdk \
+    openssl \
+    scons \
+    vim \
+    wget \
+    unzip \
+    zlib1g-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
+RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
+    mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
+    /var/lib/dpkg/info/ca-certificates-java.postinst configure;
+
+RUN curl -L -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-py38_4.10.3-Linux-aarch64.sh \
+ && chmod +x ~/miniconda.sh \
+ && ~/miniconda.sh -b -p /opt/conda \
+ && rm ~/miniconda.sh
+
+RUN /opt/conda/bin/conda update conda
+
+RUN /opt/conda/bin/conda install -c conda-forge python=$PYTHON_VERSION
+
+RUN /opt/conda/bin/conda install -y \
+    ruamel_yaml \
+    cython \
+    ipython \
+    numpy \
+    parso \
+    scipy
+
+RUN /opt/conda/bin/conda clean -ya
+
+# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
+# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
+# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
+# once conda fixes the issue https://github.com/conda/conda/issues/9680
+RUN rm -rf /opt/conda/lib/libtinfo.so.6
+
+RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
+ && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
+ && cd openmpi-$OPEN_MPI_VERSION \
+ && ./configure --prefix=/home/.openmpi \
+ && make all install \
+ && cd .. \
+ && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
+ && rm -rf openmpi-$OPEN_MPI_VERSION
+
+# The ENV variables declared below are changed in the previous section
+# Grouping these ENV variables in the first section causes
+# ompi_info to fail. This is only observed in CPU containers
+ENV PATH="$PATH:/home/.openmpi/bin"
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
+RUN conda install -c \
+    conda-forge \
+    opencv \
+ && conda install -y \
+    scikit-learn \
+    pandas \
+    requests \
+ && conda clean -ya \
+ && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && pip install packaging==20.4 \
+    enum-compat==0.0.3 \
+    "cryptography>=3.3.2"
+
+# install torch and torchvision from the PyTorch website
+RUN pip uninstall -y torch \
+ && pip install --no-cache-dir -U $PT_INFERENCE_URL
+RUN pip install torchvision
+
+## compile and install ArmCL
+RUN git clone https://github.com/Arm-software/ComputeLibrary.git \
+ && cd ComputeLibrary \
+ && git checkout $ARMCL_BRANCH \
+ && scons Werror=0 -j8 debug=0 neon=1 opencl=0 os=linux arch=arm64-v8a build=native \
+ && mkdir /opt/armClArtifact \
+ && cp build/libarm* /opt/armClArtifact \
+ && cd .. && rm -rf ComputeLibrary
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/armClArtifact/"
+
+RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
+RUN pip install pillow==8.3.2 "awscli<2"
+
+RUN pip uninstall -y model-archiver multi-model-server \
+ && pip install captum \
+ && pip install torchserve==$TS_VERSION \
+ && pip install torch-model-archiver==$TS_VERSION
+
+RUN cd tmp/ \
+ && rm -rf tmp*
+
+RUN useradd -m model-server \
+ && mkdir -p /home/model-server/tmp /opt/ml/model \
+ && chown -R model-server /home/model-server /opt/ml/model
+
+COPY torchserve-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY config.properties /home/model-server/config.properties
+
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && cp ${HOME_DIR}/oss_compliance/build_from_source_packages/BUILD_FROM_SOURCE_PACKAGES_LICENCES_AARCH64_IMAGES ${HOME_DIR} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt -o /license.txt
+
+EXPOSE 8080 8081
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties"]

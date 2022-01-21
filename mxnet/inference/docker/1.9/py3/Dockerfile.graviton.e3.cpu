@@ -1,0 +1,128 @@
+FROM arm64v8/ubuntu:18.04
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ARG MMS_VERSION=1.1.2
+ARG MX_URL=https://aws-mx-pypi.s3.us-west-2.amazonaws.com/1.9.0/aws_mx-1.9.0.25-py3-none-manylinux2014_aarch64.whl
+ARG PYTHON=python3
+ARG PIP=pip3
+ARG PYTHON_VERSION=3.8.10
+ARG OPENSSL_VERSION=1.1.1l
+ENV DEBIAN_FRONTEND=noninteractive
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib" \
+    PYTHONIOENCODING=UTF-8 \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    TEMP=/home/model-server/tmp
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    cmake \
+    libprotobuf-dev \
+    protobuf-compiler \
+    build-essential \
+    ca-certificates \
+    curl \
+    emacs \
+    git \
+    libopencv-dev \
+    openjdk-8-jdk-headless \
+    openjdk-8-jdk \
+    openjdk-8-jre \
+    vim \
+    wget \
+    unzip \
+    zlib1g-dev \
+    libreadline-gplv2-dev \
+    libncursesw5-dev \
+    libssl-dev \
+    libsqlite3-dev \
+    libgdbm-dev \
+    libc6-dev \
+    libbz2-dev \
+    tk-dev \
+    libffi-dev \
+    python3-h5py \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+# install OpenSSL
+RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && tar -xzf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make -j $(nproc) && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-* \
+ && rmdir /usr/local/ssl/certs \
+ && ln -s /etc/ssl/certs /usr/local/ssl/certs
+
+# install ArmPL
+RUN wget https://developer.arm.com/-/media/Files/downloads/hpc/arm-performance-libraries/21-1-0/Ubuntu18.04/arm-performance-libraries_21.1_Ubuntu-18.04_gcc-9.3.tar \
+ && tar -xvf arm-performance-libraries_21.1_Ubuntu-18.04_gcc-9.3.tar \
+ && arm-performance-libraries_21.1_Ubuntu-18.04_gcc-9.3/arm-performance-libraries_21.1_Ubuntu-18.04.sh -a \
+ && export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/arm/armpl_21.1_gcc-9.3/lib/ \
+ && ldconfig /opt/arm/armpl_21.1_gcc-9.3/lib/
+
+# install Python
+RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xzf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure --enable-shared --prefix=/usr/local \
+ && make -j $(nproc) && make install \
+ && cd .. && rm -rf ../Python-$PYTHON_VERSION* \
+ && ln -s /usr/local/bin/pip3 /usr/bin/pip \
+ && ln -s /usr/local/bin/$PYTHON /usr/local/bin/python \
+ && ${PIP} --no-cache-dir install --upgrade \
+    pip \
+    setuptools
+
+RUN rm -rf /tmp/tmp*
+
+WORKDIR /
+
+RUN ${PIP} install --no-cache-dir \
+    "awscli<2" \
+    boto3 \
+    ${MX_URL} \
+    gluonnlp==0.10.0 \
+    gluoncv==0.8.0 \
+    multi-model-server==$MMS_VERSION \
+    onnx==1.7.0
+
+# This is here to make our installed version of OpenCV work.
+# https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
+# TODO: Should we be installing OpenCV in our image like this? Is there another way we can fix this?
+RUN ln -s /dev/null /dev/raw1394
+
+RUN useradd -m model-server \
+ && mkdir -p /home/model-server/tmp \
+ && chown -R model-server /home/model-server
+
+COPY mms-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY config.properties /home/model-server
+
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && cp ${HOME_DIR}/oss_compliance/build_from_source_packages/BUILD_FROM_SOURCE_PACKAGES_LICENCES_AARCH64_IMAGES ${HOME_DIR} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.8.0/license.txt -o /license.txt
+
+EXPOSE 8080 8081
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]

@@ -1,5 +1,6 @@
 import argparse
 import os
+import re
 
 import utils
 import constants
@@ -23,25 +24,28 @@ def main():
     py_versions = args.py_versions.split(",") if not args.py_versions == constants.ALL else args.py_versions
     # create the empty json file for images
     build_context = os.getenv("BUILD_CONTEXT")
-    ei_dedicated = os.getenv("EIA_DEDICATED") == "True"
-    neuron_dedicated = os.getenv("NEURON_DEDICATED") == "True"
-    graviton_dedicated = os.getenv("GRAVITON_DEDICATED") == "True"
+    ei_dedicated = os.getenv("EIA_DEDICATED", "false").lower() == "true"
+    neuron_dedicated = os.getenv("NEURON_DEDICATED", "false").lower() == "true"
+    graviton_dedicated = os.getenv("GRAVITON_DEDICATED", "false").lower() == "true"
+    habana_dedicated = os.getenv("HABANA_DEDICATED", "false").lower() == "true"
 
     # Get config value options
     frameworks_to_skip = parse_dlc_developer_configs("build", "skip_frameworks")
     ei_build_mode = parse_dlc_developer_configs("dev", "ei_mode")
     neuron_build_mode = parse_dlc_developer_configs("dev", "neuron_mode")
     graviton_build_mode = parse_dlc_developer_configs("dev", "graviton_mode")
+    habana_build_mode = parse_dlc_developer_configs("dev", "habana_mode")
 
     # Write empty dict to JSON file, so subsequent buildspec steps do not fail in case we skip this build
     utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
 
-    # Add ability to skip tensorflow-1 or tensorflow-2
+    # Skip tensorflow-1 PR jobs, as there are no longer patch releases being added for TF1
+    # Purposefully not including this in developer config to make this difficult to enable
+    # TODO: Remove when we remove these jobs completely
     build_arn = utils.get_codebuild_build_arn()
     if build_context == "PR":
-        if "tensorflow-1" in build_arn and "tensorflow-1" in frameworks_to_skip:
-            return
-        if "tensorflow-2" in build_arn and "tensorflow-2" in frameworks_to_skip:
+        tf_1_build_regex = re.compile(r"dlc-pr-tensorflow-1:")
+        if tf_1_build_regex.search(build_arn):
             return
 
     # A general will work if in non-EI, non-NEURON and non-GRAVITON mode and its framework not been disabled
@@ -49,9 +53,11 @@ def main():
         not ei_dedicated
         and not neuron_dedicated
         and not graviton_dedicated
+        and not habana_dedicated
         and not ei_build_mode
         and not neuron_build_mode
         and not graviton_build_mode
+        and not habana_build_mode
         and args.framework not in frameworks_to_skip
     )
     # An EI dedicated builder will work if in EI mode and its framework not been disabled
@@ -63,19 +69,20 @@ def main():
     # A GRAVITON dedicated builder will work if in GRAVITON mode and its framework has not been disabled
     graviton_builder_enabled = graviton_dedicated and graviton_build_mode and args.framework not in frameworks_to_skip
 
+    # A HABANA dedicated builder will work if in HABANA mode and its framework has not been disabled
+    habana_builder_enabled = habana_dedicated and habana_build_mode and args.framework not in frameworks_to_skip
+
     # A builder will always work if it is in non-PR context
     if (
         general_builder_enabled
         or ei_builder_enabled
         or neuron_builder_enabled
         or graviton_builder_enabled
+        or habana_builder_enabled
         or build_context != "PR"
     ):
         utils.build_setup(
-            args.framework,
-            device_types=device_types,
-            image_types=image_types,
-            py_versions=py_versions,
+            args.framework, device_types=device_types, image_types=image_types, py_versions=py_versions,
         )
         image_builder(args.buildspec)
 

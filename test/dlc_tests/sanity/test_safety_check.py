@@ -41,7 +41,15 @@ IGNORE_SAFETY_IDS = {
                 # for shipping pycrypto<=2.6.1 - the last available version for py2
                 "35015",
             ],
-            "py3": [],
+            "py3": [
+                # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
+                "42098",
+                "42062",
+                "41994",
+                "42815",
+                "42772",
+                "42814"
+            ],
         },
         "inference": {
             "py2": [
@@ -51,7 +59,11 @@ IGNORE_SAFETY_IDS = {
                 "38451",
                 "38452",
             ],
-            "py3": [],
+            "py3": [
+                # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
+                "42098",
+                "42062",
+            ],
         },
         "inference-eia": {
             "py2": [
@@ -61,15 +73,20 @@ IGNORE_SAFETY_IDS = {
                 "38451",
                 "38452",
             ],
-            "py3": [],
+            "py3": [
+                # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
+                "42098",
+                "42062",
+            ],
         },
         "inference-neuron": {
             "py3": [
-                # TF 1.15.5 is on par with TF 2.0.4, 2.1.3, 2.2.2, 2.3.2 in security patches
-                "39409",
-                "39408",
-                "39407",
-                "39406",
+                # 40794, 40795, 42098, 42062, 42475: TF 1.15.5 is the last available version of TF 1
+                "40794",
+                "40795",
+                "42098",
+                "42062",
+                "42475",
             ],
         },
     },
@@ -108,14 +125,13 @@ IGNORE_SAFETY_IDS = {
         },
         "inference-neuron": {
             "py3": [
-                # for shipping tensorflow 1.15.5
-                "40673",
-                "40675",
-                "40676",
+                # 40794, 40795, 42098, 42062, 42475: TF 1.15.5 is the last available version of TF 1
                 "40794",
                 "40795",
-                "40796",
-            ]
+                "42098",
+                "42062",
+                "42475",
+            ],
         },
     },
     "pytorch": {
@@ -129,7 +145,12 @@ IGNORE_SAFETY_IDS = {
                 "38451",
                 "38452",
             ],
-            "py3": [],
+            "py3": [
+                # for shipping bokeh<=2.3.3 - the last available version for py3.6
+                "42772",
+                "42814",
+                "42815",
+            ],
         },
         "inference": {"py3": []},
         "inference-eia": {"py3": []},
@@ -140,9 +161,12 @@ IGNORE_SAFETY_IDS = {
                 "39408",
                 "39407",
                 "39406",
-                # 40794, 40795: TF 1.15.5 is the last available version of TF 1
+                # 40794, 40795, 42098, 42062, 42475: TF 1.15.5 is the last available version of TF 1
                 "40794",
                 "40795",
+                "42098",
+                "42062",
+                "42475",
             ]
         },
     },
@@ -190,7 +214,7 @@ def _get_latest_package_version(package):
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
 @pytest.mark.skipif(
     not (
-        is_mainline_context() or is_safety_test_context() or (is_canary_context() and is_time_for_canary_safety_scan())
+        is_safety_test_context() or (is_canary_context() and is_time_for_canary_safety_scan())
     ),
     reason=(
         "Skipping the test to decrease the number of calls to the Safety Check DB. "

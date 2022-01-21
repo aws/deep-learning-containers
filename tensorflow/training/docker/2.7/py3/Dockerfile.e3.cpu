@@ -1,0 +1,163 @@
+FROM ubuntu:20.04
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# prevent stopping by user interaction
+ENV DEBIAN_FRONTEND noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN true
+
+# Set environment variables for MKL
+# For more about MKL with TensorFlow see:
+# https://www.tensorflow.org/performance/performance_guide#tensorflow_with_intel%C2%AE_mkl_dnn
+
+ENV KMP_AFFINITY=granularity=fine,compact,1,0
+ENV KMP_BLOCKTIME=1
+ENV KMP_SETTINGS=0
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONIOENCODING=UTF-8
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+ARG PYTHON=python3.8
+ARG PYTHON_VERSION=3.8.2
+
+ARG PYTHON_PIP=python3-pip
+ARG PIP=pip3
+
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.7_aws/cpu/tensorflow-2.7.0-cp38-cp38-linux_x86_64.whl
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    openssh-client \
+    openssh-server \
+    ca-certificates \
+    curl \
+    emacs \
+    git \
+    libtemplate-perl \
+    libssl1.1 \
+    openssl \
+    unzip \
+    wget \
+    vim \
+    zlib1g-dev \
+    # Install dependent library for OpenCV
+    libgtk2.0-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+# Install Open MPI
+RUN mkdir /tmp/openmpi \
+ && cd /tmp/openmpi \
+ && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz \
+ && tar zxf openmpi-4.0.4.tar.gz \
+ && cd openmpi-4.0.4 \
+ && ./configure --enable-orterun-prefix-by-default \
+ && make -j $(nproc) all \
+ && make install \
+ && ldconfig \
+ && rm -rf /tmp/openmpi
+
+# Create a wrapper for OpenMPI to allow running as root by default
+RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real \
+ && echo '#!/bin/bash' > /usr/local/bin/mpirun \
+ && echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun \
+ && chmod a+x /usr/local/bin/mpirun
+
+RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
+
+ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
+ENV PATH /usr/local/openmpi/bin/:$PATH
+
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+# Create SSH key.
+RUN mkdir -p /root/.ssh/ \
+ && mkdir -p /var/run/sshd \
+ && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
+ && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+ && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
+
+WORKDIR /
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    libbz2-dev \
+    libc6-dev \
+    libffi-dev \
+    libgdbm-dev \
+    liblzma-dev \
+    libncursesw5-dev \
+    libreadline-gplv2-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    tk-dev \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xvf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure \
+ && make -j $(nproc) \
+ && make install \ 
+ && rm -rf ../Python-$PYTHON_VERSION*
+
+RUN ${PIP} --no-cache-dir install --upgrade \
+    pip \
+    setuptools
+
+# Some TF tools expect a "python" binary
+RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
+ && ln -s $(which ${PIP}) /usr/bin/pip
+
+RUN apt-get update && apt-get -y install protobuf-compiler
+
+# install PyYAML==5.1.2 to avoid conflict with latest awscli
+# # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
+RUN ${PIP} install --no-cache-dir -U \ 
+    pybind11 \
+    cmake==3.18.2.post1 \
+    numpy==1.19.5 \
+    scipy==1.7.0 \
+    "Pillow>=8.3,<8.4" \
+    python-dateutil==2.8.1 \
+    "pyYAML>=5.4,<5.5" \
+    requests==2.24.0 \
+    "awscli<2" \
+    mpi4py==3.0.3 \
+    # Let's install TensorFlow separately in the end to avoid
+    # the library version to be overwritten
+ && ${PIP} install --no-cache-dir -U \
+    ${TF_URL} \
+    tensorflow-io==0.22.0 \ 
+    h5py==3.1.0 \
+    "absl-py>=0.9,<0.11" \
+    horovod==0.23.0 \
+    "opencv-python>=4.3,<5" \
+    "werkzeug>=2.0.2,<3" \
+    psutil==5.7.2
+
+ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+   && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+   && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+   && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+   && chmod +x /usr/local/bin/testOSSCompliance \
+   && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+   && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+   && rm -rf ${HOME_DIR}/oss_compliance*
+
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.7/license.txt -o /license.txt
+
+CMD ["/bin/bash"]
