@@ -28,6 +28,7 @@ TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 )
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.16xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="cpu")
+TF_EC2_HPU_INSTANCE_TYPE = get_ec2_instance_type(default="dl1.24xlarge", processor="hpu")
 
 
 class TFTrainingTestFailure(Exception):
@@ -67,7 +68,6 @@ def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_onl
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
 
-# TODO: Re-enable for TF1 by removing tf2_only fixture once infrastructure issues are addressed
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -83,7 +83,6 @@ def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2
     )
 
 
-# TODO: Re-enable for TF1 by removing tf2_only fixture once infrastructure issues are addressed
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
@@ -261,3 +260,11 @@ def test_tensorflow_distribute_dataservice_gpu(
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}")
     run_data_service_test(ec2_connection, ec2_instance_ami, tensorflow_training, TF_DATASERVICE_DISTRIBUTE_TEST_CMD)
+
+
+# Placeholder for habana test
+@pytest.mark.model("N/A")
+#@pytest.mark.parametrize("ec2_instance_type", TF_EC2_HPU_INSTANCE_TYPE, indirect=True)
+#@pytest.mark.parametrize("ec2_instance_ami", [test_utils.HPU_AL2_DLAMI], indirect=True)
+def test_tensorflow_standalone_hpu(tensorflow_training_habana):
+    pass
