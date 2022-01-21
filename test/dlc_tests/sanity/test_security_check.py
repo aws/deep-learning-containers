@@ -18,7 +18,7 @@ from src.config import is_ecr_scan_allowlist_feature_enabled
 
 MINIMUM_SEV_THRESHOLD = "HIGH"
 
-LOWER_THRESHOLD_IMAGES = {"mxnet":["1.8","1.9"]}
+LOWER_THRESHOLD_IMAGES = {"mxnet":["1.8"]}
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
@@ -176,7 +176,7 @@ def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list
     original_filepath_for_allowlist = get_ecr_scan_allowlist_path(image)
     edited_files = [{"s3_filename": s3_filename_for_allowlist, "github_filepath": original_filepath_for_allowlist}]
     vulnerabilities_fixable_by_upgrade = get_vulnerabilites_fixable_by_upgrade(image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list)
-    non_fixable_vulnerabilites = upgraded_image_vulnerability_list - image_allowlist
+    newly_found_non_fixable_vulnerabilites = upgraded_image_vulnerability_list - image_allowlist
     fixable_list = []
     if vulnerabilities_fixable_by_upgrade:
         fixable_list = vulnerabilities_fixable_by_upgrade.vulnerability_list
@@ -185,17 +185,29 @@ def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list
     new_package_list = fixable_list if isinstance(fixable_list, list) else list(fixable_list.keys())
     create_and_save_package_list_to_s3(original_filepath_for_apt_upgrade_list, new_package_list, s3_filename_for_apt_upgrade_list)
     edited_files.append({"s3_filename": s3_filename_for_apt_upgrade_list, "github_filepath": original_filepath_for_apt_upgrade_list})
-    non_fixable_list = []
-    if non_fixable_vulnerabilites:
-        non_fixable_list = non_fixable_vulnerabilites.vulnerability_list
+    newly_found_non_fixable_list = []
+    if newly_found_non_fixable_vulnerabilites:
+        newly_found_non_fixable_list = newly_found_non_fixable_vulnerabilites.vulnerability_list
     message_body = {
         "edited_files": edited_files,
         "fixable_vulnerabilities": fixable_list,
-        "non_fixable_vulnerabilities": non_fixable_list
+        "non_fixable_vulnerabilities": newly_found_non_fixable_list
     }
     invoke_lambda(function_name = 'trshanta-ECR-AS', payload_dict=message_body)
     print(message_body)
 
+def is_image_covered_by_allowlist_feature(image):
+    """
+    This method checks if the allowlist feature has been enabled for the image
+
+    :param image: str, Image URI
+    """
+    for framework in LOWER_THRESHOLD_IMAGES.keys():
+        if framework in image:
+            if any(version in image for version in LOWER_THRESHOLD_IMAGES[framework]):
+                return True
+            return False
+    return False
 
 def set_minimum_threshold_level(image):
     """
@@ -204,13 +216,24 @@ def set_minimum_threshold_level(image):
     :param image: str Image URI for which threshold has to be set
     """
     global MINIMUM_SEV_THRESHOLD
-    for framework in LOWER_THRESHOLD_IMAGES.keys():
-        if framework in image:
-            if any(version in image for version in LOWER_THRESHOLD_IMAGES[framework]):
-                MINIMUM_SEV_THRESHOLD = "MEDIUM"
-                return
-            return
+    if is_image_covered_by_allowlist_feature(image):
+        MINIMUM_SEV_THRESHOLD = "MEDIUM"
+        return
     MINIMUM_SEV_THRESHOLD = "HIGH"
+
+def fetch_other_vulnerability_lists(image, ecr_client):
+    new_image_uri = get_new_image_uri(image)
+    run_upgrade_on_image_and_push(image, new_image_uri)
+    run_scan(ecr_client, new_image_uri)
+    scan_results_with_upgrade = ecr_utils.get_ecr_image_scan_results(ecr_client, new_image_uri, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
+    scan_results_with_upgrade = ecr_utils.populate_ecr_scan_with_web_scraper_results(new_image_uri, scan_results_with_upgrade)
+    upgraded_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
+    upgraded_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results_with_upgrade)
+    image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
+    image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
+    if os.path.exists(image_scan_allowlist_path):
+        image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
+    return upgraded_image_vulnerability_list, image_scan_allowlist
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -245,6 +268,7 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         image = ecr_utils.reupload_image_to_test_ecr(image, target_image_repo_name, region)
     
     set_minimum_threshold_level(image)
+    print(MINIMUM_SEV_THRESHOLD)
 
     run_scan(ecr_client, image)
     scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
@@ -256,28 +280,25 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
 
     # TODO: Once this feature is enabled, remove "if" condition and second assertion statement
     # TODO: Ensure this works on the canary tags before removing feature flag
-    if is_ecr_scan_allowlist_feature_enabled():
-        new_image_uri = get_new_image_uri(image)
-        run_upgrade_on_image_and_push(image, new_image_uri)
-        run_scan(ecr_client, new_image_uri)
-        scan_results_with_upgrade = ecr_utils.get_ecr_image_scan_results(ecr_client, new_image_uri, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
-        scan_results_with_upgrade = ecr_utils.populate_ecr_scan_with_web_scraper_results(new_image_uri, scan_results_with_upgrade)
-        upgraded_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
-        upgraded_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results_with_upgrade)
+    if is_image_covered_by_allowlist_feature(image):
+        upgraded_image_vulnerability_list, image_scan_allowlist = fetch_other_vulnerability_lists(image, ecr_client)
 
-        image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
-        image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
-        if os.path.exists(image_scan_allowlist_path):
-            image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
-
-        remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
-
-        if remaining_vulnerabilities:
+        ## In case new vulnerabilities are found conduct failure routine
+        newly_found_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
+        if newly_found_vulnerabilities:
             conduct_failure_routine(image, image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list)
+        assert not newly_found_vulnerabilities, (
+            f"The following vulnerabilities need to be handled on {image}:\n"
+            f"{json.dumps(newly_found_vulnerabilities.vulnerability_list, indent=4)}"
+        )
 
-        assert not remaining_vulnerabilities, (
-            f"The following vulnerabilities need to be fixed on {image}:\n"
-            f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
+        ## In case there is no new vulnerability but the allowlist is outdated conduct failure routine
+        vulnerabilities_that_can_be_fixed = image_scan_allowlist - upgraded_image_vulnerability_list
+        if vulnerabilities_that_can_be_fixed:
+            conduct_failure_routine(image, image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list)
+        assert not vulnerabilities_that_can_be_fixed, (
+            f"Allowlist is outdated. The following vulnerabilities can be fixed {image}:\n"
+            f"{json.dumps(vulnerabilities_that_can_be_fixed.vulnerability_list, indent=4)}"
         )
         return
 
