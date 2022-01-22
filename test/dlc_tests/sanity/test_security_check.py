@@ -6,6 +6,7 @@ from time import sleep, time
 import pytest
 import boto3
 
+from copy import deepcopy
 from invoke import run, Context
 
 from test.test_utils import LOGGER, get_account_id_from_image_uri, get_dockerfile_path_for_image, is_dlc_cicd_context
@@ -194,7 +195,9 @@ def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list
         "non_fixable_vulnerabilities": newly_found_non_fixable_list
     }
     invoke_lambda(function_name = 'trshanta-ECR-AS', payload_dict=message_body)
-    print(message_body)
+    return_dict = deepcopy(message_body)
+    return_dict["s3_filename_for_allowlist"] = s3_filename_for_allowlist
+    return return_dict
 
 def is_image_covered_by_allowlist_feature(image):
     """
@@ -235,6 +238,22 @@ def fetch_other_vulnerability_lists(image, ecr_client):
         image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
     return upgraded_image_vulnerability_list, image_scan_allowlist
 
+
+def log_all_lists_in_s3(failure_routine_summary):
+    s3_filename_for_allowlist = failure_routine_summary["s3_filename_for_allowlist"]
+    s3_filename_for_fixable_list = s3_filename_for_allowlist.replace("allowlist.json","fixable-vulnerability-list.json")
+    s3_filename_for_non_fixable_list = s3_filename_for_allowlist.replace("allowlist.json","non-fixable-vulnerability-list.json")
+    s3_bucket_name = "trshanta-bucket"
+    s3_client = boto3.client("s3")
+
+    with open(s3_filename_for_fixable_list, "w") as outfile:
+        json.dump(failure_routine_summary["fixable_vulnerabilities"], outfile, indent=4)
+    s3_client.upload_file(Filename=s3_filename_for_fixable_list, Bucket=s3_bucket_name, Key=s3_filename_for_fixable_list)
+
+    with open(s3_filename_for_non_fixable_list, "w") as outfile:
+        json.dump(failure_routine_summary["non_fixable_vulnerabilities"], outfile, indent=4)
+    s3_client.upload_file(Filename=s3_filename_for_non_fixable_list, Bucket=s3_bucket_name, Key=s3_filename_for_non_fixable_list)
+    return s3_filename_for_fixable_list, s3_filename_for_non_fixable_list
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
@@ -286,10 +305,14 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         ## In case new vulnerabilities are found conduct failure routine
         newly_found_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
         if newly_found_vulnerabilities:
-            conduct_failure_routine(image, image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list)
+            failure_routine_summary = conduct_failure_routine(image, image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list)
+            s3_filename_for_fixable_list, s3_filename_for_non_fixable_list = log_all_lists_in_s3(failure_routine_summary)
+        
         assert not newly_found_vulnerabilities, (
-            f"The following vulnerabilities need to be handled on {image}:\n"
-            f"{json.dumps(newly_found_vulnerabilities.vulnerability_list, indent=4)}"
+            f"""Found {len(failure_routine_summary["fixable_vulnerabilities"])} fixable vulnerabilites """
+            f"""and {len(failure_routine_summary["non_fixable_vulnerabilities"])} non fixable vulnerabilites. """
+            f"""Refer to files {s3_filename_for_fixable_list}, {s3_filename_for_non_fixable_list} """
+            f"""and {failure_routine_summary["s3_filename_for_allowlist"]} in trshanta-bucket."""
         )
 
         ## In case there is no new vulnerability but the allowlist is outdated conduct failure routine
