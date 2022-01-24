@@ -45,7 +45,10 @@ IGNORE_SAFETY_IDS = {
                 # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
                 "42098",
                 "42062",
-                "41994"
+                "41994",
+                "42815",
+                "42772",
+                "42814"
             ],
         },
         "inference": {
@@ -142,7 +145,12 @@ IGNORE_SAFETY_IDS = {
                 "38451",
                 "38452",
             ],
-            "py3": [],
+            "py3": [
+                # for shipping bokeh<=2.3.3 - the last available version for py3.6
+                "42772",
+                "42814",
+                "42815",
+            ],
         },
         "inference": {"py3": []},
         "inference-eia": {"py3": []},

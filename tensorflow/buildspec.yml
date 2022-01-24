@@ -56,7 +56,7 @@ images:
   BuildTensorflowE3GpuCu112Py38TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 7738
+    image_size_baseline: &IMAGE_SIZE_BASELINE 9307
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
