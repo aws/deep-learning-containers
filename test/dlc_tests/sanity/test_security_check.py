@@ -108,6 +108,12 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         )
         return
 
+    # Skipping this CVE, as Ubuntu has marked it as medium and does not currently have a fix
+    # See http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4122 for more details
+    if len(remaining_vulnerabilities.vulnerability_list.get("cryptsetup", [])) == 1:
+        if remaining_vulnerabilities.vulnerability_list["cryptsetup"][0]["name"] == "CVE-2021-4122":
+            return
+
     assert not remaining_vulnerabilities.vulnerability_list, (
         f"The following vulnerabilities need to be fixed on {image}:\n"
         f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
