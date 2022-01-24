@@ -112,7 +112,7 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
     # See http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4122 for more details
     if len(remaining_vulnerabilities.vulnerability_list.get("cryptsetup", [])) == 1:
         if remaining_vulnerabilities.vulnerability_list["cryptsetup"][0]["name"] == "CVE-2021-4122":
-            return
+            remaining_vulnerabilities.vulnerability_list.pop("cryptsetup", None)
 
     assert not remaining_vulnerabilities.vulnerability_list, (
         f"The following vulnerabilities need to be fixed on {image}:\n"
