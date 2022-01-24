@@ -99,7 +99,7 @@ RUN ${PIP} uninstall -y tensorflow-cpu \
     python-dateutil==2.8.1 \
     # install PyYAML>=5.4 to avoid conflict with latest awscli
     "pyYAML>=5.4,<5.5" \
-    requests==2.24.0 \
+    requests \
     "awscli<2" \
     mpi4py==3.0.3 \
     opencv-python==4.3.0.36 \
