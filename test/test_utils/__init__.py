@@ -1218,9 +1218,9 @@ def get_framework_from_image_uri(image_uri):
 
 def get_cuda_version_from_tag(image_uri):
     """
-    Return the cuda version from the image tag.
+    Return the cuda version from the image tag as cuXXX
     :param image_uri: ECR image URI
-    :return: cuda version
+    :return: cuda version as cuXXX
     """
     cuda_framework_version = None
 
