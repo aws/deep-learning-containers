@@ -285,6 +285,10 @@ def get_build_context():
     return os.getenv("BUILD_CONTEXT")
 
 
+def get_codebuild_initiator():
+    return os.getenv("CODEBUILD_INITIATOR")
+
+
 def is_pr_context():
     return os.getenv("BUILD_CONTEXT") == "PR"
 

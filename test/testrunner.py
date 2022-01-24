@@ -29,6 +29,7 @@ from test_utils import (
     setup_sm_benchmark_hf_infer_env,
     get_framework_and_version_from_tag,
     get_build_context,
+    get_codebuild_initiator,
 )
 from test_utils import KEYS_TO_DESTROY_FILE, DEFAULT_REGION
 from test_utils.pytest_cache import PytestCache
@@ -259,6 +260,15 @@ def main():
     benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     build_context = get_build_context()
+    # PR test executions can be distinguished by commit id. 
+    # But other pipelines triggered with the same commit id. 
+    # Adding codebuild_initiator to a pipeline name for distinguishing different build pipelines 
+    if not "PR" == build_context:
+        codebuild_initiator = get_codebuild_initiator()
+        if codebuild_initiator:
+            build_context += f"_{codebuild_initiator}"
+        else:
+            build_context += f"_unrecognised_commit_initiator"
 
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
