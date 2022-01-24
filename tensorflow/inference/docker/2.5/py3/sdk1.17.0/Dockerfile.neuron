@@ -58,8 +58,8 @@ RUN apt-get update \
  && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
  && apt-get update \
  && apt-get -y install --no-install-recommends \
-    nginx \
-    nginx-module-njs \
+    nginx=1.20.1* \
+    nginx-module-njs=1.20.1* \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
