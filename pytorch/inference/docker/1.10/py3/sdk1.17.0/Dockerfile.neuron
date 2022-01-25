@@ -108,7 +108,7 @@ RUN pip install --no-cache-dir -U \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
     gevent==1.4.0 \
-    requests==2.22.0 \
+    requests \
     grpcio==1.34.1 \
     protobuf==3.16.0 \
     gast==0.2.2 \
