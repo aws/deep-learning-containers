@@ -97,13 +97,9 @@ RUN ${PIP} install --no-cache-dir \
     onnx==1.7.0 \
     sagemaker-mxnet-inference
 
-RUN ${PIP} install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install --no-cache-dir -U \
+RUN ${PIP} install --no-cache-dir -U \
     https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.8.0/aws_mx-1.8.0-py2.py3-none-manylinux2014_x86_64.whl \
- && ${PIP} install mx-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com \
- # Install TF 1.15.5 to override neuron-cc[tensorflow]'s installation of tensorflow==1.15.0
- && pip install -U tensorflow==1.15.5 \
- && ${PIP} install multi-model-server --no-deps
+ && ${PIP} install mx-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
