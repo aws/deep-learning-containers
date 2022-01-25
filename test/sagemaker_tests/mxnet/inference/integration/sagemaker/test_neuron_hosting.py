@@ -44,6 +44,7 @@ def test_neuron_hosting(sagemaker_session, ecr_image, instance_type, framework_v
         SCRIPT_PATH,
         framework_version=framework_version,
         image_uri=ecr_image,
+        model_server_workers=1,
         sagemaker_session=sagemaker_session,
     )
 
