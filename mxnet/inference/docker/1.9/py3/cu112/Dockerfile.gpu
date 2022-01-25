@@ -1,0 +1,155 @@
+##############################################################################
+#  _____ _____   ___                              ____           _
+# | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+# |  _|   |_ \   | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+# | |___ ___) |  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |_____|____/  |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                                    |___/                        |_|
+##############################################################################
+
+FROM nvidia/cuda:11.2.2-cudnn8-runtime-ubuntu20.04 AS e3
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ARG PYTHON_VERSION=3.8.10
+ARG MMS_VERSION=1.1.8
+ARG MX_URL=https://aws-mx-pypi.s3.us-west-2.amazonaws.com/1.9.0/aws_mx_cu112-1.9.0b20211227.163-py3-none-manylinux2014_x86_64.whl
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib" \
+    PYTHONIOENCODING=UTF-8 \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    TEMP=/home/model-server/tmp \
+    DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+ && apt-get -y upgrade --only-upgrade systemd \
+ && apt-get -y install --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    curl \
+    emacs \
+    git \
+    libopencv-dev \
+    openjdk-8-jdk-headless \
+    openjdk-8-jdk \
+    openjdk-8-jre \
+    vim \
+    wget \
+    unzip \
+    zlib1g-dev \
+    libreadline-gplv2-dev \
+    libncursesw5-dev \
+    libssl-dev \
+    libsqlite3-dev \
+    tk-dev \
+    libgdbm-dev \
+    libc6-dev \
+    libbz2-dev \
+    libffi-dev \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+# install Python
+RUN apt-get update \
+ && apt-get install -y python3 python3-pip \
+ && rm -rf /usr/bin/python /usr/bin/pip \
+ && ln -s /usr/bin/python3 /usr/bin/python \
+ && ln -s /usr/bin/pip3 /usr/bin/pip
+
+WORKDIR /
+
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && pip install --no-cache-dir \
+    "awscli<2" \
+    boto3 \
+    ${MX_URL} \
+    gluonnlp==0.10.0 \
+    gluoncv==0.8.0 \
+    multi-model-server==$MMS_VERSION \
+    numpy==1.17.4 \
+    onnx==1.8.1
+
+# This is here to make our installed version of OpenCV work.
+# https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
+# TODO: Should we be installing OpenCV in our image like this? Is there another way we can fix this?
+RUN ln -s /dev/null /dev/raw1394
+
+RUN useradd -m model-server \
+ && mkdir -p /home/model-server/tmp \
+ && chown -R model-server /home/model-server
+
+COPY mms-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY config.properties /home/model-server
+
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/aws-mx-1.9.0/license.txt -o /license.txt
+
+EXPOSE 8080 8081
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
+
+#################################################################
+#  ____                   __  __       _
+# / ___|  __ _  __ _  ___|  \/  | __ _| | _____ _ __
+# \___ \ / _` |/ _` |/ _ \ |\/| |/ _` | |/ / _ \ '__|
+#  ___) | (_| | (_| |  __/ |  | | (_| |   <  __/ |
+# |____/ \__,_|\__, |\___|_|  |_|\__,_|_|\_\___|_|
+#              |___/
+#  ___                              ____           _
+# |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+#  | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+#  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                      |___/                        |_|
+#################################################################
+
+FROM e3 AS sagemaker
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
+# https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+
+ARG PYTHON_VERSION=3.8.10
+
+WORKDIR /
+
+RUN pip install --no-cache-dir \
+    sagemaker-mxnet-inference
+
+COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+EXPOSE 8080 8081
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["multi-model-server", "--start", "--mms-config", "/home/model-server/config.properties"]
