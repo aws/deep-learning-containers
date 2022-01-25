@@ -5,7 +5,7 @@ import logging
 import re
 
 from junit_xml import TestSuite, TestCase
-from multiprocessing import Pool
+from multiprocessing import Pool, Manager
 from datetime import datetime
 
 import boto3
@@ -187,8 +187,17 @@ def run_sagemaker_remote_tests(images, pytest_cache_params):
         if not images:
             return
         pool_number = len(images)
-        with Pool(pool_number) as p:
-            p.starmap(sm_utils.execute_sagemaker_remote_tests, [[image, pytest_cache_params] for image in images])
+        # Using Manager().dict() since it's a thread safe dictionary
+        global_pytest_cache = Manager().dict()
+        try:
+            with Pool(pool_number) as p:
+                p.starmap(
+                    sm_utils.execute_sagemaker_remote_tests,
+                    [[i, images[i], global_pytest_cache, pytest_cache_params] for i in range(pool_number)]
+                )
+        finally:
+            pytest_cache_util.convert_cache_json_and_upload_to_s3(global_pytest_cache, **pytest_cache_params)
+
 
 
 def pull_dlc_images(images):
