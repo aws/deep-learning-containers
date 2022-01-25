@@ -3,7 +3,6 @@ FROM $BASE_IMAGE
 
 ARG SMDEBUG_VERSION=1.0.12
 ARG PYTHON=python3.8
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.7_aws/gpu/2022-01-14-19-46/tensorflow-2.7.0-cp38-cp38-manylinux2010_x86_64.whl
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
@@ -14,9 +13,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker-studio-sparkmagic-lib<1" \
     "sagemaker-studio-analytics-extension==0.0.2" \
     "smdebug==${SMDEBUG_VERSION}" \
-    smclarify \
-    ${TF_URL}
-
+    smclarify 
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
