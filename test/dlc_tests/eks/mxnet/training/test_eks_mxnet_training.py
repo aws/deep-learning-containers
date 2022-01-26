@@ -8,7 +8,9 @@ from invoke import run
 from invoke.context import Context
 
 import test.test_utils.eks as eks_utils
+from test.test_utils import get_container_name, get_framework_and_version_from_tag
 
+from packaging.version import Version
 
 @pytest.mark.model("mnist")
 def test_eks_mxnet_single_node_training(mxnet_training):
@@ -84,13 +86,25 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
         :param mxnet_training: the ECR URI
     """
 
+    # TODO: remove/update this when DGL supports MXNet 1.9
+    _, framework_version = get_framework_and_version_from_tag(mxnet_training)
+    if Version(framework_version) >= Version('1.9.0'):
+        pytest.skip("Skipping DGL tests as DGL does not yet support MXNet 1.9")
+
     training_result = False
     rand_int = random.randint(4001, 6000)
 
     yaml_path = os.path.join(os.sep, "tmp", f"mxnet_single_node_training_dgl_{rand_int}.yaml")
     pod_name = f"mxnet-single-node-training-dgl-{rand_int}"
 
-    dgl_branch = "0.4.x"
+    ctx = Context()
+    # Run container to determine dgl version
+    container_name = get_container_name("dgl-mx", mxnet_training)
+    ctx.run(f"docker run --name {container_name} -itd {mxnet_training}")
+
+    dgl_version = ctx.run(f"docker exec --user root {container_name} python -c 'import dgl; print(dgl.__version__)'").stdout.strip()
+    dgl_major_minor = re.search(r'(^\d+.\d+).', dgl_version).group(1)
+    dgl_branch = f"{dgl_major_minor}.x"
 
     args = (
         f"git clone -b {dgl_branch} https://github.com/dmlc/dgl.git && "
@@ -102,8 +116,6 @@ def test_eks_mxnet_dgl_single_node_training(mxnet_training, py3_only):
     cpu_limit = str(int(cpu_limit) / 2)
 
     if "gpu" in mxnet_training:
-        if "cu110" in mxnet_training:
-            pytest.skip("Skipping DGL tests for GPU until dgl-cu110 is available.")
         args = args + " --gpu 0"
     else:
         args = args + " --gpu -1"
