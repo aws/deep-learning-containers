@@ -56,7 +56,7 @@ images:
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
-    cuda_version: &CUDA_VERSION cu110
+    cuda_version: &CUDA_VERSION cu111
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, ul2004, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
@@ -81,7 +81,7 @@ images:
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
-    cuda_version: &CUDA_VERSION cu110
+    cuda_version: &CUDA_VERSION cu111
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, ul2004, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
@@ -95,7 +95,7 @@ images:
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
-    cuda_version: &CUDA_VERSION cu110
+    cuda_version: &CUDA_VERSION cu111
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
                  "-example" ]
