@@ -28,7 +28,7 @@ ENV PATH /opt/conda/bin:$PATH
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl \
+ && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
  && apt-get install -y --no-install-recommends \
     ca-certificates \
     build-essential \
