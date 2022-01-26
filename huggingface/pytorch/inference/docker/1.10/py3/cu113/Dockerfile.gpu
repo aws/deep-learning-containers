@@ -38,7 +38,7 @@ ENV PATH /opt/conda/bin:$PATH
 
 RUN apt-get update \
     # TODO: Remove systemd upgrade once it is updated in base image
-    && apt-get -y upgrade --only-upgrade systemd openssl \
+    && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
     && apt-get install -y --no-install-recommends software-properties-common \
     && add-apt-repository ppa:openjdk-r/ppa \
     && apt-get update \
