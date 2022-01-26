@@ -11,13 +11,14 @@ LABEL dlc_major_version="1"
 ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
 ARG PYTHON=python3
+ARG CONDA_PREFIX=/opt/conda
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \ 
 	transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \ 
 	datasets==${DATASETS_VERSION} \
 	# TODO: Remove upgrade statements once packages are updated in base image
-	"Pillow>=8.3.2"
+	"Pillow>=9.0,<10.0"
 	
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
@@ -25,6 +26,10 @@ RUN apt-get update \
  && apt install -y git-lfs \
  && apt-get clean \  
  && rm -rf /var/lib/apt/lists/*
+
+# TODO: Remove upgrade statements once packages are updated in base image
+RUN ${CONDA_PREFIX}/bin/conda update -y -c anaconda \
+    ipython
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
