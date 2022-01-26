@@ -106,9 +106,12 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     boto3
 
-RUN pip install "torch-neuron>=1.10.1,<1.10.2" --extra-index-url https://pip.repos.neuron.amazonaws.com \
+RUN pip install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neuron.amazonaws.com \
+ && pip install "torch-neuron>=1.10.1,<1.10.2" --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install torchserve==$TS_VERSION --no-deps \
  && pip install --no-deps --no-cache-dir -U torchvision==0.11.2 \
+ # Install TF 1.15.5 to override neuron-cc[tensorflow]'s installation of tensorflow==1.15.0
+ && pip install -U tensorflow==1.15.5 \
  && pip install torch-model-archiver==$TS_VERSION
 
 RUN useradd -m model-server \
