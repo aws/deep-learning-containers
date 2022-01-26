@@ -24,6 +24,18 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "numba<0.54" \
     "shap>=0.39,<1"
 
+# install boost
+# tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=0"
+RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
+   && tar -xzf boost_1_73_0.tar.gz \
+   && cd boost_1_73_0 \
+   && ./bootstrap.sh \
+   && ./b2 define=_GLIBCXX_USE_CXX11_ABI=0 threading=multi --prefix=/usr -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
+   && cd .. \
+   && rm -rf boost_1_73_0.tar.gz \
+   && rm -rf boost_1_73_0 \
+   && cd /usr/include/boost
+
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
