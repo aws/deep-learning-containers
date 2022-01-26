@@ -22,12 +22,16 @@ RUN pip install --no-cache-dir \
     # TODO: Remove upgrade statements once packages are updated in base image
     "Pillow>=9.0.0" \
     # TODO: Remove upgrade statements once packages are updated in base image
+    "IPython==8.0.1" \
+    # TODO: Remove upgrade statements once packages are updated in base image
+    "typing-extensions==3.7.4" \
+    # TODO: Remove upgrade statements once packages are updated in base image
     "bokeh>=2.4.2,<3" 
 
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl \
+ && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup\
  && apt install -y git-lfs \
  && apt-get clean \  
  && rm -rf /var/lib/apt/lists/*
