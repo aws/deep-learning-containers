@@ -104,7 +104,6 @@ class TestSingleNodeSingleGPU:
                 instance_type=instance_type,
                 sagemaker_session=sagemaker_session,
                 hyperparameters=hyperparameters,
-                environment={'GPU_NUM_DEVICES':'1'},
                 py_version=py_version,
                 max_retry_attempts=15,
             )

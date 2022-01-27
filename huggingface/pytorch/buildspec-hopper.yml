@@ -31,15 +31,15 @@ images:
     download_artifacts:
       pytorch_whl:
         type: s3
-        URI: s3://sm-training-comp-pytorch-binaries/8c9b64ac-4003-4110-82f2-9f59079f680c/20211119-222325/4ef7bb1dc712caeea00501bc983077f5b27efe5c/torch-1.9.0-cp38-cp38-linux_x86_64.whl
+        URI: s3://sm-training-comp-pytorch-binaries/bbab4a95-ca9d-4b7b-ad02-017d4ca51e22/20220115-001313/3790178e924af74acfae5425162e786fc93153df/torch-1.9.0-cp38-cp38-linux_x86_64.whl
         VAR_IN_DOCKERFILE: PT_URL
       pytorch_xla_whl:
         type: s3
-        URI: s3://sm-training-comp-pytorch-binaries/8c9b64ac-4003-4110-82f2-9f59079f680c/20211119-222325/4ef7bb1dc712caeea00501bc983077f5b27efe5c/torch_xla-1.10+4ef7bb1-cp38-cp38-linux_x86_64.whl
+        URI: s3://sm-training-comp-pytorch-binaries/bbab4a95-ca9d-4b7b-ad02-017d4ca51e22/20220115-001313/3790178e924af74acfae5425162e786fc93153df/torch_xla-1.10+3790178-cp38-cp38-linux_x86_64.whl
         VAR_IN_DOCKERFILE: PT_XLA_URL
       torchvision_whl:
         type: s3
-        URI: s3://sm-training-comp-pytorch-binaries/8c9b64ac-4003-4110-82f2-9f59079f680c/20211119-222325/4ef7bb1dc712caeea00501bc983077f5b27efe5c/torchvision-0.10.0a0+6e72416-cp38-cp38-linux_x86_64.whl
+        URI: s3://sm-training-comp-pytorch-binaries/bbab4a95-ca9d-4b7b-ad02-017d4ca51e22/20220115-001313/3790178e924af74acfae5425162e786fc93153df/torchvision-0.10.0a0+6e72416-cp38-cp38-linux_x86_64.whl
         VAR_IN_DOCKERFILE: TORCHVISION_URL
       huggingface_transformers_whl:
         type: s3
