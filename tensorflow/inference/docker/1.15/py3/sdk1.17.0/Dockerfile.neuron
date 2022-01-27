@@ -114,24 +114,17 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 RUN ln -s $(which python3) /usr/local/bin/python \
  && ln -s $(which pip3) /usr/bin/pip
 
+# cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir -U \
-    numpy==1.17.4 \
-    scipy==1.2.2 \
-    scikit-learn==0.20.3 \
-    pandas==0.24.2 \
-    Pillow \
-    h5py==2.10.0 \
+    "awscli<2" \
     boto3 \
-    "pyYAML>=5.4,<5.5" \
-    cython==0.29.12 \
+    cython==0.29.21 \
     falcon==2.0.0 \
     gunicorn==20.0.4 \
-    gevent==1.4.0 \
-    requests==2.22.0 \
+    gevent==21.1.1 \
+    requests==2.25.1 \
     grpcio==1.34.1 \
-    protobuf==3.10.0 \
-    gast==0.2.2 \
-    "awscli<2"
+    protobuf==3.14.0
 
 # pip install statements have been separated out into multiple sequentially executed statements to
 # resolve package dependencies during installation.
