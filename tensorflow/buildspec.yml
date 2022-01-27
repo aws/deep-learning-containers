@@ -1,8 +1,8 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK tensorflow
-version: &VERSION 2.7.0
-short_version: &SHORT_VERSION 2.7
+version: &VERSION 2.8.0
+short_version: &SHORT_VERSION 2.8
 repository_info:
   training_repository: &TRAINING_REPOSITORY
     image_type: &TRAINING_IMAGE_TYPE training
@@ -39,13 +39,13 @@ context:
       target: deep_learning_container.py
 
 images:
-  BuildTensorflowE3CpuPy38TrainingDockerImage:
+  BuildTensorflowE3CpuPy39TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_CPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 4489
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py38
+    tag_python_version: &TAG_PYTHON_VERSION py39
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-e3"
       ]
@@ -53,13 +53,13 @@ images:
       *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowE3GpuCu112Py38TrainingDockerImage:
+  BuildTensorflowE3GpuCu112Py39TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 9307
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py38
+    tag_python_version: &TAG_PYTHON_VERSION py39
     cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
@@ -68,14 +68,14 @@ images:
       /Dockerfile.e3., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowExampleGpuCu112Py38TrainingDockerImage:
+  BuildTensorflowExampleGpuCu112Py39TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 7738
     base_image_name: BuildTensorflowE3GpuCu112Py38TrainingDockerImage
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py38
+    tag_python_version: &TAG_PYTHON_VERSION py39
     cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
