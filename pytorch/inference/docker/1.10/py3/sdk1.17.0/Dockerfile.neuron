@@ -68,16 +68,15 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y \
-    # conda 4.9.2 requires ruamel_yaml to be installed. Currently pinned at latest.
+    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
-    cython==0.29.12 \
+    cython \
     ipython \
-    mkl-include==2019.4 \
-    mkl==2019.4 \
-    numpy==1.19.1 \
-    scipy==1.3.0 \
-    typing==3.6.4 \
-    parso==0.8.0 \
+    mkl-include \
+    mkl \
+    parso \
+    scipy \
+    typing \
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c \
@@ -108,7 +107,7 @@ RUN pip install --no-cache-dir -U \
 
 RUN pip install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && pip install "torch-neuron>=1.10.1,<1.10.2" --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && pip install torchserve==$TS_VERSION --no-deps \
+ && pip install torchserve==$TS_VERSION \
  && pip install --no-deps --no-cache-dir -U torchvision==0.11.2 \
  # Install TF 1.15.5 to override neuron-cc[tensorflow]'s installation of tensorflow==1.15.0
  && pip install -U tensorflow==1.15.5 \
