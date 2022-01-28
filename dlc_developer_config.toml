@@ -29,7 +29,7 @@ do_build = true
 
 [test]
 ### On by default
-sanity_tests = false
+sanity_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
 ecs_tests = true
