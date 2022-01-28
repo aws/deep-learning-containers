@@ -263,12 +263,12 @@ def main():
     # PR test executions can be distinguished by commit id. 
     # But other pipelines triggered with the same commit id. 
     # Adding codebuild_initiator to a pipeline name for distinguishing different build pipelines 
-    if not "PR" == build_context:
-        codebuild_initiator = get_codebuild_initiator()
-        if codebuild_initiator:
-            build_context += f"_{codebuild_initiator}"
+    codebuild_initiator = ""
+    if not is_pr_context():
+        if get_codebuild_initiator():
+            codebuild_initiator = f"_{get_codebuild_initiator()}"
         else:
-            build_context += f"_unrecognised_commit_initiator"
+            codebuild_initiator = f"_unrecognised_codebuild_initiator"
 
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
@@ -280,7 +280,7 @@ def main():
         "commit_id": commit_id,
         "framework": framework,
         "version": version,
-        "build_context": build_context,
+        "build_context": build_context + codebuild_initiator,
         "test_type": test_type,
     }
 
