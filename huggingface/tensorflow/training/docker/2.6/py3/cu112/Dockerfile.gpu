@@ -4,7 +4,6 @@
 # docker image region us-west-2
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training:2.6.2-gpu-py38-cu112-ubuntu20.04
 
-
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
