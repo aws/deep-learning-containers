@@ -260,15 +260,11 @@ def main():
     benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     build_context = get_build_context()
-    # PR test executions can be distinguished by commit id. 
-    # But other pipelines triggered with the same commit id. 
-    # Adding codebuild_initiator to a pipeline name for distinguishing different build pipelines 
-    codebuild_initiator = ""
-    if not is_pr_context():
-        if get_codebuild_initiator():
-            codebuild_initiator = f"_{get_codebuild_initiator()}"
-        else:
-            codebuild_initiator = f"_unrecognised_codebuild_initiator"
+
+    if get_codebuild_initiator():
+        codebuild_initiator = f"_{get_codebuild_initiator()}"
+    else:
+        codebuild_initiator = f"_unrecognised_codebuild_initiator"
 
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
