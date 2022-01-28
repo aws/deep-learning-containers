@@ -20,6 +20,7 @@ ARG CUBLAS_VERSION=11.5.1.109
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
+ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 
 # HF ARGS
 ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211027-061940/36dea191ed0df524207de5acc4e6fb4322306d1a/gpu/torch-1.10.0%2Bcu113-cp38-cp38-manylinux1_x86_64.whl
@@ -27,7 +28,6 @@ ARG TRANSFORMERS_VERSION
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    LD_LIBRARY_PATH="/opt/conda/lib/:${LD_LIBRARY_PATH}:/usr/local/lib" \
     PYTHONIOENCODING=UTF-8 \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
