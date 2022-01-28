@@ -38,6 +38,9 @@ OUTPUT_PATH = os.path.join(DEFAULT_HANDLER_PATH, "model", "output.json")
 def test_neuron_hosting(sagemaker_session, ecr_image, instance_type, framework_version, skip_if_no_neuron):
     prefix = "mxnet-serving/neuron-handlers"
     model_data = sagemaker_session.upload_data(path=MODEL_PATH, key_prefix=prefix)
+    # Since fake inf is run in mnist-neuron.py and NEURONCORE_GROUP_SIZE env variable
+    # is not set, set the model server worker to 1 (or need to set env variable).
+    # Otherwise num workers defaults to 4 (4 cpu's) and run out of neuron cores
     model = MXNetModel(
         model_data,
         "SageMakerRole",
