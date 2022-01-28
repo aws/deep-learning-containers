@@ -119,7 +119,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip install --no-cache --upgrade \
     h5py==2.10.0 \
     onnx==1.8.1 \
-    "numpy<2" \
+    "numpy<1.20" \
     pandas==1.3.0 \
     "Pillow>=9.0,<10.0" \
     "requests<3" \
