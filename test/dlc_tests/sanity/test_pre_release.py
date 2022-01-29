@@ -176,12 +176,14 @@ def test_framework_version_cpu(image):
     else:
         if tested_framework == "autogluon.core":
             assert output.stdout.strip().startswith(tag_framework_version)
-        elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
-            torch_version_pattern = r"{torch_version}(\+cpu)".format(torch_version=tag_framework_version)
-            assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
-                f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
-                f"Please specify framework version as X.Y.Z+cpu"
-            )
+        # Habana v1.2 binary does not follow the X.Y.Z+cpu naming convention
+        elif "habana" not in image_repo_name:
+            if tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
+                torch_version_pattern = r"{torch_version}(\+cpu)".format(torch_version=tag_framework_version)
+                assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
+                    f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                    f"Please specify framework version as X.Y.Z+cpu"
+                )
         else:
             if "neuron" in image:
                 assert tag_framework_version in output.stdout.strip()
@@ -530,11 +532,17 @@ def test_pip_check(image):
         r"but you have botocore \d+(\.\d+)*\.$"
     )
 
+    # The v0.22 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
+    allowed_habana_tf_exception = re.compile(
+        rf"^tensorflow-io 0.22.0 requires "
+        rf"tensorflow, which is not installed.$"
+    )
+
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(
         f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not (allowed_tf_exception.match(output.stdout) or allowed_smclarify_exception.match(output.stdout)):
+        if not (allowed_tf_exception.match(output.stdout) or allowed_smclarify_exception.match(output.stdout) or allowed_habana_tf_exception(output.stdout)):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
