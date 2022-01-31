@@ -51,7 +51,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    curl \
    emacs \
    # libcudnn8=${CUDNN}+cuda${CUDA} \
-   libcudnn=${CUDNN}+cuda11.5 \
+   libcudnn8=${CUDNN}+cuda11.5 \
    libgomp1 \
    libfreetype6-dev \
    libhdf5-serial-dev \
