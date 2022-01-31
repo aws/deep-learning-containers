@@ -26,6 +26,9 @@ context:
     config:
       source: docker/build_artifacts/config.properties
       target: config.properties
+    sagemaker_package_name:
+      source: docker/build_artifacts/sagemaker
+      target: sagemaker
 
 images:
   BuildNeuronPTInferencePy3DockerImage:
