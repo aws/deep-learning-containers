@@ -8,7 +8,11 @@ are available in the Amazon Elastic Container Registry (Amazon ECR).
 
 The AWS DLCs are used in Amazon SageMaker as the default vehicles for your SageMaker jobs such as training, inference, 
 transforms etc. They've been tested for machine
-learning workloads on Amazon EC2, Amazon ECS and Amazon EKS services as well.
+learning workloads on Amazon EC2, Amazon ECS and Amazon EKS services as well. 
+
+Starting with MXNet 1.9, PyTorch 1.10, and Tensorflow 2.7, CPU and GPU DLCs are released as "E3" and "SageMaker" images.  
+E3 images are supported on EC2, ECS, and EKS, whereas SageMaker images are supported on Amazon SageMaker and contain additional
+packages to support the SageMaker experience.
 
 For the list of available DLC images, see [Available Deep Learning Containers Images](available_images.md). 
 You can find more information on the images available in Sagemaker [here](https://docs.aws.amazon.com/sagemaker/latest/dg/pre-built-containers-frameworks-deep-learning.html)

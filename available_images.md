@@ -84,6 +84,11 @@ You can pin your version by adding the version tag to your URL as follows:
 
      763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04-v1.0
 
+***Note: Starting with MXNet 1.9, PyTorch 1.10, and TensorFlow 2.7, our general framework containers (cpu training, cpu inference, gpu training, gpu inference) 
+are released as "E3" and "SageMaker" images. E3 images support EC2, ECS, and EKS training and inference workflows, whereas SageMaker images
+are supported on Amazon SageMaker and contain additional packages to support the SageMaker experience. The tagging structure 
+of E3 and SageMaker images, respectively, are described in the sections below.***
+
 E3 Framework Containers (EC2, ECS, and EKS support only)
 ============================
 
