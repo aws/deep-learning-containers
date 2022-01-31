@@ -1134,6 +1134,26 @@ NEURON_VERSION_MANIFEST = {
         "mxnet" : {
             "1.8.0": "1.8.0.2.0.276.0",
         }
+    },
+    "1.17.0": {
+        "pytorch": {
+            "1.5.1": "1.5.1.2.1.7.0",
+            "1.7.1": "1.7.1.2.1.7.0",
+            "1.8.1": "1.8.1.2.1.7.0",
+            "1.9.1": "1.9.1.2.1.7.0",
+            "1.10.1": "1.10.1.2.1.7.0"
+        },
+        "tensorflow": {
+            "2.1.4": "2.1.4.2.0.4.0",
+            "2.2.3": "2.2.3.2.0.4.0",
+            "2.3.4": "2.3.4.2.0.4.0",
+            "2.4.3": "2.4.3.2.0.4.0",
+            "2.5.2": "2.5.2.2.1.6.0",
+            "1.15.5": "1.15.5.2.1.6.0"
+        },
+        "mxnet" : {
+            "1.8.0": "1.8.0.2.1.5.0",
+        }
     }
 }
 
@@ -1168,6 +1188,10 @@ def get_neuron_framework_and_version_from_tag(image_uri):
     if neuron_sdk_version not in NEURON_VERSION_MANIFEST:
         raise KeyError(f"Cannot find neuron sdk version {neuron_sdk_version} ")
 
+    # Framework name may include huggingface
+    if tested_framework.startswith('huggingface_'):
+        tested_framework = tested_framework[len("huggingface_"):]
+
     neuron_framework_versions = NEURON_VERSION_MANIFEST[neuron_sdk_version][tested_framework]
     neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)
 
@@ -1194,9 +1218,9 @@ def get_framework_from_image_uri(image_uri):
 
 def get_cuda_version_from_tag(image_uri):
     """
-    Return the cuda version from the image tag.
+    Return the cuda version from the image tag as cuXXX
     :param image_uri: ECR image URI
-    :return: cuda version
+    :return: cuda version as cuXXX
     """
     cuda_framework_version = None
 
