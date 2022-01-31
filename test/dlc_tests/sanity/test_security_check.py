@@ -5,6 +5,8 @@ from time import sleep, time
 
 import pytest
 import boto3
+import logging
+import sys
 
 from copy import deepcopy
 from invoke import run, Context
@@ -16,6 +18,9 @@ from test.test_utils.security import (
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
 
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 MINIMUM_SEV_THRESHOLD = "HIGH"
 
@@ -89,14 +94,14 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
         run_output = ctx.run(f"{docker_exec_cmd} {apt_command}", hide=True, warn=True)
         attempt_count+=1
         if not run_output.ok:
-            print(
+            LOGGER.info(
                 f"Attempt {attempt_count}\n" \
                 f"Could not run apt update and upgrade. \n" \
                 f"Stdout is {run_output.stdout} \n" \
                 f"Stderr is {run_output.stderr} \n" \
                 f"Failed status is {run_output.exited}"
             )
-            time.sleep(2 * 60)
+            sleep(2 * 60)
         elif run_output.ok:
             break
         if attempt_count == 10:
