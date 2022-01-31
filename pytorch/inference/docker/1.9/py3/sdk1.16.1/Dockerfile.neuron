@@ -139,11 +139,10 @@ RUN \
 ENV DEBIAN_FRONTEND noninteractive
 ENV USE_INF 1
 
-COPY --from=builder /workspace/sagemaker-pytorch-inferentia-serving/dist/*.whl /home/model-server/
 # Disable thread pinning in TVM and Treelite
 ENV TVM_BIND_THREADS 0
 ENV TREELITE_BIND_THREADS 0
-RUN pip3 install /home/model-server/sagemaker_*_inferentia_*.whl
+RUN pip3 install /workspace/sagemaker/dist/sagemaker_*_inferentia_*.whl
 
 
 COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
