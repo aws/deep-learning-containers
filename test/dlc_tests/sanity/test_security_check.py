@@ -83,9 +83,12 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     container_id = ctx.run(f"{docker_run_cmd}", hide=True, warn=True).stdout.strip()
     apt_command = "apt-get update && apt-get upgrade"
     docker_exec_cmd = f"docker exec -i {container_id}"
-    run_output = ctx.run(f"{docker_exec_cmd} {apt_command}", hide=True, warn=True)
+    run_output = ctx.run(f"{docker_exec_cmd} {apt_command}")
     if not run_output.ok:
-        raise ValueError(f"Could not run apt update and upgrade. Output is {run_output.stdout}")
+        raise ValueError(f"Could not run apt update and upgrade. \n" \
+                         f"Stdout is {run_output.stdout} \n" \
+                         f"Stderr is {run_output.stderr} \n" \
+                         f"Failed status is {run_output.exited}")
     ctx.run(f"docker commit {container_id} {new_image_uri}", hide=True, warn=True)
     ctx.run(f"docker rm -f {container_id}", hide=True, warn=True)
     ctx.run(f"docker push {new_image_uri}", hide=True, warn=True)
