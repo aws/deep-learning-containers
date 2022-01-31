@@ -7,7 +7,12 @@ import pytest
 import test.test_utils as test_utils
 import test.test_utils.ec2 as ec2_utils
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, get_cuda_version_from_tag
+from test.test_utils import (
+    CONTAINER_TESTS_PREFIX, 
+    get_framework_and_version_from_tag, 
+    get_cuda_version_from_tag, 
+    get_processor_from_image_uri
+)
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -131,9 +136,9 @@ def test_pytorch_gloo_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, 
     """
     Tests gloo backend
     """
-    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
-        pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
-    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooCPU")
+    if get_processor_from_image_uri(pytorch_training):
+        pytest.skip(f"{__name__} is for CPU image only")
+    test_cmd = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooCpu")
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
