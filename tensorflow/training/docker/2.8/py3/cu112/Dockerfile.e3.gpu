@@ -49,7 +49,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    curl \
    emacs \
    libcudnn8=${CUDNN}+cuda${CUDA} \
-   # TensorFlow doesn't require libnccl anymore but Open MPI still depends on it
+   libcudnn8-dev \
    libgomp1 \
    libfreetype6-dev \
    libhdf5-serial-dev \
