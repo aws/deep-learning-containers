@@ -128,6 +128,24 @@ RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
+# Sagemaker related things
+WORKDIR /workspace
+COPY sagemaker/ /workspace/sagemaker
+
+RUN \
+    cd /workspace/sagemaker && \
+    python3 setup.py bdist_wheel
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV USE_INF 1
+
+COPY --from=builder /workspace/sagemaker-pytorch-inferentia-serving/dist/*.whl /home/model-server/
+# Disable thread pinning in TVM and Treelite
+ENV TVM_BIND_THREADS 0
+ENV TREELITE_BIND_THREADS 0
+RUN pip3 install /home/model-server/sagemaker_*_inferentia_*.whl
+
+
 COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY neuron-monitor.sh /usr/local/bin/neuron-monitor.sh
 COPY torchserve-neuron.sh /usr/local/bin/entrypoint.sh
@@ -140,8 +158,6 @@ RUN chmod +x /usr/local/bin/dockerd-entrypoint.py \
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
-
-RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
