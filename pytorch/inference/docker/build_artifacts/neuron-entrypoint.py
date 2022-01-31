@@ -15,11 +15,24 @@ from __future__ import absolute_import
 import shlex
 import subprocess
 import sys
+import os
 
 neuron_cmd = "/usr/local/bin/neuron-monitor.sh"
 subprocess.check_call(shlex.split(neuron_cmd))
 
 if sys.argv[1] == 'serve':
+    user_ncgs = os.environ.get('NEURONCORE_GROUP_SIZES')
+    if user_ncgs is None:
+        os.environ['NEURONCORE_GROUP_SIZES'] = "1"
+    user_workers = os.environ.get('SAGEMAKER_MODEL_SERVER_WORKERS')
+    if user_workers is None:
+        num_host_cores = os.environ.get("NEURON_CORE_HOST_TOTAL")
+        if num_host_cores is None:
+            os.environ['SAGEMAKER_MODEL_SERVER_WORKERS'] = "1"
+        else:
+            os.environ['SAGEMAKER_MODEL_SERVER_WORKERS'] = num_host_cores
+    print("NEURONCORE_GROUP_SIZES {}".format(os.environ.get('NEURONCORE_GROUP_SIZES')))
+    print("SAGEMAKER_MODEL_SERVER_WORKERS {}".format(os.environ.get('SAGEMAKER_MODEL_SERVER_WORKERS')))
     from sagemaker_pytorch_serving_container import serving
     serving.main()
 else:
