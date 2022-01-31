@@ -21,7 +21,7 @@ def run_spider(spiderClass, storage_file_path=None, *args, **kwargs):
     crawler = get_crawler(storage_file_path)
     crawler.crawl(spiderClass, *args, **kwargs)
     crawler.join()
-    time.sleep(10)
+    time.sleep(30)
 
 ######################## How to run #####################
 # from test_script import run_spider
