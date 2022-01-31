@@ -129,6 +129,11 @@ RUN useradd -m model-server \
  && chown -R model-server /home/model-server /opt/ml/model
 
 # Sagemaker related things
+RUN pip3 install --pre --no-cache-dir multi-model-server==1.1.8 \
+    && pip3 install --no-cache-dir six requests \
+    && rm -rf /root/.cache/pip
+RUN pip3 install --upgrade --force-reinstall sagemaker-inference
+
 WORKDIR /workspace
 COPY sagemaker/ /workspace/sagemaker
 
@@ -143,6 +148,11 @@ ENV USE_INF 1
 ENV TVM_BIND_THREADS 0
 ENV TREELITE_BIND_THREADS 0
 RUN pip3 install /workspace/sagemaker/dist/sagemaker_*_inferentia_*.whl
+
+WORKDIR /home/model-server
+ENV TEMP=/home/model-server/tmp
+ENV PYTHONUNBUFFERED TRUE
+ENV PATH="/opt/aws/neuron/bin:${PATH}"
 
 
 COPY neuron-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
