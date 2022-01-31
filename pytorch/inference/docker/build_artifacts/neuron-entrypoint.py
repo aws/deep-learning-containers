@@ -33,7 +33,7 @@ if sys.argv[1] == 'serve':
             os.environ['SAGEMAKER_MODEL_SERVER_WORKERS'] = num_host_cores
     print("NEURONCORE_GROUP_SIZES {}".format(os.environ.get('NEURONCORE_GROUP_SIZES')))
     print("SAGEMAKER_MODEL_SERVER_WORKERS {}".format(os.environ.get('SAGEMAKER_MODEL_SERVER_WORKERS')))
-    from sagemaker_pytorch_serving_container import serving
+    from sagemaker_pytorch_inferentia_serving_container import serving
     serving.main()
 else:
     subprocess.check_call(shlex.split(' '.join(sys.argv[1:])))
