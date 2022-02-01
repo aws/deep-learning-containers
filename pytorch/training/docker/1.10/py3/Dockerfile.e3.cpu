@@ -142,7 +142,7 @@ RUN update-alternatives \
  --slave /usr/bin/gcc-ranlib gcc-ranlib /usr/bin/gcc-ranlib-7
 
 # Install PT S3 plugin
-RUN pip install -U ${PT_S3_WHL}
+# RUN pip install -U ${PT_S3_WHL}
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
