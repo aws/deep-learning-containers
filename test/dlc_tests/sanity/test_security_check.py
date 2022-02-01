@@ -166,7 +166,7 @@ def create_and_save_package_list_to_s3(old_filepath, new_packages, new_filepath)
     s3_client.upload_file(Filename=new_filepath, Bucket=s3_bucket_name, Key=new_filepath)
 
 
-def save_allowlist_to_s3(image, vulnerability_list):
+def save_scan_vulnerability_list_object_to_s3_in_json_format(image, scan_vulnerability_list_object, append_tag):
     """
     Saves the vulnerability list in the s3 bucket. It uses image to decide the name of the file on 
     the s3 bucket.
@@ -177,8 +177,8 @@ def save_allowlist_to_s3(image, vulnerability_list):
     """
     s3_bucket_name = "trshanta-bucket"
     processed_image_uri = image.replace(".", "-").replace("/", "-").replace(":", "-")
-    file_name = f"{processed_image_uri}-allowlist.json"
-    vulnerability_list.save_vulnerability_list(file_name)
+    file_name = f"{processed_image_uri}-{append_tag}.json"
+    scan_vulnerability_list_object.save_vulnerability_list(file_name)
     s3_client = boto3.client("s3")
     s3_client.upload_file(Filename=file_name, Bucket=s3_bucket_name, Key=file_name)
     return file_name
@@ -190,12 +190,9 @@ def get_vulnerabilites_fixable_by_upgrade(
     """
     Finds out the vulnerabilities that are fixable by apt-get update and apt-get upgrade.
 
-    :param image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the 
-                            DLC git repo.
-    :param ecr_image_vulnerability_list: ScanVulnerabilityList, Vulnerabities recently detected WITHOUT running apt-upgrade on 
-                                         the originally released image.
-    :param upgraded_image_vulnerability_list: ScanVulnerabilityList, Vulnerabilites exisiting in the image WITH apt-upgrade 
-                                              run on it.
+    :param image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the DLC git repo.
+    :param ecr_image_vulnerability_list: ScanVulnerabilityList, Vulnerabities recently detected WITHOUT running apt-upgrade on the originally released image.
+    :param upgraded_image_vulnerability_list: ScanVulnerabilityList, Vulnerabilites exisiting in the image WITH apt-upgrade run on it.
     :return: ScanVulnerabilityList/NONE, either ScanVulnerabilityList object or None if no fixable vulnerability
     """
     fixable_ecr_image_scan_vulnerabilites = ecr_image_vulnerability_list - upgraded_image_vulnerability_list
@@ -211,7 +208,23 @@ def get_vulnerabilites_fixable_by_upgrade(
 
 
 def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list):
-    s3_filename_for_allowlist = save_allowlist_to_s3(image, upgraded_image_vulnerability_list)
+    """
+    This method conducts the entire process that is supposed to be followed when ECR test fails. It finds all
+    the fixable and non fixable vulnerabilities and all the packages that can be upgraded and finally invokes
+    the Auto-Secure lambda for further processing.
+
+    :param image: str, image uri
+    :param image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the DLC git repo.
+    :param ecr_image_vulnerability_list: ScanVulnerabilityList, Vulnerabities recently detected WITHOUT running apt-upgrade on the originally released image.
+    :param upgraded_image_vulnerability_list: ScanVulnerabilityList, Vulnerabilites exisiting in the image WITH apt-upgrade run on it.
+    :return: dict, a dictionary consisting of the entire summary of the steps run within this method.
+    """
+    s3_filename_for_allowlist = save_scan_vulnerability_list_object_to_s3_in_json_format(
+        image, upgraded_image_vulnerability_list, "allowlist"
+    )
+    s3_filename_for_current_image_ecr_scan_list = save_scan_vulnerability_list_object_to_s3_in_json_format(
+        image, ecr_image_vulnerability_list, "current-ecr-scanlist"
+    )
     original_filepath_for_allowlist = get_ecr_scan_allowlist_path(image)
     edited_files = [{"s3_filename": s3_filename_for_allowlist, "github_filepath": original_filepath_for_allowlist}]
     vulnerabilities_fixable_by_upgrade = get_vulnerabilites_fixable_by_upgrade(
@@ -243,6 +256,7 @@ def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list
     invoke_lambda(function_name="trshanta-ECR-AS", payload_dict=message_body)
     return_dict = deepcopy(message_body)
     return_dict["s3_filename_for_allowlist"] = s3_filename_for_allowlist
+    return_dict["s3_filename_for_current_image_ecr_scan_list"] = s3_filename_for_current_image_ecr_scan_list
     return return_dict
 
 
@@ -274,6 +288,16 @@ def set_minimum_threshold_level(image):
 
 
 def fetch_other_vulnerability_lists(image, ecr_client):
+    """
+    For a given image it fetches all the other vulnerability lists except the vulnerability list formed by the
+    ecr scan of the current image. In other words, for a given image it fetches upgraded_image_vulnerability_list and
+    image_scan_allowlist.
+
+    :param image: str Image URI for image to be tested
+    :param ecr_client: boto3 Client for ECR
+    :return upgraded_image_vulnerability_list: ScanVulnerabilityList, Vulnerabilites exisiting in the image WITH apt-upgrade run on it.
+    :return image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the DLC git repo.
+    """
     new_image_uri = get_new_image_uri(image)
     run_upgrade_on_image_and_push(image, new_image_uri)
     run_scan(ecr_client, new_image_uri)
@@ -292,7 +316,16 @@ def fetch_other_vulnerability_lists(image, ecr_client):
     return upgraded_image_vulnerability_list, image_scan_allowlist
 
 
-def log_all_lists_in_s3(failure_routine_summary):
+def process_failure_routine_summary(failure_routine_summary):
+    """
+    This method is especially constructed to process the failure routine summary that is generated as a result of 
+    calling conduct_failure_routine. It extracts lists and calls the save lists function to store them in the s3
+    bucket.
+
+    :param failure_routine_summary: dict, dictionary returned as an outcome of conduct_failure_routine method
+    :return s3_filename_for_fixable_list: string, filename in the s3 bucket for the fixable vulnerabilities
+    :return s3_filename_for_non_fixable_list: string, filename in the s3 bucket for the non-fixable vulnerabilities
+    """
     s3_filename_for_allowlist = failure_routine_summary["s3_filename_for_allowlist"]
     s3_filename_for_fixable_list = s3_filename_for_allowlist.replace(
         "allowlist.json", "fixable-vulnerability-list.json"
@@ -300,21 +333,26 @@ def log_all_lists_in_s3(failure_routine_summary):
     s3_filename_for_non_fixable_list = s3_filename_for_allowlist.replace(
         "allowlist.json", "non-fixable-vulnerability-list.json"
     )
-    s3_bucket_name = "trshanta-bucket"
-    s3_client = boto3.client("s3")
-
-    with open(s3_filename_for_fixable_list, "w") as outfile:
-        json.dump(failure_routine_summary["fixable_vulnerabilities"], outfile, indent=4)
-    s3_client.upload_file(
-        Filename=s3_filename_for_fixable_list, Bucket=s3_bucket_name, Key=s3_filename_for_fixable_list
-    )
-
-    with open(s3_filename_for_non_fixable_list, "w") as outfile:
-        json.dump(failure_routine_summary["non_fixable_vulnerabilities"], outfile, indent=4)
-    s3_client.upload_file(
-        Filename=s3_filename_for_non_fixable_list, Bucket=s3_bucket_name, Key=s3_filename_for_non_fixable_list
-    )
+    save_details = []
+    save_details.append((s3_filename_for_fixable_list, failure_routine_summary["fixable_vulnerabilities"]))
+    save_details.append((s3_filename_for_non_fixable_list, failure_routine_summary["non_fixable_vulnerabilities"]))
+    save_lists_in_s3(save_details)
     return s3_filename_for_fixable_list, s3_filename_for_non_fixable_list
+
+
+def save_lists_in_s3(save_details, bucket_name="trshanta-bucket"):
+    """
+    This method takes in a list of filenames and the data corresponding to each filename and stores it in 
+    the s3 bucket.
+
+    :param save_details: list[(string, list)], a lists of tuples wherein each tuple has a filename and the corresponding data.
+    :param bucket_name: string, name of the s3 bucket
+    """
+    s3_client = boto3.client("s3")
+    for filename, data in save_details:
+        with open(filename, "w") as outfile:
+            json.dump(data, outfile, indent=4)
+        s3_client.upload_file(Filename=filename, Bucket=bucket_name, Key=filename)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -363,6 +401,7 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
     # TODO: Ensure this works on the canary tags before removing feature flag
     if is_image_covered_by_allowlist_feature(image):
         upgraded_image_vulnerability_list, image_scan_allowlist = fetch_other_vulnerability_lists(image, ecr_client)
+        s3_bucket_name = "trshanta-bucket"
 
         ## In case new vulnerabilities are found conduct failure routine
         newly_found_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
@@ -370,26 +409,30 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
             failure_routine_summary = conduct_failure_routine(
                 image, image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list
             )
-            s3_filename_for_fixable_list, s3_filename_for_non_fixable_list = log_all_lists_in_s3(
+            s3_filename_for_fixable_list, s3_filename_for_non_fixable_list = process_failure_routine_summary(
                 failure_routine_summary
             )
-
         assert not newly_found_vulnerabilities, (
             f"""Found {len(failure_routine_summary["fixable_vulnerabilities"])} fixable vulnerabilites """
             f"""and {len(failure_routine_summary["non_fixable_vulnerabilities"])} non fixable vulnerabilites. """
-            f"""Refer to files {s3_filename_for_fixable_list}, {s3_filename_for_non_fixable_list} """
-            f"""and {failure_routine_summary["s3_filename_for_allowlist"]} in trshanta-bucket."""
+            f"""Refer to files s3://{s3_bucket_name}/{s3_filename_for_fixable_list}, s3://{s3_bucket_name}/{s3_filename_for_non_fixable_list}, """
+            f"""s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_current_image_ecr_scan_list"]} and s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_allowlist"]}."""
         )
 
         ## In case there is no new vulnerability but the allowlist is outdated conduct failure routine
         vulnerabilities_that_can_be_fixed = image_scan_allowlist - upgraded_image_vulnerability_list
         if vulnerabilities_that_can_be_fixed:
-            conduct_failure_routine(
+            failure_routine_summary = conduct_failure_routine(
                 image, image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list
             )
+            s3_filename_for_fixable_list, s3_filename_for_non_fixable_list = process_failure_routine_summary(
+                failure_routine_summary
+            )
         assert not vulnerabilities_that_can_be_fixed, (
-            f"Allowlist is outdated. The following vulnerabilities can be fixed {image}:\n"
-            f"{json.dumps(vulnerabilities_that_can_be_fixed.vulnerability_list, indent=4)}"
+            f"""Allowlist is Outdated!! Found {len(failure_routine_summary["fixable_vulnerabilities"])} fixable vulnerabilites """
+            f"""and {len(failure_routine_summary["non_fixable_vulnerabilities"])} non fixable vulnerabilites. """
+            f"""Refer to files s3://{s3_bucket_name}/{s3_filename_for_fixable_list}, s3://{s3_bucket_name}/{s3_filename_for_non_fixable_list}, """
+            f"""s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_current_image_ecr_scan_list"]} and s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_allowlist"]}."""
         )
         return
 
