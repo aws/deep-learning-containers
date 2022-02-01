@@ -266,7 +266,7 @@ def is_image_covered_by_allowlist_feature(image):
 
     :param image: str, Image URI
     """
-    if "example" in image:
+    if any(substring in image for substring in ["example","neuron"]):
         return False
     for framework in LOWER_THRESHOLD_IMAGES.keys():
         if framework in image:
