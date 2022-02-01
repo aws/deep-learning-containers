@@ -95,7 +95,7 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
         attempt_count+=1
         if not run_output.ok:
             LOGGER.info(
-                f"Attempt {attempt_count}\n" \
+                f"Attempt no. {attempt_count} on image: {image}" \
                 f"Could not run apt update and upgrade. \n" \
                 f"Stdout is {run_output.stdout} \n" \
                 f"Stderr is {run_output.stderr} \n" \
@@ -109,7 +109,7 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
                 apt_ran_successfully_flag = False
             break
     if apt_ran_successfully_flag == False:
-        raise ValueError(f"Could not run apt update and upgrade. \n" \
+        raise ValueError(f"Could not run apt update and upgrade on image: {image}. \n" \
                          f"Stdout is {run_output.stdout} \n" \
                          f"Stderr is {run_output.stderr} \n" \
                          f"Failed status is {run_output.exited}")

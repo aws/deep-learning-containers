@@ -24,7 +24,7 @@ def run_spider(spiderClass, storage_file_path=None, *args, **kwargs):
     time.sleep(30)
 
 ######################## How to run #####################
-# from test_script import run_spider
+# from scraper_runner import run_spider
 # from web_scraper.spiders.cve_spiders import CveSpider
 # run_spider(CveSpider,storage_file_path='cve_data.json', url_csv_string="https://ubuntu.com/security/CVE-2016-1585,https://ubuntu.com/security/CVE-2021-29973")
 #########################################################

@@ -18,7 +18,7 @@ from test.test_utils import (
     LOGGER,
 )
 from test.test_utils.security import CVESeverity
-from web_scraper.test_script import run_spider
+from web_scraper.scraper_runner import run_spider
 from web_scraper.web_scraper.spiders.cve_spiders import CveSpider
 
 
