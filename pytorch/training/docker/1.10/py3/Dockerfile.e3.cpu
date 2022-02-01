@@ -5,7 +5,7 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
 # Add arguments to achieve the version, python and url
-ARG PYTHON_VERSION=3.7.10
+ARG PYTHON_VERSION=3.8.10
 ARG OPEN_MPI_VERSION=4.0.1
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
