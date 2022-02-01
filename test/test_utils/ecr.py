@@ -131,9 +131,9 @@ def get_ecr_login_boto3(ecr_client, account_id, region):
     """
     user_name, password = None, None
     result = ecr_client.get_authorization_token()
-    for auth in result['authorizationData']:
-        auth_token = b64decode(auth['authorizationToken']).decode()
-        user_name, password = auth_token.split(':')
+    for auth in result["authorizationData"]:
+        auth_token = b64decode(auth["authorizationToken"]).decode()
+        user_name, password = auth_token.split(":")
     return user_name, password
 
 
@@ -175,18 +175,26 @@ def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_
         .replace(image_account_id, target_account_id)
     )
 
-    client = boto3.client('ecr', region_name = image_region)
+    client = boto3.client("ecr", region_name=image_region)
     username, password = get_ecr_login_boto3(client, image_account_id, image_region)
     save_credentials_to_file(ECR_PASSWORD_FILE_PATH, password)
 
     # using ctx.run throws error on codebuild "OSError: reading from stdin while output is captured".
     # Also it throws more errors related to awscli if in_stream=False flag is added to ctx.run which needs more deep dive
-    subprocess.check_output(f"cat {ECR_PASSWORD_FILE_PATH} | docker login -u {username} --password-stdin https://{image_account_id}.dkr.ecr.{image_region}.amazonaws.com && docker pull {source_image_uri}", shell=True, executable="/bin/bash")
+    subprocess.check_output(
+        f"cat {ECR_PASSWORD_FILE_PATH} | docker login -u {username} --password-stdin https://{image_account_id}.dkr.ecr.{image_region}.amazonaws.com && docker pull {source_image_uri}",
+        shell=True,
+        executable="/bin/bash",
+    )
     subprocess.check_output(f"docker tag {source_image_uri} {target_image_uri}", shell=True, executable="/bin/bash")
     delete_file(ECR_PASSWORD_FILE_PATH)
     username, password = get_ecr_login_boto3(target_ecr_client, target_account_id, target_region)
     save_credentials_to_file(ECR_PASSWORD_FILE_PATH, password)
-    subprocess.check_output(f"cat {ECR_PASSWORD_FILE_PATH} | docker login -u {username} --password-stdin https://{target_account_id}.dkr.ecr.{target_region}.amazonaws.com && docker push {target_image_uri}", shell=True, executable="/bin/bash")
+    subprocess.check_output(
+        f"cat {ECR_PASSWORD_FILE_PATH} | docker login -u {username} --password-stdin https://{target_account_id}.dkr.ecr.{target_region}.amazonaws.com && docker push {target_image_uri}",
+        shell=True,
+        executable="/bin/bash",
+    )
     delete_file(ECR_PASSWORD_FILE_PATH)
 
     return target_image_uri
@@ -233,5 +241,7 @@ def populate_ecr_scan_with_web_scraper_results(
         if cve_id in scraped_data and package_name in scraped_data[cve_id]:
             finding["scraped_data"] = scraped_data[cve_id][package_name]
         else:
-            finding["scraped_data"] = [{"_comment": "Could Not be Processed. Webpage for this might not be in the required format."}]
+            finding["scraped_data"] = [
+                {"_comment": "Could Not be Processed. Webpage for this might not be in the required format."}
+            ]
     return ecr_scan_to_be_populated
