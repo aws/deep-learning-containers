@@ -119,9 +119,9 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     psutil==5.6.7 \
     "Pillow>=8.3.2,<8.4" \
  && pip uninstall -y torch \
- && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
+#  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+#  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
 
 # Install gcc 7
 RUN apt update -qq \
