@@ -59,6 +59,8 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
     cython \
+   mkl-include \
+    mkl \
     botocore \
  && /opt/conda/bin/conda clean -ya
 
@@ -66,8 +68,6 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
-    mkl-include \
-    mkl \
     "cryptography>3.2"
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
