@@ -184,7 +184,8 @@
                 "42444":"for shipping tensorflow 1.15.5",
                 "42442":"for shipping tensorflow 1.15.5",
                 "42445":"for shipping tensorflow 1.15.5",
-                "43613":"for shipping tensorflow 1.15.5"
+                "43613":"for shipping tensorflow 1.15.5",
+                "44463":"torchserve 0.5.2. need latest with fix for log4j2"
             }
         }
     },
