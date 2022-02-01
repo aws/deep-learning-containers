@@ -58,8 +58,8 @@ RUN apt-get update \
  && echo 'deb http://nginx.org/packages/ubuntu/ bionic nginx' >> /etc/apt/sources.list \
  && apt-get update \
  && apt-get -y install --no-install-recommends \
-    nginx \
-    nginx-module-njs \
+    nginx=1.20.1* \
+    nginx-module-njs=1.20.1* \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -97,13 +97,13 @@ RUN ${PIP} install --no-cache-dir \
     protobuf==3.14.0 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api==2.5.1
+    tensorflow-serving-api==2.5.2
 
 # pip install statements have been separated out into multiple sequentially executed statements to
 # resolve package dependencies during installation.
-RUN ${PIP} install "tensorflow_serving_api==2.5.1" --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
+RUN ${PIP} install "tensorflow_serving_api==2.5.2" --no-deps --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install neuron-cc --extra-index-url https://pip.repos.neuron.amazonaws.com \
- && ${PIP} install "tensorflow-neuron==2.5.1.*" --extra-index-url https://pip.repos.neuron.amazonaws.com
+ && ${PIP} install "tensorflow-neuron==2.5.2.*" --extra-index-url https://pip.repos.neuron.amazonaws.com
 
 COPY ./sagemaker /sagemaker
 
