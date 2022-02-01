@@ -10,8 +10,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 # https://docs.aws.amazon.com/sagemaker/latest/dg/build-multi-model-build-container.html
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
-ARG MMS_VERSION=1.1.4
-ARG MX_URL=https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.8.0/aws_mx-1.8.0-py2.py3-none-manylinux2014_x86_64.whl
+ARG MMS_VERSION=1.1.8
 ARG PYTHON=python3
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.7.10
@@ -103,8 +102,7 @@ RUN ${PIP} install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neu
     https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.8.0/aws_mx-1.8.0-py2.py3-none-manylinux2014_x86_64.whl \
  && ${PIP} install mx-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com \
  # Install TF 1.15.5 to override neuron-cc[tensorflow]'s installation of tensorflow==1.15.0
- && pip install -U tensorflow==1.15.5 \
- && ${PIP} install multi-model-server --no-deps
+ && pip install -U tensorflow==1.15.5
 
 # This is here to make our installed version of OpenCV work.
 # https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
