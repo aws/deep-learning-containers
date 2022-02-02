@@ -4,7 +4,7 @@ FROM $BASE_IMAGE
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG SMDEBUG_TAG=v1.0.12
+ARG SMDEBUG_VERSION=1.0.12
 ARG PYTHON=python3.8
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.8.2
@@ -17,10 +17,8 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
     "sagemaker-studio-analytics-extension==0.0.2" \
+    "smdebug==${SMDEBUG_VERSION}" \
     smclarify 
-
-RUN git clone -b $SMDEBUG_TAG https://github.com/awslabs/sagemaker-debugger.git \
-    && cd sagemaker-debugger && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger 
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
