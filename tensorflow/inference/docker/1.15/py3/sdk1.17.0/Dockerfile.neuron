@@ -117,6 +117,7 @@ RUN ln -s $(which python3) /usr/local/bin/python \
 # cython, falcon, gunicorn, grpc
 RUN ${PIP} install --no-cache-dir -U \
     "awscli<2" \
+    "pyYAML>=5.4,<5.5" \
     boto3 \
     cython==0.29.21 \
     falcon==2.0.0 \
