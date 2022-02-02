@@ -139,10 +139,15 @@ RUN ${PIP} install --no-cache-dir -U \
     tensorflow-io==0.22.0 \ 
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
-    horovod==0.23.0 \
     "opencv-python>=4.3,<5" \
     "werkzeug>=2.0.2,<3" \
     psutil==5.7.2
+
+# Install Horovod with TensorFlow
+RUN HOROVOD_WITH_MPI=1 \
+   && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
+   && ${PIP} install --no-cache-dir horovod==0.23.0
+
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
