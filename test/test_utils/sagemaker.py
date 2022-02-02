@@ -21,6 +21,8 @@ from test_utils import (
     get_job_type_from_image,
     get_python_invoker,
     is_pr_context,
+    is_nightly_context,
+    LOGGER,
     SAGEMAKER_EXECUTION_REGIONS,
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
@@ -317,7 +319,10 @@ def execute_local_tests(image, pytest_cache_params):
                                                      executable="/bin/bash")
                     pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(ec2_conn_new, path, **pytest_cache_params)
                     if 'failures="0"' not in str(output):
-                        raise ValueError(f"Sagemaker Local tests failed for {image}")
+                        error_message = f"Sagemaker Local tests failed for {image}"
+                        if is_nightly_context():
+                            LOGGER.warning(error_message)
+                        raise ValueError(error_message)
             else:
                 ec2_conn.run(pytest_command)
                 print(f"Downloading Test reports for image: {image}")
@@ -337,9 +342,9 @@ def execute_local_tests(image, pytest_cache_params):
 def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, pytest_cache_params):
     """
     Run pytest in a virtual env for a particular image. Creates a custom directory for each thread for pytest cache file.
-    Stores pytest cache in a shared dict.  
+    Stores pytest cache in a shared dict.
     Expected to run via multiprocessing
-    :param process_index - id for process. Used to create a custom cache dir 
+    :param process_index - id for process. Used to create a custom cache dir
     :param image - ECR url
     :param global_pytest_cache - shared Manager().dict() for cache merging
     :param pytest_cache_params - parameters required for s3 file path building
@@ -360,10 +365,14 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
             cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(path, custom_cache_directory=str(process_index))
             global_pytest_cache.update(cache_json)
             if res.failed:
-                raise DLCSageMakerRemoteTestFailure(
+                error_message = (
                     f"{pytest_command} failed with error code: {res.return_code}\n"
                     f"Traceback:\n{res.stdout}"
                 )
+                if is_nightly_context():
+                    LOGGER.warning(error_message)
+                else:
+                    raise DLCSageMakerRemoteTestFailure(error_message)
     return None
 
 

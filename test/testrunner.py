@@ -20,6 +20,7 @@ from test_utils import metrics as metrics_utils
 from test_utils import (
     get_dlc_images,
     is_pr_context,
+    is_nightly_context,
     is_benchmark_dev_context,
     is_rc_test_context,
     is_e3_image,
@@ -375,7 +376,8 @@ def main():
             # Note:- Running multiple pytest_cmds in a sequence will result in the execution log having two
             #        separate pytest reports, both of which must be examined in case of a manual review of results.
             cmd_exit_statuses = [pytest.main(pytest_cmd) for pytest_cmd in pytest_cmds]
-            if all([status == 0 for status in cmd_exit_statuses]):
+            if is_nightly_context() or all([status == 0 for status in cmd_exit_statuses]):
+                LOGGER.warning(str(pytest_cmds))
                 sys.exit(0)
             else:
                 raise RuntimeError(pytest_cmds)
@@ -399,7 +401,10 @@ def main():
             pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto", "-o", "norecursedirs=resources"]
             if not is_pr_context():
                 pytest_cmd += ["--efa"] if efa_dedicated else ["-m", "not efa"]
-            sys.exit(pytest.main(pytest_cmd))
+            cmd_exit_status = pytest.main(pytest_cmd)
+            if is_nightly_context():
+                cmd_exit_status = 0
+            sys.exit(cmd_exit_status)
 
         else:
             sm_remote_images = [
