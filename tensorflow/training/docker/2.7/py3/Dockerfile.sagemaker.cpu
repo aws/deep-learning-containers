@@ -34,7 +34,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     smclarify 
 
 # install smdebug directly from tag
-RUN git clone -b $SMDEBUG_TAG git clone -b v1.0.12 https://github.com/awslabs/sagemaker-debugger.git \
+RUN git clone -b $SMDEBUG_TAG https://github.com/awslabs/sagemaker-debugger.git \
     && cd sagemaker-debugger && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger 
 
 
