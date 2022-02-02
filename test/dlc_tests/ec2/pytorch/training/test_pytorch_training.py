@@ -7,7 +7,7 @@ import pytest
 import test.test_utils as test_utils
 import test.test_utils.ec2 as ec2_utils
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, HPU_AL2_DLAMI, get_framework_and_version_from_tag, get_cuda_version_from_tag
+from test.test_utils import CONTAINER_TESTS_PREFIX, UBUNTU_18_HPU_DLAMI_US_WEST_2, get_framework_and_version_from_tag, get_cuda_version_from_tag
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -224,6 +224,6 @@ def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only, pt15_
 
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_HPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
-def test_pytorch_standalone_hpu(pytorch_training_habana, ec2_connection):
+@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
+def test_pytorch_standalone_hpu(pytorch_training_habana, ec2_connection, upload_habana_test_artifact):
     execute_ec2_training_test(ec2_connection, pytorch_training_habana, PT_HABANA_TEST_SUITE_CMD, container_name="ec2_training_habana_pytorch_container")

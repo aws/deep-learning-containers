@@ -3,7 +3,7 @@ import re
 import pytest
 import statistics
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, HPU_AL2_DLAMI, get_synapseai_version_from_tag
+from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, UBUNTU_18_HPU_DLAMI_US_WEST_2, get_synapseai_version_from_tag
 from test.test_utils.ec2 import execute_ec2_training_performance_test
 from src.benchmark_metrics import (
     get_threshold_for_image,
@@ -91,9 +91,9 @@ def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection
 @pytest.mark.integration("synthetic dataset")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize('cards_num', [1, 8])
-def test_performance_tensorflow_rn50_hpu_synthetic(tensorflow_training_habana, ec2_connection, cards_num):
+def test_performance_tensorflow_rn50_hpu_synthetic(tensorflow_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
     _, framework_version = get_framework_and_version_from_tag(tensorflow_training_habana)
     synapseai_version = get_synapseai_version_from_tag(tensorflow_training_habana)
     threshold = get_threshold_for_image(framework_version, TENSORFLOW_TRAINING_RN50_HPU_SYNTHETIC_THRESHOLD)
@@ -115,9 +115,9 @@ def test_performance_tensorflow_rn50_hpu_synthetic(tensorflow_training_habana, e
 @pytest.mark.integration("squad dataset")
 @pytest.mark.model("bert")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize('cards_num', [1, 8])
-def test_performance_tensorflow_bert_hpu(tensorflow_training_habana, ec2_connection, cards_num):
+def test_performance_tensorflow_bert_hpu(tensorflow_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
     _, framework_version = get_framework_and_version_from_tag(tensorflow_training_habana)
     synapseai_version = get_synapseai_version_from_tag(tensorflow_training_habana)
     threshold = get_threshold_for_image(framework_version, TENSORFLOW_TRAINING_BERT_HPU_THRESHOLD)
@@ -139,9 +139,9 @@ def test_performance_tensorflow_bert_hpu(tensorflow_training_habana, ec2_connect
 @pytest.mark.integration("coco_like dataset")
 @pytest.mark.model("maskrcnn")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize('cards_num', [1])
-def test_performance_tensorflow_maskrcnn_hpu(tensorflow_training_habana, ec2_connection, cards_num):
+def test_performance_tensorflow_maskrcnn_hpu(tensorflow_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
     _, framework_version = get_framework_and_version_from_tag(tensorflow_training_habana)
     synapseai_version = get_synapseai_version_from_tag(tensorflow_training_habana)
     threshold = get_threshold_for_image(framework_version, TENSORFLOW_TRAINING_MASKRCNN_HPU_THRESHOLD)

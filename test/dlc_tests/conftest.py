@@ -34,6 +34,7 @@ from test.test_utils import (
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
     get_ecr_repo_name,
+    UBUNTU_HOME_DIR
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -352,6 +353,12 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
         test_utils.login_to_ecr_registry(conn, public_registry, region)
 
     return conn
+
+@pytest.fixture(scope="function")
+def upload_habana_test_artifact(request, ec2_connection):
+    habana_test_repo = "gaudi-test-suite.tar.gz"
+    ec2_connection.put(habana_test_repo, f"{UBUNTU_HOME_DIR}")
+    ec2_connection.run(f"tar -xvf {habana_test_repo}")
 
 
 @pytest.fixture(scope="function")

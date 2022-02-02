@@ -4,14 +4,14 @@ set -e
 PT_VERSION=$(python -c 'import torch; print(torch.__version__)')
 
 HOME_DIR=/test
+LOG_FILE=/test/logs
 LOG_DIR=`dirname $LOG_FILE`
 
 mkdir -p ${HOME_DIR}/artifacts
 mkdir -p ${LOG_DIR}
 
-git clone https://github.com/HabanaAI/gaudi-test-suite.git ${HOME_DIR}/artifacts/gaudi-test-suite
+cp -r ${HOME}/gaudi-test-suite ${HOME_DIR}/artifacts/gaudi-test-suite
 cd ${HOME_DIR}/artifacts/gaudi-test-suite
-git checkout r${GIT_BRANCH}
 python3 -m pip install -r requirements.txt
 python3 -m pip install -r test/benchmark/pt-requirements.txt
 

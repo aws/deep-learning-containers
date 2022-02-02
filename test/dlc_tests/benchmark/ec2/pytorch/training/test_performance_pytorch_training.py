@@ -7,7 +7,7 @@ import statistics
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
-    HPU_AL2_DLAMI,
+    UBUNTU_18_HPU_DLAMI_US_WEST_2,
     DEFAULT_REGION,
     get_framework_and_version_from_tag,
     get_synapseai_version_from_tag,
@@ -69,9 +69,9 @@ def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_
 
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize('cards_num', [1, 8])
-def test_performance_pytorch_rn50_hpu_synthetic(pytorch_training_habana, ec2_connection, cards_num):
+def test_performance_pytorch_rn50_hpu_synthetic(pytorch_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
     _, framework_version = get_framework_and_version_from_tag(pytorch_training_habana)
     synapseai_version = get_synapseai_version_from_tag(pytorch_training_habana)
     threshold_1 = get_threshold_for_image(framework_version, PYTORCH_TRAINING_RN50_HPU_SYNTHETIC_1_CARD_THRESHOLD)
@@ -92,9 +92,9 @@ def test_performance_pytorch_rn50_hpu_synthetic(pytorch_training_habana, ec2_con
 
 @pytest.mark.model("bert")
 @pytest.mark.parametrize("ec2_instance_type", [PT_EC2_HPU_INSTANCE_TYPE], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize('cards_num', [1, 8])
-def test_performance_pytorch_bert_hpu(pytorch_training_habana, ec2_connection, cards_num):
+def test_performance_pytorch_bert_hpu(pytorch_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
     _, framework_version = get_framework_and_version_from_tag(pytorch_training_habana)
     synapseai_version = get_synapseai_version_from_tag(pytorch_training_habana)
     threshold = get_threshold_for_image(framework_version, PYTORCH_TRAINING_BERT_HPU_THRESHOLD)

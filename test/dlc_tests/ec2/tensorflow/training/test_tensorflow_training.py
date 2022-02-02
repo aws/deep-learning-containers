@@ -5,7 +5,7 @@ import pytest
 import test.test_utils as test_utils
 import test.test_utils.ec2 as ec2_utils
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, HPU_AL2_DLAMI, LOGGER, is_tf_version, get_python_invoker
+from test.test_utils import CONTAINER_TESTS_PREFIX, UBUNTU_18_HPU_DLAMI_US_WEST_2, LOGGER, is_tf_version, get_python_invoker
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
@@ -266,6 +266,6 @@ def test_tensorflow_distribute_dataservice_gpu(
 @pytest.mark.integration('tensorflow-dataservice-distribute-test')
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_HPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [HPU_AL2_DLAMI], indirect=True)
-def test_tensorflow_standalone_hpu(tensorflow_training_habana, ec2_connection):
+@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
+def test_tensorflow_standalone_hpu(tensorflow_training_habana, ec2_connection, upload_habana_test_artifact):
     execute_ec2_training_test(ec2_connection, tensorflow_training_habana, TF_HABANA_TEST_SUITE_CMD, container_name="ec2_training_habana_tensorflow_container")

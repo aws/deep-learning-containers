@@ -481,10 +481,13 @@ def execute_ec2_training_test(
     ompi_mca_btl = '-e OMPI_MCA_btl_vader_single_copy_mechanism=none' if "hpu" in ecr_uri else ""
     cap_add = '--cap-add=sys_nice' if "hpu" in ecr_uri else ""
     ipc = '--ipc=host' if "hpu" in ecr_uri and "pytorch" in ecr_uri else ""
+    habana_container_test_repo = '-v ${HOME}/gaudi-test-suite:/gaudi-test-suite' if "hpu" in ecr_uri else ""
     bin_bash_cmd = "--entrypoint /bin/bash " if bin_bash_entrypoint else ""
     connection.run(
-        f"{docker_cmd} run --name {container_name} {container_runtime} {ompi_mca_btl} {cap_add} {ipc} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
-        f" {shm_setting} -itd {bin_bash_cmd}{ecr_uri}",
+        f"{docker_cmd} run --name {container_name} "
+        f"{container_runtime} {ompi_mca_btl} {cap_add} "
+        f"{ipc} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
+        f"{habana_container_test_repo} {shm_setting} -itd {bin_bash_cmd}{ecr_uri}",
         hide=True,
     )
     return connection.run(
@@ -532,12 +535,14 @@ def execute_ec2_training_performance_test(
     ompi_mca_btl = '-e OMPI_MCA_btl_vader_single_copy_mechanism=none' if "hpu" in ecr_uri else ""
     cap_add = '--cap-add=sys_nice' if "hpu" in ecr_uri else ""
     ipc = '--ipc=host' if "hpu" in ecr_uri and "pytorch" in ecr_uri else ""
+    habana_container_test_repo = '-v ${HOME}/gaudi-test-suite:/gaudi-test-suite' if "hpu" in ecr_uri else ""
     connection.run(
         f"{docker_cmd} run --user root "
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
         f"{container_runtime} {ompi_mca_btl} {hpu_env_vars} {cap_add} {ipc} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
+        f"-v {habana_container_test_repo} "
         f"{os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'"
     )
     ec2_performance_upload_result_to_s3_and_validate(
