@@ -35,7 +35,7 @@ ARG BRANCH_OFI=1.1.3-aws
 # disable prompts during package installation
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG TF_URL=https://aws-tensorflow-binaries.s3-us-west-2.amazonaws.com/tensorflow/r2.6_aws/20210816_235124/gpu/cu112/py38/tensorflow_gpu-2.6.0-cp38-cp38-manylinux2010_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.6_aws/gpu/tensorflow-2.6.2-cp38-cp38-manylinux2010_x86_64.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
@@ -237,16 +237,19 @@ RUN ${PIP} install --no-cache-dir -U \
    "PyHive<1" \
    "sparkmagic<1" \
    "sagemaker-studio-sparkmagic-lib<1" \
-   "sagemaker-studio-analytics-extension==0.0.2" \
+   "sagemaker-studio-analytics-extension<1" \
    # Let's install TensorFlow separately in the end to avoid
    # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
-   tensorflow-io \
+   tensorflow-io==0.21.0 \
    h5py==3.1.0 \
    "absl-py>=0.9,<0.11" \
    smdebug==${SMDEBUG_VERSION} \
    smclarify
+
+# Remove python kernel installed by sparkmagic
+RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 
 # Install extra packages
 RUN ${PIP} install --no-cache-dir -U \
@@ -335,7 +338,7 @@ RUN HOME_DIR=/root \
    && chmod +x /usr/local/bin/testOSSCompliance \
    && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
-   && rm -rf ${HOME_DIR}/oss_compliance*
+   && rm -rf ${HOME_DIR}/oss_compliance* 
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.6/license.txt -o /license.txt
 

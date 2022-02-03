@@ -71,4 +71,3 @@ if __name__ == "__main__":
     assert (model_name in models)
 
     run_inference(model_name, iterations, is_gpu)
-

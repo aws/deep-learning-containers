@@ -2,7 +2,7 @@
 
 The following table lists the Docker image URLs that will be used by Amazon ECS in task definitions. Replace the `<repository-name>` and `<image-tag>` values based on your desired container.
 
-Once you've selected your desired Deep Learning Containers image, continue with the one of the following:
+Once you've selected your desired Deep Learning Containers image, continue with one of the following tutorials:
 
 -   To run training and inference on Deep Learning Containers for Amazon EC2 using MXNet, PyTorch, TensorFlow, and TensorFlow 2, see [Amazon EC2 Tutorials](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/deep-learning-containers-ec2.html)
 
@@ -58,7 +58,7 @@ example:
 
 **Important**
 
-You must login to access to the DLC image repository before pulling
+You must login to access the DLC image repository before pulling
 the image. Ensure your CLI is up to date using the steps in [Installing the current AWS CLI Version](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv1.html#install-tool-bundled)
     Then, specify your region and its corresponding ECR Registry from
     the previous table in the following command:
@@ -73,23 +73,65 @@ You can then pull these Docker images from ECR by running:
 
     docker pull <name of container image>
 
- General Framework Containers (EC2, ECS, EKS, & SM support)
+DLC Available Image User Guide
 ============================
 
-To use the following table, select your desired framework, as well as
-the kind of job you're starting, and the desired Python version. Your
+To use the following tables, select your desired framework, the kind of job you're starting, and your desired Python version. Your
 job type is either ``training`` or ``inference``. Your Python version is
-either ``py27``, ``py36``, or ``py37`` depending on availability. Plug this information into the replaceable
-portions of the URL as shown in the example URL.
+either ``py27``, ``py36``, ``py37``, or ``py38``, depending on availability. Plug this information into the replaceable portions of the URL as shown in the example URL.
 
 You can pin your version by adding the version tag to your URL as follows:
 
      763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04-v1.0
 
+E3 Framework Containers (EC2, ECS, and EKS support only)
+============================
+
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-|TensorFlow 2.6.0   |training	|Yes			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.6.0-cpu-py38-ubuntu20.04		|
-|TensorFlow 2.6.0   |training	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.6.0-gpu-py38-cu112-ubuntu20.04	|
+|PyTorch 1.10.0   |training	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.10.0-cpu-py38-ubuntu20.04-e3		|
+|PyTorch 1.10.0   |training	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.10.0-gpu-py38-cu113-ubuntu20.04-e3	|
+|PyTorch 1.10.0   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.10.0-cpu-py38-ubuntu20.04-e3		|
+|PyTorch 1.10.0   |inference	|No			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.10.0-gpu-py38-cu113-ubuntu20.04-e3	|
+|TensorFlow 2.7.0   |training	|Yes			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.7.0-cpu-py38-ubuntu20.04-e3		|
+|TensorFlow 2.7.0   |training	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.7.0-gpu-py38-cu112-ubuntu20.04-e3	|
+|TensorFlow 2.7.0   |inference	|Yes			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.7.0-cpu-py38-ubuntu20.04-e3		|
+|TensorFlow 2.7.0   |inference	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.7.0-gpu-py38-cu112-ubuntu20.04-e3	|
+|MXNet 1.9.0   |training	|Yes			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-training:1.9.0-cpu-py38-ubuntu20.04-e3		|
+|MXNet 1.9.0  |training	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-training:1.9.0-gpu-py38-cu112-ubuntu20.04-e3	|
+|MXNet 1.9.0   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-cpu-py38-ubuntu20.04-e3        |
+|MXNet 1.9.0   |inference	|No			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38-cu112-ubuntu20.04-e3	|
+
+
+E3 Framework Graviton Containers (EC2, ECS, and EKS support only)
+============================
+
+| Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
+|-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
+|PyTorch 1.10.0   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:1.10.0-cpu-py38-ubuntu20.04-e3		|
+|TensorFlow 2.7.0   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.7.0-cpu-py38-ubuntu20.04-e3		|
+
+SageMaker Framework Containers (SM support only)
+============================
+
+| Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
+|-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
+|PyTorch 1.10.0   |training	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.10.0-cpu-py38-ubuntu20.04-sagemaker		|
+|PyTorch 1.10.0   |training	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.10.0-gpu-py38-cu113-ubuntu20.04-sagemaker	|
+|PyTorch 1.10.0   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.10.0-cpu-py38-ubuntu20.04-sagemaker		|
+|PyTorch 1.10.0   |inference	|No			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.10.0-gpu-py38-cu113-ubuntu20.04-sagemaker	|
+|MXNet 1.9.0   |training	|Yes			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-training:1.9.0-cpu-py38-ubuntu20.04-sagemaker		|
+|MXNet 1.9.0  |training	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-training:1.9.0-gpu-py38-cu112-ubuntu20.04-sagemaker	|
+|MXNet 1.9.0   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-cpu-py38-ubuntu20.04-sagemaker        |
+|MXNet 1.9.0   |inference	|No			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference:1.9.0-gpu-py38-cu112-ubuntu20.04-sagemaker	|
+
+ General Framework Containers (EC2, ECS, EKS, & SM support)
+============================
+
+| Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
+|-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
+|TensorFlow 2.6.2   |training	|Yes			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.6.2-cpu-py38-ubuntu20.04		|
+|TensorFlow 2.6.2   |training	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.6.2-gpu-py38-cu112-ubuntu20.04	|
 |TensorFlow 2.6.0   |inference	|Yes			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.6.0-cpu-py38-ubuntu20.04		|
 |TensorFlow 2.6.0   |inference	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.6.0-gpu-py38-cu112-ubuntu20.04	|
 |MXNet 1.8.0        |training	|Yes			|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-training:1.8.0-gpu-py37-cu110-ubuntu16.04		|
@@ -101,19 +143,14 @@ You can pin your version by adding the version tag to your URL as follows:
 |PyTorch 1.9.1      |inference	|No			    |GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.9.1-gpu-py38-cu111-ubuntu20.04    |
 |PyTorch 1.9.1      |inference	|No				|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.9.1-cpu-py38-ubuntu20.04          |
 
-
-E3 Framework Containers (EC2, ECS, and EKS support only)
+NVIDIA Triton Inference Containers (SM support only)
 ============================
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-|PyTorch 1.10.0   |training	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.10.0-cpu-py38-ubuntu20.04-e3		|
-|PyTorch 1.10.0   |training	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.10.0-gpu-py38-cu113-ubuntu20.04-e3	|
-|PyTorch 1.10.0   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.10.0-cpu-py38-ubuntu20.04-e3		|
-|PyTorch 1.10.0   |inference	|No			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.10.0-gpu-py38-cu113-ubuntu20.04-e3	|
+|NVIDIA Triton Inference Server 21.08    |inference	|No			|GPU 		| 3.8 (py38)			|007439368137.dkr.ecr.us-east-2.amazonaws.com/sagemaker-tritonserver:21.08-py3		|
 
-
-Habana training containers
+Habana Training Containers
 ===============================
 
 | Framework         |Job Type	|Device Type 	|Python Version Options	|Example URL																								 |
@@ -122,7 +159,7 @@ Habana training containers
 |TensorFlow 2.5.0   |training   |HPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training-habana:2.5.0-hpu-py37-synapseai0.15.4-ubuntu18.04
 
 
-AutoGluon training containers
+AutoGluon Training Containers
 ===============================
 
 | Framework         |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																								 |
@@ -130,14 +167,14 @@ AutoGluon training containers
 |AutoGluon 0.3.1    |training   |GPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.3.1-gpu-py37-cu102-ubuntu18.04            |
 |AutoGluon 0.3.1    |training   |CPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.3.1-cpu-py37-ubuntu18.04			    	 |
 
-AutoGluon inference containers
+AutoGluon Inference Containers
 ===============================
 
 | Framework         |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																								 |
 |-------------------|-----------|-----------|-----------------------|------------------------------------------------------------------------------------------------------------|
 |AutoGluon 0.3.1    |inference  |CPU        | 3.7 (py37)            |763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:0.3.1-cpu-py37-ubuntu16.04			    	 |
 
-HuggingFace training containers
+HuggingFace Training Containers
 ===============================
 
 | Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
@@ -146,7 +183,7 @@ HuggingFace training containers
 |TensorFlow 2.5.1 with HuggingFace transformers |training	|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-training:2.5.1-transformers4.12.3-gpu-py37-cu112-ubuntu18.04 	|
 
 
-HuggingFace inference containers
+HuggingFace Inference Containers
 ===============================
 
 | Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
@@ -155,6 +192,14 @@ HuggingFace inference containers
 |PyTorch 1.9.1 with HuggingFace transformers    |inference	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.9.1-transformers4.12.3-gpu-py38-cu111-ubuntu20.04		|
 |TensorFlow 2.5.1 with HuggingFace transformers |inference	|CPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.5.1-transformers4.12.3-cpu-py37-ubuntu18.04 	|
 |TensorFlow 2.5.1 with HuggingFace transformers |inference	|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.5.1-transformers4.12.3-gpu-py37-cu112-ubuntu18.04 	|
+
+SageMaker Training Compiler Containers
+===============================
+
+| Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
+|-----------------------------------------------|-----------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
+|PyTorch 1.9.0 with HuggingFace transformers and SageMaker Training Compiler    |training	|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-trcomp-training:1.9.0-transformers4.11.0-gpu-py38-cu111-ubuntu20.04      |
+|TensorFlow 2.5.1 with HuggingFace transformers and SageMaker Training Compiler |training	|GPU 		| 3.7 (py37)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-trcomp-training:2.5.1-transformers4.11.0-gpu-py37-cu112-ubuntu18.04 	|
 
 
 Elastic Inference Containers

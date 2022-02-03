@@ -334,25 +334,37 @@ def execute_local_tests(image, pytest_cache_params):
         return None
 
 
-def execute_sagemaker_remote_tests(image):
+def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, pytest_cache_params):
     """
-    Run pytest in a virtual env for a particular image
+    Run pytest in a virtual env for a particular image. Creates a custom directory for each thread for pytest cache file.
+    Stores pytest cache in a shared dict.  
     Expected to run via multiprocessing
-    :param image: ECR url
+    :param process_index - id for process. Used to create a custom cache dir 
+    :param image - ECR url
+    :param global_pytest_cache - shared Manager().dict() for cache merging
+    :param pytest_cache_params - parameters required for s3 file path building
     """
+    account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
+    pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
     context = Context()
     with context.cd(path):
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
+            pytest_cache_util.download_pytest_cache_from_s3_to_local(path, **pytest_cache_params, custom_cache_directory=str(process_index))
+            # adding -o cache_dir with a custom directory name
+            pytest_command += f" -o cache_dir={os.path.join(str(process_index), '.pytest_cache')}"
             res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
+            cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(path, custom_cache_directory=str(process_index))
+            global_pytest_cache.update(cache_json)
             if res.failed:
                 raise DLCSageMakerRemoteTestFailure(
                     f"{pytest_command} failed with error code: {res.return_code}\n"
                     f"Traceback:\n{res.stdout}"
                 )
+    return None
 
 
 def generate_empty_report(report, test_type, case):

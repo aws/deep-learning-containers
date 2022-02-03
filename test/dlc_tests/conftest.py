@@ -78,8 +78,9 @@ FRAMEWORK_FIXTURES = (
     "cpu",
     "eia",
     "neuron",
-    "graviton",
     "hpu",
+    # Architecture
+    "graviton",
     # Job Type fixtures
     "training",
     "inference",
@@ -253,7 +254,7 @@ def ec2_instance(
             and "gpu_only" in request.fixturenames
             and "horovod" in ec2_key_name
         )
-        or ("tensorflow_inference" in request.fixturenames and "graviton_only" in request.fixturenames)
+        or ("tensorflow_inference" in request.fixturenames and "graviton_compatible_only" in request.fixturenames)
         or ("graviton" in request.fixturenames)
     ):
         params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 300,},}]
@@ -414,6 +415,16 @@ def gpu_only():
 
 
 @pytest.fixture(scope="session")
+def x86_compatible_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def graviton_compatible_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def sagemaker():
     pass
 
@@ -555,7 +566,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration(ml_integration): mark what the test is testing.")
     config.addinivalue_line("markers", "model(model_name): name of the model being tested")
     config.addinivalue_line("markers", "multinode(num_instances): number of instances the test is run on, if not 1")
-    config.addinivalue_line("markers", "processor(cpu/gpu/eia/hpu/graviton): explicitly mark which processor is used")
+    config.addinivalue_line("markers", "processor(cpu/gpu/eia/hpu): explicitly mark which processor is used")
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
 
 
@@ -633,11 +644,15 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
                 for index, image in enumerate(images_to_parametrize):
 
                     # Tag fixtures with EC2 instance types if env variable is present
-                    allowed_processors = ("gpu", "cpu", "eia", "neuron", "graviton", "hpu")
+                    allowed_processors = ("gpu", "cpu", "eia", "neuron", "hpu")
                     instance_tag = ""
                     for processor in allowed_processors:
                         if processor in image:
-                            instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE")
+                            if "graviton" in image:
+                                instance_type_env = f"EC2_{processor.upper()}_GRAVITON_INSTANCE_TYPE"
+                            else:
+                                instance_type_env = f"EC2_{processor.upper()}_INSTANCE_TYPE"
+                            instance_type = os.getenv(instance_type_env)
                             if instance_type:
                                 instance_tag = f"-{instance_type.replace('.', '-')}"
                                 break
@@ -670,7 +685,7 @@ def lookup_condition(lookup, image):
         "training",
         "inference",
     )
-    device_types = ("cpu", "gpu", "eia", "neuron", "hpu")
+    device_types = ("cpu", "gpu", "eia", "neuron", "hpu", "graviton")
 
     if not repo_name.endswith(lookup):
         if (lookup in job_types or lookup in device_types) and lookup in image:
@@ -718,14 +733,19 @@ def pytest_generate_tests(metafunc):
                         continue
                     if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue
+                    if "x86_compatible_only" in metafunc.fixturenames and "graviton" in image:
+                        continue
                     if is_example_lookup or is_huggingface_lookup or is_standard_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
+                        elif "graviton_compatible_only" in metafunc.fixturenames and "graviton" in image:
+                            images_to_parametrize.append(image)
                         elif (
                             "cpu_only" not in metafunc.fixturenames
                             and "gpu_only" not in metafunc.fixturenames
+                            and "graviton_compatible_only" not in metafunc.fixturenames
                         ):
                             images_to_parametrize.append(image)
 
