@@ -541,9 +541,8 @@ def execute_ec2_training_performance_test(
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
         f"{container_runtime} {ompi_mca_btl} {hpu_env_vars} {cap_add} {ipc} "
-        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
-        f"-v {habana_container_test_repo} "
-        f"{os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'"
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -v {habana_container_test_repo} "
+        f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'"
     )
     ec2_performance_upload_result_to_s3_and_validate(
         connection, ecr_uri, log_location, data_source, threshold, post_process, log_name,
