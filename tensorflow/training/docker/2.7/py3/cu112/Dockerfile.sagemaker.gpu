@@ -17,7 +17,6 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
     "sagemaker-studio-analytics-extension==0.0.2" \
-    "smdebug==${SMDEBUG_VERSION}" \
     smclarify 
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
@@ -28,6 +27,10 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
     "shap>=0.39,<1"
+
+# install smdebug directly the specific branch
+RUN git clone -b $SMDEBUG_VERSION https://github.com/awslabs/sagemaker-debugger.git \
+    && cd sagemaker-debugger && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger 
 
 # install boost
 # tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=0"
