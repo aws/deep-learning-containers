@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir \
     "Pillow>=9.0.0" \
     # TODO: Remove upgrade statements once packages are updated in base image
     "IPython==8.0.1" \
-    "typing-extensions~=3.7.4"
+    "typing-extensions>=3.7.4.3"
 
 
 RUN apt-get update \
