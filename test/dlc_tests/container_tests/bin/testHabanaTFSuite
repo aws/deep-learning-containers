@@ -11,7 +11,7 @@ mkdir -p ${LOG_DIR}
 
 set -e
 
-cp -r ${HOME}/gaudi-test-suite ${HOME_DIR}/artifacts/gaudi-test-suite
+cp -r /gaudi-test-suite ${HOME_DIR}/artifacts/gaudi-test-suite
 cd ${HOME_DIR}/artifacts/gaudi-test-suite
 python3 -m pip install -r requirements.txt
 python3 -m pip install -r test/framework/tensorflow_test_suite/requirements.txt
