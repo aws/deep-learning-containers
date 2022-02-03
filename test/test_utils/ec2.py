@@ -9,7 +9,7 @@ from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
-from test.test_utils import is_pr_context, is_mainline_context
+from test.test_utils import is_pr_context, is_mainline_context, get_synapseai_version_from_tag
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
@@ -470,7 +470,7 @@ def execute_ec2_training_test(
         executable = os.path.join(os.sep, "bin", "bash")
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-
+    synapseai_version = get_synapseai_version_from_tag(ecr_uri)
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
@@ -481,11 +481,12 @@ def execute_ec2_training_test(
     ompi_mca_btl = '-e OMPI_MCA_btl_vader_single_copy_mechanism=none' if "hpu" in ecr_uri else ""
     cap_add = '--cap-add=sys_nice' if "hpu" in ecr_uri else ""
     ipc = '--ipc=host' if "hpu" in ecr_uri and "pytorch" in ecr_uri else ""
+    hpu_env_vars = f'-e GIT_BRANCH={synapseai_version}' if "hpu" in ecr_uri else ""
     habana_container_test_repo = '-v ${HOME}/gaudi-test-suite:/gaudi-test-suite' if "hpu" in ecr_uri else ""
     bin_bash_cmd = "--entrypoint /bin/bash " if bin_bash_entrypoint else ""
     connection.run(
         f"{docker_cmd} run --name {container_name} "
-        f"{container_runtime} {ompi_mca_btl} {cap_add} "
+        f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
         f"{ipc} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
         f"{habana_container_test_repo} {shm_setting} -itd {bin_bash_cmd}{ecr_uri}",
         hide=True,
@@ -515,7 +516,7 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
 
 
 def execute_ec2_training_performance_test(
-    connection, ecr_uri, test_cmd, region=DEFAULT_REGION, post_process=None, data_source="", threshold=None, cards_num=None, synapseai_version=None
+    connection, ecr_uri, test_cmd, region=DEFAULT_REGION, post_process=None, data_source="", threshold=None, cards_num=None
 ):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
@@ -523,7 +524,7 @@ def execute_ec2_training_performance_test(
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
     log_name = f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
-
+    synapseai_version = get_synapseai_version_from_tag(ecr_uri)
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 

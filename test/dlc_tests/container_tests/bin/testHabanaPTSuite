@@ -13,6 +13,7 @@ set -e
 
 cp -r /gaudi-test-suite ${HOME_DIR}/artifacts/gaudi-test-suite
 cd ${HOME_DIR}/artifacts/gaudi-test-suite
+git checkout r${GIT_BRANCH}
 python3 -m pip install -r requirements.txt
 python3 -m pip install -r test/framework/pytorch_test_suite/requirements.txt
 

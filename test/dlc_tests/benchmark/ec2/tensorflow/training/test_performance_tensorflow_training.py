@@ -3,7 +3,7 @@ import re
 import pytest
 import statistics
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, UBUNTU_18_HPU_DLAMI_US_WEST_2, get_synapseai_version_from_tag
+from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, UBUNTU_18_HPU_DLAMI_US_WEST_2
 from test.test_utils.ec2 import execute_ec2_training_performance_test
 from src.benchmark_metrics import (
     get_threshold_for_image,
@@ -95,7 +95,6 @@ def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection
 @pytest.mark.parametrize('cards_num', [1, 8])
 def test_performance_tensorflow_rn50_hpu_synthetic(tensorflow_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
     _, framework_version = get_framework_and_version_from_tag(tensorflow_training_habana)
-    synapseai_version = get_synapseai_version_from_tag(tensorflow_training_habana)
     threshold = get_threshold_for_image(framework_version, TENSORFLOW_TRAINING_RN50_HPU_SYNTHETIC_THRESHOLD)
     perf_factor = 0.95 if cards_num > 1 else 1  # Rough scaling factor
     expected_perf = threshold * cards_num * perf_factor
@@ -109,7 +108,6 @@ def test_performance_tensorflow_rn50_hpu_synthetic(tensorflow_training_habana, e
         data_source="synthetic",
         threshold={"Throughput": threshold},
         cards_num=cards_num,
-        synapseai_version=synapseai_version
     )
 
 @pytest.mark.integration("squad dataset")
@@ -119,7 +117,6 @@ def test_performance_tensorflow_rn50_hpu_synthetic(tensorflow_training_habana, e
 @pytest.mark.parametrize('cards_num', [1, 8])
 def test_performance_tensorflow_bert_hpu(tensorflow_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
     _, framework_version = get_framework_and_version_from_tag(tensorflow_training_habana)
-    synapseai_version = get_synapseai_version_from_tag(tensorflow_training_habana)
     threshold = get_threshold_for_image(framework_version, TENSORFLOW_TRAINING_BERT_HPU_THRESHOLD)
     perf_factor = 0.95 if cards_num > 1 else 1  # Rough scaling factor
     expected_perf = threshold * cards_num * perf_factor
@@ -133,7 +130,6 @@ def test_performance_tensorflow_bert_hpu(tensorflow_training_habana, ec2_connect
         data_source="squad",
         threshold={"Throughput": threshold},
         cards_num=cards_num,
-        synapseai_version=synapseai_version
     )
 
 @pytest.mark.integration("coco_like dataset")
@@ -143,7 +139,6 @@ def test_performance_tensorflow_bert_hpu(tensorflow_training_habana, ec2_connect
 @pytest.mark.parametrize('cards_num', [1])
 def test_performance_tensorflow_maskrcnn_hpu(tensorflow_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
     _, framework_version = get_framework_and_version_from_tag(tensorflow_training_habana)
-    synapseai_version = get_synapseai_version_from_tag(tensorflow_training_habana)
     threshold = get_threshold_for_image(framework_version, TENSORFLOW_TRAINING_MASKRCNN_HPU_THRESHOLD)
     perf_factor = 0.95 if cards_num > 1 else 1  # Rough scaling factor
     expected_perf = threshold * cards_num * perf_factor
@@ -157,7 +152,6 @@ def test_performance_tensorflow_maskrcnn_hpu(tensorflow_training_habana, ec2_con
         data_source="coco_like",
         threshold={"Throughput": threshold},
         cards_num=cards_num,
-        synapseai_version=synapseai_version
     )
 
 def post_process_tensorflow_hpu_training_performance(connection, log_location):
