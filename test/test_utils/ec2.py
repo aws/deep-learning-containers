@@ -535,7 +535,7 @@ def execute_ec2_training_performance_test(
     ompi_mca_btl = '-e OMPI_MCA_btl_vader_single_copy_mechanism=none' if "hpu" in ecr_uri else ""
     cap_add = '--cap-add=sys_nice' if "hpu" in ecr_uri else ""
     ipc = '--ipc=host' if "hpu" in ecr_uri and "pytorch" in ecr_uri else ""
-    habana_container_test_repo = '-v ${HOME}/gaudi-test-suite:/gaudi-test-suite' if "hpu" in ecr_uri else ""
+    habana_container_test_repo = '${HOME}/gaudi-test-suite:/gaudi-test-suite' if "hpu" in ecr_uri else ""
     connection.run(
         f"{docker_cmd} run --user root "
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
