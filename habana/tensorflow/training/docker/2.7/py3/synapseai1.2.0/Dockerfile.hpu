@@ -81,7 +81,7 @@ RUN apt-get update \
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     #Setuptools release 60.x (and later) revealed an issue in Habana-TensorFlow package.
-    setuptools<60.0.0
+    "setuptools<60.0.0"
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
