@@ -44,17 +44,14 @@ http {
     }
 
     location /ping {
-        js_content tensorflowServing.ping;
         %FORWARD_PING_REQUESTS%;
     }
 
     location /invocations {
-        js_content tensorflowServing.invocations;
         %FORWARD_INVOCATION_REQUESTS%;
     }
 
     location /models {
-        js_content tensorflowServing.models;
         proxy_pass http://gunicorn_upstream/models;
     }
 
