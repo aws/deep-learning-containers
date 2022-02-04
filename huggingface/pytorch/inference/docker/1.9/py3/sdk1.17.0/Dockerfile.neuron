@@ -96,7 +96,7 @@ WORKDIR /
 
 RUN pip install --no-cache-dir \
     multi-model-server==$MMS_VERSION \
-    sagemaker-inference
+    sagemaker-inference==1.5.9
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
