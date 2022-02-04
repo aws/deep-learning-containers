@@ -108,7 +108,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip install -U packaging==20.4 \
     enum-compat==0.0.3 \
     "cryptography>3.2" \
-    numpy
+    "numpy>=1.22.2"
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
