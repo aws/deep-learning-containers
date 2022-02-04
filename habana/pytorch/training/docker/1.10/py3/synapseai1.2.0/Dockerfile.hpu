@@ -36,7 +36,7 @@ ARG PT_TORCHVISION_URL=https://aws-habana-pytorch-cicd-v3-binaries.s3.us-west-2.
 
 RUN pip --no-cache-dir install --upgrade \
     pip \
-    setuptools
+    "setuptools<60.0.0"
 
 # The following section uninstalls torch and torchvision before installing the
 # custom versions from an S3 bucket.
