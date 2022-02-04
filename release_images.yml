@@ -55,3 +55,15 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
+  5:
+    framework: "mxnet"
+    version: "1.8.0"
+    arch_type: "x86"
+    inference:
+      device_types: ["neuron"]
+      python_versions: ["py37"]
+      os_version: "ubuntu18.04"
+      neuron_sdk_version: "sdk1.17.0"
+      example: False
+      disable_sm_tag: True
+      force_release: False
