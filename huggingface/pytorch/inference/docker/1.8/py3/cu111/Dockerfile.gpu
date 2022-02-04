@@ -65,7 +65,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip install -U packaging==20.4 \
     enum-compat==0.0.3 \
     "cryptography>3.2" \
-    "numpy>=1.22.2"
+    "numpy>=1.19.0"
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
