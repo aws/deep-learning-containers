@@ -142,13 +142,16 @@ def test_ubuntu_version(image):
 def test_framework_version_cpu(image):
     """
     Check that the framework version in the image tag is the same as the one on a running container.
-    This function tests CPU, EIA, and Neuron images.
+    This function tests CPU, EIA images.
 
     :param image: ECR image URI
     """
     if "gpu" in image:
         pytest.skip(
             "GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
+    if "neuron" in image:
+        pytest.skip(
+            "Neuron images will have their framework version tested in test_framework_and_neuron_sdk_version")
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
         pytest.skip(
