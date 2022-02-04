@@ -186,3 +186,65 @@ def reupload_image_to_test_ecr(source_image_uri, target_image_repo_name, target_
     delete_file(ECR_PASSWORD_FILE_PATH)
 
     return target_image_uri
+
+
+def get_image_manifest(image_repo, image_tag, ecr_client, **kwargs):
+    """
+    Helper function to get an image manifest from ECR.
+
+    :param image_repo: <str> Repository name
+    :param image_tag: <str> Image tag to be queried
+    :param ecr_client: <boto3.client> ECR client object to be used for query
+    :return: ECR image manifest as dict, or requested format if mentioned in kwargs.
+    """
+    response = ecr_client.batch_get_image(repositoryName=image_repo, imageIds=[{"imageTag": image_tag}], **kwargs)
+    if not response.get("images"):
+        raise ValueError(
+            f"Failed to get images through ecr_client.batch_get_image response for image {image_repo}:{image_tag}"
+        )
+    elif not response["images"][0].get("imageManifest"):
+        raise KeyError(f"imageManifest not found in ecr_client.batch_get_image response:\n{response['images']}")
+    return response["images"][0]["imageManifest"]
+
+
+def get_ecr_image_labels(ecr_client, repo_name, image_tag, account_id=None):
+    """
+    Get all labels applied on an image hosted on ECR through the image manifest.
+
+    :param ecr_client:
+    :param repo_name:
+    :param image_tag:
+    :param account_id:
+    :return: dict All Docker Image Labels applied on the image
+    """
+    get_image_manifest_kwargs = {"acceptedMediaTypes": ["application/vnd.docker.distribution.manifest.v1+json"]}
+    if account_id:
+        get_image_manifest_kwargs["registryId"] = account_id
+    manifest_str = get_image_manifest(
+        image_repo=repo_name,
+        image_tag=image_tag,
+        ecr_client=ecr_client,
+        **get_image_manifest_kwargs,
+    )
+    manifest = json.loads(manifest_str)
+    image_metadata = json.loads(manifest["history"][0]["v1Compatibility"])
+    image_labels = image_metadata["config"]["Labels"]
+    return image_labels
+
+
+def get_ecr_image_labels_from_uri(image_uri, ecr_client=None):
+    """
+    Get all labels applied on the given image URI hosted on ECR through the image manifest.
+
+    :param image_uri: str Input Image URI
+    :param ecr_client: boto3 ECR Client object in the same region as the image URI
+    :return: dict All Docker Image Labels applied on the image
+    """
+    account_id = get_account_id_from_image_uri(image_uri)
+    repo_name, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    image_region = get_region_from_image_uri(image_uri)
+    if not ecr_client:
+        ecr_client = boto3.client("ecr", region_name=image_region)
+
+    image_labels = get_ecr_image_labels(ecr_client, repo_name, image_tag, account_id=account_id)
+    return image_labels

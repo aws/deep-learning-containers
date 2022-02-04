@@ -22,11 +22,14 @@ from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 from six.moves.urllib.parse import urlparse
 from packaging.version import Version
 
-from ..... import invoke_sm_helper_function
+from ..... import (
+    invoke_sm_helper_function, is_image_smdebug_compatible, is_image_smddp_compatible, is_image_smdmp_compatible
+)
 from test.test_utils import is_pr_context, SKIP_PR_REASON
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from .timeout import timeout
+
 
 def can_run_mnist_estimator(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
@@ -121,6 +124,7 @@ def _test_distributed_mnist_ps_function(ecr_image, sagemaker_session, instance_t
     estimator.fit(inputs, job_name=unique_name_from_base('test-tf-sm-distributed-mnist'))
     _assert_checkpoint_exists(sagemaker_session.boto_region_name, estimator.model_dir, 0)
 
+
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
@@ -186,6 +190,7 @@ def _test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, framew
     print(estimator.model_dir)
     _assert_checkpoint_exists_v2(sagemaker_session.boto_region_name, estimator.model_dir, 10)
 
+
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.integration("hpo")
@@ -232,6 +237,8 @@ def _test_tuning_function(ecr_image, sagemaker_session, instance_type, framework
 @pytest.mark.integration("smdebug")
 @pytest.mark.skip_py2_containers
 def test_smdebug(ecr_image, sagemaker_regions, instance_type, framework_version):
+    if not is_image_smdebug_compatible(ecr_image):
+        pytest.skip(f"Image {ecr_image} is incompatible with this test")
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smdebug_function,
                               instance_type, framework_version)
 
@@ -266,6 +273,8 @@ def test_smdataparallel_smmodelparallel_mnist(ecr_image, sagemaker_regions, inst
     This test has been added for SM DataParallelism and ModelParallelism tests for re:invent.
     TODO: Consider reworking these tests after re:Invent releases are done
     """
+    if not is_image_smdmp_compatible(ecr_image) or not is_image_smdmp_compatible(ecr_image):
+        pytest.skip(f"Image {ecr_image} is incompatible with this test")
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smdataparallel_smmodelparallel_mnist_function,
                               instance_type, tmpdir, framework_version)
 

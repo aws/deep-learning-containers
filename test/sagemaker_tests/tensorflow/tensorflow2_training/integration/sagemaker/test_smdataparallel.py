@@ -21,7 +21,7 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from sagemaker.tensorflow import TensorFlow
 
-from ..... import invoke_sm_helper_function
+from ..... import invoke_sm_helper_function, is_image_smddp_compatible
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 
@@ -31,6 +31,8 @@ THROUGHPUT_PATH = os.path.join(RESOURCE_PATH, 'smdataparallel')
 
 
 def validate_or_skip_smdataparallel(ecr_image):
+    if not is_image_smddp_compatible(ecr_image):
+        pytest.skip(f"Image {ecr_image} is incompatible with this test")
     if not can_run_smdataparallel(ecr_image):
         pytest.skip("Data Parallelism is supported on CUDA 11 on TensorFlow 2.3.1 and above")
 
@@ -43,6 +45,8 @@ def can_run_smdataparallel(ecr_image):
 
 
 def validate_or_skip_smdataparallel_efa(ecr_image):
+    if not is_image_smddp_compatible(ecr_image):
+        pytest.skip(f"Image {ecr_image} is incompatible with this test")
     if not can_run_smdataparallel_efa(ecr_image):
         pytest.skip("EFA is only supported on CUDA 11, and on TensorFlow 2.4.1 or higher")
 
@@ -62,10 +66,10 @@ def can_run_smdataparallel_efa(ecr_image):
 def test_distributed_training_smdataparallel_script_mode(ecr_image, sagemaker_regions, instance_type, tmpdir,
                                                          framework_version
                                                          ):
-    invoke_sm_helper_function(ecr_image, 
+    invoke_sm_helper_function(ecr_image,
                               sagemaker_regions,
                               _test_distributed_training_smdataparallel_script_mode_function,
-                              instance_type, 
+                              instance_type,
                               framework_version)
 
 

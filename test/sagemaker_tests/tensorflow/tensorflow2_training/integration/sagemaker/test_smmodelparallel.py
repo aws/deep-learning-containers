@@ -17,17 +17,21 @@ import os
 import pytest
 
 import sagemaker
+
 from sagemaker.tensorflow import TensorFlow
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-from ..... import invoke_sm_helper_function
+
+from ..... import invoke_sm_helper_function, is_image_smdmp_compatible
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'resources')
 
 
 def validate_or_skip_smmodelparallel(ecr_image):
+    if not is_image_smdmp_compatible(ecr_image):
+        pytest.skip(f"Image {ecr_image} is incompatible with this test")
     if not can_run_smmodelparallel(ecr_image):
         pytest.skip("Model Parallelism is supported on CUDA 11 on TensorFlow version between v2.3.1(inclusive) and v2.7.0(exclusive)")
 
@@ -35,11 +39,13 @@ def validate_or_skip_smmodelparallel(ecr_image):
 def can_run_smmodelparallel(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet(">=2.3.1,<2.7.0") and Version(
+    return Version(image_framework_version) in SpecifierSet(">=2.3.1,!=2.7.*,!=2.8.*") and Version(
         image_cuda_version.strip("cu")) >= Version("110")
 
 
 def validate_or_skip_smmodelparallel_efa(ecr_image):
+    if not is_image_smdmp_compatible(ecr_image):
+        pytest.skip(f"Image {ecr_image} is incompatible with this test")
     if not can_run_smmodelparallel_efa(ecr_image):
         pytest.skip("EFA is only supported on CUDA 11, and on TensorFlow v2.4.1 or higher")
 
