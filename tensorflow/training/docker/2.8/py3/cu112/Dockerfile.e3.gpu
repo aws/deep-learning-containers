@@ -208,7 +208,7 @@ RUN ${PIP} install --no-cache-dir -U \
    "absl-py>=0.9,<0.11" \
    "opencv-python>=4.3,<5" \
    "werkzeug>=2.0.2,<3" \
-   "urlib3<1.27.0"
+   "urllib3>1.26.0<1.27.0"
 
 # Install AWS OFI NCCL plug-in
 RUN apt-get update && apt-get install -y autoconf

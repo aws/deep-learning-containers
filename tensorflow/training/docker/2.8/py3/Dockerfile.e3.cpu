@@ -142,7 +142,7 @@ RUN ${PIP} install --no-cache-dir -U \
     "opencv-python>=4.3,<5" \
     "werkzeug>=2.0.2,<3" \
     psutil==5.7.2 \
-    "urlib3<1.27.0"
+   "urllib3>1.26.0<1.27.0"
 
 # Install Horovod with TensorFlow
 RUN HOROVOD_WITH_MPI=1 \
