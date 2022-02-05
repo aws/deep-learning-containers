@@ -201,7 +201,7 @@ RUN ${PIP} install --no-cache-dir -U \
    # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
-   tensorflow-io==0.22.0 \
+   tensorflow-io==0.23.1 \
    h5py==3.1.0 \
    "absl-py>=0.9,<0.11" \
    "opencv-python>=4.3,<5" \
