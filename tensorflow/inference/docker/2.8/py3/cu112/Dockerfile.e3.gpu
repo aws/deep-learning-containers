@@ -3,13 +3,13 @@ FROM nvidia/cuda:11.2.1-base-ubuntu20.04
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG PYTHON=python3.8
+ARG PYTHON=python3.9
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.8.9
+ARG PYTHON_VERSION=3.9.10
 
-ARG TFS_SHORT_VERSION=2.7
-ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.7_aws/gpu/tensorflow_model_server
+ARG TFS_SHORT_VERSION=2.8
+ARG TFS_URL=s3://framework-binaries/tensorflow_serving/r2.8_aws/gpu/2022-02-04-23-24/tensorflow_model_server
 
 ENV NCCL_VERSION=2.8.4-1+cuda11.2
 ENV CUDNN_VERSION=8.1.0.77-1+cuda11.2
@@ -68,11 +68,11 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Install python3.8
+# Install python
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
- && ./configure && make && make install \
+ && ./configure && make && make install -j \
  && rm -rf ../Python-$PYTHON_VERSION*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
@@ -82,14 +82,31 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 
 # Install TensorRT 
 # see https://github.com/NVIDIA/TensorRT/blob/master/docker/ubuntu-20.04.Dockerfile
-ENV TRT_VERSION 8.0.1.6
-ENV CUDA_VERSION 11.3.1
-RUN v="${TRT_VERSION%.*}-1+cuda${CUDA_VERSION%.*}" &&\
-    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub &&\
-    apt-get update &&\
-    yes | apt-get install libnvinfer8=${v} libnvonnxparsers8=${v} libnvparsers8=${v} libnvinfer-plugin8=${v} \
-        libnvinfer-dev=${v} libnvonnxparsers-dev=${v} libnvparsers-dev=${v} libnvinfer-plugin-dev=${v} \
-        python3-libnvinfer=${v}
+# ENV TRT_VERSION 8.0.1.6
+# ENV CUDA_VERSION 11.3.1
+# RUN v="${TRT_VERSION%.*}-1+cuda${CUDA_VERSION%.*}" &&\
+#     apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub &&\
+#     apt-get update &&\
+#     yes | apt-get install libnvinfer8=${v} libnvonnxparsers8=${v} libnvparsers8=${v} libnvinfer-plugin8=${v} \
+#         libnvinfer-dev=${v} libnvonnxparsers-dev=${v} libnvparsers-dev=${v} libnvinfer-plugin-dev=${v} \
+#         python3-libnvinfer=${v}
+
+# Install TensorRT 
+# Make sure to use the same TensorRT as the one for compiling tensorflow_model_server
+RUN v="7.2.2-1+cuda11.1" \
+   && apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub \
+   apt update \
+   && apt install -y --no-install-recommends \
+    libnvinfer7=$v \
+    libnvinfer-dev=$v \
+    libnvinfer-plugin-dev=$v \
+    libnvinfer-plugin7=$v \
+    libnvonnxparsers7=$v \
+    libnvparsers7=$v \
+    libnvonnxparsers-dev=$v \
+    libnvparsers-dev=$v \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*;
 
 
 # Some TF tools expect a "python" binary
