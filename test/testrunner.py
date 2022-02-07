@@ -310,26 +310,6 @@ def main():
         report_infer = os.path.join(os.getcwd(), "test", f"{test_type}_infer.xml")
         report_multinode_train = os.path.join(os.getcwd(), "test", f"eks_multinode_train.xml")
 
-        # TODO: This is a temporary patch to pass pr quick checks for TF2.6 PySDK PR and should be reverted
-        if specific_test_type in ("sanity", "quick_checks"):
-            context = Context()
-            s3_uri_list = []
-            s3_uri_list.append("s3://sagemaker-python-sdk-047976067574/dist/sagemaker.tar.gz")
-            s3_uri_list.append("s3://sagemaker-python-sdk-047976067574/boto3/botocore.tar.gz")
-            s3_uri_list.append("s3://sagemaker-python-sdk-047976067574/boto3/boto3.tar.gz")
-            s3_uri_list.append("s3://sagemaker-python-sdk-047976067574/boto3/awscli.tar.gz")
-            download_folder_location = os.path.join(
-                os.getcwd(), "test", "sagemaker_tests", "tensorflow", "tensorflow2_training"
-            )
-            for s3_uri in s3_uri_list:
-                context.run(f"aws s3 cp {s3_uri} {download_folder_location}")
-                tar_name = s3_uri.split('/')[-1]
-                downloaded_file_path = os.path.join(download_folder_location, tar_name)
-                if os.path.exists(downloaded_file_path):
-                    LOGGER.info(f"Full path of sagemaker.tar.gz: {os.path.abspath(downloaded_file_path)}")
-                else:
-                    LOGGER.warning(f"{downloaded_file_path} not found. This could break coverage doc test.")
-
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
         os.chdir(os.path.join("test", "dlc_tests"))
 
