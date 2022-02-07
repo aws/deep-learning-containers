@@ -4,7 +4,7 @@ set -e
 PT_VERSION=$(python -c 'import torch; print(torch.__version__)')
 
 HOME_DIR=/test
-LOG_FILE=/test/logs
+LOG_FILE=/test/logs.txt
 LOG_DIR=`dirname $LOG_FILE`
 
 mkdir -p ${HOME_DIR}/artifacts
