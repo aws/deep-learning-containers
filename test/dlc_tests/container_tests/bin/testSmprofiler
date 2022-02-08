@@ -44,7 +44,7 @@ if [[ $FRAMEWORK == "tensorflow2" ]]; then
     if [[ "$tf_version" == *"2.0."* ]]; then
          TENSORFLOW_DATASETS_VERSION="3.2.1"
     fi
-    pip install tensorflow-datasets==${TENSORFLOW_DATASETS_VERSION}
+    # pip install tensorflow-datasets==${TENSORFLOW_DATASETS_VERSION}
 fi
 if [[ $FRAMEWORK == "tensorflow2" ]] || [[ $FRAMEWORK == "pytorch" ]]; then
     for test_file in tests/profiler/${FRAMEWORK}/*
