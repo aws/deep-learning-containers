@@ -108,7 +108,8 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && ./configure \
  && make -j $(nproc) \
  && make install \ 
- && rm -rf ../Python-$PYTHON_VERSION*
+ && rm -rf ../Python-$PYTHON_VERSION* \
+ && rm /tmp/*.pem
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
