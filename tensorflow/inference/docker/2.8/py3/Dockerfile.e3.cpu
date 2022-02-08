@@ -107,4 +107,6 @@ RUN HOME_DIR=/root \
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.7/license.txt -o /license.txt
 
+RUN rm -rf /tmp/*
+
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
