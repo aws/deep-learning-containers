@@ -24,8 +24,8 @@ from contextlib import contextmanager
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-JS_PING = "js_content tensorflowserving.ping"
-JS_INVOCATIONS = "js_content tensorflowserving.invocations"
+JS_PING = "js_content tensorflowServing.ping"
+JS_INVOCATIONS = "js_content tensorflowServing.invocations"
 GUNICORN_PING = "proxy_pass http://gunicorn_upstream/ping"
 GUNICORN_INVOCATIONS = "proxy_pass http://gunicorn_upstream/invocations"
 MULTI_MODEL = "s" if os.environ.get("SAGEMAKER_MULTI_MODEL", "False").lower() == "true" else ""
