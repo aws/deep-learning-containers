@@ -53,7 +53,8 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
  && ./configure && make && make install \
- && rm -rf ../Python-$PYTHON_VERSION*
+ && rm -rf ../Python-$PYTHON_VERSION* \
+ && rm /tmp/*.pem
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
@@ -106,7 +107,5 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.7/license.txt -o /license.txt
-
-RUN rm -rf /tmp/*
 
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
