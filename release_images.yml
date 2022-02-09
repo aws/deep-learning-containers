@@ -3,31 +3,7 @@ release_images:
 # Check .release_images_template.yml for reference
   1:
     framework: "tensorflow"
-    version: "2.5.2"
-    arch_type: "x86"
-    inference:
-      device_types: ["neuron"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.17.0"
-      example: False
-      disable_sm_tag: True
-      force_release: False
-  2:
-    framework: "pytorch"
-    version: "1.10.1"
-    arch_type: "x86"
-    inference:
-      device_types: ["neuron"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.17.0"
-      example: False
-      disable_sm_tag: True
-      force_release: False
-  3:
-    framework: "mxnet"
-    version: "1.8.0"
+    version: "1.15.5"
     arch_type: "x86"
     inference:
       device_types: ["neuron"]
