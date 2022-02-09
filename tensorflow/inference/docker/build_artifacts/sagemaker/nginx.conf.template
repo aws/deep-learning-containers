@@ -62,4 +62,3 @@ http {
     keepalive_timeout 3;
   }
 }
-  
