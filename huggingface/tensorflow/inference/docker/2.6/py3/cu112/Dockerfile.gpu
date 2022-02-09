@@ -114,6 +114,8 @@ ENV TF_FORCE_GPU_ALLOW_GROWTH=true
 RUN pip install --no-cache-dir \
 	transformers[sentencepiece]==${TRANSFORMERS_VERSION} \
 	protobuf==3.12.0 \
+   # TODO: Remove upgrade statements once packages are updated in base image
+   "numpy==1.19.5" \
 	"sagemaker-huggingface-inference-toolkit<2"
 
 RUN HOME_DIR=/root \
