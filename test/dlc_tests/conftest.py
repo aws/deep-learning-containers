@@ -336,7 +336,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
     LOGGER.info(f"Connecting to {user}@{ip_address}")
-    conn = Connection(user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]},connect_timeout=12000,)
+    conn = Connection(user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=12000,)
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 100000)
@@ -361,6 +361,12 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
 
 @pytest.fixture(scope="function")
 def upload_habana_test_artifact(request, ec2_connection):
+    """
+    Fixture to upload the habana test repo to ec2 instance
+    :param request: pytest test request
+    :param ec2_connection: fabric connection object
+    :return: None
+    """
     habana_test_repo = "gaudi-test-suite.tar.gz"
     ec2_connection.put(habana_test_repo, f"{UBUNTU_HOME_DIR}")
     ec2_connection.run(f"tar -xvf {habana_test_repo}")

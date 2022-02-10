@@ -347,7 +347,6 @@ def main():
 
         if specific_test_type == "ec2":
             is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
-            
             if is_habana_image:
                 context = Context()
                 context.run("git clone https://github.com/HabanaAI/gaudi-test-suite.git")

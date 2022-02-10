@@ -2,7 +2,6 @@ import os
 import time
 import pytest
 import re
-import statistics
 
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,

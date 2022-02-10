@@ -1,7 +1,6 @@
 import os
 import re
 import pytest
-import statistics
 
 from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, UBUNTU_18_HPU_DLAMI_US_WEST_2
 from test.test_utils.ec2 import execute_ec2_training_performance_test, execute_ec2_habana_training_performance_test
