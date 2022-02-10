@@ -36,7 +36,8 @@ from test.test_utils import (
     get_python_version_from_image_uri,
     is_tf_version,
     get_processor_from_image_uri,
-    UL18_CPU_ARM64_US_WEST_2
+    UL18_CPU_ARM64_US_WEST_2,
+    UBUNTU_18_HPU_DLAMI_US_WEST_2
 )
 
 
@@ -449,7 +450,8 @@ def test_dependency_check_eia(eia, ec2_connection):
 
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["dl1.24xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 def test_dependency_check_hpu(hpu, ec2_connection):
     _run_dependency_check_test(hpu, ec2_connection)
 
