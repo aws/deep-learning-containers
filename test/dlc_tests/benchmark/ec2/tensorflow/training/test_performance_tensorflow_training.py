@@ -4,7 +4,7 @@ import pytest
 import statistics
 
 from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, UBUNTU_18_HPU_DLAMI_US_WEST_2
-from test.test_utils.ec2 import execute_ec2_training_performance_test
+from test.test_utils.ec2 import execute_ec2_training_performance_test, execute_ec2_habana_training_performance_test
 from src.benchmark_metrics import (
     get_threshold_for_image,
     TENSORFLOW_TRAINING_CPU_SYNTHETIC_THRESHOLD,
@@ -91,7 +91,7 @@ def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize('cards_num', [1, 8])
 def test_performance_tensorflow_rn50_hpu_synthetic(tensorflow_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
-    execute_ec2_training_performance_test(
+    execute_ec2_habana_training_performance_test(
         ec2_connection,
         tensorflow_training_habana,
         TF_PERFORMANCE_RN50_TRAINING_HPU_SYNTHETIC_CMD,
@@ -105,7 +105,7 @@ def test_performance_tensorflow_rn50_hpu_synthetic(tensorflow_training_habana, e
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize('cards_num', [1, 8])
 def test_performance_tensorflow_bert_hpu(tensorflow_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
-    execute_ec2_training_performance_test(
+    execute_ec2_habana_training_performance_test(
         ec2_connection,
         tensorflow_training_habana,
         TF_PERFORMANCE_BERT_TRAINING_HPU_CMD,
@@ -119,7 +119,7 @@ def test_performance_tensorflow_bert_hpu(tensorflow_training_habana, ec2_connect
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize('cards_num', [1])
 def test_performance_tensorflow_maskrcnn_hpu(tensorflow_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
-    execute_ec2_training_performance_test(
+    execute_ec2_habana_training_performance_test(
         ec2_connection,
         tensorflow_training_habana,
         TF_PERFORMANCE_MASKRCNN_TRAINING_HPU_CMD,

@@ -243,7 +243,7 @@ def ec2_instance(
 
     if ("pytorch_training_habana" in request.fixturenames or "tensorflow_training_habana" in request.fixturenames):
         user_data = '''#!/bin/bash
-                sudo apt-get install -y awscli'''
+        sudo apt-get update && sudo apt-get install -y awscli'''
         params["UserData"] = user_data
         params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 1000,},}]
     elif (
