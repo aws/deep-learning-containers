@@ -335,5 +335,27 @@
             "py3": {
             }
         }
+    },
+    "habana_tensorflow": {
+        "training": {
+            "_comment":"py2 does not exist",
+            "py3": {
+                "44715":"This is a disputed vulnerability.",
+                "44716":"This is a disputed vulnerability.",
+                "43453":"This is a disputed vulnerability.",
+                "44717":"Reported as completely harmless by the vendor."
+            }
+        }
+    },
+    "habana_pytorch": {
+        "training": {
+            "_comment":"py2 does not exist",
+            "py3": {
+                "44715":"This is a disputed vulnerability.",
+                "44716":"This is a disputed vulnerability.",
+                "43453":"This is a disputed vulnerability.",
+                "44717":"Reported as completely harmless by the vendor."
+            }
+        }
     }
 }
