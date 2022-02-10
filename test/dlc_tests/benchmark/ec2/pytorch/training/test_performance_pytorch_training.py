@@ -10,17 +10,14 @@ from test.test_utils import (
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
     DEFAULT_REGION,
     get_framework_and_version_from_tag,
-    get_synapseai_version_from_tag,
     is_pr_context,
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_performance_test,
     ec2_performance_upload_result_to_s3_and_validate,
+    execute_ec2_habana_training_performance_test,
 )
 from src.benchmark_metrics import (
-    PYTORCH_TRAINING_RN50_HPU_SYNTHETIC_1_CARD_THRESHOLD,
-    PYTORCH_TRAINING_RN50_HPU_SYNTHETIC_8_CARD_THRESHOLD,
-    PYTORCH_TRAINING_BERT_HPU_THRESHOLD,
     PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD,
     PYTORCH_TRAINING_GPU_IMAGENET_THRESHOLD,
     get_threshold_for_image,
@@ -72,22 +69,12 @@ def test_performance_pytorch_gpu_imagenet(pytorch_training, ec2_connection, gpu_
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize('cards_num', [1, 8])
 def test_performance_pytorch_rn50_hpu_synthetic(pytorch_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
-    _, framework_version = get_framework_and_version_from_tag(pytorch_training_habana)
-    synapseai_version = get_synapseai_version_from_tag(pytorch_training_habana)
-    threshold_1 = get_threshold_for_image(framework_version, PYTORCH_TRAINING_RN50_HPU_SYNTHETIC_1_CARD_THRESHOLD)
-    threshold_8 = get_threshold_for_image(framework_version, PYTORCH_TRAINING_RN50_HPU_SYNTHETIC_8_CARD_THRESHOLD)
-    expected_perf = (threshold_8/8) if cards_num > 1 else threshold_1    # Logs show per card performance for multicard
-    allowed_regression = expected_perf * 0.1
-    threshold = expected_perf - allowed_regression
-    execute_ec2_training_performance_test(
+    execute_ec2_habana_training_performance_test(
         ec2_connection,
         pytorch_training_habana,
         PT_PERFORMANCE_RN50_TRAINING_HPU_SYNTHETIC_CMD,
-        post_process=post_process_pytorch_hpu_py3_synthetic_ec2_training_performance,
         data_source="synthetic",
-        threshold={"Throughput": threshold},
         cards_num=cards_num,
-        synapseai_version=synapseai_version
     )
 
 @pytest.mark.model("bert")
@@ -95,22 +82,12 @@ def test_performance_pytorch_rn50_hpu_synthetic(pytorch_training_habana, ec2_con
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize('cards_num', [1, 8])
 def test_performance_pytorch_bert_hpu(pytorch_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
-    _, framework_version = get_framework_and_version_from_tag(pytorch_training_habana)
-    synapseai_version = get_synapseai_version_from_tag(pytorch_training_habana)
-    threshold = get_threshold_for_image(framework_version, PYTORCH_TRAINING_BERT_HPU_THRESHOLD)
-    perf_factor = 0.95 if cards_num > 1 else 1  # Rough scaling factor
-    expected_perf = threshold * perf_factor
-    allowed_regression = expected_perf * 0.1
-    threshold = expected_perf - allowed_regression
-    execute_ec2_training_performance_test(
+    execute_ec2_habana_training_performance_test(
         ec2_connection,
         pytorch_training_habana,
         PT_PERFORMANCE_BERT_TRAINING_HPU_CMD,
-        post_process=post_process_pytorch_hpu_py3_synthetic_ec2_training_performance,
         data_source="synthetic",
-        threshold={"Throughput": threshold},
         cards_num=cards_num,
-        synapseai_version=synapseai_version
     )
 
 def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
@@ -152,14 +129,6 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
         log_name,
     )
 
-def post_process_pytorch_hpu_py3_synthetic_ec2_training_performance(connection, log_location):
-    log_lines = connection.run(f"tail -n 20 {log_location}").stdout.split("\n")
-    throughput = 0
-    for line in reversed(log_lines):
-        if "Validating result: actual" in line:
-            throughput = float(line.split(" ")[6].strip(","))
-            break
-    return {"Throughput": throughput}
 
 def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance(connection, log_location):
     last_lines = connection.run(f"tail -n 20 {log_location}").stdout.split("\n")

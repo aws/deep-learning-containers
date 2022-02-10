@@ -495,6 +495,7 @@ def execute_ec2_training_test(
         f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'", hide=True, timeout=timeout,
     )
 
+
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
@@ -516,7 +517,7 @@ def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REG
 
 
 def execute_ec2_training_performance_test(
-    connection, ecr_uri, test_cmd, region=DEFAULT_REGION, post_process=None, data_source="", threshold=None, cards_num=None
+    connection, ecr_uri, test_cmd, region=DEFAULT_REGION, post_process=None, data_source="", threshold=None,
 ):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
@@ -524,19 +525,44 @@ def execute_ec2_training_performance_test(
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
     log_name = f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
-    synapseai_version = get_synapseai_version_from_tag(ecr_uri)
+
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     connection.run(f"{docker_cmd} pull -q {ecr_uri}")
 
     # Run training command, display benchmark results to console
-    container_runtime = '--runtime=habana -e HABANA_VISIBLE_DEVICES=all' if "hpu" in ecr_uri else ""
-    hpu_env_vars = f'-e CARDS_NUM={cards_num} -e GIT_BRANCH={synapseai_version}' if "hpu" in ecr_uri else ""
-    ompi_mca_btl = '-e OMPI_MCA_btl_vader_single_copy_mechanism=none' if "hpu" in ecr_uri else ""
-    cap_add = '--cap-add=sys_nice' if "hpu" in ecr_uri else ""
-    ipc = '--ipc=host' if "hpu" in ecr_uri and "pytorch" in ecr_uri else ""
-    habana_container_test_repo = '${HOME}/gaudi-test-suite:/gaudi-test-suite' if "hpu" in ecr_uri else ""
+    connection.run(
+        f"{docker_cmd} run --user root "
+        f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
+        f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
+        f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
+    )
+    ec2_performance_upload_result_to_s3_and_validate(
+        connection, ecr_uri, log_location, data_source, threshold, post_process, log_name,
+    )
+
+
+def execute_ec2_habana_training_performance_test(
+    connection, ecr_uri, test_cmd, region=DEFAULT_REGION, data_source="", cards_num=None):
+    docker_cmd = "docker"
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+
+    timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
+    log_name = f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
+    synapseai_version = get_synapseai_version_from_tag(ecr_uri)
+    # Make sure we are logged into ECR so we can pull the image
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+
+    connection.run(f"{docker_cmd} pull -q {ecr_uri}")
+
+    container_runtime = '--runtime=habana -e HABANA_VISIBLE_DEVICES=all'
+    hpu_env_vars = f'-e CARDS_NUM={cards_num} -e GIT_BRANCH={synapseai_version}'
+    ompi_mca_btl = '-e OMPI_MCA_btl_vader_single_copy_mechanism=none'
+    cap_add = '--cap-add=sys_nice'
+    ipc = '--ipc=host' if "pytorch" in ecr_uri else ""
+    habana_container_test_repo = '${HOME}/gaudi-test-suite:/gaudi-test-suite'
     connection.run(
         f"{docker_cmd} run --user root "
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
@@ -544,9 +570,6 @@ def execute_ec2_training_performance_test(
         f"{container_runtime} {ompi_mca_btl} {hpu_env_vars} {cap_add} {ipc} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -v {habana_container_test_repo} "
         f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'"
-    )
-    ec2_performance_upload_result_to_s3_and_validate(
-        connection, ecr_uri, log_location, data_source, threshold, post_process, log_name,
     )
 
 
@@ -589,7 +612,7 @@ def ec2_performance_upload_result_to_s3_and_validate(
     framework = "tensorflow" if "tensorflow" in ecr_uri else "mxnet" if "mxnet" in ecr_uri else "pytorch"
     framework_version = re.search(r"\d+(\.\d+){2}", ecr_uri).group()
     py_version = "py2" if "py2" in ecr_uri else "py37" if "py37" in ecr_uri else "py3"
-    processor = "hpu" if "hpu" in ecr_uri else "gpu" if "gpu" in ecr_uri else "cpu"
+    processor = "gpu" if "gpu" in ecr_uri else "cpu"
     work_type = "training" if "training" in ecr_uri else "inference"
     s3_location = os.path.join(
         BENCHMARK_RESULTS_S3_BUCKET, framework, framework_version, "ec2", work_type, processor, py_version, log_name,

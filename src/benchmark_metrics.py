@@ -8,18 +8,6 @@ TENSORFLOW_TRAINING_CPU_SYNTHETIC_THRESHOLD = {"<2.0": 50, ">=2.0": 50}
 TENSORFLOW_TRAINING_GPU_SYNTHETIC_THRESHOLD = {"<2.0": 5000, ">=2.0": 7000}
 TENSORFLOW_TRAINING_GPU_IMAGENET_THRESHOLD = {"<2.0": 5000, ">=2.0": 7000}
 
-# TensorFlow Resnet
-# Throughput, unit: images/second
-TENSORFLOW_TRAINING_RN50_HPU_SYNTHETIC_THRESHOLD = {">=2.0": 1520}
-
-# TensorFlow BERT
-# Throughput, unit: sentences/second
-TENSORFLOW_TRAINING_BERT_HPU_THRESHOLD = {">=2.0": 40}
-
-# TensorFlow MASKRCNN
-# Throughput, unit: samples/second
-TENSORFLOW_TRAINING_MASKRCNN_HPU_THRESHOLD = {">=2.0": 11}
-
 # p99 latency, unit: second
 TENSORFLOW_INFERENCE_CPU_THRESHOLD = {
     "<2.0": {
@@ -64,15 +52,6 @@ MXNET_TRAINING_GPU_IMAGENET_LATENCY_THRESHOLD = {">=1.0": 120}
 # PyTorch
 # Throughput, unit: images/second
 PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD = {">=1.0": 2400}
-
-# PyTorch RN50
-# Throughput, unit: images/second
-PYTORCH_TRAINING_RN50_HPU_SYNTHETIC_1_CARD_THRESHOLD = {">=1.0": 1590}
-PYTORCH_TRAINING_RN50_HPU_SYNTHETIC_8_CARD_THRESHOLD = {">=1.0": 4670}
-
-# PyTorch BERT
-# Throughput, unit: sentences/second
-PYTORCH_TRAINING_BERT_HPU_THRESHOLD = {">=1.0": 40}
 
 # Training Time Cost, unit: second/epoch
 PYTORCH_TRAINING_GPU_IMAGENET_THRESHOLD = {">=1.0": 660}

@@ -34,7 +34,7 @@ from test.test_utils import (
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
     get_ecr_repo_name,
-    UBUNTU_HOME_DIR
+    UBUNTU_HOME_DIR,
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -241,7 +241,12 @@ def ec2_instance(
 
     volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
 
-    if (
+    if ("pytorch_training_habana" in request.fixturenames or "tensorflow_training_habana" in request.fixturenames):
+        user_data = '''#!/bin/bash
+                sudo apt-get install -y awscli'''
+        params["UserData"] = user_data
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 1000,},}]
+    elif (
         (
             ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
             and (
@@ -331,7 +336,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
     LOGGER.info(f"Connecting to {user}@{ip_address}")
-    conn = Connection(user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]},)
+    conn = Connection(user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]},connect_timeout=12000,)
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 100000)

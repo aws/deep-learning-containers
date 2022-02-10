@@ -8,9 +8,6 @@ from test.test_utils.ec2 import execute_ec2_training_performance_test
 from src.benchmark_metrics import (
     get_threshold_for_image,
     TENSORFLOW_TRAINING_CPU_SYNTHETIC_THRESHOLD,
-    TENSORFLOW_TRAINING_RN50_HPU_SYNTHETIC_THRESHOLD,
-    TENSORFLOW_TRAINING_BERT_HPU_THRESHOLD,
-    TENSORFLOW_TRAINING_MASKRCNN_HPU_THRESHOLD,
     TENSORFLOW_TRAINING_GPU_SYNTHETIC_THRESHOLD,
     TENSORFLOW_TRAINING_GPU_IMAGENET_THRESHOLD,
 )
@@ -94,19 +91,11 @@ def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize('cards_num', [1, 8])
 def test_performance_tensorflow_rn50_hpu_synthetic(tensorflow_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
-    _, framework_version = get_framework_and_version_from_tag(tensorflow_training_habana)
-    threshold = get_threshold_for_image(framework_version, TENSORFLOW_TRAINING_RN50_HPU_SYNTHETIC_THRESHOLD)
-    perf_factor = 0.95 if cards_num > 1 else 1  # Rough scaling factor
-    expected_perf = threshold * cards_num * perf_factor
-    allowed_regression = expected_perf * 0.1
-    threshold = expected_perf - allowed_regression
     execute_ec2_training_performance_test(
         ec2_connection,
         tensorflow_training_habana,
         TF_PERFORMANCE_RN50_TRAINING_HPU_SYNTHETIC_CMD,
-        post_process=post_process_tensorflow_hpu_training_performance,
         data_source="synthetic",
-        threshold={"Throughput": threshold},
         cards_num=cards_num,
     )
 
@@ -116,19 +105,11 @@ def test_performance_tensorflow_rn50_hpu_synthetic(tensorflow_training_habana, e
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize('cards_num', [1, 8])
 def test_performance_tensorflow_bert_hpu(tensorflow_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
-    _, framework_version = get_framework_and_version_from_tag(tensorflow_training_habana)
-    threshold = get_threshold_for_image(framework_version, TENSORFLOW_TRAINING_BERT_HPU_THRESHOLD)
-    perf_factor = 0.95 if cards_num > 1 else 1  # Rough scaling factor
-    expected_perf = threshold * cards_num * perf_factor
-    allowed_regression = expected_perf * 0.1
-    threshold = expected_perf - allowed_regression
     execute_ec2_training_performance_test(
         ec2_connection,
         tensorflow_training_habana,
         TF_PERFORMANCE_BERT_TRAINING_HPU_CMD,
-        post_process=post_process_tensorflow_hpu_training_performance,
         data_source="squad",
-        threshold={"Throughput": threshold},
         cards_num=cards_num,
     )
 
@@ -138,30 +119,14 @@ def test_performance_tensorflow_bert_hpu(tensorflow_training_habana, ec2_connect
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize('cards_num', [1])
 def test_performance_tensorflow_maskrcnn_hpu(tensorflow_training_habana, ec2_connection, upload_habana_test_artifact, cards_num):
-    _, framework_version = get_framework_and_version_from_tag(tensorflow_training_habana)
-    threshold = get_threshold_for_image(framework_version, TENSORFLOW_TRAINING_MASKRCNN_HPU_THRESHOLD)
-    perf_factor = 0.95 if cards_num > 1 else 1  # Rough scaling factor
-    expected_perf = threshold * cards_num * perf_factor
-    allowed_regression = expected_perf * 0.1
-    threshold = expected_perf - allowed_regression
     execute_ec2_training_performance_test(
         ec2_connection,
         tensorflow_training_habana,
         TF_PERFORMANCE_MASKRCNN_TRAINING_HPU_CMD,
-        post_process=post_process_tensorflow_hpu_training_performance,
         data_source="coco_like",
-        threshold={"Throughput": threshold},
         cards_num=cards_num,
     )
 
-def post_process_tensorflow_hpu_training_performance(connection, log_location):
-    log_lines = connection.run(f"tail -n 20 {log_location}").stdout.split("\n")
-    throughput = 0
-    for line in reversed(log_lines):
-        if "Validating result: actual" in line:
-            throughput = float(line.split(" ")[6].strip(","))
-            break
-    return {"Throughput": throughput}
 
 def post_process_tensorflow_training_performance(connection, log_location):
     last_lines = connection.run(f"tail {log_location}").stdout.split("\n")
