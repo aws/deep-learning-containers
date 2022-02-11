@@ -790,18 +790,11 @@ def parse_canary_images(framework, region):
     :param region: AWS region
     :return: dlc_images string (space separated string of image URIs)
     """
-    if framework == "tensorflow":
-        if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") or "tensorflow2" in os.getenv("CODEBUILD_INITIATOR"):
-            framework = "tensorflow2"
-        else:
-            framework = "tensorflow1"
-
     customer_type = get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
 
     version_regex = {
-        "tensorflow1": r"tf-(1.\d+)",
-        "tensorflow2": rf"tf{customer_type_tag}-(2.\d+)",
+        "tensorflow": rf"tf{customer_type_tag}-(2.\d+)",
         "mxnet": rf"mx{customer_type_tag}-(\d+.\d+)",
         "pytorch": rf"pt{customer_type_tag}-(\d+.\d+)",
         "huggingface_pytorch": r"hf-\S*pt-(\d+.\d+)",
@@ -843,8 +836,7 @@ def parse_canary_images(framework, region):
         py3_version = get_canary_default_tag_py3_version(framework, fw_version)
 
         images = {
-            "tensorflow1": {[]},
-            "tensorflow2": {
+            "tensorflow": {
                 [
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py3_version}",
                     f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py3_version}",
