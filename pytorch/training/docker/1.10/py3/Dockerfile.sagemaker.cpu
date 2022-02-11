@@ -17,7 +17,7 @@ ARG SMDEBUG_VERSION=1.0.9
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 # swap the pytorch training wheel with additional smdebug and smmdp features
-ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.10.0_aws_v3/20211102-104200/66c710e4b1cb2f96a29c556c58d0d0b82f92e496/cpu/torch-1.10.0%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.10.2_aws_v3/20220209-025350/bea1183a47174ef43ab9874c643357fa77755932/cpu/torch-1.10.2%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
 
 WORKDIR /
 

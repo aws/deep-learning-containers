@@ -41,8 +41,8 @@ ENV RDMAV_FORK_SAFE=1
 ENV DLC_CONTAINER_TYPE=training
 
 # There's no PT pipeline for binary for diy/e3 currently. Using the inference branch (PyTorch + telemetry feature) with different building environments for both training and inference DLCs temporarily.
-ARG PT_TRAINING_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211027-160245/36dea191ed0df524207de5acc4e6fb4322306d1a/gpu/torch-1.10.0%2Bcu113-cp38-cp38-manylinux1_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.11.1%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_TRAINING_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.2_inference/20220211-013556/528b6ca3747ec951396383f2a70d1354283ad29f/gpu/torch-1.10.2%2Bcu113-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.11.3%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
 RUN apt-get update \
