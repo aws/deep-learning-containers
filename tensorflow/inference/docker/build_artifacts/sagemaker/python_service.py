@@ -150,7 +150,7 @@ class PythonServiceResource:
                 tfs_config_file = "/sagemaker/tfs-config/{}/model-config.cfg".format(model_name)
                 log.info("tensorflow serving model config: \n%s\n", tfs_config)
                 os.makedirs(os.path.dirname(tfs_config_file))
-                with open(tfs_config_file, "w") as f:
+                with open(tfs_config_file, "w", encoding="utf8") as f:
                     f.write(tfs_config)
 
                 batching_config_file = "/sagemaker/batching/{}/batching-config.cfg".format(
