@@ -358,7 +358,7 @@ def main():
                 pytest_cmd.append("--timeout=2340")
             else:
                 if is_habana_image:
-                    pytest_cmd.append("--timeout=12500")
+                    pytest_cmd.append("--timeout=18000")
                 else:
                     pytest_cmd.append("--timeout=4860")
 

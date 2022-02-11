@@ -461,7 +461,7 @@ def execute_ec2_training_test(
     large_shm=False,
     host_network=False,
     container_name="ec2_training_container",
-    timeout=15000,
+    timeout=18000,
     bin_bash_entrypoint=False,
 ):
     if executable not in ("bash", "python"):
