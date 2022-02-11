@@ -345,8 +345,8 @@ def main():
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
 
+        is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
         if specific_test_type == "ec2":
-            is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
             if is_habana_image:
                 context = Context()
                 context.run("git clone https://github.com/HabanaAI/gaudi-test-suite.git")
@@ -357,7 +357,10 @@ def main():
             if specific_test_type == "eks":
                 pytest_cmd.append("--timeout=2340")
             else:
-                pytest_cmd.append("--timeout=4860")
+                if is_habana_image:
+                    pytest_cmd.append("--timeout=12500")
+                else:
+                    pytest_cmd.append("--timeout=4860")
 
         pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
