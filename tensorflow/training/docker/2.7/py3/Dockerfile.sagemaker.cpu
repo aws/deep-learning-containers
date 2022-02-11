@@ -4,6 +4,8 @@ FROM $BASE_IMAGE
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
+ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
+
 ARG SMDEBUG_VERSION=1.0.12
 ARG PYTHON=python3.8
 # Add arguments to achieve the version, python and url
