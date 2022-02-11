@@ -794,7 +794,7 @@ def parse_canary_images(framework, region):
     customer_type_tag = f"-{customer_type}" if customer_type else ""
 
     version_regex = {
-        "tensorflow": rf"tf{customer_type_tag}-(2.\d+)",
+        "tensorflow": rf"tf{customer_type_tag}-(\d+.\d+)",
         "mxnet": rf"mx{customer_type_tag}-(\d+.\d+)",
         "pytorch": rf"pt{customer_type_tag}-(\d+.\d+)",
         "huggingface_pytorch": r"hf-\S*pt-(\d+.\d+)",
