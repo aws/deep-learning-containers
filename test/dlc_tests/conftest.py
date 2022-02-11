@@ -241,9 +241,13 @@ def ec2_instance(
 
     volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
 
-    if ("pytorch_training_habana" in request.fixturenames or "tensorflow_training_habana" in request.fixturenames):
-        user_data = '''#!/bin/bash
-        sudo apt-get update && sudo apt-get install -y awscli'''
+    if (
+        "pytorch_training_habana" in request.fixturenames
+        or "tensorflow_training_habana" in request.fixturenames
+        or "hpu" in request.fixturenames
+    ):
+        user_data = """#!/bin/bash
+        sudo apt-get update && sudo apt-get install -y awscli"""
         params["UserData"] = user_data
         params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 1000,},}]
     elif (
@@ -336,7 +340,9 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
     LOGGER.info(f"Connecting to {user}@{ip_address}")
-    conn = Connection(user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=12000,)
+    conn = Connection(
+        user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=12000,
+    )
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 100000)
@@ -358,6 +364,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
         test_utils.login_to_ecr_registry(conn, public_registry, region)
 
     return conn
+
 
 @pytest.fixture(scope="function")
 def upload_habana_test_artifact(request, ec2_connection):
