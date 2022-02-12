@@ -1,0 +1,51 @@
+ARG BASE_IMAGE=""
+FROM $BASE_IMAGE
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# sagemaker-specific environment variable
+ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
+
+# python
+ARG PYTHON=python3.8
+ARG PYTHON_VERSION=3.8.2
+
+# @TODO install sagemaker-tensorflow until it is available for py39
+RUN $PYTHON -m pip install --no-cache-dir -U \
+    "sagemaker>=2,<3" \
+    sagemaker-experiments==0.* \
+    "sagemaker-tensorflow-training>=20" \
+    "sparkmagic<1" \
+    "sagemaker-studio-sparkmagic-lib<1" \
+    "sagemaker-studio-analytics-extension==0.0.2" \
+    smclarify 
+
+RUN $PYTHON -m pip install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "numba<0.54" \
+    "shap>=0.39,<1"
+
+# install smdebug directly the specific branch
+# @TODO install 1.0.13 when become availble
+ARG SMDEBUG_VERSION=1.0.12
+RUN git clone -b $SMDEBUG_VERSION https://github.com/awslabs/sagemaker-debugger.git \
+    && cd sagemaker-debugger && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger 
+
+# install boost
+# tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=0"
+RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
+   && tar -xzf boost_1_73_0.tar.gz \
+   && cd boost_1_73_0 \
+   && ./bootstrap.sh \
+   && ./b2 define=_GLIBCXX_USE_CXX11_ABI=0 threading=multi --prefix=/usr -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
+   && cd .. \
+   && rm -rf boost_1_73_0.tar.gz \
+   && rm -rf boost_1_73_0 \
+   && cd /usr/include/boost
+
+CMD ["/bin/bash"]
