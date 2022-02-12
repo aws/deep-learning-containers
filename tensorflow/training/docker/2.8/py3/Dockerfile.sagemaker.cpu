@@ -36,7 +36,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker-tensorflow-training>=20" \ 
     "sagemaker-studio-analytics-extension==0.0.2" \ 
     "sparkmagic<1" \
-    "sagemaker-studio-sparkmagic-lib<1" 
+    "sagemaker-studio-sparkmagic-lib<1" \
     smclarify 
 
 
