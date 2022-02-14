@@ -8,8 +8,8 @@ LABEL dlc_major_version="1"
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
 # python
-ARG PYTHON=python3.8
-ARG PYTHON_VERSION=3.8.2
+ARG PYTHON=python3.9
+ARG PYTHON_VERSION=3.9.10
 
 # @TODO install sagemaker-tensorflow until it is available for py39
 RUN $PYTHON -m pip install --no-cache-dir -U \
