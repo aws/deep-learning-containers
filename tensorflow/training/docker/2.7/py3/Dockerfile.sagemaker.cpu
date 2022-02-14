@@ -31,7 +31,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
-    "sagemaker-tensorflow>=2.6<2.7" \
+    "sagemaker-tensorflow>=2.7<2.8" \
     "sagemaker-tensorflow-training>=20" \ 
     smclarify 
 
