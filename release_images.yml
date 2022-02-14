@@ -49,4 +49,3 @@ release_images:
       example: True
       disable_sm_tag: True  # [Default: False] This option is not used by Example images
       force_release: False
-    
