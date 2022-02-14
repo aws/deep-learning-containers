@@ -21,7 +21,7 @@ DEFAULT_LOCK_FILE = "/sagemaker/lock-file.lock"
 
 @contextmanager
 def lock(path=DEFAULT_LOCK_FILE):
-    f = open(path, "w")
+    f = open(path, "w", encoding="utf8")
     fd = f.fileno()
     fcntl.lockf(fd, fcntl.LOCK_EX)
 

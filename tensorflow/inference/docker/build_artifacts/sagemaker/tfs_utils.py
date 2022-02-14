@@ -220,7 +220,7 @@ def create_batching_config(batching_config_file):
         config += "%s { value: %s }\n" % (batching_parameter.key, batching_parameter.value)
 
     log.info('batching config: \n%s\n', config)
-    with open(batching_config_file, 'w') as f:
+    with open(batching_config_file, 'w', encoding="utf8") as f:
         f.write(config)
 
 
