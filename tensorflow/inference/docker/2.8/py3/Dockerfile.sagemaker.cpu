@@ -1,4 +1,4 @@
-# Expecting base image to be the image built by ./Dockerfile.e3.gpu
+# Expecting base image to be the image built by ./Dockerfile.e3.cpu
 ARG BASE_IMAGE=""
 
 FROM $BASE_IMAGE
@@ -9,6 +9,7 @@ LABEL dlc_major_version="1"
 # Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON=python3.9
 ARG PIP=pip3
@@ -28,13 +29,14 @@ RUN curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-RUN ${PIP} install -U --no-cache-dir \
+RUN ${PIP} install --no-cache-dir \
     falcon==3.0.1 \
     gunicorn==20.1.0
 
 COPY ./sagemaker /sagemaker
 
-# Expose gRPC and REST port
+# Expose ports
+# gRPC and REST
 EXPOSE 8500 8501
 
 RUN HOME_DIR=/root \
