@@ -31,12 +31,12 @@ RUN apt-get update \
  && apt-get clean
 
 
-ARG PT_TRAINING_URL=https://aws-habana-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.10.0_aws_v3_habana/20220119-001148/972afcbe0f5754fd4f41d087730bd2870967c606/al2/torch-1.10.0-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TRAINING_URL=https://aws-habana-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.10.0_aws_v3_habana_telemetry/torch-1.10.0-cp38-cp38-manylinux1_x86_64.whl
 ARG PT_TORCHVISION_URL=https://aws-habana-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.10.0_aws_v3_habana/torchvision/torchvision-0.11.1-cp38-cp38-linux_x86_64.whl
 
 RUN pip --no-cache-dir install --upgrade \
     pip \
-    setuptools
+    "setuptools==58.2.0"
 
 # The following section uninstalls torch and torchvision before installing the
 # custom versions from an S3 bucket.
