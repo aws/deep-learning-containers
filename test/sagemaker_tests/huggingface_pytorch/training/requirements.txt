@@ -1,7 +1,7 @@
 botocore>=1.23.1
 boto3
 awscli
-sagemaker.tar.gz
+sagemaker>=2.31,<3
 smdebug>=1
 coverage==4.5.3
 docker-compose==1.25.4
