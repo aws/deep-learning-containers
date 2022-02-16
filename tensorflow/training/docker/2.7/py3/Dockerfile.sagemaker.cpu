@@ -41,7 +41,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker-studio-sparkmagic-lib<1" 
 
 # install smdebug directly the specific branch
-RUN git clone -b $SMDEBUG_VERSION https://github.com/awslabs/sagemaker-debugger.git \
+RUN git clone -b $SMDEBUG_VERSION https://github.com/hsl89/sagemaker-debugger.git \ 
     && cd sagemaker-debugger && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger 
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py

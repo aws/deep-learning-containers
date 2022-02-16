@@ -31,7 +31,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 
 # install smdebug directly the specific branch
 ARG SMDEBUG_VERSION=1.0.12
-RUN git clone -b $SMDEBUG_VERSION https://github.com/awslabs/sagemaker-debugger.git \
+RUN git clone -b $SMDEBUG_VERSION https://github.com/hsl89/sagemaker-debugger.git \
     && cd sagemaker-debugger && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger 
 
 # install boost
