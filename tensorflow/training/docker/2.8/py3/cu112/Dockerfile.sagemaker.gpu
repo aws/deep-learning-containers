@@ -48,4 +48,16 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.
    && rm -rf boost_1_73_0 \
    && cd /usr/include/boost
 
+# add smdataparallel
+# smdataparallel
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.8.0/cu112/2022-02-15/smdistributed_dataparallel-1.3.0-cp39-cp39-linux_x86_64.whl
+
+# Install SMD DP binary
+RUN SMDATAPARALLEL_TF=1 ${PYTHON} -m pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
+
+# Add NGC vars
+ENV TF_AUTOTUNE_THRESHOLD=2
+
+ENV LD_LIBRARY_PATH="/usr/local/lib/python3.9/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
+
 CMD ["/bin/bash"]
