@@ -241,8 +241,6 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
 
-ENV LD_LIBRARY_PATH="/usr/local/lib/python3.8/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
-
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
