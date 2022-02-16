@@ -21,7 +21,7 @@ context:
       target: deep_learning_container.py
 
 images:
-  BuildHabanaTensorflowPy38SypAI180TrainingDockerImage:
+  BuildHabanaTensorflowPy38SypAI130TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_HPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 8000
