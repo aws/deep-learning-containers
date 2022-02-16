@@ -332,6 +332,15 @@
             },
             "py3": {
             }
+        },
+        "inference-neuron": {
+            "_comment":"py2 is deprecated",
+            "py2": {},
+            "py3": {
+                "44715":"for shipping numpy 1.21.5 - the last available version for py3.7",
+                "44716":"for shipping numpy 1.21.5 - the last available version for py3.7",
+                "44717":"for shipping numpy 1.21.5 - the last available version for py3.7"
+            }
         }
     }
 }
