@@ -121,7 +121,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
     cython \
-    ipython \
+    ipython==8.0.1 \
     mkl-include \
     mkl \
     parso \
