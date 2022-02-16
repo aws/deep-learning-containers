@@ -133,7 +133,6 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
  && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
-    ipython==8.0.1 \
     mkl \
     mkl-include \
     cython \
@@ -166,6 +165,7 @@ WORKDIR /root
 RUN pip install --no-cache-dir -U \
     opencv-python==4.5.2.54 \
     numpy==1.22.0 \
+    ipython==8.0.1 \
     "pyyaml>=5.4,<5.5" \
     "awscli<2" \
     boto3 \

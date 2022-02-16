@@ -62,7 +62,6 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
     cython \
-    ipython==8.0.1 \
     mkl-include \
     mkl \
     parso \
@@ -104,6 +103,7 @@ RUN conda install -c \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
     numpy==1.22.0 \
+    ipython==8.0.1 \
     "cryptography>=3.3.2"
 
 # Uninstall and re-install torch and torchvision from the PyTorch website
