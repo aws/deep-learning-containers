@@ -13,6 +13,7 @@ ARG DATASETS_VERSION
 ARG PYTHON=python3
 
 # install Hugging Face libraries and its dependencies
+RUN pip uninstall IPython
 RUN pip install --no-cache-dir \
     transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \
     datasets==${DATASETS_VERSION} \
@@ -20,8 +21,6 @@ RUN pip install --no-cache-dir \
     psutil \
     # TODO: Remove upgrade statements once packages are updated in base image
     "Pillow>=9.0.0" \
-    # TODO: Remove upgrade statements once packages are updated in base image
-    "IPython==8.0.1" \
     "typing-extensions==3.7.4.3"
 
 
