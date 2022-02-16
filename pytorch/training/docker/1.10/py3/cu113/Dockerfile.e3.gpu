@@ -133,7 +133,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
  && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
-    numpy \
+    numpy==1.22.0 \
     ipython \
     mkl \
     mkl-include \
@@ -171,7 +171,7 @@ RUN pip install --no-cache-dir -U \
     boto3 \
     packaging \
     psutil \
-    "Pillow>=8.3.2,<8.4" \
+    "Pillow>=9.0.0" \
     scipy \
     pybind11 \
     click \
