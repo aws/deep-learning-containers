@@ -13,7 +13,7 @@ ARG DATASETS_VERSION
 ARG PYTHON=python3
 
 # install Hugging Face libraries and its dependencies
-RUN pip uninstall IPython
+RUN pip uninstall -y IPython
 RUN pip install --no-cache-dir \
     transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \
     datasets==${DATASETS_VERSION} \
