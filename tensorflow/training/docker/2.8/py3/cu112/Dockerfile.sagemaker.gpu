@@ -60,4 +60,7 @@ ENV TF_AUTOTUNE_THRESHOLD=2
 
 ENV LD_LIBRARY_PATH="/usr/local/lib/python3.9/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
+# remove tmp files
+RUN rm -rf /tmp/git-secrets
+
 CMD ["/bin/bash"]

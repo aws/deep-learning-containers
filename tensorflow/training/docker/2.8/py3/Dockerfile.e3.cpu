@@ -165,4 +165,7 @@ RUN HOME_DIR=/root \
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.7/license.txt -o /license.txt
 
+# remove tmp files
+RUN rm -rf /tmp/git-secrets
+
 CMD ["/bin/bash"]
