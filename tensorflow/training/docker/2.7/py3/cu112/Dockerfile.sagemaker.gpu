@@ -52,6 +52,9 @@ ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorf
 # Install SMD DP binary
 RUN SMDATAPARALLEL_TF=1 ${PYTHON} -m pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
 
+# remove tmp files
+RUN rm -rf /tmp/git-secrets
+
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
 

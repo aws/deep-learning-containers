@@ -44,6 +44,9 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 RUN git clone -b $SMDEBUG_VERSION https://github.com/hsl89/sagemaker-debugger.git \ 
     && cd sagemaker-debugger && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger 
 
+# remove tmp files
+RUN rm -rf /tmp/git-secrets
+
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
