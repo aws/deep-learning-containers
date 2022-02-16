@@ -103,7 +103,7 @@ RUN conda install -c \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
-    numpy==1.20.3 \
+    numpy==1.22.0 \
     "cryptography>=3.3.2"
 
 # Uninstall and re-install torch and torchvision from the PyTorch website
@@ -115,7 +115,7 @@ RUN pip uninstall -y torch \
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
 RUN pip install \
     boto3 \
-    "Pillow>=8.3.2,<8.4" \ 
+    "Pillow>=9.0.0" \ 
     "awscli<2"
 
 RUN pip uninstall -y model-archiver multi-model-server \
