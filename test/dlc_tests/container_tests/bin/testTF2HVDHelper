@@ -45,7 +45,14 @@ if [ ${RETURN_VAL} -eq 0 ]; then
   INTERFACE=eth0
   # Train
 
+  set +e
   horovodrun -np $GPU_AMOUNT -H localhost:$GPU_AMOUNT python -W ignore ${HOVOROD_DIR}/tensorflow2_synthetic_benchmark.py 2> ${TRAINING_LOG}
+  TEST_SUCCESS_VAL=`echo $?`
+  set -e
+  if [ ${TEST_SUCCESS_VAL} -ne 0 ]; then
+    echo "Horovod training using resnet50 model on synthetic data failed on GPU image"
+    exit 1
+  fi
 else
   python -W ignore ${HOVOROD_DIR}/tensorflow2_synthetic_benchmark.py --no-cuda > ${TRAINING_LOG}
 fi
