@@ -40,8 +40,6 @@ RUN apt-get update \
     git \
     gnupg2 \
     wget \
-   #  for conda error https://askubuntu.com/questions/1354890/what-am-i-doing-wrong-in-conda
-    libtinfo6 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
