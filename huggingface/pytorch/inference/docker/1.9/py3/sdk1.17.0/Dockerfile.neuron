@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -96,7 +96,7 @@ WORKDIR /
 
 RUN pip install --no-cache-dir \
     multi-model-server==$MMS_VERSION \
-    sagemaker-inference==1.5.9
+    sagemaker-inference
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
