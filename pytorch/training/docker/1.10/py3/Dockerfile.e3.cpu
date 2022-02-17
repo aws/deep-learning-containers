@@ -105,7 +105,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
     "pyyaml>=5.4,<5.5" \
-    numpy==1.22.0 \
+    numpy==1.22.2 \
     ipython==8.0.1 \
     opencv-python==4.5.2.54 \
     "awscli<2" \

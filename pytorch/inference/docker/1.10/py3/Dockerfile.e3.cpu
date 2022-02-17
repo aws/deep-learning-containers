@@ -102,7 +102,7 @@ RUN conda install -c \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
-    numpy==1.22.0 \
+    numpy==1.22.2 \
     ipython==8.0.1 \
     "cryptography>=3.3.2"
 
