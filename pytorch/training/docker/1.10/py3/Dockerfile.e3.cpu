@@ -117,9 +117,12 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     psutil==5.6.7 \
     "Pillow>=9.0.0" \
  && pip uninstall -y torch \
- && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
- && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+#  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
+ && pip uninstall -y torchvision 
+#  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+
+# install public pytorch
+RUN pip install torch==1.10.2+cpu torchvision==0.11.3+cpu torchaudio==0.10.2+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
 
 # Install PT S3 plugin
 RUN pip install -U ${PT_S3_WHL}

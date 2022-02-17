@@ -180,9 +180,12 @@ RUN pip install --no-cache-dir -U \
     torchnet \
     "cryptography>3.2" \
  && pip uninstall -y torch \
- && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
- && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+#  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
+ && pip uninstall -y torchvision
+#  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+
+# install public pytorch
+RUN pip install torch==1.10.2+cu113 torchvision==0.11.3+cu113 torchaudio==0.10.2+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
 
 # Install Nvidia Apex
 RUN git clone https://github.com/NVIDIA/apex.git \
