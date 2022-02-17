@@ -239,7 +239,12 @@ IGNORE_SAFETY_IDS = {
                 "42815",
             ],
         },
-        "inference": {"py3": []},
+        "inference": {
+            "py3": [
+                # for shipping Torchserve 0.5.2 - the last available version
++                "44463"
+            ]
+        },
         "inference-eia": {"py3": []},
         "inference-neuron": {
             "py3": [
