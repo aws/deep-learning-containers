@@ -1,4 +1,4 @@
-FROM vault.habana.ai/gaudi-docker/1.2.0/ubuntu20.04/habanalabs/tensorflow-installer-tf-cpu-2.7.0:latest
+FROM ubuntu:20.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -21,21 +21,20 @@ ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
-ARG PYTHON=python3.8
+ARG PYTHON=python3.9
+ARG PYTHON_VERSION=3.9.10
+
 ARG PYTHON_PIP=python3-pip
-ARG PIP=pip3.8
+ARG PIP=pip3
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.7_aws/hpu-manylinux-py38/2022-01-22-02-41/tensorflow_cpu-2.7.0-cp38-cp38-manylinux2010_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.8_aws/cpu/2022-02-07-21-14/tensorflow_cpu-2.8.0-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
 
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     openssh-client \
     openssh-server \
     ca-certificates \
     curl \
-    jq \
     emacs \
     git \
     libtemplate-perl \
@@ -47,8 +46,31 @@ RUN apt-get update \
     zlib1g-dev \
     # Install dependent library for OpenCV
     libgtk2.0-dev \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
+ && rm -rf /var/lib/apt/lists/*
+
+# Install Open MPI
+RUN mkdir /tmp/openmpi \
+ && cd /tmp/openmpi \
+ && curl -fSsL -O https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.4.tar.gz \
+ && tar zxf openmpi-4.0.4.tar.gz \
+ && cd openmpi-4.0.4 \
+ && ./configure --enable-orterun-prefix-by-default \
+ && make -j $(nproc) all \
+ && make install \
+ && ldconfig \
+ && rm -rf /tmp/openmpi
+
+# Create a wrapper for OpenMPI to allow running as root by default
+RUN mv /usr/local/bin/mpirun /usr/local/bin/mpirun.real \
+ && echo '#!/bin/bash' > /usr/local/bin/mpirun \
+ && echo 'mpirun.real --allow-run-as-root "$@"' >> /usr/local/bin/mpirun \
+ && chmod a+x /usr/local/bin/mpirun
+
+RUN echo "hwloc_base_binding_policy = none" >> /usr/local/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> /usr/local/etc/openmpi-mca-params.conf
+
+ENV LD_LIBRARY_PATH=/usr/local/openmpi/lib:$LD_LIBRARY_PATH
+ENV PATH /usr/local/openmpi/bin/:$PATH
 
 # SSH login fix. Otherwise user is kicked off after login
 RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
@@ -74,49 +96,61 @@ RUN apt-get update \
     libsqlite3-dev \
     libssl-dev \
     tk-dev \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
+RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xvf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure \
+ && make -j $(nproc) \
+ && make install \ 
+ && rm -rf ../Python-$PYTHON_VERSION* \
+ && rm /tmp/*.pem
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
-    #Setuptools release 60.x (and later) revealed an issue in Habana-TensorFlow package.
-    "setuptools<60.0.0"
+    setuptools
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
-RUN apt-get update && apt-get -y install cmake protobuf-compiler
+RUN apt-get update && apt-get -y install protobuf-compiler
 
-RUN ${PIP} uninstall -y tensorflow-cpu \
- && ${PIP} install --no-cache-dir -U \
-    numpy==1.19.1 \
-    scipy==1.5.2 \
-    scikit-learn==0.23 \
-    pandas==1.1 \
-    Pillow \
-    # python-dateutil==2.8.1 to satisfy botocore associated with latest awscli
+# install PyYAML==5.1.2 to avoid conflict with latest awscli
+# # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
+RUN ${PIP} install --no-cache-dir -U \ 
+    pybind11 \
+    cmake==3.18.2.post1 \
+    scipy==1.7.0 \
+    "Pillow>=9.0.0<9.1.0" \
     python-dateutil==2.8.1 \
-    # install PyYAML>=5.4 to avoid conflict with latest awscli
     "pyYAML>=5.4,<5.5" \
-    requests \
+    requests==2.24.0 \
     "awscli<2" \
     mpi4py==3.0.3 \
-    opencv-python==4.3.0.36 \
- && ${PIP} uninstall -y keras \
- && ${PIP} install --no-cache-dir -U boto3 --upgrade \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
+    tensorflow-io==0.23.1 \ 
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
-    werkzeug \
+    "opencv-python>=4.3,<5" \
+    "werkzeug>=2.0.2,<3" \
     psutil==5.7.2 \
- && rm -rf ${TF_URL}
+   "urllib3>1.26.0<1.27.0"
 
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+# Install Horovod with TensorFlow
+RUN HOROVOD_WITH_MPI=1 \
+   && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
+   && ${PIP} install --no-cache-dir horovod==0.23.0
+
+ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 

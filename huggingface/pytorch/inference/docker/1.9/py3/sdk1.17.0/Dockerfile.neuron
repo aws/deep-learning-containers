@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -10,8 +10,8 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 ARG MMS_VERSION=1.1.8
 ARG PYTHON=python3.7
 ARG PYTHON_VERSION=3.7.10
-# Pin torch neuron version to sdk1.16.1
-ARG TORCH_NEURON_VERSION=1.9.1.2.0.392.0
+# Pin torch neuron version to sdk1.17.0
+ARG TORCH_NEURON_VERSION=1.9.1.2.1.7.0
 # HF ARGS
 ARG TRANSFORMERS_VERSION
 
@@ -40,8 +40,6 @@ RUN apt-get update \
     git \
     gnupg2 \
     wget \
-   #  for conda error https://askubuntu.com/questions/1354890/what-am-i-doing-wrong-in-conda
-    libtinfo6 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
