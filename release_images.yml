@@ -9,7 +9,7 @@ release_images:
     inference:
       device_types: ["neuron"]
       python_versions: ["py37"]
-      os_version: "ubuntu20.04"
+      os_version: "ubuntu18.04"
       neuron_sdk_version: "sdk1.17.0"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached

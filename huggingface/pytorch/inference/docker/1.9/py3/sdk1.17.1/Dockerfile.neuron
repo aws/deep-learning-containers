@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -40,8 +40,6 @@ RUN apt-get update \
     git \
     gnupg2 \
     wget \
-   #  for conda error https://askubuntu.com/questions/1354890/what-am-i-doing-wrong-in-conda
-    libtinfo6 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -96,7 +94,7 @@ WORKDIR /
 
 RUN pip install --no-cache-dir \
     multi-model-server==$MMS_VERSION \
-    sagemaker-inference==1.5.9
+    sagemaker-inference
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp \
