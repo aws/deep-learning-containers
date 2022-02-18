@@ -31,7 +31,8 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
-    "sagemaker-tensorflow>=2.8" \
+#    sagemaker-tensorflow Doesn't exist for py39.
+#    "sagemaker-tensorflow>=2.8" \
     "sagemaker-tensorflow-training>=20" \
     smclarify
 

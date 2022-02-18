@@ -98,9 +98,9 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.sagemaker.lite.,
                          *DEVICE_TYPE ]
     labels:
-      aws_framework_installed: false
-      smdebug_installed: false
-      smddp_installed: false
+      aws_framework_installed: "false"
+      smdebug_installed: "false"
+      smddp_installed: "false"
       smdmp_installed: false
     context:
       <<: *TRAINING_CONTEXT
