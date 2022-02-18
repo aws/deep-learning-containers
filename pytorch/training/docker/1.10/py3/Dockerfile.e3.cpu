@@ -89,7 +89,8 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && conda install -y \
     h5py \
     requests \
- && conda install -c dglteam -y dgl=0.7.2 \
+ # TODO: add dgl back once the ecs test for dgl gpu get fixed
+#  && conda install -c dglteam -y dgl=0.7.2 \
  && /opt/conda/bin/conda clean -ya \
  && conda clean -ya
 
