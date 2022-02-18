@@ -7,9 +7,9 @@ LABEL dlc_major_version="1"
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
 ARG SMDEBUG_VERSION=1.0.12
-ARG PYTHON=python3.9
+ARG PYTHON=python3.8
 # Add arguments to achieve the version, python and url
-ARG PYTHON_VERSION=3.9.10
+ARG PYTHON_VERSION=3.8.12
 
 # dependencies for kebros
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -32,7 +32,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
 #    sagemaker-tensorflow Doesn't exist for py39.
-#    "sagemaker-tensorflow>=2.8" \
+    "sagemaker-tensorflow>=2.8" \
     "sagemaker-tensorflow-training>=20" \
     smclarify
 

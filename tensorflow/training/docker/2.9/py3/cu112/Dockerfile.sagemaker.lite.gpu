@@ -8,13 +8,13 @@ ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
 ARG PYTHON=python3.8
 # Add arguments to achieve the version, python and url
-ARG PYTHON_VERSION=3.8.2
+ARG PYTHON_VERSION=3.8.12
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
 #    sagemaker-tensorflow Doesn't exist for py39.
-#    "sagemaker-tensorflow>=2.8" \
+    "sagemaker-tensorflow>=2.8" \
     "sagemaker-tensorflow-training>=20" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
