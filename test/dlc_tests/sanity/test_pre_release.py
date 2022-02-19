@@ -36,7 +36,8 @@ from test.test_utils import (
     get_python_version_from_image_uri,
     is_tf_version,
     get_processor_from_image_uri,
-    UL18_CPU_ARM64_US_WEST_2
+    UL18_CPU_ARM64_US_WEST_2,
+    UBUNTU_18_HPU_DLAMI_US_WEST_2
 )
 
 
@@ -142,13 +143,16 @@ def test_ubuntu_version(image):
 def test_framework_version_cpu(image):
     """
     Check that the framework version in the image tag is the same as the one on a running container.
-    This function tests CPU, EIA, and Neuron images.
+    This function tests CPU, EIA images.
 
     :param image: ECR image URI
     """
     if "gpu" in image:
         pytest.skip(
             "GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
+    if "neuron" in image:
+        pytest.skip(
+            "Neuron images will have their framework version tested in test_framework_and_neuron_sdk_version")
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
         pytest.skip(
@@ -176,12 +180,14 @@ def test_framework_version_cpu(image):
     else:
         if tested_framework == "autogluon.core":
             assert output.stdout.strip().startswith(tag_framework_version)
-        elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
-            torch_version_pattern = r"{torch_version}(\+cpu)".format(torch_version=tag_framework_version)
-            assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
-                f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
-                f"Please specify framework version as X.Y.Z+cpu"
-            )
+        # Habana v1.2 binary does not follow the X.Y.Z+cpu naming convention
+        elif "habana" not in image_repo_name:
+            if tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
+                torch_version_pattern = r"{torch_version}(\+cpu)".format(torch_version=tag_framework_version)
+                assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
+                    f"torch.__version__ = {output.stdout.strip()} does not match {torch_version_pattern}\n"
+                    f"Please specify framework version as X.Y.Z+cpu"
+                )
         else:
             if "neuron" in image:
                 assert tag_framework_version in output.stdout.strip()
@@ -190,7 +196,7 @@ def test_framework_version_cpu(image):
     stop_and_remove_container(container_name, ctx)
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 def test_framework_and_neuron_sdk_version(neuron):
     """
@@ -213,6 +219,9 @@ def test_framework_and_neuron_sdk_version(neuron):
         else:
             pytest.skip(msg="Neuron SDK tag is not there as part of image")
 
+    # Framework name may include huggingface
+    if tested_framework.startswith('huggingface_'):
+        tested_framework = tested_framework[len("huggingface_"):]
 
     if tested_framework == "pytorch":
         tested_framework = "torch_neuron"
@@ -312,8 +321,6 @@ def _run_dependency_check_test(image, ec2_connection):
         "CVE-2016-2177",
         "CVE-2016-6303",
         "CVE-2016-2182",
-        # CVE-2020-13936: vulnerability found in apache velocity package which is a dependency for dependency-check package. Hence, ignoring.
-        "CVE-2020-13936",
     }
 
     processor = get_processor_from_image_uri(image)
@@ -330,10 +337,11 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.4": ["cpu", "gpu"],
             "2.5": ["cpu", "gpu", "neuron"],
             "2.6": ["cpu", "gpu"],
-            "2.7": ["cpu", "gpu"],
+            "2.7": ["cpu", "gpu", "hpu"],
+            "2.8": ["cpu", "gpu"],
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
-        "pytorch": {"1.10": ["cpu"]},
+        "pytorch": {"1.8": ["cpu", "gpu"], "1.10": ["cpu", "hpu"]},
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"]},
         "autogluon": {"0.3": ["cpu"]},
@@ -443,12 +451,13 @@ def test_dependency_check_eia(eia, ec2_connection):
 
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["dl1.24xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 def test_dependency_check_hpu(hpu, ec2_connection):
-    _run_dependency_check_test(hpu, ec2_connection, "hpu")
+    _run_dependency_check_test(hpu, ec2_connection)
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
 @pytest.mark.parametrize("ec2_instance_type", ["inf1.xlarge"], indirect=True)
@@ -529,11 +538,17 @@ def test_pip_check(image):
         r"but you have botocore \d+(\.\d+)*\.$"
     )
 
+    # The v0.22 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
+    allowed_habana_tf_exception = re.compile(
+        rf"^tensorflow-io 0.22.0 requires "
+        rf"tensorflow, which is not installed.$"
+    )
+
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(
         f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not (allowed_tf_exception.match(output.stdout) or allowed_smclarify_exception.match(output.stdout)):
+        if not (allowed_tf_exception.match(output.stdout) or allowed_smclarify_exception.match(output.stdout) or allowed_habana_tf_exception.match(output.stdout)):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 

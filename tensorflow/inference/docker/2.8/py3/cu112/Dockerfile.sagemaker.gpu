@@ -1,0 +1,49 @@
+# Expecting base image to be the image built by ./Dockerfile.e3.gpu
+ARG BASE_IMAGE=""
+
+FROM $BASE_IMAGE
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
+# https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+
+ARG PYTHON=python3.8
+ARG PIP=pip3
+ARG PYTHON_VERSION=3.8.9
+ARG TFS_SHORT_VERSION=2.7
+
+ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
+ENV PATH="$PATH:/sagemaker"
+
+# nginx + njs
+RUN curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
+ && echo 'deb http://nginx.org/packages/ubuntu/ focal nginx' >> /etc/apt/sources.list \
+ && apt-get update \
+ && apt-get -y install --no-install-recommends \
+    nginx \
+    nginx-module-njs \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN ${PIP} install -U --no-cache-dir \
+    falcon==3.0.1 \
+    gunicorn==20.1.0
+
+COPY ./sagemaker /sagemaker
+
+# Expose gRPC and REST port
+EXPOSE 8500 8501
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+CMD ["/usr/bin/tf_serving_entrypoint.sh"]

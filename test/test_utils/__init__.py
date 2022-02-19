@@ -42,7 +42,8 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-078c2404eecfbe916"
-UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0f051d0c1a667a106"
+# Habana Base v1.2 ami
+UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-047fd74c001116366"
 UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
@@ -70,7 +71,7 @@ TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 DLAMI_PYTHON_MAPPING = {
     UBUNTU_18_BASE_DLAMI_US_WEST_2: "/usr/bin/python3.7",
     UBUNTU_18_BASE_DLAMI_US_EAST_1: "/usr/bin/python3.7",
-    UL18_CPU_ARM64_US_WEST_2: "/usr/bin/python3.8"
+    UL18_CPU_ARM64_US_WEST_2: "/usr/bin/python3.8",
 }
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
@@ -419,7 +420,9 @@ def retry_if_result_is_false(result):
 
 
 @retry(
-    stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false,
+    stop_max_attempt_number=10,
+    wait_fixed=10000,
+    retry_on_result=retry_if_result_is_false,
 )
 def request_mxnet_inference(ip_address="127.0.0.1", port="80", connection=None, model="squeezenet"):
     """
@@ -449,11 +452,11 @@ def request_mxnet_inference(ip_address="127.0.0.1", port="80", connection=None, 
 @retry(stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false)
 def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connection=None):
     """
-        Send request to container to test inference for predicting sentiments.
-        :param ip_address:
-        :param port:
-        :connection: ec2_connection object to run the commands remotely over ssh
-        :return: <bool> True/False based on result of inference
+    Send request to container to test inference for predicting sentiments.
+    :param ip_address:
+    :param port:
+    :connection: ec2_connection object to run the commands remotely over ssh
+    :return: <bool> True/False based on result of inference
     """
     conn_run = connection.run if connection is not None else run
     run_out = conn_run(
@@ -473,7 +476,9 @@ def request_mxnet_inference_gluonnlp(ip_address="127.0.0.1", port="80", connecti
 
 
 @retry(
-    stop_max_attempt_number=10, wait_fixed=10000, retry_on_result=retry_if_result_is_false,
+    stop_max_attempt_number=10,
+    wait_fixed=10000,
+    retry_on_result=retry_if_result_is_false,
 )
 def request_pytorch_inference_densenet(
     ip_address="127.0.0.1", port="80", connection=None, model_name="pytorch-densenet", server_type="ts"
@@ -659,7 +664,11 @@ def get_tensorflow_model_name(processor, model_name):
             "gpu": "saved_model_half_plus_two_gpu",
             "eia": "saved_model_half_plus_two",
         },
-        "albert": {"cpu": "albert", "gpu": "albert", "eia": "albert",},
+        "albert": {
+            "cpu": "albert",
+            "gpu": "albert",
+            "eia": "albert",
+        },
         "saved_model_half_plus_three": {"eia": "saved_model_half_plus_three"},
         "simple": {"neuron": "simple"},
     }
@@ -755,11 +764,13 @@ def get_canary_default_tag_py3_version(framework, version):
     :param version: fw major.minor version, i.e. 2.2
     :return: default tag python version
     """
-    if framework == "tensorflow2" or framework == "huggingface_tensorflow":
+    if framework == "tensorflow" or framework == "huggingface_tensorflow":
         if Version("2.2") <= Version(version) < Version("2.6"):
             return "py37"
-        if Version(version) >= Version("2.6"):
+        if Version("2.6") <= Version(version) < Version("2.8"):
             return "py38"
+        if Version(version) >= Version("2.8"):
+            return"py39"
 
     if framework == "mxnet":
         if Version(version) == Version("1.8"):
@@ -774,39 +785,6 @@ def get_canary_default_tag_py3_version(framework, version):
     return "py3"
 
 
-def get_e3_addon_tags(framework, version):
-    """
-    # TODO: Remove this when we add the sagemaker-like e3 tags
-    Get e3 addon tags (os, dlc_major_version, cuda_version)
-
-    @param framework: tensorflow2, mxnet, pytorch
-    @param version: major.minor version
-    @return: tuple of os, dlc major version, cuda version
-    """
-    fw_map = {
-        "tensorflow1": {},
-        "tensorflow2": {},
-        "pytorch": {"latest": {"cuda": "cu113", "os": "ubuntu20.04", "major_version": "v1"}},
-        "mxnet": {},
-    }
-
-    image_e3_components = fw_map.get(framework, {}).get(version, {})
-    if not image_e3_components:
-        image_e3_components = fw_map.get(framework, {}).get("latest", {})
-
-    # This message is common across all assertion statements, so defining it only once
-    common_assertion_msg = f"for {framework} in {image_e3_components}. Full framework map: {fw_map}"
-
-    operating_system = image_e3_components.get("os")
-    assert operating_system, f"Cannot find OS {common_assertion_msg}"
-    major_version = image_e3_components.get("major_version")
-    assert major_version, f"Cannot find DLC major version {common_assertion_msg}"
-    cuda_version = image_e3_components.get("cuda", "")
-    assert cuda_version, f"Cannot find CUDA version {common_assertion_msg}"
-
-    return operating_system, major_version, cuda_version
-
-
 def parse_canary_images(framework, region):
     """
     Return which canary images to run canary tests on for a given framework and AWS region
@@ -815,22 +793,15 @@ def parse_canary_images(framework, region):
     :param region: AWS region
     :return: dlc_images string (space separated string of image URIs)
     """
-    if framework == "tensorflow":
-        if "tensorflow2" in os.getenv("CODEBUILD_BUILD_ID") or "tensorflow2" in os.getenv("CODEBUILD_INITIATOR"):
-            framework = "tensorflow2"
-        else:
-            framework = "tensorflow1"
-
     customer_type = get_customer_type()
     customer_type_tag = f"-{customer_type}" if customer_type else ""
 
     version_regex = {
-        "tensorflow1": r"tf-(1.\d+)",
-        "tensorflow2": rf"tf{customer_type_tag}-(2.\d+)",
+        "tensorflow": rf"tf{customer_type_tag}-(\d+.\d+)",
         "mxnet": rf"mx{customer_type_tag}-(\d+.\d+)",
         "pytorch": rf"pt{customer_type_tag}-(\d+.\d+)",
-        "huggingface_pytorch": r"hf-pt-(\d+.\d+)",
-        "huggingface_tensorflow": r"hf-tf-(\d+.\d+)",
+        "huggingface_pytorch": r"hf-\S*pt-(\d+.\d+)",
+        "huggingface_tensorflow": r"hf-\S*tf-(\d+.\d+)",
         "autogluon": r"ag-(\d+.\d+)",
     }
 
@@ -853,9 +824,9 @@ def parse_canary_images(framework, region):
             elif "inf" in tag_str:
                 versions_counter[version]["inf"] = True
 
-    # Adding huggingface here since we dont have inference HF containers now
     versions = []
     for v, inf_train in versions_counter.items():
+        # Earlier versions of huggingface did not have inference
         if (inf_train["inf"] and inf_train["tr"]) or framework.startswith("huggingface"):
             versions.append(v)
 
@@ -864,77 +835,50 @@ def parse_canary_images(framework, region):
 
     registry = PUBLIC_DLC_REGISTRY
     framework_versions = versions if len(versions) < 4 else versions[:3]
-    dlc_images = []
     for fw_version in framework_versions:
         py3_version = get_canary_default_tag_py3_version(framework, fw_version)
 
-        # TODO: Remove this when we add the "sagemaker-like" e3 tag
-        operating_system, dlc_major_version, cuda = ("", "", "")
-        if customer_type == "e3":
-            operating_system, dlc_major_version, cuda = get_e3_addon_tags(framework, fw_version)
         images = {
-            "tensorflow1": {"e3": [], "sagemaker": [],},
-            "tensorflow2": {
-                "e3": [],
-                "sagemaker": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
-                ],
-            },
-            "mxnet": {
-                "e3": [],
-                "sagemaker": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-{py3_version}",
-                ],
-            },
-            "pytorch": {
-                "e3": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py3_version}-{cuda}-{operating_system}-e3-{dlc_major_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py3_version}-{operating_system}-e3-{dlc_major_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-{py3_version}-{cuda}-{operating_system}-e3-{dlc_major_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-{py3_version}-{operating_system}-e3-{dlc_major_version}",
-                ],
-                "sagemaker": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-{py3_version}",
-                ],
-            },
+            "tensorflow": [
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-gpu-{py3_version}",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-training:{fw_version}-cpu-{py3_version}",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-gpu",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference:{fw_version}-cpu",
+            ],
+            "mxnet": [
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-gpu-{py3_version}",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-training:{fw_version}-cpu-{py3_version}",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-gpu-{py3_version}",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/mxnet-inference:{fw_version}-cpu-{py3_version}",
+            ],
+            "pytorch": [
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-gpu-{py3_version}",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training:{fw_version}-cpu-{py3_version}",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-gpu-{py3_version}",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference:{fw_version}-cpu-{py3_version}",
+            ],
             # TODO: uncomment once cpu training and inference images become available
-            "huggingface_pytorch": {
-                "e3": [],
-                "sagemaker": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py3_version}",
-                ],
-            },
-            "huggingface_tensorflow": {
-                "e3": [],
-                "sagemaker": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py3_version}",
-                    # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py3_version}",
-                ],
-            },
-            "autogluon": {
-                "e3": [],
-                "sagemaker": [
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py3_version}",
-                    f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py3_version}",
-                ],
-            },
+            "huggingface_pytorch": [
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-gpu-{py3_version}",
+                # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-training:{fw_version}-cpu-{py3_version}",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-gpu-{py3_version}",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-pytorch-inference:{fw_version}-cpu-{py3_version}",
+            ],
+            "huggingface_tensorflow": [
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-gpu-{py3_version}",
+                # f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-training:{fw_version}-cpu-{py3_version}",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-gpu-{py3_version}",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/huggingface-tensorflow-inference:{fw_version}-cpu-{py3_version}",
+            ],
+            "autogluon": [
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-gpu-{py3_version}",
+                f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py3_version}",
+            ],
         }
-        imgs_key = customer_type if customer_type else "sagemaker"
-        dlc_images += images[framework][imgs_key]
+        dlc_images = images[framework]
+        # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
+        if customer_type == "e3":
+            dlc_images = [f"{img}-e3" for img in dlc_images]
 
     return " ".join(dlc_images)
 
@@ -1095,7 +1039,9 @@ NEURON_VERSION_MANIFEST = {
             "2.4.2": "2.4.2.1.6.10.0",
             "2.5.0": "2.5.0.1.6.10.0",
         },
-        "mxnet": {"1.8.0": "1.8.0.1.3.4.0",},
+        "mxnet": {
+            "1.8.0": "1.8.0.1.3.4.0",
+        },
     },
     "1.16.0": {
         "pytorch": {
@@ -1112,9 +1058,9 @@ NEURON_VERSION_MANIFEST = {
             "2.5.1": "2.5.1.2.0.3.0",
             "1.15.5": "1.15.5.2.0.3.0",
         },
-        "mxnet" : {
+        "mxnet": {
             "1.8.0": "1.8.0.2.0.271.0",
-        }
+        },
     },
     "1.16.1": {
         "pytorch": {
@@ -1129,12 +1075,44 @@ NEURON_VERSION_MANIFEST = {
             "2.3.4": "2.3.4.2.0.4.0",
             "2.4.3": "2.4.3.2.0.4.0",
             "2.5.1": "2.5.1.2.0.4.0",
-            "1.15.5": "1.15.5.2.0.4.0"
+            "1.15.5": "1.15.5.2.0.4.0",
         },
-        "mxnet" : {
+        "mxnet": {
             "1.8.0": "1.8.0.2.0.276.0",
-        }
-    }
+        },
+    },
+    "1.17.0": {
+        "pytorch": {
+            "1.5.1": "1.5.1.2.1.7.0",
+            "1.7.1": "1.7.1.2.1.7.0",
+            "1.8.1": "1.8.1.2.1.7.0",
+            "1.9.1": "1.9.1.2.1.7.0",
+            "1.10.1": "1.10.1.2.1.7.0",
+        },
+        "tensorflow": {
+            "2.1.4": "2.1.4.2.0.4.0",
+            "2.2.3": "2.2.3.2.0.4.0",
+            "2.3.4": "2.3.4.2.0.4.0",
+            "2.4.3": "2.4.3.2.0.4.0",
+            "2.5.2": "2.5.2.2.1.6.0",
+            "1.15.5": "1.15.5.2.1.6.0",
+        },
+        "mxnet": {
+            "1.8.0": "1.8.0.2.1.5.0",
+        },
+    },
+    "1.17.1": {
+        "pytorch": {
+            "1.10.1": "1.10.1.2.1.7.0",
+        },
+        "tensorflow": {
+            "2.5.2": "2.5.2.2.1.13.0",
+            "1.15.5": "1.15.5.2.1.13.0",
+        },
+        "mxnet": {
+            "1.8.0": "1.8.0.2.1.5.0",
+        },
+    },
 }
 
 
@@ -1168,6 +1146,10 @@ def get_neuron_framework_and_version_from_tag(image_uri):
     if neuron_sdk_version not in NEURON_VERSION_MANIFEST:
         raise KeyError(f"Cannot find neuron sdk version {neuron_sdk_version} ")
 
+    # Framework name may include huggingface
+    if tested_framework.startswith("huggingface_"):
+        tested_framework = tested_framework[len("huggingface_") :]
+
     neuron_framework_versions = NEURON_VERSION_MANIFEST[neuron_sdk_version][tested_framework]
     neuron_tag_framework_version = neuron_framework_versions.get(tag_framework_version)
 
@@ -1194,9 +1176,9 @@ def get_framework_from_image_uri(image_uri):
 
 def get_cuda_version_from_tag(image_uri):
     """
-    Return the cuda version from the image tag.
+    Return the cuda version from the image tag as cuXXX
     :param image_uri: ECR image URI
-    :return: cuda version
+    :return: cuda version as cuXXX
     """
     cuda_framework_version = None
 
@@ -1308,7 +1290,8 @@ def stop_and_remove_container(container_name, context):
     :param context: Invoke context object
     """
     context.run(
-        f"docker rm -f {container_name}", hide=True,
+        f"docker rm -f {container_name}",
+        hide=True,
     )
 
 
@@ -1320,7 +1303,8 @@ def start_container(container_name, image_uri, context):
     :param context: Invoke context object
     """
     context.run(
-        f"docker run --entrypoint='/bin/bash' --name {container_name} -itd {image_uri}", hide=True,
+        f"docker run --entrypoint='/bin/bash' --name {container_name} -itd {image_uri}",
+        hide=True,
     )
 
 
@@ -1344,7 +1328,7 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
 def get_tensorflow_model_base_path(image_uri):
     """
     Retrieve model base path based on version of TensorFlow
-    Requirement: Model defined in TENSORFLOW_MODELS_PATH should be hosted in S3 location for TF version less than 2.6. 
+    Requirement: Model defined in TENSORFLOW_MODELS_PATH should be hosted in S3 location for TF version less than 2.6.
                  Starting TF2.7, the models are referred locally as the support for S3 is moved to a separate python package `tensorflow-io`
     :param image_uri: ECR image URI
     :return: <string> model base path
@@ -1359,7 +1343,7 @@ def get_tensorflow_model_base_path(image_uri):
 def build_tensorflow_inference_command_tf27_and_above(model_name):
     """
     Construct the command to download tensorflow model from S3 and start tensorflow model server
-    :param model_name: 
+    :param model_name:
     :return: <list> command to send to the container
     """
     inference_command = f"mkdir -p /tensorflow_model && aws s3 sync {TENSORFLOW_MODELS_BUCKET}/{model_name}/ /tensorflow_model/{model_name} && /usr/bin/tf_serving_entrypoint.sh"
