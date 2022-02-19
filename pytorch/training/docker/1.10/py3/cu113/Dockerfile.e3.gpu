@@ -34,7 +34,8 @@ ENV HOROVOD_VERSION=0.21.3
 ENV EFA_VERSION=1.12.1
 ENV OMPI_VERSION=4.1.1
 ENV BRANCH_OFI=1.1.3-aws
-ENV DGLBACKEND=pytorch
+# TODO: Add DGL environment variables back when DGL is re-enabled
+# ENV DGLBACKEND=pytorch
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV MANUAL_BUILD=0
 ENV RDMAV_FORK_SAFE=1

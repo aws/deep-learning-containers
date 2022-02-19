@@ -21,7 +21,8 @@ ENV LC_ALL=C.UTF-8
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
 ENV PATH=/opt/conda/bin:$PATH
-ENV DGLBACKEND=pytorch
+# TODO: Add DGL environment variables back when DGL is re-enabled
+# ENV DGLBACKEND=pytorch
 ENV DLC_CONTAINER_TYPE=training
 
 # There's no PT pipeline for binary for diy/e3 currently. Using the inference branch (PyTorch + telemetry feature) with different building environments for both training and inference DLCs temporarily.
