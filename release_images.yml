@@ -2,8 +2,9 @@
 release_images:
 # Check .release_images_template.yml for reference
   1:
-    framework: "pytorch"
-    version: "1.10.1"
+    framework: "huggingface_pytorch"
+    version: "1.9.1"
+    hf_transformers: 4.12.3
     arch_type: "x86"
     inference:
       device_types: ["neuron"]
@@ -14,40 +15,4 @@ release_images:
       disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
       # to images being published.
       force_release: False   # [Default: False] Set to True to force images to be published even if the same image
-      # has already been published. Re-released image will have minor version incremented by 1
-  2:
-    framework: "mxnet"
-    version: "1.8.0"
-    arch_type: "x86"
-    inference:
-      device_types: ["neuron"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.17.1"
-      example: False
-      disable_sm_tag: True
-      force_release: False
-  3:
-    framework: "tensorflow"
-    version: "2.5.2"
-    arch_type: "x86"
-    inference:
-      device_types: ["neuron"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.17.1"
-      example: False
-      disable_sm_tag: True
-      force_release: False
-  4:
-    framework: "tensorflow"
-    version: "1.15.5"
-    arch_type: "x86"
-    inference:
-      device_types: ["neuron"]
-      python_versions: ["py37"]
-      os_version: "ubuntu18.04"
-      neuron_sdk_version: "sdk1.17.1"
-      example: False
-      disable_sm_tag: True
-      force_release: False
+      # has already been published. Re-released image will have minor version incremented by 1.
