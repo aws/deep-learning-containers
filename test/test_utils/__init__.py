@@ -42,7 +42,8 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-078c2404eecfbe916"
-UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0f051d0c1a667a106"
+# Habana Base v1.2 ami
+UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-047fd74c001116366"
 UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
@@ -763,11 +764,13 @@ def get_canary_default_tag_py3_version(framework, version):
     :param version: fw major.minor version, i.e. 2.2
     :return: default tag python version
     """
-    if framework == "tensorflow2" or framework == "huggingface_tensorflow":
+    if framework == "tensorflow" or framework == "huggingface_tensorflow":
         if Version("2.2") <= Version(version) < Version("2.6"):
             return "py37"
-        if Version(version) >= Version("2.6"):
+        if Version("2.6") <= Version(version) < Version("2.8"):
             return "py38"
+        if Version(version) >= Version("2.8"):
+            return"py39"
 
     if framework == "mxnet":
         if Version(version) == Version("1.8"):
@@ -1093,6 +1096,18 @@ NEURON_VERSION_MANIFEST = {
             "2.4.3": "2.4.3.2.0.4.0",
             "2.5.2": "2.5.2.2.1.6.0",
             "1.15.5": "1.15.5.2.1.6.0",
+        },
+        "mxnet": {
+            "1.8.0": "1.8.0.2.1.5.0",
+        },
+    },
+    "1.17.1": {
+        "pytorch": {
+            "1.10.1": "1.10.1.2.1.7.0",
+        },
+        "tensorflow": {
+            "2.5.2": "2.5.2.2.1.13.0",
+            "1.15.5": "1.15.5.2.1.13.0",
         },
         "mxnet": {
             "1.8.0": "1.8.0.2.1.5.0",
