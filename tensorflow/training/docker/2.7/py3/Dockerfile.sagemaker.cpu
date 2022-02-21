@@ -41,7 +41,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker-studio-sparkmagic-lib<1" 
 
 # install smdebug directly the specific branch
-RUN git clone -b $SMDEBUG_VERSION https://github.com/hsl89/sagemaker-debugger.git \ 
+RUN git clone -b $SMDEBUG_VERSION https://github.com/awslabs/sagemaker-debugger.git \
     && cd sagemaker-debugger && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger 
 
 # remove tmp files
