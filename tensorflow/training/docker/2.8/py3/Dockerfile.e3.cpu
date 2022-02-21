@@ -150,11 +150,6 @@ RUN HOROVOD_WITH_MPI=1 \
    && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
    && ${PIP} install --no-cache-dir horovod==0.23.0
 
-# Install Horovod with TensorFlow
-RUN HOROVOD_WITH_MPI=1 \
-   && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
-   && ${PIP} install --no-cache-dir horovod==0.23.0
-
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py

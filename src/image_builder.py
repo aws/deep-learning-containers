@@ -139,6 +139,12 @@ def image_builder(buildspec):
         if "labels" in image_config:
             labels.update(image_config.get("labels"))
 
+        # Adding standard labels to all images
+        labels["framework"] = str(BUILDSPEC["framework"])
+        labels["framework_version"] = str(BUILDSPEC["version"])
+        labels["python_version"] = str(image_config["python_version"])
+        labels["container_type"] = str(image_config["device_type"])
+
         """
         Override parameters from parent in child.
         """
