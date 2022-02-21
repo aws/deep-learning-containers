@@ -90,7 +90,13 @@ else
     # pip install tensorflow-datasets==${TENSORFLOW_DATASETS_VERSION} "absl-py>=0.9,<0.11"
     for test_file in tests/${FRAMEWORK}/*
     do
-        python -m pytest --assert=plain $test_file
+        
+        if [[ "$tf_version" == *"2.7."* && "$test_file" == *"test_keras_mirrored.py" ]]; then
+            echo "skipping flaky test_keras_mirrored.py"
+        else
+            python -m pytest --assert=plain $test_file
+        fi
+        
         exit_code=$?
         if [ "$exit_code" -eq "0" ]
         then
