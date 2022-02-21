@@ -45,7 +45,7 @@ images:
     image_size_baseline: &IMAGE_SIZE_BASELINE 4489
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
+    tag_python_version: &TAG_PYTHON_VERSION py38
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-e3"
       ]
@@ -59,7 +59,7 @@ images:
     image_size_baseline: &IMAGE_SIZE_BASELINE 9307
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
+    tag_python_version: &TAG_PYTHON_VERSION py38
     cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
@@ -75,7 +75,7 @@ images:
     base_image_name: BuildTensorflowE3GpuCu112Py39TrainingDockerImage
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
+    tag_python_version: &TAG_PYTHON_VERSION py38
     cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
