@@ -3,11 +3,14 @@ import time
 import re
 from inspect import signature
 import boto3
+import logging
+import sys
 
 from retrying import retry
 from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
+from invoke import run
 
 from test.test_utils import is_pr_context, is_mainline_context, get_synapseai_version_from_tag
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
@@ -20,6 +23,9 @@ ICE_SKIP_INSTANCE_LIST = ["p3dn.24xlarge"]
 # List of instance types which are too powerful for minor tests
 HEAVY_INSTANCE_LIST = ["p3dn.24xlarge", "p4d.24xlarge"]
 
+LOGGER = logging.getLogger(__name__)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+LOGGER.setLevel(logging.INFO)
 
 def filter_only_multi_gpu(instance_type_list):
     filtered_list = [
@@ -491,8 +497,34 @@ def execute_ec2_training_test(
         f"{habana_container_test_repo} {shm_setting} -itd {bin_bash_cmd}{ecr_uri}",
         hide=True,
     )
+    LOGGER.info("HERE")
+    if "habana" in ecr_uri and "tensorflow" in ecr_uri:
+        LOGGER.info("Inside habana and tf if")
+        connection.run(
+            f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
+            hide=True,
+            timeout=timeout,
+            asynchronous=True,
+        )
+        start_time = int(time.time())
+        commit_id = run("""git log --format="%H" -n 1""", hide=True).stdout.strip()
+        s3_location = f"s3://dlinfra-habana-tests/ec2-tests/tensorflow/{commit_id}/logs-{start_time}.txt"
+        while int(time.time()) - start_time <= (3 * 3600):
+            time.sleep(5 * 60)
+            connection.run(f"aws s3 cp ~/container_tests/logs.txt {s3_location}")
+            LOGGER.info(f"Uploaded file to {s3_location}")
+            break
+        local_filename = s3_location.split("//")[-1].replace("/", "-")
+        run(f"aws s3 cp {s3_location} {local_filename}", hide=True)
+        last_line_of_log = run("tail -n1 {local_filename}", hide=True).stdout.strip()
+        assert (
+            last_line_of_log == "Tensorflow framework test suite executed successfully"
+        ), f"Habana Tensorflow test failed. Check {s3_location}"
+        return
     return connection.run(
-        f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'", hide=True, timeout=timeout,
+        f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
+        hide=True,
+        timeout=timeout,
     )
 
 
