@@ -27,7 +27,7 @@ TF_HABANA_TEST_SUITE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testHabanaTFSui
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu
 )
-TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.4xlarge", processor="gpu")
+TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.16xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="cpu")
 TF_EC2_HPU_INSTANCE_TYPE = get_ec2_instance_type(default="dl1.24xlarge", processor="hpu")
 
@@ -36,7 +36,6 @@ class TFTrainingTestFailure(Exception):
     pass
 
 
-@pytest.mark.skip(reason="REMOVE THIS BEFORE MERGE")
 @pytest.mark.integration("tensorflow_sanity_test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
@@ -55,7 +54,6 @@ def test_tensorflow_standalone_cpu(tensorflow_training, ec2_connection, cpu_only
     execute_ec2_training_test(ec2_connection, tensorflow_training, test_script)
 
 
-@pytest.mark.skip(reason="REMOVE THIS BEFORE MERGE")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_train_mnist_gpu(tensorflow_training, ec2_connection, gpu_only, ec2_instance_type):
@@ -71,6 +69,8 @@ def test_tensorflow_train_mnist_cpu(tensorflow_training, ec2_connection, cpu_onl
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
 
+# TODO: re-enable when infra issues are resolved
+@pytest.mark.skip(reason="Test currently fails due to infra issues, but passes manually")
 @pytest.mark.integration("horovod")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -111,7 +111,6 @@ def test_tensorflow_with_horovod_cpu(tensorflow_training, ec2_connection, cpu_on
         raise TFTrainingTestFailure(f"TF HVD test failed. Full output:\n{debug_stdout}") from e
 
 
-@pytest.mark.skip(reason="REMOVE THIS BEFORE MERGE")
 @pytest.mark.integration("opencv")
 @pytest.mark.model("unknown_model")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -129,7 +128,6 @@ def test_tensorflow_opencv_cpu(tensorflow_training, ec2_connection, tf2_only, cp
 
 
 # Testing Telemetry Script on only one GPU instance
-@pytest.mark.skip(reason="REMOVE THIS BEFORE MERGE")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
@@ -152,7 +150,6 @@ def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only)
 
 
 # Skip test for TF 2.0 and below: https://github.com/tensorflow/tensorflow/issues/33484#issuecomment-555299647
-@pytest.mark.skip(reason="REMOVE THIS BEFORE MERGE")
 @pytest.mark.integration("keras, horovod, automatic_mixed_precision (AMP)")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -164,7 +161,6 @@ def test_tensorflow_keras_horovod_amp(
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_KERAS_HVD_CMD_AMP)
 
 
-@pytest.mark.skip(reason="REMOVE THIS BEFORE MERGE")
 @pytest.mark.integration("keras, horovod, single_precision_floating_point (FP32)")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -175,7 +171,6 @@ def test_tensorflow_keras_horovod_fp32(tensorflow_training, ec2_connection, tf2_
 
 
 # Testing Tensorboard with profiling
-@pytest.mark.skip(reason="REMOVE THIS BEFORE MERGE")
 @pytest.mark.integration("tensorboard, keras")
 @pytest.mark.model("sequential")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -195,7 +190,6 @@ def test_tensorflow_tensorboard_cpu(tensorflow_training, ec2_connection, tf2_onl
 
 # TensorFlow Addons is actively working towards forward compatibility with TensorFlow 2.x
 # https://github.com/tensorflow/addons#python-op-compatility
-@pytest.mark.skip(reason="REMOVE THIS BEFORE MERGE")
 @pytest.mark.model("sequential")
 @pytest.mark.integration("tensorflow_addons, keras")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
@@ -236,7 +230,6 @@ def test_tensorflow_dataservice_cpu(
 
 # Testing Data Service on only one GPU instance
 # Skip test for TF 2.3 and below
-@pytest.mark.skip(reason="REMOVE THIS BEFORE MERGE")
 @pytest.mark.integration("tensorflow-dataservice-test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -261,7 +254,6 @@ def test_tensorflow_distribute_dataservice_cpu(
 
 # Testing Data Service Distributed mode on only one GPU instance
 # Skip test for TF 2.3 and below
-@pytest.mark.skip(reason="REMOVE THIS BEFORE MERGE")
 @pytest.mark.integration("tensorflow-dataservice-distribute-test")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
