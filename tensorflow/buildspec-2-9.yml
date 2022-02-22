@@ -38,32 +38,6 @@ context:
       target: deep_learning_container.py
 
 images:
-  BuildTensorflowE3CpuPy39TrainingDockerImage:
-    <<: *TRAINING_REPOSITORY
-    build: &TENSORFLOW_CPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 4489
-    device_type: &DEVICE_TYPE cpu
-    python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
-    os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-e3" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.e3., *DEVICE_TYPE ]
-    context:
-      <<: *TRAINING_CONTEXT
-  BuildTensorflowE3GpuCu112Py39TrainingDockerImage:
-    <<: *TRAINING_REPOSITORY
-    build: &TENSORFLOW_GPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 9307
-    device_type: &DEVICE_TYPE gpu
-    python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
-    cuda_version: &CUDA_VERSION cu112
-    os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-e3" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.e3.,
-                         *DEVICE_TYPE ]
-    context:
-      <<: *TRAINING_CONTEXT
   BuildTensorflowSageMakerLiteGpuPy39Cu112TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
@@ -71,18 +45,19 @@ images:
     base_image_name: BuildTensorflowE3GpuCu112Py38TrainingDockerImage
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
+    tag_python_version: &TAG_PYTHON_VERSION py38
     cuda_version: &CUDA_VERSION cu112
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
                 "-", *OS_VERSION, "-sagemaker-lite" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION,
                         /Dockerfile.sagemaker.lite., *DEVICE_TYPE ]
+    target: sagemaker
     labels:
-     aws_framework_installed: false
-     smdebug_installed: false
-     smddp_installed: false
-     smdmp_installed: false
+     aws_framework_installed: "false"
+     smdebug_installed: "false"
+     smddp_installed: "false"
+     smdmp_installed: "false"
     context:
       <<: *TRAINING_CONTEXT
   BuildTensorflowSageMakerLiteCpuPy39TrainingDockerImage:
@@ -92,15 +67,14 @@ images:
     base_image_name: BuildTensorflowE3CpuPy39TrainingDockerImage
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
+    tag_python_version: &TAG_PYTHON_VERSION py38
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker-lite" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.sagemaker.lite.,
                          *DEVICE_TYPE ]
+    target: sagemaker
     labels:
       aws_framework_installed: "false"
       smdebug_installed: "false"
-      smddp_installed: "false"
-      smdmp_installed: false
     context:
       <<: *TRAINING_CONTEXT
