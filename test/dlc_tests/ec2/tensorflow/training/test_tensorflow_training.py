@@ -82,7 +82,7 @@ def test_tensorflow_with_horovod_gpu(tensorflow_training, ec2_instance_type, ec2
         connection=ec2_connection,
         ecr_uri=tensorflow_training,
         test_cmd=f"{test_script} {ec2_instance_type}",
-        large_shm=bool(re.match(r"(p2\.8xlarge)|(g3\.16xlarge)", ec2_instance_type)),
+        large_shm=True,
     )
 
 
