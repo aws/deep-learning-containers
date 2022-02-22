@@ -4,6 +4,7 @@ release_images:
   1:
     framework: "pytorch"
     version: "1.10.2"
+    arch_type: "x86"
     customer_type: "e3"
     inference:
       device_types: ["cpu", "gpu"]
@@ -11,7 +12,7 @@ release_images:
       os_version: "ubuntu20.04"
       cuda_version: "cu113"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
+      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
       # to images being published.
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
       # has already been published. Re-released image will have minor version incremented by 1.
@@ -21,13 +22,14 @@ release_images:
       os_version: "ubuntu20.04"
       cuda_version: "cu113"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
-      disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
+      disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
       # to images being published.
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
       # has already been published. Re-released image will have minor version incremented by 1.
   2:
     framework: "pytorch"
     version: "1.10.2"
+    arch_type: "x86"
     customer_type: "e3"
     training:
       device_types: ["gpu"]
