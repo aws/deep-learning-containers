@@ -26,8 +26,8 @@ ENV PATH=/opt/conda/bin:$PATH
 ENV DLC_CONTAINER_TYPE=training
 
 # There's no PT pipeline for binary for diy/e3 currently. Using the inference branch (PyTorch + telemetry feature) with different building environments for both training and inference DLCs temporarily.
-ARG PT_TRAINING_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211027-160245/36dea191ed0df524207de5acc4e6fb4322306d1a/cpu/torch-1.10.0%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cpu/torchvision-0.11.1%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TRAINING_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.2_inference/20220211-013556/528b6ca3747ec951396383f2a70d1354283ad29f/cpu/torch-1.10.2%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/1.10.2/torchvision-0.11.3%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_S3_WHL=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
 WORKDIR /
@@ -82,8 +82,6 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda install -y -c anaconda \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
-    numpy \
-    ipython \
     mkl \
     mkl-include \
     cython \
@@ -92,8 +90,8 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && conda install -y \
     h5py \
     requests \
-# TODO: Add DGL back when 0.7.1 is released
-#  && conda install -c dglteam -y dgl=0.7.1 \
+ # TODO: add dgl back once the ecs test for dgl gpu get fixed
+#  && conda install -c dglteam -y dgl=0.7.2 \
  && /opt/conda/bin/conda clean -ya \
  && conda clean -ya
 
@@ -109,6 +107,8 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
     "pyyaml>=5.4,<5.5" \
+    numpy==1.22.2 \
+    ipython==8.0.1 \
     opencv-python==4.5.2.54 \
     "awscli<2" \
     boto3 \
@@ -117,7 +117,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     "cryptography>3.2" \
     packaging \
     psutil==5.6.7 \
-    "Pillow>=8.3.2,<8.4" \
+    "Pillow>=9.0.0" \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
