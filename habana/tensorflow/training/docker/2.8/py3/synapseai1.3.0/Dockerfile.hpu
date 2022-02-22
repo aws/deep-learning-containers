@@ -25,7 +25,7 @@ ARG PYTHON=python3.8
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3.8
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.7_aws/hpu-manylinux-py38/2022-01-22-02-41/tensorflow_cpu-2.7.0-cp38-cp38-manylinux2010_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/habana/1.3.0/tensorflow_cpu-2.8.0-cp38-cp38-manylinux2010_x86_64.whl
 
 
 RUN apt-get update \
