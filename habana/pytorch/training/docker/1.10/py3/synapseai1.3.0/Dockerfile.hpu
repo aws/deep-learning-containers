@@ -56,8 +56,7 @@ RUN pip install --no-cache-dir --user -U \
  && pip uninstall -y torch \
  && pip uninstall -y hb-torch \
  && pip install --no-cache-dir --user -U ${PT_TRAINING_URL} \
- && rm -rf ${PT_TRAINING_URL} \
- && pip uninstall -y torchvision \
+ && rm -rf ${PT_TRAINING_URL}
 
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.local/lib
 
