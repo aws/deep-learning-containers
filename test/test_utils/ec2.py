@@ -458,9 +458,9 @@ def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
     return {tag["Key"]: tag["Value"] for tag in response.get("Tags")}
 
 
-def get_last_line_of_s3_file(s3_location, local_filename="temp.txt"):
+def fetch_s3_file_and_get_last_line(s3_location, local_filename="temp.txt"):
     """
-    Extracts the last line of s3 file by copying it locally.
+    Fetches the s3 file locally and extracts its last line.
     
     :param s3_location: str, s3 uri
     :param local_filename: str, location where s3 file is to be downloaded locally.
@@ -507,8 +507,8 @@ def execute_asynchronus_testing_using_s3_bucket(
         time.sleep(loop_sleep_time)
         loop_count += 1
         connection.run(f"aws s3 cp {log_location_within_ec2} {s3_location}")
-        last_line_of_log = get_last_line_of_s3_file(s3_location, local_filename)
-        number_of_lines_in_log_file = int(run("wc -l conftest.py", hide=True).stdout.strip().split()[0])
+        last_line_of_log = fetch_s3_file_and_get_last_line(s3_location, local_filename)
+        number_of_lines_in_log_file = int(run(f"wc -l {local_filename}", hide=True).stdout.strip().split()[0])
         line_count_list.append(number_of_lines_in_log_file)
         number_of_previous_line_counts_to_check = 3
         if len(line_count_list) >= number_of_previous_line_counts_to_check:
@@ -520,7 +520,7 @@ def execute_asynchronus_testing_using_s3_bucket(
                 # hence we stop.
                 LOGGER.error("No Progress Reported!!")
                 break
-        last_line_of_log = get_last_line_of_s3_file(s3_location, local_filename)
+        last_line_of_log = fetch_s3_file_and_get_last_line(s3_location, local_filename)
         LOGGER.info(f"Uploaded file to {s3_location} for {loop_count} number of times")
     assert last_line_of_log.endswith(required_log_ending), f"Test failed!! Check {s3_location}"
 
