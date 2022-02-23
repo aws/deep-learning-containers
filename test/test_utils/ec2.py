@@ -514,7 +514,7 @@ def execute_asynchronus_testing_using_s3_bucket(
         if len(line_count_list) >= number_of_previous_line_counts_to_check:
             if all(
                 line_count == line_count_list[-1]
-                for line_count in line_count_list[:-number_of_previous_line_counts_to_check]
+                for line_count in line_count_list[-number_of_previous_line_counts_to_check:]
             ):
                 # If last 3 runs lead to sam line number then it demonstrates no progress and 
                 # hence we stop.
