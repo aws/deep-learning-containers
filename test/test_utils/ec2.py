@@ -510,7 +510,7 @@ def execute_ec2_training_test(
         commit_id = run("""git log --format="%H" -n 1""", hide=True).stdout.strip()
         s3_location = f"s3://dlinfra-habana-tests/ec2-tests/tensorflow/{commit_id}/logs-{start_time}.txt"
         loop_count = 0
-        while int(time.time()) - start_time <= (3 * 3600):
+        while int(time.time()) - start_time <= (2.5 * 3600):
             time.sleep(5 * 60)
             loop_count += 1
             connection.run(f"aws s3 cp ~/container_tests/logs.txt {s3_location}")
@@ -519,7 +519,7 @@ def execute_ec2_training_test(
         run(f"aws s3 cp {s3_location} {local_filename}", hide=True)
         last_line_of_log = run(f"tail -n1 {local_filename}", hide=True).stdout.strip()
         assert (
-            last_line_of_log == "Tensorflow framework test suite executed successfully"
+            last_line_of_log.endswith("INFO: Exiting the script with code 0 PASS")
         ), f"Habana Tensorflow test failed. Check {s3_location}"
         return
     return connection.run(
