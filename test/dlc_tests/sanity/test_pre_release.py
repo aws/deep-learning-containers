@@ -36,7 +36,8 @@ from test.test_utils import (
     get_python_version_from_image_uri,
     is_tf_version,
     get_processor_from_image_uri,
-    UL18_CPU_ARM64_US_WEST_2
+    UL18_CPU_ARM64_US_WEST_2,
+    UBUNTU_18_HPU_DLAMI_US_WEST_2
 )
 
 
@@ -142,13 +143,16 @@ def test_ubuntu_version(image):
 def test_framework_version_cpu(image):
     """
     Check that the framework version in the image tag is the same as the one on a running container.
-    This function tests CPU, EIA, and Neuron images.
+    This function tests CPU, EIA images.
 
     :param image: ECR image URI
     """
     if "gpu" in image:
         pytest.skip(
             "GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
+    if "neuron" in image:
+        pytest.skip(
+            "Neuron images will have their framework version tested in test_framework_and_neuron_sdk_version")
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
         pytest.skip(
@@ -334,6 +338,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.5": ["cpu", "gpu", "neuron"],
             "2.6": ["cpu", "gpu"],
             "2.7": ["cpu", "gpu", "hpu"],
+            "2.8": ["cpu", "gpu"],
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
         "pytorch": {"1.8": ["cpu", "gpu"], "1.10": ["cpu", "hpu"]},
@@ -446,7 +451,8 @@ def test_dependency_check_eia(eia, ec2_connection):
 
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run dependency tests regularly on production images")
-@pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["dl1.24xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 def test_dependency_check_hpu(hpu, ec2_connection):
     _run_dependency_check_test(hpu, ec2_connection)
 
