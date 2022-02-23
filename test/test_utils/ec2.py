@@ -458,6 +458,19 @@ def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
     return {tag["Key"]: tag["Value"] for tag in response.get("Tags")}
 
 
+def get_last_line_of_s3_file(s3_location, local_filename="temp.txt"):
+    """
+    Extracts the last line of s3 file by copying it locally.
+    :param s3_location: str, s3 uri
+    :param local_filename: str, location where s3 file is to be downloaded locally.
+    :return: str, The last line of the file
+    """
+    run(f"rm -rf {local_filename}", hide=True)
+    run(f"aws s3 cp {s3_location} {local_filename}", hide=True)
+    last_line_of_file = run(f"tail -n1 {local_filename}", hide=True).stdout.strip()
+    return last_line_of_file
+
+
 def execute_asynchronus_testing_using_s3_bucket(
     connection,
     execution_command,
@@ -485,14 +498,23 @@ def execute_asynchronus_testing_using_s3_bucket(
     connection.run(execution_command, hide=True, timeout=connection_timeout, asynchronous=True)
     start_time = int(time.time())
     loop_count = 0
-    while int(time.time()) - start_time <= loop_time:
+    local_filename = s3_location.split("//")[-1].replace("/", "-")
+    last_line_of_log = ""
+    line_count_list = []
+    while (int(time.time()) - start_time <= loop_time) or (not last_line_of_log.endswith(required_log_ending)):
         time.sleep(loop_sleep_time)
         loop_count += 1
         connection.run(f"aws s3 cp {log_location_within_ec2} {s3_location}")
+        last_line_of_log = get_last_line_of_s3_file(s3_location, local_filename)
+        number_of_lines_in_log_file = int(run("wc -l conftest.py", hide=True).stdout.strip().split()[0])
+        line_count_list.append(number_of_lines_in_log_file)
+        number_of_previous_line_counts_to_check = 3
+        if len(line_count_list) >= number_of_previous_line_counts_to_check:
+            if all(line_count == line_count_list[-1] for line_count in line_count_list[:-number_of_previous_line_counts_to_check]):
+                # If last 3 runs lead to no progress.
+                break
+        last_line_of_log = get_last_line_of_s3_file(s3_location, local_filename)
         LOGGER.info(f"Uploaded file to {s3_location} for {loop_count} number of times")
-    local_filename = s3_location.split("//")[-1].replace("/", "-")
-    run(f"aws s3 cp {s3_location} {local_filename}", hide=True)
-    last_line_of_log = run(f"tail -n1 {local_filename}", hide=True).stdout.strip()
     assert last_line_of_log.endswith(required_log_ending), f"Test failed!! Check {s3_location}"
 
 
