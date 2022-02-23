@@ -458,6 +458,44 @@ def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
     return {tag["Key"]: tag["Value"] for tag in response.get("Tags")}
 
 
+def execute_asynchronus_testing_using_s3_bucket(
+    connection,
+    execution_command,
+    connection_timeout,
+    s3_location,
+    required_log_ending,
+    loop_time=2.5 * 3600,
+    loop_sleep_time=5 * 60,
+    log_location_within_ec2="~/container_tests/logs.txt",
+):
+    """
+    This method uses fabric to run the provided execution_command in asynchronus mode. While the execution command
+    is being executed in the image, it keeps on uploading the logs to the s3 bucket at fixed intervals. After a
+    loop_time is over, it checks the last line of the uploaded logs to see if it is same as required_log_ending.
+    This is mainly used in cases where Fabric behaves in an undesired way due to long living connections. 
+    :param connection: Fabric connection object
+    :param execution_command: str, command that connection.run() will execute
+    :param connection_timeout: timeout for fabric connection
+    :param s3_location: str, s3 location where the logs are supposed to be uploaded.
+    :param required_log_ending: str, The string that is desired to be present at the end of the logs
+    :param loop_time: int, seconds for which we would wait for the tests to execute on ec2 instance
+    :param loop_sleep_time: int, interval at which the logs would be uploaded to the s3 bucket
+    :param log_location_within_ec2: Location within ec2 instance where the logs are being witten.
+    """
+    connection.run(execution_command, hide=True, timeout=connection_timeout, asynchronous=True)
+    start_time = int(time.time())
+    loop_count = 0
+    while int(time.time()) - start_time <= loop_time:
+        time.sleep(loop_sleep_time)
+        loop_count += 1
+        connection.run(f"aws s3 cp {log_location_within_ec2} {s3_location}")
+        LOGGER.info(f"Uploaded file to {s3_location} for {loop_count} number of times")
+    local_filename = s3_location.split("//")[-1].replace("/", "-")
+    run(f"aws s3 cp {s3_location} {local_filename}", hide=True)
+    last_line_of_log = run(f"tail -n1 {local_filename}", hide=True).stdout.strip()
+    assert last_line_of_log.endswith(required_log_ending), f"Test failed!! Check {s3_location}"
+
+
 def execute_ec2_training_test(
     connection,
     ecr_uri,
@@ -500,27 +538,12 @@ def execute_ec2_training_test(
     LOGGER.info("HERE")
     if "habana" in ecr_uri and "tensorflow" in ecr_uri:
         LOGGER.info("Inside habana and tf if")
-        connection.run(
-            f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
-            hide=True,
-            timeout=timeout,
-            asynchronous=True,
-        )
-        start_time = int(time.time())
+        current_time = int(time.time())
         commit_id = run("""git log --format="%H" -n 1""", hide=True).stdout.strip()
-        s3_location = f"s3://dlinfra-habana-tests/ec2-tests/tensorflow/{commit_id}/logs-{start_time}.txt"
-        loop_count = 0
-        while int(time.time()) - start_time <= (2.5 * 3600):
-            time.sleep(5 * 60)
-            loop_count += 1
-            connection.run(f"aws s3 cp ~/container_tests/logs.txt {s3_location}")
-            LOGGER.info(f"Uploaded file to {s3_location} for {loop_count} number of times")
-        local_filename = s3_location.split("//")[-1].replace("/", "-")
-        run(f"aws s3 cp {s3_location} {local_filename}", hide=True)
-        last_line_of_log = run(f"tail -n1 {local_filename}", hide=True).stdout.strip()
-        assert (
-            last_line_of_log.endswith("INFO: Exiting the script with code 0 PASS")
-        ), f"Habana Tensorflow test failed. Check {s3_location}"
+        s3_location = f"s3://dlinfra-habana-tests/ec2-tests/tensorflow/{commit_id}/logs-{current_time}.txt"
+        execution_command = f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'"
+        required_log_ending = "INFO: Exiting the script with code 0 PASS"
+        execute_asynchronus_testing_using_s3_bucket(connection, execution_command, timeout, s3_location, required_log_ending)
         return
     return connection.run(
         f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
