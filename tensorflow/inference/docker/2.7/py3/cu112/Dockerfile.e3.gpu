@@ -65,6 +65,7 @@ RUN apt-get update \
     tk-dev \
     libgdbm-dev \
     libc6-dev \
+    # remove libsasl2-2 after Nvidia docker upstream fix CVE-2022-24407
     libsasl2-2 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
