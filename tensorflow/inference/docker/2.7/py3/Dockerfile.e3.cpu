@@ -38,7 +38,7 @@ RUN apt-get update \
     openssl \
     libssl1.1 \
     libreadline-gplv2-dev \
-    libncursesw5-dev \s
+    libncursesw5-dev \
     libssl-dev \
     libsqlite3-dev \
     tk-dev \
