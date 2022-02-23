@@ -69,6 +69,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    openssh-client \
    openssh-server \
    zlib1g-dev \
+   libsasl2-2 \
    # Install dependent library for OpenCV
    libgtk2.0-dev \
    jq \

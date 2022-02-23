@@ -66,9 +66,6 @@ RUN apt-get update \
     libgdbm-dev \
     libc6-dev \
     libsasl2-2 \
-    libsasl2-dev \
-    libsasl2-modules-db \
-    libsasl2-modules \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -150,4 +147,3 @@ RUN HOME_DIR=/root \
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.7/license.txt -o /license.txt
 
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
-
