@@ -57,20 +57,20 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.e3., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
-  BuildE3GPUPTTrainPy3DockerImage:
-    <<: *TRAINING_REPOSITORY
-    build: &PYTORCH_GPU_TRAINING_PY3 false
-    image_size_baseline: 14000
-    device_type: &DEVICE_TYPE gpu
-    python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py38
-    cuda_version: &CUDA_VERSION cu113
-    os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-e3" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.e3.,
-                         *DEVICE_TYPE ]
-    context:
-      <<: *TRAINING_CONTEXT
+  # BuildE3GPUPTTrainPy3DockerImage:
+  #   <<: *TRAINING_REPOSITORY
+  #   build: &PYTORCH_GPU_TRAINING_PY3 false
+  #   image_size_baseline: 14000
+  #   device_type: &DEVICE_TYPE gpu
+  #   python_version: &DOCKER_PYTHON_VERSION py3
+  #   tag_python_version: &TAG_PYTHON_VERSION py38
+  #   cuda_version: &CUDA_VERSION cu113
+  #   os_version: &OS_VERSION ubuntu20.04
+  #   tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-e3" ]
+  #   docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.e3.,
+  #                        *DEVICE_TYPE ]
+  #   context:
+  #     <<: *TRAINING_CONTEXT
   # BuildSageMakerCPUPTTrainPy3DockerImage:
   #   <<: *TRAINING_REPOSITORY
   #   build: &PYTORCH_CPU_TRAINING_PY3 false
@@ -99,47 +99,47 @@ images:
   #                        *DEVICE_TYPE ]
   #   context:
   #     <<: *TRAINING_CONTEXT
-  BuildPyTorchExampleGPUTrainPy3DockerImage:
-    <<: *TRAINING_REPOSITORY
-    build: &PYTORCH_GPU_TRAINING_PY3 false
-    image_size_baseline: 14000
-    base_image_name: BuildE3GPUPTTrainPy3DockerImage
-    device_type: &DEVICE_TYPE gpu
-    python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py38
-    cuda_version: &CUDA_VERSION cu113
-    os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
-                 "-e3-example" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /example, /Dockerfile., *DEVICE_TYPE ]
-    context:
-      <<: *TRAINING_CONTEXT
-  BuildE3CPUPTInferencePy3DockerImage:
-    <<: *INFERENCE_REPOSITORY
-    build: &PYTORCH_CPU_INFERENCE_PY3 false
-    image_size_baseline: 4899
-    device_type: &DEVICE_TYPE cpu
-    python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py38
-    os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-e3" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.e3., *DEVICE_TYPE ]
-    context:
-      <<: *INFERENCE_CONTEXT
-  BuildE3GPUPTInferencePy3DockerImage:
-    <<: *INFERENCE_REPOSITORY
-    build: &PYTORCH_GPU_INFERENCE_PY3 false
-    image_size_baseline: 14000
-    device_type: &DEVICE_TYPE gpu
-    python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py38
-    cuda_version: &CUDA_VERSION cu113
-    os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-e3" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.e3.,
-                         *DEVICE_TYPE ]
-    context:
-      <<: *INFERENCE_CONTEXT
+  # BuildPyTorchExampleGPUTrainPy3DockerImage:
+  #   <<: *TRAINING_REPOSITORY
+  #   build: &PYTORCH_GPU_TRAINING_PY3 false
+  #   image_size_baseline: 14000
+  #   base_image_name: BuildE3GPUPTTrainPy3DockerImage
+  #   device_type: &DEVICE_TYPE gpu
+  #   python_version: &DOCKER_PYTHON_VERSION py3
+  #   tag_python_version: &TAG_PYTHON_VERSION py38
+  #   cuda_version: &CUDA_VERSION cu113
+  #   os_version: &OS_VERSION ubuntu20.04
+  #   tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
+  #                "-e3-example" ]
+  #   docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /example, /Dockerfile., *DEVICE_TYPE ]
+  #   context:
+  #     <<: *TRAINING_CONTEXT
+  # BuildE3CPUPTInferencePy3DockerImage:
+  #   <<: *INFERENCE_REPOSITORY
+  #   build: &PYTORCH_CPU_INFERENCE_PY3 false
+  #   image_size_baseline: 4899
+  #   device_type: &DEVICE_TYPE cpu
+  #   python_version: &DOCKER_PYTHON_VERSION py3
+  #   tag_python_version: &TAG_PYTHON_VERSION py38
+  #   os_version: &OS_VERSION ubuntu20.04
+  #   tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-e3" ]
+  #   docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.e3., *DEVICE_TYPE ]
+  #   context:
+  #     <<: *INFERENCE_CONTEXT
+  # BuildE3GPUPTInferencePy3DockerImage:
+  #   <<: *INFERENCE_REPOSITORY
+  #   build: &PYTORCH_GPU_INFERENCE_PY3 false
+  #   image_size_baseline: 14000
+  #   device_type: &DEVICE_TYPE gpu
+  #   python_version: &DOCKER_PYTHON_VERSION py3
+  #   tag_python_version: &TAG_PYTHON_VERSION py38
+  #   cuda_version: &CUDA_VERSION cu113
+  #   os_version: &OS_VERSION ubuntu20.04
+  #   tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-e3" ]
+  #   docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.e3.,
+  #                        *DEVICE_TYPE ]
+  #   context:
+  #     <<: *INFERENCE_CONTEXT
   # BuildSageMakerCPUPTInferencePy3DockerImage:
   #   <<: *INFERENCE_REPOSITORY
   #   build: &PYTORCH_CPU_INFERENCE_PY3 false
