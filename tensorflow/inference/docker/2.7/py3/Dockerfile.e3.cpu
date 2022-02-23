@@ -38,13 +38,16 @@ RUN apt-get update \
     openssl \
     libssl1.1 \
     libreadline-gplv2-dev \
-    libncursesw5-dev \
+    libncursesw5-dev \s
     libssl-dev \
     libsqlite3-dev \
     tk-dev \
     libgdbm-dev \
     libc6-dev \
-    libsasl2-modules-sql \
+    libsasl2-2 \
+    libsasl2-dev \
+    libsasl2-modules-db \
+    libsasl2-modules \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
