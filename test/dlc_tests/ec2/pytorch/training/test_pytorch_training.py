@@ -7,7 +7,7 @@ import pytest
 import test.test_utils as test_utils
 import test.test_utils.ec2 as ec2_utils
 
-from test.test_utils import CONTAINER_TESTS_PREFIX, UBUNTU_18_HPU_DLAMI_US_WEST_2, get_framework_and_version_from_tag, get_cuda_version_from_tag
+from test.test_utils import CONTAINER_TESTS_PREFIX, UBUNTU_18_HPU_DLAMI_US_WEST_2, get_framework_and_version_from_tag, get_cuda_version_from_tag, get_processor_from_image_uri
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 
