@@ -535,9 +535,7 @@ def execute_ec2_training_test(
         f"{habana_container_test_repo} {shm_setting} -itd {bin_bash_cmd}{ecr_uri}",
         hide=True,
     )
-    LOGGER.info("HERE")
     if "habana" in ecr_uri and "tensorflow" in ecr_uri:
-        LOGGER.info("Inside habana and tf if")
         current_time = int(time.time())
         commit_id = run("""git log --format="%H" -n 1""", hide=True).stdout.strip()
         s3_location = f"s3://dlinfra-habana-tests/ec2-tests/tensorflow/{commit_id}/logs-{current_time}.txt"
