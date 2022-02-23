@@ -461,6 +461,7 @@ def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
 def get_last_line_of_s3_file(s3_location, local_filename="temp.txt"):
     """
     Extracts the last line of s3 file by copying it locally.
+    
     :param s3_location: str, s3 uri
     :param local_filename: str, location where s3 file is to be downloaded locally.
     :return: str, The last line of the file
@@ -485,7 +486,8 @@ def execute_asynchronus_testing_using_s3_bucket(
     This method uses fabric to run the provided execution_command in asynchronus mode. While the execution command
     is being executed in the image, it keeps on uploading the logs to the s3 bucket at fixed intervals. After a
     loop_time is over, it checks the last line of the uploaded logs to see if it is same as required_log_ending.
-    This is mainly used in cases where Fabric behaves in an undesired way due to long living connections. 
+    This is mainly used in cases where Fabric behaves in an undesired way due to long living connections.
+
     :param connection: Fabric connection object
     :param execution_command: str, command that connection.run() will execute
     :param connection_timeout: timeout for fabric connection
@@ -510,8 +512,13 @@ def execute_asynchronus_testing_using_s3_bucket(
         line_count_list.append(number_of_lines_in_log_file)
         number_of_previous_line_counts_to_check = 3
         if len(line_count_list) >= number_of_previous_line_counts_to_check:
-            if all(line_count == line_count_list[-1] for line_count in line_count_list[:-number_of_previous_line_counts_to_check]):
-                # If last 3 runs lead to no progress.
+            if all(
+                line_count == line_count_list[-1]
+                for line_count in line_count_list[:-number_of_previous_line_counts_to_check]
+            ):
+                # If last 3 runs lead to sam line number then it demonstrates no progress and 
+                # hence we stop.
+                LOGGER.error("No Progress Reported!!")
                 break
         last_line_of_log = get_last_line_of_s3_file(s3_location, local_filename)
         LOGGER.info(f"Uploaded file to {s3_location} for {loop_count} number of times")
