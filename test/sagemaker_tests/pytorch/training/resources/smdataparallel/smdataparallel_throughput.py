@@ -171,8 +171,7 @@ if rank == 0:
             return (alg_throughput * BITPERBYTE * SENDTIMES * 1)
         else:
             # multi-node
-            return (alg_throughput * BITPERBYTE * SENDTIMES *
-                    (1 - (local_size / size)))
+            return (alg_throughput * BITPERBYTE * SENDTIMES)
 
     alg_mn, alg_mx = np.mean(bandwidth), np.max(bandwidth)
     net_mn, net_mx = net_throughput(alg_mn), net_throughput(alg_mx)
