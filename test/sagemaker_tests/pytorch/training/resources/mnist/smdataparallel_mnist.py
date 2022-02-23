@@ -14,7 +14,7 @@ opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 urllib.request.install_opener(opener)
 
 import argparse
-import time
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -23,9 +23,11 @@ import torchvision
 from packaging.version import Version
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
-from smdistributed.dataparallel.torch.parallel.distributed import DistributedDataParallel as DDP
-import smdistributed.dataparallel.torch.distributed as dist
-dist.init_process_group()
+from torch.nn.parallel import DistributedDataParallel as DDP
+import torch.distributed as dist
+import smdistributed.dataparallel.torch.torch_smddp
+
+dist.init_process_group(backend='smddp')
 
 # from torchvision 0.9.1, 2 candidate mirror website links will be added before "resources" items automatically
 # Reference PR: https://github.com/pytorch/vision/pull/3559
@@ -135,7 +137,7 @@ def main():
     args = parser.parse_args()
     args.world_size = dist.get_world_size()
     args.rank = rank = dist.get_rank()
-    args.local_rank = local_rank = dist.get_local_rank()
+    args.local_rank = local_rank = os.environ['OMPI_COMM_WORLD_LOCAL_RANK']
     args.lr = 1.0
     args.batch_size //= args.world_size // 8
     args.batch_size = max(args.batch_size, 1)
