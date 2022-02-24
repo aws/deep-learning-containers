@@ -51,6 +51,7 @@ class ServiceManager(object):
         self._sagemaker_port_range = os.environ.get("SAGEMAKER_SAFE_PORT_RANGE", None)
         self._gunicorn_workers = os.environ.get("SAGEMAKER_GUNICORN_WORKERS", 1)
         self._gunicorn_threads = os.environ.get("SAGEMAKER_GUNICORN_THREADS", 1)
+        self._gunicorn_loglevel = os.environ.get("SAGEMAKER_GUNICORN_LOGLEVEL", "info")
         self._tfs_config_path = "/sagemaker/model-config.cfg"
         self._tfs_batching_config_path = "/sagemaker/batching-config.cfg"
 
@@ -193,12 +194,12 @@ class ServiceManager(object):
 
         gunicorn_command = (
             "gunicorn -b unix:/tmp/gunicorn.sock -k {} --chdir /sagemaker "
-            "--workers {} --threads {} "
+            "--workers {} --threads {} --log-level {} "
             "{}{} -e TFS_GRPC_PORTS={} -e TFS_REST_PORTS={} "
             "-e SAGEMAKER_MULTI_MODEL={} -e SAGEMAKER_SAFE_PORT_RANGE={} "
             "-e SAGEMAKER_TFS_WAIT_TIME_SECONDS={} "
             "python_service:app").format(self._gunicorn_worker_class,
-                                         self._gunicorn_workers, self._gunicorn_threads,
+                                         self._gunicorn_workers, self._gunicorn_threads, self._gunicorn_loglevel,
                                          python_path_option, ",".join(python_path_content),
                                          self._tfs_grpc_concat_ports, self._tfs_rest_concat_ports,
                                          self._tfs_enable_multi_model_endpoint,
