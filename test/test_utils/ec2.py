@@ -476,10 +476,9 @@ def execute_asynchronus_testing_using_s3_bucket(
     connection,
     execution_command,
     connection_timeout,
-    s3_location,
+    s3_filepath,
     required_log_ending,
     loop_time=2.5 * 3600,
-    loop_sleep_time=5 * 60,
     log_location_within_ec2="~/container_tests/logs.txt",
 ):
     """
@@ -497,14 +496,17 @@ def execute_asynchronus_testing_using_s3_bucket(
     :param loop_sleep_time: int, interval at which the logs would be uploaded to the s3 bucket
     :param log_location_within_ec2: Location within ec2 instance where the logs are being witten.
     """
+    account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
+    s3_bucket_name = f"dlc-async-test-{account_id}"
+    s3_location = f"s3://{s3_bucket_name}/{s3_filepath}"
     connection.run(execution_command, hide=True, timeout=connection_timeout, asynchronous=True)
     start_time = int(time.time())
     loop_count = 0
-    local_filename = s3_location.split("//")[-1].replace("/", "-")
+    local_filename = f"{s3_bucket_name}/{s3_filepath}".replace("/", "-")
     last_line_of_log = ""
     line_count_list = []
-    while (int(time.time()) - start_time <= loop_time) or (not last_line_of_log.endswith(required_log_ending)):
-        time.sleep(loop_sleep_time)
+    while (int(time.time()) - start_time <= loop_time) and (not last_line_of_log.endswith(required_log_ending)):
+        time.sleep(5 * 60)
         loop_count += 1
         connection.run(f"aws s3 cp {log_location_within_ec2} {s3_location}")
         last_line_of_log = fetch_s3_file_and_get_last_line(s3_location, local_filename)
@@ -516,13 +518,29 @@ def execute_asynchronus_testing_using_s3_bucket(
                 line_count == line_count_list[-1]
                 for line_count in line_count_list[-number_of_previous_line_counts_to_check:]
             ):
-                # If last 3 runs lead to sam line number then it demonstrates no progress and 
-                # hence we stop.
-                LOGGER.error("No Progress Reported!!")
+                # If last 3 runs lead to same line number then it demonstrates no progress and hence we stop.
+                LOGGER.info(
+                    "No progress reported during last 15 minutes. Job most likely hanged so stopping the execution!!"
+                )
                 break
         last_line_of_log = fetch_s3_file_and_get_last_line(s3_location, local_filename)
         LOGGER.info(f"Uploaded file to {s3_location} for {loop_count} number of times")
-    assert last_line_of_log.endswith(required_log_ending), f"Test failed!! Check {s3_location}"
+    return last_line_of_log
+
+
+def get_s3_uri_for_saving_permanent_logs(framework, s3_bucket="dlinfra-habana-tests", test_type="ec2"):
+    """
+    Helper function to get s3 uri where log files generated within test ec2 instances will be uploaded to.
+
+    :param framework: str, tensorflow, pytorch etc.
+    :param s3_bucket: str, name of the bucket where we want to upload the logs.
+    :param test_type: str, type of the test
+    """
+    current_time = int(time.time())
+    commit_id = run("""git log --format="%H" -n 1""", hide=True).stdout.strip()
+    s3_filepath = os.path.join(s3_bucket, test_type, framework, commit_id, f"logs-{current_time}.txt")
+    s3_permanent_log_upload_uri = f"s3://{s3_filepath}"
+    return s3_permanent_log_upload_uri
 
 
 def execute_ec2_training_test(
@@ -564,20 +582,46 @@ def execute_ec2_training_test(
         f"{habana_container_test_repo} {shm_setting} -itd {bin_bash_cmd}{ecr_uri}",
         hide=True,
     )
-    if "habana" in ecr_uri and "tensorflow" in ecr_uri:
-        current_time = int(time.time())
-        commit_id = run("""git log --format="%H" -n 1""", hide=True).stdout.strip()
-        s3_location = f"s3://dlinfra-habana-tests/ec2-tests/tensorflow/{commit_id}/logs-{current_time}.txt"
+
+    if "habana" in ecr_uri:
         execution_command = f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'"
         required_log_ending = "INFO: Exiting the script with code 0 PASS"
-        execute_asynchronus_testing_using_s3_bucket(connection, execution_command, timeout, s3_location, required_log_ending)
-        return
+        framework = "tensorflow" if "tensorflow" in ecr_uri else "pytorch" if "pytorch" in ecr_uri else None
+        test_type = "ec2"
+        account_id_prefix = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])[:3]
+        s3_bucket_for_permanent_logs = f"dlinfra-habana-tests-{account_id_prefix}"
+        s3_uri_permanent_logs = get_s3_uri_for_saving_permanent_logs(
+            framework, s3_bucket=s3_bucket_for_permanent_logs, test_type=test_type
+        )
+        if framework == "tensorflow":
+            # Splitting s3_uri_permanent_logs on '/' gives last 4 values as [test_type, framework, commit_id, logs-1234.txt]
+            # To the above 4 values, prepend the specific folder withing the dlc-async-test bucket, where the async logs will be uploaded
+            splitted_list = s3_uri_permanent_logs.split("/")[-4:]
+            s3_filepath_async_logs = os.path.join("habana-tests", *splitted_list)
+            last_line_of_log = execute_asynchronus_testing_using_s3_bucket(
+                connection, execution_command, timeout, s3_filepath_async_logs, required_log_ending
+            )
+            connection.run(f"aws s3 cp ~/container_tests/logs.txt {s3_uri_permanent_logs}")
+            LOGGER.info(f"Uploaded logs at: {s3_uri_permanent_logs}")
+            if not last_line_of_log.endswith(required_log_ending):
+                raise ValueError(
+                    f""" Test failed because the last row is not as expected. \n"""\
+                    f""" Last row in the log file ===> {last_line_of_log} \n"""\
+                    f""" expected ===> {required_log_ending}. \n"""\
+                    f""" Full log ===> {s3_uri_permanent_logs}. \n"""
+                )
+            return
+        elif framework == "pytorch":
+            run_output = connection.run(execution_command, hide=True, timeout=timeout)
+            connection.run(f"aws s3 cp ~/container_tests/logs.txt {s3_uri_permanent_logs}")
+            LOGGER.info(f"Uploaded logs at: {s3_uri_permanent_logs}")
+            return run_output
+
     return connection.run(
         f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
         hide=True,
         timeout=timeout,
     )
-
 
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
