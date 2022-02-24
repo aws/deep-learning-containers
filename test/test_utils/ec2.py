@@ -476,10 +476,11 @@ def execute_asynchronus_testing_using_s3_bucket(
     connection,
     execution_command,
     connection_timeout,
-    s3_filepath,
+    s3_filepath_for_async_execution_logs,
     required_log_ending,
     loop_time=2.5 * 3600,
     log_location_within_ec2="~/container_tests/logs.txt",
+    s3_uri_for_saving_permanent_logs=None,
 ):
     """
     This method uses fabric to run the provided execution_command in asynchronus mode. While the execution command
@@ -490,19 +491,19 @@ def execute_asynchronus_testing_using_s3_bucket(
     :param connection: Fabric connection object
     :param execution_command: str, command that connection.run() will execute
     :param connection_timeout: timeout for fabric connection
-    :param s3_location: str, s3 location where the logs are supposed to be uploaded.
+    :param s3_filepath_for_async_execution_logs: str, s3 location where the async temporary logs are supposed to be uploaded.
     :param required_log_ending: str, The string that is desired to be present at the end of the logs
     :param loop_time: int, seconds for which we would wait for the tests to execute on ec2 instance
-    :param loop_sleep_time: int, interval at which the logs would be uploaded to the s3 bucket
     :param log_location_within_ec2: Location within ec2 instance where the logs are being witten.
+    :param s3_uri_for_saving_permanent_logs: Location where permanent s3 logs could be saved.
     """
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     s3_bucket_name = f"dlc-async-test-{account_id}"
-    s3_location = f"s3://{s3_bucket_name}/{s3_filepath}"
+    s3_location = f"s3://{s3_bucket_name}/{s3_filepath_for_async_execution_logs}"
     connection.run(execution_command, hide=True, timeout=connection_timeout, asynchronous=True)
     start_time = int(time.time())
     loop_count = 0
-    local_filename = f"{s3_bucket_name}/{s3_filepath}".replace("/", "-")
+    local_filename = f"{s3_bucket_name}/{s3_filepath_for_async_execution_logs}".replace("/", "-")
     last_line_of_log = ""
     line_count_list = []
     while (int(time.time()) - start_time <= loop_time) and (not last_line_of_log.endswith(required_log_ending)):
@@ -525,7 +526,16 @@ def execute_asynchronus_testing_using_s3_bucket(
                 break
         last_line_of_log = fetch_s3_file_and_get_last_line(s3_location, local_filename)
         LOGGER.info(f"Uploaded file to {s3_location} for {loop_count} number of times")
-    return last_line_of_log
+    if s3_uri_for_saving_permanent_logs:
+        connection.run(f"aws s3 cp {log_location_within_ec2} {s3_uri_for_saving_permanent_logs}")
+        LOGGER.info(f"Uploaded permanent logs at: {s3_uri_for_saving_permanent_logs}")
+    if not last_line_of_log.endswith(required_log_ending):
+        raise ValueError(
+            f""" Test failed because the last row is not as expected. \n"""
+            f""" Last row in the log file ===> {last_line_of_log} \n"""
+            f""" expected ===> {required_log_ending}. \n"""
+            f""" Full log ===> {s3_uri_for_saving_permanent_logs}. \n"""
+        )
 
 
 def get_s3_uri_for_saving_permanent_logs(framework, s3_bucket="dlinfra-habana-tests", test_type="ec2"):
@@ -598,20 +608,16 @@ def execute_ec2_training_test(
             # To the above 4 values, prepend the specific folder withing the dlc-async-test bucket, where the async logs will be uploaded
             splitted_list = s3_uri_permanent_logs.split("/")[-4:]
             s3_filepath_async_logs = os.path.join("habana-tests", *splitted_list)
-            last_line_of_log = execute_asynchronus_testing_using_s3_bucket(
-                connection, execution_command, timeout, s3_filepath_async_logs, required_log_ending
+            execute_asynchronus_testing_using_s3_bucket(
+                connection,
+                execution_command,
+                timeout,
+                s3_filepath_async_logs,
+                required_log_ending,
+                s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
             )
-            connection.run(f"aws s3 cp ~/container_tests/logs.txt {s3_uri_permanent_logs}")
-            LOGGER.info(f"Uploaded logs at: {s3_uri_permanent_logs}")
-            if not last_line_of_log.endswith(required_log_ending):
-                raise ValueError(
-                    f""" Test failed because the last row is not as expected. \n"""\
-                    f""" Last row in the log file ===> {last_line_of_log} \n"""\
-                    f""" expected ===> {required_log_ending}. \n"""\
-                    f""" Full log ===> {s3_uri_permanent_logs}. \n"""
-                )
             return
-        elif framework == "pytorch":
+        else:
             run_output = connection.run(execution_command, hide=True, timeout=timeout)
             connection.run(f"aws s3 cp ~/container_tests/logs.txt {s3_uri_permanent_logs}")
             LOGGER.info(f"Uploaded logs at: {s3_uri_permanent_logs}")
@@ -622,6 +628,7 @@ def execute_ec2_training_test(
         hide=True,
         timeout=timeout,
     )
+
 
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
