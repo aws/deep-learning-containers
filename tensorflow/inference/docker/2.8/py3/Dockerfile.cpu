@@ -63,6 +63,7 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && cd Python-$PYTHON_VERSION \
  && ./configure && make && make install \
  && rm -rf ../Python-$PYTHON_VERSION* \
+ # Starting from Python39, a xxx.pem file will be generated under /tmp folder during installation. Remove it to complete cleanup after installation from python source.
  && rm /tmp/*.pem
 
 RUN ${PIP} --no-cache-dir install --upgrade \
