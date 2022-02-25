@@ -27,7 +27,7 @@ ARG PYTHON_VERSION=3.8.2
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.7_aws/cpu/tensorflow-2.7.0-cp38-cp38-linux_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/smdebugger/r2.7_aws/cpu/2022-02-03-23-05/tensorflow_cpu-2.7.1-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -125,25 +125,30 @@ RUN apt-get update && apt-get -y install protobuf-compiler
 RUN ${PIP} install --no-cache-dir -U \ 
     pybind11 \
     cmake==3.18.2.post1 \
-    numpy==1.19.5 \
     scipy==1.7.0 \
-    "Pillow>=8.3,<8.4" \
+    "Pillow>=9.0,<10.0" \
     python-dateutil==2.8.1 \
     "pyYAML>=5.4,<5.5" \
-    requests==2.24.0 \
+    requests \
     "awscli<2" \
     mpi4py==3.0.3 \
     # Let's install TensorFlow separately in the end to avoid
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    tensorflow-io==0.22.0 \ 
+    tensorflow-io==0.23.1 \ 
+    tensorflow-datasets==4.5.2 \
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
-    horovod==0.23.0 \
     "opencv-python>=4.3,<5" \
     "werkzeug>=2.0.2,<3" \
     psutil==5.7.2
+
+# Install Horovod with TensorFlow
+RUN HOROVOD_WITH_MPI=1 \
+   && HOROVOD_WITH_TENSORFLOW=1 HOROVOD_WITHOUT_MXNET=1 HOROVOD_WITHOUT_PYTORCH=1 \
+   && ${PIP} install --no-cache-dir horovod==0.23.0
+
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
