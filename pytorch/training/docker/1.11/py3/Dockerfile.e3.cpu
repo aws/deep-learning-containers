@@ -6,7 +6,7 @@ LABEL dlc_major_version="1"
 ARG PYTHON=python3
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.8.12
-ARG OPEN_MPI_VERSION=4.1.1
+ARG OPEN_MPI_VERSION=4.0.1
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
@@ -108,15 +108,15 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip install --no-cache-dir -U \
     "pyyaml>=5.4,<5.5" \
     numpy==1.22.2 \
-    ipython==8.1.0 \
-    opencv-python==4.5.5.62 \
+    ipython==8.0.1 \
+    opencv-python==4.5.2.54 \
     "awscli<2" \
     boto3 \
     scipy \
     click \
     "cryptography>3.2" \
     packaging \
-    psutil==5.9.0 \
+    psutil==5.6.7 \
     "Pillow>=9.0.0" \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
@@ -141,7 +141,7 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
 
-RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.11/license.txt
 
 # Starts framework
 CMD ["/bin/bash"]

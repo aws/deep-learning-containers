@@ -5,7 +5,7 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
-ARG OPEN_MPI_VERSION=4.0.2
+ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.5.2
 ARG PT_INFERENCE_URL=https://download.pytorch.org/whl/test/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
@@ -148,7 +148,7 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.11/license.txt
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
