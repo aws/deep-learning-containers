@@ -547,9 +547,10 @@ def get_s3_uri_for_saving_permanent_logs(framework, s3_bucket, test_type="ec2"):
     :param s3_bucket: str, name of the bucket where we want to upload the logs.
     :param test_type: str, type of the test
     """
-    current_time = int(time.time())
     commit_id = run("""git log --format="%H" -n 1""", hide=True).stdout.strip()
-    s3_filepath = os.path.join(s3_bucket, test_type, framework, commit_id, f"logs-{current_time}.txt")
+    unique_id = str(uuid.uuid4())
+    unique_id_with_timestamp = f"{unique_id}-{int(time.time())}"
+    s3_filepath = os.path.join(s3_bucket, test_type, framework, commit_id, f"logs-{unique_id_with_timestamp}.txt")
     s3_permanent_log_upload_uri = f"s3://{s3_filepath}"
     return s3_permanent_log_upload_uri
 
@@ -716,6 +717,7 @@ def execute_ec2_habana_training_performance_test(
             execution_command,
             timeout,
             required_log_ending,
+            loop_time= 4 * 3600,
             s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
         )
         return
