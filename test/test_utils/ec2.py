@@ -5,6 +5,7 @@ from inspect import signature
 import boto3
 import logging
 import sys
+import uuid
 
 from retrying import retry
 from fabric import Connection
@@ -476,7 +477,6 @@ def execute_asynchronus_testing_using_s3_bucket(
     connection,
     execution_command,
     connection_timeout,
-    s3_filepath_for_async_execution_logs,
     required_log_ending,
     loop_time=2.5 * 3600,
     log_location_within_ec2="~/container_tests/logs.txt",
@@ -491,7 +491,6 @@ def execute_asynchronus_testing_using_s3_bucket(
     :param connection: Fabric connection object
     :param execution_command: str, command that connection.run() will execute
     :param connection_timeout: timeout for fabric connection
-    :param s3_filepath_for_async_execution_logs: str, s3 location where the async temporary logs are supposed to be uploaded.
     :param required_log_ending: str, The string that is desired to be present at the end of the logs
     :param loop_time: int, seconds for which we would wait for the tests to execute on ec2 instance
     :param log_location_within_ec2: Location within ec2 instance where the logs are being witten.
@@ -499,11 +498,16 @@ def execute_asynchronus_testing_using_s3_bucket(
     """
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     s3_bucket_name = f"dlc-async-test-{account_id}"
-    s3_location = f"s3://{s3_bucket_name}/{s3_filepath_for_async_execution_logs}"
+    if not s3_uri_for_saving_permanent_logs:
+        unique_id = str(uuid.uuid4())
+        unique_id_with_timestamp = f"{unique_id}-{int(time.time())}"
+        s3_location = f"s3://{s3_bucket_name}/{unique_id_with_timestamp}.txt"
+    else:
+        s3_location = s3_uri_for_saving_permanent_logs
     connection.run(execution_command, hide=True, timeout=connection_timeout, asynchronous=True)
     start_time = int(time.time())
     loop_count = 0
-    local_filename = f"{s3_bucket_name}/{s3_filepath_for_async_execution_logs}".replace("/", "-")
+    local_filename = s3_location.replace(':','-').replace('/','-')
     last_line_of_log = ""
     line_count_list = []
     while (int(time.time()) - start_time <= loop_time) and (not last_line_of_log.endswith(required_log_ending)):
@@ -524,21 +528,18 @@ def execute_asynchronus_testing_using_s3_bucket(
                     "No progress reported during last 15 minutes. Job most likely hanged so stopping the execution!!"
                 )
                 break
-        last_line_of_log = fetch_s3_file_and_get_last_line(s3_location, local_filename)
         LOGGER.info(f"Uploaded file to {s3_location} for {loop_count} number of times")
-    if s3_uri_for_saving_permanent_logs:
-        connection.run(f"aws s3 cp {log_location_within_ec2} {s3_uri_for_saving_permanent_logs}")
-        LOGGER.info(f"Uploaded permanent logs at: {s3_uri_for_saving_permanent_logs}")
+    
     if not last_line_of_log.endswith(required_log_ending):
         raise ValueError(
             f""" Test failed because the last row is not as expected. \n"""
             f""" Last row in the log file ===> {last_line_of_log} \n"""
             f""" expected ===> {required_log_ending}. \n"""
-            f""" Full log ===> {s3_uri_for_saving_permanent_logs}. \n"""
+            f""" Full log ===> {s3_location} \n"""
         )
 
 
-def get_s3_uri_for_saving_permanent_logs(framework, s3_bucket="dlinfra-habana-tests", test_type="ec2"):
+def get_s3_uri_for_saving_permanent_logs(framework, s3_bucket, test_type="ec2"):
     """
     Helper function to get s3 uri where log files generated within test ec2 instances will be uploaded to.
 
@@ -604,15 +605,10 @@ def execute_ec2_training_test(
             framework, s3_bucket=s3_bucket_for_permanent_logs, test_type=test_type
         )
         if framework == "tensorflow":
-            # Splitting s3_uri_permanent_logs on '/' gives last 4 values as [test_type, framework, commit_id, logs-1234.txt]
-            # To the above 4 values, prepend the specific folder withing the dlc-async-test bucket, where the async logs will be uploaded
-            splitted_list = s3_uri_permanent_logs.split("/")[-4:]
-            s3_filepath_async_logs = os.path.join("habana-tests", *splitted_list)
             execute_asynchronus_testing_using_s3_bucket(
                 connection,
                 execution_command,
                 timeout,
-                s3_filepath_async_logs,
                 required_log_ending,
                 s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
             )
