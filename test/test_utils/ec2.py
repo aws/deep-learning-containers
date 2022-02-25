@@ -693,15 +693,36 @@ def execute_ec2_habana_training_performance_test(
     cap_add = '--cap-add=sys_nice'
     ipc = '--ipc=host' if "pytorch" in ecr_uri else ""
     habana_container_test_repo = '${HOME}/gaudi-test-suite:/gaudi-test-suite'
-    connection.run(
-        f"{docker_cmd} run --user root "
-        f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
-        f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
-        f"{container_runtime} {ompi_mca_btl} {hpu_env_vars} {cap_add} {ipc} "
-        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -v {habana_container_test_repo} "
-        f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'",
-        timeout=timeout
+    execution_command = f"{docker_cmd} run --user root " \
+        f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} " \
+        f"-e PR_CONTEXT={1 if is_pr_context() else 0} " \
+        f"{container_runtime} {ompi_mca_btl} {hpu_env_vars} {cap_add} {ipc} " \
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -v {habana_container_test_repo} " \
+        f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'"
+    
+    framework = "tensorflow" if "tensorflow" in ecr_uri else "pytorch" if "pytorch" in ecr_uri else None
+    account_id_prefix = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])[:3]
+    s3_bucket_for_permanent_logs = f"dlinfra-habana-tests-{account_id_prefix}"
+    test_type = "benchmark"
+    s3_uri_permanent_logs = get_s3_uri_for_saving_permanent_logs(
+        framework, s3_bucket=s3_bucket_for_permanent_logs, test_type=test_type
     )
+
+    if cards_num == 1 and framework == "tensorflow" and "bert" in test_cmd and data_source == "squad":
+        LOGGER.info("******** Going for Async Execution ********")
+        required_log_ending = "Kudos!! Tensorflow BERT tests executed successfully"
+        execute_asynchronus_testing_using_s3_bucket(
+            connection,
+            execution_command,
+            timeout,
+            required_log_ending,
+            s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
+        )
+        return
+    run_output = connection.run(execution_command, timeout=timeout)
+    connection.run(f"aws s3 cp ~/container_tests/logs.txt {s3_uri_permanent_logs}")
+    LOGGER.info(f"Uploaded logs at: {s3_uri_permanent_logs}")
+    return run_output
 
 
 def execute_ec2_inference_performance_test(
