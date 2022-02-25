@@ -31,7 +31,7 @@ ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
 ARG PYTHON=python3.8
-ARG PYTHON_VERSION=3.8.12
+ARG PYTHON_VERSION=3.9.10
 
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
@@ -118,7 +118,10 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && ./configure \
  && make -j $(nproc) \
  && make install \
- && rm -rf ../Python-$PYTHON_VERSION*
+ && rm -rf ../Python-$PYTHON_VERSION* \
+ # Starting from Python39, a xxx.pem file will be generated under /tmp folder during installation.
+ # Remove it to complete cleanup after installation from python source.
+ && rm -rf /tmp/*.pem
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \

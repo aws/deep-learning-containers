@@ -33,7 +33,7 @@ ENV RDMAV_FORK_SAFE=1
 ARG PYTHON=python3.8
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.8.12
+ARG PYTHON_VERSION=3.9.10
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 ARG EFA_VERSION=1.12.1
@@ -185,7 +185,10 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && ./configure --enable-shared \
  && make -j $(nproc) \
  && make install \
- && rm -rf ../Python-$PYTHON_VERSION*
+ && rm -rf ../Python-$PYTHON_VERSION* \
+ # Starting from Python39, a xxx.pem file will be generated under /tmp folder during installation.
+ # Remove it to complete cleanup after installation from python source.
+ && rm -rf /tmp/*.pem
 
 RUN ${PIP} --no-cache-dir install --upgrade \
    pip \
