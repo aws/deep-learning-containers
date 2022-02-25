@@ -675,7 +675,7 @@ def execute_ec2_training_performance_test(
 
 
 def execute_ec2_habana_training_performance_test(
-    connection, ecr_uri, test_cmd, region=DEFAULT_REGION, data_source="", cards_num=None):
+    connection, ecr_uri, test_cmd, region=DEFAULT_REGION, data_source="", cards_num=None, timeout=18000):
     docker_cmd = "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
@@ -699,7 +699,8 @@ def execute_ec2_habana_training_performance_test(
         f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
         f"{container_runtime} {ompi_mca_btl} {hpu_env_vars} {cap_add} {ipc} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -v {habana_container_test_repo} "
-        f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'"
+        f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'",
+        timeout=timeout
     )
 
 
