@@ -510,15 +510,15 @@ def execute_asynchronus_testing_using_s3_bucket(
     local_filename = s3_location.replace(':','-').replace('/','-')
     last_line_of_log = ""
     line_count_list = []
-    # time.sleep(5 * 60)
-    # s3_upload_cmd = f"aws s3 cp {log_location_within_ec2} {s3_location}"
-    # LOGGER.info(f"Will start uploading the logs at {s3_location}")
-    # connection.run(f"while true; do {s3_upload_cmd}; sleep 300; done &", timeout=connection_timeout, asynchronous=True)
-    # time.sleep(1 * 60)
+    time.sleep(5 * 60)
+    s3_upload_cmd = f"aws s3 cp {log_location_within_ec2} {s3_location}"
+    LOGGER.info(f"Will start uploading the logs at {s3_location}")
+    connection.run(f"while true; do {s3_upload_cmd}; sleep 300; done &", timeout=connection_timeout, asynchronous=True)
+    time.sleep(1 * 60)
     while (int(time.time()) - start_time <= loop_time) and (not last_line_of_log.endswith(required_log_ending)):
         time.sleep(5 * 60)
         loop_count += 1
-        connection.run(f"aws s3 cp {log_location_within_ec2} {s3_location}", timeout=connection_timeout)
+        # connection.run(f"aws s3 cp {log_location_within_ec2} {s3_location}", timeout=connection_timeout)
         last_line_of_log = fetch_s3_file_and_get_last_line(s3_location, local_filename)
         number_of_lines_in_log_file = int(run(f"wc -l {local_filename}", hide=True).stdout.strip().split()[0])
         line_count_list.append(number_of_lines_in_log_file)
@@ -532,7 +532,8 @@ def execute_asynchronus_testing_using_s3_bucket(
                 LOGGER.info(
                     "No progress reported during last 15 minutes. Job most likely hanged so stopping the execution!!"
                 )
-                break
+                continue
+                # break
         LOGGER.info(f"Fetched file from {s3_location} for {loop_count} number of times")
     
     if not last_line_of_log.endswith(required_log_ending):
