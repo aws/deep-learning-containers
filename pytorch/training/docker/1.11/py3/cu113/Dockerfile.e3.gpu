@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.5.0-base-ubuntu20.04
+FROM nvidia/cuda:11.3.1-base-ubuntu20.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -6,7 +6,7 @@ LABEL dlc_major_version="1"
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
 ARG PYTHON_SHORT_VERSION=3.8
-ARG CUBLAS_VERSION=11.7.4.6
+ARG CUBLAS_VERSION=11.5.1.109
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 
@@ -28,8 +28,8 @@ ENV LC_ALL=C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
-ENV CUDNN_VERSION=8.3.2.44
-ENV NCCL_VERSION=2.11.4
+ENV CUDNN_VERSION=8.2.0.53
+ENV NCCL_VERSION=2.10.3
 ENV HOROVOD_VERSION=0.23.0
 ENV EFA_VERSION=1.12.1
 ENV OMPI_VERSION=4.1.1
@@ -42,8 +42,8 @@ ENV RDMAV_FORK_SAFE=1
 ENV DLC_CONTAINER_TYPE=training
 
 # There's no PT pipeline for binary for diy/e3 currently. Using the inference branch (PyTorch + telemetry feature) with different building environments for both training and inference DLCs temporarily.
-ARG PT_TRAINING_URL=https://download.pytorch.org/whl/test/cu115/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cu115/torchvision-0.12.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_TRAINING_URL=https://download.pytorch.org/whl/test/cu113/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cu113/torchvision-0.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
 RUN apt-get update \
@@ -53,20 +53,20 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    cuda-command-line-tools-11-5 \
-    cuda-cudart-11-5 \
-    cuda-libraries-11-5 \
+    cuda-command-line-tools-11-3 \
+    cuda-cudart-11-3 \
+    cuda-libraries-11-3 \
     curl \
     emacs \
     git \
     jq \
-    libcublas-11-5=${CUBLAS_VERSION}-1 \
-    libcublas-dev-11-5=${CUBLAS_VERSION}-1 \
-    libcudnn8=$CUDNN_VERSION-1+cuda11.5 \
-    libcufft-dev-11-5 \
-    libcurand-dev-11-5 \
-    libcusolver-dev-11-5 \
-    libcusparse-dev-11-5 \
+    libcublas-11-3=${CUBLAS_VERSION}-1 \
+    libcublas-dev-11-3=${CUBLAS_VERSION}-1 \
+    libcudnn8=$CUDNN_VERSION-1+cuda11.3 \
+    libcufft-dev-11-3 \
+    libcurand-dev-11-3 \
+    libcusolver-dev-11-3 \
+    libcusparse-dev-11-3 \
     libglib2.0-0 \
     libgl1-mesa-glx \
     libsm6 \
@@ -154,7 +154,7 @@ RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
 
-RUN conda install -c pytorch magma-cuda115==2.5.2 \
+RUN conda install -c pytorch magma-cuda113==2.5.2 \
  && conda install -y \
     h5py \
     requests \
@@ -238,8 +238,8 @@ RUN rm -rf /root/.ssh/ && \
 
 # Install Horovod
 RUN pip uninstall -y horovod \
- && ldconfig /usr/local/cuda-11.5/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.5 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig /usr/local/cuda-11.3/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.3 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
 # Install PT S3 plugin

@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.5.0-base-ubuntu20.04
+FROM nvidia/cuda:11.3.1-base-ubuntu20.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -7,12 +7,12 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
 
 # PyTorch Binaries
-ARG PT_INFERENCE_URL=https://download.pytorch.org/whl/test/cu115/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cu115/torchvision-0.12.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_INFERENCE_URL=https://download.pytorch.org/whl/test/cu113/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cu113/torchvision-0.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 
-ARG OPEN_MPI_VERSION=4.0.2
+ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.5.2
-ARG CUBLAS_VERSION=11.7.4.6
+ARG CUBLAS_VERSION=11.5.1.109
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -21,11 +21,11 @@ ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 ENV PATH /opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
-ENV CUDNN_VERSION=8.3.2.44
-ENV NCCL_VERSION=2.11.4
-ENV EFA_VERSION=1.15.0
-ENV OMPI_VERSION=4.1.2
-ENV NVML_VERSION=11.5.50
+ENV CUDNN_VERSION=8.2.0.53
+ENV NCCL_VERSION=2.10.3
+ENV EFA_VERSION=1.11.2
+ENV OMPI_VERSION=4.1.1
+ENV NVML_VERSION=11.3.58
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
@@ -41,21 +41,21 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    cuda-command-line-tools-11-5 \
-    cuda-cudart-11-5 \
-    cuda-libraries-dev-11-5 \
+    cuda-command-line-tools-11-3 \
+    cuda-cudart-11-3 \
+    cuda-libraries-dev-11-3 \
     curl \
     emacs \
     git \
     jq \
-    libcublas-11-5=${CUBLAS_VERSION}-1 \
-    libcublas-dev-11-5=${CUBLAS_VERSION}-1 \
-    libcudnn8=$CUDNN_VERSION-1+cuda11.5 \
-    libcufft-dev-11-5 \
-    libcurand-dev-11-5 \
-    libcusolver-dev-11-5 \
-    libcusparse-dev-11-5 \
-    cuda-nvml-dev-11-5=${NVML_VERSION}-1 \
+    libcublas-11-3=${CUBLAS_VERSION}-1 \
+    libcublas-dev-11-3=${CUBLAS_VERSION}-1 \
+    libcudnn8=$CUDNN_VERSION-1+cuda11.3 \
+    libcufft-dev-11-3 \
+    libcurand-dev-11-3 \
+    libcusolver-dev-11-3 \
+    libcusparse-dev-11-3 \
+    cuda-nvml-dev-11-3=${NVML_VERSION}-1 \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libgomp1 \
@@ -129,7 +129,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c \
-    pytorch magma-cuda115 \
+    pytorch magma-cuda113 \
  && conda install -c \
     conda-forge \
     opencv \
