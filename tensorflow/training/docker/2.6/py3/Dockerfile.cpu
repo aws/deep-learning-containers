@@ -31,7 +31,7 @@ ARG PIP=pip3
 # disable prompts during package installation
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.6_aws/cpu/tensorflow-2.6.2-cp38-cp38-manylinux2010_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.6_aws/cpu/2022-02-26-21-47/tensorflow_cpu-2.6.3-cp38-cp38-manylinux2010_x86_64.whl
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
