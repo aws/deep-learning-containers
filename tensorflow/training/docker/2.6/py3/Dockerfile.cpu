@@ -116,7 +116,7 @@ RUN apt-get update \
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
- && ./configure && make && make install \
+ && ./configure && make -j $(nproc) all && make install \
  && make && make install && rm -rf ../Python-$PYTHON_VERSION*
 
 RUN ${PIP} --no-cache-dir install --upgrade \
@@ -129,12 +129,20 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 
 RUN apt-get update && apt-get -y install protobuf-compiler
 
+# Install extra packages
+RUN pip install --no-cache-dir -U \
+    "bokeh>=2.3,<2.4" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "shap>=0.39,<1"
+
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
     pybind11 \
     cmake==3.18.2.post1 \
-    numpy==1.19.5 \
     scipy==1.7.0 \
     scikit-learn==0.24.2 \
     pandas==1.2.5 \
@@ -161,8 +169,6 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     tensorflow-io==0.21.0 \
-    h5py==3.1.0 \
-    "absl-py>=0.9,<0.11" \
     horovod==0.22.1 \
     psutil==5.7.2 \
     smdebug==${SMDEBUG_VERSION} \
@@ -170,15 +176,6 @@ RUN ${PIP} install --no-cache-dir -U \
 
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3
-
-# Install extra packages
-RUN pip install --no-cache-dir -U \
-    "bokeh>=2.3,<2.4" \
-    "imageio>=2.9,<3" \
-    "opencv-python>=4.3,<5" \
-    "plotly>=5.1,<6" \
-    "seaborn>=0.11,<1" \
-    "shap>=0.39,<1"
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
