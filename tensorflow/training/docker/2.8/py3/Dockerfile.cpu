@@ -1,4 +1,13 @@
-FROM ubuntu:20.04
+##############################################################################
+#  _____ _____   ___                              ____           _
+# | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+# |  _|   |_ \   | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+# | |___ ___) |  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |_____|____/  |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                                    |___/                        |_|
+##############################################################################
+
+FROM ubuntu:20.04 AS e3
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -109,6 +118,7 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && make -j $(nproc) \
  && make install \ 
  && rm -rf ../Python-$PYTHON_VERSION* \
+ # Starting from Python39, a xxx.pem file will be generated under /tmp folder during installation. Remove it to complete cleanup after installation from python source.
  && rm /tmp/*.pem
 
 RUN ${PIP} --no-cache-dir install --upgrade \
@@ -137,7 +147,7 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    tensorflow-io==0.23.1 \ 
+    tensorflow-io==0.24.0 \
     h5py==3.1.0 \
     "absl-py>=0.9,<0.11" \
     "opencv-python>=4.3,<5" \
