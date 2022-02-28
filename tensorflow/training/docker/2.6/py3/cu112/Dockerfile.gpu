@@ -250,9 +250,12 @@ RUN ${PIP} install --no-cache-dir -U \
    # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
-   tensorflow-io==0.21.0 \
    smdebug==${SMDEBUG_VERSION} \
    smclarify
+
+# Insteall tensorflow-io without deps 
+# to avoid it accidently install public tensorflow wheel
+RUN ${PIP} install --no-cache-dir --no-deps tensorflow-io==0.21.0
 
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3

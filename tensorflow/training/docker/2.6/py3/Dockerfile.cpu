@@ -168,10 +168,13 @@ RUN ${PIP} install --no-cache-dir -U \
     # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    tensorflow-io==0.21.0 \
     psutil==5.7.2 \
     smdebug==${SMDEBUG_VERSION} \
     smclarify 
+
+# Insteall tensorflow-io without deps 
+# to avoid it accidently install public tensorflow wheel
+RUN ${PIP} install --no-cache-dir --no-deps tensorflow-io==0.21.0
 
 # Install Horovod with TensorFlow
 RUN HOROVOD_WITH_MPI=1 \
