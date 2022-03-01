@@ -159,7 +159,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "PyHive<1" \
     "sparkmagic<1" \
     ${TF_URL} \
-    psutil==5.7.2 \
+    psutil==5.7.2
 
 
 # Install sagemaker pacakges
