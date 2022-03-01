@@ -42,8 +42,8 @@ ENV RDMAV_FORK_SAFE=1
 ENV DLC_CONTAINER_TYPE=training
 
 # There's no PT pipeline for binary for diy/e3 currently. Using the inference branch (PyTorch + telemetry feature) with different building environments for both training and inference DLCs temporarily.
-ARG PT_TRAINING_URL=https://download.pytorch.org/whl/cu113/torch-1.10.2%2Bcu113-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.11.3%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_TRAINING_URL=https://download.pytorch.org/whl/test/cu113/torch-1.11.0.dev20220204%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cu113/torchvision-0.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
 RUN apt-get update \
@@ -237,9 +237,19 @@ RUN rm -rf /root/.ssh/ && \
  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 # Install Horovod
+# RUN pip uninstall -y horovod \
+#  && ldconfig /usr/local/cuda-11.3/targets/x86_64-linux/lib/stubs \
+#  && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.3 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+#  && ldconfig
+
+# Install nightly Horovod
 RUN pip uninstall -y horovod \
  && ldconfig /usr/local/cuda-11.3/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.3 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && git clone --recursive https://github.com/horovod/horovod.git \
+ && cd horovod \
+ && git checkout 7bf9b04fd085831e6b83c81d4160010d0d66ffc4 \
+ && python setup.py clean \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.3 HOROVOD_WITH_PYTORCH=1 pip install -v -e . \
  && ldconfig
 
 # Install PT S3 plugin
