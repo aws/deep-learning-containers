@@ -90,20 +90,6 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
 RUN ${PIP} uninstall -y tensorflow-cpu \
- && ${PIP} install --no-cache-dir -U \
-    numpy==1.19.1 \
-    scipy==1.5.2 \
-    scikit-learn==0.23 \
-    pandas==1.1 \
-    Pillow \
-    # python-dateutil==2.8.1 to satisfy botocore associated with latest awscli
-    python-dateutil==2.8.1 \
-    # install PyYAML>=5.4 to avoid conflict with latest awscli
-    "pyYAML>=5.4,<5.5" \
-    requests \
-    "awscli<2" \
-    mpi4py==3.0.3 \
-    opencv-python==4.3.0.36 \
  && ${PIP} uninstall -y keras \
  && ${PIP} install --no-cache-dir -U boto3 --upgrade \
     # Let's install TensorFlow separately in the end to avoid
