@@ -98,7 +98,7 @@ images:
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
                  "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION,
-                         /Dockerfile.sagemaker., *DEVICE_TYPE ]
+                         /Dockerfile., *DEVICE_TYPE ]
     target: sagemaker
     context:
       <<: *TRAINING_CONTEXT
@@ -112,7 +112,7 @@ images:
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker"
     ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.sagemaker.,
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.,
                          *DEVICE_TYPE ]
     target: sagemaker
     context:
