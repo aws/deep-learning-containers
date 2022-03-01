@@ -228,30 +228,30 @@ RUN ${PIP} install --no-cache-dir -U \
    scipy==1.7.0 \
    scikit-learn==0.24.2 \
    pandas==1.2.5 \
-   "Pillow>=8.3,<8.4" \
+   Pillow==9.0.1 \
    python-dateutil==2.8.1 \
    "pyYAML>=5.4,<5.5" \
-   requests==2.25.1 \
+   requests==2.27.1 \
    "awscli<2" \
    mpi4py==3.0.3 \
-   "sagemaker>=2,<3" \
-   sagemaker-experiments==0.* \
-   "sagemaker-tensorflow>=2.6,<2.7" \
-   "sagemaker-tensorflow-training>=20" \
    "shap>=0.39,<1" \
    "boto3>1.0,<2.0" \
    "sasl<1" \
    "thrift_sasl<1" \
    "PyHive<1" \
    "sparkmagic<1" \
+   ${TF_URL}
+
+RUN ${PIP} install --no-cache-dir \
+   "sagemaker>=2,<3" \
+   sagemaker-experiments==0.* \
+   "sagemaker-tensorflow>=2.6,<2.7" \
+   "sagemaker-tensorflow-training>=20" \
    "sagemaker-studio-sparkmagic-lib<1" \
-   "sagemaker-studio-analytics-extension<1" \
-   # Let's install TensorFlow separately in the end to avoid
-   # the library version to be overwritten
- && ${PIP} install --no-cache-dir -U \
-   ${TF_URL} \
+   "sagemaker-studio-analytics-extension<1" 
    smdebug==${SMDEBUG_VERSION} \
    smclarify
+
 
 # Insteall tensorflow-io without deps 
 # to avoid it accidently install public tensorflow wheel
