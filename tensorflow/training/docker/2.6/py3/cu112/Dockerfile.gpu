@@ -248,7 +248,7 @@ RUN $PYTHON -m pip install --no-cache-dir \
    "sagemaker-tensorflow>=2.6,<2.7" \
    "sagemaker-tensorflow-training>=20" \
    "sagemaker-studio-sparkmagic-lib<1" \
-   "sagemaker-studio-analytics-extension<1" 
+   "sagemaker-studio-analytics-extension<1" \
    smdebug==${SMDEBUG_VERSION} \
    smclarify
 
