@@ -260,9 +260,11 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 
 
 # install smdebug directly the specific branch
-ARG SMDEBUG_VERSION=1.0.13
-RUN git clone -b $SMDEBUG_VERSION https://github.com/awslabs/sagemaker-debugger.git \
-    && cd sagemaker-debugger && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
+ARG SMDEBUG_TAG=v1.0.13
+RUN git clone ttps://github.com/awslabs/sagemaker-debugger.git \
+    && cd sagemaker-debugger \
+    && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
+    && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
 
 # install sagemaker-tensorflow from source
 ARG SAGEMAKER_TENSORFLOW_TAG=v1.14.0
