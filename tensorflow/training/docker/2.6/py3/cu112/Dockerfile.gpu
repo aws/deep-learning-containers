@@ -212,7 +212,7 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
    && ln -s $(which ${PIP}) /usr/bin/pip
 
 # Install extra packages
-RUN ${PIP} install --no-cache-dir -U \
+RUN $PYTHON -m pip install --no-cache-dir -U \
     "bokeh>=2.3,<2.4" \
     "imageio>=2.9,<3" \
     "opencv-python>=4.3,<5" \
@@ -222,7 +222,7 @@ RUN ${PIP} install --no-cache-dir -U \
  
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
-RUN ${PIP} install --no-cache-dir -U \
+RUN $PYTHON -m pip  install --no-cache-dir -U \
    pybind11 \
    cmake==3.18.2.post1 \
    scipy==1.7.0 \
@@ -242,7 +242,7 @@ RUN ${PIP} install --no-cache-dir -U \
    "sparkmagic<1" \
    ${TF_URL}
 
-RUN ${PIP} install --no-cache-dir \
+RUN $PYTHON -m pip install --no-cache-dir \
    "sagemaker>=2,<3" \
    sagemaker-experiments==0.* \
    "sagemaker-tensorflow>=2.6,<2.7" \
@@ -255,7 +255,7 @@ RUN ${PIP} install --no-cache-dir \
 
 # Insteall tensorflow-io without deps 
 # to avoid it accidently install public tensorflow wheel
-RUN ${PIP} install --no-cache-dir --no-deps tensorflow-io==0.21.0
+RUN $PYTHON -m pip install --no-cache-dir --no-deps tensorflow-io==0.21.0
 
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3
@@ -322,7 +322,7 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 ENV TF_AUTOTUNE_THRESHOLD=2
 
 # Install SMD MP binary
-RUN pip install --no-cache-dir -U ${SMMODELPARALLEL_BINARY}
+RUN $PYTHON -m pip  install --no-cache-dir -U ${SMMODELPARALLEL_BINARY}
 
 # Install SMD DP binary
 RUN SMDATAPARALLEL_TF=1 ${PIP} install --no-cache-dir ${SMDATAPARALLEL_BINARY}

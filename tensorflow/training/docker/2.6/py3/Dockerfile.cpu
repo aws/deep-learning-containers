@@ -130,7 +130,7 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 RUN apt-get update && apt-get -y install protobuf-compiler
 
 # Install extra packages
-RUN pip install --no-cache-dir -U \
+RUN $PYTHON -m pip install --no-cache-dir -U \
     "bokeh>=2.3,<2.4" \
     "imageio>=2.9,<3" \
     "opencv-python>=4.3,<5" \
@@ -140,7 +140,7 @@ RUN pip install --no-cache-dir -U \
 
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
-RUN ${PIP} install --no-cache-dir -U \
+RUN $PYTHON -m pip install --no-cache-dir -U \
     pybind11 \
     cmake==3.18.2.post1 \
     scipy==1.7.0 \
@@ -158,15 +158,12 @@ RUN ${PIP} install --no-cache-dir -U \
     "thrift_sasl<1" \
     "PyHive<1" \
     "sparkmagic<1" \
-   # Let's install TensorFlow separately in the end to avoid
-    # the library version to be overwritten
- && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     psutil==5.7.2 \
 
 
 # Install sagemaker pacakges
-RUN {PIP} install --no-cache-dir \
+RUN $PYTHON -m pip install --no-cache-dir \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.6,<2.7" \
@@ -178,7 +175,7 @@ RUN {PIP} install --no-cache-dir \
 
 # Insteall tensorflow-io without deps 
 # to avoid it accidently install public tensorflow wheel
-RUN ${PIP} install --no-cache-dir --no-deps tensorflow-io==0.21.0
+RUN $PYTHON -m pip install --no-cache-dir --no-deps tensorflow-io==0.21.0
 
 # Install Horovod with TensorFlow
 RUN HOROVOD_WITH_MPI=1 \
