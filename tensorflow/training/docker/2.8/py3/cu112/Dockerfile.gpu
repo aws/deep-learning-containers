@@ -25,6 +25,7 @@ ARG PYTHON=python3.9
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.9.10
+
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 ARG EFA_VERSION=1.12.1
@@ -36,6 +37,13 @@ ARG CUDA_DASH=11-2
 ARG CUDNN=8.2.4.15-1
 
 ARG NCCL_VERSION=2.10.3
+
+# To be passed to e3 and sagemaker stages
+ENV PYTHON=${PYTHON}
+ENV PYTHON_VERSION=${PYTHON_VERSION}
+ENV PYTHON_PIP=${PYTHON_PIP}
+ENV PIP=${PIP}
+
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
    ca-certificates \
@@ -368,7 +376,7 @@ RUN SMDATAPARALLEL_TF=1 ${PYTHON} -m pip install --no-cache-dir ${SMDATAPARALLEL
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
 
-ENV LD_LIBRARY_PATH="/usr/local/lib/python3.9/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
+ENV LD_LIBRARY_PATH="/usr/local/lib/${PYTHON}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 # remove tmp files
 RUN rm -rf /tmp/*
