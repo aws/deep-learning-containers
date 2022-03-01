@@ -481,6 +481,7 @@ def execute_asynchronus_testing_using_s3_bucket(
     loop_time=2.5 * 3600,
     log_location_within_ec2="~/container_tests/logs.txt",
     s3_uri_for_saving_permanent_logs=None,
+    number_of_previous_outputs_to_check_for_hanged_script=3,
 ):
     """
     This method uses fabric to run the provided execution_command in asynchronus mode. While the execution command
@@ -495,6 +496,7 @@ def execute_asynchronus_testing_using_s3_bucket(
     :param loop_time: int, seconds for which we would wait for the tests to execute on ec2 instance
     :param log_location_within_ec2: Location within ec2 instance where the logs are being witten.
     :param s3_uri_for_saving_permanent_logs: Location where permanent s3 logs could be saved.
+    :param number_of_previous_outputs_to_check_for_hanged_script: int, Number of previous log files for which the lines will be checked to detect a hang
     """
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     s3_bucket_name = f"dlc-async-test-{account_id}"
@@ -517,7 +519,7 @@ def execute_asynchronus_testing_using_s3_bucket(
         last_line_of_log = fetch_s3_file_and_get_last_line(s3_location, local_filename)
         number_of_lines_in_log_file = int(run(f"wc -l {local_filename}", hide=True).stdout.strip().split()[0])
         line_count_list.append(number_of_lines_in_log_file)
-        number_of_previous_line_counts_to_check = 3
+        number_of_previous_line_counts_to_check = number_of_previous_outputs_to_check_for_hanged_script
         if len(line_count_list) >= number_of_previous_line_counts_to_check:
             if all(
                 line_count == line_count_list[-1]
@@ -611,6 +613,7 @@ def execute_ec2_training_test(
                 timeout,
                 required_log_ending,
                 s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
+                number_of_previous_outputs_to_check_for_hanged_script=10,
             )
             return
         else:
