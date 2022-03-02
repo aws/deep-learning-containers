@@ -130,9 +130,9 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 RUN apt-get update && apt-get -y install protobuf-compiler
 
 # Install extra packages
-RUN $PYTHON -m pip install --no-cache-dir --upgrade --upgrade-strategy only-if-needed  \
+RUN $PYTHON -m pip install --no-cache-dir \
     "bokeh>=2.3,<2.4" \
-    "imageio>=2.9,<3" \
+    "imageio==2.13.3" \
     "opencv-python>=4.3,<5" \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
@@ -140,7 +140,7 @@ RUN $PYTHON -m pip install --no-cache-dir --upgrade --upgrade-strategy only-if-n
 
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
-RUN $PYTHON -m pip install --no-cache-dir --upgrade --upgrade-strategy only-if-needed  \
+RUN $PYTHON -m pip install --no-cache-dir \
     pybind11 \
     cmake==3.18.2.post1 \
     scipy==1.7.0 \
@@ -164,8 +164,8 @@ RUN $PYTHON -m pip install --no-cache-dir --upgrade --upgrade-strategy only-if-n
 
 
 # Install sagemaker pacakges
-RUN $PYTHON -m pip install --no-cache-dir --upgrade --upgrade-strategy only-if-needed \
-    "sagemaker>=2,<3" \
+RUN $PYTHON -m pip install --no-cache-dir \
+    "sagemaker==2.70.0" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow>=2.6,<2.7" \
     "sagemaker-tensorflow-training>=20" \
