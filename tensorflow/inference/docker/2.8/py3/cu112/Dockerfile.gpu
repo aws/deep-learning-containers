@@ -74,10 +74,11 @@ RUN apt-get update \
     tk-dev \
     libgdbm-dev \
     libc6-dev \
-    # remove libsasl2-2 after Nvidia docker upstream fix CVE-2022-24407
-    libsasl2-2 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+# remove libsasl2-2 after Nvidia docker upstream fix CVE-2022-24407
+RUN apt-get install -y --only-upgrade libsasl2-2
 
 # Install python
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
