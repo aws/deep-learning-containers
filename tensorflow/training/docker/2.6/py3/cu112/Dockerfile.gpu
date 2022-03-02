@@ -212,7 +212,7 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
    && ln -s $(which ${PIP}) /usr/bin/pip
 
 # Install extra packages
-RUN $PYTHON -m pip install --no-cache-dir -U \
+RUN $PYTHON -m pip install --no-cache-dir  --upgrade --upgrade-strategy only-if-needed \
     "bokeh>=2.3,<2.4" \
     "imageio>=2.9,<3" \
     "opencv-python>=4.3,<5" \
@@ -222,7 +222,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
  
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
-RUN $PYTHON -m pip  install --no-cache-dir -U \
+RUN $PYTHON -m pip  install --no-cache-dir  --upgrade --upgrade-strategy only-if-needed \
    pybind11 \
    cmake==3.18.2.post1 \
    scipy==1.7.0 \
@@ -240,9 +240,10 @@ RUN $PYTHON -m pip  install --no-cache-dir -U \
    "thrift_sasl<1" \
    "PyHive<1" \
    "sparkmagic<1" \
-   ${TF_URL}
+   ${TF_URL} \
+   tensorflow-dataset==4.5.2 
 
-RUN $PYTHON -m pip install --no-cache-dir \
+RUN $PYTHON -m pip install --no-cache-dir --no-cache-dir --upgrade --upgrade-strategy only-if-needed \
    "sagemaker>=2,<3" \
    sagemaker-experiments==0.* \
    "sagemaker-tensorflow>=2.6,<2.7" \
