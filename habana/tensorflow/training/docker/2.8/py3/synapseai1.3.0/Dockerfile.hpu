@@ -97,7 +97,6 @@ RUN ${PIP} uninstall -y tensorflow-cpu \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     h5py==3.1.0 \
-    "absl-py>=0.9,<0.11" \
     werkzeug \
     psutil==5.7.2 \
  && rm -rf ${TF_URL}
