@@ -140,10 +140,10 @@ RUN conda install -c \
  && /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install packaging==20.4 \
-    enum-compat==0.0.3 \
-    numpy==1.22.2 \
-    ipython==8.0.1 \
+ && pip install packaging \
+    enum-compat \
+    numpy \
+    ipython \
     "cryptography>=3.3.2"
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
