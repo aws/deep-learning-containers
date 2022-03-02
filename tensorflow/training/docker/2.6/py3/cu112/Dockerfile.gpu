@@ -242,7 +242,7 @@ RUN $PYTHON -m pip  install --no-cache-dir  --upgrade --upgrade-strategy only-if
    "PyHive<1" \
    "sparkmagic<1" \
    ${TF_URL} \
-   tensorflow-dataset==4.5.2 
+   tensorflow-datasets==4.5.2 
 
 RUN $PYTHON -m pip install --no-cache-dir --no-cache-dir --upgrade --upgrade-strategy only-if-needed \
    "sagemaker>=2,<3" \
