@@ -108,15 +108,15 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip install --no-cache-dir -U \
     "pyyaml>=5.4,<5.5" \
     numpy==1.22.2 \
-    ipython==8.0.1 \
-    opencv-python==4.5.2.54 \
+    ipython==8.1.0 \
+    opencv-python==4.5.5.62 \
     "awscli<2" \
     boto3 \
     scipy \
     click \
     "cryptography>3.2" \
     packaging \
-    psutil==5.6.7 \
+    psutil==5.9.0 \
     "Pillow>=9.0.0" \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
