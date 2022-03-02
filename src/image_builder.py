@@ -142,8 +142,9 @@ def image_builder(buildspec):
         # Adding standard labels to all images
         labels["framework"] = str(BUILDSPEC["framework"])
         labels["framework_version"] = str(BUILDSPEC["version"])
-        labels["python_version"] = str(image_config["python_version"])
         labels["container_type"] = str(image_config["device_type"])
+        # tag_python_version in the buildspec looks like pyXY. We need to convert it to X.Y 
+        labels["python_version"] = ".".join(list("py38".strip("py")))
 
         """
         Override parameters from parent in child.
