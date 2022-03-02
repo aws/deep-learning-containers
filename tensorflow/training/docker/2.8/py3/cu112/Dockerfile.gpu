@@ -175,6 +175,8 @@ RUN apt-get update \
    ffmpeg \
    libsm6 \
    libxext6 \
+   # remove libsasl2-2 after Nvidia docker upstream fix CVE-2022-24407
+   libsasl2-2 \
    && rm -rf /var/lib/apt/lists/* \
    && apt-get clean
 
