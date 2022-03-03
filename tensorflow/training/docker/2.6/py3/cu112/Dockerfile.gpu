@@ -257,7 +257,7 @@ RUN $PYTHON -m pip install --no-cache-dir \
 # Insteall tensorflow-io without deps 
 # to avoid it accidently install public tensorflow wheel
 RUN $PYTHON -m pip install --no-cache-dir --no-deps tensorflow-io==0.21.0 \
-   && tensorflow-io-gcs-filesystem==0.21.0 
+   tensorflow-io-gcs-filesystem==0.21.0 
 
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3

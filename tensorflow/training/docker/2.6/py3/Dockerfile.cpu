@@ -177,7 +177,7 @@ RUN $PYTHON -m pip install --no-cache-dir \
 # Insteall tensorflow-io without deps 
 # to avoid it accidently install public tensorflow wheel
 RUN $PYTHON -m pip install --no-cache-dir --no-deps tensorflow-io==0.21.0 \
-    && tensorflow-io-gcs-filesystem==0.21.0 
+    tensorflow-io-gcs-filesystem==0.21.0 
 
 # Install Horovod with TensorFlow
 RUN HOROVOD_WITH_MPI=1 \
