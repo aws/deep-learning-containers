@@ -74,8 +74,6 @@ RUN apt-get update \
     tk-dev \
     libgdbm-dev \
     libc6-dev \
-    # remove libsasl2-2 after Nvidia docker upstream fix CVE-2022-24407
-    libsasl2-2 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -103,6 +101,9 @@ RUN v="8.0.1-1+cuda11.3" && \
     yes | apt-get install libnvinfer8=${v} libnvonnxparsers8=${v} libnvparsers8=${v} libnvinfer-plugin8=${v} \
         libnvinfer-dev=${v} libnvonnxparsers-dev=${v} libnvparsers-dev=${v} libnvinfer-plugin-dev=${v} \
         python3-libnvinfer=${v}
+
+# Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
+RUN apt-get install -y --only-upgrade libsasl2-2
 
 # Install TensorRT 
 # Make sure to use the same TensorRT as the one for compiling tensorflow_model_server
