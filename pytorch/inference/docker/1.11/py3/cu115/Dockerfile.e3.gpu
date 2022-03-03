@@ -153,13 +153,13 @@ WORKDIR /root
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install --no-cache-dir -U \
-    opencv \
+    opencv-python==4.5.5.62 \
     numpy==1.22.2 \
     ipython==8.1.0 \
     "pyyaml>=5.4,<5.5" \
     "awscli<2" \
     boto3 \
-    packaging\
+    packaging \
     enum-compat==0.0.3 \
     "Pillow>=9.0.0" \
     "cryptography>3.2" \
