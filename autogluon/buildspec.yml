@@ -36,7 +36,7 @@ images:
   BuildAutogluonCPUTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &AUTOGLUON_CPU_TRAINING_PY3 false
-    image_size_baseline: 3512
+    image_size_baseline: 3995
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
@@ -49,7 +49,7 @@ images:
   BuildAutogluonGPUTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &AUTOGLUON_GPU_TRAINING_PY3 false
-    image_size_baseline: 12466
+    image_size_baseline: 19832
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
@@ -63,11 +63,11 @@ images:
   BuildAutogluonCPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &AUTOGLUON_CPU_INFERENCE_PY3 false
-    image_size_baseline: 4090
+    image_size_baseline: 4674
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py37
-    os_version: &OS_VERSION ubuntu16.04
+    os_version: &OS_VERSION ubuntu20.04-e3
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:

@@ -579,6 +579,26 @@ IGNORE_SAFETY_IDS = {
             ]
         },
     },
+    "autogluon": {
+        "training": {
+            "py3": [
+                # cannot upgrade: py37 does not support numpy 1.22.x
+                "44717",
+                "44716",
+                # False positive CVE for numpy
+                "44715",
+            ]
+        },
+        "inference": {
+            "py3": [
+                # cannot upgrade: py37 does not support numpy 1.22.x
+                "44717",
+                "44716",
+                # False positive CVE for numpy
+                "44715",
+            ]
+        },
+    }
 }
 
 

@@ -7,7 +7,7 @@ LABEL dlc_major_version="1"
 ARG OPENSSL_VERSION=1.1.1l
 ARG PYTHON_VERSION=3.7.10
 ARG PYTHON=python3
-ARG MXNET_VER=1.7.*
+ARG MXNET_VER=1.9.*
 ARG TORCH_VER=1.8.0+cpu
 ARG TORCH_VISION_VER=0.9.0+cpu
 
@@ -141,7 +141,9 @@ RUN pip install --no-cache-dir -U \
 # https://github.com/catboost/catboost/issues/1632
 # Dask security patching
 RUN pip install --no-cache-dir -U catboost==0.26.1 \
- && pip install --no-cache-dir -U "dask>2021.09.1" "distributed>2021.09.1"
+ && pip install --no-cache-dir -U "dask>2021.09.1" "distributed>2021.09.1" \
+ && pip install --no-cache-dir -U 'numpy>=1.21,<1.22' \
+ && pip install --no-cache-dir -U 'Pillow>=9.0.0,<9.1.0'
 
 
 # Allow OpenSSH to talk to containers without asking for confirmation
