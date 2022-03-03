@@ -175,11 +175,10 @@ RUN apt-get update \
    ffmpeg \
    libsm6 \
    libxext6 \
+   # remove libsasl2-2 after Nvidia docker upstream fix CVE-2022-24407
+   libsasl2-2 \
    && rm -rf /var/lib/apt/lists/* \
    && apt-get clean
-
-# remove libsasl2-2 after Nvidia docker upstream fix CVE-2022-24407
-RUN apt-get install -y --only-upgrade libsasl2-2
 
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
    && tar -xvf Python-$PYTHON_VERSION.tgz \
