@@ -10,23 +10,24 @@ ARG PYTHON_VERSION=3.8.12
 ARG PT_INFERENCE_URL=https://download.pytorch.org/whl/test/cu115/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cu115/torchvision-0.12.0%2Bcu115-cp38-cp38-linux_x86_64.whl
 
-ARG OPEN_MPI_VERSION=4.0.2
 ARG TS_VERSION=0.5.2
 ARG CUBLAS_VERSION=11.7.4.6
+
+ARG CONDA_PREFIX=/opt/conda
 
 ARG DEBIAN_FRONTEND=noninteractive
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
-ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
 ENV PATH /opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
+ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
+
 ENV CUDNN_VERSION=8.3.2.44
 ENV NCCL_VERSION=2.11.4
-ENV EFA_VERSION=1.15.0
-ENV OMPI_VERSION=4.1.2
+ARG OMPI_VERSION=4.1.1
 ENV NVML_VERSION=11.5.50
-ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
@@ -43,6 +44,7 @@ RUN apt-get update \
     cmake \
     cuda-command-line-tools-11-5 \
     cuda-cudart-11-5 \
+    cuda-libraries-11-5 \
     cuda-libraries-dev-11-5 \
     curl \
     emacs \
@@ -86,14 +88,14 @@ RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeysto
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
-RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
- && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
- && cd openmpi-$OPEN_MPI_VERSION \
+RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
+ && gunzip -c openmpi-${OMPI_VERSION}.tar.gz | tar xf - \
+ && cd openmpi-${OMPI_VERSION} \
  && ./configure --prefix=/home/.openmpi \
  && make all install \
  && cd .. \
- && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
- && rm -rf openmpi-$OPEN_MPI_VERSION
+ && rm openmpi-${OMPI_VERSION}.tar.gz \
+ && rm -rf openmpi-${OMPI_VERSION}
 
 ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
@@ -112,39 +114,22 @@ RUN apt-get update \
 
 RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p /opt/conda \
+ && ~/miniconda.sh -b -p ${CONDA_PREFIX} \
  && rm ~/miniconda.sh \
- && /opt/conda/bin/conda update conda \
- && /opt/conda/bin/conda install -c conda-forge \
+ && ${CONDA_PREFIX}/bin/conda update conda \
+ && ${CONDA_PREFIX}/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
- && /opt/conda/bin/conda install -y \
+ && ${CONDA_PREFIX}/bin/conda install -y \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
+ && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
     cython \
-    mkl-include \
     mkl \
+    mkl-include \
     parso \
     scipy \
     typing \
- && /opt/conda/bin/conda clean -ya
-
-RUN conda install -c \
-    pytorch magma-cuda115 \
- && conda install -c \
-    conda-forge \
-    opencv \
- && conda install -y \
-    h5py \
-    requests \
- && conda clean -ya \
- && /opt/conda/bin/conda config --set ssl_verify False \
- && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install packaging==20.4 \
-    enum-compat==0.0.3 \
-    numpy==1.22.2 \
-    ipython==8.0.1 \
-    "cryptography>=3.3.2"
+ && ${CONDA_PREFIX}/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
@@ -152,22 +137,44 @@ RUN conda install -c \
 # once conda fixes the issue: https://github.com/conda/conda/issues/9680
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
-# Uninstall and re-install torch and torchvision from the PyTorch website
-RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U $PT_INFERENCE_URL \
- && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL
+RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
+ && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
 
-RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
-RUN pip install \
+RUN conda install -c \
+    pytorch magma-cuda115==2.5.2 \
+ && conda install -y \
+    h5py \
+    requests \
+    libgcc \
+ && conda clean -ya
+
+WORKDIR /root
+
+# Uninstall torch and torchvision before installing the custom versions from an S3 bucket
+RUN pip install --no-cache-dir -U \
+    opencv \
+    numpy==1.22.2 \
+    ipython==8.1.0 \
+    "pyyaml>=5.4,<5.5" \
+    "awscli<2" \
     boto3 \
+    packaging\
+    enum-compat==0.0.3 \
     "Pillow>=9.0.0" \
-    "awscli<2"
+    "cryptography>3.2" \
+ && pip uninstall -y torch \
+ && pip install --no-cache-dir -U ${PT_INFERENCE_URL} \
+ && pip uninstall -y torchvision \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}    
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
  && pip install torchserve==${TS_VERSION} \
- && pip install torch-model-archiver==${TS_VERSION} 
+ && pip install torch-model-archiver==${TS_VERSION}
+
+ WORKDIR /
+
 
 RUN cd tmp/ \
  && rm -rf tmp*
@@ -178,6 +185,7 @@ RUN useradd -m model-server \
 
 COPY torchserve-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
+
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
