@@ -16,8 +16,12 @@ ARG PYTHON=python3.9
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.9.10
-
 ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.8_aws/gpu/2022-02-04-23-24/tensorflow_model_server
+
+# ENV variable to be pased to SageMaker stage
+ENV PIP=${PIP}
+ENV PYTHON=${PYTHON}
+
 
 ENV NCCL_VERSION=2.8.4-1+cuda11.2
 ENV CUDNN_VERSION=8.1.0.77-1+cuda11.2

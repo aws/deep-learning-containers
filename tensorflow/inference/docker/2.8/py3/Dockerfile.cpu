@@ -18,6 +18,10 @@ ARG PIP=pip3
 ARG PYTHON_VERSION=3.9.10
 ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.8_aws/cpu/2022-02-02-00-33/tensorflow_model_server
 
+# ENV variable to be pased to SageMaker stage
+ENV PIP=${PIP}
+ENV PYTHON=${PYTHON}
+
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
 # Python won’t try to write .pyc or .pyo files on the import of source modules
