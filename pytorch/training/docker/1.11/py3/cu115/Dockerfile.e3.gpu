@@ -156,7 +156,7 @@ RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
  && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
 
 RUN conda install -c \
-    pytorch magma-cuda115==2.5.2 \
+    pytorch magma-cuda115==2.6.1 \
  && conda install -y \
     h5py \
     requests \
