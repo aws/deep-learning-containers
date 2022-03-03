@@ -25,7 +25,7 @@ ENV PATH=/opt/conda/bin:$PATH
 # ENV DGLBACKEND=pytorch
 ENV DLC_CONTAINER_TYPE=training
 
-# There's no PT pipeline for binary for diy/e3 currently. Using the inference branch (PyTorch + telemetry feature) with different building environments for both training and inference DLCs temporarily.
+# PyTorch Binaries
 ARG PT_TRAINING_URL=https://download.pytorch.org/whl/test/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_S3_WHL=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
@@ -49,9 +49,9 @@ RUN apt-get update \
     libxext6 \
     libxrender-dev \
     software-properties-common \
-    wget \
     unzip \
     vim \
+    wget \
     zlib1g-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
@@ -82,9 +82,9 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda install -y -c anaconda \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
+    cython \
     mkl \
     mkl-include \
-    cython \
     typing \
     "pyopenssl>=17.5.0" \
  && conda install -y \

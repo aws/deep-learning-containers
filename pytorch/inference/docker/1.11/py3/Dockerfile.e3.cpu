@@ -5,18 +5,20 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
-ARG OPEN_MPI_VERSION=4.0.2
+ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.5.2
-ARG PT_INFERENCE_URL=https://download.pytorch.org/whl/test/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 
-ENV LANG C.UTF-8
-ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
-ENV PATH /opt/conda/bin:$PATH
+ENV LANG=C.UTF-8
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
+ENV PATH=/opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
+
+# PyTorch Binaries
+ARG PT_INFERENCE_URL=https://download.pytorch.org/whl/test/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 
 RUN apt-get update \
 # TODO: Remove systemd upgrade once it is updated in base image
@@ -32,16 +34,16 @@ RUN apt-get update \
     emacs \
     git \
     jq \
-    libgl1-mesa-glx \
     libglib2.0-0 \
+    libgl1-mesa-glx \
     libsm6 \
     libxext6 \
     libxrender-dev \
     openjdk-11-jdk \
     openssl \
+    unzip \
     vim \
     wget \
-    unzip \
     zlib1g-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
@@ -50,30 +52,6 @@ RUN apt-get update \
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
-
-RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
- && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p /opt/conda \
- && rm ~/miniconda.sh \
- && /opt/conda/bin/conda update conda \
- && /opt/conda/bin/conda install -c conda-forge \
-    python=$PYTHON_VERSION \
- && /opt/conda/bin/conda install -y \
-    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
-    ruamel_yaml==0.15.100 \
-    cython \
-    mkl-include \
-    mkl \
-    parso \
-    scipy \
-    typing \
- && /opt/conda/bin/conda clean -ya
-
-# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
-# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
-# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
-# once conda fixes the issue: https://github.com/conda/conda/issues/9680
-RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
@@ -91,40 +69,58 @@ ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
-RUN conda install -c \
-    conda-forge \
-    opencv \
+RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+ && chmod +x ~/miniconda.sh \
+ && ~/miniconda.sh -b -p /opt/conda \
+ && rm ~/miniconda.sh \
+ && /opt/conda/bin/conda update conda \
+ && /opt/conda/bin/conda install -c conda-forge \
+    python=$PYTHON_VERSION \
+ && /opt/conda/bin/conda install -y -c anaconda \
+    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.100 \
+    cython \
+    mkl \
+    mkl-include \
+    parso \
+    typing \
  && conda install -y \
     h5py \
     requests \
- && conda clean -ya \
- && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && /opt/conda/bin/conda clean -ya \
+ && conda clean -ya
+
+# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
+# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
+# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
+# once conda fixes the issue: https://github.com/conda/conda/issues/9680
+RUN rm -rf /opt/conda/lib/libtinfo.so.6
+
+# The following section uninstalls torch and torchvision before installing the
+# custom versions from an S3 bucket. This will need to be removed in the future
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install packaging==20.4 \
+ && pip install --no-cache-dir -U \
+    "pyyaml>=5.4,<5.5" \
     enum-compat==0.0.3 \
     numpy==1.22.2 \
-    ipython==8.0.1 \
-    "cryptography>=3.3.2"
-
-# Uninstall and re-install torch and torchvision from the PyTorch website
-RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U $PT_INFERENCE_URL \
- && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U $PT_TORCHVISION_URL
-
-RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
-RUN pip install \
+    ipython==8.1.0 \
+    opencv-python==4.5.5.62 \
+    "awscli<2" \
     boto3 \
-    "Pillow>=9.0.0" \ 
-    "awscli<2"
+    scipy \
+    "cryptography>3.2" \
+    packaging \
+    "Pillow>=9.0.0" \
+ && pip uninstall -y torch \
+ && pip install --no-cache-dir -U ${PT_INFERENCE_URL} \
+ && pip uninstall -y torchvision \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
  && pip install torchserve==${TS_VERSION} \
  && pip install torch-model-archiver==${TS_VERSION} 
-
-RUN cd tmp/ \
- && rm -rf tmp*
 
 RUN useradd -m model-server \
  && mkdir -p /home/model-server/tmp /opt/ml/model \
@@ -146,7 +142,8 @@ RUN HOME_DIR=/root \
  && chmod +x /usr/local/bin/testOSSCompliance \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance*
+ && rm -rf ${HOME_DIR}/oss_compliance* \
+ && rm -rf /tmp/tmp*
 
 RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.11/license.txt
 
