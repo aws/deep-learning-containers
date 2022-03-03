@@ -273,7 +273,7 @@ def eks_forward_port_between_host_and_container(selector_name, host_port, contai
     )
 
 
-@retry(stop_max_attempt_number=20, wait_fixed=30000, retry_on_exception=retry_if_value_error)
+@retry(stop_max_attempt_number=30, wait_fixed=30000, retry_on_exception=retry_if_value_error)
 def is_service_running(selector_name, namespace="default"):
     """Check if the service pod is running
     Args:
