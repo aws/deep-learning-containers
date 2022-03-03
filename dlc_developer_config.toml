@@ -15,7 +15,7 @@ graviton_mode = false
 habana_mode = false
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
-benchmark_mode = true
+benchmark_mode = false
 
 [build]
 # Frameworks for which you want to disable both builds and tests
@@ -29,22 +29,22 @@ do_build = false
 
 [test]
 ### On by default
-sanity_tests = true
+sanity_tests = false
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = true
-eks_tests = true
-ec2_tests = true
+ecs_tests = false
+eks_tests = false
+ec2_tests = false
 
 ### SM specific tests
 ### Off by default
-sagemaker_local_tests = true
+sagemaker_local_tests = false
 
 # SM remote test valid values:
 # "off" --> do not trigger sagemaker remote tests (default)
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "standard"
+sagemaker_remote_tests = "rc"
 
 use_scheduler = false
