@@ -69,6 +69,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    openssh-client \
    openssh-server \
    zlib1g-dev \
+   # remove libsasl2-2 after Nvidia docker upstream fix CVE-2022-24407
+   libsasl2-2 \
    # Install dependent library for OpenCV
    libgtk2.0-dev \
    jq \
