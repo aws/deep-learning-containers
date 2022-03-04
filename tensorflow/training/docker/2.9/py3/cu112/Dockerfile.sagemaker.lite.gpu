@@ -293,6 +293,9 @@ ARG PYTHON=python3.9
 # Add arguments to achieve the version, python and url
 ARG PYTHON_VERSION=3.9.10
 
+RUN apt-get update \
+ && apt-get install -y -qq libsasl2-dev libsasl2-modules
+
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
