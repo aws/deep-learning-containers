@@ -6,6 +6,6 @@ JRE_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
 EOL
 
 pip install 'dependency-check<1'
-dependency-check --disableAssembly -s / -o build
+dependency-check --disableAssembly -s / -o build --exclude "**/dependency-check/**"
 
 cat /build/dependency-check-report.html
