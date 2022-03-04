@@ -160,7 +160,7 @@ for epoch in range(5):
 
 t1 = time.time()
 log_result("Time-to-train", t1 - t0)
-assert t1 - t0 < 165.0
+assert t1 - t0 < 200
 
 save_path = "./hvd2_conv_saved_model"
 model.save_model(save_path)
@@ -173,7 +173,7 @@ if smp.mp_rank() == 1:
         loss_scalar = loss_np.asscalar()  # numpy < 1.16
 
     log_result("Training loss", loss_scalar)
-    assert loss_scalar < 0.008
+    assert loss_scalar < 0.01
 
 
 if smp.dp_rank() == 0 and smp.mp_rank() == 0:
