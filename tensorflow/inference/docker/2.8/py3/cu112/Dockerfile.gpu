@@ -105,6 +105,9 @@ RUN v="8.0.1-1+cuda11.3" && \
         libnvinfer-dev=${v} libnvonnxparsers-dev=${v} libnvparsers-dev=${v} libnvinfer-plugin-dev=${v} \
         python3-libnvinfer=${v}
 
+# Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
+RUN apt-get install -y --only-upgrade libsasl2-2
+
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
@@ -156,7 +159,7 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.7/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.8/license.txt -o /license.txt
 
 RUN rm -rf /tmp/*
 
