@@ -24,13 +24,11 @@ ENV LC_ALL=C.UTF-8
 ARG PYTHON=python3.9
 ARG PYTHON_VERSION=3.9.10
 
-ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 
 # To be passed to e3 and sagemaker stages
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
-ENV PYTHON_PIP=${PYTHON_PIP}
 ENV PIP=${PIP}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
