@@ -5,7 +5,7 @@ import logging
 import re
 
 from junit_xml import TestSuite, TestCase
-from multiprocessing import Pool
+from multiprocessing import Pool, Manager
 from datetime import datetime
 
 import boto3
@@ -187,8 +187,17 @@ def run_sagemaker_remote_tests(images, pytest_cache_params):
         if not images:
             return
         pool_number = len(images)
-        with Pool(pool_number) as p:
-            p.starmap(sm_utils.execute_sagemaker_remote_tests, [[image, pytest_cache_params] for image in images])
+        # Using Manager().dict() since it's a thread safe dictionary
+        global_pytest_cache = Manager().dict()
+        try:
+            with Pool(pool_number) as p:
+                p.starmap(
+                    sm_utils.execute_sagemaker_remote_tests,
+                    [[i, images[i], global_pytest_cache, pytest_cache_params] for i in range(pool_number)]
+                )
+        finally:
+            pytest_cache_util.convert_cache_json_and_upload_to_s3(global_pytest_cache, **pytest_cache_params)
+
 
 
 def pull_dlc_images(images):
@@ -336,13 +345,22 @@ def main():
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
 
+        is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
         if specific_test_type == "ec2":
+            if is_habana_image:
+                context = Context()
+                context.run("git clone https://github.com/HabanaAI/gaudi-test-suite.git")
+                context.run("tar -c -f gaudi-test-suite.tar.gz gaudi-test-suite")
+
             pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
         if is_pr_context():
             if specific_test_type == "eks":
                 pytest_cmd.append("--timeout=2340")
             else:
-                pytest_cmd.append("--timeout=4860")
+                if is_habana_image:
+                    pytest_cmd.append("--timeout=18000")
+                else:
+                    pytest_cmd.append("--timeout=4860")
 
         pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
@@ -367,6 +385,12 @@ def main():
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
     elif specific_test_type == "sagemaker":
+        if "habana" in dlc_images:
+            LOGGER.info(f"Skipping SM tests for Habana. Images: {dlc_images}")
+            # Creating an empty file for because codebuild job fails without it
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report, test_type, "habana")
+            return
         if benchmark_mode:
             if "neuron" in dlc_images:
                 LOGGER.info(f"Skipping benchmark sm tests for Neuron. Images: {dlc_images}")
@@ -401,6 +425,12 @@ def main():
             # Creating an empty file for because codebuild job fails without it
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
             sm_utils.generate_empty_report(report, test_type, "neuron")
+            return
+        if "habana" in dlc_images:
+            LOGGER.info(f"Skipping sagemaker tests because Habana is not yet supported on SM. Images: {dlc_images}")
+            # Creating an empty file for because codebuild job fails without it
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report, test_type, "habana")
             return
         testing_image_list = [
             image
