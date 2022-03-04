@@ -36,6 +36,7 @@ ARG AUTOGLUON_VERSION=0.3.1
 RUN pip --no-cache-dir install --upgrade --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip --no-cache-dir install --upgrade wheel setuptools \
  && pip uninstall -y dataclasses \
+ && pip install --no-cache-dir -U sagemaker-mxnet-inference \
  && pip install --no-cache-dir -U torch==${TORCH_VER} torchvision==${TORCH_VISION_VER} -f https://download.pytorch.org/whl/torch_stable.html \
     numpy==${NUMPY_VER} \
     autogluon==${AUTOGLUON_VERSION}
