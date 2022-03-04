@@ -15,6 +15,8 @@ language governing permissions and limitations under the License.
 
 import os
 
+from enum import Enum
+
 # Environment settings
 FRAMEWORKS = {"mxnet", "tensorflow", "pytorch", "huggingface_tensorflow", "huggingface_pytorch", "autogluon"}
 DEVICE_TYPES = {"cpu", "gpu", "hpu", "eia", "inf"}
@@ -56,7 +58,7 @@ PR_REPO_PREFIX = "pr-"
 
 # Env variables for the code build PR jobs
 JOB_FRAMEWORK = os.environ.get("FRAMEWORK")
-JOB_FRAMEWORK_VERSION = os.environ.get("VERSION")
+JOB_FRAMEWORK_VERSION = os.environ.get("FRAMEWORK_VERSION")
 
 # Test environment file
 TEST_ENV_PATH = os.path.join(os.path.expanduser("~"), "testenv.json")
@@ -79,3 +81,12 @@ ALL_TESTS = ["sagemaker", "ec2", "eks", "ecs"]
 # Timeout in seconds for Docker API client.
 API_CLIENT_TIMEOUT = 600
 MAX_WORKER_COUNT_FOR_PUSHING_IMAGES = 3
+
+
+class BuilderMode(Enum):
+    NO_BUILD = 0
+    GENERAL_BUILDER = 1
+    EI_BUILDER = 2
+    NEURON_BUILDER = 3
+    GRAVITON_BUILDER = 4
+    HABANA_BUILDER = 5

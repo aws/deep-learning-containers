@@ -5,8 +5,9 @@ import re
 import utils
 import constants
 
-from image_builder import image_builder
+from constants import BuilderMode
 from config import parse_dlc_developer_configs
+from image_builder import image_builder
 
 
 def main():
@@ -22,8 +23,9 @@ def main():
     device_types = args.device_types.split(",") if not args.device_types == constants.ALL else args.device_types
     image_types = args.image_types.split(",") if not args.image_types == constants.ALL else args.image_types
     py_versions = args.py_versions.split(",") if not args.py_versions == constants.ALL else args.py_versions
-    # create the empty json file for images
-    build_context = os.getenv("BUILD_CONTEXT")
+
+    # Get build configuration from environment
+    build_context = constants.BUILD_CONTEXT
     ei_dedicated = os.getenv("EIA_DEDICATED", "false").lower() == "true"
     neuron_dedicated = os.getenv("NEURON_DEDICATED", "false").lower() == "true"
     graviton_dedicated = os.getenv("GRAVITON_DEDICATED", "false").lower() == "true"
@@ -72,19 +74,25 @@ def main():
     # A HABANA dedicated builder will work if in HABANA mode and its framework has not been disabled
     habana_builder_enabled = habana_dedicated and habana_build_mode and args.framework not in frameworks_to_skip
 
+    builder_mode = (
+        BuilderMode.GENERAL_BUILDER
+        if general_builder_enabled
+        else BuilderMode.EI_BUILDER
+        if ei_builder_enabled
+        else BuilderMode.NEURON_BUILDER
+        if neuron_builder_enabled
+        else BuilderMode.GRAVITON_BUILDER
+        if graviton_builder_enabled
+        else BuilderMode.HABANA_BUILDER
+        if habana_builder_enabled
+        else BuilderMode.NO_BUILD
+    )
+
     # A builder will always work if it is in non-PR context
-    if (
-        general_builder_enabled
-        or ei_builder_enabled
-        or neuron_builder_enabled
-        or graviton_builder_enabled
-        or habana_builder_enabled
-        or build_context != "PR"
-    ):
-        utils.build_setup(
-            args.framework, device_types=device_types, image_types=image_types, py_versions=py_versions,
-        )
-        image_builder(args.buildspec)
+    if builder_mode != BuilderMode.NO_BUILD or build_context != "PR":
+        utils.build_setup(args.framework, device_types=device_types, image_types=image_types, py_versions=py_versions)
+        framework_version_buildspec = utils.get_framework_version_buildspec(args.buildspec, builder_mode)
+        image_builder(framework_version_buildspec)
 
 
 if __name__ == "__main__":

@@ -20,9 +20,11 @@ import sys
 import boto3
 import constants
 
+from buildspec import Buildspec
+from botocore.exceptions import ClientError
 from config import is_build_enabled
 from invoke.context import Context
-from botocore.exceptions import ClientError
+from packaging.version import Version
 from safety_report_generator import SafetyReportGenerator
 
 LOGGER = logging.getLogger(__name__)
@@ -70,6 +72,7 @@ class JobParameters:
             and JobParameters.py_versions == constants.ALL
         )
 
+
 def download_s3_file(bucket_name, filepath, local_file_name):
     """
 
@@ -86,6 +89,7 @@ def download_s3_file(bucket_name, filepath, local_file_name):
         LOGGER.error("Error: Cannot read file from s3 bucket.")
         LOGGER.error("Exception: {}".format(e))
         raise
+
 
 def download_file(remote_url: str, link_type: str):
     """
@@ -116,6 +120,55 @@ def download_file(remote_url: str, link_type: str):
     return file_name
 
 
+def get_framework_version_buildspec(framework_buildspec_path, builder_mode):
+    """
+    Using a framework buildspec file, find and return the buildspec for a specific framework version.
+
+    :param framework_buildspec_path: str Path to buildspec file for all versions in a framework
+    :param builder_mode: BuilderMode Type of build assigned to current build job
+    :return: str Path to buildspec file for a particular framework version
+    """
+    framework_buildspec_def = Buildspec()
+    framework_buildspec_def.load(framework_buildspec_path)
+
+    if "current_versions" not in framework_buildspec_def:
+        return framework_buildspec_path
+
+    env_build_context = constants.BUILD_CONTEXT
+    version_type_key = (
+        "current_ei_versions"
+        if builder_mode == constants.BuilderMode.EI_BUILDER
+        else "current_neuron_versions"
+        if builder_mode == constants.BuilderMode.NEURON_BUILDER
+        else "current_graviton_versions"
+        if builder_mode == constants.BuilderMode.GRAVITON_BUILDER
+        else "nightly_versions"
+        if env_build_context == "NIGHTLY"
+        else "current_versions"
+    )
+    current_framework_versions = framework_buildspec_def.get(version_type_key, [])
+    known_framework_version_buildspec_paths = framework_buildspec_def.get("buildspecs")
+    env_framework_version = constants.JOB_FRAMEWORK_VERSION
+
+    if env_framework_version:
+        framework_version_buildspec_path = known_framework_version_buildspec_paths.get(env_framework_version)
+    elif not current_framework_versions:
+        raise ValueError(
+            f"Failed to find a framework version to use since env_framework_version = {env_framework_version} "
+            f"and current_framework_versions = {current_framework_versions}"
+        )
+    else:
+        latest_framework_version = max(
+            [Version(re.search(r"\d+(\.\d+)+", version).group()).base_version for version in current_framework_versions]
+        )
+        framework_version_buildspec_path = known_framework_version_buildspec_paths.get(latest_framework_version)
+    if not framework_version_buildspec_path:
+        raise ValueError(
+            f"Failed to find framework version buildspec for {env_framework_version} in {framework_buildspec_path}"
+        )
+    return framework_version_buildspec_path
+
+
 def get_pr_modified_files(pr_number):
     """
     Fetch all the files modified for a git pull request and return them as a string
@@ -128,6 +181,8 @@ def get_pr_modified_files(pr_number):
 
     # Example: "https://github.com/aws/deep-learning-containers.git"
     repo_url = os.getenv("CODEBUILD_SOURCE_REPO_URL")
+    if not repo_url:
+        raise RuntimeError("Failed to get GitHub repository URL from PR job environment.")
     _, user, repo_name = repo_url.rstrip(".git").rsplit("/", 2)
 
     github_handler = GitHubHandler(user, repo_name)
@@ -331,6 +386,7 @@ def pr_build_setup(pr_number, framework):
     variables
     Parameters:
         pr_number: int
+        framework: str
 
     Returns:
         device_types: [str]
@@ -341,26 +397,26 @@ def pr_build_setup(pr_number, framework):
 
     # This below code currently appends the values to device_types, image_types, py_versions for files changed
     # if there are no changes in the files then functions return same lists
-    parse_modified_docker_files_info(files, framework, pattern="\S+Dockerfile\S+")
+    parse_modified_docker_files_info(files, framework, pattern=r"\S+Dockerfile\S+")
 
     parse_modified_sagemaker_test_files(
-        files, framework, pattern="sagemaker_tests\/\S+"
+        files, framework, pattern=r"sagemaker_tests\/\S+"
     )
 
     # The below functions are only run if all JobParameters variables are not set with constants.ALL
-    parse_modified_dlc_test_files_info(files, framework, pattern="dlc_tests\/\S+")
+    parse_modified_dlc_test_files_info(files, framework, pattern=r"dlc_tests\/\S+")
 
     # The below code currently overides the device_types, image_types, py_versions with constants.ALL
     # when there is a change in any the below files
-    parse_modifed_buidspec_yml_info(files, framework, pattern="\S+\/buildspec.*yml")
+    parse_modifed_buidspec_yml_info(files, framework, pattern=r"\S+\/buildspec.*yml")
 
-    parse_modifed_root_files_info(files, pattern="src\/\S+")
+    parse_modifed_root_files_info(files, pattern=r"src\/\S+")
 
     parse_modifed_root_files_info(
-        files, pattern="(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
+        files, pattern=r"(?:test\/(?!(dlc_tests|sagemaker_tests))\S+)"
     )
 
-    parse_modifed_root_files_info(files, pattern="testspec\.yml")
+    parse_modifed_root_files_info(files, pattern=r"testspec\.yml")
 
     return (
         JobParameters.device_types,
@@ -537,11 +593,10 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         job_type = (
             "inference-eia" if "eia" in image_uri else "inference-neuron" if "neuron" in image_uri else "inference"
         )
-    
+
     if "habana" in image_uri:
         framework = f"habana_{framework}"
 
-    ignore_safety_ids = {}
     ignore_data_file = os.path.join(os.sep, get_root_folder_path(), "data", "ignore_ids_safety_scan.json")
     with open(ignore_data_file) as f:
         ignore_safety_ids = json.load(f)
@@ -551,7 +606,7 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
 
 def generate_safety_report_for_image(image_uri, image_info, storage_file_path=None):
     """
-    Genereate safety scan reports for an image and store it at the location specified 
+    Generate safety scan reports for an image and store it at the location specified
 
     :param image_uri: str, consists of f"{image_repo}:{image_tag}"
     :param image_info: dict, should consist of 3 keys - "framework", "python_version" and "image_type".
