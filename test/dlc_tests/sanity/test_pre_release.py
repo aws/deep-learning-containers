@@ -551,7 +551,7 @@ def test_pip_check(image):
 
     # The v0.21 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
     if "tensorflow" in image and "2.6.3" in image:
-        allowed_tf263_exception = (
+        allowed_tf263_exception = re.compile(
             rf"^tensorflow-io 0.21.0 requires "
             rf"tensorflow, which is not installed.$"
         )
