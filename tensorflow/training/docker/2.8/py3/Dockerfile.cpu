@@ -150,8 +150,7 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-# TODO: THIS LICENSE FILE MUST BE FIXED BEFORE MERGE!!!
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.7/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.8/license.txt -o /license.txt
 
 ##############################################################################
 #  _____ _____   ___                              ____           _
@@ -186,6 +185,7 @@ RUN HOME_DIR=/root \
    && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
    && rm -rf ${HOME_DIR}/oss_compliance*
+
 
 # remove tmp files
 RUN rm -rf /tmp/*
@@ -284,9 +284,5 @@ RUN HOME_DIR=/root \
    && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
    && rm -rf ${HOME_DIR}/oss_compliance*
-
-
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.8/license.txt -o /license.txt
-
 
 CMD ["/bin/bash"]
