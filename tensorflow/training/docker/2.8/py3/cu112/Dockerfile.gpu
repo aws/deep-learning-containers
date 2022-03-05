@@ -205,9 +205,6 @@ RUN ${PIP} install --no-cache-dir -U \
    requests==2.27.1 \
    "awscli<2" \
    mpi4py==3.0.3 \
-   # Let's install TensorFlow separately in the end to avoid
-   # the library version to be overwritten
- && ${PIP} install --no-cache-dir -U \
    h5py==3.1.0 \
    "absl-py>=0.9,<0.11" \
    "opencv-python>=4.3,<5" \
@@ -261,8 +258,6 @@ FROM common AS e3
 
 ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.8_aws/gpu/2022-02-07-22-37/tensorflow_gpu-2.8.0-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
 
-# install PyYAML==5.1.2 to avoid conflict with latest awscli
-# # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
    tensorflow-io==0.24.0 \
@@ -313,8 +308,6 @@ ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
 ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/smdebugger/r2.8_aws/gpu/2022-02-15-01-06/tensorflow_gpu-2.8.0-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
 
-# install PyYAML==5.1.2 to avoid conflict with latest awscli
-# # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
    tensorflow-io==0.24.0 \
