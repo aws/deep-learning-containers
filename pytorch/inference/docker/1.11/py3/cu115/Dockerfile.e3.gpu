@@ -141,28 +141,28 @@ RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
 
-RUN conda install -c \
-    pytorch magma-cuda115==2.6.1 \
+RUN conda install -c pytorch \
+    magma-cuda115==2.6.1 \
  && conda install -y \
     h5py \
-    requests \
     libgcc \
+    requests \
  && conda clean -ya
 
 WORKDIR /root
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install --no-cache-dir -U \
-    opencv-python==4.5.5.62 \
-    numpy==1.22.2 \
-    ipython==8.1.0 \
-    "pyyaml>=5.4,<5.5" \
     "awscli<2" \
     boto3 \
-    packaging \
-    enum-compat==0.0.3 \
-    "Pillow>=9.0.0" \
     "cryptography>3.2" \
+    enum-compat==0.0.3 \
+    ipython==8.1.0 \
+    numpy==1.22.2 \
+    opencv-python==4.5.5.62 \
+    packaging \
+    "Pillow>=9.0.0" \
+    "pyyaml>=5.4,<5.5" \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_INFERENCE_URL} \
  && pip uninstall -y torchvision \
@@ -175,7 +175,6 @@ RUN pip uninstall -y model-archiver multi-model-server \
 
  WORKDIR /
 
-
 RUN cd tmp/ \
  && rm -rf tmp*
 
@@ -185,7 +184,6 @@ RUN useradd -m model-server \
 
 COPY torchserve-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
-
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 

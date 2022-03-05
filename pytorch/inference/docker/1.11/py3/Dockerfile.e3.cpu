@@ -34,8 +34,8 @@ RUN apt-get update \
     emacs \
     git \
     jq \
-    libglib2.0-0 \
     libgl1-mesa-glx \
+    libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
@@ -78,11 +78,11 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     python=$PYTHON_VERSION \
  && /opt/conda/bin/conda install -y -c anaconda \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
-    ruamel_yaml==0.15.100 \
     cython \
     mkl \
     mkl-include \
     parso \
+    ruamel_yaml==0.15.100 \
     typing \
  && conda install -y \
     h5py \
@@ -101,17 +101,17 @@ RUN rm -rf /opt/conda/lib/libtinfo.so.6
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
-    "pyyaml>=5.4,<5.5" \
-    enum-compat==0.0.3 \
-    numpy==1.22.2 \
-    ipython==8.1.0 \
-    opencv-python==4.5.5.62 \
     "awscli<2" \
     boto3 \
-    scipy \
     "cryptography>3.2" \
+    enum-compat==0.0.3 \
+    ipython==8.1.0 \
+    numpy==1.22.2 \
+    opencv-python==4.5.5.62 \
     packaging \
     "Pillow>=9.0.0" \
+    "pyyaml>=5.4,<5.5" \
+    scipy \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_INFERENCE_URL} \
  && pip uninstall -y torchvision \
