@@ -83,7 +83,9 @@ def test_pytorch_linear_regression_cpu(pytorch_training, ec2_connection, cpu_onl
 def test_pytorch_train_dgl_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     image_cuda_version = get_cuda_version_from_tag(pytorch_training)
-    # TODO: Remove when DGL gpu test on ecs get fixed
+    # TODO: Remove when DGL gpu test on ec2 get fixed
+    if image_cuda_version == "cu115":
+        pytest.skip("DGL doesn't support cuda11.5 yet")
     if Version(image_framework_version) >= Version("1.10") and image_cuda_version == "cu113":
         pytest.skip("ecs test for DGL gpu fails since pt 1.10")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
