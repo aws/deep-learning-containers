@@ -89,7 +89,7 @@ images:
   BuildSageMakerGPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false
-    image_size_baseline: 14000
+    image_size_baseline: 15000
     base_image_name: BuildE3GPUPTTrainPy3DockerImage
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
