@@ -23,7 +23,8 @@ ENV MKL_THREADING_LAYER=GNU
 ENV LD_LIBRARY_PATH /opt/conda/lib/:$LD_LIBRARY_PATH
 
 # HF ARGS
-ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211027-061940/36dea191ed0df524207de5acc4e6fb4322306d1a/gpu/torch-1.10.0%2Bcu113-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.2_inference/20220211-013556/528b6ca3747ec951396383f2a70d1354283ad29f/gpu/torch-1.10.2%2Bcu113-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/1.10.2/torchaudio-0.10.2%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG TRANSFORMERS_VERSION
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -157,7 +158,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.10/license.txt -o /
 
 # Uninstall and re-install torch and torchvision from the PyTorch website
 RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U $PT_INFERENCE_URL
+ && pip install --no-cache-dir -U $PT_INFERENCE_URL $PT_TORCHAUDIO_URL
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
