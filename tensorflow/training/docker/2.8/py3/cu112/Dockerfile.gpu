@@ -42,7 +42,6 @@ ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
 ENV PIP=${PIP}
 
-
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
    ca-certificates \
    cuda-command-line-tools-${CUDA_DASH} \
@@ -276,7 +275,6 @@ RUN HOME_DIR=/root \
    && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
    && rm -rf ${HOME_DIR}/oss_compliance*
-
 
 # remove tmp files
 RUN rm -rf /tmp/*
