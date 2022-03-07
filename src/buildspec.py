@@ -135,3 +135,14 @@ class Buildspec:
 
         """
         return self._buildspec[name]
+
+    def __contains__(self, item):
+        """
+        This method performs a membership check to test whether an
+        item exists in the Buildspec object as either a key in an
+        ordered dict or a value in a list.
+
+        :param item: Any
+        :return: Any
+        """
+        return self._buildspec.__contains__(item)
