@@ -12,8 +12,10 @@ ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
 ARG PYTHON=python3
 
+
 # install Hugging Face libraries and its dependencies
-RUN pip uninstall -y IPython
+# install ipython jupyter utils due to incompatibility with typing-extensions==3.7.4.3
+RUN pip uninstall -y IPython sparkmagic jupyter-console ipywidgets ipykernel hdijupyterutils jupyter
 RUN pip install --no-cache-dir \
     transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \
     datasets==${DATASETS_VERSION} \
