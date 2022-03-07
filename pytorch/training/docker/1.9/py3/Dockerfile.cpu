@@ -108,8 +108,8 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda install -y -c anaconda \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
-    numpy \
-    ipython \
+    numpy==1.22.2 \
+    ipython==8.0.1 \
     mkl \
     mkl-include \
     cython \
@@ -149,7 +149,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     sagemaker-experiments==0.* \
     "sagemaker-pytorch-training<3" \
     psutil==5.6.7 \
-    "Pillow>=8.3.2,<8.4" \
+    "Pillow>=9.0.0" \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
