@@ -4,6 +4,6 @@
 
 set -ex
 
-smddpsinglenode python smdataparallel_mnist.py
+smddp_singlenode_dev python smdataparallel_mnist.py
 
 bash smmodelparallel_mnist_script_mode.sh
