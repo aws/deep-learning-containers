@@ -16,6 +16,8 @@ import os
 import re
 
 resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'resources'))
+gpt2_path = os.path.join(resources_path, 'gpt2')
+gpt2_script = os.path.join(gpt2_path, 'train_gpt_simple.py')
 mnist_path = os.path.join(resources_path, 'mnist')
 mnist_script = os.path.join(mnist_path, 'mnist.py')
 throughput_path = os.path.join(resources_path, "smdataparallel")

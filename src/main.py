@@ -1,5 +1,6 @@
 import argparse
 import os
+import re
 
 import utils
 import constants
@@ -36,6 +37,19 @@ def main():
     graviton_build_mode = parse_dlc_developer_configs("dev", "graviton_mode")
     habana_build_mode = parse_dlc_developer_configs("dev", "habana_mode")
     hopper_build_mode = parse_dlc_developer_configs("dev", "hopper_mode")
+
+
+    # Write empty dict to JSON file, so subsequent buildspec steps do not fail in case we skip this build
+    utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
+
+    # Skip tensorflow-1 PR jobs, as there are no longer patch releases being added for TF1
+    # Purposefully not including this in developer config to make this difficult to enable
+    # TODO: Remove when we remove these jobs completely
+    build_arn = utils.get_codebuild_build_arn()
+    if build_context == "PR":
+        tf_1_build_regex = re.compile(r"dlc-pr-tensorflow-1:")
+        if tf_1_build_regex.search(build_arn):
+            return
 
     # A general will work if in non-EI, non-NEURON and non-GRAVITON mode and its framework not been disabled
     general_builder_enabled = (

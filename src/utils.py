@@ -31,6 +31,15 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
+def get_codebuild_build_arn():
+    """
+    Get env variable CODEBUILD_BUILD_ARN
+
+    @return: value or empty string if not set
+    """
+    return os.getenv("CODEBUILD_BUILD_ARN", "")
+
+
 class JobParameters:
     image_types = []
     device_types = []
@@ -510,7 +519,10 @@ def get_root_folder_path():
     """
     root_dir_pattern = re.compile(r"^(\S+deep-learning-containers)")
     pwd = os.getcwd()
-    return os.getenv("CODEBUILD_SRC_DIR", root_dir_pattern.match(pwd).group(1))
+    codebuild_src_dir_env = os.getenv("CODEBUILD_SRC_DIR")
+    root_folder_path = codebuild_src_dir_env if codebuild_src_dir_env else root_dir_pattern.match(pwd).group(1)
+
+    return root_folder_path
 
 
 def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
@@ -527,6 +539,9 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         job_type = (
             "inference-eia" if "eia" in image_uri else "inference-neuron" if "neuron" in image_uri else "inference"
         )
+    
+    if "habana" in image_uri:
+        framework = f"habana_{framework}"
 
     ignore_safety_ids = {}
     ignore_data_file = os.path.join(os.sep, get_root_folder_path(), "data", "ignore_ids_safety_scan.json")

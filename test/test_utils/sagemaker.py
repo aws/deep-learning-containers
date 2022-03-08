@@ -40,15 +40,6 @@ class DLCSageMakerLocalTestFailure(Exception):
     pass
 
 
-def get_s3_uri_list(image):
-    keynote2_uri = "s3://sagemaker-python-sdk-524001406597/"
-    keynote3_uri = "s3://sagemaker-python-sdk-047976067574/"
-    wheel_paths = ["dist/sagemaker.tar.gz"]
-    if "hopper" in image or "trcomp" in image:
-        return [keynote2_uri + whl_path for whl_path in wheel_paths]
-    wheel_paths += ["boto3/botocore.tar.gz", "boto3/boto3.tar.gz", "boto3/awscli.tar.gz"]
-    return [keynote3_uri + whl_path for whl_path in wheel_paths]
-
 def assign_sagemaker_remote_job_instance_type(image):
     if "neuron" in image:
         return "ml.inf1.xlarge"
@@ -183,17 +174,16 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
 
     region_list = ",".join(SAGEMAKER_EXECUTION_REGIONS)
 
-    #Multi region functionality is added for PT currently
-    sagemaker_region_list = f"--sagemaker-region {region_list}" if framework == "pytorch" else ""
+    sagemaker_regions_list = f"--sagemaker-regions {region_list}"
 
     remote_pytest_cmd = (
         f"pytest -rA {integration_path} --region {region} --processor {processor} {docker_base_arg} "
         f"{sm_remote_docker_base_name} --tag {tag} {framework_version_arg} {framework_version} "
-        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} {sagemaker_region_list} --junitxml {test_report}"
+        f"{aws_id_arg} {account_id} {instance_type_arg} {instance_type} {efa_flag} {sagemaker_regions_list} --junitxml {test_report}"
     )
 
     if processor == "eia":
-        remote_pytest_cmd += (f" {accelerator_type_arg} {eia_arg}")
+        remote_pytest_cmd += f"{accelerator_type_arg} {eia_arg}"
 
     local_pytest_cmd = (f"pytest -s -v {integration_path} {docker_base_arg} "
                         f"{sm_local_docker_repo_uri} --tag {tag} --framework-version {framework_version} "
@@ -214,7 +204,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     )
 
 
-def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_instance_ami, s3_uri_list=None):
+def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_instance_ami):
     """
     Install sagemaker local test dependencies
     :param framework: str
@@ -232,11 +222,7 @@ def install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_inst
     if framework == "pytorch":
         # The following distutils package conflict with test dependencies
         ec2_conn.run("sudo apt-get remove python3-scipy python3-yaml -y")
-    if s3_uri_list:
-        for s3_uri in s3_uri_list:
-            ec2_conn.run(f"aws s3 cp {s3_uri} .", warn=True)
     ec2_conn.run(f"sudo {python_invoker} -m pip install -r requirements.txt ", warn=True)
-    ec2_conn.run(f"""pip list | grep 'sagemaker\|boto\|aws' """, warn=True)
 
 
 def kill_background_processes_and_run_apt_get_update(ec2_conn):
@@ -320,9 +306,7 @@ def execute_local_tests(image, pytest_cache_params):
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
         kill_background_processes_and_run_apt_get_update(ec2_conn)
         with ec2_conn.cd(path):
-            s3_uri_list = get_s3_uri_list(image)
-            print(f"SM Local tests ==> fetching {s3_uri_list} for image {image}")
-            install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id, s3_uri_list)
+            install_sm_local_dependencies(framework, job_type, image, ec2_conn, ec2_ami_id)
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(ec2_conn, path, **pytest_cache_params)
             # Workaround for mxnet cpu training images as test distributed
             # causes an issue with fabric ec2_connection
@@ -358,30 +342,37 @@ def execute_local_tests(image, pytest_cache_params):
         return None
 
 
-def execute_sagemaker_remote_tests(image):
+def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, pytest_cache_params):
     """
-    Run pytest in a virtual env for a particular image
+    Run pytest in a virtual env for a particular image. Creates a custom directory for each thread for pytest cache file.
+    Stores pytest cache in a shared dict.  
     Expected to run via multiprocessing
-    :param image: ECR url
+    :param process_index - id for process. Used to create a custom cache dir 
+    :param image - ECR url
+    :param global_pytest_cache - shared Manager().dict() for cache merging
+    :param pytest_cache_params - parameters required for s3 file path building
     """
+    account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
+    pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(image, SAGEMAKER_REMOTE_TEST_TYPE)
     context = Context()
     with context.cd(path):
-        s3_uri_list = get_s3_uri_list(image)
-        print(f"SM Remote tests ==> fetching {s3_uri_list} for image {image}")
-        for s3_uri in s3_uri_list:
-            context.run(f"aws s3 cp {s3_uri} .", warn=True)
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
-            context.run(f"""pip list | grep 'sagemaker\|boto\|aws' """, warn=True)
+            pytest_cache_util.download_pytest_cache_from_s3_to_local(path, **pytest_cache_params, custom_cache_directory=str(process_index))
+            # adding -o cache_dir with a custom directory name
+            pytest_command += f" -o cache_dir={os.path.join(str(process_index), '.pytest_cache')}"
             res = context.run(pytest_command, warn=True)
             metrics_utils.send_test_result_metrics(res.return_code)
+            cache_json = pytest_cache_util.convert_pytest_cache_file_to_json(path, custom_cache_directory=str(process_index))
+            global_pytest_cache.update(cache_json)
             if res.failed:
                 raise DLCSageMakerRemoteTestFailure(
                     f"{pytest_command} failed with error code: {res.return_code}\n"
                     f"Traceback:\n{res.stdout}"
                 )
+    return None
 
 
 def generate_empty_report(report, test_type, case):

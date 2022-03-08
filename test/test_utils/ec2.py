@@ -9,7 +9,7 @@ from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
-from test.test_utils import is_pr_context, is_mainline_context
+from test.test_utils import is_pr_context, is_mainline_context, get_synapseai_version_from_tag
 from . import DEFAULT_REGION, UL_AMI_LIST, LOGGER, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
@@ -42,7 +42,7 @@ def filter_not_heavy_instance_types(instance_type_list):
     return filtered_list
 
 
-def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=False):
+def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=False, arch_type=""):
     """
     Get EC2 instance type from associated EC2_[CPU|GPU]_INSTANCE_TYPE env variable, or set it to a default
     for contexts where the variable is not present (i.e. PR, Nightly, local testing)
@@ -65,6 +65,8 @@ def get_ec2_instance_type(default, processor, filter_function=lambda x: x, efa=F
     if default in HEAVY_INSTANCE_LIST and not efa:
         raise RuntimeError(f"Default instance type should never be one of {HEAVY_INSTANCE_LIST}, but it is {default}")
     instance_type = os.getenv(f"EC2_{processor.upper()}_INSTANCE_TYPE")
+    if arch_type == "graviton":
+        instance_type = os.getenv(f"EC2_{processor.upper()}_{arch_type.upper()}_INSTANCE_TYPE")
     if not instance_type and is_mainline_context():
         return []
 
@@ -394,6 +396,22 @@ def get_instance_memory(instance_id, region=DEFAULT_REGION):
     instance_info = get_instance_details(instance_id, region=region)
     return instance_info["MemoryInfo"]["SizeInMiB"]
 
+@retry(stop_max_attempt_number=30, wait_fixed=10000)
+def get_instance_num_inferentias(instance_id=None, instance_type=None, region=DEFAULT_REGION):
+    """
+    Get total number of neurons on instance with given instance ID
+    :param instance_id: Instance ID to be queried
+    :param instance_type: Instance Type to be queried
+    :param region: Region where query will be performed
+    :return: <int> Number of neurons on instance with matching instance ID
+    """
+    assert instance_id or instance_type, "Input must be either instance_id or instance_type"
+    instance_info = (
+        get_instance_type_details(instance_type, region=region)
+        if instance_type
+        else get_instance_details(instance_id, region=region)
+    )
+    return sum(neuron_type["Count"] for neuron_type in instance_info["InferenceAcceleratorInfo"]["Accelerators"] if neuron_type["Name"]=="Inferentia")
 
 @retry(stop_max_attempt_number=30, wait_fixed=10000)
 def get_instance_num_gpus(instance_id=None, instance_type=None, region=DEFAULT_REGION):
@@ -443,7 +461,7 @@ def execute_ec2_training_test(
     large_shm=False,
     host_network=False,
     container_name="ec2_training_container",
-    timeout=3000,
+    timeout=18000,
     bin_bash_entrypoint=False,
 ):
     if executable not in ("bash", "python"):
@@ -452,17 +470,25 @@ def execute_ec2_training_test(
         executable = os.path.join(os.sep, "bin", "bash")
     docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-
+    synapseai_version = get_synapseai_version_from_tag(ecr_uri)
     # Make sure we are logged into ECR so we can pull the image
     connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
 
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
     network = '--network="host" ' if host_network else ""
+    container_runtime = '--runtime=habana -e HABANA_VISIBLE_DEVICES=all' if "hpu" in ecr_uri else ""
+    ompi_mca_btl = '-e OMPI_MCA_btl_vader_single_copy_mechanism=none' if "hpu" in ecr_uri else ""
+    cap_add = '--cap-add=sys_nice' if "hpu" in ecr_uri else ""
+    ipc = '--ipc=host' if "hpu" in ecr_uri and "pytorch" in ecr_uri else ""
+    hpu_env_vars = f'-e GIT_BRANCH={synapseai_version}' if "hpu" in ecr_uri else ""
+    habana_container_test_repo = '-v ${HOME}/gaudi-test-suite:/gaudi-test-suite' if "hpu" in ecr_uri else ""
     bin_bash_cmd = "--entrypoint /bin/bash " if bin_bash_entrypoint else ""
     connection.run(
-        f"{docker_cmd} run --name {container_name} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
-        f" {shm_setting} -itd {bin_bash_cmd}{ecr_uri}",
+        f"{docker_cmd} run --name {container_name} "
+        f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
+        f"{ipc} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
+        f"{habana_container_test_repo} {shm_setting} -itd {bin_bash_cmd}{ecr_uri}",
         hide=True,
     )
     return connection.run(
@@ -515,6 +541,35 @@ def execute_ec2_training_performance_test(
     )
     ec2_performance_upload_result_to_s3_and_validate(
         connection, ecr_uri, log_location, data_source, threshold, post_process, log_name,
+    )
+
+
+def execute_ec2_habana_training_performance_test(
+    connection, ecr_uri, test_cmd, region=DEFAULT_REGION, data_source="", cards_num=None):
+    docker_cmd = "docker"
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+
+    timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
+    log_name = f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
+    synapseai_version = get_synapseai_version_from_tag(ecr_uri)
+    # Make sure we are logged into ECR so we can pull the image
+    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+
+    connection.run(f"{docker_cmd} pull -q {ecr_uri}")
+
+    container_runtime = '--runtime=habana -e HABANA_VISIBLE_DEVICES=all'
+    hpu_env_vars = f'-e CARDS_NUM={cards_num} -e GIT_BRANCH={synapseai_version}'
+    ompi_mca_btl = '-e OMPI_MCA_btl_vader_single_copy_mechanism=none'
+    cap_add = '--cap-add=sys_nice'
+    ipc = '--ipc=host' if "pytorch" in ecr_uri else ""
+    habana_container_test_repo = '${HOME}/gaudi-test-suite:/gaudi-test-suite'
+    connection.run(
+        f"{docker_cmd} run --user root "
+        f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
+        f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
+        f"{container_runtime} {ompi_mca_btl} {hpu_env_vars} {cap_add} {ipc} "
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -v {habana_container_test_repo} "
+        f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'"
     )
 
 

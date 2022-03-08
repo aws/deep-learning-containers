@@ -97,6 +97,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
+    parser.addoption('--sagemaker-regions', default='us-west-2')
 
 
 def pytest_configure(config):
@@ -191,6 +192,12 @@ def fixture_sagemaker_session(region):
     return Session(boto_session=boto3.Session(region_name=region))
 
 
+@pytest.fixture(scope='session', name='sagemaker_regions')
+def fixture_sagemaker_regions(request):
+    sagemaker_regions = request.config.getoption('--sagemaker-regions')
+    return sagemaker_regions.split(",")
+
+
 @pytest.fixture(scope='session', name='sagemaker_local_session')
 def fixture_sagemaker_local_session(region):
     return LocalSession(boto_session=boto3.Session(region_name=region))
@@ -268,20 +275,6 @@ def skip_py2_containers(request, tag):
             pytest.skip('Skipping python2 container with tag {}'.format(tag))
 
 
-@pytest.fixture(autouse=True)
-def skip_trcomp_containers(request, ecr_image):
-    if request.node.get_closest_marker('skip_trcomp_containers'):
-        if 'trcomp' in ecr_image or 'hopper' in ecr_image:
-            pytest.skip('Skipping training compiler integrated container with tag {}'.format(ecr_image))
-
-
-@pytest.fixture(autouse=True)
-def skip_huggingface_containers(request, ecr_image):
-    if request.node.get_closest_marker('skip_huggingface_containers'):
-        if 'trcomp' not in ecr_image and 'hopper' not in ecr_image:
-            pytest.skip('Skipping huggingface container with tag {}'.format(ecr_image))
-
-
 def _get_remote_override_flags():
     try:
         s3_client = boto3.client('s3')
@@ -332,3 +325,20 @@ def disable_test(request):
 
     if build_name and version and _is_test_disabled(test_name, build_name, version):
         pytest.skip(f"Skipping {test_name} test because it has been disabled.")
+
+
+@pytest.fixture(autouse=True)
+def skip_test_successfully_executed_before(request):
+    """
+    "cache/lastfailed" contains information about failed tests only. We're running SM tests in separate threads for each image.
+    So when we retry SM tests, successfully executed tests executed again because pytest doesn't have that info in /.cache.
+    But the flag "--last-failed-no-failures all" requires pytest to execute all the available tests.
+    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.  
+    The method checks whether lastfailed file exists and the test name is not in it.
+    """
+    test_name = request.node.name
+    lastfailed = request.config.cache.get("cache/lastfailed", None)
+
+    if lastfailed is not None \
+            and not any(test_name in failed_test_name for failed_test_name in lastfailed.keys()):
+        pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")

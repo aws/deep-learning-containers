@@ -74,6 +74,10 @@ def image_builder(buildspec):
     PRE_PUSH_STAGE_IMAGES = []
     COMMON_STAGE_IMAGES = []
 
+    if "huggingface" in str(BUILDSPEC["framework"]) or "autogluon" in str(BUILDSPEC["framework"]) or "hopper" in str(BUILDSPEC["framework"]):
+        os.system("echo login into public ECR")
+        os.system("aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com")
+
     for image_name, image_config in BUILDSPEC["images"].items():
         ARTIFACTS = deepcopy(BUILDSPEC["context"]) if BUILDSPEC.get("context") else {}
 
@@ -124,9 +128,8 @@ def image_builder(buildspec):
                 })
 
                 extra_build_args[var] = file_name
-                if is_private_artifact_label_required(uri, image_repo_uri):
-                    labels[var] = file_name
-                    labels[f"{var}_URI"] = uri
+                labels[var] = file_name
+                labels[f"{var}_URI"] = uri
 
         if any(str(BUILDSPEC["framework"]).startswith(keyword) for keyword in ["huggingface", "hopper"]):
             if "transformers_version" in image_config:
@@ -183,30 +186,31 @@ def image_builder(buildspec):
             stage=constants.PRE_PUSH_STAGE,
             context=context,
             additional_tags=[image_tag],
+            target=image_config.get("target")
         )
 
         ##### Create Common stage docker object #####
         # If for a pre_push stage image we create a common stage image, then we do not push the pre_push stage image
         # to the repository. Instead, we just push its common stage image to the repository. Therefore,
         # inside function get_common_stage_image_object we make pre_push_stage_image_object non pushable.
-        # common_stage_image_object = generate_common_stage_image_object(pre_push_stage_image_object, image_tag)
-        # COMMON_STAGE_IMAGES.append(common_stage_image_object)
+        common_stage_image_object = generate_common_stage_image_object(pre_push_stage_image_object, image_tag)
+        COMMON_STAGE_IMAGES.append(common_stage_image_object)
 
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()
 
     FORMATTER.banner("DLC")
 
-    # Standard images must be built before example images
-    # Example images will use standard images as base
-    standard_images = [image for image in PRE_PUSH_STAGE_IMAGES if "example" not in image.name.lower()]
-    example_images = [image for image in PRE_PUSH_STAGE_IMAGES if "example" in image.name.lower()]
+    # Parent images do not inherit from any containers built in this job
+    # Child images use one of the parent images as their base image
+    parent_images = [image for image in PRE_PUSH_STAGE_IMAGES if not image.is_child_image]
+    child_images = [image for image in PRE_PUSH_STAGE_IMAGES if image.is_child_image]
     ALL_IMAGES = PRE_PUSH_STAGE_IMAGES + COMMON_STAGE_IMAGES
     IMAGES_TO_PUSH = [image for image in ALL_IMAGES if image.to_push and image.to_build]
 
     pushed_images = []
-    pushed_images += process_images(standard_images, "Standard")
-    pushed_images += process_images(example_images, "Example")
+    pushed_images += process_images(parent_images, "Parent/Independent")
+    pushed_images += process_images(child_images, "Child/Dependent")
 
     assert all(image in pushed_images for image in IMAGES_TO_PUSH), "Few images could not be pushed."
 

@@ -5,7 +5,7 @@ import logging
 import re
 
 from junit_xml import TestSuite, TestCase
-from multiprocessing import Pool
+from multiprocessing import Pool, Manager
 from datetime import datetime
 
 import boto3
@@ -22,7 +22,7 @@ from test_utils import (
     is_pr_context,
     is_benchmark_dev_context,
     is_rc_test_context,
-    is_diy_image,
+    is_e3_image,
     destroy_ssh_keypair,
     setup_sm_benchmark_tf_train_env,
     setup_sm_benchmark_mx_train_env,
@@ -145,7 +145,7 @@ def send_scheduler_requests(requester, image):
             break
 
 
-def run_sagemaker_remote_tests(images):
+def run_sagemaker_remote_tests(images, pytest_cache_params):
     """
     Function to set up multiprocessing for SageMaker tests
     :param images: <list> List of all images to be used in SageMaker tests
@@ -187,8 +187,17 @@ def run_sagemaker_remote_tests(images):
         if not images:
             return
         pool_number = len(images)
-        with Pool(pool_number) as p:
-            p.map(sm_utils.execute_sagemaker_remote_tests, images)
+        # Using Manager().dict() since it's a thread safe dictionary
+        global_pytest_cache = Manager().dict()
+        try:
+            with Pool(pool_number) as p:
+                p.starmap(
+                    sm_utils.execute_sagemaker_remote_tests,
+                    [[i, images[i], global_pytest_cache, pytest_cache_params] for i in range(pool_number)]
+                )
+        finally:
+            pytest_cache_util.convert_cache_json_and_upload_to_s3(global_pytest_cache, **pytest_cache_params)
+
 
 
 def pull_dlc_images(images):
@@ -256,7 +265,7 @@ def main():
     # Do not create EKS cluster for when EIA Only Images are present
     is_all_images_list_eia = all("eia" in image_uri for image_uri in all_image_list)
     eks_cluster_name = None
-    is_benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
+    benchmark_mode = "benchmark" in test_type or is_benchmark_dev_context()
     specific_test_type = re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     build_context = get_build_context()
 
@@ -279,14 +288,14 @@ def main():
     if specific_test_type == "sagemaker" and is_rc_test_context() and is_pr_context():
         specific_test_type = "release_candidate_integration"
 
-    test_path = os.path.join("benchmark", specific_test_type) if is_benchmark_mode else specific_test_type
+    test_path = os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
 
     # Skipping non HuggingFace/AG specific tests to execute only sagemaker tests
     is_hf_image_present = any("huggingface" in image_uri for image_uri in all_image_list)
     is_ag_image_present = any("autogluon" in image_uri for image_uri in all_image_list)
     is_trcomp_image_present = any(("hopper" in image_uri or "trcomp" in image_uri) for image_uri in all_image_list)
     if ((is_hf_image_present or is_ag_image_present) and specific_test_type in ("ecs", "ec2", "eks", "bai")) \
-            or (is_trcomp_image_present and (specific_test_type in ("ecs", "eks", "bai", "release_candidate_integration") or is_benchmark_mode)):
+            or (is_trcomp_image_present and (specific_test_type in ("ecs", "eks", "bai", "release_candidate_integration") or benchmark_mode)):
         # Creating an empty file for because codebuild job fails without it
         LOGGER.info(f"NOTE: {specific_test_type} tests not supported on HF or AG. Skipping...")
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
@@ -338,13 +347,22 @@ def main():
         # Execute dlc_tests pytest command
         pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
 
+        is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
         if specific_test_type == "ec2":
+            if is_habana_image:
+                context = Context()
+                context.run("git clone https://github.com/HabanaAI/gaudi-test-suite.git")
+                context.run("tar -c -f gaudi-test-suite.tar.gz gaudi-test-suite")
+
             pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
         if is_pr_context():
             if specific_test_type == "eks":
                 pytest_cmd.append("--timeout=2340")
             else:
-                pytest_cmd.append("--timeout=4860")
+                if is_habana_image:
+                    pytest_cmd.append("--timeout=18000")
+                else:
+                    pytest_cmd.append("--timeout=4860")
 
         pytest_cmds = [pytest_cmd]
         # Execute separate cmd for canaries
@@ -369,7 +387,7 @@ def main():
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
     elif specific_test_type == "sagemaker":
-        if is_benchmark_mode:
+        if benchmark_mode:
             if "neuron" in dlc_images:
                 LOGGER.info(f"Skipping benchmark sm tests for Neuron. Images: {dlc_images}")
                 # Creating an empty file for because codebuild job fails without it
@@ -386,21 +404,15 @@ def main():
             sys.exit(pytest.main(pytest_cmd))
 
         else:
-            if all("neuron" in image and "mxnet" not in image for image in standard_images_list):
+            sm_remote_images = [
+                image
+                for image in standard_images_list
+                if not (("tensorflow-inference" in image and "py2" in image) or is_e3_image(image))
+            ]
+            run_sagemaker_remote_tests(sm_remote_images, pytest_cache_params)
+            if standard_images_list and not sm_remote_images:
                 report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-                sm_utils.generate_empty_report(report, test_type, "neuron")
-            else:
-                run_sagemaker_remote_tests(
-                    [
-                        image
-                        for image in standard_images_list
-                        if not (
-                            ("tensorflow-inference" in image and "py2" in image)
-                            or is_diy_image(image)
-                            or ("neuron" in image and "mxnet" not in image)
-                        )
-                    ]
-                )
+                sm_utils.generate_empty_report(report, test_type, "sm_remote_unsupported")
         metrics_utils.send_test_duration_metrics(start_time)
 
     elif specific_test_type == "sagemaker-local":
@@ -413,7 +425,7 @@ def main():
         testing_image_list = [
             image
             for image in standard_images_list
-            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or (is_diy_image(image)))
+            if not (("tensorflow-inference" in image and "py2" in image) or ("eia" in image) or (is_e3_image(image)))
         ]
         run_sagemaker_local_tests(testing_image_list, pytest_cache_params)
         # for EIA Images

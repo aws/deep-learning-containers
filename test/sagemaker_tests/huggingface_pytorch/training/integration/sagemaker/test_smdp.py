@@ -18,6 +18,7 @@ import pytest
 import sagemaker.huggingface
 from sagemaker.huggingface import HuggingFace
 
+from ..... import invoke_sm_helper_function
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
@@ -62,7 +63,9 @@ def validate_or_skip_smdataparallel(ecr_image):
 def can_run_smdataparallel(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(image_cuda_version.strip("cu")) >= Version("110")
+    return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(
+        image_cuda_version.strip("cu")) >= Version("110")
+
 
 def get_transformers_version(ecr_image):
     transformers_version_search = re.search(r"transformers(\d+(\.\d+){1,2})", ecr_image)
@@ -72,30 +75,51 @@ def get_transformers_version(ecr_image):
     else:
         raise LookupError("HF transformers version not found in image URI")
 
+
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("hf_qa_smdp")
 @pytest.mark.processor("gpu")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
-def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
+def test_smdp_question_answering(ecr_image, sagemaker_regions, py_version):
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smdp_question_answering_function,
+                                 py_version, 1)
+
+
+@pytest.mark.integration("smdataparallel")
+@pytest.mark.model("hf_qa_smdp_multi")
+@pytest.mark.multinode(2)
+@pytest.mark.processor("gpu")
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
+def test_smdp_question_answering_multinode(ecr_image, sagemaker_regions, py_version):
+    """
+    Tests SM Distributed DataParallel single-node via script mode
+    """
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smdp_question_answering_function,
+                                 py_version, 2)
+
+
+def _test_smdp_question_answering_function(ecr_image, sagemaker_session, py_version, instances_quantity):
     transformers_version = get_transformers_version(ecr_image)
-    git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v'+transformers_version}
+    git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v' + transformers_version}
 
     validate_or_skip_smdataparallel(ecr_image)
-    instance_count = 1
+
+    instance_count = instances_quantity
     instance_type = "ml.p3.16xlarge"
-    
+
     source_dir = (
         "./examples/question-answering"
         if Version(transformers_version) < Version("4.6")
         else "./examples/pytorch/question-answering"
     )
-    
-    
+
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator = HuggingFace(
             entry_point='run_qa.py',
@@ -112,48 +136,3 @@ def test_smdp_question_answering(ecr_image, instance_type, py_version, sagemaker
             hyperparameters=hyperparameters,
         )
         estimator.fit(job_name=sagemaker.utils.unique_name_from_base('test-hf-pt-qa-smdp'))
-
-
-@pytest.mark.integration("smdataparallel")
-@pytest.mark.model("hf_qa_smdp_multi")
-@pytest.mark.multinode(2)
-@pytest.mark.processor("gpu")
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
-def test_smdp_question_answering_multinode(ecr_image, instance_type, py_version, sagemaker_session, tmpdir):
-    """
-    Tests SM Distributed DataParallel single-node via script mode
-    """
-
-    transformers_version = get_transformers_version(ecr_image)
-    git_config = {'repo': 'https://github.com/huggingface/transformers.git', 'branch': 'v'+transformers_version}
-
-    validate_or_skip_smdataparallel(ecr_image)
-
-    instance_count = 2
-    instance_type = "ml.p3.16xlarge"
-    
-    
-    source_dir = (
-        "./examples/question-answering"
-        if Version(transformers_version) < Version("4.6")
-        else "./examples/pytorch/question-answering"
-    )
-    
-    with timeout(minutes=DEFAULT_TIMEOUT):
-        estimator = HuggingFace(
-            entry_point='run_qa.py',
-            source_dir=source_dir,
-            git_config=git_config,
-            metric_definitions=metric_definitions,
-            role='SageMakerRole',
-            image_uri=ecr_image,
-            instance_count=instance_count,
-            instance_type=instance_type,
-            sagemaker_session=sagemaker_session,
-            py_version=py_version,
-            distribution=distribution,
-            hyperparameters=hyperparameters,
-        )
-        estimator.fit(job_name=sagemaker.utils.unique_name_from_base('test-hf-pt-qa-smdp-multi'))
