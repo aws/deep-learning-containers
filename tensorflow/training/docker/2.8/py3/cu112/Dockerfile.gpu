@@ -1,4 +1,13 @@
-FROM nvidia/cuda:11.2.1-base-ubuntu20.04
+##############################################################################
+#  _____ _____   ___                              ____           _
+# | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+# |  _|   |_ \   | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+# | |___ ___) |  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |_____|____/  |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                                    |___/                        |_|
+##############################################################################
+
+FROM nvidia/cuda:11.2.1-base-ubuntu20.04 AS e3
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -35,7 +44,6 @@ ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.8
 
 ARG CUDA=11.2
 ARG CUDA_DASH=11-2
-# ARG CUDNN=8.1.0.77-1
 ARG CUDNN=8.2.4.15-1
 
 ARG NCCL_VERSION=2.10.3
@@ -167,6 +175,7 @@ RUN apt-get update \
    ffmpeg \
    libsm6 \
    libxext6 \
+   # remove libsasl2-2 after Nvidia docker upstream fix CVE-2022-24407
    && rm -rf /var/lib/apt/lists/* \
    && apt-get clean
 
@@ -177,6 +186,7 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
    && make -j $(nproc) \
    && make install \
    && rm -rf ../Python-$PYTHON_VERSION* \
+   # Starting from Python39, a xxx.pem file will be generated under /tmp folder during installation. Remove it to complete cleanup after installation from python source.
    && rm /tmp/*.pem
 
 RUN ${PIP} --no-cache-dir install --upgrade \
@@ -203,7 +213,7 @@ RUN ${PIP} install --no-cache-dir -U \
    # the library version to be overwritten
  && ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
-   tensorflow-io==0.23.1 \
+   tensorflow-io==0.24.0 \
    h5py==3.1.0 \
    "absl-py>=0.9,<0.11" \
    "opencv-python>=4.3,<5" \
@@ -225,6 +235,9 @@ RUN mkdir /tmp/efa-ofi-nccl \
   && make install \
   && rm -rf /tmp/efa-ofi-nccl
 
+# Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
+RUN apt-get install -y --only-upgrade libsasl2-2
+
 RUN apt-get update && apt-get -y install  protobuf-compiler
 
 # Install Horovod, temporarily using CUDA stubs
@@ -240,8 +253,6 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 # Add NGC vars
 ENV TF_AUTOTUNE_THRESHOLD=2
 
-ENV LD_LIBRARY_PATH="/usr/local/lib/python3.8/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
-
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
@@ -255,6 +266,6 @@ RUN HOME_DIR=/root \
    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
    && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.7/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.8/license.txt -o /license.txt
 
 CMD ["/bin/bash"]

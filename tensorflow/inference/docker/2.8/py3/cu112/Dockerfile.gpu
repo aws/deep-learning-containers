@@ -1,4 +1,13 @@
-FROM nvidia/cuda:11.2.1-base-ubuntu20.04
+##############################################################################
+#  _____ _____   ___                              ____           _
+# | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+# |  _|   |_ \   | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+# | |___ ___) |  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |_____|____/  |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                                    |___/                        |_|
+##############################################################################
+
+FROM nvidia/cuda:11.2.1-base-ubuntu20.04 AS e3
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -74,6 +83,7 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && cd Python-$PYTHON_VERSION \
  && ./configure && make && make install -j \
  && rm -rf ../Python-$PYTHON_VERSION* \
+ # Starting from Python39, a xxx.pem file will be generated under /tmp folder during installation. Remove it to complete cleanup after installation from python source.
  && rm /tmp/*.pem
 
 RUN ${PIP} --no-cache-dir install --upgrade \
@@ -91,6 +101,9 @@ RUN v="8.0.1-1+cuda11.3" && \
     yes | apt-get install libnvinfer8=${v} libnvonnxparsers8=${v} libnvparsers8=${v} libnvinfer-plugin8=${v} \
         libnvinfer-dev=${v} libnvonnxparsers-dev=${v} libnvparsers-dev=${v} libnvinfer-plugin-dev=${v} \
         python3-libnvinfer=${v}
+
+# Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
+RUN apt-get install -y --only-upgrade libsasl2-2
 
 # Install TensorRT 
 # Make sure to use the same TensorRT as the one for compiling tensorflow_model_server
@@ -130,7 +143,7 @@ RUN ${PIP} install -U --no-cache-dir \
     protobuf==3.14.0 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api-gpu=="2.7.0"
+    tensorflow-serving-api-gpu=="2.8.0"
 
 RUN curl $TFS_URL -o /usr/bin/tensorflow_model_server \
  && chmod 555 /usr/bin/tensorflow_model_server
@@ -160,8 +173,70 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.7/license.txt -o /license.txt
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.8/license.txt -o /license.txt
 
 RUN rm -rf /tmp/*
+
+CMD ["/usr/bin/tf_serving_entrypoint.sh"]
+
+#################################################################
+#  ____                   __  __       _
+# / ___|  __ _  __ _  ___|  \/  | __ _| | _____ _ __
+# \___ \ / _` |/ _` |/ _ \ |\/| |/ _` | |/ / _ \ '__|
+#  ___) | (_| | (_| |  __/ |  | | (_| |   <  __/ |
+# |____/ \__,_|\__, |\___|_|  |_|\__,_|_|\_\___|_|
+#              |___/
+#  ___                              ____           _
+# |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+#  | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+#  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                      |___/                        |_|
+#################################################################
+
+FROM e3 AS sagemaker
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
+# https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+
+ARG PYTHON=python3.9
+ARG PIP=pip3
+ARG PYTHON_VERSION=3.9.10
+ARG TFS_SHORT_VERSION=2.8
+
+ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
+ENV PATH="$PATH:/sagemaker"
+
+# nginx + njs
+RUN curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
+ && echo 'deb http://nginx.org/packages/ubuntu/ focal nginx' >> /etc/apt/sources.list \
+ && apt-get update \
+ && apt-get -y install --no-install-recommends \
+    nginx \
+    nginx-module-njs \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN ${PIP} install -U --no-cache-dir \
+    falcon==3.0.1 \
+    gunicorn==20.1.0
+
+COPY ./sagemaker /sagemaker
+
+# Expose gRPC and REST port
+EXPOSE 8500 8501
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
 
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
