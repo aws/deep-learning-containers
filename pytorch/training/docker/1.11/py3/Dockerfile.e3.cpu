@@ -34,7 +34,6 @@ WORKDIR /
 RUN apt-get update \
  # TODO: Remove systemd upgrade once it is updated in base image
  && apt-get -y upgrade --only-upgrade systemd \
- && add-apt-repository multiverse \
  && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
