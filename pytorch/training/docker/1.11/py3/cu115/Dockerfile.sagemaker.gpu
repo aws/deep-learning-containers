@@ -55,7 +55,8 @@ RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
-    sagemaker-pytorch-training
+    sagemaker-pytorch-training \
+    attrs==20.3.0
 
 # Install smdebug from souce
 RUN cd /tmp \
