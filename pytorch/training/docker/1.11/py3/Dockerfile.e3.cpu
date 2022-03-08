@@ -155,7 +155,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
  && pip uninstall -y torchdata \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL}}
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL}
 
 # Install PT S3 plugin
 RUN pip install -U ${PT_S3_WHL}
