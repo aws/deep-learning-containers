@@ -34,6 +34,7 @@ WORKDIR /
 RUN apt-get update \
  # TODO: Remove systemd upgrade once it is updated in base image
  && apt-get -y upgrade --only-upgrade systemd \
+ && add-apt-repository multiverse \
  && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
@@ -42,9 +43,11 @@ RUN apt-get update \
     emacs \
     git \
     jq \
+    libcurl4-openssl-dev \
     libglib2.0-0 \
     libgl1-mesa-glx \
     libsm6 \
+    libssl-dev \
     libxext6 \
     libxrender-dev \
     software-properties-common \
@@ -54,6 +57,17 @@ RUN apt-get update \
     zlib1g-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
+
+# Install aws-sdk-cpp s3;transfer modules for torchdata
+RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp \
+ && cd aws-sdk-cpp/ \
+ && mkdir sdk-build \
+ && cd sdk-build \
+ && cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
+ && make \
+ && make install \
+ && cd ../.. \
+ && rm -rf aws-sdk-cpp
 
 # Install Open MPI
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
