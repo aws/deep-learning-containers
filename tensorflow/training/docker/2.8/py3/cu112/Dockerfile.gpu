@@ -173,7 +173,6 @@ RUN apt-get update \
    libsm6 \
    libxext6 \
    # remove libsasl2-2 after Nvidia docker upstream fix CVE-2022-24407
-   libsasl2-2 \
    && rm -rf /var/lib/apt/lists/* \
    && apt-get clean
 
@@ -227,6 +226,9 @@ RUN mkdir /tmp/efa-ofi-nccl \
   && make -j $(nproc) \
   && make install \
   && rm -rf /tmp/efa-ofi-nccl
+
+# Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
+RUN apt-get install -y --only-upgrade libsasl2-2
 
 RUN apt-get update && apt-get -y install  protobuf-compiler
 
