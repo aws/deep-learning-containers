@@ -19,6 +19,7 @@ ENV DLC_CONTAINER_TYPE=inference
 # PyTorch Binaries
 ARG PT_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220305-023311/0af288bb940c24480300fcfbb573a523d24a0835/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
 
 RUN apt-get update \
 # TODO: Remove systemd upgrade once it is updated in base image
@@ -34,9 +35,11 @@ RUN apt-get update \
     emacs \
     git \
     jq \
+    libcurl4-openssl-dev \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libsm6 \
+    libssl-dev \
     libxext6 \
     libxrender-dev \
     openjdk-11-jdk \
@@ -47,6 +50,17 @@ RUN apt-get update \
     zlib1g-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
+
+# Install aws-sdk-cpp s3;transfer modules for torchdata
+RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp \
+ && cd aws-sdk-cpp/ \
+ && mkdir sdk-build \
+ && cd sdk-build \
+ && cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
+ && make \
+ && make install \
+ && cd ../.. \
+ && rm -rf aws-sdk-cpp
 
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
@@ -115,7 +129,9 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_INFERENCE_URL} \
  && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
+ && pip uninstall -y torchdata \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL}
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
