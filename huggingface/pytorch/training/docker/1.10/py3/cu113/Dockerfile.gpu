@@ -1,8 +1,8 @@
-# https://github.com/aws/deep-learning-containers/blob/master/available_images.md 
+# https://github.com/aws/deep-learning-containers/blob/master/available_images.md
 # refer to the above page to pull latest Pytorch image
 
 # docker image region us-west-2
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.10.0-gpu-py38-cu113-ubuntu20.04-sagemaker
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.10.2-gpu-py38-cu113-ubuntu20.04-sagemaker
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -13,29 +13,19 @@ ARG DATASETS_VERSION
 ARG PYTHON=python3
 
 # AWS packages
-# TODO: Wait for SageMaker release of 1.10.2
-# ARG PT_TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/1.10.2/torchaudio-0.10.2%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/1.10.2/torchaudio-0.10.2%2Bcu113-cp38-cp38-linux_x86_64.whl
 
 # install Hugging Face libraries and its dependencies
-RUN pip install --no-cache-dir \ 
-	transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \ 
+RUN pip install --no-cache-dir \
+	transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
-	# TODO: Remove upgrade statements once packages are updated in base image
-	"Pillow>=9.0.0" \
-	# TODO: Remove upgrade statements once packages are updated in base image
-	"bokeh>=2.4.2,<3" \
-	# TODO: Remove upgrade statements once packages are updated in base image
-	"ipython>=8.0.1" \
-	# TODO: Remove upgrade statements once packages are updated in base image
-	"numpy>=1.22.0" \
-	# TODO: Remove upgrade statements once packages are updated in base image
 	$PT_TORCHAUDIO_URL
-	
+
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
  && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
  && apt install -y git-lfs \
- && apt-get clean \  
+ && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 RUN HOME_DIR=/root \
