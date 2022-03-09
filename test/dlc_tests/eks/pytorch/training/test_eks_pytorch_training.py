@@ -171,9 +171,9 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     image_cuda_version = get_cuda_version_from_tag(pytorch_training)
     if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
         pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
-    # TODO: Re-enable for PT 1.10 when DGL supports it
-    if Version(image_framework_version) == Version("1.10"):
-        pytest.skip("DGL does not yet support PT1.10")
+    # TODO: Remove when DGL gpu test on ecs get fixed
+    if Version(image_framework_version) >= Version("1.10"):
+        pytest.skip("ecs test for DGL gpu fails since pt 1.10")
 
     training_result = False
     rand_int = random.randint(4001, 6000)
@@ -184,7 +184,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     if is_below_framework_version("1.7", pytorch_training, "pytorch"):
         dgl_branch = "0.4.x"
     else:
-        dgl_branch = "0.5.x"
+        dgl_branch = "0.7.x"
 
     args = (
         f"git clone -b {dgl_branch} https://github.com/dmlc/dgl.git && "
