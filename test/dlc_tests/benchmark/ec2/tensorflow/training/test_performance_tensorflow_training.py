@@ -84,6 +84,7 @@ def test_performance_tensorflow_gpu_imagenet(tensorflow_training, ec2_connection
         threshold={"Throughput": threshold},
     )
 
+@pytest.mark.skip(reason="[REmove before merging] For this PR")
 @pytest.mark.integration("synthetic dataset")
 @pytest.mark.model("resnet50")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)
@@ -112,6 +113,7 @@ def test_performance_tensorflow_bert_hpu(tensorflow_training_habana, ec2_connect
         cards_num=cards_num,
     )
 
+@pytest.mark.skip(reason="[REmove before merging] For this PR")
 @pytest.mark.integration("coco_like dataset")
 @pytest.mark.model("maskrcnn")
 @pytest.mark.parametrize("ec2_instance_type", [TF_EC2_HPU_INSTANCE_TYPE], indirect=True)

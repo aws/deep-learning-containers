@@ -510,15 +510,15 @@ def execute_asynchronus_testing_using_s3_bucket(
     local_filename = s3_location.replace(':','-').replace('/','-')
     last_line_of_log = ""
     line_count_list = []
-    time.sleep(5 * 60)
-    s3_upload_cmd = f"aws s3 cp {log_location_within_ec2} {s3_location}"
-    LOGGER.info(f"Will start uploading the logs at {s3_location}")
-    connection.run(f"while true; do {s3_upload_cmd}; sleep 300; done &", timeout=connection_timeout, asynchronous=True)
-    time.sleep(1 * 60)
+    # time.sleep(5 * 60)
+    # s3_upload_cmd = f"aws s3 cp {log_location_within_ec2} {s3_location}"
+    # LOGGER.info(f"Will start uploading the logs at {s3_location}")
+    # connection.run(f"while true; do {s3_upload_cmd}; sleep 300; done &", timeout=connection_timeout, asynchronous=True)
+    # time.sleep(1 * 60)
     while (int(time.time()) - start_time <= loop_time) and (not last_line_of_log.endswith(required_log_ending)):
         time.sleep(5 * 60)
         loop_count += 1
-        # connection.run(f"aws s3 cp {log_location_within_ec2} {s3_location}", timeout=connection_timeout)
+        connection.run(f"aws s3 cp {log_location_within_ec2} {s3_location}", timeout=connection_timeout)
         last_line_of_log = fetch_s3_file_and_get_last_line(s3_location, local_filename)
         number_of_lines_in_log_file = int(run(f"wc -l {local_filename}", hide=True).stdout.strip().split()[0])
         line_count_list.append(number_of_lines_in_log_file)
@@ -545,7 +545,7 @@ def execute_asynchronus_testing_using_s3_bucket(
         )
 
 
-def get_s3_uri_for_saving_permanent_logs(framework, s3_bucket, test_type="ec2"):
+def get_s3_uri_for_saving_permanent_logs(framework, s3_bucket, test_type="ec2", custom_filename=None):
     """
     Helper function to get s3 uri where log files generated within test ec2 instances will be uploaded to.
 
@@ -556,7 +556,11 @@ def get_s3_uri_for_saving_permanent_logs(framework, s3_bucket, test_type="ec2"):
     commit_id = run("""git log --format="%H" -n 1""", hide=True).stdout.strip()
     unique_id = str(uuid.uuid4())
     unique_id_with_timestamp = f"{unique_id}-{int(time.time())}"
-    s3_filepath = os.path.join(s3_bucket, test_type, framework, commit_id, f"logs-{unique_id_with_timestamp}.txt")
+    if custom_filename:
+        filename = f"{custom_filename}-logs-{unique_id_with_timestamp}.txt"
+    else:
+        filename = f"logs-{unique_id_with_timestamp}.txt"
+    s3_filepath = os.path.join(s3_bucket, test_type, framework, commit_id, filename)
     s3_permanent_log_upload_uri = f"s3://{s3_filepath}"
     return s3_permanent_log_upload_uri
 
@@ -714,7 +718,8 @@ def execute_ec2_habana_training_performance_test(
     s3_uri_permanent_logs = get_s3_uri_for_saving_permanent_logs(
         framework, s3_bucket=s3_bucket_for_permanent_logs, test_type=test_type
     )
-
+    custom_filename = test_cmd.split(f"{os.sep}")[-1]
+    custom_filename += f"cards-{cards_num}" if cards_num else f"cards-0"
     if cards_num == 1 and framework == "tensorflow" and "bert" in test_cmd and data_source == "squad":
         LOGGER.info("******** Going for Async Execution ********")
         required_log_ending = "Kudos!! Tensorflow BERT tests executed successfully"
