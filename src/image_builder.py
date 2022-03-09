@@ -172,7 +172,7 @@ def image_builder(buildspec):
             additional_tags=[image_tag],
             target=image_config.get("target")
         )
-        
+
         ##### Create Common stage docker object #####
         # If for a pre_push stage image we create a common stage image, then we do not push the pre_push stage image
         # to the repository. Instead, we just push its common stage image to the repository. Therefore,
@@ -183,11 +183,6 @@ def image_builder(buildspec):
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()
 
-    print("stopped by me")
-    
-    # print(COMMON_STAGE_IMAGES)
-    # print(PRE_PUSH_STAGE_IMAGES)
-    exit()
     FORMATTER.banner("DLC")
 
     # Parent images do not inherit from any containers built in this job
