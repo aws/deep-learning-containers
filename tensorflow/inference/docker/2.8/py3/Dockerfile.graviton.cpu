@@ -16,7 +16,7 @@ ARG PYTHON=python3.8
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.8.10
-ARG TFS_URL=s3://aws-ei-tensorflow-binaries/serving/r2.8_aws/20220308-144045/graviton/cpu/py38/tensorflow_model_server
+ARG TFS_URL=https://aws-ei-tensorflow-binaries.s3.us-west-2.amazonaws.com/serving/r2.8_aws/20220308-144045/graviton/cpu/py38/tensorflow_model_server
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
