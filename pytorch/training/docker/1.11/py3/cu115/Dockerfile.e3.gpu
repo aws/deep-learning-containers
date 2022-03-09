@@ -10,6 +10,7 @@ ARG PYTHON_SHORT_VERSION=3.8
 # PyTorch Binaries
 ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220305-023311/0af288bb940c24480300fcfbb573a523d24a0835/gpu/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cu115/torchvision-0.12.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/test/cu115/torchaudio-0.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
 ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
 ARG CUBLAS_VERSION=11.7.4.6
@@ -184,7 +185,9 @@ RUN pip install --no-cache-dir -U \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
+ && pip uninstall -y torchaudio \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHAUDIO_URL}
 
 # Install Nvidia Apex
 ## Pin apex commit requested by sm-model-parallel team
