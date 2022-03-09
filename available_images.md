@@ -116,6 +116,10 @@ SageMaker Framework Containers (SM support only)
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
+|PyTorch 1.10.2   |training	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.10.2-cpu-py38-ubuntu20.04-sagemaker		|
+|PyTorch 1.10.2   |training	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.10.2-gpu-py38-cu113-ubuntu20.04-sagemaker	|
+|PyTorch 1.10.2   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:1.10.2-cpu-py38-ubuntu20.04-sagemaker		|
+|PyTorch 1.10.2   |inference	|No			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:1.10.2-gpu-py38-cu113-ubuntu20.04-sagemaker	|
 |PyTorch 1.10.0   |training	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.10.0-cpu-py38-ubuntu20.04-sagemaker		|
 |PyTorch 1.10.0   |training	|Yes			|GPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.10.0-gpu-py38-cu113-ubuntu20.04-sagemaker	|
 |PyTorch 1.10.0   |inference	|No			|CPU 		| 3.8 (py38)			|763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:1.10.0-cpu-py38-ubuntu20.04-sagemaker		|
