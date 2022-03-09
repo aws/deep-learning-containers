@@ -10,6 +10,7 @@ ARG PYTHON_VERSION=3.8.12
 ARG PT_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220305-023311/0af288bb940c24480300fcfbb573a523d24a0835/gpu/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cu115/torchvision-0.12.0%2Bcu115-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/test/cu115/torchaudio-0.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
 
 ARG TS_VERSION=0.5.2
 ARG CUBLAS_VERSION=11.7.4.6
@@ -56,6 +57,7 @@ RUN apt-get update \
     libcudnn8=$CUDNN_VERSION-1+cuda11.5 \
     libcufft-dev-11-5 \
     libcurand-dev-11-5 \
+    libcurl4-openssl-dev \
     libcusolver-dev-11-5 \
     libcusparse-dev-11-5 \
     cuda-nvml-dev-11-5=${NVML_VERSION}-1 \
@@ -67,6 +69,7 @@ RUN apt-get update \
     libnuma-dev \
     libsm6 \
     libssl1.1 \
+    libssl-dev \
     libxext6 \
     libxrender-dev \
     openjdk-11-jdk \
@@ -78,6 +81,18 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
+# Install aws-sdk-cpp s3;transfer modules for torchdata
+RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp \
+ && cd aws-sdk-cpp/ \
+ && mkdir sdk-build \
+ && cd sdk-build \
+ && cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
+ && make \
+ && make install \
+ && cd ../.. \
+ && rm -rf aws-sdk-cpp
+
+# Install NCCL
 RUN cd /tmp \
   && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
   && cd nccl \
@@ -169,7 +184,9 @@ RUN pip install --no-cache-dir -U \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
  && pip uninstall -y torchaudio \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHAUDIO_URL}
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHAUDIO_URL} \
+ && pip uninstall -y torchdata \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL}
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
