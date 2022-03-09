@@ -25,8 +25,10 @@ ENV DGLBACKEND=pytorch
 ENV DLC_CONTAINER_TYPE=training
 
 # PyTorch Binaries
-ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220305-023311/0af288bb940c24480300fcfbb573a523d24a0835/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220309-213627/9c116675b0719f637546dbc5507bf79ef8fb622e/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/test/cpu/torchaudio-0.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
 ARG PT_S3_WHL=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
 WORKDIR /
@@ -42,9 +44,11 @@ RUN apt-get update \
     emacs \
     git \
     jq \
+    libcurl4-openssl-dev \
     libglib2.0-0 \
     libgl1-mesa-glx \
     libsm6 \
+    libssl-dev \
     libxext6 \
     libxrender-dev \
     software-properties-common \
@@ -54,6 +58,17 @@ RUN apt-get update \
     zlib1g-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
+
+# Install aws-sdk-cpp s3;transfer modules for torchdata
+RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp \
+ && cd aws-sdk-cpp/ \
+ && mkdir sdk-build \
+ && cd sdk-build \
+ && cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
+ && make \
+ && make install \
+ && cd ../.. \
+ && rm -rf aws-sdk-cpp
 
 # Install Open MPI
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
@@ -139,7 +154,11 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
+ && pip uninstall -y torchaudio \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHAUDIO_URL} \
+ && pip uninstall -y torchdata \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL}
 
 # Install PT S3 plugin
 RUN pip install -U ${PT_S3_WHL}
