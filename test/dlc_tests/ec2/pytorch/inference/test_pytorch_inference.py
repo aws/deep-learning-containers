@@ -26,6 +26,7 @@ PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 PT_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(default="c6g.4xlarge", processor="cpu", arch_type="graviton")
 
 PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test")
+PT_TORCHAUDIO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchaudio")
 
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True)
@@ -69,6 +70,22 @@ def test_ec2_pytorch_inference_eia_cpu(pytorch_inference_eia, ec2_connection, re
 @pytest.mark.parametrize("ei_accelerator_type", PT_EC2_EIA_ACCELERATOR_TYPE, indirect=True)
 def test_ec2_pytorch_inference_eia_gpu(pytorch_inference_eia, ec2_connection, region, pt14_and_above_only):
     ec2_pytorch_inference(pytorch_inference_eia, "eia", ec2_connection, region)
+
+
+@pytest.mark.integration("pt_torchaudio_gpu")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+def test_pytorch_inference_torchaudio_gpu(pytorch_inference, ec2_connection, gpu_only, ec2_instance_type, pt111_and_above_only):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_inference, ec2_instance_type):
+        pytest.skip(f"Image {pytorch_inference} is incompatible with instance type {ec2_instance_type}")
+    execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHAUDIO_CMD)
+
+
+@pytest.mark.integration("pt_torchaudio_cpu")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_pytorch_inference_torchaudio_cpu(pytorch_inference, ec2_connection, cpu_only, pt111_and_above_only):
+    execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHAUDIO_CMD)
 
 
 def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):

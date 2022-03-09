@@ -20,6 +20,7 @@ PT_AMP_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchA
 PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test")
 PT_S3_PLUGIN_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchS3Plugin")
 PT_HABANA_TEST_SUITE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testHabanaPTSuite")
+PT_TORCHAUDIO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testtorchaudio")
 
 
 PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
@@ -225,6 +226,24 @@ def test_pytorch_s3_plugin_cpu(pytorch_training, ec2_connection, cpu_only, ec2_i
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_S3_PLUGIN_CMD)
+
+
+@pytest.mark.integration("pt_torchaudio_gpu")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_pytorch_training_torchaudio_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt111_and_above_only):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
+        pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD)
+
+
+@pytest.mark.integration("pt_torchaudio_cpu")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_pytorch_traning_torchaudio_cpu(pytorch_training, ec2_connection, cpu_only, ec2_instance_type, pt111_and_above_only):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
+        pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD)
 
 
 @pytest.mark.usefixtures("sagemaker")
