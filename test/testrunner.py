@@ -336,7 +336,7 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
-            eks_cluster_name = f"{framework}-{build_context}"
+            eks_cluster_name = f"{framework}-MAINLINE" if build_context == "NIGHTLY" else f"{framework}-{build_context}"
             eks_utils.eks_setup()
             if eks_utils.is_eks_cluster_active(eks_cluster_name):
                 eks_utils.eks_write_kubeconfig(eks_cluster_name)
