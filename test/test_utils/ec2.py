@@ -715,11 +715,11 @@ def execute_ec2_habana_training_performance_test(
     account_id_prefix = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])[:3]
     s3_bucket_for_permanent_logs = f"dlinfra-habana-tests-{account_id_prefix}"
     test_type = "benchmark"
-    s3_uri_permanent_logs = get_s3_uri_for_saving_permanent_logs(
-        framework, s3_bucket=s3_bucket_for_permanent_logs, test_type=test_type
-    )
     custom_filename = test_cmd.split(f"{os.sep}")[-1]
     custom_filename += f"cards-{cards_num}" if cards_num else f"cards-0"
+    s3_uri_permanent_logs = get_s3_uri_for_saving_permanent_logs(
+        framework, s3_bucket=s3_bucket_for_permanent_logs, test_type=test_type, custom_filename=custom_filename
+    )
     if cards_num == 1 and framework == "tensorflow" and "bert" in test_cmd and data_source == "squad":
         LOGGER.info("******** Going for Async Execution ********")
         required_log_ending = "Kudos!! Tensorflow BERT tests executed successfully"
