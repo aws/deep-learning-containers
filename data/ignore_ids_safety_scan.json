@@ -648,6 +648,7 @@
         }
     },
     "autogluon": {
+        "_comment":"py37 support is required",
         "training": {
             "py3": {
                 "44717": "The vendor states that this reported code behavior is completely harmless.",

@@ -608,7 +608,15 @@ def _get_safety_ignore_list(image_uri):
     :param image_uri:
     :return: <list> list of safety check IDs to ignore
     """
-    framework = "mxnet" if "mxnet" in image_uri else "pytorch" if "pytorch" in image_uri else "tensorflow"
+    if "mxnet" in image_uri:
+        framework = "mxnet"
+    elif "pytorch" in image_uri:
+        framework = "pytorch"
+    elif "autogluon" in image_uri:
+        framework = "autogluon"
+    else:
+        framework = "tensorflow"
+
     job_type = (
         "training"
         if "training" in image_uri
