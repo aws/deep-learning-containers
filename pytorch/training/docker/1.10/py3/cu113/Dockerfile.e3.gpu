@@ -187,9 +187,11 @@ RUN pip install --no-cache-dir -U \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
 
 # Install Nvidia Apex
-RUN git clone https://github.com/NVIDIA/apex.git \
- && cd apex \
- && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+## Pin apex commit requested by sm-model-parallel team
+RUN git clone https://github.com/NVIDIA/apex && \
+    cd apex && \
+    git checkout aa756ce && \
+    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
 # Configure Open MPI and configure NCCL parameters
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
