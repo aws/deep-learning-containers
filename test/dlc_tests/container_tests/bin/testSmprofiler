@@ -111,7 +111,7 @@ if [[ ${FRAMEWORK} == "pytorch" ]]; then
         echo "SMProfiler pytorch [True-False] zcc integration test failed"
         exit $exit_code
     fi
-    python -m pytest --assert=plain pytest "tests/zero_code_change/test_pytorch_integration.py::test_pytorch[False-False]"
+    python -m pytest --assert=plain "tests/zero_code_change/test_pytorch_integration.py::test_pytorch[False-False]"
     exit_code=$?
     if [ "$exit_code" -eq "0" ]
     then
