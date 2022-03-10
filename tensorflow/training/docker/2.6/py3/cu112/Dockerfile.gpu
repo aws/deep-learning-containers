@@ -219,7 +219,7 @@ RUN $PYTHON -m pip install --no-cache-dir \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
     "shap>=0.39,<1"
- 
+
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
 RUN $PYTHON -m pip install --no-cache-dir \
@@ -241,7 +241,7 @@ RUN $PYTHON -m pip install --no-cache-dir \
    "PyHive<1" \
    "sparkmagic<1" \
    ${TF_URL} \
-   tensorflow-datasets==4.5.2 
+   tensorflow-datasets==4.5.2
 
 RUN $PYTHON -m pip install --no-cache-dir \
    "sagemaker==2.70.0" \
@@ -254,15 +254,15 @@ RUN $PYTHON -m pip install --no-cache-dir \
    smclarify
 
 
-# Insteall tensorflow-io without deps 
+# Insteall tensorflow-io without deps
 # to avoid it accidently install public tensorflow wheel
 RUN $PYTHON -m pip install --no-cache-dir --no-deps tensorflow-io==0.21.0 \
-   tensorflow-io-gcs-filesystem==0.21.0 
+   tensorflow-io-gcs-filesystem==0.21.0
 
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 
-   
+
 ARG METIS=metis-5.1.0
 ARG RMM_VERSION=0.15.0
 
@@ -342,7 +342,7 @@ RUN HOME_DIR=/root \
    && chmod +x /usr/local/bin/testOSSCompliance \
    && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
-   && rm -rf ${HOME_DIR}/oss_compliance* 
+   && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.6/license.txt -o /license.txt
 

@@ -531,8 +531,7 @@ def test_pip_check(image):
     # smclarify binaries have s3fs->aiobotocore dependency which uses older version of botocore. temporarily
     # allowing this to catch other issues
     allowed_tf_exception = re.compile(
-        rf"^tensorflow-serving-api{gpu_suffix} \d\.\d+\.\d+ requires "
-        rf"tensorflow{gpu_suffix}, which is not installed.$"
+        rf"^tensorflow-serving-api{gpu_suffix} \d\.\d+\.\d+ requires tensorflow{gpu_suffix}, which is not installed.$"
     )
     allowed_exception_list.append(allowed_tf_exception)
 
@@ -543,18 +542,12 @@ def test_pip_check(image):
     allowed_exception_list.append(allowed_smclarify_exception)
 
     # The v0.22 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
-    allowed_habana_tf_exception = re.compile(
-        rf"^tensorflow-io 0.22.0 requires "
-        rf"tensorflow, which is not installed.$"
-    )
+    allowed_habana_tf_exception = re.compile(rf"^tensorflow-io 0.22.0 requires tensorflow, which is not installed.$")
     allowed_exception_list.append(allowed_habana_tf_exception)
 
     # The v0.21 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
     if "tensorflow" in image and "2.6.3" in image:
-        allowed_tf263_exception = re.compile(
-            rf"^tensorflow-io 0.21.0 requires "
-            rf"tensorflow, which is not installed.$"
-        )
+        allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
         allowed_exception_list.append(allowed_tf263_exception)
 
     # Add null entrypoint to ensure command exits immediately
