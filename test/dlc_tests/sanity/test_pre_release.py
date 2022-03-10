@@ -550,17 +550,17 @@ def test_pip_check(image):
         allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
         allowed_exception_list.append(allowed_tf263_exception)
 
-    allowed_autogluon_exception = re.compile(
-        rf"autogluon-(vision|mxnet) 0.3.1 has requirement Pillow<8.4.0,>=8.3.0, but you have pillow \d+(\.\d+)*"
-    )
+    if "autogluon" in image and "0.3.1" in image:
+        allowed_autogluon_exception = re.compile(
+            rf"autogluon-(vision|mxnet) 0.3.1 has requirement Pillow<8.4.0,>=8.3.0, but you have pillow \d+(\.\d+)*"
+        )
+        allowed_exception_list.append(allowed_autogluon_exception)
 
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(
         f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not(any([allowed_exception.match(output.stdout)
-                for allowed_exception in allowed_exception_list])
-                or allowed_autogluon_exception.match(output.stdout)):
+        if not(any([allowed_exception.match(output.stdout) for allowed_exception in allowed_exception_list])):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
