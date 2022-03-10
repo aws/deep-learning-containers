@@ -96,7 +96,7 @@ elif [[ $FRAMEWORK == "tensorflow2" ]]; then
                 echo "SMDebug test failed: $test_file"
                 exit $exit_code
             fi
-        fi 
+        fi
     done
 else
     for test_file in tests/${FRAMEWORK}/*
