@@ -1,11 +1,12 @@
 import os
 
+from packaging.version import Version
 import pytest
 
 import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
-from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, get_inference_server_type
+from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag, get_inference_server_type, get_cuda_version_from_tag
 from test.test_utils.ec2 import get_ec2_instance_type, execute_ec2_inference_test, get_ec2_accelerator_type
 from test.dlc_tests.conftest import LOGGER
 import boto3
@@ -77,6 +78,9 @@ def test_ec2_pytorch_inference_eia_gpu(pytorch_inference_eia, ec2_connection, re
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_inference_torchaudio_gpu(pytorch_inference, ec2_connection, gpu_only, ec2_instance_type, pt111_and_above_only):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
+    if Version(image_framework_version) < Version("1.11") and Version(image_framework_version) != Version("1.9"):
+        pytest.skip("torchaudio not enabled before 1.11 except 1.9")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_inference, ec2_instance_type):
         pytest.skip(f"Image {pytorch_inference} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHAUDIO_CMD)
@@ -86,6 +90,9 @@ def test_pytorch_inference_torchaudio_gpu(pytorch_inference, ec2_connection, gpu
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_inference_torchaudio_cpu(pytorch_inference, ec2_connection, cpu_only, pt111_and_above_only):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
+    if Version(image_framework_version) < Version("1.11") and Version(image_framework_version) != Version("1.9"):
+        pytest.skip("torchaudio not enabled before 1.11 except 1.9")
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHAUDIO_CMD)
 
 
@@ -93,6 +100,9 @@ def test_pytorch_inference_torchaudio_cpu(pytorch_inference, ec2_connection, cpu
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_inference_torchdata_gpu(pytorch_inference, ec2_connection, gpu_only, ec2_instance_type, pt111_and_above_only):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
+    if Version(image_framework_version) < Version("1.11"):
+        pytest.skip("torchdata not enabled before 1.11")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_inference, ec2_instance_type):
         pytest.skip(f"Image {pytorch_inference} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHDATA_CMD)
@@ -102,6 +112,9 @@ def test_pytorch_inference_torchdata_gpu(pytorch_inference, ec2_connection, gpu_
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_inference_torchdata_cpu(pytorch_inference, ec2_connection, cpu_only, pt111_and_above_only):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
+    if Version(image_framework_version) < Version("1.11"):
+        pytest.skip("torchdata not enabled before 1.11")
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TORCHDATA_CMD)
 
 
