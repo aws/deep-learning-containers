@@ -1,11 +1,10 @@
-ARG CUDA_VER=10.2
+ARG CUDA_VER=11.2
 ARG LINUX_VER=ubuntu18.04
-ARG PYTHON_VERSION=3.7.10
-ARG PYTHON_VER=3.7
-ARG RAPIDS_VER=0.19
+ARG PYTHON_VERSION=3.8.12
+ARG PYTHON_VER=3.8
 ARG FROM_IMAGE=rapidsai/rapidsai-core
 
-FROM ${FROM_IMAGE}:${RAPIDS_VER}-cuda${CUDA_VER}-base-${LINUX_VER}-py${PYTHON_VER}
+FROM ${FROM_IMAGE}:cuda${CUDA_VER}-base-${LINUX_VER}-py${PYTHON_VER}
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -15,7 +14,7 @@ ARG CUDA_VER
 ARG OPENSSL_VERSION=1.1.1l
 ARG AUTOGLUON_VERSION=0.3.1
 
-ARG MXNET_VER=1.7.*
+ARG MXNET_VER=1.9.*
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -25,7 +24,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     MXNET_CUDNN_LIB_CHECKING=0 \
     SAGEMAKER_TRAINING_MODULE=sagemaker_mxnet_container.training:main \
     LD_LIBRARY_PATH=/opt/conda/envs/rapids/lib:/usr/local/lib:$LD_LIBRARY_PATH \
-    PATH=/opt/conda/envs/rapids/bin:/usr/local/bin:$PATH 
+    PATH=/opt/conda/envs/rapids/bin:/usr/local/bin:$PATH
 
 RUN apt-get update \
  && apt-get -y upgrade \
@@ -52,6 +51,8 @@ RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz 
  && rmdir /usr/local/ssl/certs \
  && ln -s /etc/ssl/certs /usr/local/ssl/certs
 
+ARG CUDNN_VERSION=8.*
+
 RUN conda update conda -y \
  && conda update --all -y \
  && conda clean --all -y
@@ -62,13 +63,16 @@ RUN source activate rapids \
  && conda clean --all -y
 
 RUN source activate rapids \
+ && conda install -c conda-forge cudnn==${CUDNN_VERSION} -y \
  && pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools wheel \
- && pip install --no-cache-dir -U "dask>2021.09.1" "distributed>2021.09.1" \
  && pip install --no-cache-dir -U --no-use-pep517 mxnet-cu$(echo ${CUDA_VER} | sed 's/\.//')==${MXNET_VER} \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && pip install --no-cache-dir -U sagemaker-mxnet-training \
- && pip install --no-cache-dir -U cupy-cuda102==9.2.0 \
+ && pip install --no-cache-dir -U cupy-cuda$(echo ${CUDA_VER} | sed 's/\.//')==9.* \
+ && pip install --no-cache-dir -U catboost==0.26.1 \
+ && pip install --no-cache-dir -U 'numpy>=1.21,<1.22' \
+ && pip install --no-cache-dir -U 'Pillow>=9.0.0,<9.1.0' \
  && pip uninstall -y \
     datashader \
     ipykernel \
@@ -95,11 +99,7 @@ RUN source activate rapids \
     pyppeteer \
     traitlets \
     websockets \
-    widgetsnbextension 
-
-# Catboost 0.26 updates version of scala 2.11 for security reasons
-# https://github.com/catboost/catboost/issues/1632
-RUN pip install --no-cache-dir -U catboost==0.26.1
+    widgetsnbextension
 
 WORKDIR /
 
