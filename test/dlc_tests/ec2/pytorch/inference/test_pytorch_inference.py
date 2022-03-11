@@ -77,7 +77,7 @@ def test_ec2_pytorch_inference_eia_gpu(pytorch_inference_eia, ec2_connection, re
 
 @pytest.mark.integration("pt_torchaudio_gpu")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_inference_torchaudio_gpu(pytorch_inference, ec2_connection, gpu_only, ec2_instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
     if Version(image_framework_version) in SpecifierSet(">=1.9,!=1.10.*"):
@@ -99,7 +99,7 @@ def test_pytorch_inference_torchaudio_cpu(pytorch_inference, ec2_connection, cpu
 
 @pytest.mark.integration("pt_torchdata_gpu")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_pytorch_inference_torchdata_gpu(
     pytorch_inference, ec2_connection, gpu_only, ec2_instance_type, pt111_and_above_only
 ):
