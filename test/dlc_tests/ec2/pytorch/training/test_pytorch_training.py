@@ -244,7 +244,7 @@ def test_pytorch_training_torchaudio_gpu(pytorch_training, ec2_connection, gpu_o
 @pytest.mark.integration("pt_torchaudio_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_traning_torchaudio_cpu(pytorch_training, ec2_connection, cpu_only, ec2_instance_type, pt111_and_above_only):
+def test_pytorch_training_torchaudio_cpu(pytorch_training, ec2_connection, cpu_only, ec2_instance_type, pt111_and_above_only):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
     if Version(image_framework_version) < Version("1.11"):
         pytest.skip("torchdata not enabled before 1.11")
@@ -268,7 +268,7 @@ def test_pytorch_training_torchdata_gpu(pytorch_training, ec2_connection, gpu_on
 @pytest.mark.integration("pt_torchdata_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_traning_torchdata_cpu(pytorch_training, ec2_connection, cpu_only, ec2_instance_type, pt111_and_above_only):
+def test_pytorch_training_torchdata_cpu(pytorch_training, ec2_connection, cpu_only, ec2_instance_type, pt111_and_above_only):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
     if Version(image_framework_version) < Version("1.11"):
         pytest.skip("torchdata not enabled before 1.11")
