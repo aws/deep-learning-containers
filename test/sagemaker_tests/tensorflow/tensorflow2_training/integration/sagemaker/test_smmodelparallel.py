@@ -47,25 +47,7 @@ def validate_or_skip_smmodelparallel_efa(ecr_image):
 def can_run_smmodelparallel_efa(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet(">=2.4.1") and Version(image_cuda_version.strip("cu")) >= Version("110")
-
-def skip_if_framework_version_is_skippable(ecr_image, custom_message = None):
-    """
-    Checks if a particular framework version is skippable or not. Skips the test if the version is skippable 
-    and displays appropriate message.
-    :param ecr_image: image uri
-    :param custom_message: Custom message to skip the test.
-    """
-    skippable_version_dict = {
-        "2.8.0":"TF 2.8 images do not have SMModelParallel, hence being skipped!!"
-    }
-    skippable_version_list = [Version(_version) for _version in list(skippable_version_dict.keys())]
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    display_message = custom_message
-    if Version(image_framework_version) in skippable_version_list:
-        if display_message is None:
-            display_message = skippable_version_dict[image_framework_version]
-        pytest.skip(display_message)
+    return Version(image_framework_version) in SpecifierSet(">=2.4.1,<2.7.0") and Version(image_cuda_version.strip("cu")) >= Version("110")
 
 
 @pytest.mark.integration("smmodelparallel")
@@ -88,7 +70,6 @@ def _test_smmodelparallel_efa_function(
     Tests SM Modelparallel in sagemaker
     """
     validate_or_skip_smmodelparallel_efa(ecr_image)
-    skip_if_framework_version_is_skippable(ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
                            role='SageMakerRole',
@@ -131,7 +112,6 @@ def _test_smmodelparallel_multinode_efa_function(
     Tests SM Modelparallel in sagemaker
     """
     validate_or_skip_smmodelparallel_efa(ecr_image)
-    skip_if_framework_version_is_skippable(ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
                            role='SageMakerRole',
@@ -173,7 +153,6 @@ def _test_smmodelparallel_function(
     """
     instance_type = "ml.g4dn.12xlarge"
     validate_or_skip_smmodelparallel(ecr_image)
-    skip_if_framework_version_is_skippable(ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
                            role='SageMakerRole',
@@ -216,7 +195,6 @@ def _test_smmodelparallel_multinode_function(
     """
     instance_type = "ml.g4dn.12xlarge"
     validate_or_skip_smmodelparallel(ecr_image)
-    skip_if_framework_version_is_skippable(ecr_image)
     smmodelparallel_path = os.path.join(RESOURCE_PATH, 'smmodelparallel')
     estimator = TensorFlow(entry_point=test_script,
                            role='SageMakerRole',
