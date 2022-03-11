@@ -4,24 +4,24 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-S3_IO_DEV_BRANCH="v0.11.0-rc2"
-S3_IO_DEV_REPO="https://github.com/pytorch/audio.git"
-S3_IO_TEST_SCRIPT="audio/test/integration_tests/tacotron2_pipeline_test.py"
+TORCHAUDIO_BRANCH="v0.11.0"
+TORCHAUDIO_REPO="https://github.com/pytorch/audio.git"
+TORCHAUDIO_TEST_SCRIPT="audio/test/integration_tests/tacotron2_pipeline_test.py"
 
 echo "Fetch Torchaudio integration test script."
-git clone --recursive -b ${S3_IO_DEV_BRANCH} ${S3_IO_DEV_REPO}
+git clone --recursive -b ${TORCHAUDIO_BRANCH} ${TORCHAUDIO_REPO}
 
 echo "Installing pre-requisites."
 pip install pytest
 
 echo "Running Torchaudio integration datapipe tests."
-python ${S3_IO_TEST_SCRIPT}
+python ${TORCHAUDIO_TEST_SCRIPT}
 
 if [ "$?" -eq "0" ]
 then
     echo "Torchaudio integration tests succeeded."
 else
-    echo "Torchaudio integration tests failed at ${S3_IO_DEV_REPO} ${S3_IO_DEV_BRANCH} ${S3_IO_TEST_SCRIPT}"
+    echo "Torchaudio integration tests failed at ${TORCHAUDIO_REPO} ${TORCHAUDIO_BRANCH} ${TORCHAUDIO_TEST_SCRIPT}"
     exit 1
 fi
 
