@@ -14,8 +14,7 @@ ARG PYTHON=python3
 
 # AWS packages
 ARG PT_TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/1.10.2/torchaudio-0.10.2%2Bcu113-cp38-cp38-linux_x86_64.whl
-# TODO: need to wait for SMP 1.8 release
-ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.10.0/build-artifacts/2022-02-21-19-26/smdistributed_modelparallel-1.7.0-cp38-cp38-linux_x86_64.whl
+ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.10.0/build-artifacts/2022-03-12-00-33/smdistributed_modelparallel-1.8.0-cp38-cp38-linux_x86_64.whl
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
