@@ -179,7 +179,8 @@ def test_framework_version_cpu(image):
         assert tag_framework_version in output.stdout.strip()
     else:
         if tested_framework == "autogluon.core":
-            assert output.stdout.strip().startswith(tag_framework_version)
+            version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
+            assert output.stdout.strip().startswith(version_to_check)
         # Habana v1.2 binary does not follow the X.Y.Z+cpu naming convention
         elif "habana" not in image_repo_name:
             if tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
@@ -284,7 +285,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
             assert tag_framework_version in output.stdout.strip()
         else:
             if tested_framework == "autogluon.core":
-                assert output.stdout.strip().startswith(tag_framework_version)
+                version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
+                assert output.stdout.strip().startswith(version_to_check)
             elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
                 torch_version_pattern = r"{torch_version}(\+cu\d+)".format(torch_version=tag_framework_version)
                 assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
@@ -550,7 +552,7 @@ def test_pip_check(image):
         allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
         allowed_exception_list.append(allowed_tf263_exception)
 
-    if "autogluon" in image and "0.3.1" in image:
+    if "autogluon" in image and (("0.3.1" in image) or ("0.3.2" in image)):
         allowed_autogluon_exception = re.compile(
             rf"autogluon-(vision|mxnet) 0.3.1 has requirement Pillow<8.4.0,>=8.3.0, but you have pillow \d+(\.\d+)*"
         )
