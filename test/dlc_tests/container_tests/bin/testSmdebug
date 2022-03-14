@@ -58,7 +58,7 @@ if [[ $FRAMEWORK == "tensorflow" ]]; then
     # Later version of tensorflow-datasets
     # do not work with tensorflow 1.x
     pip install tensorflow-datasets==3.2.1
-    python -m pytest --assert=plain tests/${FRAMEWORK} \
+    pytest tests/${FRAMEWORK} \
                             -k "not test_keras and not test_mnist_s3 and not test_mnist_s3_multi_save_configs" \
                             --ignore=tests/mxnet/test_training_end.py
     exit_code=$?
@@ -79,24 +79,29 @@ elif [[ $FRAMEWORK == "mxnet" ]]; then
         echo "SMDebug tests failed for $FRAMEWORK"
         exit $exit_code
     fi
-else
-    TENSORFLOW_DATASETS_VERSION="4.0.1"
-    if [[ $FRAMEWORK == "tensorflow2" ]]; then
-        tf_version=$(python -c "import tensorflow as tf; print(tf.__version__)")
-        if [[ "$tf_version" == *"2.0."* ]]; then
-            TENSORFLOW_DATASETS_VERSION="3.2.1"
-        fi
-    fi
-    # pip install tensorflow-datasets==${TENSORFLOW_DATASETS_VERSION} "absl-py>=0.9,<0.11"
+elif [[ $FRAMEWORK == "tensorflow2" ]]; then
+    tf_version=$(python -c "import tensorflow as tf; print(tf.__version__)")
     for test_file in tests/${FRAMEWORK}/*
     do
-        
         if [[ "$tf_version" == *"2.7."* && "$test_file" == *"test_keras_mirrored.py" ]]; then
-            echo "skipping flaky test_keras_mirrored.py"
+            echo "skipping test_keras_mirrored.py for TF2.7 as it is flaky"
         else
-            python -m pytest --assert=plain $test_file
+            pytest $test_file
+            exit_code=$?
+            if [ "$exit_code" -eq "0" ]; then
+                echo "SMDebug test succeeded: $test_file"
+            elif [ "$exit_code" -eq "5" ]; then
+                echo "SMDebug no tests collected: $test_file"
+            else
+                echo "SMDebug test failed: $test_file"
+                exit $exit_code
+            fi
         fi
-        
+    done
+else
+    for test_file in tests/${FRAMEWORK}/*
+    do
+        pytest $test_file
         exit_code=$?
         if [ "$exit_code" -eq "0" ]
         then
@@ -125,10 +130,10 @@ if [[ ${FRAMEWORK} == "tensorflow2" ]]; then
     echo "Running Gradtape test"
     if [ "$(printf '%s\n' "0.7.2" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.7.2" ]; then
         if [ "$(printf '%s\n' "0.8.0" "$SMDEBUG_RELEASE_TAG" | sort -V | head -n1)" = "0.8.0" ]; then
-            python -m pytest --assert=plain tests/zero_code_change/test_${FRAMEWORK}_gradtape_integration.py
+            pytest tests/zero_code_change/test_${FRAMEWORK}_gradtape_integration.py
             exit_code=$?
         else
-            python -m pytest --assert=plain tests/zero_code_change/${FRAMEWORK}_gradtape_integration_tests.py
+            python tests/zero_code_change/${FRAMEWORK}_gradtape_integration_tests.py
             exit_code=$?
         fi
         if [ "$exit_code" -eq "0" ]
@@ -143,7 +148,7 @@ fi
 
 echo "Running ZCC tests."
 
-python -m pytest --assert=plain tests/zero_code_change/${ZCC_TEST_NAME[$FRAMEWORK]}
+pytest tests/zero_code_change/${ZCC_TEST_NAME[$FRAMEWORK]}
 
 if [ "$?" -eq "0" ]
 then
