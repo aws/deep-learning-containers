@@ -97,6 +97,7 @@ function create_graviton_node_group() {
     --node-labels "test_type=graviton" \
     --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=graviton" \
     --asg-access \
+    --managed=true \
     --ssh-access \
     --ssh-public-key "${3}"
 }
