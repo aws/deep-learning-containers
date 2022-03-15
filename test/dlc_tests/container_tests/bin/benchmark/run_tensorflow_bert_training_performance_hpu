@@ -33,7 +33,8 @@ echo Script took $(( DIFF/60 )) mins to finish >> "${LOG_FILE}"
 
 if [ $RETURNVAL -eq 0 ];
 then
-    echo "Kudos!! Tensorflow BERT tests executed successfully" >> "${LOG_FILE}"
+    echo "Tensorflow BERT test terminated successfully" >> "${LOG_FILE}"
+    echo "Kudos!! Habana tests executed successfully" >> "${LOG_FILE}"
     exitcode=0
 else
     echo "Tensorflow BERT test terminated unsuccessfully" >> "${LOG_FILE}"

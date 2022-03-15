@@ -720,22 +720,32 @@ def execute_ec2_habana_training_performance_test(
     s3_uri_permanent_logs = get_s3_uri_for_saving_permanent_logs(
         framework, s3_bucket=s3_bucket_for_permanent_logs, test_type=test_type, custom_filename=custom_filename
     )
-    if cards_num == 1 and framework == "tensorflow" and "bert" in test_cmd and data_source == "squad":
-        LOGGER.info("******** Going for Async Execution ********")
-        required_log_ending = "Kudos!! Tensorflow BERT tests executed successfully"
-        execute_asynchronus_testing_using_s3_bucket(
-            connection,
-            execution_command,
-            timeout,
-            required_log_ending,
-            loop_time= 4 * 3600,
-            s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
-        )
-        return
-    run_output = connection.run(execution_command, timeout=timeout)
-    connection.run(f"aws s3 cp ~/container_tests/logs.txt {s3_uri_permanent_logs}")
+    LOGGER.info(f"******** Going for Async Execution for {test_cmd} ********")
+    required_log_ending = "Kudos!! Habana tests executed successfully"
+    execute_asynchronus_testing_using_s3_bucket(
+        connection,
+        execution_command,
+        timeout,
+        required_log_ending,
+        loop_time= 4 * 3600,
+        s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
+    )
+    # if cards_num == 1 and framework == "tensorflow" and "bert" in test_cmd and data_source == "squad":
+    #     LOGGER.info("******** Going for Async Execution ********")
+    #     required_log_ending = "Kudos!! Tensorflow BERT tests executed successfully"
+    #     execute_asynchronus_testing_using_s3_bucket(
+    #         connection,
+    #         execution_command,
+    #         timeout,
+    #         required_log_ending,
+    #         loop_time= 4 * 3600,
+    #         s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
+    #     )
+    #     return
+    # run_output = connection.run(execution_command, timeout=timeout)
+    # connection.run(f"aws s3 cp ~/container_tests/logs.txt {s3_uri_permanent_logs}")
     LOGGER.info(f"Uploaded logs at: {s3_uri_permanent_logs}")
-    return run_output
+    return
 
 
 def execute_ec2_inference_performance_test(
