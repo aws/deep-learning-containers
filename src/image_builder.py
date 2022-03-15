@@ -140,11 +140,13 @@ def image_builder(buildspec):
             labels.update(image_config.get("labels"))
 
         # Adding standard labels to all images
-        labels["framework"] = str(BUILDSPEC["framework"])
-        labels["framework_version"] = str(BUILDSPEC["version"])
-        labels["container_type"] = str(image_config["device_type"])
-        # tag_python_version in the buildspec looks like pyXY. We need to convert it to X.Y 
-        labels["python_version"] = ".".join(list("py38".strip("py")))
+        labels["com.amazonaws.sagemaker.dlc.framework"] = str(BUILDSPEC["framework"])
+        labels["com.amazonaws.sagemaker.dlc.framework_version"] = str(BUILDSPEC["version"])
+        labels["com.amazonaws.sagemaker.dlc.container_type"] = str(image_config["device_type"])
+        # tag_python_version in the buildspec looks like pyXY. We need to convert it to X.Y
+        labels["com.amazonaws.sagemaker.dlc.py_version"] = \
+            ".".join(list(str(image_config["tag_python_version"]).strip("py")))
+        # TODO: add contributor label
 
         """
         Override parameters from parent in child.
