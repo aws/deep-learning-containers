@@ -448,7 +448,7 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     """
     user = get_instance_user(instance_id, region=region)
     conn = Connection(
-        user=user, host=get_public_ip(instance_id, region), connect_kwargs={"key_filename": [instance_pem_file]},
+        user=user, host=get_public_ip(instance_id, region), connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=18000, 
     )
     return conn
 
@@ -481,7 +481,7 @@ def execute_asynchronus_testing_using_s3_bucket(
     loop_time=2.5 * 3600,
     log_location_within_ec2="~/container_tests/logs.txt",
     s3_uri_for_saving_permanent_logs=None,
-    number_of_previous_outputs_to_check_for_hanged_script=3,
+    hang_detection_window=3,
 ):
     """
     This method uses fabric to run the provided execution_command in asynchronus mode. While the execution command
@@ -496,7 +496,7 @@ def execute_asynchronus_testing_using_s3_bucket(
     :param loop_time: int, seconds for which we would wait for the tests to execute on ec2 instance
     :param log_location_within_ec2: Location within ec2 instance where the logs are being witten.
     :param s3_uri_for_saving_permanent_logs: Location where permanent s3 logs could be saved.
-    :param number_of_previous_outputs_to_check_for_hanged_script: int, Number of previous log files for which the lines will be checked to detect a hang
+    :param hang_detection_window: int, This method detects a hang if length of log file does not change for hang_detection_window number of iterations.
     """
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
     s3_bucket_name = f"dlc-async-test-{account_id}"
@@ -515,11 +515,11 @@ def execute_asynchronus_testing_using_s3_bucket(
     while (int(time.time()) - start_time <= loop_time) and (not last_line_of_log.endswith(required_log_ending)):
         time.sleep(5 * 60)
         loop_count += 1
-        connection.run(f"aws s3 cp {log_location_within_ec2} {s3_location}")
+        connection.run(f"aws s3 cp {log_location_within_ec2} {s3_location}", timeout=connection_timeout)
         last_line_of_log = fetch_s3_file_and_get_last_line(s3_location, local_filename)
         number_of_lines_in_log_file = int(run(f"wc -l {local_filename}", hide=True).stdout.strip().split()[0])
         line_count_list.append(number_of_lines_in_log_file)
-        number_of_previous_line_counts_to_check = number_of_previous_outputs_to_check_for_hanged_script
+        number_of_previous_line_counts_to_check = hang_detection_window
         if len(line_count_list) >= number_of_previous_line_counts_to_check:
             if all(
                 line_count == line_count_list[-1]
@@ -541,17 +541,23 @@ def execute_asynchronus_testing_using_s3_bucket(
         )
 
 
-def get_s3_uri_for_saving_permanent_logs(framework, s3_bucket, test_type="ec2"):
+def get_s3_uri_for_saving_permanent_logs(framework, s3_bucket, test_type="ec2", custom_filename=None):
     """
     Helper function to get s3 uri where log files generated within test ec2 instances will be uploaded to.
 
     :param framework: str, tensorflow, pytorch etc.
     :param s3_bucket: str, name of the bucket where we want to upload the logs.
     :param test_type: str, type of the test
+    :param custom_filename: str, custom name of the file that will be prepended with unique id to create the s3 filepath
     """
-    current_time = int(time.time())
     commit_id = run("""git log --format="%H" -n 1""", hide=True).stdout.strip()
-    s3_filepath = os.path.join(s3_bucket, test_type, framework, commit_id, f"logs-{current_time}.txt")
+    unique_id = str(uuid.uuid4())
+    unique_id_with_timestamp = f"{unique_id}-{int(time.time())}"
+    if custom_filename:
+        filename = f"{custom_filename}-logs-{unique_id_with_timestamp}.txt"
+    else:
+        filename = f"logs-{unique_id_with_timestamp}.txt"
+    s3_filepath = os.path.join(s3_bucket, test_type, framework, commit_id, filename)
     s3_permanent_log_upload_uri = f"s3://{s3_filepath}"
     return s3_permanent_log_upload_uri
 
@@ -613,7 +619,7 @@ def execute_ec2_training_test(
                 timeout,
                 required_log_ending,
                 s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
-                number_of_previous_outputs_to_check_for_hanged_script=10,
+                hang_detection_window=10,
             )
             return
         else:
@@ -678,7 +684,7 @@ def execute_ec2_training_performance_test(
 
 
 def execute_ec2_habana_training_performance_test(
-    connection, ecr_uri, test_cmd, region=DEFAULT_REGION, data_source="", cards_num=None):
+    connection, ecr_uri, test_cmd, region=DEFAULT_REGION, data_source="", cards_num=None, timeout=18000):
     docker_cmd = "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
@@ -696,14 +702,33 @@ def execute_ec2_habana_training_performance_test(
     cap_add = '--cap-add=sys_nice'
     ipc = '--ipc=host' if "pytorch" in ecr_uri else ""
     habana_container_test_repo = '${HOME}/gaudi-test-suite:/gaudi-test-suite'
-    connection.run(
-        f"{docker_cmd} run --user root "
-        f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
-        f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
-        f"{container_runtime} {ompi_mca_btl} {hpu_env_vars} {cap_add} {ipc} "
-        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -v {habana_container_test_repo} "
+    execution_command = f"{docker_cmd} run --user root " \
+        f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} " \
+        f"-e PR_CONTEXT={1 if is_pr_context() else 0} " \
+        f"{container_runtime} {ompi_mca_btl} {hpu_env_vars} {cap_add} {ipc} " \
+        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} -v {habana_container_test_repo} " \
         f"{ecr_uri} {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'"
+    
+    framework = "tensorflow" if "tensorflow" in ecr_uri else "pytorch" if "pytorch" in ecr_uri else None
+    account_id_prefix = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])[:3]
+    s3_bucket_for_permanent_logs = f"dlinfra-habana-tests-{account_id_prefix}"
+    test_type = "benchmark"
+    custom_filename = test_cmd.split(f"{os.sep}")[-1]
+    custom_filename += f"-cards-{cards_num}" if cards_num else "-cards-0"
+    s3_uri_permanent_logs = get_s3_uri_for_saving_permanent_logs(
+        framework, s3_bucket=s3_bucket_for_permanent_logs, test_type=test_type, custom_filename=custom_filename
     )
+    required_log_ending = "Kudos!! Habana tests executed successfully"
+    execute_asynchronus_testing_using_s3_bucket(
+        connection,
+        execution_command,
+        timeout,
+        required_log_ending,
+        loop_time= 4 * 3600,
+        s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
+    )
+    LOGGER.info(f"Uploaded logs at: {s3_uri_permanent_logs}")
+    return
 
 
 def execute_ec2_inference_performance_test(
