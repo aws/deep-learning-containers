@@ -510,11 +510,6 @@ def execute_asynchronus_testing_using_s3_bucket(
     local_filename = s3_location.replace(':','-').replace('/','-')
     last_line_of_log = ""
     line_count_list = []
-    # time.sleep(5 * 60)
-    # s3_upload_cmd = f"aws s3 cp {log_location_within_ec2} {s3_location}"
-    # LOGGER.info(f"Will start uploading the logs at {s3_location}")
-    # connection.run(f"while true; do {s3_upload_cmd}; sleep 300; done &", timeout=connection_timeout, asynchronous=True)
-    # time.sleep(1 * 60)
     while (int(time.time()) - start_time <= loop_time) and (not last_line_of_log.endswith(required_log_ending)):
         time.sleep(5 * 60)
         loop_count += 1
