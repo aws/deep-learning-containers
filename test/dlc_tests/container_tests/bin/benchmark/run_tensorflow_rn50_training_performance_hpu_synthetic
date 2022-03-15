@@ -27,18 +27,20 @@ fi
 python3 gaudi_test_suite.py -tm benchmark -f tf -m resnet50 -c ${CARDS_NUM} -t ${TRAINING_TIME} -o ${HOME_DIR}/artifacts 2>&1 | tee ${LOG_FILE}
 RETURNVAL=${PIPESTATUS[0]}
 
-if [ $RETURNVAL -eq 0 ];
-then
-    echo "Tensorflow Resnet50 test executed successfully"
-    exitcode=0
-else
-    echo "Tensorflow Resnet50 test terminated unsuccessfully"
-    exitcode=$RETURNVAL
-fi
-
 END=$(date +%s)
 DIFF=$(( END - START ))
 echo Script took $(( DIFF/60 )) mins to finish >> "${LOG_FILE}"
+
+if [ $RETURNVAL -eq 0 ];
+then
+    echo "Tensorflow Resnet50 test executed successfully" >> "${LOG_FILE}"
+    echo "Kudos!! Habana tests executed successfully" >> "${LOG_FILE}"
+    exitcode=0
+else
+    echo "Tensorflow Resnet50 test terminated unsuccessfully" >> "${LOG_FILE}"
+    exitcode=$RETURNVAL
+fi
+
 
 rm -rf ${HOME_DIR}/artifacts/gaudi-test-suite
 
