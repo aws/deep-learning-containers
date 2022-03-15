@@ -24,7 +24,7 @@ images:
   BuildHabanaTensorflowPy37SypAI120TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_HPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 8200
+    image_size_baseline: &IMAGE_SIZE_BASELINE 8000
     device_type: &DEVICE_TYPE hpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
@@ -39,7 +39,7 @@ images:
   BuildHabanaTensorflowExamplePy37SypAI120TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_HPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 8400
+    image_size_baseline: &IMAGE_SIZE_BASELINE 8200
     base_image_name: BuildHabanaTensorflowPy37SypAI120TrainingDockerImage
     device_type: &DEVICE_TYPE hpu
     python_version: &DOCKER_PYTHON_VERSION py3
