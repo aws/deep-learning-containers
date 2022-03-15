@@ -6,7 +6,6 @@ LABEL dlc_major_version="1"
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
 ARG OPEN_MPI_VERSION=4.0.1
-ARG TS_VERSION=0.5.2
 
 ENV LANG=C.UTF-8
 ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/conda/lib"
@@ -15,12 +14,6 @@ ENV TEMP=/home/model-server/tmp
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
-
-# PyTorch Binaries
-ARG PT_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220309-213627/9c116675b0719f637546dbc5507bf79ef8fb622e/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/test/cpu/torchaudio-0.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
 
 RUN apt-get update \
 # TODO: Remove systemd upgrade once it is updated in base image
@@ -121,6 +114,14 @@ RUN rm -rf /opt/conda/lib/libtinfo.so.6
 ##############################################################################
 
 FROM common AS e3
+
+# PyTorch Binaries
+ARG PT_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220309-213627/9c116675b0719f637546dbc5507bf79ef8fb622e/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/test/cpu/torchaudio-0.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
+
+ARG TS_VERSION=0.5.2
 
 # The following section uninstalls torch and torchvision before installing the
 # custom versions from an S3 bucket. This will need to be removed in the future

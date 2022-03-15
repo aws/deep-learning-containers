@@ -7,13 +7,6 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
 ARG PYTHON_SHORT_VERSION=3.8
 
-# PyTorch Binaries
-ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220309-213627/9c116675b0719f637546dbc5507bf79ef8fb622e/gpu/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cu115/torchvision-0.12.0%2Bcu115-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/test/cu115/torchaudio-0.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
-ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
-
 ARG CUBLAS_VERSION=11.7.4.6
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
@@ -178,6 +171,13 @@ RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
 ##############################################################################
 
 FROM common AS e3
+
+# PyTorch Binaries
+ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220309-213627/9c116675b0719f637546dbc5507bf79ef8fb622e/gpu/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cu115/torchvision-0.12.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/test/cu115/torchaudio-0.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
+ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
 RUN conda install -c pytorch \
     magma-cuda115==2.6.1 \
