@@ -179,7 +179,8 @@ def test_framework_version_cpu(image):
         assert tag_framework_version in output.stdout.strip()
     else:
         if tested_framework == "autogluon.core":
-            assert output.stdout.strip().startswith(tag_framework_version)
+            version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
+            assert output.stdout.strip().startswith(version_to_check)
         # Habana v1.2 binary does not follow the X.Y.Z+cpu naming convention
         elif "habana" not in image_repo_name:
             if tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
@@ -284,7 +285,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
             assert tag_framework_version in output.stdout.strip()
         else:
             if tested_framework == "autogluon.core":
-                assert output.stdout.strip().startswith(tag_framework_version)
+                version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
+                assert output.stdout.strip().startswith(version_to_check)
             elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
                 torch_version_pattern = r"{torch_version}(\+cu\d+)".format(torch_version=tag_framework_version)
                 assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
@@ -524,31 +526,43 @@ def test_pip_check(image):
     """
     ctx = Context()
     gpu_suffix = "-gpu" if "gpu" in image else ""
+    allowed_exception_list = []
 
     # TF inference containers do not have core tensorflow installed by design. Allowing for this pip check error
     # to occur in order to catch other pip check issues that may be associated with TF inference
     # smclarify binaries have s3fs->aiobotocore dependency which uses older version of botocore. temporarily
     # allowing this to catch other issues
     allowed_tf_exception = re.compile(
-        rf"^tensorflow-serving-api{gpu_suffix} \d\.\d+\.\d+ requires "
-        rf"tensorflow{gpu_suffix}, which is not installed.$"
+        rf"^tensorflow-serving-api{gpu_suffix} \d\.\d+\.\d+ requires tensorflow{gpu_suffix}, which is not installed.$"
     )
+    allowed_exception_list.append(allowed_tf_exception)
+
     allowed_smclarify_exception = re.compile(
         r"^aiobotocore \d+(\.\d+)* has requirement botocore<\d+(\.\d+)*,>=\d+(\.\d+)*, "
         r"but you have botocore \d+(\.\d+)*\.$"
     )
+    allowed_exception_list.append(allowed_smclarify_exception)
 
     # The v0.22 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
-    allowed_habana_tf_exception = re.compile(
-        rf"^tensorflow-io 0.22.0 requires "
-        rf"tensorflow, which is not installed.$"
-    )
+    allowed_habana_tf_exception = re.compile(rf"^tensorflow-io 0.22.0 requires tensorflow, which is not installed.$")
+    allowed_exception_list.append(allowed_habana_tf_exception)
+
+    # The v0.21 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
+    if "tensorflow" in image and "2.6.3" in image:
+        allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
+        allowed_exception_list.append(allowed_tf263_exception)
+
+    if "autogluon" in image and (("0.3.1" in image) or ("0.3.2" in image)):
+        allowed_autogluon_exception = re.compile(
+            rf"autogluon-(vision|mxnet) 0.3.1 has requirement Pillow<8.4.0,>=8.3.0, but you have pillow \d+(\.\d+)*"
+        )
+        allowed_exception_list.append(allowed_autogluon_exception)
 
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(
         f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not (allowed_tf_exception.match(output.stdout) or allowed_smclarify_exception.match(output.stdout) or allowed_habana_tf_exception.match(output.stdout)):
+        if not(any([allowed_exception.match(output.stdout) for allowed_exception in allowed_exception_list])):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 

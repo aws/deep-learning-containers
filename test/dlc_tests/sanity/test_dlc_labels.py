@@ -6,6 +6,7 @@ import boto3
 import pytest
 
 from test import test_utils
+from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
 
@@ -71,16 +72,24 @@ def test_dlc_major_version_dockerfiles(image):
 
     # Skip older FW versions that did not use this versioning scheme
     references = {"tensorflow2": "2.2.0", "tensorflow1": "1.16.0", "mxnet": "1.7.0", "pytorch": "1.5.0"}
+    excluded_versions = {
+        "tensorflow2": SpecifierSet("<2.2"),
+        "tensorflow1": SpecifierSet("<1.16"),
+        "mxnet": SpecifierSet("<1.7"),
+        "pytorch": SpecifierSet("<1.5"),
+        # autogluon 0.3.1 and 0.3.2 DLCs are both v1, and are meant to exist in the repo simultaneously
+        "autogluon": SpecifierSet("==0.3.*"),
+    }
     if test_utils.is_tf_version("1", image):
         reference_fw = "tensorflow1"
     elif test_utils.is_tf_version("2", image):
         reference_fw = "tensorflow2"
     else:
         reference_fw = framework
-    if reference_fw in references and Version(fw_version) < Version(references[reference_fw]):
+    if reference_fw in excluded_versions and Version(fw_version) in excluded_versions[reference_fw]:
         pytest.skip(
             f"Not enforcing new versioning scheme on old image {image}. "
-            f"Started enforcing version scheme on the following: {references}"
+            f"Enforcing version scheme on {reference_fw} versions that do not match {excluded_versions[reference_fw]}"
         )
 
     # Find all Dockerfile.<processor> for this framework/job_type's Major.Minor version

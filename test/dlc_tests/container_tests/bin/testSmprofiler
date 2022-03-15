@@ -38,14 +38,6 @@ pip install pytest
 
 echo "Running framework tests."
 
-if [[ $FRAMEWORK == "tensorflow2" ]]; then
-    TENSORFLOW_DATASETS_VERSION="4.0.1"
-    tf_version=$(python -c "import tensorflow as tf; print(tf.__version__)")
-    if [[ "$tf_version" == *"2.0."* ]]; then
-         TENSORFLOW_DATASETS_VERSION="3.2.1"
-    fi
-    # pip install tensorflow-datasets==${TENSORFLOW_DATASETS_VERSION}
-fi
 if [[ $FRAMEWORK == "tensorflow2" ]] || [[ $FRAMEWORK == "pytorch" ]]; then
     for test_file in tests/profiler/${FRAMEWORK}/*
     do
@@ -119,7 +111,7 @@ if [[ ${FRAMEWORK} == "pytorch" ]]; then
         echo "SMProfiler pytorch [True-False] zcc integration test failed"
         exit $exit_code
     fi
-    python -m pytest --assert=plain pytest "tests/zero_code_change/test_pytorch_integration.py::test_pytorch[False-False]"
+    python -m pytest --assert=plain "tests/zero_code_change/test_pytorch_integration.py::test_pytorch[False-False]"
     exit_code=$?
     if [ "$exit_code" -eq "0" ]
     then
