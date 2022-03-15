@@ -12,25 +12,25 @@ neuron_mode = false
 graviton_mode = false
 # Please only set it to True if you are preparing a HABANA related PR
 # Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
-habana_mode = true
+habana_mode = false
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
-benchmark_mode = true
+benchmark_mode = false
 
 [build]
 # Frameworks for which you want to disable both builds and tests
 # available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "tensorflow", "mxnet", "pytorch"]
 skip_frameworks = []
 # Set to false in order to remove datetime tag on PR builds
-datetime_tag = false
+datetime_tag = true
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = false
+do_build = true
 
 [test]
 ### On by default
 sanity_tests = true
-  safety_check_test = true
+  safety_check_test = false
   ecr_scan_allowlist_feature = false
 ecs_tests = true
 eks_tests = true
