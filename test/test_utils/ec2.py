@@ -548,6 +548,7 @@ def get_s3_uri_for_saving_permanent_logs(framework, s3_bucket, test_type="ec2", 
     :param framework: str, tensorflow, pytorch etc.
     :param s3_bucket: str, name of the bucket where we want to upload the logs.
     :param test_type: str, type of the test
+    :param custom_filename: str, custom name of the file that will be prepended with unique id to create the s3 filepath
     """
     commit_id = run("""git log --format="%H" -n 1""", hide=True).stdout.strip()
     unique_id = str(uuid.uuid4())
