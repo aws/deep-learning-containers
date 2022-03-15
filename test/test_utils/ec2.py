@@ -527,9 +527,8 @@ def execute_asynchronus_testing_using_s3_bucket(
                 LOGGER.info(
                     "No progress reported during last 15 minutes. Job most likely hanged so stopping the execution!!"
                 )
-                continue
-                # break
-        LOGGER.info(f"Fetched file from {s3_location} for {loop_count} number of times")
+                break
+        LOGGER.info(f"Uploaded file to {s3_location} for {loop_count} number of times")
     
     if not last_line_of_log.endswith(required_log_ending):
         raise ValueError(
