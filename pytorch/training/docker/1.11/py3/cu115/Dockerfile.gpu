@@ -121,7 +121,7 @@ RUN mkdir /tmp/openmpi && \
   wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz && \
   tar zxf openmpi-${OMPI_VERSION}.tar.gz && \
   cd openmpi-${OMPI_VERSION} && \
-  ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH && \
+  ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH --with-cuda && \
   make -j $(nproc) all && \
   make install && \
   ldconfig && \

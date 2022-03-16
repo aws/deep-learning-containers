@@ -100,7 +100,7 @@ RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeysto
 RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
  && gunzip -c openmpi-${OMPI_VERSION}.tar.gz | tar xf - \
  && cd openmpi-${OMPI_VERSION} \
- && ./configure --prefix=/home/.openmpi \
+ && ./configure --prefix=/home/.openmpi --with-cuda \
  && make all install \
  && cd .. \
  && rm openmpi-${OMPI_VERSION}.tar.gz \
