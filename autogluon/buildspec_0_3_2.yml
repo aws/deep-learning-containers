@@ -1,8 +1,8 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK autogluon
-version: &VERSION 0.4.0
-shart_version: &SHORT_VERSION 0.4
+version: &VERSION 0.3.2
+shart_version: &SHORT_VERSION 0.3
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
@@ -36,7 +36,7 @@ images:
   BuildAutogluonCPUTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &AUTOGLUON_CPU_TRAINING_PY3 false
-    image_size_baseline: 4382
+    image_size_baseline: 3995
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
@@ -49,7 +49,7 @@ images:
   BuildAutogluonGPUTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &AUTOGLUON_GPU_TRAINING_PY3 false
-    image_size_baseline: 19490
+    image_size_baseline: 19832
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
@@ -63,7 +63,7 @@ images:
   BuildAutogluonCPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &AUTOGLUON_CPU_INFERENCE_PY3 false
-    image_size_baseline: 5020
+    image_size_baseline: 4909
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
