@@ -213,7 +213,7 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 
 # Install extra packages
 RUN $PYTHON -m pip install --no-cache-dir \
-    "bokeh>=2.3,<2.4" \
+    "bokeh>=2.4.2,<2.5" \
     "imageio==2.13.3" \
     "opencv-python>=4.3,<5" \
     "plotly>=5.1,<6" \
