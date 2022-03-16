@@ -8,6 +8,8 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
 ARG OPEN_MPI_VERSION=4.0.1
 
+ENV PYTHON=${PYTHON}
+
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -127,6 +129,28 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
 # once conda fixes the issue
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
+ && pip install --no-cache-dir -U \
+    "awscli<2" \
+    boto3 \
+    click \
+    "cryptography>3.2" \
+    ipython==8.1.0 \
+    numpy==1.22.2 \
+    opencv-python==4.5.5.62 \
+    packaging \
+    "Pillow>=9.0.0" \
+    psutil==5.9.0 \
+    "pyyaml>=5.4,<5.5" \
+    scipy
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.11/license.txt
+
 ##############################################################################
 #  _____ _____   ___                              ____           _
 # | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
@@ -147,22 +171,7 @@ ARG PT_S3_WHL=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c
 
 # The following section uninstalls torch and torchvision before installing the
 # custom versions from an S3 bucket. This will need to be removed in the future
-RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install --no-cache-dir -U \
-    "awscli<2" \
-    boto3 \
-    click \
-    "cryptography>3.2" \
-    ipython==8.1.0 \
-    numpy==1.22.2 \
-    opencv-python==4.5.5.62 \
-    packaging \
-    "Pillow>=9.0.0" \
-    psutil==5.9.0 \
-    "pyyaml>=5.4,<5.5" \
-    scipy \
- && pip uninstall -y torch \
+RUN pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
@@ -175,10 +184,6 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 RUN pip install -U ${PT_S3_WHL}
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
-RUN chmod +x /usr/local/bin/deep_learning_container.py
-
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
@@ -188,8 +193,6 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp*
-
-RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.11/license.txt
 
 # Starts framework
 CMD ["/bin/bash"]
@@ -209,7 +212,7 @@ CMD ["/bin/bash"]
 #                      |___/                        |_|
 #################################################################
 
-FROM e3 AS sagemaker
+FROM common AS sagemaker
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -219,6 +222,28 @@ LABEL dlc_major_version="1"
 ARG SMDEBUG_VERSION=1.0.9
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
+
+# PyTorch Binaries
+ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220309-213627/9c116675b0719f637546dbc5507bf79ef8fb622e/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/test/cpu/torchvision-0.12.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/test/cpu/torchaudio-0.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
+ARG PT_S3_WHL=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
+
+# The following section uninstalls torch and torchvision before installing the
+# custom versions from an S3 bucket. This will need to be removed in the future
+RUN pip uninstall -y torch \
+ && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
+ && pip uninstall -y torchvision \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
+ && pip uninstall -y torchaudio \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHAUDIO_URL} \
+ && pip uninstall -y torchdata \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL}
+
+# Install PT S3 plugin
+RUN pip install -U ${PT_S3_WHL}
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 WORKDIR /
 
@@ -249,8 +274,6 @@ RUN pip install --no-cache-dir -U \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
     "shap>=0.39,<1"
-
-RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
