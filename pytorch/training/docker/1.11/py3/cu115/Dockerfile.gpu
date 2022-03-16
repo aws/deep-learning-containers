@@ -99,34 +99,34 @@ RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp \
 
 # Install NCCL
 RUN cd /tmp \
-  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
-  && cd nccl \
-  && make -j64 src.build BUILDDIR=/usr/local \
-  && rm -rf /tmp/nccl
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local \
+ && rm -rf /tmp/nccl
 
 # Install EFA alone without AWS OPEN_MPI
 RUN mkdir /tmp/efa \
-  && cd /tmp/efa \
-  && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
-  && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
-  && cd aws-efa-installer \
-  && ./efa_installer.sh -y --skip-kmod -g \
-  && rm -rf $OPEN_MPI_PATH \
-  && rm -rf /tmp/efa \
-  && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz
+ && cd /tmp/efa \
+ && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && cd aws-efa-installer \
+ && ./efa_installer.sh -y --skip-kmod -g \
+ && rm -rf $OPEN_MPI_PATH \
+ && rm -rf /tmp/efa \
+ && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz
 
 # Install OpenMPI without libfabric support
-RUN mkdir /tmp/openmpi && \
-  cd /tmp/openmpi && \
-  wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz && \
-  tar zxf openmpi-${OMPI_VERSION}.tar.gz && \
-  cd openmpi-${OMPI_VERSION} && \
-  ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH --with-cuda && \
-  make -j $(nproc) all && \
-  make install && \
-  ldconfig && \
-  cd / && \
-  rm -rf /tmp/openmpi
+RUN mkdir /tmp/openmpi \
+ && cd /tmp/openmpi \
+ && wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
+ && tar zxf openmpi-${OMPI_VERSION}.tar.gz \
+ && cd openmpi-${OMPI_VERSION} \
+ && ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH --with-cuda \
+ && make -j $(nproc) all \
+ && make install \
+ && ldconfig \
+ && cd / \
+ && rm -rf /tmp/openmpi
 
 ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
@@ -236,17 +236,17 @@ RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
 # Install AWS OFI NCCL plug-in
 RUN apt-get update && apt-get install -y autoconf
 RUN mkdir /tmp/efa-ofi-nccl \
-  && cd /tmp/efa-ofi-nccl \
-  && git clone https://github.com/aws/aws-ofi-nccl.git -b v${BRANCH_OFI} \
-  && cd aws-ofi-nccl \
-  && ./autogen.sh \
-  && ./configure --with-libfabric=/opt/amazon/efa \
+ && cd /tmp/efa-ofi-nccl \
+ && git clone https://github.com/aws/aws-ofi-nccl.git -b v${BRANCH_OFI} \
+ && cd aws-ofi-nccl \
+ && ./autogen.sh \
+ && ./configure --with-libfabric=/opt/amazon/efa \
   --with-mpi=/opt/amazon/openmpi \
   --with-cuda=/usr/local/cuda \
   --with-nccl=/usr/local --prefix=/usr/local \
-  && make \
-  && make install \
-  && rm -rf /tmp/efa-ofi-nccl
+ && make \
+ && make install \
+ && rm -rf /tmp/efa-ofi-nccl
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
@@ -341,14 +341,14 @@ WORKDIR /
 
 # Install libboost from source. This package is needed for smdataparallel functionality [for networking asynchronous IO].
 RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
-  && tar -xzf boost_1_73_0.tar.gz \
-  && cd boost_1_73_0 \
-  && ./bootstrap.sh \
-  && ./b2 threading=multi --prefix=${CONDA_PREFIX} -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
-  && cd .. \
-  && rm -rf boost_1_73_0.tar.gz \
-  && rm -rf boost_1_73_0 \
-  && cd ${CONDA_PREFIX}/include/boost
+ && tar -xzf boost_1_73_0.tar.gz \
+ && cd boost_1_73_0 \
+ && ./bootstrap.sh \
+ && ./b2 threading=multi --prefix=${CONDA_PREFIX} -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
+ && cd .. \
+ && rm -rf boost_1_73_0.tar.gz \
+ && rm -rf boost_1_73_0 \
+ && cd ${CONDA_PREFIX}/include/boost
 
 WORKDIR /opt/pytorch
 
@@ -380,28 +380,28 @@ RUN pip install --no-cache-dir -U \
 
 # install metis
 RUN rm /etc/apt/sources.list.d/* \
-  && wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
-  && gunzip -f ${METIS}.tar.gz \
-  && tar -xvf ${METIS}.tar \
-  && cd ${METIS} \
-  && apt-get update \
-  && make config shared=1 \
-  && make install \
-  && cd .. \
-  && rm -rf ${METIS}.tar* \
-  && rm -rf ${METIS} \
-  && rm -rf /var/lib/apt/lists/* \
-  && apt-get clean
+ && wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
+ && gunzip -f ${METIS}.tar.gz \
+ && tar -xvf ${METIS}.tar \
+ && cd ${METIS} \
+ && apt-get update \
+ && make config shared=1 \
+ && make install \
+ && cd .. \
+ && rm -rf ${METIS}.tar* \
+ && rm -rf ${METIS} \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 # Install RAPIDSMemoryManager.
 # Requires cmake>=3.14.
 RUN  wget -nv https://github.com/rapidsai/rmm/archive/v${RMM_VERSION}.tar.gz \
-  && tar -xvf v${RMM_VERSION}.tar.gz \
-  && cd rmm-${RMM_VERSION} \
-  && INSTALL_PREFIX=/usr/local ./build.sh librmm \
-  && cd .. \
-  && rm -rf v${RMM_VERSION}.tar* \
-  && rm -rf rmm-${RMM_VERSION}
+ && tar -xvf v${RMM_VERSION}.tar.gz \
+ && cd rmm-${RMM_VERSION} \
+ && INSTALL_PREFIX=/usr/local ./build.sh librmm \
+ && cd .. \
+ && rm -rf v${RMM_VERSION}.tar* \
+ && rm -rf rmm-${RMM_VERSION}
 
 # Install SM Distributed Modelparallel binary
 RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
