@@ -527,7 +527,7 @@ def execute_asynchronus_testing_using_s3_bucket(
             ):
                 # If last 3 runs lead to same line number then it demonstrates no progress and hence we stop.
                 LOGGER.info(
-                    "No progress reported during last 15 minutes. Job most likely hanged so stopping the execution!!"
+                    f"No progress reported for past {number_of_previous_line_counts_to_check} iterations. Job most likely hanged so stopping the execution!!"
                 )
                 break
         LOGGER.info(f"Uploaded file to {s3_location} for {loop_count} number of times")
@@ -726,7 +726,7 @@ def execute_ec2_habana_training_performance_test(
         required_log_ending,
         loop_time= 4 * 3600,
         s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
-        hang_detection_window=10,
+        hang_detection_window=30,
     )
     LOGGER.info(f"Uploaded logs at: {s3_uri_permanent_logs}")
     return
