@@ -5,7 +5,6 @@ release_images:
     framework: "autogluon"
     version: "0.3.2"
     arch_type: "x86"
-    customer_type: "sagemaker"
     training:
       device_types: ["cpu", "gpu"]
       python_versions: ["py38"]
