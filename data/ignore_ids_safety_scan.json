@@ -16,7 +16,10 @@
                 "42815":"Can't upgrade bokeh version version as it brings typing-extensions 3.10 which is not compatible with TF2.6.2",
                 "42772":"Can't upgrade bokeh version version as it brings typing-extensions 3.10 which is not compatible with TF2.6.2",
                 "42814":"Can't upgrade bokeh version version as it brings typing-extensions 3.10 which is not compatible with TF2.6.2",
-                "44715":"False positive for numpy. Was fixed in 1.22.2"
+                "44715":"[DISPUTED] While correct that validation is missing, an error can only occur due to an exhaustion of memory. If the user can exhaust memory, they are already privileged. Further, it should be practically impossible to construct an attack which can target the memory exhaustion to occur at exactly this place.",
+                "44716":"[DISPUTED] The vendor does not agree this is a vulnerability; the negative dimensions can only be created by an already privileged user (or internally).",
+                "43453":"[DISPUTED] The vendor does not agree this is a vulneraility; In (very limited) circumstances a user may be able provoke the buffer overflow, the user is most likely already privileged to at least provoke denial of service by exhausting memory. Triggering this further requires the use of uncommon API (complicated structured dtypes), which is very unlikely to be available to an unprivileged user.",
+                "44717":"The vendor states that this reported code behavior is completely harmless."
             }
         },
         "inference":{
@@ -602,7 +605,8 @@
             "py3": {
                 "42772":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "42814":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
-                "42815":"for shipping bokeh<=2.3.3 - the last available version for py3.6"
+                "42815":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
+                "45521":"pytorch-lightning is never installed as a dependency of transformers"
             }
         },
         "inference": {
@@ -610,6 +614,7 @@
             "py2": {
             },
             "py3": {
+                "45521":"pytorch-lightning is never installed as a dependency of transformers"
             }
         },
         "inference-neuron": {
@@ -641,6 +646,23 @@
                 "44716":"[DISPUTED] The vendor does not agree this is a vulnerability; the negative dimensions can only be created by an already privileged user (or internally).",
                 "43453":"[DISPUTED] The vendor does not agree this is a vulneraility; In (very limited) circumstances a user may be able provoke the buffer overflow, the user is most likely already privileged to at least provoke denial of service by exhausting memory. Triggering this further requires the use of uncommon API (complicated structured dtypes), which is very unlikely to be available to an unprivileged user.",
                 "44717":"The vendor states that this reported code behavior is completely harmless."
+            }
+        }
+    },
+    "autogluon": {
+        "_comment":"py37 support is required",
+        "training": {
+            "py3": {
+                "44717": "The vendor states that this reported code behavior is completely harmless.",
+                "44716": "[DISPUTED] The vendor does not agree this is a vulnerability; the negative dimensions can only be created by an already privileged user (or internally).",
+                "44715": "[DISPUTED] While correct that validation is missing, an error can only occur due to an exhaustion of memory. If the user can exhaust memory, they are already privileged. Further, it should be practically impossible to construct an attack which can target the memory exhaustion to occur at exactly this place."
+            }
+        },
+        "inference": {
+            "py3": {
+                "44717": "The vendor states that this reported code behavior is completely harmless.",
+                "44716": "[DISPUTED] The vendor does not agree this is a vulnerability; the negative dimensions can only be created by an already privileged user (or internally).",
+                "44715": "[DISPUTED] While correct that validation is missing, an error can only occur due to an exhaustion of memory. If the user can exhaust memory, they are already privileged. Further, it should be practically impossible to construct an attack which can target the memory exhaustion to occur at exactly this place."
             }
         }
     }

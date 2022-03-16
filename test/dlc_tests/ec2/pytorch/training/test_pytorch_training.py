@@ -232,7 +232,10 @@ def test_pytorch_s3_plugin_cpu(pytorch_training, ec2_connection, cpu_only, ec2_i
 @pytest.mark.integration("pt_torchaudio_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_training_torchaudio_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt111_and_above_only):
+def test_pytorch_training_torchaudio_gpu(
+    pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt111_and_above_only
+):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD)
@@ -241,7 +244,10 @@ def test_pytorch_training_torchaudio_gpu(pytorch_training, ec2_connection, gpu_o
 @pytest.mark.integration("pt_torchaudio_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_traning_torchaudio_cpu(pytorch_training, ec2_connection, cpu_only, ec2_instance_type, pt111_and_above_only):
+def test_pytorch_training_torchaudio_cpu(
+    pytorch_training, ec2_connection, cpu_only, ec2_instance_type, pt111_and_above_only
+):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD)
@@ -250,7 +256,10 @@ def test_pytorch_traning_torchaudio_cpu(pytorch_training, ec2_connection, cpu_on
 @pytest.mark.integration("pt_torchdata_gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_training_torchdata_gpu(pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt111_and_above_only):
+def test_pytorch_training_torchdata_gpu(
+    pytorch_training, ec2_connection, gpu_only, ec2_instance_type, pt111_and_above_only
+):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
@@ -259,7 +268,10 @@ def test_pytorch_training_torchdata_gpu(pytorch_training, ec2_connection, gpu_on
 @pytest.mark.integration("pt_torchdata_cpu")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_traning_torchdata_cpu(pytorch_training, ec2_connection, cpu_only, ec2_instance_type, pt111_and_above_only):
+def test_pytorch_training_torchdata_cpu(
+    pytorch_training, ec2_connection, cpu_only, ec2_instance_type, pt111_and_above_only
+):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
