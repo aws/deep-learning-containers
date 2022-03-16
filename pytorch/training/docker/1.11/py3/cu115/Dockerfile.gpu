@@ -11,11 +11,11 @@ ENV PYTHON=${PYTHON}
 ENV PYTHON_SHORT_VERSION=${PYTHON_SHORT_VERSION}
 
 ARG CUBLAS_VERSION=11.7.4.6
-ARG OPEN_MPI_PATH=/opt/amazon/openmpi
+ENV OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 
 ARG CUDA_HOME=/usr/local/cuda
-ARG CONDA_PREFIX=/opt/conda
+ENV CONDA_PREFIX=/opt/conda
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
