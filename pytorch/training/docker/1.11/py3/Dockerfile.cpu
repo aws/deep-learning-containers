@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
 
@@ -9,15 +10,27 @@ ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cpu/torchaudio-0.11.0%2Bc
 ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
 ARG PT_S3_WHL=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
+=======
+>>>>>>> upstream/master
 FROM ubuntu:20.04 AS common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
+<<<<<<< HEAD
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG OPEN_MPI_VERSION=4.0.1
 
+=======
+ARG PYTHON=python3
+# Add arguments to achieve the version, python and url
+ARG PYTHON_VERSION=3.8.12
+ARG OPEN_MPI_VERSION=4.0.1
+
+ENV PYTHON=${PYTHON}
+
+>>>>>>> upstream/master
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
 
