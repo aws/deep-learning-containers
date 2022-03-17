@@ -343,6 +343,7 @@ def main():
                 raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
 
         # Execute dlc_tests pytest command
+        test_path = "sanity/test_telemetry.py::test_telemetry_silent_failure"
         pytest_cmd = ["-s", "-rA", test_path, f"--junitxml={report}", "-n=auto"]
 
         is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
