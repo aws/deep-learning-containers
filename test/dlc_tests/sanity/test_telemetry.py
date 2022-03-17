@@ -2,7 +2,6 @@ import time
 
 import pytest
 
-from invoke import Context, run
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
@@ -89,13 +88,14 @@ def test_telemetry_instance_tag_success_neuron(neuron, ec2_client, ec2_instance,
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("telemetry")
-def test_telemetry_silent_failure(image):
+def test_telemetry_silent_failure(image, ec2_connection):
     """
     This test takes a DLC, overwrites the /usr/local/bin/deep_learning_container.py script with a script that always
     generates an Exception. If the framework import still succeeds, the test succeeds. If the framework import fails,
     the telemetry trigger needs to be fixed.
 
     :param image: str DLC Image URI
+    :param ec2_connection: fabric Connection object
     """
     framework, _ = test_utils.get_framework_and_version_from_tag(image, import_safe_name=True)
     device_type = test_utils.get_processor_from_image_uri(image)
@@ -105,12 +105,26 @@ def test_telemetry_silent_failure(image):
     repo_name, image_tag = test_utils.get_repository_and_tag_from_image_uri(image)
     container_name = f"{repo_name}-{image_tag}-telemetry-silent-failure"
 
-    ctx = Context()
-    run(f"docker run -id --name {container_name} --entrypoint='/bin/bash' {image}", hide=True)
-    test_utils.run_cmd_on_container(
-        container_name, ctx, "echo 'raise RuntimeError' > /usr/local/bin/deep_learning_container.py"
-    )
-    result = test_utils.run_cmd_on_container(container_name, ctx, f"import {framework}", executable="python", warn=True)
+    job_type = test_utils.get_job_type_from_image(image)
+    docker_cmd = "nvidia-docker" if device_type == "gpu" else "docker"
+
+    if framework == "tensorflow" and job_type == "inference":
+        model_name = "saved_model_half_plus_two"
+        model_base_path = test_utils.get_tensorflow_model_base_path(image)
+        env_vars_list = test_utils.get_tensorflow_inference_environment_variables(model_name, model_base_path)
+        env_vars = " ".join([f"-e {entry['name']}={entry['value']}" for entry in env_vars_list])
+        inference_command = get_tensorflow_inference_command_tf27_above(image, model_name)
+        result = ec2_connection.run(
+            f"{docker_cmd} run {env_vars} --name {container_name} -id {image} {inference_command}"
+        )
+    else:
+        ec2_connection.run(f"{docker_cmd} run --name {container_name} -id --entrypoint='/bin/bash' {image}")
+        test_utils.run_cmd_on_container(
+            container_name, ec2_connection, "echo 'raise RuntimeError' > /usr/local/bin/deep_learning_container.py"
+        )
+        result = test_utils.run_cmd_on_container(
+            container_name, ec2_connection, f"import {framework}", executable="python", warn=True
+        )
 
     assert result.ok, (
         f"Failed to import {framework} in {image} due to telemetry failure. "
