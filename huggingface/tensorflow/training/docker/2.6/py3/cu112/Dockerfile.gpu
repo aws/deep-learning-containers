@@ -12,10 +12,7 @@ ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
 ARG PYTHON=python3
 
-
 # install Hugging Face libraries and its dependencies
-# uninstall ipython jupyter utils due to incompatibility with typing-extensions==3.7.4.3
-RUN pip uninstall -y IPython sparkmagic jupyter-console ipywidgets ipykernel hdijupyterutils jupyter sagemaker-studio-analytics-extension qtconsole notebook autovizwidget widgetsnbextension bokeh
 RUN pip install --no-cache-dir \
     transformers[sklearn,sentencepiece]==${TRANSFORMERS_VERSION} \
     datasets==${DATASETS_VERSION} \
@@ -23,7 +20,6 @@ RUN pip install --no-cache-dir \
     psutil \
     # TODO: Remove upgrade statements once packages are updated in base image
     "Pillow>=9.0.0"
-
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
