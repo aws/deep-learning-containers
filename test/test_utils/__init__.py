@@ -1028,7 +1028,7 @@ def get_import_safe_framework_name(framework):
     :param framework: str Framework name
     :return: str Import safe framework name
     """
-    return "torch" if "pytorch" in framework else framework.lstrip("huggingface_")
+    return "torch" if "pytorch" in framework else framework.replace("huggingface_", "")
 
 
 # for the time being have this static table. Need to figure out a way to get this from
