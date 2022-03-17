@@ -38,7 +38,7 @@ def _predictor(image, framework_version, sagemaker_local_session, instance_type)
         sagemaker_session=sagemaker_local_session,
         source_dir=source_dir,
         entry_point="tabular_serve.py",
-        framework_version="1.8.0"
+        framework_version="1.9.0"
     )
     with local_mode_utils.lock():
         try:
