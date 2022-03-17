@@ -138,7 +138,7 @@ RUN rm -rf /root/.ssh/ && \
 # TODO: Should we be installing OpenCV in our image like this? Is there another way we can fix this?
 RUN ln -s /dev/null /dev/raw1394
 
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY deep_learning_container.py /usr/local/lib/python3.9/site-packages/usercustomize.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 

@@ -17,6 +17,7 @@ import multiprocessing
 import os
 import re
 import signal
+import subprocess
 import sys
 
 import botocore.session
@@ -90,6 +91,66 @@ def _retrieve_instance_region():
     return region
 
 
+def _retrieve_framework():
+    framework = None
+    for known_framework in ["autogluon", "mxnet", "torch", "tensorflow"]:
+        try:
+            __import__(known_framework)
+            framework = known_framework
+        except ImportError:
+            pass
+        if framework:
+            return framework
+    raise ImportError("Failed to find any known framework.")
+
+
+def _retrieve_version(framework):
+    framework_module = __import__(framework)
+    try:
+        version = framework_module.__version__
+    except AttributeError:
+        output = subprocess.run(f"pip show {framework}", stdout=subprocess.PIPE, shell=True)
+        version_search = re.search(r"\nVersion: (\d+(\.\d+){1,2}.*)", output.stdout.decode())
+        if not version_search:
+            raise AttributeError(f"{framework} version could not be found.")
+        version = version_search.group(1)
+
+    fw_version_pattern = r"\d+(\.\d+){1,2}(-rc\d)?"
+    # PT 1.10 and above has +cpu or +cu113 string, so handle accordingly
+    if framework == "torch":
+        pt_fw_version_pattern = r"(\d+(\.\d+){1,2}(-rc\d)?)((\+cpu)|(\+cu\d{3})|(a0\+git\w{7}))"
+        pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, version)
+        if pt_fw_version_match:
+            version = pt_fw_version_match.group(1)
+    assert re.fullmatch(fw_version_pattern, version), (
+        f"args.framework_version = {version} does not match {fw_version_pattern}\n"
+        f"Please specify framework version as X.Y.Z or X.Y."
+    )
+    return version
+
+
+def _retrieve_container_type():
+    container_type = os.getenv("CONTAINER_TYPE")
+    if not container_type:
+        for module_name in ["sagemaker_inference", "sagemaker_training"]:
+            try:
+                __import__(module_name)
+                container_type = module_name.replace("sagemaker_", "")
+            except ImportError:
+                pass
+            if container_type:
+                break
+    if not container_type:
+        for model_server in ["multi-model-server", "tensorflow_model_server", "torchserve"]:
+            output = subprocess.run(f"which {model_server}", stdout=subprocess.PIPE, shell=True)
+            if output.returncode == 0:
+                container_type = "inference"
+                break
+        else:
+            container_type = "training"
+    return container_type
+
+
 def _retrieve_device():
     return (
         "gpu"
@@ -135,41 +196,6 @@ def requests_helper(url, timeout):
     return response
 
 
-def parse_args():
-    """
-    Parsing function to parse input arguments.
-    Return: args, which containers parsed input arguments.
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--framework", choices=["tensorflow", "mxnet", "pytorch"], help="framework of container image.", required=True
-    )
-    parser.add_argument("--framework-version", help="framework version of container image.", required=True)
-    parser.add_argument(
-        "--container-type",
-        choices=["training", "inference"],
-        help="What kind of jobs you want to run on container. Either training or inference.",
-        required=True,
-    )
-
-    args, _unknown = parser.parse_known_args()
-
-    fw_version_pattern = r"\d+(\.\d+){1,2}(-rc\d)?"
-
-    # PT 1.10 and above has +cpu or +cu113 string, so handle accordingly
-    if args.framework == "pytorch":
-        pt_fw_version_pattern = r"(\d+(\.\d+){1,2}(-rc\d)?)((\+cpu)|(\+cu\d{3})|(a0\+git\w{7}))"
-        pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, args.framework_version)
-        if pt_fw_version_match:
-            args.framework_version = pt_fw_version_match.group(1)
-    assert re.fullmatch(fw_version_pattern, args.framework_version), (
-        f"args.framework_version = {args.framework_version} does not match {fw_version_pattern}\n"
-        f"Please specify framework version as X.Y.Z or X.Y."
-    )
-
-    return args
-
-
 def query_bucket():
     """
     GET request on an empty object from an Amazon S3 bucket
@@ -177,8 +203,9 @@ def query_bucket():
     response = None
     instance_id = _retrieve_instance_id()
     region = _retrieve_instance_region()
-    args = parse_args()
-    framework, framework_version, container_type = args.framework, args.framework_version, args.container_type
+    framework = _retrieve_framework()
+    framework_version = _retrieve_version(framework)
+    container_type = _retrieve_container_type()
     py_version = sys.version.split(" ")[0]
 
     if instance_id is not None and region is not None:
@@ -204,8 +231,9 @@ def tag_instance():
     """
     instance_id = _retrieve_instance_id()
     region = _retrieve_instance_region()
-    args = parse_args()
-    framework, framework_version, container_type = args.framework, args.framework_version, args.container_type
+    framework = _retrieve_framework()
+    framework_version = _retrieve_version(framework)
+    container_type = _retrieve_container_type()
     py_version = sys.version.split(" ")[0]
     device = _retrieve_device()
     cuda_version = f"_cuda{_retrieve_cuda()}" if device == "gpu" else ""
@@ -235,13 +263,8 @@ def tag_instance():
 
 def main():
     """
-    Invoke bucket query
+    Invoke bucket query and tag
     """
-    # Logs are not necessary for normal run. Remove this line while debugging.
-    logging.getLogger().disabled = True
-
-    logging.basicConfig(level=logging.ERROR)
-
     bucket_process = multiprocessing.Process(target=query_bucket)
     tag_process = multiprocessing.Process(target=tag_instance)
 
@@ -260,4 +283,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # Logs are not necessary for normal run. Remove this line while debugging.
+    # logging.getLogger().disabled is the only configuration that suppresses all output logs from this script.
+    # Make sure that there are no logs printed.
+    logging.getLogger().disabled = True
+    logging.basicConfig(level=logging.ERROR)
+    try:
+        main()
+    except Exception as e:
+        logging.error(str(e))
