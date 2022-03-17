@@ -22,7 +22,7 @@ benchmark_mode = false
 # available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "tensorflow", "mxnet", "pytorch"]
 skip_frameworks = ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "mxnet", "pytorch"]
 # Set to false in order to remove datetime tag on PR builds
-datetime_tag = true
+datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
 do_build = true
@@ -45,6 +45,6 @@ sagemaker_local_tests = false
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "standard"
+sagemaker_remote_tests = "efa"
 
 use_scheduler = false
