@@ -4,7 +4,9 @@ import subprocess
 import botocore
 import boto3
 import time
+
 from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 import pytest
 import requests
@@ -179,7 +181,8 @@ def test_framework_version_cpu(image):
         assert tag_framework_version in output.stdout.strip()
     else:
         if tested_framework == "autogluon.core":
-            assert output.stdout.strip().startswith(tag_framework_version)
+            version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
+            assert output.stdout.strip().startswith(version_to_check)
         # Habana v1.2 binary does not follow the X.Y.Z+cpu naming convention
         elif "habana" not in image_repo_name:
             if tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
@@ -284,7 +287,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
             assert tag_framework_version in output.stdout.strip()
         else:
             if tested_framework == "autogluon.core":
-                assert output.stdout.strip().startswith(tag_framework_version)
+                version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
+                assert output.stdout.strip().startswith(version_to_check)
             elif tested_framework == "torch" and Version(tag_framework_version) >= Version("1.10.0"):
                 torch_version_pattern = r"{torch_version}(\+cu\d+)".format(torch_version=tag_framework_version)
                 assert re.fullmatch(torch_version_pattern, output.stdout.strip()), (
@@ -341,7 +345,7 @@ def _run_dependency_check_test(image, ec2_connection):
             "2.8": ["cpu", "gpu"],
         },
         "mxnet": {"1.8": ["neuron"], "1.9": ["cpu", "gpu"]},
-        "pytorch": {"1.8": ["cpu", "gpu"], "1.10": ["cpu", "hpu"]},
+        "pytorch": {"1.8": ["cpu", "gpu"], "1.10": ["cpu", "hpu"], "1.11": ["cpu", "gpu"]},
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"], "2.6": ["cpu", "gpu"]},
         "autogluon": {"0.3": ["cpu"]},
@@ -545,16 +549,23 @@ def test_pip_check(image):
     allowed_habana_tf_exception = re.compile(rf"^tensorflow-io 0.22.0 requires tensorflow, which is not installed.$")
     allowed_exception_list.append(allowed_habana_tf_exception)
 
+    framework, framework_version = get_framework_and_version_from_tag(image)
     # The v0.21 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
-    if "tensorflow" in image and "2.6.3" in image:
+    if framework == "tensorflow" and Version(framework_version) in SpecifierSet(">=2.6.3,<2.7"):
         allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
         allowed_exception_list.append(allowed_tf263_exception)
+
+    if "autogluon" in image and (("0.3.1" in image) or ("0.3.2" in image)):
+        allowed_autogluon_exception = re.compile(
+            rf"autogluon-(vision|mxnet) 0.3.1 has requirement Pillow<8.4.0,>=8.3.0, but you have pillow \d+(\.\d+)*"
+        )
+        allowed_exception_list.append(allowed_autogluon_exception)
 
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(
         f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not(any([allowed_exception.match(output.stdout) for  allowed_exception in allowed_exception_list])):
+        if not(any([allowed_exception.match(output.stdout) for allowed_exception in allowed_exception_list])):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 

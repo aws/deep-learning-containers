@@ -42,6 +42,11 @@ IGNORE_SAFETY_IDS = {
                 "35015",
             ],
             "py3": [
+                # CVE vulnerabilities in TF 2.6 ignoring to be able to build TF containers
+                "44715",
+                "44716",
+                "44717",
+                "43453",
                 # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
                 "42098",
                 "42062",
@@ -49,8 +54,6 @@ IGNORE_SAFETY_IDS = {
                 "42815",
                 "42772",
                 "42814",
-                # False positive CVE for numpy
-                "44715"
             ],
         },
         "inference": {
@@ -579,6 +582,26 @@ IGNORE_SAFETY_IDS = {
             ]
         },
     },
+    "autogluon": {
+        "training": {
+            "py3": [
+                # cannot upgrade: py37 does not support numpy 1.22.x
+                "44717",
+                "44716",
+                # False positive CVE for numpy
+                "44715",
+            ]
+        },
+        "inference": {
+            "py3": [
+                # cannot upgrade: py37 does not support numpy 1.22.x
+                "44717",
+                "44716",
+                # False positive CVE for numpy
+                "44715",
+            ]
+        },
+    }
 }
 
 
@@ -588,7 +611,15 @@ def _get_safety_ignore_list(image_uri):
     :param image_uri:
     :return: <list> list of safety check IDs to ignore
     """
-    framework = "mxnet" if "mxnet" in image_uri else "pytorch" if "pytorch" in image_uri else "tensorflow"
+    if "mxnet" in image_uri:
+        framework = "mxnet"
+    elif "pytorch" in image_uri:
+        framework = "pytorch"
+    elif "autogluon" in image_uri:
+        framework = "autogluon"
+    else:
+        framework = "tensorflow"
+
     job_type = (
         "training"
         if "training" in image_uri
