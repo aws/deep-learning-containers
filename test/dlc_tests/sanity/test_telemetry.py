@@ -103,28 +103,9 @@ def test_telemetry_silent_failure(image, ec2_connection):
         pytest.skip("Skip this test for DLCs where telemetry is not used.")
 
     repo_name, image_tag = test_utils.get_repository_and_tag_from_image_uri(image)
-    container_name = f"{repo_name}-{image_tag}-telemetry-silent-failure"
+    container_name = f"{repo_name}-telemetry-silent-failure"
 
-    job_type = test_utils.get_job_type_from_image(image)
-    docker_cmd = "nvidia-docker" if device_type == "gpu" else "docker"
-
-    if framework == "tensorflow" and job_type == "inference":
-        model_name = "saved_model_half_plus_two"
-        model_base_path = test_utils.get_tensorflow_model_base_path(image)
-        env_vars_list = test_utils.get_tensorflow_inference_environment_variables(model_name, model_base_path)
-        env_vars = " ".join([f"-e {entry['name']}={entry['value']}" for entry in env_vars_list])
-        inference_command = get_tensorflow_inference_command_tf27_above(image, model_name)
-        result = ec2_connection.run(
-            f"{docker_cmd} run {env_vars} --name {container_name} -id {image} {inference_command}"
-        )
-    else:
-        ec2_connection.run(f"{docker_cmd} run --name {container_name} -id --entrypoint='/bin/bash' {image}")
-        test_utils.run_cmd_on_container(
-            container_name, ec2_connection, "echo 'raise RuntimeError' > /usr/local/bin/deep_learning_container.py"
-        )
-        result = test_utils.run_cmd_on_container(
-            container_name, ec2_connection, f"import {framework}", executable="python", warn=True
-        )
+    result = _run_import_or_tfs_test(image, ec2_connection, container_name)
 
     assert result.ok, (
         f"Failed to import {framework} in {image} due to telemetry failure. "
@@ -139,8 +120,6 @@ def _run_instance_role_disabled(image_uri, ec2_client, ec2_instance, ec2_connect
     account_id = test_utils.get_account_id_from_image_uri(image_uri)
     image_region = test_utils.get_region_from_image_uri(image_uri)
     repo_name, image_tag = test_utils.get_repository_and_tag_from_image_uri(image_uri)
-    framework, _ = test_utils.get_framework_and_version_from_tag(image_uri, import_safe_name=True)
-    job_type = test_utils.get_job_type_from_image(image_uri)
     processor = test_utils.get_processor_from_image_uri(image_uri)
 
     container_name = f"{repo_name}-telemetry_bad_instance_role-ec2"
@@ -157,21 +136,7 @@ def _run_instance_role_disabled(image_uri, ec2_client, ec2_instance, ec2_connect
     # Disable access to EC2 instance metadata
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 
-    if "tensorflow" in framework and job_type == "inference":
-        model_name = "saved_model_half_plus_two"
-        model_base_path = test_utils.get_tensorflow_model_base_path(image_uri)
-        env_vars_list = test_utils.get_tensorflow_inference_environment_variables(model_name, model_base_path)
-        env_vars = " ".join([f"-e {entry['name']}={entry['value']}" for entry in env_vars_list])
-        inference_command = get_tensorflow_inference_command_tf27_above(image_uri, model_name)
-        ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri} {inference_command}")
-        time.sleep(5)
-    else:
-        ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
-        output = ec2_connection.run(
-            f"{docker_cmd} exec -i {container_name} python -c 'import {framework}; import time; time.sleep(5)'",
-            warn=True
-        )
-        assert output.ok, f"'import {framework}' fails when credentials not configured"
+    _run_import_or_tfs_test(image_uri, ec2_connection, container_name)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     assert expected_tag_key not in ec2_instance_tags, (
@@ -186,9 +151,7 @@ def _run_tag_success(image_uri, ec2_client, ec2_instance, ec2_connection):
     ec2_instance_id, _ = ec2_instance
     account_id = test_utils.get_account_id_from_image_uri(image_uri)
     image_region = test_utils.get_region_from_image_uri(image_uri)
-    repo_name, image_tag = test_utils.get_repository_and_tag_from_image_uri(image_uri)
-    framework, _ = test_utils.get_framework_and_version_from_tag(image_uri, import_safe_name=True)
-    job_type = test_utils.get_job_type_from_image(image_uri)
+    repo_name, _ = test_utils.get_repository_and_tag_from_image_uri(image_uri)
     processor = test_utils.get_processor_from_image_uri(image_uri)
 
     container_name = f"{repo_name}-telemetry_tag_instance_success-ec2"
@@ -202,23 +165,39 @@ def _run_tag_success(image_uri, ec2_client, ec2_instance, ec2_connection):
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.remove_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
+    _run_import_or_tfs_test(image_uri, ec2_connection, container_name)
+
+    ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
+    assert expected_tag_key in ec2_instance_tags, f"{expected_tag_key} was not applied as an instance tag"
+
+
+def _run_import_or_tfs_test(image_uri, ec2_connection, container_name, warn=False):
+    framework, _ = test_utils.get_framework_and_version_from_tag(image_uri, import_safe_name=True)
+    job_type = test_utils.get_job_type_from_image(image_uri)
+    processor = test_utils.get_processor_from_image_uri(image_uri)
+    docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
+
     if "tensorflow" in framework and job_type == "inference":
         model_name = "saved_model_half_plus_two"
         model_base_path = test_utils.get_tensorflow_model_base_path(image_uri)
         env_vars_list = test_utils.get_tensorflow_inference_environment_variables(model_name, model_base_path)
         env_vars = " ".join([f"-e {entry['name']}={entry['value']}" for entry in env_vars_list])
         inference_command = get_tensorflow_inference_command_tf27_above(image_uri, model_name)
-        ec2_connection.run(f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri} {inference_command}")
+        output = ec2_connection.run(
+            f"{docker_cmd} run {env_vars} --name {container_name} -id {image_uri} {inference_command}", warn=True
+        )
         time.sleep(5)
+        if not warn:
+            assert output.ok, f"TF Model Server Inference failed"
     else:
         ec2_connection.run(f"{docker_cmd} run --name {container_name} -id {image_uri} bash")
-        ec2_connection.run(
+        output = ec2_connection.run(
             f"{docker_cmd} exec -i {container_name} python -c 'import {framework}; import time; time.sleep(5)'",
             warn=True
         )
-
-    ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
-    assert expected_tag_key in ec2_instance_tags, f"{expected_tag_key} was not applied as an instance tag"
+        if not warn:
+            assert output.ok, f"'import {framework}' failed"
+    return output
 
 
 def get_tensorflow_inference_command_tf27_above(image_uri, model_name):
