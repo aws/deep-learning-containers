@@ -990,11 +990,12 @@ def get_unique_name_from_tag(image_uri):
     return re.sub("[^A-Za-z0-9]+", "", image_uri)
 
 
-def get_framework_and_version_from_tag(image_uri):
+def get_framework_and_version_from_tag(image_uri, import_safe_name=False):
     """
     Return the framework and version from the image tag.
 
-    :param image_uri: ECR image URI
+    :param image_uri: str ECR image URI
+    :param import_safe_name: bool True if returned framework name should be usable in import statement else False
     :return: framework name, framework version
     """
     tested_framework = get_framework_from_image_uri(image_uri)
@@ -1012,9 +1013,22 @@ def get_framework_and_version_from_tag(image_uri):
             f"Cannot find framework in image uri {image_uri} " f"from allowed frameworks {allowed_frameworks}"
         )
 
+    if import_safe_name:
+        tested_framework = get_import_safe_framework_name(tested_framework)
+
     tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]
 
     return tested_framework, tag_framework_version
+
+
+def get_import_safe_framework_name(framework):
+    """
+    Get framework name that is safe to use in a python import statement
+
+    :param framework: str Framework name
+    :return: str Import safe framework name
+    """
+    return "torch" if "pytorch" in framework else framework.lstrip("huggingface_")
 
 
 # for the time being have this static table. Need to figure out a way to get this from
