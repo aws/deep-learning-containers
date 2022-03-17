@@ -89,8 +89,6 @@ RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
 COPY deep_learning_container.py /usr/local/lib/python3.9/site-packages/usercustomize.py
 
-RUN chmod +x /usr/local/bin/deep_learning_container.py
-
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
