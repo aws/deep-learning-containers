@@ -1,21 +1,27 @@
+ARG PYTHON=python3
+ARG PYTHON_VERSION=3.8.12
+ARG PYTHON_SHORT_VERSION=3.8
+
+# PyTorch Binaries
+ARG PT_E3_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220316-044906/9a915205c493de013250347af38ad1083854bc09/gpu/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_SM_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220316-044906/9a915205c493de013250347af38ad1083854bc09/gpu/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu115/torchvision-0.12.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu115/torchaudio-0.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
+ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
+
 FROM nvidia/cuda:11.5.1-base-ubuntu20.04 AS common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.12
-ARG PYTHON_SHORT_VERSION=3.8
-
-ENV PYTHON=${PYTHON}
-ENV PYTHON_SHORT_VERSION=${PYTHON_SHORT_VERSION}
+ARG PYTHON
+ARG PYTHON_VERSION
+ARG PYTHON_SHORT_VERSION
 
 ARG CUBLAS_VERSION=11.7.4.6
-ENV OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
-
 ARG CUDA_HOME=/usr/local/cuda
-ENV CONDA_PREFIX=/opt/conda
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
@@ -32,14 +38,19 @@ ENV LC_ALL=C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+
 ENV CUDNN_VERSION=8.3.2.44
 ENV NCCL_VERSION=2.10.3
 ENV HOROVOD_VERSION=0.24.2
 ENV EFA_VERSION=1.12.1
 ENV OMPI_VERSION=4.1.1
 ENV BRANCH_OFI=1.1.3-aws
-ENV DGLBACKEND=pytorch
+
+ENV CONDA_PREFIX=/opt/conda
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
+ENV OPEN_MPI_PATH=/opt/amazon/openmpi
+
+ENV DGLBACKEND=pytorch
 ENV MANUAL_BUILD=0
 ENV RDMAV_FORK_SAFE=1
 ENV DLC_CONTAINER_TYPE=training
@@ -211,15 +222,15 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.11
 FROM common AS e3
 
 # PyTorch Binaries
-ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220316-044906/9a915205c493de013250347af38ad1083854bc09/gpu/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu115/torchvision-0.12.0%2Bcu115-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu115/torchaudio-0.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
-ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TRAINING_URL
+ARG PT_E3_TORCHVISION_URL
+ARG PT_TORCHAUDIO_URL
+ARG PT_TORCHDATA_URL
+ARG PT_S3_WHL_GPU
 
 # Re-install AWS-PyTorch binaries
 RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
+ && pip install --no-cache-dir -U ${PT_E3_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
  && pip uninstall -y torchaudio \
@@ -324,6 +335,10 @@ FROM common AS sagemaker
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
+ARG PYTHON
+ARG PYTHON_VERSION
+ARG PYTHON_SHORT_VERSION
+
 ARG METIS=metis-5.1.0
 ARG RMM_VERSION=0.15.0
 
@@ -338,15 +353,15 @@ ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-we
 ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.10.0/cu113/2021-11-03/smdistributed_dataparallel-1.2.2-cp38-cp38-linux_x86_64.whl
 
 # PyTorch Binaries
-ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_sm/20220309-213909/be129ee1db76cc729e36c65b4934cd20062420d9/gpu/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu115/torchvision-0.12.0%2Bcu115-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu115/torchaudio-0.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
-ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_SM_TRAINING_URL
+ARG PT_TORCHVISION_URL
+ARG PT_TORCHAUDIO_URL
+ARG PT_TORCHDATA_URL
+ARG PT_S3_WHL_GPU
 
 # Re-install AWS-PyTorch binaries
 RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
+ && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} \
  && pip uninstall -y torchvision \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
  && pip uninstall -y torchaudio \
