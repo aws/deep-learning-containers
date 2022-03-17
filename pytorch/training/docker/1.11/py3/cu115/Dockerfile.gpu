@@ -348,7 +348,7 @@ ARG RMM_VERSION=0.15.0
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=1.0.9
+ARG SMDEBUG_VERSION=1.0.13
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
@@ -466,11 +466,19 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 WORKDIR /root
 
 RUN pip install --no-cache-dir -U \
-    smdebug==${SMDEBUG_VERSION} \
+    # smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
-    sagemaker-pytorch-training
+    sagemaker-pytorch-training \
+    attrs==20.3.0
+
+# Install smdebug from souce
+RUN cd /tmp \
+  && git clone -b ${SMDEBUG_VERSION} https://github.com/awslabs/sagemaker-debugger \
+  && cd sagemaker-debugger \
+  && python setup.py install \
+  && rm -rf /tmp/*
 
 # Install extra packages
 # numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
@@ -481,9 +489,7 @@ RUN pip install --no-cache-dir -U \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
-    "shap>=0.39,<1" \
- && pip uninstall -y torch \
- && pip install --no-cache-dir -U ${PT_TRAINING_URL}
+    "shap>=0.39,<1"
 
 # install metis
 RUN rm /etc/apt/sources.list.d/* \
