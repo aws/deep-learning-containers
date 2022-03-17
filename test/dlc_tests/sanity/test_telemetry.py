@@ -89,7 +89,7 @@ def test_telemetry_instance_tag_success_neuron(neuron, ec2_client, ec2_instance,
 @pytest.mark.model("N/A")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g4dn.xlarge"], indirect=True)
-def test_telemetry_silent_failure(image, ec2_instance_type, ec2_connection):
+def test_telemetry_silent_failure(image, ec2_key_name, ec2_instance_type, ec2_connection):
     """
     This test takes a DLC, overwrites the /usr/local/bin/deep_learning_container.py script with a script that always
     generates an Exception. If the framework import still succeeds, the test succeeds. If the framework import fails,
