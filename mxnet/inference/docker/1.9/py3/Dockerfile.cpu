@@ -87,7 +87,7 @@ COPY config.properties /home/model-server
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
-COPY deep_learning_container.py /usr/local/lib/python3.9/site-packages/usercustomize.py
+COPY deep_learning_container.py /usr/local/lib/python3.8/dist-packages/usercustomize.py
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
