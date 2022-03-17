@@ -108,7 +108,7 @@ def test_telemetry_silent_failure(image):
     ctx = Context()
     run(f"docker run -id --name {container_name} --entrypoint='/bin/bash' {image}", hide=True)
     test_utils.run_cmd_on_container(
-        container_name, ctx, """echo "raise RuntimeError('Fake failure')" > /usr/local/bin/deep_learning_container.py"""
+        container_name, ctx, "echo 'raise RuntimeError' > /usr/local/bin/deep_learning_container.py"
     )
     result = test_utils.run_cmd_on_container(container_name, ctx, f"import {framework}", executable="python", warn=True)
 
