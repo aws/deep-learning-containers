@@ -14,6 +14,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON_VERSION=3.6.10
+ARG PIP=pip3
 ARG MX_URL=https://aws-mx-pypi.s3.us-west-2.amazonaws.com/1.9.0/aws_mx_cu112-1.9.0b20211227.163-py3-none-manylinux2014_x86_64.whl
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -82,7 +83,7 @@ RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VER
  && cd .. && rm -rf ../Python-$PYTHON_VERSION* \
  && ln -s /usr/local/bin/pip3 /usr/bin/pip \
  && ln -s /usr/local/bin/$PYTHON /usr/local/bin/python \
- && ${PIP} --no-cache-dir install --upgrade \
+ && pip3 --no-cache-dir install --upgrade \
     pip \
     setuptools
 
