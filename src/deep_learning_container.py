@@ -282,13 +282,12 @@ def main():
         bucket_process.join()
 
 
-if __name__ == "__main__":
-    # Logs are not necessary for normal run. Remove this line while debugging.
-    # logging.getLogger().disabled is the only configuration that suppresses all output logs from this script.
-    # Make sure that there are no logs printed.
-    logging.getLogger().disabled = True
-    logging.basicConfig(level=logging.ERROR)
-    try:
-        main()
-    except Exception as e:
-        logging.error(str(e))
+# Logs are not necessary for normal run. Remove this line while debugging.
+# logging.getLogger().disabled is the only configuration that suppresses all output logs from this script.
+# Make sure that there are no logs printed.
+logging.getLogger().disabled = True
+logging.basicConfig(level=logging.ERROR)
+try:
+    main()
+except Exception as e:
+    logging.error(str(e))
