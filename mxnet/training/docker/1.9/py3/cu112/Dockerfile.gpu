@@ -13,7 +13,7 @@ FROM nvidia/cuda:11.2.2-base-ubuntu20.04 AS e3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG PYTHON_VERSION=3.8.10
+ARG PYTHON_VERSION=3.6.10
 ARG MX_URL=https://aws-mx-pypi.s3.us-west-2.amazonaws.com/1.9.0/aws_mx_cu112-1.9.0b20211227.163-py3-none-manylinux2014_x86_64.whl
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -206,7 +206,7 @@ FROM e3 AS sagemaker
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG PYTHON_VERSION=3.8.10
+ARG PYTHON_VERSION=3.6.10
 
 # The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
 # the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
