@@ -20,15 +20,18 @@ RUN apt-get update \
 
 ARG TORCH_VER=1.10.0+cpu
 ARG TORCH_VISION_VER=0.11.0+cpu
-ARG NUMPY_VER=1.21.5
 ARG AUTOGLUON_VERSION=0.4.0
 
 RUN pip --no-cache-dir install --upgrade --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip --no-cache-dir install --upgrade wheel setuptools \
  && pip uninstall -y dataclasses \
  && pip install --no-cache-dir -U torch==${TORCH_VER} torchvision==${TORCH_VISION_VER} -f https://download.pytorch.org/whl/cpu/torch_stable.html \
-    numpy==${NUMPY_VER} \
     autogluon==${AUTOGLUON_VERSION}
+
+# Security patching
+RUN pip install --no-cache-dir -U 'ray>=1.10,<1.11' \
+ && pip install --no-cache-dir -U 'pytorch_lightning>=1.5.10,<1.7.0' \
+ && pip install --no-cache-dir -U 'Pillow>=9.0.1,<9.1.0'
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]

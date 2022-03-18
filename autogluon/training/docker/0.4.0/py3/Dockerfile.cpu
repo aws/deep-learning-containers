@@ -139,6 +139,12 @@ RUN pip install --no-cache-dir -U \
  && rm -rf /tmp/* \
  && rm -rf /root/.viminfo
 
+# Security patching
+RUN pip install --no-cache-dir -U 'ray>=1.10,<1.11' \
+ && pip install --no-cache-dir -U 'pytorch_lightning>=1.5.10,<1.7.0' \
+ && pip install --no-cache-dir -U 'Pillow>=9.0.1,<9.1.0'
+
+
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \

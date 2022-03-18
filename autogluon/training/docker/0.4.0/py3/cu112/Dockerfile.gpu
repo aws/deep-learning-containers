@@ -70,6 +70,9 @@ RUN source activate rapids \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && pip install --no-cache-dir -U sagemaker-mxnet-training \
  && pip install --no-cache-dir -U cupy-cuda$(echo ${CUDA_VER} | sed 's/\.//')==9.* \
+ && pip install --no-cache-dir -U 'ray>=1.10,<1.11' \
+ && pip install --no-cache-dir -U 'pytorch_lightning>=1.5.10,<1.7.0' \
+ && pip install --no-cache-dir -U 'Pillow>=9.0.1,<9.1.0' \
  && pip uninstall -y \
     datashader \
     ipykernel \
