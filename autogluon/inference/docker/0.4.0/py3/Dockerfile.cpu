@@ -18,8 +18,8 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-ARG TORCH_VER=1.10.0+cpu
-ARG TORCH_VISION_VER=0.11.0+cpu
+ARG TORCH_VER=1.10.2+cpu
+ARG TORCH_VISION_VER=0.11.3+cpu
 ARG AUTOGLUON_VERSION=0.4.0
 
 RUN pip --no-cache-dir install --upgrade --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
@@ -32,6 +32,8 @@ RUN pip --no-cache-dir install --upgrade --trusted-host pypi.org --trusted-host 
 RUN pip install --no-cache-dir -U 'ray>=1.10,<1.11' \
  && pip install --no-cache-dir -U 'pytorch_lightning>=1.5.10,<1.7.0' \
  && pip install --no-cache-dir -U 'Pillow>=9.0.1,<9.1.0'
+
+RUN curl -o /license.txt https://autogluon.s3.us-west-2.amazonaws.com/licenses/THIRD-PARTY-LICENSES.txt
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]

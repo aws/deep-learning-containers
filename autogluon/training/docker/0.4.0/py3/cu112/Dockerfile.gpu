@@ -1,5 +1,5 @@
 ARG CUDA_VER=11.2
-ARG LINUX_VER=ubuntu18.04
+ARG LINUX_VER=ubuntu20.04
 ARG PYTHON_VERSION=3.8.12
 ARG PYTHON_VER=3.8
 ARG FROM_IMAGE=rapidsai/rapidsai-core
@@ -10,8 +10,9 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG CUDA_VER
+ARG CUDNN_VERSION=8.*
 
-ARG OPENSSL_VERSION=1.1.1l
+ARG OPENSSL_VERSION=1.1.1n
 ARG AUTOGLUON_VERSION=0.4.0
 
 ARG MXNET_VER=1.9.*
@@ -50,8 +51,6 @@ RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz 
  && cd .. && rm -rf openssl-* \
  && rmdir /usr/local/ssl/certs \
  && ln -s /etc/ssl/certs /usr/local/ssl/certs
-
-ARG CUDNN_VERSION=8.*
 
 RUN conda update conda -y \
  && conda update --all -y \
