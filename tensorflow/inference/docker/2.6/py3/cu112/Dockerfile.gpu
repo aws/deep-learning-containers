@@ -129,7 +129,7 @@ RUN ${PIP} install -U --no-cache-dir \
     protobuf==3.14.0 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api-gpu==2.6.0
+    tensorflow-serving-api-gpu==2.6.3
 
 COPY ./sagemaker /sagemaker
 
