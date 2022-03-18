@@ -68,6 +68,22 @@ images:
       /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *TRAINING_CONTEXT
+  BuildTensorflowExampleGpuCu112Py38TrainingDockerImage:
+    <<: *TRAINING_REPOSITORY
+    build: &TENSORFLOW_GPU_TRAINING_PY3 false
+    image_size_baseline: &IMAGE_SIZE_BASELINE 7880
+    base_image_name: BuildTensorflowGpuCu112Py38TrainingDockerImage
+    device_type: &DEVICE_TYPE gpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py38
+    cuda_version: &CUDA_VERSION cu112
+    os_version: &OS_VERSION ubuntu20.04
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
+      "-", *OS_VERSION, "-example" ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /example,
+      /Dockerfile., *DEVICE_TYPE ]
+    context:
+      <<: *TRAINING_CONTEXT
   BuildTensorflowCPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &TENSORFLOW_CPU_INFERENCE_PY3 false
