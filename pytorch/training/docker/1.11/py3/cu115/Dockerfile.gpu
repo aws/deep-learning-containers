@@ -465,13 +465,15 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 WORKDIR /root
 
-RUN pip install --no-cache-dir -U \
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && pip install --no-cache-dir -U \
+    # required by sagemaker 2.79.0
+    attrs==20.3.0 \
     # smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
-    sagemaker-pytorch-training \
-    attrs==20.3.0
+    "sagemaker-pytorch-training<3"
 
 # Install smdebug from souce
 RUN cd /tmp \
