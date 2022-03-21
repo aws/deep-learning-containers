@@ -82,10 +82,10 @@ class CveSpider(scrapy.Spider):
             processed_tuple = self.process_row(row_data_list)
             if processed_tuple[0] is None:
                 continue
-            if processed_tuple[0].startswith('Upstream'):
-                ## If the processed_tuple is Upstream, it refers to the first row of
-                ## status_table. Its only the first row that has the package name and 
-                ## hence we extract that using the underneath commands.
+            if len(row.css('tr').css('td')) == 3:
+                ## If there are 3 td (table data) sections inside a table row, then each section stands for a 
+                ## column. In other words, when we get a row with 3 columns, we know that the first column
+                ## is for the package name.
                 if table_data is not None:
                     processed_data['status_tables'].append(table_data)
                 table_data = {}
