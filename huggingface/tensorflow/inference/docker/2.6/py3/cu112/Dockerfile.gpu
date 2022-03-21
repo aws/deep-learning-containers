@@ -116,7 +116,7 @@ RUN pip install --no-cache-dir \
 	transformers[sentencepiece]==${TRANSFORMERS_VERSION} \
 	protobuf==3.12.0 \
    # TODO: Remove upgrade statements once packages are updated in base image
-   "numpy==1.22.2" \
+   "numpy==1.19.5" \
 	"sagemaker-huggingface-inference-toolkit<2"
 
 RUN HOME_DIR=/root \
