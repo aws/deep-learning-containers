@@ -24,7 +24,8 @@ RUN pip install --no-cache-dir \
     psutil \
     # TODO: Remove upgrade statements once packages are updated in base image
     "Pillow>=9.0.0" \
-    "typing-extensions==3.7.4.3"
+    "typing-extensions==3.7.4.3" \
+    "bokeh==2.3.3"
 
 
 RUN apt-get update \
