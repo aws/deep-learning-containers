@@ -128,6 +128,6 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python3 \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl -o /license.txt https://autogluon.s3.us-west-2.amazonaws.com/licenses/THIRD-PARTY-LICENSES.txt
+RUN curl -o /license-autogluon.txt https://autogluon.s3.us-west-2.amazonaws.com/licenses/THIRD-PARTY-LICENSES.txt
 
 CMD ["/bin/bash"]
