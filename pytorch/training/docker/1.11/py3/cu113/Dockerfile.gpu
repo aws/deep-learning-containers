@@ -19,6 +19,10 @@ ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
 
+ARG CUDA_DASH_VERSION=11-3
+ARG CUDA_DOT_VERSION=11.3
+ARG CUDA_SHORT_VERSION=113
+
 ARG CUBLAS_VERSION=11.5.1.109
 ARG EFA_PATH=/opt/amazon/efa
 ARG CUDA_HOME=/usr/local/cuda
@@ -62,22 +66,22 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    cuda-command-line-tools-11-3 \
-    cuda-cudart-11-3 \
-    cuda-libraries-11-3 \
+    cuda-command-line-tools-${CUDA_DASH_VERSION} \
+    cuda-cudart-${CUDA_DASH_VERSION} \
+    cuda-libraries-${CUDA_DASH_VERSION} \
     curl \
     emacs \
     git \
     hwloc \
     jq \
-    libcublas-11-3=${CUBLAS_VERSION}-1 \
-    libcublas-dev-11-3=${CUBLAS_VERSION}-1 \
-    libcudnn8=$CUDNN_VERSION-1+cuda11.3 \
-    libcufft-dev-11-3 \
-    libcurand-dev-11-3 \
+    libcublas-${CUDA_DASH_VERSION}=${CUBLAS_VERSION}-1 \
+    libcublas-dev-${CUDA_DASH_VERSION}=${CUBLAS_VERSION}-1 \
+    libcudnn8=$CUDNN_VERSION-1+cuda${CUDA_DOT_VERSION} \
+    libcufft-dev-${CUDA_DASH_VERSION} \
+    libcurand-dev-${CUDA_DASH_VERSION} \
     libcurl4-openssl-dev \
-    libcusolver-dev-11-3 \
-    libcusparse-dev-11-3 \
+    libcusolver-dev-${CUDA_DASH_VERSION} \
+    libcusparse-dev-${CUDA_DASH_VERSION} \
     libglib2.0-0 \
     libgl1-mesa-glx \
     libsm6 \
@@ -162,7 +166,7 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     mkl-include \
     "pyopenssl>=17.5.0" \
     typing \
- && conda install -y -c dglteam dgl-cuda11.3=0.8.0 \
+ && conda install -y -c dglteam dgl-cuda${CUDA_DOT_VERSION}=0.8.0 \
  && ${CONDA_PREFIX}/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
@@ -176,7 +180,7 @@ RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
  && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
 
 RUN conda install -c pytorch \
-    magma-cuda113==2.6.1 \
+    magma-cuda${CUDA_SHORT_VERSION}==2.6.1 \
  && conda install -y \
     h5py \
     requests \
@@ -296,8 +300,8 @@ RUN rm -rf /root/.ssh/ && \
 
 # Install Horovod
 RUN pip uninstall -y horovod \
- && ldconfig /usr/local/cuda-11.3/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.3 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig /usr/local/cuda-${CUDA_DOT_VERSION}/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-${CUDA_DOT_VERSION} HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
 # Install PT S3 plugin
@@ -427,8 +431,8 @@ RUN rm -rf /root/.ssh/ && \
 
 # Install Horovod
 RUN pip uninstall -y horovod \
- && ldconfig /usr/local/cuda-11.3/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.3 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig /usr/local/cuda-${CUDA_DOT_VERSION}/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-${CUDA_DOT_VERSION} HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
 # Install PT S3 plugin
