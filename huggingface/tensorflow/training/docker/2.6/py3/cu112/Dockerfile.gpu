@@ -2,7 +2,7 @@
 # refer to the above page to pull latest Tensorflow image
 
 # docker image region us-west-2
-FROM 669063966089.dkr.ecr.us-west-2.amazonaws.com/beta-tensorflow-training:2.6.3-gpu-py38-cu112-ubuntu20.04-benchmark-tested-2022-03-17-06-56-12
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training:2.6.3-gpu-py38-cu112-ubuntu20.04
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -26,7 +26,7 @@ RUN pip install --no-cache-dir \
     "Pillow>=9.0.0" \
     "typing-extensions==3.7.4.3" \
     "bokeh==2.3.3" \
-    "numpy~=1.19.2"
+    "numpy==1.19.2"
 
 
 RUN apt-get update \
