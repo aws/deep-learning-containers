@@ -22,9 +22,8 @@ RUN pip install --no-cache-dir \
     datasets==${DATASETS_VERSION} \
     tensorflow-addons==0.12.0 \
     psutil \
-    # TODO: Remove upgrade statements once packages are updated in base image
-    "Pillow>=9.0.0" \
     "typing-extensions==3.7.4.3" \
+    # bokeh 2.3.3 is the latest compatible version for typing-extensions 3.7.4.3
     "bokeh==2.3.3"
 
 
