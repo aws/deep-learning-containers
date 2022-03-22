@@ -3,8 +3,8 @@ ARG PYTHON_VERSION=3.8.12
 ARG PYTHON_SHORT_VERSION=3.8
 
 # PyTorch Binaries
-ARG PT_E3_TRAINING_URL=https://download.pytorch.org/whl/cu113/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
-ARG PT_SM_TRAINING_URL=https://download.pytorch.org/whl/cu113/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_E3_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries-build.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220322-174332/272547162a367c4aaafe8f7e1d9d35d39441c6f3/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_SM_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries-build.s3.us-west-2.amazonaws.com/r1.11.0_v3_sm/20220322-174335/15c50b561b1a638dacc59db932cab0fcb8d60d10/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu113/torchaudio-0.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
