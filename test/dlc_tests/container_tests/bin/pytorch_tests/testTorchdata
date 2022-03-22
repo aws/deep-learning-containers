@@ -1,0 +1,31 @@
+#!/bin/bash
+
+set -e
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+
+TORCHDATA_DEV_BRANCH="pt1.11.0-dlc-torchdata"
+TORCHDATA_DEV_REPO="https://github.com/ydaiming/data.git"
+TORCHDATA_TEST_SCRIPT="data/test/test_remote_io.py"
+
+echo "Fetch Torchdata S3 IO test script."
+git clone --recursive -b ${TORCHDATA_DEV_BRANCH} ${TORCHDATA_DEV_REPO}
+
+echo "Installing pre-requisites."
+pip install expecttest
+
+echo "Running Torchdata S3 IO datapipe tests."
+python ${TORCHDATA_TEST_SCRIPT}
+
+if [ "$?" -eq "0" ]
+then
+    echo "Torchdata S3 IO tests succeeded."
+else
+    echo "Torchdata S3 IO tests failed at ${TORCHDATA_DEV_REPO} ${TORCHDATA_DEV_BRANCH} ${TORCHDATA_TEST_SCRIPT}"
+    exit 1
+fi
+
+echo "Torchdata S3 IO tests succeeded!"
+exit 0
