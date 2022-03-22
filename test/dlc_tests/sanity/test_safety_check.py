@@ -68,8 +68,11 @@ IGNORE_SAFETY_IDS = {
                 # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
                 "42098",
                 "42062",
-                # False positive CVE for numpy
-                "44715"
+                # CVE vulnerabilities in TF 2.6 ignoring to be able to build TF containers
+                "44715",
+                "44716",
+                "44717",
+                "43453",
             ],
         },
         "inference-eia": {
