@@ -236,15 +236,8 @@ ARG PT_TORCHDATA_URL
 ARG PT_S3_WHL_GPU
 
 # Re-install AWS-PyTorch binaries
-RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U ${PT_E3_TRAINING_URL} \
- && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
- && pip uninstall -y torchaudio \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHAUDIO_URL} \
- && pip uninstall -y torchdata \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL} \
- && pip install --no-cache-dir -U torchnet
+RUN pip uninstall -y torch torchvision torchaudio torchdata \
+ && pip install --no-deps --no-cache-dir -U ${PT_E3_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
 
 # Install Nvidia Apex
 ## Pin apex commit requested by sm-model-parallel team
@@ -368,15 +361,8 @@ ARG PT_TORCHDATA_URL
 ARG PT_S3_WHL_GPU
 
 # Re-install AWS-PyTorch binaries
-RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} \
- && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
- && pip uninstall -y torchaudio \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHAUDIO_URL} \
- && pip uninstall -y torchdata \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL} \
- && pip install --no-cache-dir -U torchnet
+RUN pip uninstall -y torch torchvision torchaudio torchdata \
+ && pip install --no-deps --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
 
 # Install Nvidia Apex
 ## Pin apex commit requested by sm-model-parallel team
