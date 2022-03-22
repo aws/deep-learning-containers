@@ -240,10 +240,13 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata \
 
 # Install Nvidia Apex
 ## Pin apex commit requested by sm-model-parallel team
-RUN git clone https://github.com/NVIDIA/apex && \
-    cd apex && \
-    git checkout aa756ce && \
-    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+RUN mkdir /tmp/apex \
+ && cd /tmp/apex \
+ && git clone https://github.com/NVIDIA/apex \
+ && cd apex \
+ && git checkout aa756ce \
+ && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
+ && rm -rf /tmp/apex
 
 # Configure Open MPI and configure NCCL parameters
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
@@ -365,10 +368,13 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata \
 
 # Install Nvidia Apex
 ## Pin apex commit requested by sm-model-parallel team
-RUN git clone https://github.com/NVIDIA/apex && \
-    cd apex && \
-    git checkout aa756ce && \
-    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+RUN mkdir /tmp/apex \
+ && cd /tmp/apex \
+ && git clone https://github.com/NVIDIA/apex \
+ && cd apex \
+ && git checkout aa756ce \
+ && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./ \
+ && rm -rf /tmp/apex
 
 # Configure Open MPI and configure NCCL parameters
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
