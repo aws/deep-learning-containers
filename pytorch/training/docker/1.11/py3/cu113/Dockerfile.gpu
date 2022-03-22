@@ -205,8 +205,7 @@ RUN pip install --no-cache-dir -U \
     psutil \
     pybind11 \
     "pyyaml>=5.4,<5.5" \
-    scipy \
-    torchnet
+    scipy
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -244,7 +243,8 @@ RUN pip uninstall -y torch \
  && pip uninstall -y torchaudio \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHAUDIO_URL} \
  && pip uninstall -y torchdata \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL}
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL} \
+ && pip install --no-cache-dir -U torchnet
 
 # Install Nvidia Apex
 ## Pin apex commit requested by sm-model-parallel team
@@ -375,7 +375,8 @@ RUN pip uninstall -y torch \
  && pip uninstall -y torchaudio \
  && pip install --no-deps --no-cache-dir -U ${PT_TORCHAUDIO_URL} \
  && pip uninstall -y torchdata \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL}
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL} \
+ && pip install --no-cache-dir -U torchnet
 
 # Install Nvidia Apex
 ## Pin apex commit requested by sm-model-parallel team
