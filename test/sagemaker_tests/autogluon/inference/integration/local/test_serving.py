@@ -31,8 +31,9 @@ def _predictor(image, framework_version, sagemaker_local_session, instance_type)
     model_dir = os.path.join(RESOURCE_PATH, 'model')
     source_dir = os.path.join(RESOURCE_PATH, 'scripts')
 
+    ag_framework_version = '0.3.1' if framework_version == '0.3.2' else framework_version
     model = MXNetModel(
-        model_data=f"file://{model_dir}/model.tar.gz",
+        model_data=f"file://{model_dir}/model_{ag_framework_version}.tar.gz",
         role=ROLE,
         image_uri=image,
         sagemaker_session=sagemaker_local_session,

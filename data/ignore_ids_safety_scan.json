@@ -665,14 +665,18 @@
             "py3": {
                 "44717": "The vendor states that this reported code behavior is completely harmless.",
                 "44716": "[DISPUTED] The vendor does not agree this is a vulnerability; the negative dimensions can only be created by an already privileged user (or internally).",
-                "44715": "[DISPUTED] While correct that validation is missing, an error can only occur due to an exhaustion of memory. If the user can exhaust memory, they are already privileged. Further, it should be practically impossible to construct an attack which can target the memory exhaustion to occur at exactly this place."
+                "44715": "[DISPUTED] While correct that validation is missing, an error can only occur due to an exhaustion of memory. If the user can exhaust memory, they are already privileged. Further, it should be practically impossible to construct an attack which can target the memory exhaustion to occur at exactly this place.",
+                "43581": "pytorch-lightning stable release (1.6.0) is not available",
+                "43752": "pytorch-lightning stable release (1.6.0) is not available"
             }
         },
         "inference": {
             "py3": {
                 "44717": "The vendor states that this reported code behavior is completely harmless.",
                 "44716": "[DISPUTED] The vendor does not agree this is a vulnerability; the negative dimensions can only be created by an already privileged user (or internally).",
-                "44715": "[DISPUTED] While correct that validation is missing, an error can only occur due to an exhaustion of memory. If the user can exhaust memory, they are already privileged. Further, it should be practically impossible to construct an attack which can target the memory exhaustion to occur at exactly this place."
+                "44715": "[DISPUTED] While correct that validation is missing, an error can only occur due to an exhaustion of memory. If the user can exhaust memory, they are already privileged. Further, it should be practically impossible to construct an attack which can target the memory exhaustion to occur at exactly this place.",
+                "43581": "pytorch-lightning stable release (1.6.0) is not available",
+                "43752": "pytorch-lightning stable release (1.6.0) is not available"
             }
         }
     }
