@@ -590,6 +590,9 @@ IGNORE_SAFETY_IDS = {
                 "44716",
                 # False positive CVE for numpy
                 "44715",
+                # pytorch-lightning stable release (1.6.0) is not available
+                "43581",
+                "43752",
             ]
         },
         "inference": {
@@ -599,6 +602,9 @@ IGNORE_SAFETY_IDS = {
                 "44716",
                 # False positive CVE for numpy
                 "44715",
+                # pytorch-lightning stable release (1.6.0) is not available
+                "43581",
+                "43752",
             ]
         },
     }
