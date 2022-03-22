@@ -527,7 +527,7 @@ def execute_asynchronus_testing_using_s3_bucket(
             ):
                 # If last 3 runs lead to same line number then it demonstrates no progress and hence we stop.
                 LOGGER.info(
-                    "No progress reported during last 15 minutes. Job most likely hanged so stopping the execution!!"
+                    f"No progress reported for past {number_of_previous_line_counts_to_check} iterations. Job most likely hanged so stopping the execution!!"
                 )
                 break
         LOGGER.info(f"Uploaded file to {s3_location} for {loop_count} number of times")
@@ -573,6 +573,7 @@ def execute_ec2_training_test(
     container_name="ec2_training_container",
     timeout=18000,
     bin_bash_entrypoint=False,
+    enable_habana_async_execution=False
 ):
     if executable not in ("bash", "python"):
         raise RuntimeError(f"This function only supports executing bash or python commands on containers")
@@ -612,7 +613,7 @@ def execute_ec2_training_test(
         s3_uri_permanent_logs = get_s3_uri_for_saving_permanent_logs(
             framework, s3_bucket=s3_bucket_for_permanent_logs, test_type=test_type
         )
-        if framework == "tensorflow":
+        if enable_habana_async_execution == True:
             execute_asynchronus_testing_using_s3_bucket(
                 connection,
                 execution_command,
@@ -624,8 +625,11 @@ def execute_ec2_training_test(
             return
         else:
             run_output = connection.run(execution_command, hide=True, timeout=timeout)
-            connection.run(f"aws s3 cp ~/container_tests/logs.txt {s3_uri_permanent_logs}")
-            LOGGER.info(f"Uploaded logs at: {s3_uri_permanent_logs}")
+            try:
+                connection.run(f"aws s3 cp ~/container_tests/logs.txt {s3_uri_permanent_logs}")
+                LOGGER.info(f"Uploaded logs at: {s3_uri_permanent_logs}")
+            except:
+                LOGGER.info(f"Could not upload the logs")
             return run_output
 
     return connection.run(
@@ -726,6 +730,7 @@ def execute_ec2_habana_training_performance_test(
         required_log_ending,
         loop_time= 4 * 3600,
         s3_uri_for_saving_permanent_logs=s3_uri_permanent_logs,
+        hang_detection_window=15,
     )
     LOGGER.info(f"Uploaded logs at: {s3_uri_permanent_logs}")
     return
