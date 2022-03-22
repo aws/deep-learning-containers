@@ -158,7 +158,7 @@ def parse_args():
 
     # PT 1.10 and above has +cpu or +cu113 string, so handle accordingly
     if args.framework == "pytorch":
-        pt_fw_version_pattern = r"(\d+(\.\d+){1,2}(-rc\d)?)((\+cpu)|(\+cu\d{3}))"
+        pt_fw_version_pattern = r"(\d+(\.\d+){1,2}(-rc\d)?)((\+cpu)|(\+cu\d{3})|(a0\+git\w{7}))"
         pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, args.framework_version)
         if pt_fw_version_match:
             args.framework_version = pt_fw_version_match.group(1)

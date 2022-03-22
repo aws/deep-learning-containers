@@ -42,9 +42,9 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-078c2404eecfbe916"
-# Habana Base v1.2 ami
-UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-047fd74c001116366"
-UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
+# Habana Base v1.3 ami
+UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0ef18b1906e7010fb" 
+UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-040ef14d634e727a2"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
@@ -58,8 +58,8 @@ UL_AMI_LIST = [
 ]
 
 # ECS images are maintained here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
-ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
-ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
+ECS_AML2_GPU_USWEST2 = "ami-052237b2eee880dc6"
+ECS_AML2_CPU_USWEST2 = "ami-0794df61693647a62"
 ECS_AML2_NEURON_USWEST2 = "ami-0c7321fe2b2340dd5"
 ECS_AML2_GRAVITON_CPU_USWEST2 = "ami-0fb32cf53e5ab7686"
 NEURON_AL2_DLAMI = "ami-03c4cdc89eca4dbcb"
