@@ -179,8 +179,7 @@ RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
 
-RUN conda install -c pytorch \
-    magma-cuda113 \
+RUN conda install -c pytorch magma-cuda113 \
  && conda install -y \
     h5py \
     requests \
@@ -456,15 +455,12 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 WORKDIR /root
 
-RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && pip install --no-cache-dir -U \
-    # required by sagemaker 2.79.0
-    attrs==20.3.0 \
+RUN pip install --no-cache-dir -U \
     # smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
-    "sagemaker-pytorch-training<3"
+    sagemaker-pytorch-training
 
 # Install smdebug from souce
 RUN cd /tmp \
