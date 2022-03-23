@@ -118,6 +118,8 @@ RUN pip install \
     "Pillow>=9.0.0" \ 
     "awscli<2"
 
+# torchserve-nightly==2022.3.23.post2 replace torchserve==${TS_VERSION}
+# only in PT1.10 for hotfix
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
  && pip install torchserve-nightly==2022.3.23.post2 \
