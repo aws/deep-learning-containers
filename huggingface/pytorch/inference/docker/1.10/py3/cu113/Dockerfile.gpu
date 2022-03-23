@@ -79,6 +79,8 @@ RUN apt-get update \
     wget \
     unzip \
     zlib1g-dev \
+    libsndfile1-dev \
+    ffmpeg \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -164,8 +166,12 @@ RUN pip uninstall -y torch \
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
 	transformers[sentencepiece]==${TRANSFORMERS_VERSION} \
-	protobuf==3.12.0 \
-	"sagemaker-huggingface-inference-toolkit<2"
+	protobuf==3.12.0 
+	# "sagemaker-huggingface-inference-toolkit<2"
+    
+# installs new toolkit version from git for integration tests
+RUN pip install --no-cache-dir git+https://github.com/aws/sagemaker-huggingface-inference-toolkit.git@new-modalities 
+
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
