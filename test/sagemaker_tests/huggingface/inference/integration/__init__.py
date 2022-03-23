@@ -29,7 +29,7 @@ pt_neuron_model = "pt_neuron_model.tar.gz"
 script_dir = os.path.join(resources_path, 'code')
 pt_neuron_script = "neuron_inference.py"
 audio_sample_file_path =  os.path.join(resources_path, 'audio', 'sample.wav')
-image_sample_file_path =  os.path.join(resources_path, 'audio', 'sample.wav')
+image_sample_file_path =  os.path.join(resources_path, 'image', 'tiger.png')
 
 
 ROLE = "dummy/unused-role"
