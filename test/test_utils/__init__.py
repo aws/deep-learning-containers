@@ -42,9 +42,9 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-078c2404eecfbe916"
-# Habana Base v1.2 ami
-UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-047fd74c001116366"
-UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
+# Habana Base v1.3 ami
+UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0ef18b1906e7010fb"
+UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-040ef14d634e727a2"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
@@ -247,13 +247,15 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
     :param ec2_instance_type: EC2 Instance Type
     :return: bool True if there are incompatibilities, False if there aren't
     """
+    incompatible_conditions = []
+    framework, framework_version = get_framework_and_version_from_tag(image_uri)
+
     image_is_cuda10_on_incompatible_p4d_instance = (
         get_processor_from_image_uri(image_uri) == "gpu"
         and get_cuda_version_from_tag(image_uri).startswith("cu10")
         and ec2_instance_type in ["p4d.24xlarge"]
     )
-
-    framework, _ = get_framework_and_version_from_tag(image_uri)
+    incompatible_conditions.append(image_is_cuda10_on_incompatible_p4d_instance)
 
     image_is_cuda11_on_incompatible_p2_instance_mxnet = (
         framework == "mxnet"
@@ -261,8 +263,17 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         and get_cuda_version_from_tag(image_uri).startswith("cu11")
         and ec2_instance_type in ["p2.8xlarge"]
     )
+    incompatible_conditions.append(image_is_cuda11_on_incompatible_p2_instance_mxnet)
 
-    return image_is_cuda10_on_incompatible_p4d_instance or image_is_cuda11_on_incompatible_p2_instance_mxnet
+    image_is_pytorch_1_11_on_incompatible_p2_instance_pytorch = (
+        framework == "pytorch"
+        and Version(framework_version) in SpecifierSet("==1.11.*")
+        and get_processor_from_image_uri(image_uri) == "gpu"
+        and ec2_instance_type in ["p2.8xlarge"]
+    )
+    incompatible_conditions.append(image_is_pytorch_1_11_on_incompatible_p2_instance_pytorch)
+
+    return any(incompatible_conditions)
 
 
 def get_repository_local_path():
