@@ -185,7 +185,6 @@ RUN conda install -c pytorch \
 
 WORKDIR /root
 
-# Install PyTorch dependencies
 RUN pip install --no-cache-dir -U \
     "awscli<2" \
     boto3 \
@@ -231,7 +230,7 @@ ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 ARG PT_S3_WHL_GPU
 
-# Re-install AWS-PyTorch binaries
+# Install AWS-PyTorch and other torch packages
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_E3_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
@@ -345,7 +344,7 @@ ARG SMDEBUG_VERSION=1.0.9
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
-# swap the pytorch training wheel with additional smdebug and smmdp features
+# SMD model parallel and data parallel binaries
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.10.0/build-artifacts/2021-11-05-16-39/smdistributed_modelparallel-1.5.0-cp38-cp38-linux_x86_64.whl
 ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.10.0/cu113/2021-11-03/smdistributed_dataparallel-1.2.2-cp38-cp38-linux_x86_64.whl
 
@@ -356,7 +355,7 @@ ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 ARG PT_S3_WHL_GPU
 
-# Re-install AWS-PyTorch binaries
+# Install AWS-PyTorch and other torch packages
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
