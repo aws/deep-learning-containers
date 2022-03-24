@@ -550,7 +550,7 @@ def get_s3_uri_for_saving_permanent_logs(framework, s3_bucket, test_type="ec2", 
     :param test_type: str, type of the test
     :param custom_filename: str, custom name of the file that will be prepended with unique id to create the s3 filepath
     """
-    commit_id = run("""git log --format="%H" -n 1""", hide=True).stdout.strip()
+    commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", f"default-{int(time.time())}")
     unique_id = str(uuid.uuid4())
     unique_id_with_timestamp = f"{unique_id}-{int(time.time())}"
     if custom_filename:
