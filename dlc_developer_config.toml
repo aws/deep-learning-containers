@@ -15,7 +15,7 @@ graviton_mode = false
 habana_mode = true
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
-benchmark_mode = false
+benchmark_mode = true
 
 [build]
 # Frameworks for which you want to disable both builds and tests
@@ -25,7 +25,7 @@ skip_frameworks = []
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = true
+do_build = false
 
 [test]
 ### On by default
