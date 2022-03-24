@@ -66,3 +66,51 @@ release_images:
       # to images being published.
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
       # has already been published. Re-released image will have minor version incremented by 1.
+  4:
+    framework: "pytorch"
+    version: "1.10.1"
+    arch_type: "x86"
+    training:
+      device_types: [ "hpu" ]
+      python_versions: [ "py38" ]
+      synapseai_version: "1.3.0"
+      os_version: "ubuntu20.04"
+      example: False
+      disable_sm_tag: True  # [Default: False] This option is not used by Example images
+      force_release: False
+  5:
+    framework: "pytorch"
+    version: "1.10.1"
+    arch_type: "x86"
+    training:
+      device_types: [ "hpu" ]
+      python_versions: [ "py38" ]
+      synapseai_version: "1.3.0"
+      os_version: "ubuntu20.04"
+      example: True
+      disable_sm_tag: True  # [Default: False] This option is not used by Example images
+      force_release: False
+  6:
+    framework: "tensorflow"
+    version: "2.8.0"
+    arch_type: "x86"
+    training:
+      device_types: [ "hpu" ]
+      python_versions: [ "py38" ]
+      synapseai_version: "1.3.0"
+      os_version: "ubuntu20.04"
+      example: False
+      disable_sm_tag: True  # [Default: False] This option is not used by Example images
+      force_release: False
+  7:
+    framework: "tensorflow"
+    version: "2.8.0"
+    arch_type: "x86"
+    training:
+      device_types: [ "hpu" ]
+      python_versions: [ "py38" ]
+      synapseai_version: "1.3.0"
+      os_version: "ubuntu20.04"
+      example: True
+      disable_sm_tag: True  # [Default: False] This option is not used by Example images
+      force_release: False
