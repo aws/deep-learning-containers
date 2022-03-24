@@ -16,7 +16,7 @@ import pytest
 import sagemaker
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
-from sagemaker.serializers import JSONSerializer
+from sagemaker.serializers import DataSerializer
 from sagemaker.deserializers import JSONDeserializer
 
 from ...integration import model_dir, dump_logs_from_cloudwatch, image_sample_file_path
