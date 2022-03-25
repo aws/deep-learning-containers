@@ -23,15 +23,17 @@ def delete_resources(list_item, k8s_api, job_type, namespace):
 
     for item in list_item.items:
         item_name = item.metadata.name
-
+        item_creation_time = item.metadata.creation_timestamp
+        print(f"Resource name {item_name}")
+        print(f"Resource creation time {item_creation_time}")
         # Do not delete the kubeflow mxnet operator
         if item_name == "mxnet-operator":
             continue
 
-        hours = get_run_time(item.metadata.creation_timestamp)
-
+        hours = get_run_time(item_creation_time)
+        print(f"Resource up time {hours}")
         if hours >= JOB_TIMEOUT:
-
+            print(f"Deleting resource {item_name}")
             if job_type == "deployment":
                 k8s_api.delete_namespaced_deployment(item_name, namespace)
             if job_type == "pod":
@@ -62,7 +64,7 @@ def main():
         config.load_kube_config()
         _, active_context = config.list_kube_config_contexts()
         print(f"EKS Cluster {active_context['name']}")
-        # run_cron_job()
+        run_cron_job()
 
 
 main()
