@@ -38,7 +38,7 @@ DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "gcn.py")
 def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
     # TODO: Remove when DGL gpu test on ecs get fixed
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    if Version("1.10") <= Version(image_framework_version) < Version("1.11"):
+    if Version(image_framework_version) in SpecifierSet("==1.10.*"):
         pytest.skip("ecs test for DGL gpu fails for pt 1.10")
 
     instance_type = instance_type or "ml.c4.xlarge"
@@ -58,7 +58,7 @@ def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
     
     # TODO: Remove when DGL gpu test on ecs get fixed
-    if Version("1.10") <= Version(image_framework_version) < Version("1.11") and image_cuda_version == "cu113":
+    if Version(image_framework_version) in SpecifierSet("==1.10.*") and image_cuda_version == "cu113":
         pytest.skip("ecs test for DGL gpu fails for pt 1.10")
 
     if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
