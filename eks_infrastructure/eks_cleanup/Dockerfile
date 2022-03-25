@@ -1,8 +1,5 @@
 FROM python:3.9
 
-# Install the function's dependencies using file requirements.txt
-# from your project folder.
-
 RUN pip3 install --no-cache-dir -U \
     kubernetes \
     awscli \
@@ -28,5 +25,4 @@ RUN chmod +x ./aws-iam-authenticator
 RUN mkdir -p $HOME/bin && cp ./aws-iam-authenticator $HOME/bin/aws-iam-authenticator && export PATH=$PATH:$HOME/bin
 RUN echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
 
-# Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
 CMD ["/bin/bash"]
