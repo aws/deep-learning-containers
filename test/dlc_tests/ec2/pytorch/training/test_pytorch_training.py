@@ -86,7 +86,7 @@ def test_pytorch_train_dgl_gpu(pytorch_training, ec2_connection, gpu_only, py3_o
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     image_cuda_version = get_cuda_version_from_tag(pytorch_training)
     # TODO: Remove when DGL gpu test on ec2 get fixed
-    if Version(image_framework_version) == Version("1.10") and image_cuda_version == "cu113":
+    if Version("1.10") <= Version(image_framework_version) < Version("1.11") and image_cuda_version == "cu113":
         pytest.skip("ecs test for DGL gpu fails for pt 1.10")
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}")
@@ -99,7 +99,7 @@ def test_pytorch_train_dgl_gpu(pytorch_training, ec2_connection, gpu_only, py3_o
 def test_pytorch_train_dgl_cpu(pytorch_training, ec2_connection, cpu_only, py3_only):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
     # TODO: Remove when DGL gpu test on ecs get fixed
-    if Version(image_framework_version) == Version("1.10"):
+    if Version("1.10") <= Version(image_framework_version) < Version("1.11"):
         pytest.skip("ecs test for DGL gpu fails for pt 1.10")
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DGL_CMD)
 
