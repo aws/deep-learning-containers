@@ -6,4 +6,4 @@ phases:
       docker: 18
   build:
     commands:
-      - python3 eks_infrastructure/lambda_function.py
+      - python3 eks_infrastructure/eks_cleanup/eks_cleanup_job.py
