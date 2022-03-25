@@ -27,7 +27,7 @@ def delete_resources(list_item, k8s_api, job_type, namespace):
         print(f"Resource name {item_name}")
         print(f"Resource creation time {item_creation_time}")
         # Do not delete the kubeflow mxnet operator
-        if item_name == "mxnet-operator":
+        if "mxnet-operator" in item_name:
             continue
 
         hours = get_run_time(item_creation_time)
