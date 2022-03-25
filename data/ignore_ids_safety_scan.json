@@ -208,7 +208,10 @@
                 "38452":"for shipping pillow<=6.2.2 - the last available version for py2"
             },
             "py3": {
-                "43453":"mxnet currently does now work with numpy 1.20.0 or above"
+                "43453":"mxnet currently does now work with numpy 1.20.0 or above",
+                "44715":"mxnet currently does now work with numpy 1.20.0 or above",
+                "44716":"mxnet currently does now work with numpy 1.20.0 or above",
+                "44717":"mxnet currently does now work with numpy 1.20.0 or above"
             }
         },
         "inference": {
@@ -220,7 +223,10 @@
                 "38452":"for shipping pillow<=6.2.2 - the last available version for py2"
             },
             "py3": {
-                "43453":"mxnet currently does now work with numpy 1.20.0 or above"
+                "43453":"mxnet currently does now work with numpy 1.20.0 or above",
+                "44715":"mxnet currently does now work with numpy 1.20.0 or above",
+                "44716":"mxnet currently does now work with numpy 1.20.0 or above",
+                "44717":"mxnet currently does now work with numpy 1.20.0 or above"
             }
         },
         "inference-eia": {
