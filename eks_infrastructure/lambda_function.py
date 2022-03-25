@@ -49,9 +49,8 @@ def run_cron_job():
 
 
 
-def lambda_handler(event, context):
+def main():
     # Handle k8s context switch
-
     for cluster in EKS_CLUSTERS:
         #run(f"aws eks update-kubeconfig --name {cluster} --role-arn {EKS_CLUSTER_MANAGER_ROLE}")
         run(f"eksctl utils write-kubeconfig --cluster {cluster} --authenticator-role-arn {EKS_CLUSTER_MANAGER_ROLE} --region us-west-2")
@@ -59,3 +58,5 @@ def lambda_handler(event, context):
         _, active_context = config.list_kube_config_contexts()
         print(f"EKS Cluster {active_context['name']}")
         #run_cron_job()
+
+main()
