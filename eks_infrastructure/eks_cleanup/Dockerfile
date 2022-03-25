@@ -10,10 +10,15 @@ RUN pip3 install --no-cache-dir -U \
     invoke \
     boto3
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get install -y \
     curl \
     tar \
-    gzip
+    gzip \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 RUN curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_Linux_amd64.tar.gz" | tar xz -C /tmp
 RUN mv /tmp/eksctl /usr/local/bin
