@@ -7,11 +7,20 @@ import pytest
 import boto3
 import logging
 import sys
+import botocore
 
 from copy import deepcopy
 from invoke import run, Context
+from packaging.version import Version
 
-from test.test_utils import LOGGER, get_account_id_from_image_uri, get_dockerfile_path_for_image, is_dlc_cicd_context
+from test.test_utils import (
+    LOGGER, 
+    get_account_id_from_image_uri, 
+    get_dockerfile_path_for_image, 
+    is_dlc_cicd_context,
+    get_framework_and_version_from_tag,
+    DEFAULT_REGION
+)
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
     CVESeverity,
@@ -21,13 +30,10 @@ from test.test_utils.security import (
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
 
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
-LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 MINIMUM_SEV_THRESHOLD = "HIGH"
 
-LOWER_THRESHOLD_IMAGES = {"mxnet": ["1.8"]}
+LOWER_THRESHOLD_IMAGES = {"mxnet": "1.8.0"}
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -65,6 +71,24 @@ def run_scan(ecr_client, image):
     if scan_status != "COMPLETE":
         raise TimeoutError(f"ECR Scan is still in {scan_status} state. Exiting.")
 
+def _botocore_resolver():
+    """
+    Get the DNS suffix for the given region.
+    :return: endpoint object
+    """
+    loader = botocore.loaders.create_loader()
+    return botocore.regions.EndpointResolver(loader.load_data("endpoints"))
+
+
+def get_ecr_registry(account, region):
+    """
+    Get prefix of ECR image URI
+    :param account: Account ID
+    :param region: region where ECR repo exists
+    :return: AWS ECR registry
+    """
+    endpoint_data = _botocore_resolver().construct_endpoint("ecr", region)
+    return "{}.dkr.{}".format(account, endpoint_data["hostname"])
 
 def get_new_image_uri(image):
     """
@@ -74,10 +98,14 @@ def get_new_image_uri(image):
     :param image: str
     :param new_image_uri: str
     """
+    ## UPGRADE_REPO_NAME is a temporary name for the ecr repository where the ecr upgraded version of the image is uploaded to run ecr scan on it.
     repository_name = os.getenv("UPGRADE_REPO_NAME")
-    ecr_account = f"{os.getenv('ACCOUNT_ID')}.dkr.ecr.{os.getenv('REGION')}.amazonaws.com"
+    region = os.getenv("REGION", DEFAULT_REGION)
+    sts_client = boto3.client("sts", region_name=region)
+    account_id = sts_client.get_caller_identity().get("Account")
+    registry = get_ecr_registry(account_id, region)
     upgraded_image_tag = "-".join(image.replace("/", ":").split(":")[1:]) + "-up"
-    new_image_uri = f"{ecr_account}/{repository_name}:{upgraded_image_tag}"
+    new_image_uri = f"{registry}/{repository_name}:{upgraded_image_tag}"
     return new_image_uri
 
 
@@ -266,13 +294,11 @@ def is_image_covered_by_allowlist_feature(image):
 
     :param image: str, Image URI
     """
-    if any(substring in image for substring in ["example","neuron"]):
+    image_framework, image_version = get_framework_and_version_from_tag(image)
+    if image_framework not in LOWER_THRESHOLD_IMAGES or any(substring in image for substring in ["example", "neuron"]):
         return False
-    for framework in LOWER_THRESHOLD_IMAGES.keys():
-        if framework in image:
-            if any(version in image for version in LOWER_THRESHOLD_IMAGES[framework]):
-                return True
-            return False
+    if Version(image_version) >= Version(LOWER_THRESHOLD_IMAGES[image_framework]):
+        return True
     return False
 
 
@@ -389,7 +415,7 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         image = ecr_utils.reupload_image_to_test_ecr(image, target_image_repo_name, region)
 
     set_minimum_threshold_level(image)
-    print(MINIMUM_SEV_THRESHOLD)
+    LOGGER.info(f"Severity threshold level is {MINIMUM_SEV_THRESHOLD}")
 
     run_scan(ecr_client, image)
     scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
