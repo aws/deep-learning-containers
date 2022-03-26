@@ -233,6 +233,8 @@ For prior versions, visit [Prior Neuron Inference Container Versions](#Prior-Neu
 | TensorFlow 2.7.0 | inference | Yes             | CPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.7.0-cpu-py38-ubuntu20.04-e3       |
 | TensorFlow 2.7.0 | inference | Yes             | GPU     | 3.8 (py38)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.7.0-gpu-py38-cu112-ubuntu20.04-e3 |
 
+For the latest versions, visit [E3 Framework Containers (EC2, ECS, and EKS support only)](#E3-Framework-Containers-(EC2,-ECS,-and-EKS-support-only))
+
 ## Prior General Framework Container Versions
 
 | Framework                          | Job Type            | Horovod Options              | CPU/GPU | Python Version Options | Example URL                                                                                         |
@@ -319,6 +321,8 @@ For prior versions, visit [Prior Neuron Inference Container Versions](#Prior-Neu
 | PyTorch 1.2.0                      | training, inference | No                           | CPU     | 2.7 (py27), 3.6 (py36) | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.2.0-cpu-py36-ubuntu16.04            |
 | PyTorch 1.2.0                      | training, inference | Training:Yes, Inference: No  | GPU     | 2.7 (py27), 3.6 (py36) | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:1.2.0-gpu-py36-cu100-ubuntu16.04      |
 
+For the latest versions, visit [E3 Framework Containers (EC2, ECS, and EKS support only)](#E3-Framework-Containers-(EC2,-ECS,-and-EKS-support-only)) and [SageMaker Framework Containers (SM support only)](#SageMaker-Framework-Containers-(SM-support-only)), since General Framework DLCs for MXNet, PyTorch, and TensorFlow are now replaced with E3 and SageMaker DLCs.
+
 ## Prior Hugging Face Container Versions
 
 | Framework                                      | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                                                                       |
@@ -329,6 +333,8 @@ For prior versions, visit [Prior Neuron Inference Container Versions](#Prior-Neu
 | PyTorch 1.8.1 with HuggingFace transformers    | inference | GPU     | 3.6 (py36)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-pytorch-inference:1.8.1-transformers4.10.2-gpu-py36-cu111-ubuntu18.04    |
 | TensorFlow 2.4.3 with HuggingFace transformers | inference | CPU     | 3.7 (py37)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.4.3-transformers4.10.2-cpu-py37-ubuntu18.04       |
 | TensorFlow 2.4.3 with HuggingFace transformers | inference | GPU     | 3.7 (py37)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/huggingface-tensorflow-inference:2.4.3-transformers4.10.2-gpu-py37-cu110-ubuntu18.04 |
+
+For the latest versions, visit [HuggingFace Training Containers](#HuggingFace-Training-Containers) and [HuggingFace Inference Containers](#HuggingFace-Inference-Containers)
 
 ## Prior AutoGluon Container Versions
 
@@ -343,6 +349,8 @@ For prior versions, visit [Prior Neuron Inference Container Versions](#Prior-Neu
 | AutoGluon 0.2.1 | 0.2.1             | training  | GPU     | 3.7 (py37)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.2.1-gpu-py37-cu102-ubuntu18.04 |
 | AutoGluon 0.2.1 | 0.2.1             | training  | CPU     | 3.7 (py37)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:0.2.1-cpu-py37-ubuntu18.04       |
 
+For the latest versions, visit [AutoGluon Training Containers](#AutoGluon-Training-Containers) and [AutoGluon Inference Containers](#AutoGluon-Inference-Containers)
+
 ## Prior Elastic Inference Container Versions
 
 | Framework                                | Job Type  | Horovod Options  | CPU/GPU | Python Version Options  | Example URL                                                                                       |
@@ -351,6 +359,8 @@ For prior versions, visit [Prior Neuron Inference Container Versions](#Prior-Neu
 | MXNet 1.5.1 with Elastic Inference       | inference | No               | CPU     | 3.6 (py36)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference-eia:1.5.1-cpu-py36-ubuntu16.04       |
 | PyTorch 1.3.1 with Elastic Inference     | inference | No               | CPU     | 3.6 (py36)              | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-eia:1.3.1-cpu-py36-ubuntu16.04     |
 | TensorFlow 1.14.0 with Elastic Inference | inference | No               | CPU     | 2.7 (py27), 3.6 (py36)  | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-eia:1.14.0-cpu-py36-ubuntu16.04 |
+
+For the latest versions, visit [Elastic Inference Containers](#Elastic-Inference-Containers)
 
 ## Prior Neuron Inference Container Versions
 
@@ -361,9 +371,13 @@ For prior versions, visit [Prior Neuron Inference Container Versions](#Prior-Neu
 | Tensorflow 2.5.1 with Neuron Inference  | inference | 3.7 (py37)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-neuron:2.5.1-neuron-py37-sdk1.16.1-ubuntu18.04  |
 | MXNet 1.8.0 with Neuron Inference       | inference | 3.7 (py37)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/mxnet-inference-neuron:1.8.0-neuron-py37-sdk1.16.1-ubuntu18.04       |
 
+For the latest versions, visit [Neuron Inference Containers](#Neuron-Inference-Containers)
+
 ## Prior Habana Training Container Versions
 
 | Framework        | Job Type | Device Type | Python Version Options | Example URL                                                                                                        |
 |------------------|----------|-------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
 | PyTorch 1.7.1    | training | HPU         | 3.7 (py37)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training-habana:1.7.1-hpu-py37-synapseai0.15.4-ubuntu18.04    |
 | TensorFlow 2.5.0 | training | HPU         | 3.7 (py37)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training-habana:2.5.0-hpu-py37-synapseai0.15.4-ubuntu18.04 |
+
+For the latest versions, visit [Habana Training Containers](#Habana-Training-Containers)
