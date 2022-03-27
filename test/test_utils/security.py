@@ -475,9 +475,10 @@ def conduct_failure_routine(
     fixable_list = []
     if vulnerabilities_fixable_by_upgrade:
         fixable_list = vulnerabilities_fixable_by_upgrade.vulnerability_list
-    s3_filename_for_apt_upgrade_list = s3_filename_for_allowlist.replace("allowlist.json", "apt-upgrade-list.txt")
+    apt_upgrade_list_filename = f"apt-upgrade-list-{test_utils.get_processor_from_image_uri(image)}.txt"
+    s3_filename_for_apt_upgrade_list = s3_filename_for_allowlist.replace("allowlist.json", apt_upgrade_list_filename)
     original_filepath_for_apt_upgrade_list = "/".join(
-        original_filepath_for_allowlist.split("/")[:-1] + ["apt-upgrade-list.txt"]
+        original_filepath_for_allowlist.split("/")[:-1] + [apt_upgrade_list_filename]
     )
     new_package_list = fixable_list if isinstance(fixable_list, list) else list(fixable_list.keys())
     create_and_save_package_list_to_s3(
