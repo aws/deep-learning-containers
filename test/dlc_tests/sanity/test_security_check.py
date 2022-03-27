@@ -125,7 +125,7 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     apt_command = "apt-get update && apt-get upgrade"
     docker_exec_cmd = f"docker exec -i {container_id}"
     attempt_count = 0
-    apt_ran_successfully_flag = True
+    apt_ran_successfully_flag = False
     while True:
         run_output = ctx.run(f"{docker_exec_cmd} {apt_command}", hide=True, warn=True)
         attempt_count += 1
@@ -139,10 +139,9 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
             )
             sleep(2 * 60)
         elif run_output.ok:
+            apt_ran_successfully_flag = True
             break
         if attempt_count == 10:
-            if not run_output.ok:
-                apt_ran_successfully_flag = False
             break
     if apt_ran_successfully_flag == False:
         raise ValueError(
@@ -172,7 +171,7 @@ def invoke_lambda(function_name, payload_dict={}):
         raise ValueError("Lambda call not made properly. Status code returned {status_code}")
 
 
-def create_and_save_package_list_to_s3(old_filepath, new_packages, new_filepath):
+def create_and_save_package_list_to_s3(old_filepath, new_packages, new_filepath, s3_bucket_name):
     """
     This method conducts the union of packages present in the original apt-get-upgrade
     list and new list of packages passed as an argument. It makes a new file and stores
@@ -180,6 +179,7 @@ def create_and_save_package_list_to_s3(old_filepath, new_packages, new_filepath)
     :param old_filpath: str, path of original file
     :param new_packages: list[str], consists of list of packages
     :param new_filpath: str, path of new file that will have the results of union
+    :param s3_bucket_name: string, name of the s3 bucket
     """
     file1 = open(old_filepath, "r")
     lines = file1.readlines()
@@ -191,21 +191,20 @@ def create_and_save_package_list_to_s3(old_filepath, new_packages, new_filepath)
     file2 = open(new_filepath, "w")
     file2.writelines(package_list)
     file2.close()
-    s3_bucket_name = "trshanta-bucket"
     s3_client = boto3.client("s3")
     s3_client.upload_file(Filename=new_filepath, Bucket=s3_bucket_name, Key=new_filepath)
 
 
-def save_scan_vulnerability_list_object_to_s3_in_json_format(image, scan_vulnerability_list_object, append_tag):
+def save_scan_vulnerability_list_object_to_s3_in_json_format(image, scan_vulnerability_list_object, append_tag, s3_bucket_name):
     """
     Saves the vulnerability list in the s3 bucket. It uses image to decide the name of the file on 
     the s3 bucket.
 
     :param image: str, image uri 
     :param vulnerability_list: ScanVulnerabilityList
+    :param s3_bucket_name: string, name of the s3 bucket
     :return: str, name of the file as stored on s3
     """
-    s3_bucket_name = "trshanta-bucket"
     processed_image_uri = image.replace(".", "-").replace("/", "-").replace(":", "-")
     file_name = f"{processed_image_uri}-{append_tag}.json"
     scan_vulnerability_list_object.save_vulnerability_list(file_name)
@@ -237,7 +236,7 @@ def get_vulnerabilites_fixable_by_upgrade(
     return vulnerabilities_fixable_by_upgrade
 
 
-def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list):
+def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list, s3_bucket_for_storage):
     """
     This method conducts the entire process that is supposed to be followed when ECR test fails. It finds all
     the fixable and non fixable vulnerabilities and all the packages that can be upgraded and finally invokes
@@ -247,13 +246,14 @@ def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list
     :param image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the DLC git repo.
     :param ecr_image_vulnerability_list: ScanVulnerabilityList, Vulnerabities recently detected WITHOUT running apt-upgrade on the originally released image.
     :param upgraded_image_vulnerability_list: ScanVulnerabilityList, Vulnerabilites exisiting in the image WITH apt-upgrade run on it.
+    :param s3_bucket_for_storage: s3 name of the bucket that would be used for saving all the important data that needs to be stored during failure routine.
     :return: dict, a dictionary consisting of the entire summary of the steps run within this method.
     """
     s3_filename_for_allowlist = save_scan_vulnerability_list_object_to_s3_in_json_format(
-        image, upgraded_image_vulnerability_list, "allowlist"
+        image, upgraded_image_vulnerability_list, "allowlist", s3_bucket_for_storage
     )
     s3_filename_for_current_image_ecr_scan_list = save_scan_vulnerability_list_object_to_s3_in_json_format(
-        image, ecr_image_vulnerability_list, "current-ecr-scanlist"
+        image, ecr_image_vulnerability_list, "current-ecr-scanlist", s3_bucket_for_storage
     )
     original_filepath_for_allowlist = get_ecr_scan_allowlist_path(image)
     edited_files = [{"s3_filename": s3_filename_for_allowlist, "github_filepath": original_filepath_for_allowlist}]
@@ -270,7 +270,7 @@ def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list
     )
     new_package_list = fixable_list if isinstance(fixable_list, list) else list(fixable_list.keys())
     create_and_save_package_list_to_s3(
-        original_filepath_for_apt_upgrade_list, new_package_list, s3_filename_for_apt_upgrade_list
+        original_filepath_for_apt_upgrade_list, new_package_list, s3_filename_for_apt_upgrade_list, s3_bucket_for_storage
     )
     edited_files.append(
         {"s3_filename": s3_filename_for_apt_upgrade_list, "github_filepath": original_filepath_for_apt_upgrade_list}
@@ -346,13 +346,14 @@ def fetch_other_vulnerability_lists(image, ecr_client):
     return upgraded_image_vulnerability_list, image_scan_allowlist
 
 
-def process_failure_routine_summary(failure_routine_summary):
+def process_failure_routine_summary_and_store_data_in_s3(failure_routine_summary, s3_bucket_name):
     """
     This method is especially constructed to process the failure routine summary that is generated as a result of 
     calling conduct_failure_routine. It extracts lists and calls the save lists function to store them in the s3
     bucket.
 
     :param failure_routine_summary: dict, dictionary returned as an outcome of conduct_failure_routine method
+    :param s3_bucket_name: string, name of the s3 bucket
     :return s3_filename_for_fixable_list: string, filename in the s3 bucket for the fixable vulnerabilities
     :return s3_filename_for_non_fixable_list: string, filename in the s3 bucket for the non-fixable vulnerabilities
     """
@@ -366,23 +367,23 @@ def process_failure_routine_summary(failure_routine_summary):
     save_details = []
     save_details.append((s3_filename_for_fixable_list, failure_routine_summary["fixable_vulnerabilities"]))
     save_details.append((s3_filename_for_non_fixable_list, failure_routine_summary["non_fixable_vulnerabilities"]))
-    save_lists_in_s3(save_details)
+    save_lists_in_s3(save_details, s3_bucket_name)
     return s3_filename_for_fixable_list, s3_filename_for_non_fixable_list
 
 
-def save_lists_in_s3(save_details, bucket_name="trshanta-bucket"):
+def save_lists_in_s3(save_details, s3_bucket_name):
     """
     This method takes in a list of filenames and the data corresponding to each filename and stores it in 
     the s3 bucket.
 
     :param save_details: list[(string, list)], a lists of tuples wherein each tuple has a filename and the corresponding data.
-    :param bucket_name: string, name of the s3 bucket
+    :param s3_bucket_name: string, name of the s3 bucket
     """
     s3_client = boto3.client("s3")
     for filename, data in save_details:
         with open(filename, "w") as outfile:
             json.dump(data, outfile, indent=4)
-        s3_client.upload_file(Filename=filename, Bucket=bucket_name, Key=filename)
+        s3_client.upload_file(Filename=filename, Bucket=s3_bucket_name, Key=filename)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -437,10 +438,10 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         newly_found_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
         if newly_found_vulnerabilities:
             failure_routine_summary = conduct_failure_routine(
-                image, image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list
+                image, image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list, s3_bucket_name
             )
-            s3_filename_for_fixable_list, s3_filename_for_non_fixable_list = process_failure_routine_summary(
-                failure_routine_summary
+            s3_filename_for_fixable_list, s3_filename_for_non_fixable_list = process_failure_routine_summary_and_store_data_in_s3(
+                failure_routine_summary, s3_bucket_name
             )
         assert not newly_found_vulnerabilities, (
             f"""Found {len(failure_routine_summary["fixable_vulnerabilities"])} fixable vulnerabilites """
@@ -453,10 +454,10 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         vulnerabilities_that_can_be_fixed = image_scan_allowlist - upgraded_image_vulnerability_list
         if vulnerabilities_that_can_be_fixed:
             failure_routine_summary = conduct_failure_routine(
-                image, image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list
+                image, image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list, s3_bucket_name
             )
-            s3_filename_for_fixable_list, s3_filename_for_non_fixable_list = process_failure_routine_summary(
-                failure_routine_summary
+            s3_filename_for_fixable_list, s3_filename_for_non_fixable_list = process_failure_routine_summary_and_store_data_in_s3(
+                failure_routine_summary, s3_bucket_name
             )
         assert not vulnerabilities_that_can_be_fixed, (
             f"""Allowlist is Outdated!! Found {len(failure_routine_summary["fixable_vulnerabilities"])} fixable vulnerabilites """
