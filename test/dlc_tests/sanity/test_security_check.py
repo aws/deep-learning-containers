@@ -14,13 +14,13 @@ from invoke import run, Context
 from packaging.version import Version
 
 from test.test_utils import (
-    LOGGER, 
-    get_account_id_from_image_uri, 
-    get_dockerfile_path_for_image, 
+    LOGGER,
+    get_account_id_from_image_uri,
+    get_dockerfile_path_for_image,
     is_dlc_cicd_context,
     get_framework_and_version_from_tag,
     get_repository_and_tag_from_image_uri,
-    DEFAULT_REGION
+    DEFAULT_REGION,
 )
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
@@ -30,9 +30,6 @@ from test.test_utils.security import (
     get_ecr_scan_allowlist_path,
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
-
-
-MINIMUM_SEV_THRESHOLD = "HIGH"
 
 LOWER_THRESHOLD_IMAGES = {"mxnet": "1.8.0"}
 
@@ -72,6 +69,7 @@ def run_scan(ecr_client, image):
     if scan_status != "COMPLETE":
         raise TimeoutError(f"ECR Scan is still in {scan_status} state. Exiting.")
 
+
 def _botocore_resolver():
     """
     Get the DNS suffix for the given region.
@@ -90,6 +88,7 @@ def get_ecr_registry(account, region):
     """
     endpoint_data = _botocore_resolver().construct_endpoint("ecr", region)
     return "{}.dkr.{}".format(account, endpoint_data["hostname"])
+
 
 def get_new_image_uri_for_uploading_upgraded_image_to_ecr(image):
     """
@@ -195,7 +194,9 @@ def create_and_save_package_list_to_s3(old_filepath, new_packages, new_filepath,
     s3_client.upload_file(Filename=new_filepath, Bucket=s3_bucket_name, Key=new_filepath)
 
 
-def save_scan_vulnerability_list_object_to_s3_in_json_format(image, scan_vulnerability_list_object, append_tag, s3_bucket_name):
+def save_scan_vulnerability_list_object_to_s3_in_json_format(
+    image, scan_vulnerability_list_object, append_tag, s3_bucket_name
+):
     """
     Saves the vulnerability list in the s3 bucket. It uses image to decide the name of the file on 
     the s3 bucket.
@@ -236,7 +237,9 @@ def get_vulnerabilites_fixable_by_upgrade(
     return vulnerabilities_fixable_by_upgrade
 
 
-def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list, s3_bucket_for_storage):
+def conduct_failure_routine(
+    image, image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list, s3_bucket_for_storage
+):
     """
     This method conducts the entire process that is supposed to be followed when ECR test fails. It finds all
     the fixable and non fixable vulnerabilities and all the packages that can be upgraded and finally invokes
@@ -270,7 +273,10 @@ def conduct_failure_routine(image, image_allowlist, ecr_image_vulnerability_list
     )
     new_package_list = fixable_list if isinstance(fixable_list, list) else list(fixable_list.keys())
     create_and_save_package_list_to_s3(
-        original_filepath_for_apt_upgrade_list, new_package_list, s3_filename_for_apt_upgrade_list, s3_bucket_for_storage
+        original_filepath_for_apt_upgrade_list,
+        new_package_list,
+        s3_filename_for_apt_upgrade_list,
+        s3_bucket_for_storage,
     )
     edited_files.append(
         {"s3_filename": s3_filename_for_apt_upgrade_list, "github_filepath": original_filepath_for_apt_upgrade_list}
@@ -304,20 +310,19 @@ def is_image_covered_by_allowlist_feature(image):
     return False
 
 
-def set_minimum_threshold_level(image):
+def get_minimum_sev_threshold_level(image):
     """
-    This method sets the value for MINIMUM_SEV_THRESHOLD
+    This method gets the value for minimum threshold level. This threshold level determines the
+    vulnerability severity above which we want to raise an alarm. 
 
     :param image: str Image URI for which threshold has to be set
     """
-    global MINIMUM_SEV_THRESHOLD
     if is_image_covered_by_allowlist_feature(image):
-        MINIMUM_SEV_THRESHOLD = "MEDIUM"
-        return
-    MINIMUM_SEV_THRESHOLD = "HIGH"
+        return "MEDIUM"
+    return "HIGH"
 
 
-def fetch_other_vulnerability_lists(image, ecr_client):
+def fetch_other_vulnerability_lists(image, ecr_client, minimum_sev_threshold):
     """
     For a given image it fetches all the other vulnerability lists except the vulnerability list formed by the
     ecr scan of the current image. In other words, for a given image it fetches upgraded_image_vulnerability_list and
@@ -325,6 +330,7 @@ def fetch_other_vulnerability_lists(image, ecr_client):
 
     :param image: str Image URI for image to be tested
     :param ecr_client: boto3 Client for ECR
+    :param minimum_sev_threshold: string, determines the minimum severity threshold for ScanVulnerabilityList objects. Can take values HIGH or MEDIUM.
     :return upgraded_image_vulnerability_list: ScanVulnerabilityList, Vulnerabilites exisiting in the image WITH apt-upgrade run on it.
     :return image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the DLC git repo.
     """
@@ -332,14 +338,14 @@ def fetch_other_vulnerability_lists(image, ecr_client):
     run_upgrade_on_image_and_push(image, new_image_uri_for_upgraded_image)
     run_scan(ecr_client, new_image_uri_for_upgraded_image)
     scan_results_with_upgrade = ecr_utils.get_ecr_image_scan_results(
-        ecr_client, new_image_uri_for_upgraded_image, minimum_vulnerability=MINIMUM_SEV_THRESHOLD
+        ecr_client, new_image_uri_for_upgraded_image, minimum_vulnerability=minimum_sev_threshold
     )
     scan_results_with_upgrade = ecr_utils.populate_ecr_scan_with_web_scraper_results(
         new_image_uri_for_upgraded_image, scan_results_with_upgrade
     )
-    upgraded_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
+    upgraded_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
     upgraded_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results_with_upgrade)
-    image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
+    image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
     image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
     if os.path.exists(image_scan_allowlist_path):
         image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
@@ -417,13 +423,13 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         target_image_repo_name = f"beta-{image_repo_name}"
         image = ecr_utils.reupload_image_to_test_ecr(image, target_image_repo_name, region)
 
-    set_minimum_threshold_level(image)
-    LOGGER.info(f"Severity threshold level is {MINIMUM_SEV_THRESHOLD}")
+    minimum_sev_threshold = get_minimum_sev_threshold_level(image)
+    LOGGER.info(f"Severity threshold level is {minimum_sev_threshold}")
 
     run_scan(ecr_client, image)
-    scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=MINIMUM_SEV_THRESHOLD)
+    scan_results = ecr_utils.get_ecr_image_scan_results(ecr_client, image, minimum_vulnerability=minimum_sev_threshold)
     scan_results = ecr_utils.populate_ecr_scan_with_web_scraper_results(image, scan_results)
-    ecr_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
+    ecr_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
     ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
 
     remaining_vulnerabilities = ecr_image_vulnerability_list
@@ -431,18 +437,25 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
     # TODO: Once this feature is enabled, remove "if" condition and second assertion statement
     # TODO: Ensure this works on the canary tags before removing feature flag
     if is_image_covered_by_allowlist_feature(image):
-        upgraded_image_vulnerability_list, image_scan_allowlist = fetch_other_vulnerability_lists(image, ecr_client)
+        upgraded_image_vulnerability_list, image_scan_allowlist = fetch_other_vulnerability_lists(
+            image, ecr_client, minimum_sev_threshold
+        )
         s3_bucket_name = "trshanta-bucket"
 
         ## In case new vulnerabilities are found conduct failure routine
         newly_found_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
         if newly_found_vulnerabilities:
             failure_routine_summary = conduct_failure_routine(
-                image, image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list, s3_bucket_name
+                image,
+                image_scan_allowlist,
+                ecr_image_vulnerability_list,
+                upgraded_image_vulnerability_list,
+                s3_bucket_name,
             )
-            s3_filename_for_fixable_list, s3_filename_for_non_fixable_list = process_failure_routine_summary_and_store_data_in_s3(
-                failure_routine_summary, s3_bucket_name
-            )
+            (
+                s3_filename_for_fixable_list,
+                s3_filename_for_non_fixable_list,
+            ) = process_failure_routine_summary_and_store_data_in_s3(failure_routine_summary, s3_bucket_name)
         assert not newly_found_vulnerabilities, (
             f"""Found {len(failure_routine_summary["fixable_vulnerabilities"])} fixable vulnerabilites """
             f"""and {len(failure_routine_summary["non_fixable_vulnerabilities"])} non fixable vulnerabilites. """
@@ -454,11 +467,16 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         vulnerabilities_that_can_be_fixed = image_scan_allowlist - upgraded_image_vulnerability_list
         if vulnerabilities_that_can_be_fixed:
             failure_routine_summary = conduct_failure_routine(
-                image, image_scan_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list, s3_bucket_name
+                image,
+                image_scan_allowlist,
+                ecr_image_vulnerability_list,
+                upgraded_image_vulnerability_list,
+                s3_bucket_name,
             )
-            s3_filename_for_fixable_list, s3_filename_for_non_fixable_list = process_failure_routine_summary_and_store_data_in_s3(
-                failure_routine_summary, s3_bucket_name
-            )
+            (
+                s3_filename_for_fixable_list,
+                s3_filename_for_non_fixable_list,
+            ) = process_failure_routine_summary_and_store_data_in_s3(failure_routine_summary, s3_bucket_name)
         assert not vulnerabilities_that_can_be_fixed, (
             f"""Allowlist is Outdated!! Found {len(failure_routine_summary["fixable_vulnerabilities"])} fixable vulnerabilites """
             f"""and {len(failure_routine_summary["non_fixable_vulnerabilities"])} non fixable vulnerabilites. """
