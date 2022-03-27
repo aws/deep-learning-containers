@@ -19,6 +19,7 @@ from test.test_utils import (
     get_dockerfile_path_for_image, 
     is_dlc_cicd_context,
     get_framework_and_version_from_tag,
+    get_repository_and_tag_from_image_uri,
     DEFAULT_REGION
 )
 from test.test_utils import ecr as ecr_utils
@@ -90,7 +91,7 @@ def get_ecr_registry(account, region):
     endpoint_data = _botocore_resolver().construct_endpoint("ecr", region)
     return "{}.dkr.{}".format(account, endpoint_data["hostname"])
 
-def get_new_image_uri(image):
+def get_new_image_uri_for_uploading_upgraded_image_to_ecr(image):
     """
     Returns the new image uri for the image being tested. After running the apt commands, the
     new image will be uploaded to the ECR based on the new image uri.
@@ -99,13 +100,14 @@ def get_new_image_uri(image):
     :param new_image_uri: str
     """
     ## UPGRADE_REPO_NAME is a temporary name for the ecr repository where the ecr upgraded version of the image is uploaded to run ecr scan on it.
-    repository_name = os.getenv("UPGRADE_REPO_NAME")
+    new_repository_name = os.getenv("UPGRADE_REPO_NAME")
     region = os.getenv("REGION", DEFAULT_REGION)
     sts_client = boto3.client("sts", region_name=region)
     account_id = sts_client.get_caller_identity().get("Account")
     registry = get_ecr_registry(account_id, region)
-    upgraded_image_tag = "-".join(image.replace("/", ":").split(":")[1:]) + "-up"
-    new_image_uri = f"{registry}/{repository_name}:{upgraded_image_tag}"
+    original_image_repository, original_image_tag = get_repository_and_tag_from_image_uri(image)
+    upgraded_image_tag = f"{original_image_repository}-{original_image_tag}-upgraded"
+    new_image_uri = f"{registry}/{new_repository_name}:{upgraded_image_tag}"
     return new_image_uri
 
 
@@ -326,14 +328,14 @@ def fetch_other_vulnerability_lists(image, ecr_client):
     :return upgraded_image_vulnerability_list: ScanVulnerabilityList, Vulnerabilites exisiting in the image WITH apt-upgrade run on it.
     :return image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the DLC git repo.
     """
-    new_image_uri = get_new_image_uri(image)
-    run_upgrade_on_image_and_push(image, new_image_uri)
-    run_scan(ecr_client, new_image_uri)
+    new_image_uri_for_upgraded_image = get_new_image_uri_for_uploading_upgraded_image_to_ecr(image)
+    run_upgrade_on_image_and_push(image, new_image_uri_for_upgraded_image)
+    run_scan(ecr_client, new_image_uri_for_upgraded_image)
     scan_results_with_upgrade = ecr_utils.get_ecr_image_scan_results(
-        ecr_client, new_image_uri, minimum_vulnerability=MINIMUM_SEV_THRESHOLD
+        ecr_client, new_image_uri_for_upgraded_image, minimum_vulnerability=MINIMUM_SEV_THRESHOLD
     )
     scan_results_with_upgrade = ecr_utils.populate_ecr_scan_with_web_scraper_results(
-        new_image_uri, scan_results_with_upgrade
+        new_image_uri_for_upgraded_image, scan_results_with_upgrade
     )
     upgraded_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[MINIMUM_SEV_THRESHOLD])
     upgraded_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results_with_upgrade)
