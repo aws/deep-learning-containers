@@ -38,7 +38,7 @@ def delete_resources(list_item, k8s_api, job_type, namespace):
         LOGGER.info(f"Resource name {item_name}")
         LOGGER.info(f"Resource creation time {item_creation_time}")
 
-        # Do not delete the kubeflow mxnet operator as it is a system resource and exist in default namespace
+        # Do not delete the kubeflow mxnet operator as it is a system resource and exists in default namespace
         if "mxnet-operator" in item_name:
             continue
 
@@ -55,7 +55,7 @@ def delete_resources(list_item, k8s_api, job_type, namespace):
 
 def run_cleanup_job():
     """
-    List current deployemnts and podd and check if they are eligible for cleanup     
+    List current deployments and pod and check if they are eligible for cleanup     
     """
     core_v1_api = client.CoreV1Api()
     apps_v1_api = client.AppsV1Api()
