@@ -116,10 +116,10 @@ RUN pip install --no-cache-dir -U $TF_URL
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
-   transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
-	protobuf==3.12.0 \
-   "numpy==1.19.5" \
-	"sagemaker-huggingface-inference-toolkit<3"
+    transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+    protobuf==3.12.0 \
+    "numpy==1.19.5" \
+    "sagemaker-huggingface-inference-toolkit<3"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
