@@ -100,15 +100,16 @@ class ScanVulnerabilityList:
             ]
         }
         We want to first sort the innermost list of dicts based on the "name" of each dict and then we sort the
-        otermost dict based on keys i.e. package_name1 and package_name2
+        outermost dict based on keys i.e. package_name1 and package_name2
         :param input_dict: dict(key, list(dict)), represents vulnerability_list
         :return: dict, input_dict sorted in a custom way
         """
         copy_dict = copy.deepcopy(input_dict)
-        for _, list_of_dict in copy_dict.items():
-            list_of_dict.sort(key=lambda dict_element: dict_element["name"])
-        od = collections.OrderedDict(sorted(copy_dict.items()))
-        return dict(od)
+        for key, list_of_dict in copy_dict.items():
+            uniquified_list = test_utils.uniquify_list_of_dict(list_of_dict)
+            uniquified_list.sort(key=lambda dict_element: dict_element["name"])
+            copy_dict[key] = uniquified_list
+        return dict(sorted(copy_dict.items()))
 
     def save_vulnerability_list(self, path):
         if self.vulnerability_list:
@@ -333,6 +334,11 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     docker_exec_cmd = f"docker exec -i {container_id}"
     attempt_count = 0
     apt_ran_successfully_flag = False
+    # When a command or application is updating the system or installing a new software, it locks the dpkg file (Debian package manager).
+    # Since we have multiple processes running for the tests, there are cases when one of the process locks the dpkg file
+    # In this scenario, we get error: ‘E: Could not get lock /var/lib/dpkg/lock’ while running apt-get update
+    # That is why we need multiple tries to ensure that it succeeds in one of the tries.
+    # More info: https://itsfoss.com/could-not-get-lock-error/
     while True:
         run_output = ctx.run(f"{docker_exec_cmd} {apt_command}", hide=True, warn=True)
         attempt_count += 1
@@ -391,7 +397,12 @@ def create_and_save_package_list_to_s3(old_filepath, new_packages, new_filepath,
     file1 = open(old_filepath, "r")
     lines = file1.readlines()
     current_packages = [line.strip() for line in lines]
-    package_list = current_packages + new_packages
+    package_list = current_packages
+    new_packages.sort()
+    for new_package in new_packages:
+        if new_package in package_list:
+            continue
+        package_list.append(new_package)
     package_list = [f"{package_name}\n" for package_name in package_list]
     file1.close()
     run(f"rm -rf {new_filepath}")

@@ -1353,7 +1353,7 @@ def uniquify_list_of_dict(list_of_dict):
     :param list_of_dict: List(dict)
     :return: List(dict)
     """
-    list_of_string = [json.dumps(dict_element) for dict_element in list_of_dict]
+    list_of_string = [json.dumps(dict_element, sort_keys=True) for dict_element in list_of_dict]
     unique_list_of_string = list(set(list_of_string))
     list_of_dict_to_return = [json.loads(str_element) for str_element in unique_list_of_string]
     return list_of_dict_to_return
