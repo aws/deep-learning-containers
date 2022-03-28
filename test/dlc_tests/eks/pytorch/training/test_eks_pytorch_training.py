@@ -13,7 +13,7 @@ import test.test_utils.eks as eks_utils
 from test.test_utils import is_pr_context, SKIP_PR_REASON, is_below_framework_version
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
-
+from packaging.specifiers import SpecifierSet
 
 LOGGER = eks_utils.LOGGER
 
