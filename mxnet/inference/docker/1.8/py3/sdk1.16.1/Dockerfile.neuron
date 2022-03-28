@@ -57,6 +57,12 @@ RUN apt-get update \
  && rm -rf /tmp/tmp* \
  && rm -rf /var/lib/apt/lists/*
 
+## This section is for allowing the automatic updates of vulnerable packages.
+COPY apt-upgrade-list.txt /tmp/apt-upgrade-list.txt
+RUN apt-get update \
+&& apt-get install --only-upgrade $(cat /tmp/apt-upgrade-list.txt) \
+&& rm -rf /tmp/apt-upgrade-list.txt
+
 RUN echo "deb https://apt.repos.neuron.amazonaws.com bionic main" > /etc/apt/sources.list.d/neuron.list
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
 

@@ -483,7 +483,7 @@ def conduct_failure_routine(
         image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list
     )
     newly_found_non_fixable_vulnerabilites = upgraded_image_vulnerability_list - image_allowlist
-    fixable_list = []
+    fixable_list = {}
     if vulnerabilities_fixable_by_upgrade:
         fixable_list = vulnerabilities_fixable_by_upgrade.vulnerability_list
     apt_upgrade_list_filename = f"apt-upgrade-list-{test_utils.get_processor_from_image_uri(image)}.txt"
@@ -501,7 +501,7 @@ def conduct_failure_routine(
     edited_files.append(
         {"s3_filename": s3_filename_for_apt_upgrade_list, "github_filepath": original_filepath_for_apt_upgrade_list}
     )
-    newly_found_non_fixable_list = []
+    newly_found_non_fixable_list = {}
     if newly_found_non_fixable_vulnerabilites:
         newly_found_non_fixable_list = newly_found_non_fixable_vulnerabilites.vulnerability_list
     message_body = {

@@ -72,7 +72,7 @@ def is_image_covered_by_allowlist_feature(image):
     :param image: str, Image URI
     """
     image_framework, image_version = get_framework_and_version_from_tag(image)
-    if image_framework not in LOWER_THRESHOLD_IMAGES or any(substring in image for substring in ["example", "neuron"]):
+    if image_framework not in LOWER_THRESHOLD_IMAGES or any(substring in image for substring in ["example"]):
         return False
     if Version(image_version) >= Version(LOWER_THRESHOLD_IMAGES[image_framework]):
         return True
