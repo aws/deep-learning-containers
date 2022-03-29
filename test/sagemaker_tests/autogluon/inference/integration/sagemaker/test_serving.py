@@ -29,13 +29,13 @@ from .. import RESOURCE_PATH
 
 
 @contextmanager
-def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type):
+def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framework_version):
     model_dir = os.path.join(RESOURCE_PATH, 'model')
     source_dir = os.path.join(RESOURCE_PATH, 'scripts')
 
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-autogluon-serving-trained-model")
-
-    model_data = sagemaker_session.upload_data(path=os.path.join(model_dir, 'model.tar.gz'), key_prefix='sagemaker-autogluon-serving-trained-model/models')
+    ag_framework_version = '0.3.1' if framework_version == '0.3.2' else framework_version
+    model_data = sagemaker_session.upload_data(path=os.path.join(model_dir, f'model_{ag_framework_version}.tar.gz'), key_prefix='sagemaker-autogluon-serving-trained-model/models')
 
     model = MXNetModel(
         model_data=model_data,
@@ -71,7 +71,7 @@ def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type):
 def test_sm_trained_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type):
     instance_type = instance_type or "ml.m5.xlarge"
     try:
-        _test_sm_trained_model(sagemaker_session, ecr_image, instance_type)
+        _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framework_version)
     except UnexpectedStatusException as e:
         dump_logs_from_cloudwatch(e)
         raise
