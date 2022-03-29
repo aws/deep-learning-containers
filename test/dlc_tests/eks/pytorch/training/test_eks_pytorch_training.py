@@ -13,7 +13,7 @@ import test.test_utils.eks as eks_utils
 from test.test_utils import is_pr_context, SKIP_PR_REASON, is_below_framework_version
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
-
+from packaging.specifiers import SpecifierSet
 
 LOGGER = eks_utils.LOGGER
 
@@ -172,7 +172,7 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
     if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
         pytest.skip("DGL does not suport CUDA 11 for PyTorch 1.6")
     # TODO: Remove when DGL gpu test on ecs get fixed
-    if Version(image_framework_version) == Version("1.10"):
+    if Version(image_framework_version) in SpecifierSet("==1.10.*"):
         pytest.skip("ecs test for DGL gpu fails for pt 1.10")
 
     training_result = False
