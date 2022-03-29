@@ -4,6 +4,7 @@ from invoke import run
 import pytz
 import boto3
 import logging
+import sys
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -43,7 +44,7 @@ def delete_resources(list_item, k8s_api, job_type, namespace):
             continue
 
         hours = get_run_time(item_creation_time)
-        LOGGER.info(f"Resource {item_name} up time: {hours}")
+        LOGGER.info(f"Resource {item_name} up time in hours: {hours}")
 
         if hours >= JOB_TIMEOUT:
             LOGGER.info(f"Deleting resource {item_name}")
