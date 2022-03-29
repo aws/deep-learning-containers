@@ -188,7 +188,7 @@ RUN conda install -c pytorch magma-cuda${CUDA_SHORT_VERSION} \
 
 WORKDIR /root
 
-# Install PyTorch dependencies
+# Install pip packages
 RUN pip install --no-cache-dir -U \
     "awscli<2" \
     boto3 \
