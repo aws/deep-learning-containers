@@ -185,7 +185,6 @@ RUN conda install -c pytorch \
 
 WORKDIR /root
 
-# Install PyTorch dependencies
 RUN pip install --no-cache-dir -U \
     "awscli<2" \
     boto3 \
@@ -201,8 +200,7 @@ RUN pip install --no-cache-dir -U \
     psutil \
     pybind11 \
     "pyyaml>=5.4,<5.5" \
-    scipy \
-    torchnet
+    scipy
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -232,15 +230,9 @@ ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 ARG PT_S3_WHL_GPU
 
-# Re-install AWS-PyTorch binaries
-RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U ${PT_E3_TRAINING_URL} \
- && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
- && pip uninstall -y torchaudio \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHAUDIO_URL} \
- && pip uninstall -y torchdata \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL}
+# Install AWS-PyTorch and other torch packages
+RUN pip uninstall -y torch torchvision torchaudio torchdata \
+ && pip install --no-cache-dir -U ${PT_E3_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
 
 # Install Nvidia Apex
 ## Pin apex commit requested by sm-model-parallel team
@@ -352,7 +344,7 @@ ARG SMDEBUG_VERSION=1.0.9
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
-# swap the pytorch training wheel with additional smdebug and smmdp features
+# SMD model parallel and data parallel binaries
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.10.0/build-artifacts/2021-11-05-16-39/smdistributed_modelparallel-1.5.0-cp38-cp38-linux_x86_64.whl
 ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.10.0/cu113/2021-11-03/smdistributed_dataparallel-1.2.2-cp38-cp38-linux_x86_64.whl
 
@@ -363,15 +355,9 @@ ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 ARG PT_S3_WHL_GPU
 
-# Re-install AWS-PyTorch binaries
-RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} \
- && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
- && pip uninstall -y torchaudio \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHAUDIO_URL} \
- && pip uninstall -y torchdata \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL}
+# Install AWS-PyTorch and other torch packages
+RUN pip uninstall -y torch torchvision torchaudio torchdata \
+ && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
 
 # Install Nvidia Apex
 ## Pin apex commit requested by sm-model-parallel team
