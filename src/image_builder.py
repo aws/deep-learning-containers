@@ -63,7 +63,7 @@ def is_private_artifact_label_required(artifact_uri, image_repo_uri):
         return False
     if re.fullmatch(r"\bs3:\/\/sagemaker-python-sdk-\d+\/boto3\/(boto3|botocore|awscli).tar.gz\b", artifact_uri):
         return False
-    return not ("s3://" in artifact_uri.lower() and any(keyword in image_repo_uri.lower() for keyword in ["hopper"]))
+    return not ("s3://" in artifact_uri.lower() and any(keyword in image_repo_uri.lower() for keyword in ["trcomp"]))
 
 
 # TODO: Abstract away to ImageBuilder class
@@ -74,7 +74,7 @@ def image_builder(buildspec):
     PRE_PUSH_STAGE_IMAGES = []
     COMMON_STAGE_IMAGES = []
 
-    if "huggingface" in str(BUILDSPEC["framework"]) or "autogluon" in str(BUILDSPEC["framework"]) or "hopper" in str(BUILDSPEC["framework"]):
+    if "huggingface" in str(BUILDSPEC["framework"]) or "autogluon" in str(BUILDSPEC["framework"]) or "trcomp" in str(BUILDSPEC["framework"]):
         os.system("echo login into public ECR")
         os.system("aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com")
 
@@ -131,7 +131,7 @@ def image_builder(buildspec):
                 labels[var] = file_name
                 labels[f"{var}_URI"] = uri
 
-        if any(str(BUILDSPEC["framework"]).startswith(keyword) for keyword in ["huggingface", "hopper"]):
+        if str(BUILDSPEC["framework"]).startswith("huggingface") or str(BUILDSPEC["framework"]).endswith("trcomp"):
             if "transformers_version" in image_config:
                 extra_build_args["TRANSFORMERS_VERSION"] = image_config.get("transformers_version")
             else:

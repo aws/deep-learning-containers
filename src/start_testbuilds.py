@@ -96,8 +96,14 @@ def is_test_job_implemented_for_framework(images_str, test_type):
     """
     Check to see if a test job is implemnted and supposed to be executed for this particular set of images
     """
-    is_trcomp_image = "trcomp" in images_str or "hopper" in images_str
-    is_huggingface_image = "huggingface" in images_str and not is_trcomp_image
+    is_trcomp_image = False
+    is_huggingface_image = False
+    if "huggingface" in images_str:
+        if "trcomp" in images_str:
+            is_trcomp_image = True
+        else:
+            is_huggingface_image = True
+
     is_autogluon_image = "autogluon" in images_str
 
     if (is_huggingface_image or is_autogluon_image) and test_type in [

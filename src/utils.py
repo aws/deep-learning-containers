@@ -171,26 +171,24 @@ def parse_modified_docker_files_info(files, framework, pattern=""):
     """
     rule = re.findall(rf"{pattern}", files)
     for dockerfile in rule:
-        dockerfile = dockerfile.split("/")
-        if dockerfile[0] == "huggingface":
+        dockerfile_arr = dockerfile.split("/")
+        if dockerfile_arr[0] == "huggingface":
             # HuggingFace related files stored in huggingface/<framework> directories
             # Joining 1 and 2 elements to get huggingface_<framework> as a first element
-            dockerfile = [f"{dockerfile[0]}_{dockerfile[1]}"]+dockerfile[2:]
-        framework_change = (
-            dockerfile[0].replace("huggingface", "hopper") if "hopper" in dockerfile[-1] else dockerfile[0]
-        )
+            dockerfile_arr = [f"{dockerfile_arr[0]}_{dockerfile_arr[1]}"]+dockerfile_arr[2:]
+        framework_change = (dockerfile_arr[0] + "_trcomp") if "trcomp" in dockerfile_arr[-1] else dockerfile_arr[0]
 
-        if dockerfile[0] == "habana":
-            framework_change = dockerfile[1]
-            dockerfile = [f"{dockerfile[0]}_{dockerfile[1]}"]+dockerfile[2:]
+        if dockerfile_arr[0] == "habana":
+            framework_change = dockerfile_arr[1]
+            dockerfile_arr = [f"{dockerfile_arr[0]}_{dockerfile_arr[1]}"]+dockerfile_arr[2:]
         # If the modified dockerfile belongs to a different
         # framework, do nothing
         if framework_change != framework:
             continue
-        image_type = dockerfile[1]
-        py_version = dockerfile[4]
-        device_type = dockerfile[-1].split(".")[-1]
-        LOGGER.info(f"Building dockerfile: {dockerfile}")
+        image_type = dockerfile_arr[1]
+        py_version = dockerfile_arr[4]
+        device_type = dockerfile_arr[-1].split(".")[-1]
+        LOGGER.info(f"Building dockerfile: {dockerfile_arr}")
         # Use class static variables to avoid passing, returning the varibles from all functions
         JobParameters.device_types.append(device_type)
         JobParameters.image_types.append(image_type)
@@ -216,7 +214,7 @@ def parse_modifed_buidspec_yml_info(files, framework, pattern=""):
             # HuggingFace related files stored in huggingface/<framework> directories
             # Joining 1 and 2 elements to get huggingface_<framework> as a first element
             buildspec_arr = [f"{buildspec_arr[0]}_{buildspec_arr[1]}"]+buildspec_arr[2:]
-        buildspec_framework = buildspec_arr[0].replace("huggingface", "hopper") if "hopper" in buildspec else buildspec_arr[0]
+        buildspec_framework = (buildspec_arr[0] + "_trcomp") if "trcomp" in buildspec_arr[-1] else buildspec_arr[0]
         if buildspec_arr[0] == "habana":
             buildspec_framework = buildspec_arr[1]
         if buildspec_framework == framework:

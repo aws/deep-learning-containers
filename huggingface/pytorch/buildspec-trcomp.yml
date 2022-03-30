@@ -1,7 +1,7 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 base_framework: &BASE_FRAMEWORK pytorch
-framework: &FRAMEWORK !join [ "hopper_", *BASE_FRAMEWORK]
+framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK, "_trcomp"]
 version: &VERSION 1.9.0
 short_version: &SHORT_VERSION 1.9
 
@@ -9,13 +9,13 @@ repository_info:
   training_repository: &TRAINING_REPOSITORY
     image_type: &TRAINING_IMAGE_TYPE training
     root: !join [ "huggingface/", *BASE_FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
-    repository_name: &REPOSITORY_NAME !join ["pr", "-", "hopper", "-", *BASE_FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
+    repository_name: &REPOSITORY_NAME !join ["pr", "-", "huggingface", "-", *BASE_FRAMEWORK, "-", "trcomp", "-", *TRAINING_IMAGE_TYPE]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
 images:
-  BuildHuggingFacePytorchGpuPy37Cu111TrainingDockerImage:
+  BuildHuggingFacePytorchTrCompGpuPy38Cu111TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
-    build: &HOPPER_PYTORCH_GPU_TRAINING_PY3 false
+    build: &HUGGINGFACE_PYTORCH_TRCOMP_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 18000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
@@ -27,7 +27,7 @@ images:
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
                  *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
-                         *CUDA_VERSION, /Dockerfile.hopper., *DEVICE_TYPE ]
+                         *CUDA_VERSION, /Dockerfile.trcomp., *DEVICE_TYPE ]
     download_artifacts:
       pytorch_whl:
         type: s3

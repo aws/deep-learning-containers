@@ -1009,6 +1009,8 @@ def get_framework_and_version_from_tag(image_uri):
     """
     tested_framework = get_framework_from_image_uri(image_uri)
     allowed_frameworks = (
+        "huggingface_tensorflow_trcomp",
+        "huggingface_pytorch_trcomp",
         "huggingface_tensorflow",
         "huggingface_pytorch",
         "tensorflow",
@@ -1168,10 +1170,14 @@ def get_neuron_framework_and_version_from_tag(image_uri):
 
 def get_framework_from_image_uri(image_uri):
     return (
-        "huggingface_tensorflow"
-        if "huggingface-tensorflow" in image_uri or "hopper-tensorflow" in image_uri
-        else "huggingface_pytorch"
-        if "huggingface-pytorch" in image_uri or "hopper-pytorch" in image_uri
+        "huggingface_tensorflow_trcomp" 
+        if "huggingface-tensorflow_trcomp" in image_uri 
+        else "huggingface_tensorflow"
+        if "huggingface-tensorflow" in image_uri
+        else "huggingface_pytorch-trcomp" 
+        if "huggingface-pytorch-trcomp" in image_uri 
+        else "huggingface_pytorch" 
+        if "huggingface-pytorch" in image_uri 
         else "mxnet"
         if "mxnet" in image_uri
         else "pytorch"

@@ -603,8 +603,8 @@ def test_cuda_paths(gpu):
     buildspec = "buildspec.yml"
     if is_tf_version("1", image):
         buildspec = "buildspec-tf1.yml"
-    if "hopper" in image:
-        buildspec = "buildspec-hopper.yml"
+    if "trcomp" in image:
+        buildspec = "buildspec-trcomp.yml"
 
     image_tag_in_buildspec = False
     dockerfile_spec_abs_path = None

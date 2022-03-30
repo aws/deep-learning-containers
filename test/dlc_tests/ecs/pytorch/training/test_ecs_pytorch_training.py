@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2, ECS_AML2_HPU_USWEST2, CONTAINER_TESTS_PREFIX
+from test.test_utils import ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2, CONTAINER_TESTS_PREFIX
 from test.test_utils import ecs as ecs_utils
 from test.test_utils import ec2 as ec2_utils
 
@@ -172,11 +172,3 @@ def test_ecs_pytorch_training_dgl_gpu(
 
     ecs_utils.ecs_training_test_executor(ecs_cluster_name, cluster_arn, training_cmd, pytorch_training, instance_id,
                                          num_gpus=num_gpus)
-
-# Placeholder for habana test
-# Instance type and AMI to be updated once the EC2 Gaudi instance is available
-@pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ecs_ami", [ECS_AML2_HPU_USWEST2], indirect=True)
-@pytest.mark.model('N/A')
-def test_ecs_pytorch_training_hpu(ecs_container_instance, pytorch_training_habana, ecs_cluster_name):
-    assert 1==1

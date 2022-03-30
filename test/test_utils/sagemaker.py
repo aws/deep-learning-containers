@@ -59,7 +59,7 @@ def assign_sagemaker_local_job_instance_type(image):
         return "p2.xlarge"
     elif "autogluon" in image and "gpu" in image:
         return "p3.2xlarge"
-    elif "trcomp" in image or "hopper" in image:
+    elif "trcomp" in image:
         return "p3.2xlarge"
     return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
 

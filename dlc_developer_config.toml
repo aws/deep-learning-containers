@@ -13,16 +13,16 @@ graviton_mode = false
 # Please only set it to True if you are preparing a HABANA related PR
 # Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
 habana_mode = false
-# Please only set it to True if you are preparing a HOPPER related PR
-# Do remember to revert it back to False before merging any PR (including HOPPER dedicated PR)
-hopper_mode = false
+# Please only set it to True if you are preparing a TRCOMP related PR
+# Do remember to revert it back to False before merging any PR (including TRCOMP dedicated PR)
+trcomp_mode = false
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
 benchmark_mode = false
 
 [build]
 # Frameworks for which you want to disable both builds and tests
-# available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "tensorflow", "mxnet", "pytorch"]
+# available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "tensorflow", "mxnet", "pytorch"]
 skip_frameworks = []
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = true
@@ -51,3 +51,4 @@ sagemaker_local_tests = false
 sagemaker_remote_tests = "off"
 
 use_scheduler = false
+

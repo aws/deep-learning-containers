@@ -293,7 +293,7 @@ def main():
     # Skipping non HuggingFace/AG specific tests to execute only sagemaker tests
     is_hf_image_present = any("huggingface" in image_uri for image_uri in all_image_list)
     is_ag_image_present = any("autogluon" in image_uri for image_uri in all_image_list)
-    is_trcomp_image_present = any(("hopper" in image_uri or "trcomp" in image_uri) for image_uri in all_image_list)
+    is_trcomp_image_present = any(("trcomp" in image_uri) for image_uri in all_image_list)
     if ((is_hf_image_present or is_ag_image_present) and specific_test_type in ("ecs", "ec2", "eks", "bai")) \
             or (is_trcomp_image_present and (specific_test_type in ("ecs", "eks", "bai", "release_candidate_integration") or benchmark_mode)):
         # Creating an empty file for because codebuild job fails without it
