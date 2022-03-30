@@ -329,17 +329,17 @@ def execute_local_tests(image, pytest_cache_params):
         ec2_utils.terminate_instance(instance_id, region)
         print(f"Destroying ssh Key_pair for image: {image}")
         destroy_ssh_keypair(ec2_client, ec2_key_name)
-        # return None here to prevent errors from multiprocessing.map(). Without this it returns some object by default
-        # which is causing "cannot pickle '_thread.lock' object" error
-        return None
+    # return None here to prevent errors from multiprocessing.map(). Without this it returns some object by default
+    # which is causing "cannot pickle '_thread.lock' object" error
+    return None
 
 
 def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, pytest_cache_params):
     """
     Run pytest in a virtual env for a particular image. Creates a custom directory for each thread for pytest cache file.
-    Stores pytest cache in a shared dict.  
+    Stores pytest cache in a shared dict.
     Expected to run via multiprocessing
-    :param process_index - id for process. Used to create a custom cache dir 
+    :param process_index - id for process. Used to create a custom cache dir
     :param image - ECR url
     :param global_pytest_cache - shared Manager().dict() for cache merging
     :param pytest_cache_params - parameters required for s3 file path building
