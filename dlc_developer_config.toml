@@ -29,9 +29,9 @@ do_build = true
 
 [test]
 ### On by default
-sanity_tests = false
-  safety_check_test = false
-  ecr_scan_allowlist_feature = false
+sanity_tests = true
+  safety_check_test = true
+  ecr_scan_allowlist_feature = true
 ecs_tests = false
 eks_tests = false
 ec2_tests = false
