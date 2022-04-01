@@ -124,10 +124,14 @@ RUN mkdir /tmp/efa \
  && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
  && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
  && cd aws-efa-installer \
+ && apt-get update \
+ && apt-get upgrade -y \
  && ./efa_installer.sh -y --skip-kmod -g \
  && rm -rf $OPEN_MPI_PATH \
  && rm -rf /tmp/efa \
- && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz
+ && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 # Install OpenMPI without libfabric support
 RUN mkdir /tmp/openmpi \
