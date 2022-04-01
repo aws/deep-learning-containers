@@ -14,7 +14,8 @@ cp -r /gaudi-test-suite ${HOME_DIR}/artifacts/gaudi-test-suite
 cd ${HOME_DIR}/artifacts/gaudi-test-suite
 git checkout r${GIT_BRANCH}
 python3 -m pip install -r requirements.txt
-python3 -m pip install -r test/benchmark/pt-requirements.txt
+python3 -m pip install -r https://raw.githubusercontent.com/HabanaAI/Model-References/1.3.0/PyTorch/nlp/finetuning/huggingface/bert/transformers/examples/pytorch/question-answering/requirements.txt
+python3 -m pip install -r https://raw.githubusercontent.com/HabanaAI/Model-References/1.3.0/PyTorch/nlp/finetuning/huggingface/bert/transformers/examples/pytorch/text-classification/requirements.txt
 
 START=$(date +%s)
 TRAINING_TIME="40m"

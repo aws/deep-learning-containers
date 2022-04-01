@@ -1,0 +1,125 @@
+ARG CUDA_VER=10.2
+ARG LINUX_VER=ubuntu18.04
+ARG PYTHON_VERSION=3.7.10
+ARG PYTHON_VER=3.7
+ARG RAPIDS_VER=0.19
+ARG FROM_IMAGE=rapidsai/rapidsai-core
+
+FROM ${FROM_IMAGE}:${RAPIDS_VER}-cuda${CUDA_VER}-base-${LINUX_VER}-py${PYTHON_VER}
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ARG CUDA_VER
+
+ARG AUTOGLUON_VERSION=0.2.1b20210802
+ARG OPENSSL_VERSION=1.1.1l
+ARG MXNET_VER=1.7.*
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONIOENCODING=UTF-8 \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    MXNET_CUDNN_LIB_CHECKING=0 \
+    SAGEMAKER_TRAINING_MODULE=sagemaker_mxnet_container.training:main \
+    LD_LIBRARY_PATH=/opt/conda/envs/rapids/lib:/usr/local/lib:$LD_LIBRARY_PATH \
+    PATH=/opt/conda/envs/rapids/bin:/usr/local/bin:$PATH 
+
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get install -y --no-install-recommends \
+    build-essential \
+    libgl1-mesa-glx \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    emacs \
+    vim \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /tmp/*
+
+# install OpenSSL
+RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz \
+ && tar -xzf openssl-${OPENSSL_VERSION}.tar.gz \
+ && cd openssl-${OPENSSL_VERSION} \
+ && ./config && make -j $(nproc) && make install \
+ && ldconfig \
+ && cd .. && rm -rf openssl-* \
+ && rmdir /usr/local/ssl/certs \
+ && ln -s /etc/ssl/certs /usr/local/ssl/certs
+
+RUN source activate rapids \
+ && conda update --all -y \
+ && conda clean --all -y \
+ && pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
+ && pip install --no-cache-dir -U setuptools wheel \
+ && pip install --no-cache-dir -U --no-use-pep517 mxnet-cu$(echo ${CUDA_VER} | sed 's/\.//')==${MXNET_VER} \
+ && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
+ && pip install --no-cache-dir -U sagemaker-mxnet-training \
+ && pip install --no-cache-dir -U cupy-cuda102==9.2.0 \
+ && pip uninstall -y \
+    datashader \
+    ipykernel \
+    ipython \
+    ipython-genutils \
+    ipywidgets \
+    jupyter-client \
+    jupyter-core \
+    jupyter-packaging \
+    jupyter-server \
+    jupyter-server-proxy \
+    jupyterlab \
+    jupyterlab-nvdashboard \
+    jupyterlab-pygments \
+    jupyterlab-server \
+    jupyterlab-widgets \
+    matplotlib-inline \
+    nbclient \
+    nbconvert \
+    nbformat \
+    notebook \
+    panel \
+    pydeck \
+    pyppeteer \
+    traitlets \
+    websockets \
+    widgetsnbextension 
+
+# Catboost 0.26 updates version of scala 2.11 for security reasons
+# https://github.com/catboost/catboost/issues/1632
+RUN pip install --no-cache-dir -U catboost==0.26.1
+
+WORKDIR /
+
+# Allow OpenSSH to talk to containers without asking for confirmation
+RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
+
+RUN rm -rf /root/.ssh/ && \
+  mkdir -p /root/.ssh/ && \
+  ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
+  cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
+
+# This is here to make our installed version of OpenCV work.
+# https://stackoverflow.com/questions/29274638/opencv-libdc1394-error-failed-to-initialize-libdc1394
+# TODO: Should we be installing OpenCV in our image like this? Is there another way we can fix this?
+RUN ln -s /dev/null /dev/raw1394
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && chmod 775 -R ${HOME_DIR}/oss_compliance/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python3 \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+RUN curl -o /license.txt https://autogluon.s3.us-west-2.amazonaws.com/licenses/THIRD-PARTY-LICENSES.txt
+
+CMD ["/bin/bash"]

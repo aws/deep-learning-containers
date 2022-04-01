@@ -270,4 +270,4 @@ def test_tensorflow_distribute_dataservice_gpu(
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_HPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UBUNTU_18_HPU_DLAMI_US_WEST_2], indirect=True)
 def test_tensorflow_standalone_hpu(tensorflow_training_habana, ec2_connection, upload_habana_test_artifact):
-    execute_ec2_training_test(ec2_connection, tensorflow_training_habana, TF_HABANA_TEST_SUITE_CMD, container_name="ec2_training_habana_tensorflow_container")
+    execute_ec2_training_test(ec2_connection, tensorflow_training_habana, TF_HABANA_TEST_SUITE_CMD, container_name="ec2_training_habana_tensorflow_container", enable_habana_async_execution=True)
