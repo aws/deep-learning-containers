@@ -1,0 +1,294 @@
+ARG PYTHON=python3
+ARG PYTHON_VERSION=3.8.12
+
+# PyTorch Binaries
+ARG PT_E3_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220316-044906/9a915205c493de013250347af38ad1083854bc09/gpu/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu115/torchvision-0.12.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu115/torchaudio-0.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
+
+##############################################################################
+#  _____ _____   ___                              ____           _
+# | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+# |  _|   |_ \   | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+# | |___ ___) |  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |_____|____/  |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                                    |___/                        |_|
+##############################################################################
+
+FROM nvidia/cuda:11.5.1-base-ubuntu20.04 AS e3
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ARG PYTHON
+ARG PYTHON_VERSION
+
+# PyTorch Binaries
+ARG PT_E3_INFERENCE_URL
+ARG PT_TORCHVISION_URL
+ARG PT_TORCHAUDIO_URL
+ARG PT_TORCHDATA_URL
+
+ARG CUBLAS_VERSION=11.7.4.6
+ARG OMPI_VERSION=4.1.1
+ARG TS_VERSION=0.5.2
+
+ARG CONDA_PREFIX=/opt/conda
+ARG DEBIAN_FRONTEND=noninteractive
+
+# See http://bugs.python.org/issue19846
+ENV LANG C.UTF-8
+ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
+ENV PATH /opt/conda/bin:$PATH
+ENV TEMP=/home/model-server/tmp
+ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
+
+ENV CUDNN_VERSION=8.3.2.44
+ENV NCCL_VERSION=2.11.4
+ENV NVML_VERSION=11.5.50
+
+# Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
+ENV MKL_THREADING_LAYER=GNU
+ENV DLC_CONTAINER_TYPE=inference
+
+RUN apt-get update \
+# TODO: Remove systemd upgrade once it is updated in base image
+ && apt-get -y upgrade --only-upgrade systemd \
+ && apt-get install -y --no-install-recommends software-properties-common \
+ && add-apt-repository ppa:openjdk-r/ppa \
+ && apt-get update \
+ && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    cmake \
+    cuda-command-line-tools-11-5 \
+    cuda-cudart-11-5 \
+    cuda-libraries-11-5 \
+    cuda-libraries-dev-11-5 \
+    curl \
+    emacs \
+    git \
+    jq \
+    libcublas-11-5=${CUBLAS_VERSION}-1 \
+    libcublas-dev-11-5=${CUBLAS_VERSION}-1 \
+    libcudnn8=$CUDNN_VERSION-1+cuda11.5 \
+    libcufft-dev-11-5 \
+    libcurand-dev-11-5 \
+    libcurl4-openssl-dev \
+    libcusolver-dev-11-5 \
+    libcusparse-dev-11-5 \
+    cuda-nvml-dev-11-5=${NVML_VERSION}-1 \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libgomp1 \
+    libibverbs-dev \
+    libnuma1 \
+    libnuma-dev \
+    libsm6 \
+    libssl1.1 \
+    libssl-dev \
+    libxext6 \
+    libxrender-dev \
+    openjdk-11-jdk \
+    openssl \
+    vim \
+    wget \
+    unzip \
+    zlib1g-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Install aws-sdk-cpp s3;transfer modules for torchdata
+RUN git clone --recurse-submodules https://github.com/aws/aws-sdk-cpp \
+ && cd aws-sdk-cpp/ \
+ && mkdir sdk-build \
+ && cd sdk-build \
+ && cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_ONLY="s3;transfer" -DAUTORUN_UNIT_TESTS=OFF \
+ && make \
+ && make install \
+ && cd ../.. \
+ && rm -rf aws-sdk-cpp
+
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local \
+ && rm -rf /tmp/nccl
+
+# https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
+RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
+    mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
+    /var/lib/dpkg/info/ca-certificates-java.postinst configure;
+
+RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
+ && gunzip -c openmpi-${OMPI_VERSION}.tar.gz | tar xf - \
+ && cd openmpi-${OMPI_VERSION} \
+ && ./configure --prefix=/home/.openmpi --with-cuda \
+ && make all install \
+ && cd .. \
+ && rm openmpi-${OMPI_VERSION}.tar.gz \
+ && rm -rf openmpi-${OMPI_VERSION}
+
+ENV PATH="$PATH:/home/.openmpi/bin"
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+
+# Install OpenSSH. Allow OpenSSH to talk to containers without asking for confirmation
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    openssh-client \
+    openssh-server \
+ && mkdir -p /var/run/sshd \
+ && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_configs \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+ && chmod +x ~/miniconda.sh \
+ && ~/miniconda.sh -b -p ${CONDA_PREFIX} \
+ && rm ~/miniconda.sh \
+ && ${CONDA_PREFIX}/bin/conda update conda \
+ && ${CONDA_PREFIX}/bin/conda install -c conda-forge \
+    python=$PYTHON_VERSION \
+ && ${CONDA_PREFIX}/bin/conda install -y \
+    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
+    ruamel_yaml==0.15.100 \
+ && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
+    cython \
+    mkl \
+    mkl-include \
+    parso \
+    scipy \
+    typing \
+ && ${CONDA_PREFIX}/bin/conda clean -ya
+
+# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
+# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
+# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
+# once conda fixes the issue: https://github.com/conda/conda/issues/9680
+RUN rm -rf /opt/conda/lib/libtinfo.so.6
+
+RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
+ && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
+
+RUN conda install -c pytorch \
+    magma-cuda115==2.6.1 \
+ && conda install -y \
+    h5py \
+    libgcc \
+    requests \
+ && conda clean -ya
+
+WORKDIR /root
+
+# Uninstall torch and torchvision before installing the custom versions from an S3 bucket
+RUN pip install --no-cache-dir -U \
+    "awscli<2" \
+    boto3 \
+    "cryptography>3.2" \
+    enum-compat==0.0.3 \
+    ipython==8.1.0 \
+    numpy==1.22.2 \
+    opencv-python==4.5.5.62 \
+    packaging \
+    "Pillow>=9.0.0" \
+    "pyyaml>=5.4,<5.5" \
+ && pip uninstall -y torch \
+ && pip install --no-cache-dir -U ${PT_E3_INFERENCE_URL} \
+ && pip uninstall -y torchvision \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
+ && pip uninstall -y torchaudio \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHAUDIO_URL} \
+ && pip uninstall -y torchdata \
+ && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL}
+
+RUN pip uninstall -y model-archiver multi-model-server \
+ && pip install captum \
+ && pip install torchserve==${TS_VERSION} \
+ && pip install torch-model-archiver==${TS_VERSION}
+
+ WORKDIR /
+
+RUN cd tmp/ \
+ && rm -rf tmp*
+
+RUN useradd -m model-server \
+ && mkdir -p /home/model-server/tmp /opt/ml/model \
+ && chown -R model-server /home/model-server /opt/ml/model
+
+COPY torchserve-e3-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY config.properties /home/model-server
+
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.11/license.txt
+
+EXPOSE 8080 8081
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
+
+#################################################################
+#  ____                   __  __       _
+# / ___|  __ _  __ _  ___|  \/  | __ _| | _____ _ __
+# \___ \ / _` |/ _` |/ _ \ |\/| |/ _` | |/ / _ \ '__|
+#  ___) | (_| | (_| |  __/ |  | | (_| |   <  __/ |
+# |____/ \__,_|\__, |\___|_|  |_|\__,_|_|\_\___|_|
+#              |___/
+#  ___                              ____           _
+# |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+#  | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+#  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                      |___/                        |_|
+#################################################################
+
+FROM e3 AS sagemaker
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+
+ARG PYTHON
+
+ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
+
+# Install scikit-learn and pandas
+RUN conda install -y \
+    scikit-learn \
+    pandas
+
+RUN pip install --no-cache-dir "sagemaker-pytorch-inference>=2"
+
+COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+EXPOSE 8080 8081
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
