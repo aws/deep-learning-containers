@@ -44,7 +44,6 @@ ENV PATH /opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 
-ENV CUDNN_VERSION=8.2.0.53
 ENV NCCL_VERSION=2.10.3
 ENV NVML_VERSION=11.3.58
 
@@ -72,7 +71,7 @@ RUN apt-get update \
     jq \
     libcublas-11-3=${CUBLAS_VERSION}-1 \
     libcublas-dev-11-3=${CUBLAS_VERSION}-1 \
-    libcudnn8=$CUDNN_VERSION-1+cuda11.3 \
+    libcudnn8 \
     libcufft-dev-11-3 \
     libcurand-dev-11-3 \
     libcurl4-openssl-dev \
