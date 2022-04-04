@@ -267,7 +267,9 @@ RUN mkdir /tmp/efa-ofi-nccl \
   --with-nccl=/usr/local --prefix=/usr/local \
  && make \
  && make install \
- && rm -rf /tmp/efa-ofi-nccl
+ && rm -rf /tmp/efa-ofi-nccl \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
@@ -277,7 +279,8 @@ RUN apt-get update \
  && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 # Configure OpenSSH so that nodes can communicate with each other
 RUN mkdir -p /var/run/sshd && \
@@ -392,7 +395,9 @@ RUN mkdir /tmp/efa-ofi-nccl \
   --with-nccl=/usr/local --prefix=/usr/local \
  && make \
  && make install \
- && rm -rf /tmp/efa-ofi-nccl
+ && rm -rf /tmp/efa-ofi-nccl \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
@@ -402,7 +407,8 @@ RUN apt-get update \
  && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 # Configure OpenSSH so that nodes can communicate with each other
 RUN mkdir -p /var/run/sshd && \
