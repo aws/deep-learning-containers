@@ -184,7 +184,7 @@ RUN conda install -c pytorch \
 
 WORKDIR /root
 
-# Uninstall torch and torchvision before installing the custom versions from an S3 bucket
+# Install AWS-PyTorch, and other torch packages
 RUN pip install --no-cache-dir -U \
     "awscli<2" \
     boto3 \
@@ -196,14 +196,8 @@ RUN pip install --no-cache-dir -U \
     packaging \
     "Pillow>=9.0.0" \
     "pyyaml>=5.4,<5.5" \
- && pip uninstall -y torch \
- && pip install --no-cache-dir -U ${PT_E3_INFERENCE_URL} \
- && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
- && pip uninstall -y torchaudio \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHAUDIO_URL} \
- && pip uninstall -y torchdata \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL}
+ && pip uninstall -y torch torchvision torchaudio torchdata \
+ && pip install --no-cache-dir -U ${PT_E3_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
