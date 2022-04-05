@@ -15,12 +15,28 @@ Description:
 """
 import datetime
 import json
+import logging
 import os
 
 import boto3
 import numpy as np
 from sagemaker_inference import content_types, errors
 from scipy.sparse import dok_matrix
+
+LOGGER = logging.getLogger(__name__)
+
+# supported environment variables and defaults
+SRC_CLASS = os.getenv('SRC_CLASS', 'video')
+TGT_CLASS = os.getenv('TGT_CLASS', 'audio')
+TTL_SECONDS = int(os.getenv('TTL_SECONDS', 4 * 60 * 60))
+
+LOGGER.info(f"SRC_CLASS = {SRC_CLASS}")
+LOGGER.info(f"TGT_CLASS = {TGT_CLASS}")
+LOGGER.info(f"TTL_SECONDS = {TTL_SECONDS}")
+
+# weight arrays are cached in a globally accessible singleton map (note: not shared across workers,
+# obviously, but within workers)
+TRANSLATION_ARRAYS = {}
 
 
 class StoryblocksCustomError(errors.GenericInferenceToolkitError):
@@ -41,27 +57,53 @@ def timer(func):
     return wrapped_func
 
 
-# get the weight arrays and load them into memory
-TRANSLATION_ARRAYS = {}
-
-
 @timer
-def load_arrays(src_class: str = 'video', tgt_class: str = 'audio'):
+def load_array(src_type: str = 'footage', tgt_type: str = 'music') -> None:
+    """attempt to read a topic translation array from s3
+
+    Args:
+        src_type: the content type of the input source vector
+        tgt_type: the content type of the output translated vector
+    """
     global TRANSLATION_ARRAYS
     s3 = boto3.resource('s3')
     bucket = s3.Bucket('videoblocks-ml')
-    prefix = f'models/topic-translation/{src_class}-{tgt_class}/prod/arrays'
-
-    for obj_summary in bucket.objects.filter(Prefix=prefix):
-        basename = os.path.basename(obj_summary.key)
-        src_type, tgt_type = (os.path.splitext(basename)[0]).split('_')
-        f_local = f"/tmp/{basename}"
-        obj = bucket.Object(key=obj_summary.key)
-        obj.download_file(Filename=f_local)
-        TRANSLATION_ARRAYS[src_type, tgt_type] = np.load(f_local)
+    basename = f'{src_type}_{tgt_type}.npy'
+    key = f'models/topic-tran/storyblocks/prod/{SRC_CLASS}-{TGT_CLASS}-arrays/{basename}'
+    obj = bucket.Object(key=key)
+    f_local = f'/tmp/{basename}'
+    obj.download_file(Filename=f_local)
+    TRANSLATION_ARRAYS[src_type, tgt_type] = {'array': np.load(f_local),
+                                              't': datetime.datetime.now(datetime.timezone.utc)}
 
 
-load_arrays('video', 'audio')
+def refresh_array_and_return(src_type: str = 'footage', tgt_type: str = 'music'):
+    LOGGER.info(f"array for ({src_type}, {tgt_type}) hasn't been loaded or is expired. reloading")
+    load_array(src_type=src_type, tgt_type=tgt_type)
+    return TRANSLATION_ARRAYS[src_type, tgt_type]['array']
+
+
+def get_translation_array(src_type: str = 'footage', tgt_type: str = 'music'):
+    """implements ttl cache for array lookup / loading and therefore allows us to update translation
+    arrays in prod with some defined frequency
+
+    Args:
+        src_type: the content type of the input source vector
+        tgt_type: the content type of the output translated vector
+    """
+    global TRANSLATION_ARRAYS
+
+    try:
+        translation_array_dict = TRANSLATION_ARRAYS[src_type, tgt_type]
+    except KeyError:
+        return refresh_array_and_return(src_type=src_type, tgt_type=tgt_type)
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    array_age_in_secs = (now - translation_array_dict['t']).total_seconds()
+    if array_age_in_secs < TTL_SECONDS:
+        return translation_array_dict['array']
+    else:
+        return refresh_array_and_return(src_type=src_type, tgt_type=tgt_type)
 
 
 def parse_json_input(input_data):
@@ -128,9 +170,14 @@ def predict_fn(data, model):
     Returns: a vector translated into the desired content type
 
     """
-    src_content_type, tgt_content_type, vector = data
-    translation_array = TRANSLATION_ARRAYS[src_content_type, tgt_content_type]
-    dense_output = translation_array @ vector
+    src_type, tgt_type, vector = data
+    translation_array = get_translation_array(src_type=src_type, tgt_type=tgt_type)
+    try:
+        dense_output = translation_array @ vector
+    except ValueError:
+        raise StoryblocksCustomError(
+            f"input sparse vector dimension does not match dimensions for srcContentType = "
+            f"{src_type} ({translation_array.shape[1]}")
     out_dim = dense_output.shape[0]
     dok_output = dok_matrix(dense_output.reshape(1, out_dim))
     return {'dim': out_dim,

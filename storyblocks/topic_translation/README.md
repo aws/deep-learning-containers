@@ -33,6 +33,17 @@ where
 + the `AWS_` keys should be supplied, and should correspond to an account that has read permission for the input s3
   files
 
+we also support three custom environment variables:
+
++ `SRC_CLASS` (default: `video`): the content class of the input topic vector
++ `TGT_CLASS` (default: `audio`): the content class of the output topic vector
++ `TTL_SECONDS` (default: 4 hours, 14,400 seconds): the maximum age in seconds of the topic translation array (a new
+  request that comes in more than this many seconds after a translation array was loaded from s3 will trigger a reload
+  of the same key in s3, so if that key has been updated we will refresh)
+
+in particular, this means that we can re-use this code for other paris of source / content type by simply updating the
+environment variables for the model concept in sagemaker.
+
 
 ## test commands
 
@@ -79,7 +90,9 @@ note: you must have sagemaker python sdk version 2+
 ```python
 from sagemaker.pytorch.model import PyTorchModel
 
-env = {'SAGEMAKER_PROGRAM': 'inference.py'}
+env = {'SAGEMAKER_PROGRAM': 'inference.py',
+       'SRC_CLASS': 'video',
+       'TGT_CLASS': 'audio'}
 
 # UPDATE THESE!
 framework_version = '1.10'
@@ -103,12 +116,12 @@ import json
 
 runtime = boto3.client('runtime.sagemaker')
 body = json.dumps({
-  "srcContentType": "footage",
-  "tgtContentType": "music",
-  "sparseVector": {
-    "dim": 200,
-    "vector": {"1": 0.2, "5": 0.5,  "100": 0.3}
-  }
+    "srcContentType": "footage",
+    "tgtContentType": "music",
+    "sparseVector": {
+        "dim": 200,
+        "vector": {"1": 0.2, "5": 0.5, "100": 0.3}
+    }
 })
 
 # json test
