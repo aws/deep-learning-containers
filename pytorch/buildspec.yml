@@ -48,7 +48,7 @@ images:
   BuildE3CPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_CPU_TRAINING_PY3 false
-    # enable_test_promotion: false
+    enable_test_promotion: false
     image_size_baseline: 3600
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
@@ -62,7 +62,7 @@ images:
   BuildE3GPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false
-    # enable_test_promotion: false
+    enable_test_promotion: false
     image_size_baseline: 13000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
@@ -108,7 +108,7 @@ images:
   BuildPyTorchExampleGPUTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false
-    # enable_test_promotion: false
+    enable_test_promotion: false
     image_size_baseline: 13000
     base_image_name: BuildE3GPUPTTrainPy3DockerImage
     device_type: &DEVICE_TYPE gpu
@@ -124,7 +124,7 @@ images:
   BuildE3CPUPTInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &PYTORCH_CPU_INFERENCE_PY3 false
-    # enable_test_promotion: false
+    enable_test_promotion: false
     image_size_baseline: 4000
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
@@ -138,7 +138,7 @@ images:
   BuildE3GPUPTInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &PYTORCH_GPU_INFERENCE_PY3 false
-    # enable_test_promotion: false
+    enable_test_promotion: false
     image_size_baseline: 12500
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
