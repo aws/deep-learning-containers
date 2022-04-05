@@ -52,6 +52,18 @@ environment variables for the model concept in sagemaker.
 curl localhost:8080/invocations -H "Content-Type: application/json" -d '{"srcContentType":"footage","tgtContentType":"music","sparseVector":{"dim":200,"vector":{"1":0.2,"5":0.3,"100":0.5}}}'
 ```
 
+```python
+import requests
+
+resp = requests.post(url='http://localhost:8080/invocations',
+                     json={"srcContentType": "footage",
+                           "tgtContentType": "music",
+                           "sparseVector": {"dim": 200,
+                                            "vector": {"1": 0.2, "5": 0.3, "100": 0.5}}})
+assert resp.status_code == 200
+print(resp.json())
+```
+
 ## how I deployed a live endpoint
 
 high level:
@@ -68,11 +80,18 @@ high level:
 
 ### post archive to s3
 
-use the neighboring `model_archive_deploy.sh` script, which takes one argument: the environment we are posting this
-archive to (one of `dev`, `staging`, or `prod`; default is `dev`), e.g.
+use the neighboring `model_archive_deploy.sh` script, which takes three arguments:
+
+1. the environment we are posting this archive to (one of `dev`, `staging`, or `prod`; default is `dev`)
+2. the source content class for translation
+3. the target content class for translation
+
+2 and 3 are technically irrelevant or even misleading (the same code could be deployed in sagemaker with different
+environment variables and it would suddenly support different source and target content classes!), but we are including
+them here to support future decisions to have more tailored translation models
 
 ```shell
-./model_archive_deploy.sh prod
+./model_archive_deploy.sh prod video audio
 ```
 
 ### run sagemaker code
@@ -97,7 +116,7 @@ env = {'SAGEMAKER_PROGRAM': 'inference.py',
 # UPDATE THESE!
 framework_version = '1.10'
 py_version = 'py38'
-s3_model_archive = 's3://videoblocks-ml/models/topic-translation/video-audio/prod/20220401T192503/model.tar.gz'
+s3_model_archive = 's3://videoblocks-ml/models/topic-tran/storyblocks/prod/video-audio-20220405T171430/model.tar.gz'
 
 model = PyTorchModel(model_data=s3_model_archive,
                      framework_version=framework_version,
@@ -153,8 +172,3 @@ print(f"that is {(total_time).total_seconds() / N} SPR")
 predictor.delete_endpoint()
 model.delete_model()
 ```
-
-#### deploy batch transform
-
-see [this databricks notebook](https://dbc-eceaffad-4e12.cloud.databricks.com/?o=6154618236860539#notebook/1266580902362296)
-for an implementation of face detection. currently no implementation of this model as a batch transform
