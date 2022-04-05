@@ -16,9 +16,8 @@ def test_binary_visibility(image: str):
     'https://' may still be private, codebuild 'build' job uses 'curl' i.e. unsigned request to fetch them and hence should
     fail if an 'https://' link is still private
     """
-    #TODO: reverted once habana changes are ported to public repo
-    if "hpu" in image:
-        pytest.skip("Skipping test for Habana images")
+    if "trcomp" in image:
+        pytest.skip("Training Compiler DLC uses private binaries. Skipping the test")
 
     ctx = Context()
     labels = json.loads(ctx.run("docker inspect --format='{{json .Config.Labels}}' " + image).stdout.strip())

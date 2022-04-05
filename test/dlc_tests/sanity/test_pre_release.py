@@ -272,6 +272,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         # Framework name may include huggingface
         if tested_framework.startswith('huggingface_'):
             tested_framework = tested_framework[len("huggingface_"):]
+            # Replace the trcomp string as it is extracted from ECR repo name
+            tested_framework = tested_framework.replace("-trcomp", "")
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
@@ -587,6 +589,7 @@ def test_cuda_paths(gpu):
     ).group(1)
 
     # replacing '_' by '/' to handle huggingface_<framework> case
+    framework = framework.replace("-trcomp", "")
     framework_path = framework.replace("_", "/")
     framework_version_path = os.path.join(
         dlc_path, framework_path, job_type, "docker", framework_version)

@@ -121,7 +121,11 @@ def get_dockerfile_path_for_image(image_uri):
 
     framework, framework_version = get_framework_and_version_from_tag(image_uri)
 
-    if "huggingface" in framework:
+    if "trcomp" in framework:
+        # Replace the trcomp string as it is extracted from ECR repo name
+        framework = framework.replace("-trcomp", "")
+        framework_path = framework.replace("_", os.path.sep)
+    elif "huggingface" in framework:
         framework_path = framework.replace("_", os.path.sep)
     elif "habana" in image_uri:
         framework_path = os.path.join("habana", framework)
@@ -189,6 +193,8 @@ def get_expected_dockerfile_filename(device_type, image_uri):
         return f"Dockerfile.e3.{device_type}"
     if is_sagemaker_image(image_uri):
         return f"Dockerfile.sagemaker.{device_type}"
+    if is_trcomp_image(image_uri):
+        return f"Dockerfile.trcomp.{device_type}"
     return f"Dockerfile.{device_type}"
 
 
@@ -339,6 +345,10 @@ def is_e3_image(image_uri):
 
 def is_sagemaker_image(image_uri):
     return "-sagemaker" in image_uri
+
+
+def is_trcomp_image(image_uri):
+    return "-trcomp" in image_uri
 
 
 def is_time_for_canary_safety_scan():
@@ -780,7 +790,7 @@ def get_canary_default_tag_py3_version(framework, version):
         if Version("2.6") <= Version(version) < Version("2.8"):
             return "py38"
         if Version(version) >= Version("2.8"):
-            return"py39"
+            return "py39"
 
     if framework == "mxnet":
         if Version(version) == Version("1.8"):

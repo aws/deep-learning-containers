@@ -112,7 +112,7 @@ class TestSingleNodeSingleGPU:
         logs = captured.out+captured.err
         assert "Found configuration for Training Compiler" in logs
         assert "Configuring SM Training Compiler" in logs
-        assert "Using XLA device" in logs
+        assert "device: xla" in logs
 
 
     @pytest.mark.model("bert-large")
@@ -154,7 +154,7 @@ class TestSingleNodeSingleGPU:
         logs = captured.out+captured.err
         assert "Found configuration for Training Compiler" in logs
         assert "Configuring SM Training Compiler" in logs
-        assert "Using XLA device" in logs
+        assert "device: xla" in logs
 
 
     @pytest.mark.model("bert-large")
@@ -198,7 +198,7 @@ class TestSingleNodeSingleGPU:
         assert "Found configuration for Training Compiler" in logs
         assert "Training Compiler set to debug mode" in logs
         assert "Configuring SM Training Compiler" in logs
-        assert "Using XLA device" in logs
+        assert "device: xla" in logs
 
         debug_artifact_path=estimator.model_data.replace('model.tar.gz','output.tar.gz')
         debug_artifact=os.path.join(tmpdir, 'output.tar.gz')

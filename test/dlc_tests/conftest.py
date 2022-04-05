@@ -66,6 +66,7 @@ FRAMEWORK_FIXTURES = (
     "pytorch_inference_neuron",
     "mxnet_inference_neuron",
     "pytorch_inference_graviton",
+    "mxnet_inference_graviton",
     "huggingface_tensorflow_training",
     "huggingface_pytorch_training",
     "huggingface_mxnet_training",
@@ -697,6 +698,15 @@ def lookup_condition(lookup, image):
     if not repo_name.endswith(lookup):
         if (lookup in job_type or lookup in device_type) and lookup in image:
             return True
+        # Pytest does not allow usage of fixtures, specially dynamically loaded fixtures into pytest.mark.parametrize
+        # See https://github.com/pytest-dev/pytest/issues/349.
+        # Hence, explicitly setting the below fixtues to allow trcomp images to run on E3 test
+        elif "huggingface-pytorch-trcomp-training" in repo_name:
+            if lookup == "pytorch-training":
+                return True
+        elif "huggingface-tensorflow-trcomp-training" in repo_name:
+            if lookup == "tensorflow-training":
+                return True
         else:
             return False
     else:
@@ -722,6 +732,10 @@ def pytest_generate_tests(metafunc):
                             ("huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames)
                             and "huggingface" in image
                     )
+                    is_trcomp_lookup = "trcomp" in image and all(
+                        fixture_name not in metafunc.fixturenames
+                        for fixture_name in ["example_only"]
+                    )
                     is_standard_lookup = all(
                         fixture_name not in metafunc.fixturenames
                         for fixture_name in ["example_only", "huggingface_only"]
@@ -744,7 +758,7 @@ def pytest_generate_tests(metafunc):
                     if "training_compiler_only" in metafunc.fixturenames and not (
                             "trcomp" in image):
                         continue
-                    if is_example_lookup or is_huggingface_lookup or is_standard_lookup:
+                    if is_example_lookup or is_huggingface_lookup or is_standard_lookup or is_trcomp_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:

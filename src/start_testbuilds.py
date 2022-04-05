@@ -148,13 +148,6 @@ def main():
                 pr_test_job += "-graviton"
             if is_test_job_enabled(test_type) and is_test_job_implemented_for_framework(images_str, test_type):
                 LOGGER.debug(f"Test job enabled for {test_type} test")
-                if "huggingface" in images_str and test_type in [
-                    constants.EC2_TESTS,
-                    constants.ECS_TESTS,
-                    constants.EKS_TESTS,
-                ]:
-                    LOGGER.debug(f"Skipping huggingface {test_type} test")
-                    continue
                 run_test_job(commit, pr_test_job, images_str)
 
             # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
