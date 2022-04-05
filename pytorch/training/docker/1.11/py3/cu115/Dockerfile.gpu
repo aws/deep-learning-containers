@@ -497,9 +497,7 @@ RUN pip install --no-cache-dir -U \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
-    "shap>=0.39,<1" \
- && pip uninstall -y torch \
- && pip install --no-cache-dir -U ${PT_TRAINING_URL}
+    "shap>=0.39,<1"
 
 # install metis
 RUN rm /etc/apt/sources.list.d/* \
