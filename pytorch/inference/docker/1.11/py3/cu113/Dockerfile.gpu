@@ -2,9 +2,9 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
 
 # PyTorch Binaries
-ARG PT_E3_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220316-044906/9a915205c493de013250347af38ad1083854bc09/gpu/torch-1.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu115/torchvision-0.12.0%2Bcu115-cp38-cp38-linux_x86_64.whl
-ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu115/torchaudio-0.11.0%2Bcu115-cp38-cp38-linux_x86_64.whl
+ARG PT_E3_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220322-194812/272547162a367c4aaafe8f7e1d9d35d39441c6f3/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu113/torchaudio-0.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
 
 ##############################################################################
@@ -16,7 +16,7 @@ ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws
 #                                    |___/                        |_|
 ##############################################################################
 
-FROM nvidia/cuda:11.5.1-base-ubuntu20.04 AS e3
+FROM nvidia/cuda:11.3.1-base-ubuntu20.04 AS e3
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -30,7 +30,7 @@ ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 
-ARG CUBLAS_VERSION=11.7.4.6
+ARG CUBLAS_VERSION=11.5.1.109
 ARG OMPI_VERSION=4.1.1
 ARG TS_VERSION=0.5.2
 
@@ -44,8 +44,8 @@ ENV PATH /opt/conda/bin:$PATH
 ENV TEMP=/home/model-server/tmp
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 
-ENV NCCL_VERSION=2.11.4
-ENV NVML_VERSION=11.5.50
+ENV NCCL_VERSION=2.10.3
+ENV NVML_VERSION=11.3.58
 
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
@@ -61,23 +61,23 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    cuda-command-line-tools-11-5 \
-    cuda-cudart-11-5 \
-    cuda-libraries-11-5 \
-    cuda-libraries-dev-11-5 \
+    cuda-command-line-tools-11-3 \
+    cuda-cudart-11-3 \
+    cuda-libraries-11-3 \
+    cuda-libraries-dev-11-3 \
     curl \
     emacs \
     git \
     jq \
-    libcublas-11-5=${CUBLAS_VERSION}-1 \
-    libcublas-dev-11-5=${CUBLAS_VERSION}-1 \
+    libcublas-11-3=${CUBLAS_VERSION}-1 \
+    libcublas-dev-11-3=${CUBLAS_VERSION}-1 \
     libcudnn8 \
-    libcufft-dev-11-5 \
-    libcurand-dev-11-5 \
+    libcufft-dev-11-3 \
+    libcurand-dev-11-3 \
     libcurl4-openssl-dev \
-    libcusolver-dev-11-5 \
-    libcusparse-dev-11-5 \
-    cuda-nvml-dev-11-5=${NVML_VERSION}-1 \
+    libcusolver-dev-11-3 \
+    libcusparse-dev-11-3 \
+    cuda-nvml-dev-11-3=${NVML_VERSION}-1 \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libgomp1 \
@@ -175,7 +175,7 @@ RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
  && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
 
 RUN conda install -c pytorch \
-    magma-cuda115==2.6.1 \
+    magma-cuda113 \
  && conda install -y \
     h5py \
     libgcc \
