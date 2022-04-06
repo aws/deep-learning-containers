@@ -39,6 +39,7 @@ ENV PATH /opt/conda/bin:$PATH
 ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 
+ENV CUDNN_VERSION=8.2.0.53
 ENV NCCL_VERSION=2.10.3
 ENV HOROVOD_VERSION=0.24.2
 ENV EFA_VERSION=1.15.1
@@ -71,7 +72,7 @@ RUN apt-get update \
     jq \
     libcublas-11-3=${CUBLAS_VERSION}-1 \
     libcublas-dev-11-3=${CUBLAS_VERSION}-1 \
-    libcudnn8 \
+    libcudnn8=$CUDNN_VERSION-1+cuda11.3 \
     libcufft-dev-11-3 \
     libcurand-dev-11-3 \
     libcurl4-openssl-dev \
@@ -124,7 +125,6 @@ RUN mkdir /tmp/efa \
  && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
  && cd aws-efa-installer \
  && apt-get update \
- && apt-get upgrade -y \
  && ./efa_installer.sh -y --skip-kmod -g \
  && rm -rf $OPEN_MPI_PATH \
  && rm -rf /tmp/efa \
