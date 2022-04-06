@@ -97,7 +97,8 @@ RUN apt-get update \
  && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 # Configure OpenSSH so that nodes can communicate with each other
 RUN mkdir -p /var/run/sshd \
@@ -179,16 +180,9 @@ ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 ARG PT_S3_WHL
 
-# The following section uninstalls torch and torchvision before installing the
-# custom versions from an S3 bucket. This will need to be removed in the future
-RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U ${PT_E3_TRAINING_URL} \
- && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
- && pip uninstall -y torchaudio \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHAUDIO_URL} \
- && pip uninstall -y torchdata \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL}
+# Install AWS-PyTorch and other torch packages
+RUN pip uninstall -y torch torchvision torchaudio torchdata \
+ && pip install --no-cache-dir -U ${PT_E3_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
 # Install PT S3 plugin
 RUN pip install -U ${PT_S3_WHL}
@@ -241,16 +235,9 @@ ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
 ARG PT_S3_WHL
 
-# The following section uninstalls torch and torchvision before installing the
-# custom versions from an S3 bucket. This will need to be removed in the future
-RUN pip uninstall -y torch \
- && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} \
- && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL} \
- && pip uninstall -y torchaudio \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHAUDIO_URL} \
- && pip uninstall -y torchdata \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHDATA_URL}
+# Install AWS-PyTorch and other torch packages
+RUN pip uninstall -y torch torchvision torchaudio torchdata \
+ && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
 # Install PT S3 plugin
 RUN pip install -U ${PT_S3_WHL}
