@@ -58,12 +58,11 @@ RUN apt-get update \
     cuda-libraries-11-3 \
     curl \
     emacs \
-    environment-modules \
     git \
     jq \
     libcublas-11-3=${CUBLAS_VERSION}-1 \
     libcublas-dev-11-3=${CUBLAS_VERSION}-1 \
-    libcudnn8=$CUDNN_VERSION-1+cuda11.3 \
+    libcudnn8 \
     libcufft-dev-11-3 \
     libcurand-dev-11-3 \
     libcusolver-dev-11-3 \
@@ -83,8 +82,6 @@ RUN apt-get update \
     hwloc \
     openssl \
     python3-dev \
-    pciutils \
-    tcl \
     vim \
     wget \
     unzip \
@@ -105,10 +102,14 @@ RUN mkdir /tmp/efa \
   && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
   && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
   && cd aws-efa-installer \
+  && apt-get update \
+  && apt-get upgrade -y \
   && ./efa_installer.sh -y --skip-kmod -g \
   && rm -rf $OPEN_MPI_PATH \
   && rm -rf /tmp/efa \
-  && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz
+  && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz \
+  && rm -rf /var/lib/apt/lists/* \
+  && apt-get clean
 
 # Install OpenMPI without libfabric support
 RUN mkdir /tmp/openmpi && \
