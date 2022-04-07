@@ -14,20 +14,26 @@ Description:
 
 """
 import datetime
+import glob
 import json
 import logging
 import os
 
-import boto3
 import numpy as np
 from sagemaker_inference import content_types, errors
 from scipy.sparse import dok_matrix
 
+HERE = os.path.dirname(os.path.realpath(__file__))
 LOGGER = logging.getLogger(__name__)
 
+# constants
+VIDEO = 'video'
+AUDIO = 'audio'
+IMAGE = 'image'
+
 # supported environment variables and defaults
-SRC_CLASS = os.getenv('SRC_CLASS', 'video')
-TGT_CLASS = os.getenv('TGT_CLASS', 'audio')
+SRC_CLASS = os.getenv('SRC_CLASS', VIDEO)
+TGT_CLASS = os.getenv('TGT_CLASS', AUDIO)
 TTL_SECONDS = int(os.getenv('TTL_SECONDS', 4 * 60 * 60))
 
 LOGGER.info(f"SRC_CLASS = {SRC_CLASS}")
@@ -58,52 +64,15 @@ def timer(func):
 
 
 @timer
-def load_array(src_type: str = 'footage', tgt_type: str = 'music') -> None:
-    """attempt to read a topic translation array from s3
-
-    Args:
-        src_type: the content type of the input source vector
-        tgt_type: the content type of the output translated vector
-    """
+def load_arrays(src_class: str = VIDEO, tgt_class: str = AUDIO):
     global TRANSLATION_ARRAYS
-    s3 = boto3.resource('s3')
-    bucket = s3.Bucket('videoblocks-ml')
-    basename = f'{src_type}_{tgt_type}.npy'
-    key = f'models/topic-tran/storyblocks/prod/{SRC_CLASS}-{TGT_CLASS}-arrays/{basename}'
-    obj = bucket.Object(key=key)
-    f_local = f'/tmp/{basename}'
-    obj.download_file(Filename=f_local)
-    TRANSLATION_ARRAYS[src_type, tgt_type] = {'array': np.load(f_local),
-                                              't': datetime.datetime.now(datetime.timezone.utc)}
+    array_dir = os.path.join(HERE, f'{src_class}-{tgt_class}-arrays')
+    for f in glob.glob(f"{array_dir}/*.npy"):
+        src_type, tgt_type = os.path.splitext(os.path.basename(f))[0].split('_')
+        TRANSLATION_ARRAYS[src_type, tgt_type] = np.load(f)
 
 
-def refresh_array_and_return(src_type: str = 'footage', tgt_type: str = 'music'):
-    LOGGER.info(f"array for ({src_type}, {tgt_type}) hasn't been loaded or is expired. reloading")
-    load_array(src_type=src_type, tgt_type=tgt_type)
-    return TRANSLATION_ARRAYS[src_type, tgt_type]['array']
-
-
-def get_translation_array(src_type: str = 'footage', tgt_type: str = 'music'):
-    """implements ttl cache for array lookup / loading and therefore allows us to update translation
-    arrays in prod with some defined frequency
-
-    Args:
-        src_type: the content type of the input source vector
-        tgt_type: the content type of the output translated vector
-    """
-    global TRANSLATION_ARRAYS
-
-    try:
-        translation_array_dict = TRANSLATION_ARRAYS[src_type, tgt_type]
-    except KeyError:
-        return refresh_array_and_return(src_type=src_type, tgt_type=tgt_type)
-
-    now = datetime.datetime.now(datetime.timezone.utc)
-    array_age_in_secs = (now - translation_array_dict['t']).total_seconds()
-    if array_age_in_secs < TTL_SECONDS:
-        return translation_array_dict['array']
-    else:
-        return refresh_array_and_return(src_type=src_type, tgt_type=tgt_type)
+load_arrays(src_class=SRC_CLASS, tgt_class=TGT_CLASS)
 
 
 def parse_json_input(input_data):
@@ -170,8 +139,12 @@ def predict_fn(data, model):
     Returns: a vector translated into the desired content type
 
     """
+    global TRANSLATION_ARRAYS
     src_type, tgt_type, vector = data
-    translation_array = get_translation_array(src_type=src_type, tgt_type=tgt_type)
+    try:
+        translation_array = TRANSLATION_ARRAYS[src_type, tgt_type]
+    except KeyError:
+        raise StoryblocksCustomError(f"no packaged translation array from {src_type} to {tgt_type}")
     try:
         dense_output = translation_array @ vector
     except ValueError:
