@@ -646,8 +646,8 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
         "pytorch": "pt",
         "huggingface_pytorch": "hf-pt",
         "huggingface_tensorflow": "hf-tf",
-        "huggingface_pytorch-trcomp": "hf-pt-trc",
-        "huggingface_tensorflow-trcomp": "hf-tf-trc",
+        "huggingface_pytorch_trcomp": "hf-pt-trc",
+        "huggingface_tensorflow_trcomp": "hf-tf-trc",
         "autogluon": "ag",
     }
     fixtures_parametrized = {}

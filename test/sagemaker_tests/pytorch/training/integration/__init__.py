@@ -45,10 +45,10 @@ DEFAULT_TIMEOUT = 40
 def get_framework_from_image_uri(image_uri):
     return (
         "huggingface_tensorflow_trcomp" 
-        if "huggingface-tensorflow_trcomp" in image_uri 
+        if "huggingface-tensorflow-trcomp" in image_uri 
         else "huggingface_tensorflow"
         if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch-trcomp" 
+        else "huggingface_pytorch_trcomp" 
         if "huggingface-pytorch-trcomp" in image_uri 
         else "huggingface_pytorch" 
         if "huggingface-pytorch" in image_uri 

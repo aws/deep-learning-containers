@@ -123,7 +123,7 @@ def get_dockerfile_path_for_image(image_uri):
 
     if "trcomp" in framework:
         # Replace the trcomp string as it is extracted from ECR repo name
-        framework = framework.replace("-trcomp", "")
+        framework = framework.replace("_trcomp", "")
         framework_path = framework.replace("_", os.path.sep)
     elif "huggingface" in framework:
         framework_path = framework.replace("_", os.path.sep)
@@ -1181,10 +1181,10 @@ def get_neuron_framework_and_version_from_tag(image_uri):
 def get_framework_from_image_uri(image_uri):
     return (
         "huggingface_tensorflow_trcomp" 
-        if "huggingface-tensorflow_trcomp" in image_uri 
+        if "huggingface-tensorflow-trcomp" in image_uri 
         else "huggingface_tensorflow"
         if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch-trcomp" 
+        else "huggingface_pytorch_trcomp" 
         if "huggingface-pytorch-trcomp" in image_uri 
         else "huggingface_pytorch" 
         if "huggingface-pytorch" in image_uri 

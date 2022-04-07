@@ -147,7 +147,6 @@ def main():
             if "graviton" in images_str and test_type == "sanity":
                 pr_test_job += "-graviton"
             if is_test_job_enabled(test_type) and is_test_job_implemented_for_framework(images_str, test_type):
-                LOGGER.debug(f"Test job enabled for {test_type} test")
                 run_test_job(commit, pr_test_job, images_str)
 
             # Trigger sagemaker local test jobs when there are changes in sagemaker_tests

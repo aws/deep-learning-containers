@@ -117,6 +117,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     framework, framework_version = get_framework_and_version_from_tag(image)
     framework_major_version = framework_version.split(".")[0]
     job_type = get_job_type_from_image(image)
+    framework = framework.replace("_trcomp", "")
     path = os.path.join("test", "sagemaker_tests", framework, job_type)
     aws_id_arg = "--aws-id"
     docker_base_arg = "--docker-base-name"

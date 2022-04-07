@@ -4,7 +4,9 @@ import subprocess
 import botocore
 import boto3
 import time
+
 from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 import pytest
 import requests
@@ -273,7 +275,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
         if tested_framework.startswith('huggingface_'):
             tested_framework = tested_framework[len("huggingface_"):]
             # Replace the trcomp string as it is extracted from ECR repo name
-            tested_framework = tested_framework.replace("-trcomp", "")
+            tested_framework = tested_framework.replace("_trcomp", "")
         # Module name is "torch"
         if tested_framework == "pytorch":
             tested_framework = "torch"
@@ -348,6 +350,7 @@ def _run_dependency_check_test(image, ec2_connection):
         "pytorch": {"1.8": ["cpu", "gpu"], "1.10": ["cpu", "hpu"]},
         "huggingface_pytorch": {"1.8": ["cpu", "gpu"], "1.9": ["cpu", "gpu"]},
         "huggingface_tensorflow": {"2.4": ["cpu", "gpu"], "2.5": ["cpu", "gpu"]},
+        "huggingface_tensorflow_trcomp": {"2.6": ["cpu", "gpu"]},
         "autogluon": {"0.3": ["cpu"]},
     }
 
@@ -528,31 +531,39 @@ def test_pip_check(image):
     """
     ctx = Context()
     gpu_suffix = "-gpu" if "gpu" in image else ""
+    allowed_exception_list = []
 
     # TF inference containers do not have core tensorflow installed by design. Allowing for this pip check error
     # to occur in order to catch other pip check issues that may be associated with TF inference
     # smclarify binaries have s3fs->aiobotocore dependency which uses older version of botocore. temporarily
     # allowing this to catch other issues
     allowed_tf_exception = re.compile(
-        rf"^tensorflow-serving-api{gpu_suffix} \d\.\d+\.\d+ requires "
-        rf"tensorflow{gpu_suffix}, which is not installed.$"
+        rf"^tensorflow-serving-api{gpu_suffix} \d\.\d+\.\d+ requires tensorflow{gpu_suffix}, which is not installed.$"
     )
+    allowed_exception_list.append(allowed_tf_exception)
+
     allowed_smclarify_exception = re.compile(
         r"^aiobotocore \d+(\.\d+)* has requirement botocore<\d+(\.\d+)*,>=\d+(\.\d+)*, "
         r"but you have botocore \d+(\.\d+)*\.$"
     )
+    allowed_exception_list.append(allowed_smclarify_exception)
 
     # The v0.22 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
-    allowed_habana_tf_exception = re.compile(
-        rf"^tensorflow-io 0.22.0 requires "
-        rf"tensorflow, which is not installed.$"
-    )
+    allowed_habana_tf_exception = re.compile(rf"^tensorflow-io 0.22.0 requires tensorflow, which is not installed.$")
+    allowed_exception_list.append(allowed_habana_tf_exception)
+
+    framework, framework_version = get_framework_and_version_from_tag(image)
+    # The v0.21 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
+    tensorflow_io21_issue_framework_list = ["tensorflow", "huggingface_tensorflow", "huggingface_tensorflow_trcomp"]
+    if framework in tensorflow_io21_issue_framework_list or framework == "huggingface_tensorflow" and Version(framework_version) in SpecifierSet(">=2.6.3,<2.7"):
+        allowed_tf263_exception = re.compile(rf"^tensorflow-io 0.21.0 requires tensorflow, which is not installed.$")
+        allowed_exception_list.append(allowed_tf263_exception)
 
     # Add null entrypoint to ensure command exits immediately
     output = ctx.run(
         f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
     if output.return_code != 0:
-        if not (allowed_tf_exception.match(output.stdout) or allowed_smclarify_exception.match(output.stdout) or allowed_habana_tf_exception.match(output.stdout)):
+        if not(any([allowed_exception.match(output.stdout) for allowed_exception in allowed_exception_list])):
             # Rerun pip check test if this is an unexpected failure
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
@@ -589,7 +600,7 @@ def test_cuda_paths(gpu):
     ).group(1)
 
     # replacing '_' by '/' to handle huggingface_<framework> case
-    framework = framework.replace("-trcomp", "")
+    framework = framework.replace("_trcomp", "")
     framework_path = framework.replace("_", "/")
     framework_version_path = os.path.join(
         dlc_path, framework_path, job_type, "docker", framework_version)

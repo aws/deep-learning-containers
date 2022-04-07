@@ -16,6 +16,7 @@ def test_binary_visibility(image: str):
     'https://' may still be private, codebuild 'build' job uses 'curl' i.e. unsigned request to fetch them and hence should
     fail if an 'https://' link is still private
     """
+
     if "trcomp" in image:
         pytest.skip("Training Compiler DLC uses private binaries. Skipping the test")
 
