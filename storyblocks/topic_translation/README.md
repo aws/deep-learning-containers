@@ -2,6 +2,18 @@
 
 ## local development
 
+first, run the init script 
+
+```shell
+bash init_local_dev.sh ENV SRC_TYPE TGT_TYPE
+```
+
+where `ENV`, `SRC_TYPE`, and `TGT_TYPE` are related to the values used to create the topic translation arrays. e.g.
+`ENV = prod`, `SRC_TYPE = video`, and `TGT_TYPE = audio` would refer to the topic translation matrices saved at
+`s3://videoblocks-ml/models/topic-tran/storyblocks/prod/video-audio-arrays`
+
+this init script will download those arrays into `model/code/{SRC_TYPE}-{TGT_TYPE}-arrays`.
+
 next, build the container from `pytorch/inference/docker/X.Y.Z/py3/Dockerfile.cpu`. I set up a pycharm docker run config
 which amounts to:
 
@@ -33,7 +45,8 @@ where
 + the `AWS_` keys should be supplied, and should correspond to an account that has read permission for the input s3
   files
 
-we also support three custom environment variables:
+this container supports three custom environment variables that can be set locally or in the terraform script that
+publishes these as endpoints:
 
 + `SRC_CLASS` (default: `video`): the content class of the input topic vector
 + `TGT_CLASS` (default: `audio`): the content class of the output topic vector
