@@ -165,9 +165,6 @@ class DockerImage:
         # check the size after image is built.
         self.image_size_check()
 
-        # check installed package information
-        self.log.append(self.collect_installed_packages_information())
-
         # This return is necessary. Otherwise FORMATTER fails while displaying the status.
         return self.build_status
 
@@ -230,6 +227,7 @@ class DockerImage:
         if self.summary["image_size"] > self.info["image_size_baseline"] * 1.20:
             response.append("Image size baseline exceeded")
             response.append(f"{self.summary['image_size']} > 1.2 * {self.info['image_size_baseline']}")
+            response += self.collect_installed_packages_information()
             self.build_status = constants.FAIL_IMAGE_SIZE_LIMIT
         else:
             response.append(f"Image Size Check Succeeded for {self.repository}:{self.tag}")
