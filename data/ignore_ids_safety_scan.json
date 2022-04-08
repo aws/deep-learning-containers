@@ -631,7 +631,8 @@
             "py2": {
             },
             "py3": {
-                "45521":"pytorch-lightning is never installed as a dependency of transformers"
+                "45521":"pytorch-lightning is never installed as a dependency of transformers",
+                "44715":"False positive for numpy. Was fixed in 1.22.2"
             }
         },
         "inference-neuron": {
