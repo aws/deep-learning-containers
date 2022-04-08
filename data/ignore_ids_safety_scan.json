@@ -622,7 +622,8 @@
                 "42772":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "42814":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "42815":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
-                "45521":"pytorch-lightning is never installed as a dependency of transformers"
+                "45521":"pytorch-lightning is never installed as a dependency of transformers",
+                "44715":"False positive for numpy. Was fixed in 1.22.2"
             }
         },
         "inference": {
