@@ -97,16 +97,13 @@ class DockerImage:
         """
         Returns an array with outcomes of the commands listed in the 'commands' array
         """
-        self.log.append("start collect_installed_packages_information")
         docker_client = DockerClient(base_url=constants.DOCKER_URL)
         command_responses = []
         commands = ["pip list", "dpkg-query -Wf '${Installed-Size}\\t${Package}\\n'", "apt list --installed"]
         for command in commands:
-            self.log.append(f"running command: {command}")
             command_responses.append(f"\n{command}")
             command_responses.append(bytes.decode(docker_client.containers.run(self.ecr_url, command)))
         docker_client.containers.prune()
-        self.log.append("exit collect_installed_packages_information")
         return command_responses
 
     def get_tail_logs_in_pretty_format(self, number_of_lines=10):
@@ -164,9 +161,6 @@ class DockerImage:
 
         # check the size after image is built.
         self.image_size_check()
-
-        # check installed package information
-        self.log.append(self.collect_installed_packages_information())
 
         # This return is necessary. Otherwise FORMATTER fails while displaying the status.
         return self.build_status
@@ -230,6 +224,7 @@ class DockerImage:
         if self.summary["image_size"] > self.info["image_size_baseline"] * 1.20:
             response.append("Image size baseline exceeded")
             response.append(f"{self.summary['image_size']} > 1.2 * {self.info['image_size_baseline']}")
+            response += self.collect_installed_packages_information()
             self.build_status = constants.FAIL_IMAGE_SIZE_LIMIT
         else:
             response.append(f"Image Size Check Succeeded for {self.repository}:{self.tag}")
