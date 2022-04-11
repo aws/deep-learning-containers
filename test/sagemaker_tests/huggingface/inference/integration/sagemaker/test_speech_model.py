@@ -14,7 +14,7 @@ from __future__ import absolute_import
 
 import pytest
 import sagemaker
-from sagemaker.model import Model
+from sagemaker.huggingface import HuggingFaceModel
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import DataSerializer
 from sagemaker.deserializers import JSONDeserializer
@@ -47,7 +47,9 @@ def test_speech_model_gpu(sagemaker_session, framework_version, ecr_image, insta
         raise
 
 
-def _test_speech_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None):
+def _test_speech_model(
+    sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None
+):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-serving-speech-model")
 
     env = {
@@ -55,7 +57,7 @@ def _test_speech_model(sagemaker_session, framework_version, ecr_image, instance
         "HF_TASK": "automatic-speech-recognition",
     }
 
-    hf_model = Model(
+    hf_model = HuggingFaceModel(
         env=env,
         role="SageMakerRole",
         image_uri=ecr_image,

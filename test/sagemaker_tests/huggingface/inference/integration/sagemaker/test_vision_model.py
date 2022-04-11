@@ -14,7 +14,7 @@ from __future__ import absolute_import
 
 import pytest
 import sagemaker
-from sagemaker.model import Model
+from sagemaker.huggingface import HuggingFaceModel
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import DataSerializer
 from sagemaker.deserializers import JSONDeserializer
@@ -23,7 +23,7 @@ from ...integration import model_dir, dump_logs_from_cloudwatch, image_sample_fi
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
-@pytest.mark.model("wav2vec2")
+@pytest.mark.model("vit")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
 def test_vision_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
@@ -35,7 +35,7 @@ def test_vision_model_cpu(sagemaker_session, framework_version, ecr_image, insta
         raise
 
 
-@pytest.mark.model("wav2vec2")
+@pytest.mark.model("vit")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 def test_vision_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
@@ -47,7 +47,9 @@ def test_vision_model_gpu(sagemaker_session, framework_version, ecr_image, insta
         raise
 
 
-def _test_vision_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None):
+def _test_vision_model(
+    sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None
+):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-serving-vision-model")
 
     env = {
@@ -55,7 +57,7 @@ def _test_vision_model(sagemaker_session, framework_version, ecr_image, instance
         "HF_TASK": "image-classification",
     }
 
-    hf_model = Model(
+    hf_model = HuggingFaceModel(
         env=env,
         role="SageMakerRole",
         image_uri=ecr_image,
