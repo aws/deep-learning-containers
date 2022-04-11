@@ -180,6 +180,7 @@ def test_tf_serving_version_cpu(tensorflow_inference):
         f"Cannot find model server version {tag_framework_version} in {output.stdout}"
     )
 
+    stop_and_remove_container(container_name, ctx)
 
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
