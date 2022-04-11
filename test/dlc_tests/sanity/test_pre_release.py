@@ -141,6 +141,45 @@ def test_ubuntu_version(image):
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
+@pytest.mark.canary("Run non-gpu tf serving version test regularly on production images")
+def test_tf_serving_version_cpu(tensorflow_inference):
+    """
+    For non-huggingface non-GPU TF inference images, check that the tag version matches the version of TF serving
+    in the container.
+
+    Huggingface includes MMS and core TF, hence the versioning scheme is based off of the underlying tensorflow
+    framework version, rather than the TF serving version.
+
+    GPU inference images will be tested along side `test_framework_and_cuda_version_gpu` in order to be judicious
+    about GPU resources. This test can run directly on the host, and thus does not require additional resources
+    to be spun up.
+
+    @param tensorflow_inference: ECR image URI
+    """
+    # Set local variable to clarify contents of fixture
+    image = tensorflow_inference
+
+    if "gpu" in image:
+        pytest.skip(
+            "GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
+
+    _, tag_framework_version = get_framework_and_version_from_tag(
+        image)
+
+    ctx = Context()
+    container_name = get_container_name("tf-serving-version", image)
+    start_container(container_name, image, ctx)
+    output = run_cmd_on_container(
+        container_name, ctx, "tensorflow_model_sever --version", executable="bash"
+    )
+    assert (
+        re.match(rf"TensorFlow Model Server: {tag_framework_version}(\D+)?", output.stdout),
+        f"Cannot find model server version {tag_framework_version} in {output.stdout}"
+    )
+
+
+@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.model("N/A")
 @pytest.mark.canary("Run non-gpu framework version test regularly on production images")
 def test_framework_version_cpu(image):
     """
@@ -158,11 +197,11 @@ def test_framework_version_cpu(image):
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
         pytest.skip(
-            msg="TF inference for CPU/GPU/EIA does not have core tensorflow installed")
+            "Non-gpu tensorflow-inference images will be tested in test_tf_serving_version_cpu."
+        )
 
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(
         image)
-
     # Framework name may include huggingface
     if tested_framework.startswith('huggingface_'):
         tested_framework = tested_framework[len("huggingface_"):]
@@ -259,8 +298,6 @@ def test_framework_and_neuron_sdk_version(neuron):
     stop_and_remove_container(container_name, ctx)
 
 
-
-# TODO: Enable as canary once resource cleaning lambda is added
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
@@ -275,9 +312,17 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(
         image)
 
+    image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
     # Framework Version Check #
-    # Skip framework version test for tensorflow-inference, since it doesn't have core TF installed
-    if "tensorflow-inference" not in image:
+    # For tf inference containers, check TF model server version
+    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
+        cmd = f"tensorflow_model_server --version"
+        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash")
+        assert (
+            re.match(rf"TensorFlow Model Server: {tag_framework_version}(\D+)?", output.stdout),
+            f"Cannot find model server version {tag_framework_version} in {output.stdout}"
+        )
+    else:
         # Framework name may include huggingface
         if tested_framework.startswith('huggingface_'):
             tested_framework = tested_framework[len("huggingface_"):]
@@ -288,7 +333,6 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
             tested_framework = "autogluon.core"
         cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
-
         if is_canary_context():
             assert tag_framework_version in output.stdout.strip()
         else:
