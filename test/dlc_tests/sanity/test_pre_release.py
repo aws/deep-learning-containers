@@ -162,6 +162,9 @@ def test_tf_serving_version_cpu(tensorflow_inference):
     if "gpu" in image:
         pytest.skip(
             "GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
+    if "neuron" in image:
+        pytest.skip(
+            "Neuron images will have their framework version tested in test_framework_and_neuron_sdk_version")
 
     _, tag_framework_version = get_framework_and_version_from_tag(
         image)
