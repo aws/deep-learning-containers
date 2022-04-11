@@ -173,7 +173,7 @@ def test_tf_serving_version_cpu(tensorflow_inference):
     container_name = get_container_name("tf-serving-version", image)
     start_container(container_name, image, ctx)
     output = run_cmd_on_container(
-        container_name, ctx, "tensorflow_model_sever --version", executable="bash"
+        container_name, ctx, "tensorflow_model_server --version", executable="bash"
     )
     assert (
         re.match(rf"TensorFlow Model Server: {tag_framework_version}(\D+)?", output.stdout),
