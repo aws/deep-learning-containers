@@ -154,4 +154,5 @@ def predict_fn(data, model):
     out_dim = dense_output.shape[0]
     dok_output = dok_matrix(dense_output.reshape(1, out_dim))
     return {'dim': out_dim,
-            'vector': {str(idx): val for ((_, idx), val) in dok_output.items()}}
+            'vector': {str(idx): val for ((_, idx), val) in dok_output.items()
+                       if val > 0}}
