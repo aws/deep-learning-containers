@@ -52,6 +52,10 @@ def _test_speech_model(
 ):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-serving-speech-model")
 
+    if "tensorflow" in ecr_image:
+        # Zero-code deployments are currently not supported for TensorFlow
+        return True
+
     env = {
         "HF_MODEL_ID": "hf-internal-testing/tiny-random-wav2vec2",
         "HF_TASK": "automatic-speech-recognition",
