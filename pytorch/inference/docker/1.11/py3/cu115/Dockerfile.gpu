@@ -147,10 +147,10 @@ RUN apt-get update \
 
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/4.12.0-0/Mambaforge-4.12.0-0-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
- && ~/mambaforge.sh -b -p ${CONDA_PREFIX \
+ && ~/mambaforge.sh -b -p ${CONDA_PREFIX} \
  && rm ~/mambaforge.sh \
- && ${CONDA_PREFIX/bin/conda update conda \
- && ${CONDA_PREFIX/bin/conda install -c conda-forge \
+ && ${CONDA_PREFIX}/bin/conda update conda \
+ && ${CONDA_PREFIX}/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
     mkl \ 
@@ -166,7 +166,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     charset-normalizer 
   && $CONDA_PREFIX}/bin/conda install -c pytorch \
    magma-cuda115=2.6.1
-  && ${CONDA_PREFIX/bin/conda clean -ya
+  && ${CONDA_PREFIX}/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "${CONDA_PREFIX/lib/libtinfo.so.6: no version information available" warning
