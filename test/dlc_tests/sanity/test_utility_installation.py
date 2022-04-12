@@ -1,8 +1,8 @@
-from packaging.version import Version
-
 import pytest
 
 from invoke.context import Context
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 from test import test_utils
 
@@ -129,13 +129,10 @@ def test_apache_tomcat(image):
 )
 def test_sagemaker_studio_analytics_extension(training, package_name):
     framework, framework_version = test_utils.get_framework_and_version_from_tag(training)
-    utility_package_minimum_framework_version = {"pytorch": "1.7", "tensorflow": "2.4"}
-    utility_package_maximum_framework_version = {"pytorch": "1.8", "tensorflow": "2.6"}
-    
-    if framework not in utility_package_minimum_framework_version or Version(framework_version) < Version(
-        utility_package_minimum_framework_version[framework]) or Version(framework_version) > Version(
-        utility_package_maximum_framework_version[framework]
-    ):
+    studio_analytics_framework_version_limits = {"pytorch": ">=1.7", "tensorflow": ">=2.4"}
+
+    test_version_limit = studio_analytics_framework_version_limits.get(framework)
+    if not test_version_limit or Version(framework_version) not in SpecifierSet(test_version_limit):
         pytest.skip(f"sagemaker_studio_analytics_extension is not installed in {framework} {framework_version} DLCs")
 
     ctx = Context()
