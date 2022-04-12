@@ -3,7 +3,7 @@ FROM nvidia/cuda:11.2.1-base-ubuntu20.04 AS common
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-# TensorFlow major.minor version 
+# TensorFlow major.minor version
 ENV TF_VERSION=2.8
 
 # prevent stopping by user interaction
@@ -325,10 +325,13 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow-training>=20" \
+    smclarify
+
+# Install Studio Notebook Utils
+RUN $PYTHON -m pip install --no-cache-dir -U \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
-    "sagemaker-studio-analytics-extension==0.0.2" \
-    smclarify
+    "sagemaker-studio-analytics-extension<1"
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
@@ -391,5 +394,5 @@ RUN HOME_DIR=/root \
    && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
    && rm -rf ${HOME_DIR}/oss_compliance*
-   
+
 CMD ["/bin/bash"]

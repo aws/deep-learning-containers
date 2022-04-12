@@ -3,7 +3,7 @@ FROM ubuntu:20.04 AS common
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-# TensorFlow major.minor version 
+# TensorFlow major.minor version
 ENV TF_VERSION=2.8
 
 # prevent stopping by user interaction
@@ -112,7 +112,7 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && cd Python-$PYTHON_VERSION \
  && ./configure \
  && make -j $(nproc) \
- && make install \ 
+ && make install \
  && rm -rf ../Python-$PYTHON_VERSION* \
  # Starting from Python39, a xxx.pem file will be generated under /tmp folder during installation. Remove it to complete cleanup after installation from python source.
  && rm /tmp/*.pem
@@ -129,7 +129,7 @@ RUN apt-get update && apt-get -y install protobuf-compiler
 
 # install PyYAML==5.1.2 to avoid conflict with latest awscli
 # # python-dateutil==2.8.0 to satisfy botocore associated with latest awscli
-RUN ${PIP} install --no-cache-dir -U \ 
+RUN ${PIP} install --no-cache-dir -U \
     pybind11 \
     cmake==3.18.2.post1 \
     scipy==1.7.0 \
@@ -250,11 +250,13 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     "sagemaker-tensorflow-training>=20" \
-    "sagemaker-studio-analytics-extension==0.0.2" \
-    "sparkmagic<1" \
-    "sagemaker-studio-sparkmagic-lib<1" \
     smclarify
 
+# Install Studio Notebook Utils
+RUN $PYTHON -m pip install --no-cache-dir -U \
+    "sagemaker-studio-analytics-extension<1" \
+    "sparkmagic<1" \
+    "sagemaker-studio-sparkmagic-lib<1"
 
 # install smdebug directly the specific branch
 ARG SMDEBUG_TAG=1.0.14

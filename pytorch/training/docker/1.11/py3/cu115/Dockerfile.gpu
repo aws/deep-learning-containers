@@ -480,6 +480,13 @@ RUN pip install --no-cache-dir -U \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL}
 
+# Install Studio Notebook Utils
+RUN pip install --no-cache-dir -U \
+    "PyHive<1" \
+    "sparkmagic<1" \
+    "sagemaker-studio-sparkmagic-lib<1" \
+    "sagemaker-studio-analytics-extension<1"
+
 # install metis
 RUN rm /etc/apt/sources.list.d/* \
  && wget -nv http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/${METIS}.tar.gz \
