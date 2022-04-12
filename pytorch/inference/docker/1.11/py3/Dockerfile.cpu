@@ -103,26 +103,25 @@ ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
-RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
- && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p /opt/conda \
- && rm ~/miniconda.sh \
+
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/4.12.0-0/Mambaforge-4.12.0-0-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
- && /opt/conda/bin/conda install -y -c anaconda \
-    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     cython \
-    mkl \
+    mkl \ 
     mkl-include \
-    parso \
-    ruamel_yaml==0.15.100 \
-    typing \
- && conda install -y \
+    parso \ 
+    typing \ 
     h5py \
     requests \
- && /opt/conda/bin/conda clean -ya \
- && conda clean -ya
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \ 
+    charset-normalizer \
+  && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
@@ -209,7 +208,7 @@ ARG PYTHON
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
 # Install scikit-learn and pandas
-RUN conda install -y \
+RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
