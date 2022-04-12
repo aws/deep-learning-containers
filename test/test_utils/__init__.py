@@ -1330,7 +1330,7 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
     :return: invoke output, can be used to parse stdout, etc
     """
     if executable not in ("bash", "python"):
-        LOGGER.warn(f"Unrecognized executable {executable}. It will be run as {executable} -c '{cmd}'")
+        LOGGER.warning(f"Unrecognized executable {executable}. It will be run as {executable} -c '{cmd}'")
     return context.run(
         f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
     )
@@ -1388,3 +1388,27 @@ def get_eks_k8s_test_type_label(image_uri):
     else:
         test_type = "gpu"
     return test_type
+
+
+def execute_env_variables_test(image_uri, env_vars_to_test):
+    """
+    Based on a dictionary of ENV_VAR: val, test that the enviornment variables are correctly set in the container.
+
+    @param image_uri: ECR image URI
+    @param env_vars_to_test: dict {"ENV_VAR": "env_var_expected_value"}
+    """
+    ctx = Context()
+    container_name = get_container_name("env_variables", image_uri)
+
+    start_container(container_name, image_uri, ctx)
+    for var, expected_val in env_vars_to_test.items():
+        output = run_cmd_on_container(container_name, ctx, f"echo ${var}")
+        actual_val = output.stdout.strip()
+        if actual_val:
+            assertion_error_sentence = f"It is currently set to {actual_val}."
+        else:
+            assertion_error_sentence = "It is currently not set."
+        assert (
+            actual_val == expected_val,
+            f"Environment variable {var} is expected to be {expected_val}. {assertion_error_sentence}."
+        )
