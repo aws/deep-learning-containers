@@ -34,7 +34,6 @@ ARG CUBLAS_VERSION=11.5.1.109
 ARG OMPI_VERSION=4.1.1
 ARG TS_VERSION=0.5.2
 
-ARG CONDA_PREFIX=/opt/conda
 ARG DEBIAN_FRONTEND=noninteractive
 
 # See http://bugs.python.org/issue19846
@@ -147,10 +146,10 @@ RUN apt-get update \
 
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/4.12.0-0/Mambaforge-4.12.0-0-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
- && ~/mambaforge.sh -b -p ${CONDA_PREFIX} \
+ && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && ${CONDA_PREFIX}/bin/conda update conda \
- && ${CONDA_PREFIX}/bin/conda install -c conda-forge \
+ && /opt/conda/bin/conda update conda \
+ && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
     mkl \ 
@@ -163,10 +162,9 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     libgcc \ 
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \ 
-    charset-normalizer 
-  && $CONDA_PREFIX}/bin/conda install -c pytorch \
-   magma-cuda113
-  && ${CONDA_PREFIX}/bin/conda clean -ya
+    charset-normalizer \
+ && /opt/conda/bin/conda install -c pytorch magma-cuda113 \
+ && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
@@ -174,9 +172,9 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 # once conda fixes the issue: https://github.com/conda/conda/issues/9680
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
-RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
+RUN /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 WORKDIR /root
 

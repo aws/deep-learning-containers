@@ -45,7 +45,6 @@ ENV EFA_VERSION=1.15.1
 ENV OMPI_VERSION=4.1.1
 ENV BRANCH_OFI=1.2.0-aws
 
-ENV CONDA_PREFIX=/opt/conda
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV OPEN_MPI_PATH=/opt/amazon/openmpi
 
@@ -151,10 +150,10 @@ ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/4.12.0-0/Mambaforge-4.12.0-0-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
- && ~/mambaforge.sh -b -p ${CONDA_PREFIX} \
+ && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
- && ${CONDA_PREFIX}/bin/conda update conda \
- && ${CONDA_PREFIX}/bin/conda install -c conda-forge \
+ && /opt/conda/bin/conda update conda \
+ && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
     mkl \ 
@@ -169,9 +168,9 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \ 
     charset-normalizer \
-  && ${CONDA_PREFIX}/bin/conda install -c dglteam -y dgl-cuda11.3=0.8.0 \
-  && ${CONDA_PREFIX}/bin/conda install -c pytorch magma-cuda113 \
-  && ${CONDA_PREFIX}/bin/conda clean -ya
+  && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.3=0.8.0 \
+  && /opt/conda/bin/conda install -c pytorch magma-cuda113 \
+  && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
@@ -179,9 +178,9 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
 # once conda fixes the issue
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
-RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
+RUN /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 WORKDIR /root
 
@@ -441,11 +440,11 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.
  && tar -xzf boost_1_73_0.tar.gz \
  && cd boost_1_73_0 \
  && ./bootstrap.sh \
- && ./b2 threading=multi --prefix=${CONDA_PREFIX} -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
+ && ./b2 threading=multi --prefix=/opt/conda -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
  && cd .. \
  && rm -rf boost_1_73_0.tar.gz \
  && rm -rf boost_1_73_0 \
- && cd ${CONDA_PREFIX}/include/boost
+ && cd /opt/conda/include/boost
 
 WORKDIR /opt/pytorch
 
