@@ -24,20 +24,17 @@ from test.test_utils import (
     get_framework_and_version_from_tag,
     get_neuron_framework_and_version_from_tag,
     is_canary_context,
-    is_tf_version,
     is_dlc_cicd_context,
-    is_pr_context,
     run_cmd_on_container,
     start_container,
     stop_and_remove_container,
     is_time_for_canary_safety_scan,
-    is_mainline_context,
-    is_nightly_context,
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
     get_python_version_from_image_uri,
     is_tf_version,
     get_processor_from_image_uri,
+    execute_env_variables_test,
     UL18_CPU_ARM64_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_WEST_2
 )
@@ -141,6 +138,49 @@ def test_ubuntu_version(image):
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
+@pytest.mark.canary("Run non-gpu tf serving version test regularly on production images")
+def test_tf_serving_version_cpu(tensorflow_inference):
+    """
+    For non-huggingface non-GPU TF inference images, check that the tag version matches the version of TF serving
+    in the container.
+
+    Huggingface includes MMS and core TF, hence the versioning scheme is based off of the underlying tensorflow
+    framework version, rather than the TF serving version.
+
+    GPU inference images will be tested along side `test_framework_and_cuda_version_gpu` in order to be judicious
+    about GPU resources. This test can run directly on the host, and thus does not require additional resources
+    to be spun up.
+
+    @param tensorflow_inference: ECR image URI
+    """
+    # Set local variable to clarify contents of fixture
+    image = tensorflow_inference
+
+    if "gpu" in image:
+        pytest.skip(
+            "GPU images will have their framework version tested in test_framework_and_cuda_version_gpu")
+    if "neuron" in image:
+        pytest.skip(
+            "Neuron images will have their framework version tested in test_framework_and_neuron_sdk_version")
+
+    _, tag_framework_version = get_framework_and_version_from_tag(
+        image)
+
+    ctx = Context()
+    container_name = get_container_name("tf-serving-version", image)
+    start_container(container_name, image, ctx)
+    output = run_cmd_on_container(
+        container_name, ctx, "tensorflow_model_server --version", executable="bash"
+    )
+    assert (
+        re.match(rf"TensorFlow Model Server: {tag_framework_version}(\D+)?", output.stdout),
+        f"Cannot find model server version {tag_framework_version} in {output.stdout}"
+    )
+
+    stop_and_remove_container(container_name, ctx)
+
+@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.model("N/A")
 @pytest.mark.canary("Run non-gpu framework version test regularly on production images")
 def test_framework_version_cpu(image):
     """
@@ -158,11 +198,11 @@ def test_framework_version_cpu(image):
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
         pytest.skip(
-            msg="TF inference for CPU/GPU/EIA does not have core tensorflow installed")
+            "Non-gpu tensorflow-inference images will be tested in test_tf_serving_version_cpu."
+        )
 
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(
         image)
-
     # Framework name may include huggingface
     if tested_framework.startswith('huggingface_'):
         tested_framework = tested_framework[len("huggingface_"):]
@@ -259,8 +299,6 @@ def test_framework_and_neuron_sdk_version(neuron):
     stop_and_remove_container(container_name, ctx)
 
 
-
-# TODO: Enable as canary once resource cleaning lambda is added
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
@@ -275,9 +313,17 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(
         image)
 
+    image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
     # Framework Version Check #
-    # Skip framework version test for tensorflow-inference, since it doesn't have core TF installed
-    if "tensorflow-inference" not in image:
+    # For tf inference containers, check TF model server version
+    if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
+        cmd = f"tensorflow_model_server --version"
+        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash")
+        assert (
+            re.match(rf"TensorFlow Model Server: {tag_framework_version}(\D+)?", output.stdout),
+            f"Cannot find model server version {tag_framework_version} in {output.stdout}"
+        )
+    else:
         # Framework name may include huggingface
         if tested_framework.startswith('huggingface_'):
             tested_framework = tested_framework[len("huggingface_"):]
@@ -288,7 +334,6 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
             tested_framework = "autogluon.core"
         cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="python")
-
         if is_canary_context():
             assert tag_framework_version in output.stdout.strip()
         else:
@@ -749,3 +794,51 @@ def test_oss_compliance(image):
                         f"Unable to check if source code is present on bucket {THIRD_PARTY_SOURCE_CODE_BUCKET}. Error: {e}"
                     )
                     raise
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+def test_pytorch_training_sm_env_variables(pytorch_training):
+    env_vars = {
+        "SAGEMAKER_TRAINING_MODULE": "sagemaker_pytorch_container.training:main"
+    }
+    execute_env_variables_test(image_uri=pytorch_training, env_vars_to_test=env_vars)
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+def test_pytorch_inference_sm_env_variables(pytorch_inference):
+    env_vars = {
+        "SAGEMAKER_SERVING_MODULE": "sagemaker_pytorch_serving_container.serving:main"
+    }
+    execute_env_variables_test(image_uri=pytorch_inference, env_vars_to_test=env_vars)
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+def test_tensorflow_training_sm_env_variables(tensorflow_training):
+    env_vars = {
+        "SAGEMAKER_TRAINING_MODULE": "sagemaker_tensorflow_container.training:main"
+    }
+    execute_env_variables_test(image_uri=tensorflow_training, env_vars_to_test=env_vars)
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+def test_tensorflow_inference_sm_env_variables(tensorflow_inference):
+    _, fw_version = get_framework_and_version_from_tag(tensorflow_inference)
+    version_obj = Version(fw_version)
+    tf_short_version = f"{version_obj.major}.{version_obj.minor}"
+    env_vars = {
+        "SAGEMAKER_TFS_VERSION": tf_short_version
+    }
+    execute_env_variables_test(image_uri=tensorflow_inference, env_vars_to_test=env_vars)
+
+
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.model("N/A")
+def test_mxnet_training_sm_env_variables(mxnet_training):
+    env_vars = {
+        "SAGEMAKER_TRAINING_MODULE": "sagemaker_mxnet_container.training:main"
+    }
+    execute_env_variables_test(image_uri=mxnet_training, env_vars_to_test=env_vars)
