@@ -103,6 +103,24 @@ function create_graviton_node_group() {
 }
 
 
+#Function to upgrade core k8s components
+function update_eksctl_utils() {
+  eksctl utils update-kube-proxy \
+    --cluster ${1} \
+    --region ${2} \
+    --approve
+
+  eksctl utils update-aws-node \
+    --cluster ${1} \
+    --region ${2} \
+    --approve
+
+  eksctl utils update-coredns \
+    --cluster ${1} \
+    --region ${2} \
+    --approve
+}
+
 if [ $# -ne 2 ]; then
   echo "usage: ./${0} eks_cluster_name eks_version"
   exit 1
@@ -134,6 +152,7 @@ if [ -n "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
   update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
 fi
 
+update_eksctl_utils ${CLUSTER} ${AWS_REGION}
 create_graviton_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
 add_tags_asg ${CLUSTER} ${AWS_REGION}
 add_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}

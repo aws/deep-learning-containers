@@ -81,8 +81,8 @@ function update_eksctl_utils() {
     --approve
 }
 
-if [ $# -le 3 ]; then
-  echo "usage: ./${0} target eks_cluster_name eks_version cluster_autoscalar_image_version"
+if [ $# -lt 3 ]; then
+  echo "usage: ${0} target eks_cluster_name eks_version cluster_autoscalar_image_version"
   exit 1
 fi
 
