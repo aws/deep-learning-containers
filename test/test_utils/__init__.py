@@ -42,9 +42,9 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-078c2404eecfbe916"
-# Habana Base v1.2 ami
-UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-047fd74c001116366"
-UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
+# Habana Base v1.3 ami
+UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0ef18b1906e7010fb"
+UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-040ef14d634e727a2"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
@@ -58,8 +58,8 @@ UL_AMI_LIST = [
 ]
 
 # ECS images are maintained here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
-ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
-ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
+ECS_AML2_GPU_USWEST2 = "ami-052237b2eee880dc6"
+ECS_AML2_CPU_USWEST2 = "ami-0794df61693647a62"
 ECS_AML2_NEURON_USWEST2 = "ami-0c7321fe2b2340dd5"
 ECS_AML2_GRAVITON_CPU_USWEST2 = "ami-0fb32cf53e5ab7686"
 NEURON_AL2_DLAMI = "ami-03c4cdc89eca4dbcb"
@@ -247,13 +247,15 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
     :param ec2_instance_type: EC2 Instance Type
     :return: bool True if there are incompatibilities, False if there aren't
     """
+    incompatible_conditions = []
+    framework, framework_version = get_framework_and_version_from_tag(image_uri)
+
     image_is_cuda10_on_incompatible_p4d_instance = (
         get_processor_from_image_uri(image_uri) == "gpu"
         and get_cuda_version_from_tag(image_uri).startswith("cu10")
         and ec2_instance_type in ["p4d.24xlarge"]
     )
-
-    framework, _ = get_framework_and_version_from_tag(image_uri)
+    incompatible_conditions.append(image_is_cuda10_on_incompatible_p4d_instance)
 
     image_is_cuda11_on_incompatible_p2_instance_mxnet = (
         framework == "mxnet"
@@ -261,8 +263,17 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         and get_cuda_version_from_tag(image_uri).startswith("cu11")
         and ec2_instance_type in ["p2.8xlarge"]
     )
+    incompatible_conditions.append(image_is_cuda11_on_incompatible_p2_instance_mxnet)
 
-    return image_is_cuda10_on_incompatible_p4d_instance or image_is_cuda11_on_incompatible_p2_instance_mxnet
+    image_is_pytorch_1_11_on_incompatible_p2_instance_pytorch = (
+        framework == "pytorch"
+        and Version(framework_version) in SpecifierSet("==1.11.*")
+        and get_processor_from_image_uri(image_uri) == "gpu"
+        and ec2_instance_type in ["p2.8xlarge"]
+    )
+    incompatible_conditions.append(image_is_pytorch_1_11_on_incompatible_p2_instance_pytorch)
+
+    return any(incompatible_conditions)
 
 
 def get_repository_local_path():
@@ -1319,7 +1330,7 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
     :return: invoke output, can be used to parse stdout, etc
     """
     if executable not in ("bash", "python"):
-        LOGGER.warn(f"Unrecognized executable {executable}. It will be run as {executable} -c '{cmd}'")
+        LOGGER.warning(f"Unrecognized executable {executable}. It will be run as {executable} -c '{cmd}'")
     return context.run(
         f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
     )
@@ -1377,3 +1388,27 @@ def get_eks_k8s_test_type_label(image_uri):
     else:
         test_type = "gpu"
     return test_type
+
+
+def execute_env_variables_test(image_uri, env_vars_to_test):
+    """
+    Based on a dictionary of ENV_VAR: val, test that the enviornment variables are correctly set in the container.
+
+    @param image_uri: ECR image URI
+    @param env_vars_to_test: dict {"ENV_VAR": "env_var_expected_value"}
+    """
+    ctx = Context()
+    container_name = get_container_name("env_variables", image_uri)
+
+    start_container(container_name, image_uri, ctx)
+    for var, expected_val in env_vars_to_test.items():
+        output = run_cmd_on_container(container_name, ctx, f"echo ${var}")
+        actual_val = output.stdout.strip()
+        if actual_val:
+            assertion_error_sentence = f"It is currently set to {actual_val}."
+        else:
+            assertion_error_sentence = "It is currently not set."
+        assert (
+            actual_val == expected_val,
+            f"Environment variable {var} is expected to be {expected_val}. {assertion_error_sentence}."
+        )

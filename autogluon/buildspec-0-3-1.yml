@@ -1,0 +1,74 @@
+account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+region: &REGION <set-$REGION-in-environment>
+framework: &FRAMEWORK autogluon
+version: &VERSION 0.3.1
+short_version: &SHORT_VERSION 0.3
+
+repository_info:
+  training_repository: &TRAINING_REPOSITORY
+    image_type: &TRAINING_IMAGE_TYPE training
+    root: !join [ *FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
+    repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+  inference_repository: &INFERENCE_REPOSITORY
+    image_type: &INFERENCE_IMAGE_TYPE inference
+    root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
+    repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+
+context:
+  training_context: &TRAINING_CONTEXT
+    entrypoint:
+      source: docker/artifacts/dockerd-entrypoint.py
+      target: dockerd-entrypoint.py
+    deep_learning_container:
+      source: ../../src/deep_learning_container.py
+      target: deep_learning_container.py
+  inference_context: &INFERENCE_CONTEXT
+    mms-entrypoint:
+      source: ../build_artifacts/inference/mms-entrypoint.py
+      target: mms-entrypoint.py
+    config:
+      source: ../build_artifacts/inference/config.properties
+      target: config.properties
+
+images:
+  BuildAutogluonCPUTrainPy3DockerImage:
+    <<: *TRAINING_REPOSITORY
+    build: &AUTOGLUON_CPU_TRAINING_PY3 false
+    image_size_baseline: 3512
+    device_type: &DEVICE_TYPE cpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py37
+    os_version: &OS_VERSION ubuntu18.04
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
+    docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+    context:
+      <<: *TRAINING_CONTEXT
+
+  BuildAutogluonGPUTrainPy3DockerImage:
+    <<: *TRAINING_REPOSITORY
+    build: &AUTOGLUON_GPU_TRAINING_PY3 false
+    image_size_baseline: 12466
+    device_type: &DEVICE_TYPE gpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py37
+    cuda_version: &CUDA_VERSION cu102
+    os_version: &OS_VERSION ubuntu18.04
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
+    docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
+    context:
+      <<: *TRAINING_CONTEXT
+
+  BuildAutogluonCPUInferencePy3DockerImage:
+    <<: *INFERENCE_REPOSITORY
+    build: &AUTOGLUON_CPU_INFERENCE_PY3 false
+    image_size_baseline: 4090
+    device_type: &DEVICE_TYPE cpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py37
+    os_version: &OS_VERSION ubuntu16.04
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
+    docker_file: !join [ docker/, *VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
+    context:
+      <<: *INFERENCE_CONTEXT
