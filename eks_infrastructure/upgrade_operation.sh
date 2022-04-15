@@ -2,7 +2,9 @@
 #/ Usage:
 #/ export AWS_REGION=<AWS-Region>
 #/ export EKS_CLUSTER_MANAGER_ROLE=<ARN-of-IAM-role>
-#/ ./upgrade_cluster.sh eks_cluster_name eks_version cluster_autoscalar_image_version
+#/ target can be one of [ cluster | nodegroup ]
+#/ cluster_autoscalar_image_version option is not required for [nodegroup] target
+#/ ./upgrade_operation.sh <target> eks_cluster_name eks_version cluster_autoscalar_image_version
 set -ex
 
 # Function to update kubeconfig at ~/.kube/config
@@ -79,8 +81,8 @@ function update_eksctl_utils() {
     --approve
 }
 
-if [ $# -ne 3 ]; then
-  echo "usage: ./${0} eks_cluster_name eks_version cluster_autoscalar_image_version"
+if [ $# -le 3 ]; then
+  echo "usage: ./${0} target eks_cluster_name eks_version cluster_autoscalar_image_version"
   exit 1
 fi
 
@@ -89,20 +91,24 @@ if [ -z "${AWS_REGION}" ]; then
   exit 1
 fi
 
-CLUSTER=${1}
-EKS_VERSION=${2}
-CLUSTER_AUTOSCALAR_IMAGE_VERSION=${3}
+TARGET=${1}
+CLUSTER=${2}
+EKS_VERSION=${3}
+CLUSTER_AUTOSCALAR_IMAGE_VERSION=${4}
 
 if [ -n "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
   update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
 fi
 
-#scale to 0 to avoid unwanted scaling
-scale_cluster_autoscalar 0
-upgrade_autoscalar_image ${CLUSTER_AUTOSCALAR_IMAGE_VERSION}
-upgrade_eks_control_plane ${CLUSTER} ${EKS_VERSION}
-upgrade_nodegroups ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
-update_eksctl_utils ${CLUSTER} ${AWS_REGION}
-
-#scale back to 1
-scale_cluster_autoscalar 1
+if [ "${TARGET}" = "CLUSTER" ]; then
+  #scale to 0 to avoid unwanted scaling
+  scale_cluster_autoscalar 0
+  upgrade_autoscalar_image ${CLUSTER_AUTOSCALAR_IMAGE_VERSION}
+  upgrade_eks_control_plane ${CLUSTER} ${EKS_VERSION}
+  upgrade_nodegroups ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
+  update_eksctl_utils ${CLUSTER} ${AWS_REGION}
+  #scale back to 1
+  scale_cluster_autoscalar 1
+elif [ "${TARGET}" = "NODEGROUP" ]; then
+  upgrade_nodegroups ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
+fi

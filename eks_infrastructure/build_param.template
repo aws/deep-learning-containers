@@ -1,5 +1,5 @@
 {   
-    "operation": "create", # supports "create", "upgrade", "delete"
+    "operation": "create", # supports "create", "upgrade_cluster", "upgrade_nodegroup", "delete"
     "contexts":[
         "PR"               # supports "PR", "MAINLINE", "NIGHTLY"
     ],

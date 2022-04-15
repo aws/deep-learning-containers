@@ -26,23 +26,41 @@ function create_cluster() {
   done
 }
 
-# Upgrade operation function
+# Upgrade cluster operation function
 #
-# Invokes upgrade_cluster.sh script to upgrade the EKS cluster in the following order
+# Invokes upgrade_operation.sh script to upgrade the EKS cluster in the following order
 # 1. Scale cluster autoscalar to 0 to prevent unwanted scaling
 # 2. Upgrade EKS control plane
 # 3. Upgrade EKS nodegroups:
 #    i) Delete Exisiting nodegroups
 #    ii) Create nodegroups with updated configuration
-#
 # 4. Upgrade core k8s components
 # 5. Scale cluster autoscalar back to 1
 function upgrade_cluster() {
+  TARGET="CLUSTER"
   for CONTEXT in "${CONTEXTS[@]}"; do
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
       CLUSTER_NAME=${CLUSTER}-${CONTEXT}
       if check_cluster_status $CLUSTER_NAME; then
-        ./upgrade_cluster.sh $CLUSTER_NAME $EKS_VERSION $CLUSTER_AUTOSCALAR_IMAGE_VERSION
+        ./upgrade_operation.sh $TARGET $CLUSTER_NAME $EKS_VERSION $CLUSTER_AUTOSCALAR_IMAGE_VERSION
+      else
+        echo "EKS Cluster :: ${CLUSTER_NAME} :: does not exists. Skipping upgrade operation."
+      fi
+    done
+  done
+
+}
+
+# Upgrade nodegroup operation function
+#
+# Invokes upgrade_operation.sh script to upgrade the EKS nodegroup for a cluster
+function upgrade_nodegroup() {
+  TARGET="NODEGROUP"
+  for CONTEXT in "${CONTEXTS[@]}"; do
+    for CLUSTER in "${EKS_CLUSTERS[@]}"; do
+      CLUSTER_NAME=${CLUSTER}-${CONTEXT}
+      if check_cluster_status $CLUSTER_NAME; then
+        ./upgrade_operation.sh $TARGET $CLUSTER_NAME $EKS_VERSION
       else
         echo "EKS Cluster :: ${CLUSTER_NAME} :: does not exists. Skipping upgrade operation."
       fi
@@ -68,8 +86,9 @@ function delete_cluster() {
 
 }
 
-# new operation function
-#
+# new operation function to perform one time operation on the cluster
+# Once deployed, the contents of the new_operation.sh should be moved to a dedicated script
+# to allow upcoming features to be configured in the new_operation.sh script
 # Invokes new_operation.sh script to add graviton nodegroup on the EKS cluster
 function new_operation() {
 
@@ -122,8 +141,12 @@ create)
   create_cluster
   ;;
 
-upgrade)
+upgrade_cluster)
   upgrade_cluster
+  ;;
+
+upgrade_nodegroup)
+  upgrade_nodegroup
   ;;
 
 delete)
