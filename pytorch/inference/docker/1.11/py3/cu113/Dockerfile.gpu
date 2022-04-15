@@ -1,5 +1,5 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.12
+ARG PYTHON_VERSION=3.8.13
 
 # PyTorch Binaries
 ARG PT_E3_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220322-194812/272547162a367c4aaafe8f7e1d9d35d39441c6f3/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
