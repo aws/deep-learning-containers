@@ -18,9 +18,7 @@ def test_repo_anaconda_not_present(image):
         pytest.skip("Image does not have conda installed, skipping test.")
     
     # Commands are split in 2 because if warn=True, then even if first command fails silently, no error is raised
-    conda_list_output = test_utils.run_cmd_on_container(container_name, ctx, "conda list --explicit > repo_list.txt", warn=True).stdout.strip()
-    if not conda_list_output:
-        raise RuntimeError("Error due to conda list --explicit command")
+    test_utils.run_cmd_on_container(container_name, ctx, "conda list --explicit > repo_list.txt")
 
     grep_result = test_utils.run_cmd_on_container(container_name, ctx, "grep repo.anaconda.com repo_list.txt", warn=True).stdout.strip()
     if grep_result:
