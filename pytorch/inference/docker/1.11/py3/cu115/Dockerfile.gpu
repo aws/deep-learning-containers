@@ -201,10 +201,12 @@ RUN pip install --no-cache-dir -U \
 
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
- && pip install torchserve==${TS_VERSION} \
- && pip install torch-model-archiver==${TS_VERSION}
+#  && pip install torchserve==${TS_VERSION} \
+#  && pip install torch-model-archiver==${TS_VERSION}
+ && pip install torchserve-nightly==2022.3.23.post2 \
+ && pip install torch-model-archiver-nightly==2022.3.23
 
- WORKDIR /
+WORKDIR /
 
 RUN cd tmp/ \
  && rm -rf tmp*
