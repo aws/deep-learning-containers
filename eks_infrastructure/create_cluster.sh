@@ -47,7 +47,6 @@ function create_node_group() {
     --node-labels "static=true" \
     --tags "k8s.io/cluster-autoscaler/node-template/label/static=true" \
     --asg-access \
-    --managed=true \
     --ssh-access \
     --ssh-public-key "${3}"
 
@@ -62,7 +61,6 @@ function create_node_group() {
     --node-labels "test_type=gpu" \
     --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=gpu" \
     --asg-access \
-    --managed=true \
     --ssh-access \
     --ssh-public-key "${3}"
 
@@ -77,7 +75,6 @@ function create_node_group() {
     --node-labels "test_type=inf" \
     --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=inf,k8s.io/cluster-autoscaler/node-template/resources/aws.amazon.com/neuron=1,k8s.io/cluster-autoscaler/node-template/resources/hugepages-2Mi=256Mi" \
     --asg-access \
-    --managed=true \
     --ssh-access \
     --ssh-public-key "${3}"
 
