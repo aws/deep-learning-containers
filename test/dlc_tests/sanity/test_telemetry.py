@@ -93,19 +93,29 @@ def test_pytorch_training_job_type_env_var(pytorch_training):
     env_vars = {
         "DLC_CONTAINER_TYPE": "training"
     }
-    test_utils.execute_env_variables_test(image_uri=pytorch_training, env_vars_to_test=env_vars)
+    container_name_prefix = "pt_train_job_type_env_var"
+    test_utils.execute_env_variables_test(
+        image_uri=pytorch_training,
+        env_vars_to_test=env_vars,
+        container_name_prefix=container_name_prefix
+    )
 
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
-def test_pytorch_training_job_type_env_var(pytorch_inference):
+def test_pytorch_inference_job_type_env_var(pytorch_inference):
     _, image_framework_version = test_utils.get_framework_and_version_from_tag(pytorch_inference)
     if Version(image_framework_version) < Version("1.10"):
         pytest.skip("This env variable was added after PT 1.10 release. Skipping test.")
     env_vars = {
         "DLC_CONTAINER_TYPE": "inference"
     }
-    test_utils.execute_env_variables_test(image_uri=pytorch_inference, env_vars_to_test=env_vars)
+    container_name_prefix = "pt_inference_job_type_env_var"
+    test_utils.execute_env_variables_test(
+        image_uri=pytorch_inference,
+        env_vars_to_test=env_vars,
+        container_name_prefix=container_name_prefix
+    )
 
 
 def _run_instance_role_disabled(image_uri, ec2_client, ec2_instance, ec2_connection):
