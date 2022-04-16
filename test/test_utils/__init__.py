@@ -1390,15 +1390,16 @@ def get_eks_k8s_test_type_label(image_uri):
     return test_type
 
 
-def execute_env_variables_test(image_uri, env_vars_to_test):
+def execute_env_variables_test(image_uri, env_vars_to_test, container_name_prefix):
     """
     Based on a dictionary of ENV_VAR: val, test that the enviornment variables are correctly set in the container.
 
     @param image_uri: ECR image URI
     @param env_vars_to_test: dict {"ENV_VAR": "env_var_expected_value"}
+    @param container_name_prefix: container name prefix describing test
     """
     ctx = Context()
-    container_name = get_container_name("env_variables", image_uri)
+    container_name = get_container_name(container_name_prefix, image_uri)
 
     start_container(container_name, image_uri, ctx)
     for var, expected_val in env_vars_to_test.items():
@@ -1412,3 +1413,4 @@ def execute_env_variables_test(image_uri, env_vars_to_test):
             actual_val == expected_val,
             f"Environment variable {var} is expected to be {expected_val}. {assertion_error_sentence}."
         )
+    stop_and_remove_container(container_name, ctx)
