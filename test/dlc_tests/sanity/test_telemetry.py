@@ -98,7 +98,7 @@ def test_pytorch_training_job_type_env_var(pytorch_training):
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
-def test_pytorch_inference_job_type_env_var(pytorch_inference):
+def test_pytorch_training_job_type_env_var(pytorch_inference):
     _, image_framework_version = test_utils.get_framework_and_version_from_tag(pytorch_inference)
     if Version(image_framework_version) < Version("1.10"):
         pytest.skip("This env variable was added after PT 1.10 release. Skipping test.")
