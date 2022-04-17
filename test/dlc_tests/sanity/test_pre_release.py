@@ -179,6 +179,7 @@ def test_tf_serving_version_cpu(tensorflow_inference):
 
     stop_and_remove_container(container_name, ctx)
 
+
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run non-gpu framework version test regularly on production images")
@@ -802,7 +803,12 @@ def test_pytorch_training_sm_env_variables(pytorch_training):
     env_vars = {
         "SAGEMAKER_TRAINING_MODULE": "sagemaker_pytorch_container.training:main"
     }
-    execute_env_variables_test(image_uri=pytorch_training, env_vars_to_test=env_vars)
+    container_name_prefix = "pt_training_sm_env"
+    execute_env_variables_test(
+        image_uri=pytorch_training,
+        env_vars_to_test=env_vars,
+        container_name_prefix=container_name_prefix
+    )
 
 
 @pytest.mark.usefixtures("sagemaker_only")
@@ -811,7 +817,12 @@ def test_pytorch_inference_sm_env_variables(pytorch_inference):
     env_vars = {
         "SAGEMAKER_SERVING_MODULE": "sagemaker_pytorch_serving_container.serving:main"
     }
-    execute_env_variables_test(image_uri=pytorch_inference, env_vars_to_test=env_vars)
+    container_name_prefix = "pt_inference_sm_env"
+    execute_env_variables_test(
+        image_uri=pytorch_inference,
+        env_vars_to_test=env_vars,
+        container_name_prefix=container_name_prefix
+    )
 
 
 @pytest.mark.usefixtures("sagemaker_only")
@@ -820,7 +831,12 @@ def test_tensorflow_training_sm_env_variables(tensorflow_training):
     env_vars = {
         "SAGEMAKER_TRAINING_MODULE": "sagemaker_tensorflow_container.training:main"
     }
-    execute_env_variables_test(image_uri=tensorflow_training, env_vars_to_test=env_vars)
+    container_name_prefix = "tf_training_sm_env"
+    execute_env_variables_test(
+        image_uri=tensorflow_training,
+        env_vars_to_test=env_vars,
+        container_name_prefix=container_name_prefix
+    )
 
 
 @pytest.mark.usefixtures("sagemaker_only")
@@ -832,7 +848,12 @@ def test_tensorflow_inference_sm_env_variables(tensorflow_inference):
     env_vars = {
         "SAGEMAKER_TFS_VERSION": tf_short_version
     }
-    execute_env_variables_test(image_uri=tensorflow_inference, env_vars_to_test=env_vars)
+    container_name_prefix = "tf_inference_sm_env"
+    execute_env_variables_test(
+        image_uri=tensorflow_inference,
+        env_vars_to_test=env_vars,
+        container_name_prefix=container_name_prefix
+    )
 
 
 @pytest.mark.usefixtures("sagemaker_only")
@@ -841,4 +862,9 @@ def test_mxnet_training_sm_env_variables(mxnet_training):
     env_vars = {
         "SAGEMAKER_TRAINING_MODULE": "sagemaker_mxnet_container.training:main"
     }
-    execute_env_variables_test(image_uri=mxnet_training, env_vars_to_test=env_vars)
+    container_name_prefix = "mx_training_sm_env"
+    execute_env_variables_test(
+        image_uri=mxnet_training,
+        env_vars_to_test=env_vars,
+        container_name_prefix=container_name_prefix
+    )
