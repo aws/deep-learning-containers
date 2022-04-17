@@ -10,6 +10,7 @@ from test.test_utils import (
     LOGGER,
     get_account_id_from_image_uri,
     get_framework_and_version_from_tag,
+    ECR_SCAN_HELPER_BUCKET,
 )
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
@@ -120,7 +121,7 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         upgraded_image_vulnerability_list, image_scan_allowlist = fetch_other_vulnerability_lists(
             image, ecr_client, minimum_sev_threshold
         )
-        s3_bucket_name = "trshanta-bucket"
+        s3_bucket_name = ECR_SCAN_HELPER_BUCKET
 
         ## In case new vulnerabilities are found conduct failure routine
         newly_found_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
