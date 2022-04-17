@@ -100,8 +100,9 @@ PUBLIC_DLC_REGISTRY = "763104351884"
 
 SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
 
-UPGRADE_ECR_REPO_NAME = "trshanta-repo"
+UPGRADE_ECR_REPO_NAME = f"""upgraded-image-repo-{boto3.client("sts").get_caller_identity().get("Account")}"""
 ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts").get_caller_identity().get("Account")}"""
+ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 
 class MissingPythonVersionException(Exception):
     """

@@ -485,7 +485,7 @@ def conduct_failure_routine(
     }
     ## TODO: Remove the is_pr_context before merging ##
     if test_utils.is_canary_context() or test_utils.is_pr_context():
-        _invoke_lambda(function_name="trshanta-ECR-AS", payload_dict=message_body)
+        _invoke_lambda(function_name=test_utils.ECR_SCAN_FAILURE_ROUTINE_LAMBDA, payload_dict=message_body)
     return_dict = copy.deepcopy(message_body)
     return_dict["s3_filename_for_allowlist"] = s3_filename_for_allowlist
     return_dict["s3_filename_for_current_image_ecr_scan_list"] = s3_filename_for_current_image_ecr_scan_list
