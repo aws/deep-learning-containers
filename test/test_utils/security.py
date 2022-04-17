@@ -2,12 +2,12 @@ import os
 import json
 import copy, collections
 import boto3
-import botocore
 
 from invoke import run, Context
 from time import sleep
 from enum import IntEnum
 from test import test_utils
+from test.test_utils import ecr as ecr_utils
 
 
 class ECRScanFailureException(Exception):
@@ -277,26 +277,6 @@ def _save_lists_in_s3(save_details, s3_bucket_name):
         s3_client.upload_file(Filename=filename, Bucket=s3_bucket_name, Key=filename)
 
 
-def _botocore_resolver():
-    """
-    Get the DNS suffix for the given region.
-    :return: endpoint object
-    """
-    loader = botocore.loaders.create_loader()
-    return botocore.regions.EndpointResolver(loader.load_data("endpoints"))
-
-
-def get_ecr_registry(account, region):
-    """
-    Get prefix of ECR image URI
-    :param account: Account ID
-    :param region: region where ECR repo exists
-    :return: AWS ECR registry
-    """
-    endpoint_data = _botocore_resolver().construct_endpoint("ecr", region)
-    return "{}.dkr.{}".format(account, endpoint_data["hostname"])
-
-
 def get_new_image_uri_for_uploading_upgraded_image_to_ecr(image):
     """
     Returns the new image uri for the image being tested. After running the apt commands, the
@@ -309,7 +289,7 @@ def get_new_image_uri_for_uploading_upgraded_image_to_ecr(image):
     region = os.getenv("REGION", test_utils.DEFAULT_REGION)
     sts_client = boto3.client("sts", region_name=region)
     account_id = sts_client.get_caller_identity().get("Account")
-    registry = get_ecr_registry(account_id, region)
+    registry = ecr_utils.get_ecr_registry(account_id, region)
     original_image_repository, original_image_tag = test_utils.get_repository_and_tag_from_image_uri(image)
     upgraded_image_tag = f"{original_image_repository}-{original_image_tag}-upgraded"
     new_image_uri = f"{registry}/{new_repository_name}:{upgraded_image_tag}"
@@ -396,17 +376,13 @@ def create_and_save_package_list_to_s3(old_filepath, new_packages, new_filepath,
     lines = file1.readlines()
     current_packages = [line.strip() for line in lines]
     package_list = current_packages
-    new_packages.sort()
-    for new_package in new_packages:
-        if new_package in package_list:
-            continue
-        package_list.append(new_package)
-    package_list = [f"{package_name}\n" for package_name in package_list]
+    union_of_old_and_new_packages = set(package_list).union(set(new_packages))
+    updated_list = list(union_of_old_and_new_packages)
+    modified_package_list = [f"{package_name}\n" for package_name in updated_list]
     file1.close()
     run(f"rm -rf {new_filepath}")
-    file2 = open(new_filepath, "w")
-    file2.writelines(package_list)
-    file2.close()
+    with open(new_filepath, "w") as file2:
+        file2.writelines(modified_package_list)
     s3_client = boto3.client("s3")
     s3_client.upload_file(Filename=new_filepath, Bucket=s3_bucket_name, Key=new_filepath)
 
@@ -486,8 +462,8 @@ def conduct_failure_routine(
         fixable_list = vulnerabilities_fixable_by_upgrade.vulnerability_list
     apt_upgrade_list_filename = f"apt-upgrade-list-{test_utils.get_processor_from_image_uri(image)}.txt"
     s3_filename_for_apt_upgrade_list = s3_filename_for_allowlist.replace("allowlist.json", apt_upgrade_list_filename)
-    original_filepath_for_apt_upgrade_list = "/".join(
-        original_filepath_for_allowlist.split("/")[:-1] + [apt_upgrade_list_filename]
+    original_filepath_for_apt_upgrade_list = os.path.join(
+        os.path.dirname(original_filepath_for_allowlist), apt_upgrade_list_filename
     )
     new_package_list = fixable_list if isinstance(fixable_list, list) else list(fixable_list.keys())
     create_and_save_package_list_to_s3(

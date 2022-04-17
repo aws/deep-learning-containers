@@ -7,6 +7,7 @@ import time
 from base64 import b64decode
 
 import boto3
+import botocore
 
 from test.test_utils import (
     get_repository_and_tag_from_image_uri,
@@ -28,6 +29,26 @@ class ECRScanFailedError(Exception):
 
 class ECRRepoDoesNotExist(Exception):
     pass
+
+
+def _botocore_resolver():
+    """
+    Get the DNS suffix for the given region.
+    :return: endpoint object
+    """
+    loader = botocore.loaders.create_loader()
+    return botocore.regions.EndpointResolver(loader.load_data("endpoints"))
+
+
+def get_ecr_registry(account, region):
+    """
+    Get prefix of ECR image URI
+    :param account: Account ID
+    :param region: region where ECR repo exists
+    :return: AWS ECR registry
+    """
+    endpoint_data = _botocore_resolver().construct_endpoint("ecr", region)
+    return "{}.dkr.{}".format(account, endpoint_data["hostname"])
 
 
 def get_ecr_image_scan_time(ecr_client, image_uri):
