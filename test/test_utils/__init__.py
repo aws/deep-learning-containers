@@ -100,6 +100,7 @@ PUBLIC_DLC_REGISTRY = "763104351884"
 
 SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
 
+UPGRADE_ECR_REPO_NAME = "trshanta-repo"
 
 class MissingPythonVersionException(Exception):
     """

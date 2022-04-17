@@ -83,7 +83,7 @@ class ScanVulnerabilityList:
                 for package_vulnerabilities in self.vulnerability_list.values()
                 for vulnerability in package_vulnerabilities
             ]
-        return None
+        return []
 
     def sort_dictionary_in_custom_way(self, input_dict):
         """
@@ -189,13 +189,9 @@ class ScanVulnerabilityList:
         """
         flattened_vulnerability_list_self = self.get_flattened_vulnerability_list()
         flattened_vulnerability_list_other = other.get_flattened_vulnerability_list()
-        if not flattened_vulnerability_list_self and not flattened_vulnerability_list_other:
+        all_vulnerabilites = flattened_vulnerability_list_self + flattened_vulnerability_list_other
+        if len(all_vulnerabilites) == 0:
             return None
-        all_vulnerabilites = []
-        if flattened_vulnerability_list_self:
-            all_vulnerabilites += flattened_vulnerability_list_self
-        if flattened_vulnerability_list_other:
-            all_vulnerabilites += flattened_vulnerability_list_other
         union_vulnerabilities = test_utils.uniquify_list_of_dict(all_vulnerabilites)
 
         union = ScanVulnerabilityList(minimum_severity=self.minimum_severity)
@@ -307,8 +303,7 @@ def get_new_image_uri_for_uploading_upgraded_image_to_ecr(image):
     :param image: str
     :param new_image_uri: str
     """
-    ## UPGRADE_REPO_NAME is a temporary name for the ecr repository where the ecr upgraded version of the image is uploaded to run ecr scan on it.
-    new_repository_name = os.getenv("UPGRADE_REPO_NAME")
+    new_repository_name = test_utils.UPGRADE_ECR_REPO_NAME
     region = os.getenv("REGION", test_utils.DEFAULT_REGION)
     sts_client = boto3.client("sts", region_name=region)
     account_id = sts_client.get_caller_identity().get("Account")
@@ -327,9 +322,10 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     :param image: str
     :param new_image_uri: str
     """
+    max_attempts = 10
     ctx = Context()
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image}"
-    container_id = ctx.run(f"{docker_run_cmd}", hide=True, warn=True).stdout.strip()
+    container_id = ctx.run(f"{docker_run_cmd}", hide=True).stdout.strip()
     apt_command = "apt-get update && apt-get upgrade"
     docker_exec_cmd = f"docker exec -i {container_id}"
     attempt_count = 0
@@ -354,18 +350,18 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
         elif run_output.ok:
             apt_ran_successfully_flag = True
             break
-        if attempt_count == 10:
+        if attempt_count == max_attempts:
             break
-    if apt_ran_successfully_flag == False:
-        raise ValueError(
+    if not apt_ran_successfully_flag:
+        raise RuntimeError(
             f"Could not run apt update and upgrade on image: {image}. \n"
             f"Stdout is {run_output.stdout} \n"
             f"Stderr is {run_output.stderr} \n"
             f"Failed status is {run_output.exited}"
         )
-    ctx.run(f"docker commit {container_id} {new_image_uri}", hide=True, warn=True)
-    ctx.run(f"docker rm -f {container_id}", hide=True, warn=True)
-    ctx.run(f"docker push {new_image_uri}", hide=True, warn=True)
+    ctx.run(f"docker commit {container_id} {new_image_uri}", hide=True)
+    ctx.run(f"docker rm -f {container_id}", hide=True)
+    ctx.run(f"docker push {new_image_uri}", hide=True)
 
 
 def _invoke_lambda(function_name, payload_dict={}):
@@ -375,7 +371,7 @@ def _invoke_lambda(function_name, payload_dict={}):
     :param function_name: str, name of the lambda function
     :param payload_dict: dict, payload to be sent to the lambda
     """
-    lambda_client = boto3.client("lambda", region_name=os.getenv("REGION"))
+    lambda_client = boto3.client("lambda", region_name=test_utils.DEFAULT_REGION)
     response = lambda_client.invoke(
         FunctionName=function_name, InvocationType="Event", LogType="Tail", Payload=json.dumps(payload_dict)
     )

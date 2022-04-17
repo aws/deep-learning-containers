@@ -22,7 +22,6 @@ phases:
       - pip install scheduler/.
       - echo Running pytest $TEST_TYPE tests on $DLC_IMAGES...
       - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-      - export UPGRADE_REPO_NAME=trshanta-repo
       - python test/testrunner.py
   post_build:
     commands:
