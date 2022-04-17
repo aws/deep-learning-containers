@@ -4,7 +4,7 @@ import copy, collections
 import boto3
 
 from invoke import run, Context
-from time import sleep
+from time import sleep, time
 from enum import IntEnum
 from test import test_utils
 from test.test_utils import ecr as ecr_utils
@@ -515,3 +515,48 @@ def process_failure_routine_summary_and_store_data_in_s3(failure_routine_summary
     save_details.append((s3_filename_for_non_fixable_list, failure_routine_summary["non_fixable_vulnerabilities"]))
     _save_lists_in_s3(save_details, s3_bucket_name)
     return s3_filename_for_fixable_list, s3_filename_for_non_fixable_list
+
+
+def run_scan(ecr_client, image):
+    scan_status = None
+    start_time = time()
+    ecr_utils.start_ecr_image_scan(ecr_client, image)
+    while (time() - start_time) <= 600:
+        scan_status, scan_status_description = ecr_utils.get_ecr_image_scan_status(ecr_client, image)
+        if scan_status == "FAILED" or scan_status not in [None, "IN_PROGRESS", "COMPLETE"]:
+            raise ECRScanFailureException(f"ECR Scan failed for {image} with description: {scan_status_description}")
+        if scan_status == "COMPLETE":
+            break
+        sleep(1)
+    if scan_status != "COMPLETE":
+        raise TimeoutError(f"ECR Scan is still in {scan_status} state. Exiting.")
+
+
+def fetch_other_vulnerability_lists(image, ecr_client, minimum_sev_threshold):
+    """
+    For a given image it fetches all the other vulnerability lists except the vulnerability list formed by the
+    ecr scan of the current image. In other words, for a given image it fetches upgraded_image_vulnerability_list and
+    image_scan_allowlist.
+
+    :param image: str Image URI for image to be tested
+    :param ecr_client: boto3 Client for ECR
+    :param minimum_sev_threshold: string, determines the minimum severity threshold for ScanVulnerabilityList objects. Can take values HIGH or MEDIUM.
+    :return upgraded_image_vulnerability_list: ScanVulnerabilityList, Vulnerabilites exisiting in the image WITH apt-upgrade run on it.
+    :return image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the DLC git repo.
+    """
+    new_image_uri_for_upgraded_image = get_new_image_uri_for_uploading_upgraded_image_to_ecr(image)
+    run_upgrade_on_image_and_push(image, new_image_uri_for_upgraded_image)
+    run_scan(ecr_client, new_image_uri_for_upgraded_image)
+    scan_results_with_upgrade = ecr_utils.get_ecr_image_scan_results(
+        ecr_client, new_image_uri_for_upgraded_image, minimum_vulnerability=minimum_sev_threshold
+    )
+    scan_results_with_upgrade = ecr_utils.populate_ecr_scan_with_web_scraper_results(
+        new_image_uri_for_upgraded_image, scan_results_with_upgrade
+    )
+    upgraded_image_vulnerability_list = ScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
+    upgraded_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results_with_upgrade)
+    image_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
+    image_scan_allowlist_path = get_ecr_scan_allowlist_path(image)
+    if os.path.exists(image_scan_allowlist_path):
+        image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
+    return upgraded_image_vulnerability_list, image_scan_allowlist
