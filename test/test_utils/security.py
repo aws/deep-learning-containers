@@ -85,7 +85,7 @@ class ScanVulnerabilityList:
             ]
         return []
 
-    def sort_dictionary_in_custom_way(self, input_dict):
+    def get_sorted_vulnerability_list(self):
         """
         This method is specifically made to sort the vulnerability list which is actually a dict 
         and has the following structure:
@@ -100,11 +100,11 @@ class ScanVulnerabilityList:
             ]
         }
         We want to first sort the innermost list of dicts based on the "name" of each dict and then we sort the
-        outermost dict based on keys i.e. package_name1 and package_name2
-        :param input_dict: dict(key, list(dict)), represents vulnerability_list
-        :return: dict, input_dict sorted in a custom way
+        outermost dict based on keys i.e. package_name1 and package_name2.
+        Note: We do not change the actual vulnerability list.
+        :return: dict, sorted vulnerability list
         """
-        copy_dict = copy.deepcopy(input_dict)
+        copy_dict = copy.deepcopy(self.vulnerability_list)
         for key, list_of_dict in copy_dict.items():
             uniquified_list = test_utils.uniquify_list_of_dict(list_of_dict)
             uniquified_list.sort(key=lambda dict_element: dict_element["name"])
@@ -113,9 +113,11 @@ class ScanVulnerabilityList:
 
     def save_vulnerability_list(self, path):
         if self.vulnerability_list:
-            sorted_vulnerability_list = self.sort_dictionary_in_custom_way(self.vulnerability_list)
+            sorted_vulnerability_list = self.get_sorted_vulnerability_list()
             with open(path, "w") as f:
                 json.dump(sorted_vulnerability_list, f, indent=4)
+        else:
+            raise ValueError("self.vulnerability_list is empty.")
 
     def __contains__(self, vulnerability):
         """
@@ -505,7 +507,9 @@ def conduct_failure_routine(
         "fixable_vulnerabilities": fixable_list,
         "non_fixable_vulnerabilities": newly_found_non_fixable_list,
     }
-    _invoke_lambda(function_name="trshanta-ECR-AS", payload_dict=message_body)
+    ## TODO: Remove the is_pr_context before merging ##
+    if test_utils.is_canary_context() or test_utils.is_pr_context():
+        _invoke_lambda(function_name="trshanta-ECR-AS", payload_dict=message_body)
     return_dict = copy.deepcopy(message_body)
     return_dict["s3_filename_for_allowlist"] = s3_filename_for_allowlist
     return_dict["s3_filename_for_current_image_ecr_scan_list"] = s3_filename_for_current_image_ecr_scan_list
