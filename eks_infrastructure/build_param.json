@@ -1,5 +1,5 @@
 {
-    "operation": "new_operation",
+    "operation": "upgrade_nodegroup",
     "contexts":[
         "PR",
         "MAINLINE"
