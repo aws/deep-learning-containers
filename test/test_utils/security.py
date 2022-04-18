@@ -362,6 +362,17 @@ def _invoke_lambda(function_name, payload_dict={}):
         raise ValueError("Lambda call not made properly. Status code returned {status_code}")
 
 
+def get_apt_package_name(ecr_package_name):
+    """
+    Few packages have different names in the ecr scan and actual apt. This function returns an
+    apt name of an ecr package.
+    :param ecr_package_name: str, name of the package in ecr scans
+    :param apt_package_name: str, name of the package in apt
+    """
+    name_mapper = {"cyrus-sasl2": "libsasl2-2", "glibc": "libc6"}
+    return name_mapper.get(ecr_package_name, ecr_package_name)
+
+
 def create_and_save_package_list_to_s3(old_filepath, new_packages, new_filepath, s3_bucket_name):
     """
     This method conducts the union of packages present in the original apt-get-upgrade
@@ -378,7 +389,7 @@ def create_and_save_package_list_to_s3(old_filepath, new_packages, new_filepath,
     package_list = current_packages
     union_of_old_and_new_packages = set(package_list).union(set(new_packages))
     updated_list = list(union_of_old_and_new_packages)
-    modified_package_list = [f"{package_name}\n" for package_name in updated_list]
+    modified_package_list = [f"{get_apt_package_name(package_name)}\n" for package_name in updated_list]
     file1.close()
     run(f"rm -rf {new_filepath}")
     with open(new_filepath, "w") as file2:
