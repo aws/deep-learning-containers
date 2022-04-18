@@ -7,8 +7,8 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.10
 
 # PyTorch Binaries
-ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.0_inference/20211027-061940/36dea191ed0df524207de5acc4e6fb4322306d1a/gpu/torch-1.10.0%2Bcu113-cp38-cp38-manylinux1_x86_64.whl
-ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.11.1%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.10.2_inference/20220211-013556/528b6ca3747ec951396383f2a70d1354283ad29f/gpu/torch-1.10.2%2Bcu113-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/1.10.2/torchvision-0.11.3-cp38-cp38-linux_x86_64.whl
 
 ARG OPEN_MPI_VERSION=4.0.1
 ARG TS_VERSION=0.5.2
@@ -121,7 +121,6 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
     cython \
-    ipython \
     mkl-include \
     mkl \
     parso \
@@ -143,7 +142,8 @@ RUN conda install -c \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging==20.4 \
     enum-compat==0.0.3 \
-    numpy==1.20.3 \
+    numpy==1.22.2 \
+    ipython==8.0.1 \
     "cryptography>=3.3.2"
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
@@ -161,12 +161,14 @@ RUN pip uninstall -y torch \
 RUN conda install -y -c conda-forge "pyyaml>=5.4,<5.5"
 RUN pip install \
     boto3 \
-    "Pillow>=8.3.2,<8.4" \
+    "Pillow>=9.0.0" \
     "awscli<2"
 
+# torchserve-nightly==2022.3.23.post2 replace torchserve==${TS_VERSION}
+# only in PT1.10 for hotfix
 RUN pip uninstall -y model-archiver multi-model-server \
  && pip install captum \
- && pip install torchserve==${TS_VERSION} \
+ && pip install torchserve-nightly==2022.3.23.post2 \
  && pip install torch-model-archiver==${TS_VERSION} 
 
 RUN cd tmp/ \

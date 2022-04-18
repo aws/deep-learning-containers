@@ -34,6 +34,7 @@ from test.test_utils import (
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
     get_ecr_repo_name,
+    UBUNTU_HOME_DIR,
 )
 from test.test_utils.test_reporting import TestReportGenerator
 
@@ -241,6 +242,15 @@ def ec2_instance(
     volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
 
     if (
+        "pytorch_training_habana" in request.fixturenames
+        or "tensorflow_training_habana" in request.fixturenames
+        or "hpu" in request.fixturenames
+    ):
+        user_data = """#!/bin/bash
+        sudo apt-get update && sudo apt-get install -y awscli"""
+        params["UserData"] = user_data
+        params["BlockDeviceMappings"] = [{"DeviceName": volume_name, "Ebs": {"VolumeSize": 1000,},}]
+    elif (
         (
             ("benchmark" in os.getenv("TEST_TYPE") or is_benchmark_dev_context())
             and (
@@ -330,7 +340,9 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
     LOGGER.info(f"Connecting to {user}@{ip_address}")
-    conn = Connection(user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]},)
+    conn = Connection(
+        user=user, host=ip_address, connect_kwargs={"key_filename": [instance_pem_file]}, connect_timeout=18000,
+    )
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 100000)
@@ -352,6 +364,19 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
         test_utils.login_to_ecr_registry(conn, public_registry, region)
 
     return conn
+
+
+@pytest.fixture(scope="function")
+def upload_habana_test_artifact(request, ec2_connection):
+    """
+    Fixture to upload the habana test repo to ec2 instance
+    :param request: pytest test request
+    :param ec2_connection: fabric connection object
+    :return: None
+    """
+    habana_test_repo = "gaudi-test-suite.tar.gz"
+    ec2_connection.put(habana_test_repo, f"{UBUNTU_HOME_DIR}")
+    ec2_connection.run(f"tar -xvf {habana_test_repo}")
 
 
 @pytest.fixture(scope="function")
@@ -485,6 +510,11 @@ def mx18_and_above_only():
 
 
 @pytest.fixture(scope="session")
+def pt111_and_above_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def pt17_and_above_only():
     pass
 
@@ -542,6 +572,9 @@ def framework_version_within_limit(metafunc_obj, image):
         if mx18_requirement_failed:
             return False
     if image_framework_name == "pytorch":
+        pt111_requirement_failed = "pt111_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
+            "1.11", image, "pytorch"
+        )
         pt17_requirement_failed = "pt17_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
             "1.7", image, "pytorch"
         )
@@ -554,7 +587,7 @@ def framework_version_within_limit(metafunc_obj, image):
         pt14_requirement_failed = "pt14_and_above_only" in metafunc_obj.fixturenames and is_below_framework_version(
             "1.4", image, "pytorch"
         )
-        if pt17_requirement_failed or pt16_requirement_failed or pt15_requirement_failed or pt14_requirement_failed:
+        if pt111_requirement_failed or pt17_requirement_failed or pt16_requirement_failed or pt15_requirement_failed or pt14_requirement_failed:
             return False
     return True
 
