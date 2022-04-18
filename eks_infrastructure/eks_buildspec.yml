@@ -6,7 +6,9 @@ phases:
       docker: 18
   pre_build:
     commands:
-      - bash eks_infrastructure/env_setup.sh
+      - cd eks_infrastructure
+      - bash env_setup.sh
+      - bash build.sh staging-cluster BETA
   build:
     commands:
-      - bash eks_infrastructure/build.sh
+      - bash build.sh

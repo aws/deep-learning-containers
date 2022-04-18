@@ -1,5 +1,5 @@
 {
-    "operation": "create",
+    "operation": "new_operation",
     "contexts":[
         "PR",
         "MAINLINE"
