@@ -1,6 +1,7 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
 ARG PYTHON_SHORT_VERSION=3.8
+ARG MAMBA_VERSION=4.12.0-0
 
 # PyTorch Binaries
 ARG PT_E3_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220322-194812/272547162a367c4aaafe8f7e1d9d35d39441c6f3/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
@@ -148,7 +149,7 @@ ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
- && curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/4.12.0-0/Mambaforge-4.12.0-0-Linux-x86_64.sh \
+ && curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
