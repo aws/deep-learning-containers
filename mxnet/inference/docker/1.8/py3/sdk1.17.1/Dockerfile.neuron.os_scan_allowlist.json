@@ -3777,6 +3777,177 @@
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-38291"
         }
     ],
+    "fribidi": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "0.19.7-2"
+                },
+                {
+                    "key": "package_name",
+                    "value": "fribidi"
+                }
+            ],
+            "description": "fribidi: Stack based buffer overflow",
+            "name": "CVE-2022-25308",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "fribidi",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Released (0.19.7-2ubuntu0.1)"
+                            ],
+                            [
+                                "focal",
+                                "Released (1.0.8-2ubuntu0.1)"
+                            ],
+                            [
+                                "impish",
+                                "Released (1.0.8-2ubuntu2.1)"
+                            ],
+                            [
+                                "trusty",
+                                "Needs triage"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Needs triage"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-25308"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "0.19.7-2"
+                },
+                {
+                    "key": "package_name",
+                    "value": "fribidi"
+                }
+            ],
+            "description": "fribidi: Heap-buffer-overflow in fribidi_cap_rtl_to_unicode",
+            "name": "CVE-2022-25309",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "For bionic affected function is in charset/fribidi-char-sets-cap-rtl.c"
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "fribidi",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Released (0.19.7-2ubuntu0.1)"
+                            ],
+                            [
+                                "focal",
+                                "Released (1.0.8-2ubuntu0.1)"
+                            ],
+                            [
+                                "impish",
+                                "Released (1.0.8-2ubuntu2.1)"
+                            ],
+                            [
+                                "trusty",
+                                "Needs triage"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Needs triage"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-25309"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "0.19.7-2"
+                },
+                {
+                    "key": "package_name",
+                    "value": "fribidi"
+                }
+            ],
+            "description": "fribidi: SEGV in fribidi_remove_bidi_marks",
+            "name": "CVE-2022-25310",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "For bionic affected function is in fribidi-deprecated.c"
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "fribidi",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Released (0.19.7-2ubuntu0.1)"
+                            ],
+                            [
+                                "focal",
+                                "Released (1.0.8-2ubuntu0.1)"
+                            ],
+                            [
+                                "impish",
+                                "Released (1.0.8-2ubuntu2.1)"
+                            ],
+                            [
+                                "trusty",
+                                "Needs triage"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Needs triage"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-25310"
+        }
+    ],
     "gcc-7": [
         {
             "attributes": [
@@ -4253,6 +4424,59 @@
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-44648"
         }
     ],
+    "git": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1:2.17.1-1ubuntu0.9"
+                },
+                {
+                    "key": "package_name",
+                    "value": "git"
+                }
+            ],
+            "description": "On multi-user machines, Git users might find themselves unexpectedly in a Git worktree, e.g. when there is a scratch space (`/scratch/`) intended for all users and another user created a repository in `/scratch/.git`.  Merely having a Git-aware prompt that runs `git status` (or `git diff`) and navigating to a directory which is supposedly not a Git worktree, or opening such a directory in an editor or IDE such as VS Code or Atom, will potentially run commands defined by that other user via `/scratch/.git/config`.",
+            "name": "CVE-2022-24765",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "git",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Released (1:2.17.1-1ubuntu0.10)"
+                            ],
+                            [
+                                "focal",
+                                "Released (1:2.25.1-1ubuntu3.3)"
+                            ],
+                            [
+                                "impish",
+                                "Released (1:2.32.0-1ubuntu1.1)"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Needs triage"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-24765"
+        }
+    ],
     "glibc": [
         {
             "attributes": [
@@ -4308,6 +4532,63 @@
             ],
             "severity": "MEDIUM",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3999"
+        }
+    ],
+    "gzip": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1.6-5ubuntu1.1"
+                },
+                {
+                    "key": "package_name",
+                    "value": "gzip"
+                }
+            ],
+            "description": "arbitrary file overwrite with crafted file names",
+            "name": "CVE-2022-1271",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "gzip",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Released (1.6-5ubuntu1.2)"
+                            ],
+                            [
+                                "focal",
+                                "Released (1.10-0ubuntu4.1)"
+                            ],
+                            [
+                                "impish",
+                                "Released (1.10-4ubuntu1.1)"
+                            ],
+                            [
+                                "trusty",
+                                "Released (1.6-3ubuntu1+esm1)"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Released (1.6-4ubuntu1+esm1)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1271"
         }
     ],
     "hdf5": [
@@ -6929,543 +7210,6 @@
             ],
             "severity": "MEDIUM",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2018-20861"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "0.3.6-1"
-                },
-                {
-                    "key": "package_name",
-                    "value": "libopenmpt"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "4.3"
-                }
-            ],
-            "description": "J2B in libopenmpt before 0.4.2 allows an assertion failure during file parsing with debug STLs.",
-            "name": "CVE-2019-14383",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "libopenmpt",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Needed"
-                            ],
-                            [
-                                "disco",
-                                "Not vulnerable"
-                            ],
-                            [
-                                "eoan",
-                                "Not vulnerable"
-                            ],
-                            [
-                                "focal",
-                                "Not vulnerable"
-                            ],
-                            [
-                                "groovy",
-                                "Not vulnerable"
-                            ],
-                            [
-                                "hirsute",
-                                "Not vulnerable"
-                            ],
-                            [
-                                "impish",
-                                "Not vulnerable"
-                            ],
-                            [
-                                "precise",
-                                "Does not exist"
-                            ],
-                            [
-                                "trusty",
-                                "Does not exist"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Does not exist"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2019-14383"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "0.3.6-1"
-                },
-                {
-                    "key": "package_name",
-                    "value": "libopenmpt"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:P/I:P/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "7.5"
-                }
-            ],
-            "description": "In libopenmpt before 0.3.19 and 0.4.x before 0.4.9, ModPlug_InstrumentName and ModPlug_SampleName in libopenmpt_modplug.c do not restrict the lengths of libmodplug output-buffer strings in the C API, leading to a buffer overflow.",
-            "name": "CVE-2019-17113",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "libopenmpt",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Needed"
-                            ],
-                            [
-                                "disco",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "eoan",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "focal",
-                                "Needed"
-                            ],
-                            [
-                                "groovy",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "impish",
-                                "Needed"
-                            ],
-                            [
-                                "precise",
-                                "Does not exist"
-                            ],
-                            [
-                                "trusty",
-                                "Does not exist"
-                            ],
-                            [
-                                "upstream",
-                                "Released (0.3.19, 0.4.9-1)"
-                            ],
-                            [
-                                "xenial",
-                                "Does not exist"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2019-17113"
-        }
-    ],
-    "libxml2": [
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "2.9.4+dfsg1-6.1ubuntu1.4"
-                },
-                {
-                    "key": "package_name",
-                    "value": "libxml2"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "4.3"
-                }
-            ],
-            "description": "valid.c in libxml2 before 2.9.13 has a use-after-free of ID and IDREF attributes.",
-            "name": "CVE-2022-23308",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "libxml2",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (2.9.4+dfsg1-6.1ubuntu1.5)"
-                            ],
-                            [
-                                "focal",
-                                "Released (2.9.10+dfsg-5ubuntu0.20.04.2)"
-                            ],
-                            [
-                                "impish",
-                                "Released (2.9.12+dfsg-4ubuntu0.1)"
-                            ],
-                            [
-                                "trusty",
-                                "Needs triage"
-                            ],
-                            [
-                                "upstream",
-                                "Released (2.9.13)"
-                            ],
-                            [
-                                "xenial",
-                                "Needs triage"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-23308"
-        }
-    ],
-    "mysql-5.7": [
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "5.7.37-0ubuntu0.18.04.1"
-                },
-                {
-                    "key": "package_name",
-                    "value": "mysql-5.7"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "4.3"
-                }
-            ],
-            "description": "Duktape v2.99.99 was discovered to contain a SEGV vulnerability via the component duk_push_tval in duktape/duk_api_stack.c.",
-            "name": "CVE-2021-46322",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "since 5.5 is no longer upstream supported and so far we cannot\npatch it, marking it as ignored."
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "mysql-5.7",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Deferred"
-                            ],
-                            [
-                                "focal",
-                                "Does not exist"
-                            ],
-                            [
-                                "hirsute",
-                                "Does not exist"
-                            ],
-                            [
-                                "impish",
-                                "Does not exist"
-                            ],
-                            [
-                                "trusty",
-                                "Does not exist"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Deferred"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-46322"
-        }
-    ],
-    "netcdf": [
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "1:4.6.0-2build1"
-                },
-                {
-                    "key": "package_name",
-                    "value": "netcdf"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "4.3"
-                }
-            ],
-            "description": "An issue was discovered in libezxml.a in ezXML 0.8.6. The function ezxml_parse_str() performs incorrect memory handling while parsing crafted XML files (out-of-bounds read after a certain strcspn failure).",
-            "name": "CVE-2021-31348",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "netcdf",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Needed"
-                            ],
-                            [
-                                "focal",
-                                "Needed"
-                            ],
-                            [
-                                "groovy",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "impish",
-                                "Needed"
-                            ],
-                            [
-                                "trusty",
-                                "Needs triage"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Ignored (out of standard support)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-31348"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "1:4.6.0-2build1"
-                },
-                {
-                    "key": "package_name",
-                    "value": "netcdf"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:N/I:N/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "5"
-                }
-            ],
-            "description": "An issue was discovered in libezxml.a in ezXML 0.8.6. The function ezxml_decode() performs incorrect memory handling while parsing crafted XML files, leading to a heap-based buffer overflow.",
-            "name": "CVE-2021-31598",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "netcdf",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Needed"
-                            ],
-                            [
-                                "focal",
-                                "Needed"
-                            ],
-                            [
-                                "groovy",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "impish",
-                                "Needed"
-                            ],
-                            [
-                                "trusty",
-                                "Needs triage"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Ignored (out of standard support)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-31598"
-        }
-    ],
-    "nghttp2": [
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "1.30.0-1ubuntu1"
-                },
-                {
-                    "key": "package_name",
-                    "value": "nghttp2"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:N/C:N/I:N/A:C"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "7.8"
-                }
-            ],
-            "description": "Some HTTP/2 implementations are vulnerable to resource loops, potentially leading to a denial of service. The attacker creates multiple request streams and continually shuffles the priority of the streams in a way that causes substantial churn to the priority tree. This can consume excess CPU.",
-            "name": "CVE-2019-9513",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "nginx added http2 support in 1.9.5\nnghttp2: nghttpd and nghttp are affected, libnghttp2 is not"
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "nghttp2",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Needed"
-                            ],
-                            [
-                                "cosmic",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "disco",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "eoan",
-                                "Not vulnerable (1.39.2-1)"
-                            ],
-                            [
-                                "focal",
-                                "Not vulnerable (1.39.2-1)"
-                            ],
-                            [
-                                "groovy",
-                                "Not vulnerable (1.39.2-1)"
-                            ],
-                            [
-                                "hirsute",
-                                "Not vulnerable (1.39.2-1)"
-                            ],
-                            [
-                                "impish",
-                                "Not vulnerable (1.39.2-1)"
-                            ],
-                            [
-                                "precise",
-                                "Does not exist"
-                            ],
-                            [
-                                "trusty",
-                                "Does not exist"
-                            ],
-                            [
-                                "upstream",
-                                "Released (1.39.2)"
-                            ],
-                            [
-                                "xenial",
-                                "Ignored (end of standard support, was needed)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2019-9513"
         }
     ],
     "openssl": [
@@ -7531,6 +7275,124 @@
             ],
             "severity": "HIGH",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0778"
+        }
+    ],
+    "python2.7": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "2.7.17-1~18.04ubuntu1.6"
+                },
+                {
+                    "key": "package_name",
+                    "value": "python2.7"
+                }
+            ],
+            "description": "In Python (aka CPython) through 3.10.4, the mailcap module does not add escape characters into commands discovered in the system mailcap file. This may allow attackers to inject shell commands into applications that call mailcap.findmatch with untrusted input (if they lack validation of user-provided filenames or arguments).",
+            "name": "CVE-2015-20107",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "no patch availabe as of 2022-04-14. Seems like\nthe mailcap module has no active maintainer."
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "python2.7",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "trusty",
+                                "Needed"
+                            ],
+                            [
+                                "upstream",
+                                "Needed"
+                            ],
+                            [
+                                "xenial",
+                                "Needed"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "HIGH",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2015-20107"
+        }
+    ],
+    "python3.6": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "3.6.9-1~18.04ubuntu1.6"
+                },
+                {
+                    "key": "package_name",
+                    "value": "python3.6"
+                }
+            ],
+            "description": "In Python (aka CPython) through 3.10.4, the mailcap module does not add escape characters into commands discovered in the system mailcap file. This may allow attackers to inject shell commands into applications that call mailcap.findmatch with untrusted input (if they lack validation of user-provided filenames or arguments).",
+            "name": "CVE-2015-20107",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "no patch availabe as of 2022-04-14. Seems like\nthe mailcap module has no active maintainer."
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "python3.6",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Does not exist"
+                            ],
+                            [
+                                "impish",
+                                "Does not exist"
+                            ],
+                            [
+                                "trusty",
+                                "Does not exist"
+                            ],
+                            [
+                                "upstream",
+                                "Needed"
+                            ],
+                            [
+                                "xenial",
+                                "Does not exist"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "HIGH",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2015-20107"
         }
     ]
 }
