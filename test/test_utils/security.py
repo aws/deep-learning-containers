@@ -191,10 +191,10 @@ class ScanVulnerabilityList:
         """
         flattened_vulnerability_list_self = self.get_flattened_vulnerability_list()
         flattened_vulnerability_list_other = other.get_flattened_vulnerability_list()
-        all_vulnerabilites = flattened_vulnerability_list_self + flattened_vulnerability_list_other
-        if len(all_vulnerabilites) == 0:
+        all_vulnerabilities = flattened_vulnerability_list_self + flattened_vulnerability_list_other
+        if not all_vulnerabilities:
             return None
-        union_vulnerabilities = test_utils.uniquify_list_of_dict(all_vulnerabilites)
+        union_vulnerabilities = test_utils.uniquify_list_of_dict(all_vulnerabilities)
 
         union = ScanVulnerabilityList(minimum_severity=self.minimum_severity)
         union.construct_allowlist_from_ecr_scan_result(union_vulnerabilities)
