@@ -145,7 +145,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-{MAMBA_VERSION}-Linux-x86_64.sh \
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
