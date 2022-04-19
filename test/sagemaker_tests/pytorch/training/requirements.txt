@@ -22,5 +22,3 @@ fabric
 retrying
 gitpython
 toml
-scrapy
-crochect

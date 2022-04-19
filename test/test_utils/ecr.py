@@ -19,8 +19,6 @@ from test.test_utils import (
     LOGGER,
 )
 from test.test_utils.security import CVESeverity
-from web_scraper.scraper_runner import run_spider
-from web_scraper.web_scraper.spiders.cve_spiders import CveSpider
 
 
 class ECRScanFailedError(Exception):
@@ -241,6 +239,10 @@ def process_scraped_data(scraped_data):
 def populate_ecr_scan_with_web_scraper_results(
     image_uri, ecr_scan_to_be_populated, prepend_url="https://ubuntu.com/security/"
 ):
+    # Added it here to prevent the SM tests from failing on the Quickcheck PRs
+    from web_scraper.scraper_runner import run_spider
+    from web_scraper.web_scraper.spiders.cve_spiders import CveSpider
+
     if len(ecr_scan_to_be_populated) == 0:
         return ecr_scan_to_be_populated
     cve_list = list(set([cve["name"] for cve in ecr_scan_to_be_populated]))
