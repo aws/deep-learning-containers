@@ -14,48 +14,54 @@ from __future__ import absolute_import
 
 import pytest
 import sagemaker
-from sagemaker.model import Model
+from sagemaker.huggingface import HuggingFaceModel
 from sagemaker.predictor import Predictor
-from sagemaker.serializers import JSONSerializer
+from sagemaker.serializers import DataSerializer
 from sagemaker.deserializers import JSONDeserializer
 
-from ...integration import model_dir, dump_logs_from_cloudwatch
+from ...integration import model_dir, dump_logs_from_cloudwatch, audio_sample_file_path
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
-@pytest.mark.model("tiny-distilbert")
+@pytest.mark.model("wav2vec2")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-def test_hub_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
+def test_speech_model_cpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
     instance_type = instance_type or "ml.m5.xlarge"
     try:
-        _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+        _test_speech_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
 
 
-@pytest.mark.model("tiny-distilbert")
+@pytest.mark.model("wav2vec2")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
-def test_hub_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
+def test_speech_model_gpu(sagemaker_session, framework_version, ecr_image, instance_type, region):
     instance_type = instance_type or "ml.p3.2xlarge"
     try:
-        _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
+        _test_speech_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir)
     except Exception as e:
         dump_logs_from_cloudwatch(e, region)
         raise
 
 
-def _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None):
-    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-serving-hub-model")
+def _test_speech_model(
+    sagemaker_session, framework_version, ecr_image, instance_type, model_dir, accelerator_type=None
+):
+    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-huggingface-serving-speech-model")
+
+    if "tensorflow" in ecr_image:
+        # Zero-code deployments are currently not supported for TensorFlow
+        return True
 
     env = {
-        "HF_MODEL_ID": "philschmid/tiny-distilbert-classification",
-        "HF_TASK": "text-classification",
+        "HF_MODEL_ID": "hf-internal-testing/tiny-random-wav2vec2",
+        "HF_TASK": "automatic-speech-recognition",
     }
 
-    hf_model = Model(
+    hf_model = HuggingFaceModel(
         env=env,
         role="SageMakerRole",
         image_uri=ecr_image,
@@ -70,12 +76,9 @@ def _test_hub_model(sagemaker_session, framework_version, ecr_image, instance_ty
             endpoint_name=endpoint_name,
         )
 
-        data = {
-            "inputs": "Camera - You are awarded a SiPix Digital Camera! call 09061221066 fromm landline. Delivery within 28 days."
-        }
-        predictor.serializer = JSONSerializer()
+        predictor.serializer = DataSerializer(content_type="audio/wave")
         predictor.deserializer = JSONDeserializer()
 
-        output = predictor.predict(data)
+        output = predictor.predict(audio_sample_file_path)
 
-        assert "score" in output[0]
+        assert "text" in output
