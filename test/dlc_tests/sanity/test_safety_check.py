@@ -433,6 +433,9 @@ IGNORE_SAFETY_IDS = {
             "py3": [
                 # for shipping Torchserve 0.5.2 - the last available version
                 "44463",
+                "44715",
+                "44716",
+                "44717",
             ]
         },
         "inference-eia": {"py3": []},
