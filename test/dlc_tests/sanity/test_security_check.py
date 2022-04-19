@@ -10,6 +10,7 @@ from test.test_utils import (
     LOGGER,
     get_account_id_from_image_uri,
     get_framework_and_version_from_tag,
+    get_repository_local_path,
     ECR_SCAN_HELPER_BUCKET,
 )
 from test.test_utils import ecr as ecr_utils
@@ -166,7 +167,15 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         )
         return
 
-    assert not remaining_vulnerabilities.vulnerability_list, (
-        f"The following vulnerabilities need to be fixed on {image}:\n"
-        f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
-    )
+    common_ecr_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
+    common_ecr_scan_allowlist_path = os.path.join(os.sep, get_repository_local_path(), "data", "common-ecr-scan-allowlist.json")
+    if os.path.exists(common_ecr_scan_allowlist_path):
+        common_ecr_scan_allowlist.construct_allowlist_from_file(common_ecr_scan_allowlist_path)
+
+    remaining_vulnerabilities = remaining_vulnerabilities - common_ecr_scan_allowlist
+    
+    if remaining_vulnerabilities:
+        assert not remaining_vulnerabilities.vulnerability_list, (
+            f"The following vulnerabilities need to be fixed on {image}:\n"
+            f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
+        )
