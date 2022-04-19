@@ -101,6 +101,9 @@ PUBLIC_DLC_REGISTRY = "763104351884"
 
 SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
 
+UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
+ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")}"""
+ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 
 class MissingPythonVersionException(Exception):
     """
@@ -343,6 +346,14 @@ def is_sagemaker_image(image_uri):
 
 
 def is_time_for_canary_safety_scan():
+    """
+    Canary tests run every 15 minutes.
+    Using a 20 minutes interval to make tests run only once a day around 9 am PST (10 am during winter time).
+    """
+    current_utc_time = time.gmtime()
+    return current_utc_time.tm_hour == 16 and (0 < current_utc_time.tm_min < 20)
+
+def is_time_for_invoking_ecr_scan_failure_routine_lambda():
     """
     Canary tests run every 15 minutes.
     Using a 20 minutes interval to make tests run only once a day around 9 am PST (10 am during winter time).
@@ -1335,6 +1346,19 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
         f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
     )
 
+def uniquify_list_of_dict(list_of_dict):
+    """
+    Takes list_of_dict as an input and returns a list of dict such that each dict is only present
+    once in the returned list. Runs an operation that is similar to list(set(input_list)). However,
+    for list_of_dict, it is not possible to run the operation directly. 
+
+    :param list_of_dict: List(dict)
+    :return: List(dict)
+    """
+    list_of_string = [json.dumps(dict_element, sort_keys=True) for dict_element in list_of_dict]
+    unique_list_of_string = list(set(list_of_string))
+    list_of_dict_to_return = [json.loads(str_element) for str_element in unique_list_of_string]
+    return list_of_dict_to_return
 
 def get_tensorflow_model_base_path(image_uri):
     """
