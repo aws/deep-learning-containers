@@ -353,6 +353,14 @@ def is_time_for_canary_safety_scan():
     current_utc_time = time.gmtime()
     return current_utc_time.tm_hour == 16 and (0 < current_utc_time.tm_min < 20)
 
+def is_time_for_invoking_ecr_scan_failure_routine_lambda():
+    """
+    Canary tests run every 15 minutes.
+    Using a 20 minutes interval to make tests run only once a day around 9 am PST (10 am during winter time).
+    """
+    current_utc_time = time.gmtime()
+    return current_utc_time.tm_hour == 16 and (0 < current_utc_time.tm_min < 20)
+
 
 def _get_remote_override_flags():
     try:

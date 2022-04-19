@@ -495,7 +495,7 @@ def conduct_failure_routine(
         "non_fixable_vulnerabilities": newly_found_non_fixable_list,
     }
     ## TODO: Remove the is_pr_context before merging ##
-    if test_utils.is_canary_context() or test_utils.is_pr_context():
+    if test_utils.is_canary_context() and test_utils.is_time_for_invoking_ecr_scan_failure_routine_lambda():
         _invoke_lambda(function_name=test_utils.ECR_SCAN_FAILURE_ROUTINE_LAMBDA, payload_dict=message_body)
     return_dict = copy.deepcopy(message_body)
     return_dict["s3_filename_for_allowlist"] = s3_filename_for_allowlist
