@@ -29,12 +29,17 @@ from .. import RESOURCE_PATH
 
 
 @contextmanager
-def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framework_version):
+def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framework_version, autogluon_container_to_version_mapping):
     model_dir = os.path.join(RESOURCE_PATH, 'model')
     source_dir = os.path.join(RESOURCE_PATH, 'scripts')
 
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-autogluon-serving-trained-model")
-    ag_framework_version = '0.3.1' if framework_version == '0.3.2' else framework_version
+    versions_map = {
+        # container version -> autogluon version
+        '0.3.2': '0.3.1',
+        '0.4.1': '0.4.0',  # FIXME: remove me later
+    }
+    ag_framework_version = versions_map.get(framework_version, framework_version)
     model_data = sagemaker_session.upload_data(path=os.path.join(model_dir, f'model_{ag_framework_version}.tar.gz'), key_prefix='sagemaker-autogluon-serving-trained-model/models')
 
     model = MXNetModel(
@@ -44,7 +49,7 @@ def _test_sm_trained_model(sagemaker_session, ecr_image, instance_type, framewor
         sagemaker_session=sagemaker_session,
         source_dir=source_dir,
         entry_point="tabular_serve.py",
-        framework_version="1.8.0"
+        framework_version="1.9.0"
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
