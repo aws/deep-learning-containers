@@ -177,7 +177,7 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
                 LOGGER.error(display_message)
                 pytest.skip("Skipping the test failure on the canary.")
         else:
-            assert not newly_found_vulnerabilities, display_message
+            assert not vulnerabilities_that_can_be_fixed, display_message
         return
     
     if is_canary_context():
