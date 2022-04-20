@@ -53,6 +53,15 @@ def test_eks_mxnet_neuron_inference(mxnet_inference_neuron):
 
 @pytest.mark.model("squeezenet")
 def test_eks_mxnet_squeezenet_inference(mxnet_inference):
+    __test_eks_mxnet_squeezenet_inference(mxnet_inference)
+
+
+@pytest.mark.model("squeezenet")
+def test_eks_mxnet_squeezenet_inference_graviton(mxnet_inference_graviton):
+    __test_eks_mxnet_squeezenet_inference(mxnet_inference_graviton)
+
+
+def __test_eks_mxnet_squeezenet_inference(mxnet_inference):
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)

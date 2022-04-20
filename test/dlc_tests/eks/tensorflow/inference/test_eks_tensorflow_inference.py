@@ -54,6 +54,15 @@ def test_eks_tensorflow_neuron_inference(tensorflow_inference_neuron):
 
 @pytest.mark.model("half_plus_two")
 def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
+    __test_eks_tensorflow_half_plus_two_inference(tensorflow_inference)
+
+
+@pytest.mark.model("half_plus_two")
+def test_eks_tensorflow_half_plus_two_inference_graviton(tensorflow_inference_graviton):
+    __test_eks_tensorflow_half_plus_two_inference(tensorflow_inference_graviton)
+
+
+def __test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
@@ -97,6 +106,15 @@ def test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
 @pytest.mark.skipif(not test_utils.is_nightly_context(), reason="Running additional model in nightly context only")
 @pytest.mark.model("albert")
 def test_eks_tensorflow_albert(tensorflow_inference):
+    __test_eks_tensorflow_albert(tensorflow_inference)
+
+
+@pytest.mark.model("albert")
+def test_eks_tensorflow_albert_graviton(tensorflow_inference_graviton):
+    __test_eks_tensorflow_albert(tensorflow_inference_graviton)
+
+
+def __test_eks_tensorflow_albert(tensorflow_inference):
     num_replicas = "1"
 
     rand_int = random.randint(4001, 6000)
