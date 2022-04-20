@@ -119,15 +119,16 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 # once conda fixes the issue: https://github.com/conda/conda/issues/9680
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
-RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
- && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
- && cd openmpi-$OPEN_MPI_VERSION \
- && ./configure --prefix=/home/.openmpi \
+RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
+ && gunzip -c openmpi-${OMPI_VERSION}.tar.gz | tar xf - \
+ && cd openmpi-${OMPI_VERSION} \
+ && ./configure --prefix=/home/.openmpi --with-cuda \
  && make all install \
  && cd .. \
- && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
- && rm -rf openmpi-$OPEN_MPI_VERSION
+ && rm openmpi-${OMPI_VERSION}.tar.gz \
+ && rm -rf openmpi-${OMPI_VERSION}
 
+ 
 ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 
