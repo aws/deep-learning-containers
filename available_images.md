@@ -181,6 +181,7 @@ HuggingFace Inference Containers
 
 SageMaker Training Compiler Containers
 ===============================
+SageMaker Training Compiler is available in a subset of AWS Regions. For more information, see [Supported Frameworks, AWS Regions, Tested Instances, and Tested Models](https://docs.aws.amazon.com/sagemaker/latest/dg/training-compiler-support.html) in the *SageMaker Training Compiler developer guide*.
 
 | Framework                                     |Job Type	|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-----------------------------------------------|-----------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
