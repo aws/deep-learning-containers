@@ -899,10 +899,11 @@ def parse_canary_images(framework, region):
                 f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py3_version}",
             ],
         }
-        dlc_images += images[framework]
         # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
         if customer_type == "e3":
             dlc_images += [f"{img}-e3" for img in dlc_images]
+        else:
+            dlc_images += images[framework]
 
     return " ".join(dlc_images)
 
