@@ -148,6 +148,7 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         if is_canary_context():
             if newly_found_vulnerabilities:
                 LOGGER.error(display_message)
+                pytest.skip("Skipping the test failure on the canary.")
         else:
             assert not newly_found_vulnerabilities, display_message
 
@@ -174,12 +175,13 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
         if is_canary_context():
             if newly_found_vulnerabilities:
                 LOGGER.error(display_message)
+                pytest.skip("Skipping the test failure on the canary.")
         else:
             assert not newly_found_vulnerabilities, display_message
         return
     
     if is_canary_context():
-        pytest.mark.skip("Skipping the test on the canary.")
+        pytest.skip("Skipping the test on the canary.")
 
     common_ecr_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
     common_ecr_scan_allowlist_path = os.path.join(os.sep, get_repository_local_path(), "data", "common-ecr-scan-allowlist.json")
