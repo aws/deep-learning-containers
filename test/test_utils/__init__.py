@@ -816,7 +816,7 @@ def parse_canary_images(framework, region):
     :return: dlc_images string (space separated string of image URIs)
     """
     customer_type = get_customer_type()
-    customer_type_tag = f"-{customer_type}" if customer_type else ""
+    customer_type_tag = f"-{customer_type}" if customer_type else "(-sagemaker)?"
 
     version_regex = {
         "tensorflow": rf"tf{customer_type_tag}-(\d+.\d+)",
@@ -835,7 +835,8 @@ def parse_canary_images(framework, region):
         tag_str = str(tag)
         match = re.search(version_regex[framework], tag_str)
         if match:
-            version = match.group(1)
+            match_group_index = 2 if "sagemaker" in tag_str else 1
+            version = match.group(match_group_index)
             if not versions_counter.get(version):
                 versions_counter[version] = {"tr": False, "inf": False}
             if "tr" not in tag_str and "inf" not in tag_str:
@@ -857,6 +858,7 @@ def parse_canary_images(framework, region):
 
     registry = PUBLIC_DLC_REGISTRY
     framework_versions = versions if len(versions) < 4 else versions[:3]
+    dlc_images = []
     for fw_version in framework_versions:
         py3_version = get_canary_default_tag_py3_version(framework, fw_version)
 
@@ -897,10 +899,10 @@ def parse_canary_images(framework, region):
                 f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py3_version}",
             ],
         }
-        dlc_images = images[framework]
+        dlc_images += images[framework]
         # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
         if customer_type == "e3":
-            dlc_images = [f"{img}-e3" for img in dlc_images]
+            dlc_images += [f"{img}-e3" for img in dlc_images]
 
     return " ".join(dlc_images)
 
