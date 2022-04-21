@@ -25,7 +25,7 @@ skip_frameworks = ["autogluon", "huggingface_tensorflow", "huggingface_pytorch",
 datetime_tag = false
 # Note: Need to build the images at least once with datetime_tag = false
 # before disabling new builds, or tests will fail
-do_build = false
+do_build = true
 
 [test]
 ### On by default
@@ -45,6 +45,6 @@ sagemaker_local_tests = false
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "efa"
+sagemaker_remote_tests = "standard"
 
 use_scheduler = false
