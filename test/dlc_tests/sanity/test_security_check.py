@@ -25,7 +25,11 @@ from test.test_utils.security import (
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
 
-LOWER_THRESHOLD_IMAGES = {"mxnet": "1.8.0"}
+LOWER_THRESHOLD_IMAGES = {"mxnet":{
+    "minimum_version_included": "1.8.0",
+    "maximum_version_excluded":"1.9.0"
+    }
+}
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -58,7 +62,11 @@ def is_image_covered_by_allowlist_feature(image):
     image_framework, image_version = get_framework_and_version_from_tag(image)
     if image_framework not in LOWER_THRESHOLD_IMAGES or any(substring in image for substring in ["example"]):
         return False
-    if Version(image_version) >= Version(LOWER_THRESHOLD_IMAGES[image_framework]):
+    if Version(image_version) >= Version(LOWER_THRESHOLD_IMAGES[image_framework]["minimum_version_included"]):
+        if "maximum_version_excluded" in LOWER_THRESHOLD_IMAGES[image_framework]:
+            if Version(image_version) < Version(LOWER_THRESHOLD_IMAGES[image_framework]["maximum_version_excluded"]):
+                return True
+            return False
         return True
     return False
 
