@@ -75,54 +75,6 @@ def get_minimum_sev_threshold_level(image):
     return "HIGH"
 
 
-def failure_routine_wrapper(
-    vulnerability_diff,
-    image,
-    image_scan_allowlist,
-    ecr_image_vulnerability_list,
-    upgraded_image_vulnerability_list,
-    s3_bucket_name,
-    prepend_message="",
-):
-    """
-    This function wraps the conduct_failure_routine method. It takes in the vulnerability_diff and uses that to 
-    determine if the conduct_failure_routine should be invoked or not. It also handles the assertion statements
-    that are needed to check if the test_ecr_scan passed or not.
-    :param vulnerability_diff: ScanVulnerabilityList, this object gives a high level indication that there are few vulnerabilities that can either be fixed or ignored
-    :param image: str, image uri
-    :param image_scan_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the DLC git repo.
-    :param ecr_image_vulnerability_list: ScanVulnerabilityList, Vulnerabities recently detected WITHOUT running apt-upgrade on the originally released image.
-    :param upgraded_image_vulnerability_list: ScanVulnerabilityList, Vulnerabilites exisiting in the image WITH apt-upgrade run on it.
-    :param s3_bucket_name: s3 name of the bucket that would be used for saving all the important data that needs to be stored during failure routine.
-    :param prepend_message: str, message that should be prepended to the display message in case of failure.
-    """
-    if vulnerability_diff:
-        failure_routine_summary = conduct_failure_routine(
-            image,
-            image_scan_allowlist,
-            ecr_image_vulnerability_list,
-            upgraded_image_vulnerability_list,
-            s3_bucket_name,
-        )
-        (
-            s3_filename_for_fixable_list,
-            s3_filename_for_non_fixable_list,
-        ) = process_failure_routine_summary_and_store_data_in_s3(failure_routine_summary, s3_bucket_name)
-        display_message = (
-            f"""Found {len(failure_routine_summary["fixable_vulnerabilities"])} fixable vulnerabilites """
-            f"""and {len(failure_routine_summary["non_fixable_vulnerabilities"])} non fixable vulnerabilites. """
-            f"""Refer to files s3://{s3_bucket_name}/{s3_filename_for_fixable_list}, s3://{s3_bucket_name}/{s3_filename_for_non_fixable_list}, """
-            f"""s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_current_image_ecr_scan_list"]} and s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_allowlist"]}."""
-        )
-        display_message = prepend_message + display_message
-    if is_canary_context():
-        if vulnerability_diff:
-            LOGGER.error(display_message)
-            pytest.skip("Skipping the test failure on the canary.")
-    else:
-        assert not vulnerability_diff, display_message
-
-
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run ECR Scan test regularly on production images")
@@ -192,24 +144,30 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
 
     ## In case new vulnerabilities (fixable or non-fixable) are found, then conduct failure routine
     newly_found_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
-    failure_routine_wrapper(
-        newly_found_vulnerabilities,
-        image,
-        image_scan_allowlist,
-        ecr_image_vulnerability_list,
-        upgraded_image_vulnerability_list,
-        s3_bucket_name,
-    )
-
-    ## In case there is no new vulnerability but the allowlist is outdated conduct failure routine
+    # In case there is no new vulnerability but the allowlist is outdated
     vulnerabilities_that_can_be_fixed = image_scan_allowlist - upgraded_image_vulnerability_list
-    failure_routine_wrapper(
-        vulnerabilities_that_can_be_fixed,
-        image,
-        image_scan_allowlist,
-        ecr_image_vulnerability_list,
-        upgraded_image_vulnerability_list,
-        s3_bucket_name,
-        prepend_message="Allowlist is outdated!!"
-    )
-    return
+
+    if newly_found_vulnerabilities or vulnerabilities_that_can_be_fixed:
+        failure_routine_summary = conduct_failure_routine(
+            image,
+            image_scan_allowlist,
+            ecr_image_vulnerability_list,
+            upgraded_image_vulnerability_list,
+            s3_bucket_name,
+        )
+        (
+            s3_filename_for_fixable_list,
+            s3_filename_for_non_fixable_list,
+        ) = process_failure_routine_summary_and_store_data_in_s3(failure_routine_summary, s3_bucket_name)
+        prepend_message = "Found new vulnerabilities in image." if newly_found_vulnerabilities else "Allowlist is outdated."
+        display_message = prepend_message + " " + (
+            f"""Found {len(failure_routine_summary["fixable_vulnerabilities"])} fixable vulnerabilites """
+            f"""and {len(failure_routine_summary["non_fixable_vulnerabilities"])} non fixable vulnerabilites. """
+            f"""Refer to files s3://{s3_bucket_name}/{s3_filename_for_fixable_list}, s3://{s3_bucket_name}/{s3_filename_for_non_fixable_list}, """
+            f"""s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_current_image_ecr_scan_list"]} and s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_allowlist"]}."""
+        )
+        if is_canary_context():
+            LOGGER.error(display_message)
+            pytest.skip("Skipping the test failure on the canary.")
+        else:
+            raise RuntimeError(display_message)
