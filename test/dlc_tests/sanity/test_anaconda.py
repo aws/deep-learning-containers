@@ -25,7 +25,9 @@ def test_repo_anaconda_not_present(image):
             container_name, ctx, "grep repo.anaconda.com repo_list.txt", warn=True
         ).stdout.strip()
         if grep_result:
-            raise RuntimeError(f"Image {image} contains packages installed from repo.anaconda.com: {grep_result}")
+            raise RuntimeError(
+                f"Image {image} contains packages installed from repo.anaconda.com. \
+                Please ensure that these packages are obtained through conda-forge or other alternatives: {grep_result}"
+            )
     finally:
         test_utils.stop_and_remove_container(container_name, ctx)
-
