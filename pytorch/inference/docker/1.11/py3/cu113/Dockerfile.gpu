@@ -153,16 +153,16 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
-    mkl \ 
+    mkl \
     mkl-include \
-    parso \ 
+    parso \
     scipy \
-    typing \ 
+    typing \
     h5py \
     requests \
-    libgcc \ 
+    libgcc \
     # Below 2 are included in miniconda base, but not mamba so need to install
-    conda-content-trust \ 
+    conda-content-trust \
     charset-normalizer \
  && /opt/conda/bin/conda install -c pytorch magma-cuda113 \
  && /opt/conda/bin/conda clean -ya

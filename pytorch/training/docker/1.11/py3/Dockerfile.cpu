@@ -1,5 +1,6 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.12
+ARG MAMBA_VERSION=4.12.0-0
 
 # PyTorch Binaries
 ARG PT_E3_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220309-213627/9c116675b0719f637546dbc5507bf79ef8fb622e/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
@@ -17,7 +18,7 @@ LABEL dlc_major_version="1"
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG OPEN_MPI_VERSION=4.0.1
-ARG MAMBA_VERSION=4.12.0-0
+ARG MAMBA_VERSION
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
@@ -119,18 +120,18 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
-    mkl \ 
+    mkl \
     mkl-include \
-    parso \ 
-    typing \ 
+    parso \
+    typing \
     h5py \
     requests \
-    "pyopenssl>=17.5.0" \ 
+    "pyopenssl>=17.5.0" \
     # Below 2 are included in miniconda base, but not mamba so need to install
-    conda-content-trust \ 
+    conda-content-trust \
     charset-normalizer \
-  && /opt/conda/bin/conda install -c dglteam -y dgl=0.8.0 \
-  && /opt/conda/bin/conda clean -ya
+ && /opt/conda/bin/conda install -c dglteam -y dgl=0.8.0 \
+ && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning

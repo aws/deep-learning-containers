@@ -158,21 +158,21 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
-    mkl \ 
+    mkl \
     mkl-include \
-    parso \ 
-    typing \ 
+    parso \
+    typing \
     h5py \
     requests \
     future \
-    "pyopenssl>=17.5.0" \ 
+    "pyopenssl>=17.5.0" \
     libgcc \
     # Below 2 are included in miniconda base, but not mamba so need to install
-    conda-content-trust \ 
+    conda-content-trust \
     charset-normalizer \
-  && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.5=0.8.0 \
-  && /opt/conda/bin/conda install -c pytorch magma-cuda115=2.6.1 \
-  && /opt/conda/bin/conda clean -ya
+ && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.5=0.8.0 \
+ && /opt/conda/bin/conda install -c pytorch magma-cuda115=2.6.1 \
+ && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
