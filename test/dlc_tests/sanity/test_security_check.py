@@ -10,7 +10,9 @@ from test.test_utils import (
     LOGGER,
     get_account_id_from_image_uri,
     get_framework_and_version_from_tag,
+    get_repository_local_path,
     ECR_SCAN_HELPER_BUCKET,
+    is_canary_context,
 )
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
@@ -137,12 +139,18 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
                 s3_filename_for_fixable_list,
                 s3_filename_for_non_fixable_list,
             ) = process_failure_routine_summary_and_store_data_in_s3(failure_routine_summary, s3_bucket_name)
-        assert not newly_found_vulnerabilities, (
-            f"""Found {len(failure_routine_summary["fixable_vulnerabilities"])} fixable vulnerabilites """
-            f"""and {len(failure_routine_summary["non_fixable_vulnerabilities"])} non fixable vulnerabilites. """
-            f"""Refer to files s3://{s3_bucket_name}/{s3_filename_for_fixable_list}, s3://{s3_bucket_name}/{s3_filename_for_non_fixable_list}, """
-            f"""s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_current_image_ecr_scan_list"]} and s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_allowlist"]}."""
-        )
+            display_message = (
+                f"""Found {len(failure_routine_summary["fixable_vulnerabilities"])} fixable vulnerabilites """
+                f"""and {len(failure_routine_summary["non_fixable_vulnerabilities"])} non fixable vulnerabilites. """
+                f"""Refer to files s3://{s3_bucket_name}/{s3_filename_for_fixable_list}, s3://{s3_bucket_name}/{s3_filename_for_non_fixable_list}, """
+                f"""s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_current_image_ecr_scan_list"]} and s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_allowlist"]}."""
+            )
+        if is_canary_context():
+            if newly_found_vulnerabilities:
+                LOGGER.error(display_message)
+                pytest.skip("Skipping the test failure on the canary.")
+        else:
+            assert not newly_found_vulnerabilities, display_message
 
         ## In case there is no new vulnerability but the allowlist is outdated conduct failure routine
         vulnerabilities_that_can_be_fixed = image_scan_allowlist - upgraded_image_vulnerability_list
@@ -158,15 +166,32 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
                 s3_filename_for_fixable_list,
                 s3_filename_for_non_fixable_list,
             ) = process_failure_routine_summary_and_store_data_in_s3(failure_routine_summary, s3_bucket_name)
-        assert not vulnerabilities_that_can_be_fixed, (
-            f"""Allowlist is Outdated!! Found {len(failure_routine_summary["fixable_vulnerabilities"])} fixable vulnerabilites """
-            f"""and {len(failure_routine_summary["non_fixable_vulnerabilities"])} non fixable vulnerabilites. """
-            f"""Refer to files s3://{s3_bucket_name}/{s3_filename_for_fixable_list}, s3://{s3_bucket_name}/{s3_filename_for_non_fixable_list}, """
-            f"""s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_current_image_ecr_scan_list"]} and s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_allowlist"]}."""
-        )
+            display_message = (
+                f"""Allowlist is Outdated!! Found {len(failure_routine_summary["fixable_vulnerabilities"])} fixable vulnerabilites """
+                f"""and {len(failure_routine_summary["non_fixable_vulnerabilities"])} non fixable vulnerabilites. """
+                f"""Refer to files s3://{s3_bucket_name}/{s3_filename_for_fixable_list}, s3://{s3_bucket_name}/{s3_filename_for_non_fixable_list}, """
+                f"""s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_current_image_ecr_scan_list"]} and s3://{s3_bucket_name}/{failure_routine_summary["s3_filename_for_allowlist"]}."""
+            )
+        if is_canary_context():
+            if newly_found_vulnerabilities:
+                LOGGER.error(display_message)
+                pytest.skip("Skipping the test failure on the canary.")
+        else:
+            assert not newly_found_vulnerabilities, display_message
         return
+    
+    if is_canary_context():
+        pytest.skip("Skipping the test on the canary.")
 
-    assert not remaining_vulnerabilities.vulnerability_list, (
-        f"The following vulnerabilities need to be fixed on {image}:\n"
-        f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
-    )
+    common_ecr_scan_allowlist = ScanVulnerabilityList(minimum_severity=CVESeverity[minimum_sev_threshold])
+    common_ecr_scan_allowlist_path = os.path.join(os.sep, get_repository_local_path(), "data", "common-ecr-scan-allowlist.json")
+    if os.path.exists(common_ecr_scan_allowlist_path):
+        common_ecr_scan_allowlist.construct_allowlist_from_file(common_ecr_scan_allowlist_path)
+
+    remaining_vulnerabilities = remaining_vulnerabilities - common_ecr_scan_allowlist
+    
+    if remaining_vulnerabilities:
+        assert not remaining_vulnerabilities.vulnerability_list, (
+            f"The following vulnerabilities need to be fixed on {image}:\n"
+            f"{json.dumps(remaining_vulnerabilities.vulnerability_list, indent=4)}"
+        )

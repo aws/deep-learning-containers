@@ -28,6 +28,8 @@ pt_neuron_model = "pt_neuron_model.tar.gz"
 # TODO: current local test, tests without custom script
 script_dir = os.path.join(resources_path, 'code')
 pt_neuron_script = "neuron_inference.py"
+audio_sample_file_path =  os.path.join(resources_path, 'audio', 'sample1.wav')
+image_sample_file_path =  os.path.join(resources_path, 'image', 'tiger.png')
 
 
 ROLE = "dummy/unused-role"
