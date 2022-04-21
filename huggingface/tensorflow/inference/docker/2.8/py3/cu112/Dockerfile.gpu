@@ -9,7 +9,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 ARG MMS_VERSION=1.1.8
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.8.10
+ARG PYTHON_VERSION=3.9.10
 ARG OPEN_MPI_VERSION=4.0.1
 # HF ARGS
 ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.8_aws/gpu/2022-02-07-22-37/tensorflow_gpu-2.8.0-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
@@ -116,7 +116,6 @@ ENV TF_FORCE_GPU_ALLOW_GROWTH=true
 RUN pip install --no-cache-dir \
    transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
 	protobuf==3.12.0 \
-   "numpy==1.19.5" \
 	"sagemaker-huggingface-inference-toolkit<3"
 
 RUN HOME_DIR=/root \
