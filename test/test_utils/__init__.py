@@ -816,7 +816,7 @@ def parse_canary_images(framework, region):
     :return: dlc_images string (space separated string of image URIs)
     """
     customer_type = get_customer_type()
-    customer_type_tag = f"-{customer_type}" if customer_type else r"(-sagemaker)?"
+    customer_type_tag = f"-{customer_type}" if customer_type else ""
 
     version_regex = {
         "tensorflow": rf"tf{customer_type_tag}-(\d+.\d+)",
@@ -835,8 +835,7 @@ def parse_canary_images(framework, region):
         tag_str = str(tag)
         match = re.search(version_regex[framework], tag_str)
         if match:
-            match_group_index = 2 if "sagemaker" in tag_str else 1
-            version = match.group(match_group_index)
+            version = match.group(1)
             if not versions_counter.get(version):
                 versions_counter[version] = {"tr": False, "inf": False}
             if "tr" not in tag_str and "inf" not in tag_str:
