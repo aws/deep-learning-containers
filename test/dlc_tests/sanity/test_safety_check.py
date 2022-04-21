@@ -433,6 +433,9 @@ IGNORE_SAFETY_IDS = {
             "py3": [
                 # for shipping Torchserve 0.5.2 - the last available version
                 "44463",
+                "44715",
+                "44716",
+                "44717",
             ]
         },
         "inference-eia": {"py3": []},
@@ -663,7 +666,7 @@ def _get_latest_package_version(package):
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
 @pytest.mark.skipif(
     not (
-        is_safety_test_context() or (is_canary_context() and is_time_for_canary_safety_scan())
+        is_safety_test_context()
     ),
     reason=(
         "Skipping the test to decrease the number of calls to the Safety Check DB. "
