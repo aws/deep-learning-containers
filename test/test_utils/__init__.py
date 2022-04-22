@@ -112,6 +112,13 @@ class MissingPythonVersionException(Exception):
 
     pass
 
+class CudaVersionTagNotFoundException(Exception):
+    """
+    When none of the tags of a GPU image have a Cuda version in them
+    """
+
+    pass
+
 
 def get_dockerfile_path_for_image(image_uri):
     """
@@ -1198,6 +1205,29 @@ def get_framework_from_image_uri(image_uri):
     )
 
 
+def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
+    """
+    Uses ecr describe to generate all the tags of an image.
+    
+    :param ecr_client: boto3 Client for ECR
+    :param image_uri: str Image URI
+    :return: list, All the image tags
+    """
+    account_id = image_uri.split('.')[0]
+    image_repo_uri, image_tag = image_uri.split(":")
+    _, image_repo_name = image_repo_uri.split("/")
+    response = ecr_client.describe_images(
+        registryId=account_id,
+        repositoryName=image_repo_name,
+        imageIds=[
+            {
+                'imageTag': image_tag
+            },
+        ]
+    )
+    return response['imageDetails'][0]['imageTags']
+
+
 def get_cuda_version_from_tag(image_uri):
     """
     Return the cuda version from the image tag as cuXXX
@@ -1206,15 +1236,19 @@ def get_cuda_version_from_tag(image_uri):
     """
     cuda_framework_version = None
     cuda_str = ["cu", "gpu"]
-    response_output = json.loads(run(f"docker inspect {image_uri}", hide=True).stdout)
-    repo_tags = response_output[0]["RepoTags"]
+    image_region = get_region_from_image_uri(image_uri)
+    ecr_client = boto3.Session(region_name=image_region).client('ecr')
+    all_image_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri)
 
-    for repo_tag in repo_tags:
-        if all(keyword in repo_tag for keyword in cuda_str):
-            cuda_framework_version = re.search(r"(cu\d+)-", repo_tag).groups()[0]
+    for image_tag in all_image_tags:
+        if all(keyword in image_tag for keyword in cuda_str):
+            cuda_framework_version = re.search(r"(cu\d+)-", image_tag).groups()[0]
             return cuda_framework_version
 
-    return cuda_framework_version
+    if "gpu" in image_uri:
+        raise CudaVersionTagNotFoundException()
+    else:
+        return None
 
 
 def get_synapseai_version_from_tag(image_uri):
@@ -1444,17 +1478,3 @@ def execute_env_variables_test(image_uri, env_vars_to_test, container_name_prefi
             f"Environment variable {var} is expected to be {expected_val}. {assertion_error_sentence}."
         )
     stop_and_remove_container(container_name, ctx)
-
-
-def get_image_digest(image_uri):
-    """
-    Gets the first image digest from the list of image_digests for a particular image.
-    :param image_uri: str, IMAGE URI for which we need the image digest
-    :return: str, image digest
-    """
-    response_output = json.loads(run(f"docker inspect {image_uri}", hide=True).stdout)
-    list_of_repo_digests = response_output[0]['RepoDigests']
-    # repo_digest_string looks like "{repo_uri}@{image_digest}"
-    repo_digest_string = list_of_repo_digests[0]
-    image_digest = repo_digest_string.split("@")[-1]
-    return image_digest
