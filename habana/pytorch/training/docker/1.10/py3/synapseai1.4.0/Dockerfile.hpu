@@ -31,7 +31,7 @@ RUN apt-get update \
  && apt-get clean
 
 
-ARG PT_TRAINING_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/habana/1.4.0/torch-1.10.2a0%2Bgitb488e78-cp38-cp38-linux_x86_64.whl
+ARG PT_TRAINING_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/habana/1.4.0/torch-1.10.0a0%2Bgitfe03f8c-cp38-cp38-linux_x86_64.whl
 
 RUN pip --no-cache-dir install --upgrade \
     pip \
