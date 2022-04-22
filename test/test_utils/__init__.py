@@ -1210,6 +1210,17 @@ def get_cuda_version_from_tag(image_uri):
     if all(keyword in image_uri for keyword in cuda_str):
         cuda_framework_version = re.search(r"(cu\d+)-", image_uri).groups()[0]
 
+    if not cuda_framework_version and "gpu" in image_uri:
+        response_output = json.loads(run(f"docker inspect {image_uri}", hide=True).stdout)
+        env_vars = response_output[0]['ContainerConfig']['Env']
+        cuda_version_env_variables = [env_var for env_var in env_vars if env_var.startswith("CUDA_VERSION=")]
+        if not cuda_version_env_variables:
+            raise RuntimeError(f"Image {image_uri} does not have an Env variable called CUDA_VERSION")
+        cuda_version_string = cuda_version_env_variables[0]
+        cuda_version = cuda_version_string.split("=")[1]
+        image_cuda_version = ''.join(cuda_version.split('.')[:2])
+        cuda_framework_version = f"cu{image_cuda_version}"
+
     return cuda_framework_version
 
 
