@@ -710,6 +710,73 @@
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-24407"
         }
     ],
+    "e2fsprogs": [
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "1.42.13-1ubuntu1.2"
+                },
+                {
+                    "key": "package_name",
+                    "value": "e2fsprogs"
+                },
+                {
+                    "key": "CVSS2_VECTOR",
+                    "value": "AV:N/AC:M/Au:N/C:P/I:P/A:P"
+                },
+                {
+                    "key": "CVSS2_SCORE",
+                    "value": "6.8"
+                }
+            ],
+            "description": "An out-of-bounds read/write vulnerability was found in e2fsprogs 1.46.5. This issue leads to a segmentation fault and possibly arbitrary code execution via a specially crafted filesystem.",
+            "name": "CVE-2022-1304",
+            "scraped_data": [
+                {
+                    "notes": [
+                        "as of 2022-04-22, doesn't appear to be an upstream fix"
+                    ],
+                    "status_table": {
+                        "packages": [
+                            "e2fsprogs",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Deferred (2022-04-22)"
+                            ],
+                            [
+                                "focal",
+                                "Deferred (2022-04-22)"
+                            ],
+                            [
+                                "impish",
+                                "Deferred (2022-04-22)"
+                            ],
+                            [
+                                "trusty",
+                                "Deferred (2022-04-22)"
+                            ],
+                            [
+                                "upstream",
+                                "Needs triage"
+                            ],
+                            [
+                                "xenial",
+                                "Deferred (2022-04-22)"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-1304"
+        }
+    ],
     "expat": [
         {
             "attributes": [
