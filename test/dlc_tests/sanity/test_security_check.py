@@ -101,11 +101,20 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
     """
     test_account_id = sts_client.get_caller_identity().get("Account")
     image_account_id = get_account_id_from_image_uri(image)
+    image_repo_uri, image_tag = image.split(":")
+    _, image_repo_name = image_repo_uri.split("/")
+    additional_image_tags = ecr_utils.get_all_the_tags_of_an_image_from_ecr(ecr_client, image)
+    for additional_tag in additional_image_tags:
+        image_uri_with_new_tag = f"{image_repo_uri}:{additional_tag}"
+        run(f"docker tag {image} {image_uri_with_new_tag}", hide=True)
+
     if image_account_id != test_account_id:
-        image_repo_uri, image_tag = image.split(":")
-        _, image_repo_name = image_repo_uri.split("/")
         target_image_repo_name = f"beta-{image_repo_name}"
-        image = ecr_utils.reupload_image_to_test_ecr(image, target_image_repo_name, region)
+        for additional_tag in additional_image_tags:
+            image_uri_with_new_tag = f"{image_repo_uri}:{additional_tag}"
+            new_image_uri = ecr_utils.reupload_image_to_test_ecr(image_uri_with_new_tag, target_image_repo_name, region)
+            if image_uri_with_new_tag == image:
+                image = new_image_uri
 
     minimum_sev_threshold = get_minimum_sev_threshold_level(image)
     LOGGER.info(f"Severity threshold level is {minimum_sev_threshold}")

@@ -1205,21 +1205,14 @@ def get_cuda_version_from_tag(image_uri):
     :return: cuda version as cuXXX
     """
     cuda_framework_version = None
-
     cuda_str = ["cu", "gpu"]
-    if all(keyword in image_uri for keyword in cuda_str):
-        cuda_framework_version = re.search(r"(cu\d+)-", image_uri).groups()[0]
+    response_output = json.loads(run(f"docker inspect {image_uri}", hide=True).stdout)
+    repo_tags = response_output[0]["RepoTags"]
 
-    if not cuda_framework_version and "gpu" in image_uri:
-        response_output = json.loads(run(f"docker inspect {image_uri}", hide=True).stdout)
-        env_vars = response_output[0]['ContainerConfig']['Env']
-        cuda_version_env_variables = [env_var for env_var in env_vars if env_var.startswith("CUDA_VERSION=")]
-        if not cuda_version_env_variables:
-            raise RuntimeError(f"Image {image_uri} does not have an Env variable called CUDA_VERSION")
-        cuda_version_string = cuda_version_env_variables[0]
-        cuda_version = cuda_version_string.split("=")[1]
-        image_cuda_version = ''.join(cuda_version.split('.')[:2])
-        cuda_framework_version = f"cu{image_cuda_version}"
+    for repo_tag in repo_tags:
+        if all(keyword in repo_tag for keyword in cuda_str):
+            cuda_framework_version = re.search(r"(cu\d+)-", repo_tag).groups()[0]
+            return cuda_framework_version
 
     return cuda_framework_version
 
@@ -1451,3 +1444,17 @@ def execute_env_variables_test(image_uri, env_vars_to_test, container_name_prefi
             f"Environment variable {var} is expected to be {expected_val}. {assertion_error_sentence}."
         )
     stop_and_remove_container(container_name, ctx)
+
+
+def get_image_digest(image_uri):
+    """
+    Gets the first image digest from the list of image_digests for a particular image.
+    :param image_uri: str, IMAGE URI for which we need the image digest
+    :return: str, image digest
+    """
+    response_output = json.loads(run(f"docker inspect {image_uri}", hide=True).stdout)
+    list_of_repo_digests = response_output[0]['RepoDigests']
+    # repo_digest_string looks like "{repo_uri}@{image_digest}"
+    repo_digest_string = list_of_repo_digests[0]
+    image_digest = repo_digest_string.split("@")[-1]
+    return image_digest
