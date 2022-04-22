@@ -900,7 +900,7 @@ def parse_canary_images(framework, region):
         }
         # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
         if customer_type == "e3":
-            dlc_images += [f"{img}-e3" for img in dlc_images]
+            dlc_images += [f"{img}-e3" for img in images[framework]]
         else:
             dlc_images += images[framework]
 
