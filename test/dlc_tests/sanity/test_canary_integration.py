@@ -10,6 +10,7 @@ from test.test_utils import (
     login_to_ecr_registry,
     PR_ONLY_REASON,
     PUBLIC_DLC_REGISTRY,
+    LOGGER
 )
 
 
@@ -36,4 +37,5 @@ def test_canary_images_pullable(region):
         return
     for image in images.split(" "):
         ctx.run(f"docker pull -q {image}")
+        LOGGER.info(f"Canary image {image} is available")
         ctx.run(f"docker rmi -f {image}")

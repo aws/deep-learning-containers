@@ -857,6 +857,7 @@ def parse_canary_images(framework, region):
 
     registry = PUBLIC_DLC_REGISTRY
     framework_versions = versions if len(versions) < 4 else versions[:3]
+    dlc_images = []
     for fw_version in framework_versions:
         py3_version = get_canary_default_tag_py3_version(framework, fw_version)
 
@@ -897,10 +898,11 @@ def parse_canary_images(framework, region):
                 f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py3_version}",
             ],
         }
-        dlc_images = images[framework]
         # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
         if customer_type == "e3":
-            dlc_images = [f"{img}-e3" for img in dlc_images]
+            dlc_images += [f"{img}-e3" for img in dlc_images]
+        else:
+            dlc_images += images[framework]
 
     return " ".join(dlc_images)
 

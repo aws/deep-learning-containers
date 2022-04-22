@@ -1,5 +1,6 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.13
+ARG MAMBA_VERSION=4.12.0-0
 
 # PyTorch Binaries
 ARG PT_E3_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220309-213627/9c116675b0719f637546dbc5507bf79ef8fb622e/cpu/torch-1.11.0%2Bcpu-cp38-cp38-linux_x86_64.whl
@@ -17,6 +18,7 @@ LABEL dlc_major_version="1"
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG OPEN_MPI_VERSION=4.0.1
+ARG MAMBA_VERSION
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
@@ -110,27 +112,26 @@ RUN rm -rf /root/.ssh/ \
  && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
-RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
- && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p /opt/conda \
- && rm ~/miniconda.sh \
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda update conda \
  && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
- && /opt/conda/bin/conda install -y -c anaconda \
-    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     cython \
     mkl \
     mkl-include \
-    "pyopenssl>=17.5.0" \
-    ruamel_yaml==0.15.100 \
+    parso \
     typing \
- && conda install -y \
     h5py \
     requests \
- && conda install -c dglteam -y dgl=0.8.0 \
- && /opt/conda/bin/conda clean -ya \
- && conda clean -ya
+    "pyopenssl>=17.5.0" \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer \
+ && /opt/conda/bin/conda install -c dglteam -y dgl=0.8.0 \
+ && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
@@ -252,7 +253,7 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 # Install scikit-learn and pandas
-RUN conda install -y \
+RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
