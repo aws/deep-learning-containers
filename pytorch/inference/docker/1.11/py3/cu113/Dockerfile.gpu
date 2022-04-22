@@ -23,6 +23,7 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON
 ARG PYTHON_VERSION
+ARG MAMBA_VERSION=4.12.0-0
 
 # PyTorch Binaries
 ARG PT_E3_INFERENCE_URL
@@ -34,7 +35,6 @@ ARG CUBLAS_VERSION=11.5.1.109
 ARG OMPI_VERSION=4.1.1
 ARG TS_VERSION=0.5.2
 
-ARG CONDA_PREFIX=/opt/conda
 ARG DEBIAN_FRONTEND=noninteractive
 
 # See http://bugs.python.org/issue19846
@@ -145,24 +145,27 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
- && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p ${CONDA_PREFIX} \
- && rm ~/miniconda.sh \
- && ${CONDA_PREFIX}/bin/conda update conda \
- && ${CONDA_PREFIX}/bin/conda install -c conda-forge \
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
+ && /opt/conda/bin/conda update conda \
+ && /opt/conda/bin/conda install -c conda-forge \
     python=$PYTHON_VERSION \
- && ${CONDA_PREFIX}/bin/conda install -y \
-    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
-    ruamel_yaml==0.15.100 \
- && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
     cython \
     mkl \
     mkl-include \
     parso \
     scipy \
     typing \
- && ${CONDA_PREFIX}/bin/conda clean -ya
+    h5py \
+    requests \
+    libgcc \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer \
+ && /opt/conda/bin/conda install -c pytorch magma-cuda113 \
+ && /opt/conda/bin/conda clean -ya
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
@@ -170,17 +173,9 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
 # once conda fixes the issue: https://github.com/conda/conda/issues/9680
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
-RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
+RUN /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
-
-RUN conda install -c pytorch \
-    magma-cuda113 \
- && conda install -y \
-    h5py \
-    libgcc \
-    requests \
- && conda clean -ya
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 WORKDIR /root
 
@@ -263,7 +258,7 @@ ARG PYTHON
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
 # Install scikit-learn and pandas
-RUN conda install -y \
+RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
