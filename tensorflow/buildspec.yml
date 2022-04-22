@@ -1,8 +1,8 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK tensorflow
-version: &VERSION 2.8.0
-short_version: &SHORT_VERSION 2.8
+version: &VERSION 2.9.0
+short_version: &SHORT_VERSION 2.9
 repository_info:
   training_repository: &TRAINING_REPOSITORY
     image_type: &TRAINING_IMAGE_TYPE training
@@ -10,27 +10,8 @@ repository_info:
     repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/,
       *REPOSITORY_NAME ]
-  inference_repository: &INFERENCE_REPOSITORY
-    image_type: &INFERENCE_IMAGE_TYPE inference
-    root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
-    repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE]
-    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/,
-      *REPOSITORY_NAME ]
 context:
   training_context: &TRAINING_CONTEXT
-    dockerd-entrypoint:
-      source: docker/build_artifacts/dockerd-entrypoint.py
-      target: dockerd-entrypoint.py
-    deep_learning_container:
-      source: ../../src/deep_learning_container.py
-      target: deep_learning_container.py
-  inference_context: &INFERENCE_CONTEXT
-    sagemaker_package_name:
-      source: docker/build_artifacts/sagemaker
-      target: sagemaker
-    init:
-      source: docker/build_artifacts/__init__.py
-      target: __init__.py
     dockerd-entrypoint:
       source: docker/build_artifacts/dockerd-entrypoint.py
       target: dockerd-entrypoint.py
@@ -56,48 +37,3 @@ images:
     enable_test_promotion: true
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowSageMakerCpuPy39TrainingDockerImage:
-    <<: *TRAINING_REPOSITORY
-    build: &TENSORFLOW_CPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 3700
-    device_type: &DEVICE_TYPE cpu
-    python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
-    os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker"
-    ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.,
-                         *DEVICE_TYPE ]
-    target: sagemaker
-    enable_test_promotion: true
-    context:
-      <<: *TRAINING_CONTEXT
-  BuildSageMakerTensorflowCPUInferencePy3DockerImage:
-    <<: *INFERENCE_REPOSITORY
-    build: &TENSORFLOW_CPU_INFERENCE_PY3 false
-    image_size_baseline: 4899
-    device_type: &DEVICE_TYPE cpu
-    python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
-    os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
-    target: sagemaker
-    enable_test_promotion: true
-    context:
-      <<: *INFERENCE_CONTEXT
-  BuildSageMakerTensorflowGPUInferencePy3DockerImage:
-    <<: *INFERENCE_REPOSITORY
-    build: &TENSORFLOW_GPU_INFERENCE_PY3 false
-    image_size_baseline: 7738
-    device_type: &DEVICE_TYPE gpu
-    python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py39
-    cuda_version: &CUDA_VERSION cu112
-    os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
-    target: sagemaker
-    enable_test_promotion: true
-    context:
-      <<: *INFERENCE_CONTEXT
