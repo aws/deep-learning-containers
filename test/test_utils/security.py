@@ -369,7 +369,7 @@ def get_apt_package_name(ecr_package_name):
     :param ecr_package_name: str, name of the package in ecr scans
     :param apt_package_name: str, name of the package in apt
     """
-    name_mapper = {"cyrus-sasl2": "libsasl2-2", "glibc": "libc6"}
+    name_mapper = {"cyrus-sasl2": "libsasl2-2", "glibc": "libc6", "libopenmpt": "libopenmpt-dev"}
     return name_mapper.get(ecr_package_name, ecr_package_name)
 
 
@@ -494,8 +494,11 @@ def conduct_failure_routine(
         "fixable_vulnerabilities": fixable_list,
         "non_fixable_vulnerabilities": newly_found_non_fixable_list,
     }
-    ## TODO: Remove the is_pr_context before merging ##
-    if test_utils.is_canary_context() and test_utils.is_time_for_invoking_ecr_scan_failure_routine_lambda():
+    ## TODO: Make the conditions below as if test_utils.is_canary_context() and test_utils.is_time_for_invoking_ecr_scan_failure_routine_lambda() and os.getenv("REGION") == test_utils.DEFAULT_REGION:
+    ## to make sure that we just invoke the ECR_SCAN_FAILURE_ROUTINE_LAMBDA once everyday
+    if test_utils.is_canary_context() and os.getenv("REGION") == test_utils.DEFAULT_REGION:
+        # boto3.Session().region_name == test_utils.DEFAULT_REGION helps us invoke the ECR_SCAN_FAILURE_ROUTINE_LAMBDA
+        # from just 1 account
         _invoke_lambda(function_name=test_utils.ECR_SCAN_FAILURE_ROUTINE_LAMBDA, payload_dict=message_body)
     return_dict = copy.deepcopy(message_body)
     return_dict["s3_filename_for_allowlist"] = s3_filename_for_allowlist

@@ -800,7 +800,7 @@ def get_canary_default_tag_py3_version(framework, version):
         if Version(version) >= Version("1.9"):
             return "py38"
 
-    if framework == "pytorch":
+    if framework == "pytorch" or framework == "huggingface_pytorch":
         if Version(version) >= Version("1.9"):
             return "py38"
 
@@ -819,12 +819,12 @@ def parse_canary_images(framework, region):
     customer_type_tag = f"-{customer_type}" if customer_type else ""
 
     version_regex = {
-        "tensorflow": rf"tf{customer_type_tag}-(\d+.\d+)",
-        "mxnet": rf"mx{customer_type_tag}-(\d+.\d+)",
-        "pytorch": rf"pt{customer_type_tag}-(\d+.\d+)",
-        "huggingface_pytorch": r"hf-\S*pt-(\d+.\d+)",
-        "huggingface_tensorflow": r"hf-\S*tf-(\d+.\d+)",
-        "autogluon": r"ag-(\d+.\d+)",
+        "tensorflow": rf"tf(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
+        "mxnet": rf"mx(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
+        "pytorch": rf"pt(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
+        "huggingface_pytorch": r"hf-\S*pt(-sagemaker)?-(\d+.\d+)",
+        "huggingface_tensorflow": r"hf-\S*tf(-sagemaker)?-(\d+.\d+)",
+        "autogluon": r"ag(-sagemaker)?-(\d+.\d+)",
     }
 
     repo = git.Repo(os.getcwd(), search_parent_directories=True)
@@ -835,7 +835,7 @@ def parse_canary_images(framework, region):
         tag_str = str(tag)
         match = re.search(version_regex[framework], tag_str)
         if match:
-            version = match.group(1)
+            version = match.group(2)
             if not versions_counter.get(version):
                 versions_counter[version] = {"tr": False, "inf": False}
             if "tr" not in tag_str and "inf" not in tag_str:
@@ -900,7 +900,7 @@ def parse_canary_images(framework, region):
         }
         # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
         if customer_type == "e3":
-            dlc_images += [f"{img}-e3" for img in dlc_images]
+            dlc_images += [f"{img}-e3" for img in images[framework]]
         else:
             dlc_images += images[framework]
 
@@ -1435,8 +1435,6 @@ def execute_env_variables_test(image_uri, env_vars_to_test, container_name_prefi
             assertion_error_sentence = f"It is currently set to {actual_val}."
         else:
             assertion_error_sentence = "It is currently not set."
-        assert (
-            actual_val == expected_val,
+        assert actual_val == expected_val, \
             f"Environment variable {var} is expected to be {expected_val}. {assertion_error_sentence}."
-        )
     stop_and_remove_container(container_name, ctx)
