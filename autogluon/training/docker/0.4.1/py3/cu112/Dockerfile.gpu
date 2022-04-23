@@ -2,10 +2,9 @@ ARG CUDA_VER=11.2
 ARG LINUX_VER=ubuntu20.04
 ARG PYTHON_VERSION=3.8.12
 ARG PYTHON_VER=3.8
-ARG RAPIDS_VER=22.04
 ARG FROM_IMAGE=rapidsai/rapidsai-core
 
-FROM ${FROM_IMAGE}:${RAPIDS_VER}-cuda${CUDA_VER}-base-${LINUX_VER}-py${PYTHON_VER}
+FROM ${FROM_IMAGE}:cuda${CUDA_VER}-base-${LINUX_VER}-py${PYTHON_VER}
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
