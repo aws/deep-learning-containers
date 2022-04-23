@@ -1208,14 +1208,13 @@ def get_framework_from_image_uri(image_uri):
 def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
     """
     Uses ecr describe to generate all the tags of an image.
-    
+
     :param ecr_client: boto3 Client for ECR
     :param image_uri: str Image URI
     :return: list, All the image tags
     """
-    account_id = image_uri.split('.')[0]
-    image_repo_uri, image_tag = image_uri.split(":")
-    _, image_repo_name = image_repo_uri.split("/")
+    account_id = get_account_id_from_image_uri(image_uri)
+    image_repo_name, image_tag = get_repository_and_tag_from_image_uri(image_uri)
     response = ecr_client.describe_images(
         registryId=account_id,
         repositoryName=image_repo_name,
