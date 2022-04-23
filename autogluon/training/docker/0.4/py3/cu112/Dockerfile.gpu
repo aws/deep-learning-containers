@@ -2,9 +2,10 @@ ARG CUDA_VER=11.2
 ARG LINUX_VER=ubuntu20.04
 ARG PYTHON_VERSION=3.8.12
 ARG PYTHON_VER=3.8
+ARG RAPIDS_VER=22.04
 ARG FROM_IMAGE=rapidsai/rapidsai-core
 
-FROM ${FROM_IMAGE}:cuda${CUDA_VER}-base-${LINUX_VER}-py${PYTHON_VER}
+FROM ${FROM_IMAGE}:${RAPIDS_VER}-cuda${CUDA_VER}-base-${LINUX_VER}-py${PYTHON_VER}
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -54,15 +55,12 @@ RUN wget -q -c https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz 
 
 RUN conda update conda -y \
  && conda update --all -y \
- && conda clean --all -y
+ && conda clean -afy
 
 RUN source activate rapids \
  && conda remove gdal libgdal dask dask-core dask-cuda dask-cudf distributed markdown -y \
  && conda update --all -y \
- && conda clean --all -y
-
-RUN source activate rapids \
- && conda install -c conda-forge cudnn==${CUDNN_VERSION} -y \
+ && conda install -c conda-forge cudnn==${CUDNN_VERSION} -y --freeze-installed \
  && pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U setuptools wheel \
  && pip install --no-cache-dir -U --no-use-pep517 mxnet-cu$(echo ${CUDA_VER} | sed 's/\.//')==${MXNET_VER} \
@@ -98,7 +96,11 @@ RUN source activate rapids \
     pyppeteer \
     traitlets \
     websockets \
-    widgetsnbextension
+    widgetsnbextension \
+ && conda clean -afy \
+ && find /opt/conda/ -follow -type f -name '*.a' -delete \
+ && find /opt/conda/ -follow -type f -name '*.pyc' -delete \
+ && find /opt/conda/ -follow -type f -name '*.js.map' -delete
 
 WORKDIR /
 
