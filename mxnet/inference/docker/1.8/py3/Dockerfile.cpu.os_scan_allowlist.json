@@ -71,6 +71,10 @@
                                 "Deferred"
                             ],
                             [
+                                "jammy",
+                                "Deferred"
+                            ],
+                            [
                                 "precise",
                                 "Ignored (end of ESM support, was deferred)"
                             ],
@@ -240,6 +244,10 @@
                             ],
                             [
                                 "impish",
+                                "Not vulnerable (2.34-5ubuntu1)"
+                            ],
+                            [
+                                "jammy",
                                 "Not vulnerable (2.34-5ubuntu1)"
                             ],
                             [
@@ -2954,6 +2962,10 @@
                             ],
                             [
                                 "impish",
+                                "Released (0.6.1-2ubuntu1)"
+                            ],
+                            [
+                                "jammy",
                                 "Released (0.6.1-2ubuntu1)"
                             ],
                             [
