@@ -1472,8 +1472,6 @@ def execute_env_variables_test(image_uri, env_vars_to_test, container_name_prefi
             assertion_error_sentence = f"It is currently set to {actual_val}."
         else:
             assertion_error_sentence = "It is currently not set."
-        assert (
-            actual_val == expected_val,
+        assert actual_val == expected_val, \
             f"Environment variable {var} is expected to be {expected_val}. {assertion_error_sentence}."
-        )
     stop_and_remove_container(container_name, ctx)
