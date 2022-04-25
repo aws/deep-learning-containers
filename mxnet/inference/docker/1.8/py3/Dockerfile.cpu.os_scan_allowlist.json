@@ -1583,6 +1583,10 @@
                                 "Released (2.4.1-2ubuntu0.1)"
                             ],
                             [
+                                "jammy",
+                                "Released (2.4.5-2)"
+                            ],
+                            [
                                 "trusty",
                                 "Released (2.1.0-4ubuntu1.4+esm4)"
                             ],
@@ -2050,6 +2054,10 @@
                             ],
                             [
                                 "impish",
+                                "Deferred (2022-04-19)"
+                            ],
+                            [
+                                "jammy",
                                 "Deferred (2022-04-19)"
                             ],
                             [
@@ -4819,6 +4827,10 @@
                             [
                                 "impish",
                                 "Released (8u312-b07-0ubuntu1~21.10)"
+                            ],
+                            [
+                                "jammy",
+                                "Not vulnerable (8u302-b08-0ubuntu2)"
                             ],
                             [
                                 "trusty",
