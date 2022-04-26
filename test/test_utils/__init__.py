@@ -195,10 +195,22 @@ def get_dockerfile_path_for_image(image_uri):
 
 
 def get_expected_dockerfile_filename(device_type, image_uri):
-    if is_e3_image(image_uri):
-        return f"Dockerfile.e3.{device_type}"
-    if is_sagemaker_image(image_uri):
-        return f"Dockerfile.sagemaker.{device_type}"
+
+    non_multistage_dockerfiles = {
+        "pytorch": SpecifierSet("==1.10.*"),
+        "tensorflow": SpecifierSet("==2.7.*")
+    }
+
+    framework, version = get_framework_and_version_from_tag(image_uri)
+
+    non_multistage_spec_set = non_multistage_dockerfiles.get(framework)
+
+    if non_multistage_spec_set:
+        if Version(version) in non_multistage_spec_set:
+            if is_e3_image(image_uri):
+                return f"Dockerfile.e3.{device_type}"
+            if is_sagemaker_image(image_uri):
+                return f"Dockerfile.sagemaker.{device_type}"
     return f"Dockerfile.{device_type}"
 
 
