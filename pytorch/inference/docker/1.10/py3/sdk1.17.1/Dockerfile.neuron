@@ -75,6 +75,9 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     parso \
     scipy \
     typing \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer \
  && /opt/conda/bin/conda clean -ya
 
 RUN conda install -c conda-forge \
