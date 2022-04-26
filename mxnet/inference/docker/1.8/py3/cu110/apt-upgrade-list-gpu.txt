@@ -1,4 +1,4 @@
 libc6
-vim
-wget
 sqlite3
+wget
+vim
