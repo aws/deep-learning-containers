@@ -29,8 +29,8 @@ dataset = dataset.repeat().shuffle(10000).batch(128)
 if data_type == "AMP":
     # if this code block get excecuted, data type is mixed-precision AKA AMP. If not, it is FP32.
     # When ampere comes and TF32 is available, we need to extend the test to run TF32 as well
-    policy = tf.keras.mixed_precision.Policy('mixed_float16', 128)
-    tf.keras.mixed_precision.set_policy(policy)
+    policy = tf.keras.mixed_precision.Policy('mixed_float16')
+    tf.keras.mixed_precision.set_global_policy(policy)
 elif data_type != "FP32":
     raise Exception("not supported data type.\n")
 
