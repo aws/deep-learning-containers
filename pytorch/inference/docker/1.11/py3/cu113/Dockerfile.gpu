@@ -2,7 +2,7 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.13
 
 # PyTorch Binaries
-ARG PT_E3_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220322-194812/272547162a367c4aaafe8f7e1d9d35d39441c6f3/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PT_INFERENCE_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/20220322-194812/272547162a367c4aaafe8f7e1d9d35d39441c6f3/gpu/torch-1.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.12.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHAUDIO_URL=https://download.pytorch.org/whl/cu113/torchaudio-0.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
 ARG PT_TORCHDATA_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.11.0_v3_e3/aws-torchdata/torchdata-0.4.0-cp38-cp38-linux_x86_64.whl
@@ -26,7 +26,7 @@ ARG PYTHON_VERSION
 ARG MAMBA_VERSION=4.12.0-0
 
 # PyTorch Binaries
-ARG PT_E3_INFERENCE_URL
+ARG PT_INFERENCE_URL
 ARG PT_TORCHVISION_URL
 ARG PT_TORCHAUDIO_URL
 ARG PT_TORCHDATA_URL
@@ -192,7 +192,7 @@ RUN pip install --no-cache-dir -U \
     "Pillow>=9.0.0" \
     "pyyaml>=5.4,<5.5" \
  && pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_E3_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
+ && pip install --no-cache-dir -U ${PT_INFERENCE_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
 # TODO: revert torchserve-nightly back to torchserve once a compatible stable version is released
 RUN pip uninstall -y model-archiver multi-model-server \
