@@ -156,7 +156,7 @@ RUN /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
-RUN conda install -c pytorch magma-cuda113==2.5.2 \
+RUN conda install -c pytorch magma-cuda113 \
  && conda install -y -c conda-forge \
     h5py \
     requests \
