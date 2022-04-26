@@ -6,6 +6,7 @@ References:
 - Code: https://github.com/tkipf/gcn
 """
 import argparse
+import os
 from dgl.data import CoraGraphDataset, CiteseerGraphDataset, PubmedGraphDataset
 import dgl
 import torch.nn.functional as F
@@ -177,6 +178,15 @@ if __name__ == '__main__':
                         help="graph self-loop (default=False)")
     parser.set_defaults(self_loop=False)
     args = parser.parse_args()
+
+    # parse gpu num for AWS SageMaker test
+    num_gpus = int(os.environ['SM_NUM_GPUS'])
+    if num_gpus > 0:
+        gpu = 0
+    else:
+        gpu = -1
+    args.gpu = gpu
+
     print(args)
 
     main(args)
