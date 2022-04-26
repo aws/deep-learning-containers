@@ -15,3 +15,5 @@ retrying
 gitpython
 pytz
 toml
+scrapy
+crochet

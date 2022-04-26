@@ -1,16 +1,10 @@
-##############################################################################
-#  _____ _____   ___                              ____           _
-# | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
-# |  _|   |_ \   | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
-# | |___ ___) |  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
-# |_____|____/  |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
-#                                    |___/                        |_|
-##############################################################################
-
-FROM nvidia/cuda:11.2.1-base-ubuntu20.04 AS e3
+FROM nvidia/cuda:11.2.1-base-ubuntu20.04 AS common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+
+# TensorFlow major.minor version 
+ENV TF_VERSION=2.8
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -31,22 +25,25 @@ ENV KMP_SETTINGS=0
 ENV RDMAV_FORK_SAFE=1
 
 ARG PYTHON=python3.9
-ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.9.10
+
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 ARG EFA_VERSION=1.12.1
 ARG OMPI_VERSION=4.1.1
 ARG BRANCH_OFI=1.1.3-aws
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.8_aws/gpu/2022-02-07-22-37/tensorflow_gpu-2.8.0-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
-
 ARG CUDA=11.2
 ARG CUDA_DASH=11-2
 ARG CUDNN=8.2.4.15-1
 
 ARG NCCL_VERSION=2.10.3
+
+# To be passed to e3 and sagemaker stages
+ENV PYTHON=${PYTHON}
+ENV PYTHON_VERSION=${PYTHON_VERSION}
+ENV PIP=${PIP}
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
    ca-certificates \
@@ -206,14 +203,9 @@ RUN ${PIP} install --no-cache-dir -U \
    "Pillow>=9.0.0<9.1.0" \
    python-dateutil==2.8.1 \
    "pyYAML>=5.4,<5.5" \
-   requests==2.25.1 \
+   requests==2.27.1 \
    "awscli<2" \
    mpi4py==3.0.3 \
-   # Let's install TensorFlow separately in the end to avoid
-   # the library version to be overwritten
- && ${PIP} install --no-cache-dir -U \
-   ${TF_URL} \
-   tensorflow-io==0.24.0 \
    h5py==3.1.0 \
    "absl-py>=0.9,<0.11" \
    "opencv-python>=4.3,<5" \
@@ -240,10 +232,8 @@ RUN apt-get install -y --only-upgrade libsasl2-2
 
 RUN apt-get update && apt-get -y install  protobuf-compiler
 
-# Install Horovod, temporarily using CUDA stubs
-RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.23.0 \
- && ldconfig
+# Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
+RUN apt-get install -y --only-upgrade libsasl2-2
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
@@ -257,6 +247,31 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
+RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/license.txt -o /license.txt
+
+##############################################################################
+#  _____ _____   ___                              ____           _
+# | ____|___ /  |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+# |  _|   |_ \   | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+# | |___ ___) |  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |_____|____/  |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                                    |___/                        |_|
+##############################################################################
+
+FROM common AS e3
+
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.8_aws/gpu/2022-02-07-22-37/tensorflow_gpu-2.8.0-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
+
+RUN ${PIP} install --no-cache-dir -U \
+   ${TF_URL} \
+   tensorflow-io==0.24.0 \
+   tensorflow-datasets==4.5.2
+
+# Install Horovod, temporarily using CUDA stubs
+RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.23.0 \
+ && ldconfig
+
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
    && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
@@ -266,6 +281,115 @@ RUN HOME_DIR=/root \
    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
    && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.8/license.txt -o /license.txt
+# remove tmp files
+RUN rm -rf /tmp/*
 
+CMD ["/bin/bash"]
+
+#################################################################
+#  ____                   __  __       _
+# / ___|  __ _  __ _  ___|  \/  | __ _| | _____ _ __
+# \___ \ / _` |/ _` |/ _ \ |\/| |/ _` | |/ / _ \ '__|
+#  ___) | (_| | (_| |  __/ |  | | (_| |   <  __/ |
+# |____/ \__,_|\__, |\___|_|  |_|\__,_|_|\_\___|_|
+#              |___/
+#  ___                              ____           _
+# |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+#  | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+#  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                      |___/                        |_|
+#################################################################
+
+FROM common AS sagemaker
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# sagemaker-specific environment variable
+ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
+
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/smdebugger/r2.8_aws/gpu/2022-02-15-01-06/tensorflow_gpu-2.8.0-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl
+
+RUN ${PIP} install --no-cache-dir -U \
+   ${TF_URL} \
+   tensorflow-io==0.24.0 \
+   tensorflow-datasets==4.5.2
+
+# Install Horovod, temporarily using CUDA stubs
+RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.23.0 \
+ && ldconfig
+
+RUN $PYTHON -m pip install --no-cache-dir -U \
+    "sagemaker>=2,<3" \
+    sagemaker-experiments==0.* \
+    "sagemaker-tensorflow-training>=20" \
+    "sparkmagic<1" \
+    "sagemaker-studio-sparkmagic-lib<1" \
+    "sagemaker-studio-analytics-extension==0.0.2" \
+    smclarify
+
+RUN $PYTHON -m pip install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "imageio>=2.9,<3" \
+    "opencv-python>=4.3,<5" \
+    "plotly>=5.1,<6" \
+    "seaborn>=0.11,<1" \
+    "numba<0.54" \
+    "shap>=0.39,<1"
+
+# install smdebug directly the specific branch
+ARG SMDEBUG_TAG=1.0.14
+RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
+    && cd sagemaker-debugger \
+    && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
+    && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
+
+
+# install sagemaker-tensorflow from source
+ARG SAGEMAKER_TENSORFLOW_TAG=v1.14.0
+RUN apt update && apt install -y libcurl4-openssl-dev
+RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
+    && cd sagemaker-tensorflow-extensions \
+    && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \
+    && $PYTHON -m pip install . \
+    && cd .. && rm -rf sagemaker-tensorflow-extensions
+
+# install boost
+# tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=0"
+RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
+   && tar -xzf boost_1_73_0.tar.gz \
+   && cd boost_1_73_0 \
+   && ./bootstrap.sh \
+   && ./b2 define=_GLIBCXX_USE_CXX11_ABI=0 threading=multi --prefix=/usr -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
+   && cd .. \
+   && rm -rf boost_1_73_0.tar.gz \
+   && rm -rf boost_1_73_0 \
+   && cd /usr/include/boost
+
+# add smdataparallel
+# smdataparallel
+ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/tensorflow/2.8.0/cu112/2022-02-15/smdistributed_dataparallel-1.3.0-cp39-cp39-linux_x86_64.whl
+
+# Install SMD DP binary
+RUN SMDATAPARALLEL_TF=1 ${PYTHON} -m pip install --no-cache-dir ${SMDATAPARALLEL_BINARY}
+
+# Add NGC vars
+ENV TF_AUTOTUNE_THRESHOLD=2
+
+ENV LD_LIBRARY_PATH="/usr/local/lib/${PYTHON}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
+
+# remove tmp files
+RUN rm -rf /tmp/*
+
+RUN HOME_DIR=/root \
+   && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+   && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+   && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+   && chmod +x /usr/local/bin/testOSSCompliance \
+   && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+   && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+   && rm -rf ${HOME_DIR}/oss_compliance*
+   
 CMD ["/bin/bash"]

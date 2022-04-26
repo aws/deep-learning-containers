@@ -42,6 +42,11 @@ IGNORE_SAFETY_IDS = {
                 "35015",
             ],
             "py3": [
+                # CVE vulnerabilities in TF 2.6 ignoring to be able to build TF containers
+                "44715",
+                "44716",
+                "44717",
+                "43453",
                 # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
                 "42098",
                 "42062",
@@ -49,8 +54,6 @@ IGNORE_SAFETY_IDS = {
                 "42815",
                 "42772",
                 "42814",
-                # False positive CVE for numpy
-                "44715"
             ],
         },
         "inference": {
@@ -65,8 +68,11 @@ IGNORE_SAFETY_IDS = {
                 # CVE vulnerabilities in TF < 2.7.0 ignoring to be able to build TF containers
                 "42098",
                 "42062",
-                # False positive CVE for numpy
-                "44715"
+                # CVE vulnerabilities in TF 2.6 ignoring to be able to build TF containers
+                "44715",
+                "44716",
+                "44717",
+                "43453",
             ],
         },
         "inference-eia": {
@@ -427,6 +433,9 @@ IGNORE_SAFETY_IDS = {
             "py3": [
                 # for shipping Torchserve 0.5.2 - the last available version
                 "44463",
+                "44715",
+                "44716",
+                "44717",
             ]
         },
         "inference-eia": {"py3": []},
@@ -579,6 +588,32 @@ IGNORE_SAFETY_IDS = {
             ]
         },
     },
+    "autogluon": {
+        "training": {
+            "py3": [
+                # cannot upgrade: py37 does not support numpy 1.22.x
+                "44717",
+                "44716",
+                # False positive CVE for numpy
+                "44715",
+                # pytorch-lightning stable release (1.6.0) is not available
+                "43581",
+                "43752",
+            ]
+        },
+        "inference": {
+            "py3": [
+                # cannot upgrade: py37 does not support numpy 1.22.x
+                "44717",
+                "44716",
+                # False positive CVE for numpy
+                "44715",
+                # pytorch-lightning stable release (1.6.0) is not available
+                "43581",
+                "43752",
+            ]
+        },
+    }
 }
 
 
@@ -588,7 +623,15 @@ def _get_safety_ignore_list(image_uri):
     :param image_uri:
     :return: <list> list of safety check IDs to ignore
     """
-    framework = "mxnet" if "mxnet" in image_uri else "pytorch" if "pytorch" in image_uri else "tensorflow"
+    if "mxnet" in image_uri:
+        framework = "mxnet"
+    elif "pytorch" in image_uri:
+        framework = "pytorch"
+    elif "autogluon" in image_uri:
+        framework = "autogluon"
+    else:
+        framework = "tensorflow"
+
     job_type = (
         "training"
         if "training" in image_uri
@@ -623,7 +666,7 @@ def _get_latest_package_version(package):
 @pytest.mark.skipif(not is_dlc_cicd_context(), reason="Skipping test because it is not running in dlc cicd infra")
 @pytest.mark.skipif(
     not (
-        is_safety_test_context() or (is_canary_context() and is_time_for_canary_safety_scan())
+        is_safety_test_context()
     ),
     reason=(
         "Skipping the test to decrease the number of calls to the Safety Check DB. "

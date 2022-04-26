@@ -42,9 +42,9 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 # Since latest driver is not in public DLAMI yet, using a custom one
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = "ami-078c2404eecfbe916"
-# Habana Base v1.2 ami
-UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-047fd74c001116366"
-UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-04c47cb3d4fdaa874"
+# Habana Base v1.3 ami
+UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-0ef18b1906e7010fb"
+UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-040ef14d634e727a2"
 UL_AMI_LIST = [
     UBUNTU_18_BASE_DLAMI_US_EAST_1,
     UBUNTU_18_BASE_DLAMI_US_WEST_2,
@@ -58,8 +58,8 @@ UL_AMI_LIST = [
 ]
 
 # ECS images are maintained here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
-ECS_AML2_GPU_USWEST2 = "ami-09ef8c43fa060063d"
-ECS_AML2_CPU_USWEST2 = "ami-014a2e30da708ee8b"
+ECS_AML2_GPU_USWEST2 = "ami-052237b2eee880dc6"
+ECS_AML2_CPU_USWEST2 = "ami-0794df61693647a62"
 ECS_AML2_NEURON_USWEST2 = "ami-0c7321fe2b2340dd5"
 ECS_AML2_GRAVITON_CPU_USWEST2 = "ami-0fb32cf53e5ab7686"
 NEURON_AL2_DLAMI = "ami-03c4cdc89eca4dbcb"
@@ -101,10 +101,20 @@ PUBLIC_DLC_REGISTRY = "763104351884"
 
 SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
 
+UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
+ECR_SCAN_HELPER_BUCKET = f"""ecr-scan-helper-{boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")}"""
+ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 
 class MissingPythonVersionException(Exception):
     """
     When the Python Version is missing from an image_uri where it is expected to exist
+    """
+
+    pass
+
+class CudaVersionTagNotFoundException(Exception):
+    """
+    When none of the tags of a GPU image have a Cuda version in them
     """
 
     pass
@@ -247,13 +257,15 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
     :param ec2_instance_type: EC2 Instance Type
     :return: bool True if there are incompatibilities, False if there aren't
     """
+    incompatible_conditions = []
+    framework, framework_version = get_framework_and_version_from_tag(image_uri)
+
     image_is_cuda10_on_incompatible_p4d_instance = (
         get_processor_from_image_uri(image_uri) == "gpu"
         and get_cuda_version_from_tag(image_uri).startswith("cu10")
         and ec2_instance_type in ["p4d.24xlarge"]
     )
-
-    framework, _ = get_framework_and_version_from_tag(image_uri)
+    incompatible_conditions.append(image_is_cuda10_on_incompatible_p4d_instance)
 
     image_is_cuda11_on_incompatible_p2_instance_mxnet = (
         framework == "mxnet"
@@ -261,8 +273,17 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         and get_cuda_version_from_tag(image_uri).startswith("cu11")
         and ec2_instance_type in ["p2.8xlarge"]
     )
+    incompatible_conditions.append(image_is_cuda11_on_incompatible_p2_instance_mxnet)
 
-    return image_is_cuda10_on_incompatible_p4d_instance or image_is_cuda11_on_incompatible_p2_instance_mxnet
+    image_is_pytorch_1_11_on_incompatible_p2_instance_pytorch = (
+        framework == "pytorch"
+        and Version(framework_version) in SpecifierSet("==1.11.*")
+        and get_processor_from_image_uri(image_uri) == "gpu"
+        and ec2_instance_type in ["p2.8xlarge"]
+    )
+    incompatible_conditions.append(image_is_pytorch_1_11_on_incompatible_p2_instance_pytorch)
+
+    return any(incompatible_conditions)
 
 
 def get_repository_local_path():
@@ -332,6 +353,14 @@ def is_sagemaker_image(image_uri):
 
 
 def is_time_for_canary_safety_scan():
+    """
+    Canary tests run every 15 minutes.
+    Using a 20 minutes interval to make tests run only once a day around 9 am PST (10 am during winter time).
+    """
+    current_utc_time = time.gmtime()
+    return current_utc_time.tm_hour == 16 and (0 < current_utc_time.tm_min < 20)
+
+def is_time_for_invoking_ecr_scan_failure_routine_lambda():
     """
     Canary tests run every 15 minutes.
     Using a 20 minutes interval to make tests run only once a day around 9 am PST (10 am during winter time).
@@ -778,7 +807,7 @@ def get_canary_default_tag_py3_version(framework, version):
         if Version(version) >= Version("1.9"):
             return "py38"
 
-    if framework == "pytorch":
+    if framework == "pytorch" or framework == "huggingface_pytorch":
         if Version(version) >= Version("1.9"):
             return "py38"
 
@@ -797,12 +826,12 @@ def parse_canary_images(framework, region):
     customer_type_tag = f"-{customer_type}" if customer_type else ""
 
     version_regex = {
-        "tensorflow": rf"tf{customer_type_tag}-(\d+.\d+)",
-        "mxnet": rf"mx{customer_type_tag}-(\d+.\d+)",
-        "pytorch": rf"pt{customer_type_tag}-(\d+.\d+)",
-        "huggingface_pytorch": r"hf-\S*pt-(\d+.\d+)",
-        "huggingface_tensorflow": r"hf-\S*tf-(\d+.\d+)",
-        "autogluon": r"ag-(\d+.\d+)",
+        "tensorflow": rf"tf(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
+        "mxnet": rf"mx(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
+        "pytorch": rf"pt(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
+        "huggingface_pytorch": r"hf-\S*pt(-sagemaker)?-(\d+.\d+)",
+        "huggingface_tensorflow": r"hf-\S*tf(-sagemaker)?-(\d+.\d+)",
+        "autogluon": r"ag(-sagemaker)?-(\d+.\d+)",
     }
 
     repo = git.Repo(os.getcwd(), search_parent_directories=True)
@@ -813,7 +842,7 @@ def parse_canary_images(framework, region):
         tag_str = str(tag)
         match = re.search(version_regex[framework], tag_str)
         if match:
-            version = match.group(1)
+            version = match.group(2)
             if not versions_counter.get(version):
                 versions_counter[version] = {"tr": False, "inf": False}
             if "tr" not in tag_str and "inf" not in tag_str:
@@ -835,6 +864,7 @@ def parse_canary_images(framework, region):
 
     registry = PUBLIC_DLC_REGISTRY
     framework_versions = versions if len(versions) < 4 else versions[:3]
+    dlc_images = []
     for fw_version in framework_versions:
         py3_version = get_canary_default_tag_py3_version(framework, fw_version)
 
@@ -875,10 +905,11 @@ def parse_canary_images(framework, region):
                 f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py3_version}",
             ],
         }
-        dlc_images = images[framework]
         # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
         if customer_type == "e3":
-            dlc_images = [f"{img}-e3" for img in dlc_images]
+            dlc_images += [f"{img}-e3" for img in images[framework]]
+        else:
+            dlc_images += images[framework]
 
     return " ".join(dlc_images)
 
@@ -1174,6 +1205,28 @@ def get_framework_from_image_uri(image_uri):
     )
 
 
+def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
+    """
+    Uses ecr describe to generate all the tags of an image.
+
+    :param ecr_client: boto3 Client for ECR
+    :param image_uri: str Image URI
+    :return: list, All the image tags
+    """
+    account_id = get_account_id_from_image_uri(image_uri)
+    image_repo_name, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    response = ecr_client.describe_images(
+        registryId=account_id,
+        repositoryName=image_repo_name,
+        imageIds=[
+            {
+                'imageTag': image_tag
+            },
+        ]
+    )
+    return response['imageDetails'][0]['imageTags']
+
+
 def get_cuda_version_from_tag(image_uri):
     """
     Return the cuda version from the image tag as cuXXX
@@ -1181,12 +1234,20 @@ def get_cuda_version_from_tag(image_uri):
     :return: cuda version as cuXXX
     """
     cuda_framework_version = None
-
     cuda_str = ["cu", "gpu"]
-    if all(keyword in image_uri for keyword in cuda_str):
-        cuda_framework_version = re.search(r"(cu\d+)-", image_uri).groups()[0]
+    image_region = get_region_from_image_uri(image_uri)
+    ecr_client = boto3.Session(region_name=image_region).client('ecr')
+    all_image_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri)
 
-    return cuda_framework_version
+    for image_tag in all_image_tags:
+        if all(keyword in image_tag for keyword in cuda_str):
+            cuda_framework_version = re.search(r"(cu\d+)-", image_tag).groups()[0]
+            return cuda_framework_version
+
+    if "gpu" in image_uri:
+        raise CudaVersionTagNotFoundException()
+    else:
+        return None
 
 
 def get_synapseai_version_from_tag(image_uri):
@@ -1319,11 +1380,24 @@ def run_cmd_on_container(container_name, context, cmd, executable="bash", warn=F
     :return: invoke output, can be used to parse stdout, etc
     """
     if executable not in ("bash", "python"):
-        LOGGER.warn(f"Unrecognized executable {executable}. It will be run as {executable} -c '{cmd}'")
+        LOGGER.warning(f"Unrecognized executable {executable}. It will be run as {executable} -c '{cmd}'")
     return context.run(
         f"docker exec --user root {container_name} {executable} -c '{cmd}'", hide=True, warn=warn, timeout=60
     )
 
+def uniquify_list_of_dict(list_of_dict):
+    """
+    Takes list_of_dict as an input and returns a list of dict such that each dict is only present
+    once in the returned list. Runs an operation that is similar to list(set(input_list)). However,
+    for list_of_dict, it is not possible to run the operation directly. 
+
+    :param list_of_dict: List(dict)
+    :return: List(dict)
+    """
+    list_of_string = [json.dumps(dict_element, sort_keys=True) for dict_element in list_of_dict]
+    unique_list_of_string = list(set(list_of_string))
+    list_of_dict_to_return = [json.loads(str_element) for str_element in unique_list_of_string]
+    return list_of_dict_to_return
 
 def get_tensorflow_model_base_path(image_uri):
     """
@@ -1377,3 +1451,27 @@ def get_eks_k8s_test_type_label(image_uri):
     else:
         test_type = "gpu"
     return test_type
+
+
+def execute_env_variables_test(image_uri, env_vars_to_test, container_name_prefix):
+    """
+    Based on a dictionary of ENV_VAR: val, test that the enviornment variables are correctly set in the container.
+
+    @param image_uri: ECR image URI
+    @param env_vars_to_test: dict {"ENV_VAR": "env_var_expected_value"}
+    @param container_name_prefix: container name prefix describing test
+    """
+    ctx = Context()
+    container_name = get_container_name(container_name_prefix, image_uri)
+
+    start_container(container_name, image_uri, ctx)
+    for var, expected_val in env_vars_to_test.items():
+        output = run_cmd_on_container(container_name, ctx, f"echo ${var}")
+        actual_val = output.stdout.strip()
+        if actual_val:
+            assertion_error_sentence = f"It is currently set to {actual_val}."
+        else:
+            assertion_error_sentence = "It is currently not set."
+        assert actual_val == expected_val, \
+            f"Environment variable {var} is expected to be {expected_val}. {assertion_error_sentence}."
+    stop_and_remove_container(container_name, ctx)

@@ -1,4 +1,5 @@
 framework: &FRAMEWORK tensorflow
+<<<<<<< HEAD
 nightly_versions:
   - "2.9-nightly"
 current_versions:
@@ -36,3 +37,6 @@ buildspecs:
   "1.15-neuron": !join [ *FRAMEWORK, "/", "buildspec-tf1-neuron.yml" ]
   # Graviton
   "2.7-graviton": !join [ *FRAMEWORK, "/", "buildspec-graviton.yml" ]
+=======
+
+>>>>>>> master
