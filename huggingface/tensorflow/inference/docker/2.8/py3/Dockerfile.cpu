@@ -58,9 +58,9 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda install -y \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
-    cython==0.29.21 \
-    mkl-include==2019.4 \
-    mkl==2019.4 \
+    cython \
+    "mkl-include==2021.4.0" \
+    "mkl==2021.4.0" \
     botocore \
  && /opt/conda/bin/conda clean -ya
 
