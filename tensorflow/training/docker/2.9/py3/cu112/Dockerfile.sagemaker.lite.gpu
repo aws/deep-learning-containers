@@ -256,7 +256,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 FROM common AS e3
 
-ARG TF_URL="tensorflow>=2.9.0rc0,<2.10"
+ARG TF_URL="tensorflow-gpu>=2.9.0rc0,<2.10"
 ARG TF_IO_VERSION=0.25.0
 
 RUN ${PIP} install --no-cache-dir -U --pre \
@@ -306,7 +306,7 @@ LABEL dlc_major_version="1"
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
-ARG TF_URL="tensorflow>=2.9.0rc0,<2.10"
+ARG TF_URL="tensorflow>-gpu=2.9.0rc0,<2.10"
 ARG TF_IO_VERSION=0.25.0
 
 RUN ${PIP} install --no-cache-dir -U --pre \
