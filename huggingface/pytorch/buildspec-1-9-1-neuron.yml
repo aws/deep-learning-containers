@@ -2,8 +2,8 @@ account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 base_framework: &BASE_FRAMEWORK pytorch
 framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK]
-version: &VERSION 1.10.1
-short_version: &SHORT_VERSION 1.10
+version: &VERSION 1.9.1
+short_version: &SHORT_VERSION 1.9
 
 repository_info:
   inference_repository: &INFERENCE_REPOSITORY
@@ -34,7 +34,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py37
     neuron_sdk_version: &NEURON_SDK_VERSION sdk1.17.1
     os_version: &OS_VERSION ubuntu18.04
-    transformers_version: &TRANSFORMERS_VERSION 4.18.0
+    transformers_version: &TRANSFORMERS_VERSION 4.12.3
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION,"-", *NEURON_SDK_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *NEURON_SDK_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
