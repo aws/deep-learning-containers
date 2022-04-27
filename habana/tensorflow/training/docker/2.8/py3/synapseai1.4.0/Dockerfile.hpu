@@ -100,6 +100,7 @@ RUN ${PIP} uninstall -y tensorflow-cpu \
     h5py==3.1.0 \
     werkzeug \
     psutil==5.7.2 \
+    urllib3==1.26.0 \ 
  && rm -rf ${TF_URL}
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
