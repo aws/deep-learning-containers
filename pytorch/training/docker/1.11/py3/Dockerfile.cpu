@@ -259,7 +259,8 @@ RUN conda install -y -c conda-forge \
 
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && pip install --no-cache-dir -U \
-   #  smdebug==${SMDEBUG_VERSION} \
+    # disable smdebug pip install until available stable smdebug releases
+    # smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \

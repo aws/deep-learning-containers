@@ -463,6 +463,7 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 WORKDIR /root
 
 RUN pip install --no-cache-dir -U \
+    # disable smdebug pip install until available stable smdebug releases
     # smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
