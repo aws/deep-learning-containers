@@ -337,7 +337,7 @@ CMD ["/bin/bash"]
 FROM common AS sagemaker
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ARG PYTHON
 ARG PYTHON_VERSION
