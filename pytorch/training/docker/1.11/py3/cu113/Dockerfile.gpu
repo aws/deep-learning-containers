@@ -18,7 +18,7 @@ ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-we
 FROM nvidia/cuda:11.3.1-base-ubuntu20.04 AS common
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ARG PYTHON
 ARG PYTHON_VERSION
@@ -337,7 +337,7 @@ CMD ["/bin/bash"]
 FROM common AS sagemaker
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="2"
+LABEL dlc_major_version="1"
 
 ARG PYTHON
 ARG PYTHON_VERSION
