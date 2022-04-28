@@ -1,6 +1,6 @@
 sqlite3
-python3.5
-speex
-vim
 wget
+vim
 libc6
+speex
+python3.5
