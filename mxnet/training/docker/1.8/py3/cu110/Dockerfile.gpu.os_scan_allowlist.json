@@ -775,19 +775,19 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Needed"
+                                "Released (7.58.0-2ubuntu3.17)"
                             ],
                             [
                                 "focal",
-                                "Needed"
+                                "Released (7.68.0-1ubuntu2.10)"
                             ],
                             [
                                 "impish",
-                                "Needed"
+                                "Released (7.74.0-1.3ubuntu2.1)"
                             ],
                             [
                                 "jammy",
-                                "Needed"
+                                "Released (7.81.0-1ubuntu1.1)"
                             ],
                             [
                                 "trusty",
@@ -834,19 +834,19 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Needed"
+                                "Released (7.58.0-2ubuntu3.17)"
                             ],
                             [
                                 "focal",
-                                "Needed"
+                                "Released (7.68.0-1ubuntu2.10)"
                             ],
                             [
                                 "impish",
-                                "Needed"
+                                "Released (7.74.0-1.3ubuntu2.1)"
                             ],
                             [
                                 "jammy",
-                                "Needed"
+                                "Released (7.81.0-1ubuntu1.1)"
                             ],
                             [
                                 "trusty",
@@ -2410,7 +2410,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.3"
+                    "value": "2.23-0ubuntu11.2"
                 },
                 {
                     "key": "package_name",
@@ -2469,7 +2469,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.2"
+                    "value": "2.23-0ubuntu11.3"
                 },
                 {
                     "key": "package_name",
@@ -5441,7 +5441,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -5514,7 +5514,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
