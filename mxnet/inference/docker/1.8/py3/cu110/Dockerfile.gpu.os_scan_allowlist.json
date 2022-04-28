@@ -748,6 +748,124 @@
             ],
             "severity": "MEDIUM",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-22947"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "7.47.0-1ubuntu2.19"
+                },
+                {
+                    "key": "package_name",
+                    "value": "curl"
+                }
+            ],
+            "description": "OAUTH2 bearer bypass in connection re-use",
+            "name": "CVE-2022-22576",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "curl",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
+                                "trusty",
+                                "Needed"
+                            ],
+                            [
+                                "upstream",
+                                "Pending (7.83.0)"
+                            ],
+                            [
+                                "xenial",
+                                "Needed"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-22576"
+        },
+        {
+            "attributes": [
+                {
+                    "key": "package_version",
+                    "value": "7.47.0-1ubuntu2.19"
+                },
+                {
+                    "key": "package_name",
+                    "value": "curl"
+                }
+            ],
+            "description": "Credential leak on redirect",
+            "name": "CVE-2022-27774",
+            "scraped_data": [
+                {
+                    "notes": [],
+                    "status_table": {
+                        "packages": [
+                            "curl",
+                            "Launchpad",
+                            "Ubuntu",
+                            "Debian"
+                        ],
+                        "release_states": [
+                            [
+                                "bionic",
+                                "Needed"
+                            ],
+                            [
+                                "focal",
+                                "Needed"
+                            ],
+                            [
+                                "impish",
+                                "Needed"
+                            ],
+                            [
+                                "jammy",
+                                "Needed"
+                            ],
+                            [
+                                "trusty",
+                                "Needed"
+                            ],
+                            [
+                                "upstream",
+                                "Pending (7.83.0)"
+                            ],
+                            [
+                                "xenial",
+                                "Needed"
+                            ]
+                        ]
+                    }
+                }
+            ],
+            "severity": "MEDIUM",
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-27774"
         }
     ],
     "cyrus-sasl2": [
@@ -6635,7 +6753,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -6702,7 +6820,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -7140,79 +7258,6 @@
                 },
                 {
                     "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:L/Au:S/C:N/I:N/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "4"
-                }
-            ],
-            "description": "There's a flaw in urllib's AbstractBasicAuthHandler class. An attacker who controls a malicious HTTP server that an HTTP client (such as web browser) connects to, could trigger a Regular Expression Denial of Service (ReDOS) during an authentication request with a specially crafted payload that is sent by the server to the client. The greatest threat that this flaw poses is to application availability.",
-            "name": "CVE-2021-3733",
-            "scraped_data": [
-                {
-                    "notes": [
-                        "code affected in hirsute and devel is already patched, so both releases\nin python3.9 are not affected."
-                    ],
-                    "status_table": {
-                        "packages": [
-                            "python3.5",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Does not exist"
-                            ],
-                            [
-                                "focal",
-                                "Does not exist"
-                            ],
-                            [
-                                "hirsute",
-                                "Does not exist"
-                            ],
-                            [
-                                "impish",
-                                "Does not exist"
-                            ],
-                            [
-                                "jammy",
-                                "Does not exist"
-                            ],
-                            [
-                                "trusty",
-                                "Needed"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (3.5.2-2ubuntu0~16.04.13+esm1)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3733"
-        },
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "3.5.2-2ubuntu0~16.04.13"
-                },
-                {
-                    "key": "package_name",
-                    "value": "python3.5"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
                     "value": "AV:N/AC:M/Au:N/C:N/I:N/A:C"
                 },
                 {
@@ -7405,79 +7450,6 @@
             ],
             "severity": "MEDIUM",
             "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2022-0391"
-        }
-    ],
-    "speex": [
-        {
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "1.2~rc1.2-1ubuntu1"
-                },
-                {
-                    "key": "package_name",
-                    "value": "speex"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:P"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "4.3"
-                }
-            ],
-            "description": "A Divide by Zero vulnerability in the function static int read_samples of Speex v1.2 allows attackers to cause a denial of service (DoS) via a crafted WAV file.",
-            "name": "CVE-2020-23903",
-            "scraped_data": [
-                {
-                    "notes": [],
-                    "status_table": {
-                        "packages": [
-                            "speex",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Released (1.2~rc1.2-1ubuntu2.1)"
-                            ],
-                            [
-                                "focal",
-                                "Released (1.2~rc1.2-1.1ubuntu1.20.04.1)"
-                            ],
-                            [
-                                "hirsute",
-                                "Ignored (reached end-of-life)"
-                            ],
-                            [
-                                "impish",
-                                "Released (1.2~rc1.2-1.1ubuntu1.21.10.1)"
-                            ],
-                            [
-                                "jammy",
-                                "Released (1.2~rc1.2-1.1ubuntu3)"
-                            ],
-                            [
-                                "trusty",
-                                "Ignored (out of standard support)"
-                            ],
-                            [
-                                "upstream",
-                                "Needs triage"
-                            ],
-                            [
-                                "xenial",
-                                "Released (1.2~rc1.2-1ubuntu1+esm1)"
-                            ]
-                        ]
-                    }
-                }
-            ],
-            "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2020-23903"
         }
     ],
     "systemd": [
