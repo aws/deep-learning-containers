@@ -702,19 +702,19 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Needed"
+                                "Released (7.58.0-2ubuntu3.17)"
                             ],
                             [
                                 "focal",
-                                "Needed"
+                                "Released (7.68.0-1ubuntu2.10)"
                             ],
                             [
                                 "impish",
-                                "Needed"
+                                "Released (7.74.0-1.3ubuntu2.1)"
                             ],
                             [
                                 "jammy",
-                                "Needed"
+                                "Released (7.81.0-1ubuntu1.1)"
                             ],
                             [
                                 "trusty",
@@ -761,19 +761,19 @@
                         "release_states": [
                             [
                                 "bionic",
-                                "Needed"
+                                "Released (7.58.0-2ubuntu3.17)"
                             ],
                             [
                                 "focal",
-                                "Needed"
+                                "Released (7.68.0-1ubuntu2.10)"
                             ],
                             [
                                 "impish",
-                                "Needed"
+                                "Released (7.74.0-1.3ubuntu2.1)"
                             ],
                             [
                                 "jammy",
-                                "Needed"
+                                "Released (7.81.0-1ubuntu1.1)"
                             ],
                             [
                                 "trusty",
