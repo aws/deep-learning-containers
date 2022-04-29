@@ -22,6 +22,7 @@ RETURNVAL=${PIPESTATUS[0]}
 if [ $RETURNVAL -eq 0 ];
 then
     echo "Tensorflow framework test suite executed successfully"
+    echo "Kudos!! Habana tests executed successfully" >> "${LOG_FILE}"
     exitcode=0
 else
     echo "Tensorflow framework test suite terminated unsuccessfully"
