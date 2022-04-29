@@ -16,6 +16,7 @@ from test.test_utils import (
     ECR_SCAN_HELPER_BUCKET,
     is_canary_context,
     get_all_the_tags_of_an_image_from_ecr,
+    is_image_available_locally,
 )
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
@@ -105,6 +106,11 @@ def test_ecr_scan(image, ecr_client, sts_client, region):
     image_account_id = get_account_id_from_image_uri(image)
     image_repo_name, original_image_tag = get_repository_and_tag_from_image_uri(image)
     additional_image_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image)
+    if not is_image_available_locally(image):
+        LOGGER.info(f"Image {image} not available locally!! Pulling the image...")
+        run(f"docker pull {image}")
+        if not is_image_available_locally(image):
+            raise RuntimeError("Image shown as not available even after pulling")
     for additional_tag in additional_image_tags:
         image_uri_with_new_tag = image.replace(original_image_tag, additional_tag)
         run(f"docker tag {image} {image_uri_with_new_tag}", hide=True)

@@ -1475,3 +1475,14 @@ def execute_env_variables_test(image_uri, env_vars_to_test, container_name_prefi
         assert actual_val == expected_val, \
             f"Environment variable {var} is expected to be {expected_val}. {assertion_error_sentence}."
     stop_and_remove_container(container_name, ctx)
+
+
+def is_image_available_locally(image_uri):
+    """
+    Check if the image exists locally.
+
+    :param image_uri: str, image that needs to be checked
+    :return: bool, True if image exists locally, otherwise false
+    """
+    run_output = run(f"docker inspect {image_uri}", hide=True, warn=True)
+    return run_output.ok
