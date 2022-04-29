@@ -66,23 +66,16 @@ def main():
         and args.framework not in frameworks_to_skip
     )
     # An EI dedicated builder will work if in EI mode and its framework not been disabled
-    ei_builder_enabled = (
-        ei_dedicated and ei_build_mode and args.framework not in frameworks_to_skip
-    )
+    ei_builder_enabled = ei_dedicated and ei_build_mode and args.framework not in frameworks_to_skip
 
     # A NEURON dedicated builder will work if in NEURON mode and its framework has not been disabled
-    neuron_builder_enabled = (
-        neuron_dedicated
-        and neuron_build_mode
-        and args.framework not in frameworks_to_skip
-    )
+    neuron_builder_enabled = neuron_dedicated and neuron_build_mode and args.framework not in frameworks_to_skip
 
     # A GRAVITON dedicated builder will work if in GRAVITON mode and its framework has not been disabled
-    graviton_builder_enabled = (
-        graviton_dedicated
-        and graviton_build_mode
-        and args.framework not in frameworks_to_skip
-    )
+    graviton_builder_enabled = graviton_dedicated and graviton_build_mode and args.framework not in frameworks_to_skip
+
+    # A HABANA dedicated builder will work if in HABANA mode and its framework has not been disabled
+    habana_builder_enabled = habana_dedicated and habana_build_mode and args.framework not in frameworks_to_skip
 
     # A HABANA dedicated builder will work if in HABANA mode and its framework has not been disabled
     habana_builder_enabled = (

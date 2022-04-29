@@ -70,6 +70,7 @@ RUN apt-get update \
     tk-dev \
     libgdbm-dev \
     libc6-dev \
+ && apt-get install -y -qq libsasl2-dev libsasl2-modules \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -85,7 +86,7 @@ RUN ${PIP} --no-cache-dir install --upgrade \
     setuptools
 
 
-# Install TensorRT 
+# Install TensorRT
 # see https://github.com/NVIDIA/TensorRT/blob/master/docker/ubuntu-20.04.Dockerfile
 ENV TRT_VERSION 8.0.1.6
 ENV CUDA_VERSION 11.3.1
@@ -128,7 +129,7 @@ RUN ${PIP} install -U --no-cache-dir \
     protobuf==3.14.0 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api-gpu==2.6
+    tensorflow-serving-api-gpu==2.6.0
 
 COPY ./sagemaker /sagemaker
 

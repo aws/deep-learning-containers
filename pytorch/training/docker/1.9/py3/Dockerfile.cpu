@@ -28,8 +28,8 @@ ENV PATH=/opt/conda/bin:$PATH
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV DGLBACKEND=pytorch
 
-ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.9.0_aws_v3/20210621-225848/ba7c4b277d2664f51afae8f0bfef33ec82dd6018/cpu/torch-1.9.0-cp38-cp38-manylinux1_x86_64.whl
-ARG PT_TORCHVISION_URL=https://torchvision-build-rc.s3.us-west-2.amazonaws.com/1.9.0/cpu/07-30-2021/torchvision-0.10.0-cp38-cp38-linux_x86_64.whl
+ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.9.1_aws_v3/20210925-173424/7b75a1ebbf2ad37219e1a59da150faa89c2a455e/cpu/torch-1.9.1-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.9.1_aws_v3/torchvision/cpu/torchvision-0.10.1%2Bcpu-cp38-cp38-manylinux1_x86_64.whl
 ARG PT_S3_WHL=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
 
 WORKDIR /
@@ -78,6 +78,26 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
+# Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends openssh-client openssh-server \
+ && mkdir -p /var/run/sshd \
+ && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
+ && rm -rf /var/lib/apt/lists/*
+
+# Configure OpenSSH so that nodes can communicate with each other
+RUN mkdir -p /var/run/sshd && \
+ sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+RUN rm -rf /root/.ssh/ && \
+ mkdir -p /root/.ssh/ && \
+ ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
+ cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+ && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
+
+
 RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p /opt/conda \
@@ -88,8 +108,6 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
  && /opt/conda/bin/conda install -y -c anaconda \
     # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
     ruamel_yaml==0.15.100 \
-    numpy \
-    ipython \
     mkl \
     mkl-include \
     cython \
@@ -107,7 +125,7 @@ RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-lat
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
 # Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
-# once conda fixes the issue
+# once conda fixes the issue https://github.com/conda/conda/issues/9680
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
 # The following section uninstalls torch and torchvision before installing the
@@ -116,7 +134,11 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
     "pyyaml>=5.4,<5.5" \
+    numpy==1.22.2 \
+    ipython==8.0.1 \
     opencv-python==4.5.2.54 \
+    "botocore>1.0,<2.0" \
+    "boto3>1.0,<2.0" \
     "awscli<2" \
     scipy \
     click \
@@ -127,7 +149,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
     sagemaker-experiments==0.* \
     "sagemaker-pytorch-training<3" \
     psutil==5.6.7 \
-    Pillow==8.3.1 \
+    "Pillow>=9.0.0" \
  && pip uninstall -y torch \
  && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
  && pip uninstall -y torchvision \

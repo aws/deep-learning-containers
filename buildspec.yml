@@ -35,7 +35,6 @@ phases:
             python src/main.py --buildspec $FRAMEWORK/buildspec-neuron.yml --framework $FRAMEWORK
           fi
         elif expr "${CODEBUILD_BUILD_ARN}" : ".*graviton" >/dev/null; then
-          # no TF1 support for Graviton hardware
           python src/main.py --buildspec $FRAMEWORK/buildspec-graviton.yml --framework $FRAMEWORK
         else
           if expr "${CODEBUILD_BUILD_ARN}" : ".*tensorflow-1" >/dev/null; then

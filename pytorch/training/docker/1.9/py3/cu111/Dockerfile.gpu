@@ -46,8 +46,8 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ENV MANUAL_BUILD=0
 ENV RDMAV_FORK_SAFE=1
 
-ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.9.0_aws_v3/20210621-225848/ba7c4b277d2664f51afae8f0bfef33ec82dd6018/gpu/torch-1.9.0-cp38-cp38-manylinux1_x86_64.whl
-ARG PT_TORCHVISION_URL=https://torchvision-build-rc.s3.us-west-2.amazonaws.com/1.9.0/gpu/07-30-2021/torchvision-0.10.0-cp38-cp38-linux_x86_64.whl
+ARG PT_TRAINING_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.9.1_aws_v3/20210925-173424/7b75a1ebbf2ad37219e1a59da150faa89c2a455e/gpu/torch-1.9.1-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_TORCHVISION_URL=https://aws-pytorch-cicd-v3-binaries.s3.us-west-2.amazonaws.com/r1.9.1_aws_v3/torchvision/gpu/torchvision-0.10.1%2Bcu111-cp38-cp38-manylinux1_x86_64.whl
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-1.9.0/build-artifacts/2021-06-29-16-48/smdistributed_modelparallel-1.4.0-cp38-cp38-linux_x86_64.whl
 ARG SMDATAPARALLEL_BINARY=https://smdataparallel.s3.amazonaws.com/binary/pytorch/1.9.0/cu111/2021-08-13/smdistributed_dataparallel-1.2.0-cp38-cp38-linux_x86_64.whl
 ARG PT_S3_WHL_GPU=https://aws-s3-plugin.s3.us-west-2.amazonaws.com/binaries/0.0.1/1c3e69e/awsio-0.0.1-cp38-cp38-manylinux1_x86_64.whl
@@ -130,7 +130,7 @@ ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
- && curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+ && curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-py38_4.10.3-Linux-x86_64.sh \
  && chmod +x ~/miniconda.sh \
  && ~/miniconda.sh -b -p ${CONDA_PREFIX} \
  && rm ~/miniconda.sh \
@@ -163,7 +163,7 @@ RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
 
 RUN conda install -c pytorch magma-cuda111==2.5.2 \
  && conda install -y scikit-learn \
-    pandas \
+    pandas==1.2.4 \
     h5py \
     requests \
     libgcc \
@@ -191,15 +191,17 @@ WORKDIR /root
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install --no-cache-dir -U \
     opencv-python==4.5.2.54 \
+    "botocore>1.0,<2.0" \
+    "boto3>1.0,<2.0" \
+    "awscli<2" \
     smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
     sagemaker-experiments==0.* \
     sagemaker-pytorch-training \
-   "pyyaml>=5.4,<5.5" \
-    "awscli<2" \
+    "pyyaml>=5.4,<5.5" \
     psutil \
-    Pillow==8.3.1 \
+    "Pillow>=8.3.2,<8.4" \
     scipy \
     pybind11 \
     click \
@@ -216,12 +218,19 @@ RUN pip install --no-cache-dir -U \
 # numba 0.54 only works with numpy>=1.20. See https://github.com/numba/numba/issues/7339
 RUN pip install --no-cache-dir -U \
     "bokeh>=2.3,<3" \
-    "imageio>=2.9,<3" \
+    "imageio==2.10.3" \
     "opencv-python>=4.3,<5" \
-    "plotly>=5.1,<6" \
+    "plotly==5.3.1" \
     "seaborn>=0.11,<1" \
-    "numba<0.54" \
-    "shap>=0.39,<1"
+    "numba==0.53.1" \
+    "shap>=0.39,<1" \
+    "jsii==1.43.0" \
+    "marshmallow==3.14.0" \
+    "matplotlib==3.4.3" \
+    "packaging==21.2" \
+    "pyarrow==6.0.0" \
+    "pyinstrument==4.0.4" \
+    "pyparsing==2.4.7"
 
 # install metis
 RUN rm /etc/apt/sources.list.d/* \

@@ -15,8 +15,6 @@ from __future__ import absolute_import
 import os
 
 import pytest
-import sagemaker
-import sagemaker.huggingface
 from sagemaker.huggingface import HuggingFace
 
 from packaging.version import Version

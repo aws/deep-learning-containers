@@ -52,6 +52,7 @@ RUN apt-get update \
     tk-dev \
     libgdbm-dev \
     libc6-dev \
+ && apt-get install -y -qq libsasl2-dev libsasl2-modules \
  && curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
  && echo 'deb http://nginx.org/packages/ubuntu/ focal nginx' >> /etc/apt/sources.list \
  && apt-get update \
@@ -85,7 +86,7 @@ RUN ${PIP} install --no-cache-dir \
     protobuf==3.14.0 \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api==2.6
+    tensorflow-serving-api==2.6.0
 
 COPY ./sagemaker /sagemaker
 

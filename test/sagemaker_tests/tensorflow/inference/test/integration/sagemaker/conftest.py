@@ -92,6 +92,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--efa", action="store_true", default=False, help="Run only efa tests",
     )
+    parser.addoption('--sagemaker-regions', default="us-west-2")
 
 
 def pytest_runtest_setup(item):
@@ -127,6 +128,12 @@ def pytest_configure(config):
 @pytest.fixture(scope="session")
 def region(request):
     return request.config.getoption("--region")
+
+
+@pytest.fixture(scope='session', name='sagemaker_regions')
+def sagemaker_regions(request):
+    sagemaker_regions = request.config.getoption('--sagemaker-regions')
+    return sagemaker_regions.split(",")
 
 
 @pytest.fixture(scope="session")
@@ -184,6 +191,14 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
 @pytest.fixture(autouse=True)
 def skip_by_device_type(request, instance_type):
     is_gpu = instance_type.lstrip("ml.")[0] in ["g", "p"]
+    is_neuron = instance_type == 'ml.inf1.xlarge'
+
+    #If neuron run only tests marked as neuron
+    if (is_neuron  and not request.node.get_closest_marker("neuron_test")):
+        pytest.skip("Skipping because running on \"{}\" instance".format(instance_type))
+    if (request.node.get_closest_marker("neuron_test") and not is_neuron):
+        pytest.skip("Skipping because running on \"{}\" instance".format(instance_type))
+
     if (request.node.get_closest_marker("skip_gpu") and is_gpu) or \
             (request.node.get_closest_marker("skip_cpu") and not is_gpu):
         pytest.skip("Skipping because running on \"{}\" instance".format(instance_type))
@@ -239,3 +254,20 @@ def disable_test(request):
 
     if build_name and version and _is_test_disabled(test_name, build_name, version):
         pytest.skip(f"Skipping {test_name} test because it has been disabled.")
+
+
+@pytest.fixture(autouse=True)
+def skip_test_successfully_executed_before(request):
+    """
+    "cache/lastfailed" contains information about failed tests only. We're running SM tests in separate threads for each image.
+    So when we retry SM tests, successfully executed tests executed again because pytest doesn't have that info in /.cache.
+    But the flag "--last-failed-no-failures all" requires pytest to execute all the available tests.
+    The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.  
+    The method checks whether lastfailed file exists and the test name is not in it.
+    """
+    test_name = request.node.name
+    lastfailed = request.config.cache.get("cache/lastfailed", None)
+
+    if lastfailed is not None \
+            and not any(test_name in failed_test_name for failed_test_name in lastfailed.keys()):
+        pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")

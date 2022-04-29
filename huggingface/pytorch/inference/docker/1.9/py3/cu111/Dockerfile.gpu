@@ -7,7 +7,7 @@ LABEL dlc_major_version="1"
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
-ARG MMS_VERSION=1.1.4
+ARG MMS_VERSION=1.1.7
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.8.10
 ARG OPEN_MPI_VERSION=4.0.1
@@ -22,7 +22,7 @@ ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
 ENV MKL_THREADING_LAYER=GNU
 
 # HF ARGS
-ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.9.0_inference/20210730-020505/2dc3e2055764606a22a3c59ea955184e85ad6110/gpu/torch-1.9.0-cp38-cp38-manylinux1_x86_64.whl
+ARG PT_INFERENCE_URL=https://pytorch-ei-binaries.s3.us-west-2.amazonaws.com/r1.9.1_inference/gpu/torch-1.9.1-cp38-cp38-manylinux1_x86_64.whl
 ARG TRANSFORMERS_VERSION
 
 ENV PYTHONDONTWRITEBYTECODE=1 \

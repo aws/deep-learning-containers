@@ -354,8 +354,9 @@ def main():
                 context = Context()
                 context.run("git clone https://github.com/HabanaAI/gaudi-test-suite.git")
                 context.run("tar -c -f gaudi-test-suite.tar.gz gaudi-test-suite")
-
-            pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
+            else:
+                pytest_cmd += ["--reruns=1", "--reruns-delay=10"]
+        
         if is_pr_context():
             if specific_test_type == "eks":
                 pytest_cmd.append("--timeout=2340")
@@ -388,6 +389,12 @@ def main():
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
     elif specific_test_type == "sagemaker":
+        if "habana" in dlc_images:
+            LOGGER.info(f"Skipping SM tests for Habana. Images: {dlc_images}")
+            # Creating an empty file for because codebuild job fails without it
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report, test_type, "habana")
+            return
         if benchmark_mode:
             if "neuron" in dlc_images:
                 LOGGER.info(f"Skipping benchmark sm tests for Neuron. Images: {dlc_images}")
@@ -422,6 +429,12 @@ def main():
             # Creating an empty file for because codebuild job fails without it
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
             sm_utils.generate_empty_report(report, test_type, "neuron")
+            return
+        if "habana" in dlc_images:
+            LOGGER.info(f"Skipping sagemaker tests because Habana is not yet supported on SM. Images: {dlc_images}")
+            # Creating an empty file for because codebuild job fails without it
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report, test_type, "habana")
             return
         testing_image_list = [
             image

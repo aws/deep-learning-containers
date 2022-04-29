@@ -17,6 +17,7 @@ import os
 import pytest
 from sagemaker import utils
 from sagemaker.mxnet.estimator import MXNet
+from ..... import invoke_sm_helper_function
 
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
@@ -28,7 +29,12 @@ SCRIPT_PATH = os.path.join(DATA_PATH, 'mnist_gluon_basic_hook_demo.py')
 @pytest.mark.integration("smdebug")
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
-def test_training(sagemaker_session, ecr_image, instance_type, instance_count, framework_version):
+def test_training(ecr_image, sagemaker_regions, instance_type, instance_count, framework_version):
+    invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_training,
+                              instance_type, instance_count, framework_version)
+
+
+def _test_training(ecr_image, sagemaker_session, instance_type, instance_count, framework_version):
     hyperparameters = {'random_seed': True,
                        'num_steps': 50,
                        'smdebug_path': '/tmp/ml/output/tensors',
@@ -45,10 +51,10 @@ def test_training(sagemaker_session, ecr_image, instance_type, instance_count, f
 
     with timeout(minutes=15):
         prefix = 'mxnet_mnist_gluon_basic_hook_demo/{}'.format(utils.sagemaker_timestamp())
-        train_input = mx.sagemaker_session.upload_data(path=os.path.join(DATA_PATH, 'train'),
-                                                       key_prefix=prefix + '/train')
-        test_input = mx.sagemaker_session.upload_data(path=os.path.join(DATA_PATH, 'test'),
-                                                      key_prefix=prefix + '/test')
+        train_input = sagemaker_session.upload_data(path=os.path.join(DATA_PATH, 'train'),
+                                                    key_prefix=prefix + '/train')
+        test_input = sagemaker_session.upload_data(path=os.path.join(DATA_PATH, 'test'),
+                                                   key_prefix=prefix + '/test')
 
         job_name = utils.unique_name_from_base('test-mxnet-image')
         mx.fit({'train': train_input, 'test': test_input}, job_name=job_name)

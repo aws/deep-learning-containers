@@ -38,14 +38,6 @@ pip install pytest
 
 echo "Running framework tests."
 
-if [[ $FRAMEWORK == "tensorflow2" ]]; then
-    TENSORFLOW_DATASETS_VERSION="4.0.1"
-    tf_version=$(python -c "import tensorflow as tf; print(tf.__version__)")
-    if [[ "$tf_version" == *"2.0."* ]]; then
-         TENSORFLOW_DATASETS_VERSION="3.2.1"
-    fi
-    # pip install tensorflow-datasets==${TENSORFLOW_DATASETS_VERSION}
-fi
 if [[ $FRAMEWORK == "tensorflow2" ]] || [[ $FRAMEWORK == "pytorch" ]]; then
     for test_file in tests/profiler/${FRAMEWORK}/*
     do

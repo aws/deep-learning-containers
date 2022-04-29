@@ -35,13 +35,12 @@ ECS_MXNET_PYTORCH_INFERENCE_PORT_MAPPINGS = [
     {"containerPort": 8080, "hostPort": 80, "protocol": "tcp"},
 ]
 
-TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
-
 
 class ECSException(Exception):
     """
     Base class for other exceptions
     """
+
     pass
 
 
@@ -49,6 +48,7 @@ class ECSClusterCreationException(ECSException):
     """
     Raised when cluster creation fails
     """
+
     pass
 
 
@@ -56,6 +56,7 @@ class ECSDescribeClusterException(ECSException):
     """
     Raised when describe cluster fails
     """
+
     pass
 
 
@@ -63,6 +64,7 @@ class ECSTestArtifactCopyException(ECSException):
     """
     Raised when copying test artifacts fails
     """
+
     pass
 
 
@@ -70,6 +72,7 @@ class ECSTaskNotStoppedError(ECSException):
     """
     Raise when ECS task is not in a stopped state
     """
+
     pass
 
 
@@ -77,11 +80,13 @@ class ECSTrainingTestFailure(ECSException):
     """
     Raise when an ECS training test fails
     """
+
     pass
 
 
 class ECSServiceCreationException(ECSException):
     """Raised when create service on ECS fails"""
+
     pass
 
 
@@ -662,23 +667,6 @@ def get_ecs_port_mappings(framework):
         return ECS_MXNET_PYTORCH_INFERENCE_PORT_MAPPINGS
     else:
         raise Exception("Framework not Implemented")
-
-
-def get_ecs_tensorflow_environment_variables(processor, model_name):
-    """
-    Get method for environment variables for tensorflow inference via S3 on ECS
-    Requirement: Model should be hosted in S3 location defined in TENSORFLOW_MODELS_PATH
-    :param processor:
-    :param model_name:
-    :return: <list> JSON
-    """
-    model_name = get_tensorflow_model_name(processor, model_name)
-    ecs_tensorflow_inference_environment = [
-        {"name": "MODEL_NAME", "value": model_name},
-        {"name": "MODEL_BASE_PATH", "value": TENSORFLOW_MODELS_BUCKET},
-    ]
-
-    return ecs_tensorflow_inference_environment
 
 
 def build_ecs_training_command(s3_test_location, test_string):

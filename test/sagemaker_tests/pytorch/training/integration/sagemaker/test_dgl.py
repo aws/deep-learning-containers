@@ -23,6 +23,7 @@ from ...integration.sagemaker.timeout import timeout
 
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 from .... import invoke_pytorch_helper_function
 
 
@@ -38,8 +39,8 @@ DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "gcn.py")
 def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
     # TODO: Remove when DGL gpu test on ecs get fixed
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    if Version(image_framework_version) >= Version("1.10"):
-        pytest.skip("ecs test for DGL gpu fails since pt 1.10")
+    if Version(image_framework_version) in SpecifierSet("==1.10.*"):
+        pytest.skip("ecs test for DGL gpu fails for pt 1.10")
 
     instance_type = instance_type or "ml.c4.xlarge"
     function_args = {
@@ -58,8 +59,8 @@ def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
     
     # TODO: Remove when DGL gpu test on ecs get fixed
-    if Version(image_framework_version) >= Version("1.10") and image_cuda_version == "cu113":
-        pytest.skip("ecs test for DGL gpu fails since pt 1.10")
+    if Version(image_framework_version) in SpecifierSet("==1.10.*") and image_cuda_version == "cu113":
+        pytest.skip("ecs test for DGL gpu fails for pt 1.10")
 
     if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
         pytest.skip("DGL does not support CUDA 11 for PyTorch 1.6")
@@ -69,16 +70,6 @@ def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
         "instance_type": instance_type,
     }
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
-
-
-# Placeholder for Habana SM test
-@pytest.mark.model('N/A')
-def test_dgl_training_habana(sagemaker_session,
-                                      instance_type,
-                                      ecr_image,
-                                      tmpdir,
-                                      framework_version):
-    assert 1==1
 
 
 def _test_dgl_training(ecr_image, sagemaker_session, instance_type):
