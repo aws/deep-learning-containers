@@ -15,7 +15,7 @@ graviton_mode = false
 habana_mode = false
 # Please only set it to True if you are preparing a TRCOMP related PR
 # Do remember to revert it back to False before merging any PR (including TRCOMP dedicated PR)
-trcomp_mode = false
+trcomp_mode = true
 # Please only set it to True if you are preparing a Benchmark related PR
 # Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
 benchmark_mode = false
@@ -23,7 +23,7 @@ benchmark_mode = false
 [build]
 # Frameworks for which you want to disable both builds and tests
 # available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "tensorflow", "mxnet", "pytorch"]
-skip_frameworks = []
+skip_frameworks = ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "tensorflow", "mxnet", "pytorch"]
 # Set to false in order to remove datetime tag on PR builds
 datetime_tag = true
 # Note: Need to build the images at least once with datetime_tag = false
@@ -48,6 +48,6 @@ sagemaker_local_tests = false
 # "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
 # "rc" --> run release_candidate_integration tests
 # "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "off"
+sagemaker_remote_tests = "standard"
 
 use_scheduler = false
