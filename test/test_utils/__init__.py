@@ -131,7 +131,11 @@ def get_dockerfile_path_for_image(image_uri):
 
     framework, framework_version = get_framework_and_version_from_tag(image_uri)
 
-    if "huggingface" in framework:
+    if "trcomp" in framework:
+        # Replace the trcomp string as it is extracted from ECR repo name
+        framework = framework.replace("_trcomp", "")
+        framework_path = framework.replace("_", os.path.sep)
+    elif "huggingface" in framework:
         framework_path = framework.replace("_", os.path.sep)
     elif "habana" in image_uri:
         framework_path = os.path.join("habana", framework)
@@ -199,6 +203,8 @@ def get_expected_dockerfile_filename(device_type, image_uri):
         return f"Dockerfile.e3.{device_type}"
     if is_sagemaker_image(image_uri):
         return f"Dockerfile.sagemaker.{device_type}"
+    if is_trcomp_image(image_uri):
+        return f"Dockerfile.trcomp.{device_type}"
     return f"Dockerfile.{device_type}"
 
 
@@ -223,6 +229,8 @@ def get_ecr_repo_name(image_uri):
 def is_tf_version(required_version, image_uri):
     """
     Validate that image_uri has framework version equal to required_version
+    Relaying on current convention to include TF version into an image tag for all
+    TF based frameworks
 
     :param required_version: str Framework version which is required from the image_uri
     :param image_uri: str ECR Image URI for the image to be validated
@@ -230,8 +238,16 @@ def is_tf_version(required_version, image_uri):
     """
     image_framework_name, image_framework_version = get_framework_and_version_from_tag(image_uri)
     required_version_specifier_set = SpecifierSet(f"=={required_version}.*")
-    return image_framework_name == "tensorflow" and image_framework_version in required_version_specifier_set
+    return is_tf_based_framework(image_framework_name) and image_framework_version in required_version_specifier_set
 
+
+def is_tf_based_framework(name):
+    """
+    Checks whether framework is TF based.
+    Relaying on current convention to include "tensorflow" into TF based names
+    E.g. "huggingface-tensorflow" or "huggingface-tensorflow-trcomp"
+    """
+    return "tensorflow" in name
 
 def is_below_framework_version(version_upper_bound, image_uri, framework):
     """
@@ -352,6 +368,10 @@ def is_sagemaker_image(image_uri):
     return "-sagemaker" in image_uri
 
 
+def is_trcomp_image(image_uri):
+    return "-trcomp" in image_uri
+
+
 def is_time_for_canary_safety_scan():
     """
     Canary tests run every 15 minutes.
@@ -367,7 +387,6 @@ def is_time_for_invoking_ecr_scan_failure_routine_lambda():
     """
     current_utc_time = time.gmtime()
     return current_utc_time.tm_hour == 16 and (0 < current_utc_time.tm_min < 20)
-
 
 def _get_remote_override_flags():
     try:
@@ -799,7 +818,7 @@ def get_canary_default_tag_py3_version(framework, version):
         if Version("2.6") <= Version(version) < Version("2.8"):
             return "py38"
         if Version(version) >= Version("2.8"):
-            return"py39"
+            return "py39"
 
     if framework == "mxnet":
         if Version(version) == Version("1.8"):
@@ -864,7 +883,6 @@ def parse_canary_images(framework, region):
 
     registry = PUBLIC_DLC_REGISTRY
     framework_versions = versions if len(versions) < 4 else versions[:3]
-    dlc_images = []
     for fw_version in framework_versions:
         py3_version = get_canary_default_tag_py3_version(framework, fw_version)
 
@@ -1030,6 +1048,8 @@ def get_framework_and_version_from_tag(image_uri):
     """
     tested_framework = get_framework_from_image_uri(image_uri)
     allowed_frameworks = (
+        "huggingface_tensorflow_trcomp",
+        "huggingface_pytorch_trcomp",
         "huggingface_tensorflow",
         "huggingface_pytorch",
         "tensorflow",
@@ -1189,10 +1209,14 @@ def get_neuron_framework_and_version_from_tag(image_uri):
 
 def get_framework_from_image_uri(image_uri):
     return (
-        "huggingface_tensorflow"
+        "huggingface_tensorflow_trcomp" 
+        if "huggingface-tensorflow-trcomp" in image_uri 
+        else "huggingface_tensorflow"
         if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch"
-        if "huggingface-pytorch" in image_uri
+        else "huggingface_pytorch_trcomp" 
+        if "huggingface-pytorch-trcomp" in image_uri 
+        else "huggingface_pytorch" 
+        if "huggingface-pytorch" in image_uri 
         else "mxnet"
         if "mxnet" in image_uri
         else "pytorch"
@@ -1248,6 +1272,21 @@ def get_cuda_version_from_tag(image_uri):
         raise CudaVersionTagNotFoundException()
     else:
         return None
+
+
+def get_synapseai_version_from_tag(image_uri):
+    """
+    Return the synapseai version from the image tag.
+    :param image_uri: ECR image URI
+    :return: synapseai version
+    """
+    synapseai_version = None
+
+    synapseai_str = ["synapseai", "hpu"]
+    if all(keyword in image_uri for keyword in synapseai_str):
+        synapseai_version = re.search(r"synapseai(\d+(\.\d+){2})", image_uri).groups()[0]
+
+    return synapseai_version
 
 
 def get_synapseai_version_from_tag(image_uri):

@@ -1,0 +1,55 @@
+account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+region: &REGION <set-$REGION-in-environment>
+base_framework: &BASE_FRAMEWORK pytorch
+framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK, "_trcomp"]
+version: &VERSION 1.10.2
+short_version: &SHORT_VERSION "1.10"
+
+repository_info:
+  training_repository: &TRAINING_REPOSITORY
+    image_type: &TRAINING_IMAGE_TYPE training
+    root: !join [ "huggingface/", *BASE_FRAMEWORK, "/", *TRAINING_IMAGE_TYPE ]
+    repository_name: &REPOSITORY_NAME !join ["pr", "-", "huggingface", "-", *BASE_FRAMEWORK, "-", "trcomp", "-", *TRAINING_IMAGE_TYPE]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+
+images:
+  BuildHuggingFacePytorchTrCompGpuPy38Cu113TrainingDockerImage:
+    <<: *TRAINING_REPOSITORY
+    build: &HUGGINGFACE_PYTORCH_TRCOMP_GPU_TRAINING_PY3 false
+    image_size_baseline: &IMAGE_SIZE_BASELINE 18000
+    device_type: &DEVICE_TYPE gpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py38
+    cuda_version: &CUDA_VERSION cu113
+    os_version: &OS_VERSION ubuntu20.04
+    transformers_version: &TRANSFORMERS_VERSION 4.17.0
+    datasets_version: &DATASETS_VERSION 1.18.4
+    tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
+                 *CUDA_VERSION, '-', *OS_VERSION ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
+                         *CUDA_VERSION, /Dockerfile.trcomp., *DEVICE_TYPE ]
+    download_artifacts:
+      pytorch_whl:
+        type: s3
+        URI: s3://sm-training-comp-pytorch-binaries/cd4b3932-8a23-4d21-95d7-c14e1351bef5/20220401-191238/4187a5ac613030093caa36c7d5ea95c3b9bb9b98/torch-1.10.2+cu113-cp38-cp38-linux_x86_64.whl
+        VAR_IN_DOCKERFILE: PT_URL
+      pytorch_xla_whl:
+        type: s3
+        URI: s3://sm-training-comp-pytorch-binaries/cd4b3932-8a23-4d21-95d7-c14e1351bef5/20220401-191238/4187a5ac613030093caa36c7d5ea95c3b9bb9b98/torch_xla-1.10.0-cp38-cp38-linux_x86_64.whl
+        VAR_IN_DOCKERFILE: PT_XLA_URL
+      torchvision_whl:
+        type: s3
+        URI: s3://sm-training-comp-pytorch-binaries/cd4b3932-8a23-4d21-95d7-c14e1351bef5/20220401-191238/4187a5ac613030093caa36c7d5ea95c3b9bb9b98/torchvision-0.11.0a0+05eae32-cp38-cp38-linux_x86_64.whl
+        VAR_IN_DOCKERFILE: TORCHVISION_URL
+      torchaudio_whl:
+        type: s3
+        URI: s3://sm-training-comp-pytorch-binaries/cd4b3932-8a23-4d21-95d7-c14e1351bef5/20220401-191238/4187a5ac613030093caa36c7d5ea95c3b9bb9b98/torchaudio-0.10.1+6f539cf-cp38-cp38-linux_x86_64.whl
+        VAR_IN_DOCKERFILE: TORCHAUDIO_URL
+      huggingface_transformers_whl:
+        type: s3
+        URI: s3://sm-training-comp-pytorch-binaries/092f939a-23a9-4625-a74c-95e793816647/20220331-061338/6da962c22532524d43f33610e34a53fa998c5c8e/transformers-4.17.0-py3-none-any.whl
+        VAR_IN_DOCKERFILE: HF_TRANSFORMERS_URL
+      sagemaker_pysdk_whl:
+        type: s3
+        URI: s3://sagemaker-python-sdk-524001406597/dist/sagemaker.tar.gz 
+        VAR_IN_DOCKERFILE: SAGEMAKER_BINARY

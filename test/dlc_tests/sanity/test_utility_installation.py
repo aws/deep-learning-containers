@@ -45,6 +45,7 @@ def test_utility_packages_using_import(training):
     test_utils.start_container(container_name, training, ctx)
 
     framework, framework_version = test_utils.get_framework_and_version_from_tag(training)
+    framework = framework.replace("_trcomp", "")
     utility_package_minimum_framework_version = {
         "mxnet": "1.8",
         "pytorch": "1.7",

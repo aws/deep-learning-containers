@@ -72,6 +72,8 @@ FRAMEWORK_FIXTURES = (
     "huggingface_tensorflow_inference",
     "huggingface_pytorch_inference",
     "huggingface_mxnet_inference",
+    "huggingface_tensorflow_trcomp_training",
+    "huggingface_pytorch_trcomp_training",
     # Autogluon
     "autogluon_training",
     # Processor fixtures
@@ -120,6 +122,32 @@ def num_nodes(request):
 
 @pytest.fixture(scope="function")
 def ec2_key_name(request):
+    return request.param
+
+@pytest.fixture(scope="function")
+def ec2_key_file_name(request):
+    return request.param
+
+@pytest.fixture(scope="function")
+def ec2_user_name(request):
+    return request.param
+
+@pytest.fixture(scope="function")
+def ec2_public_ip(request):
+    return request.param
+
+@pytest.fixture(scope="function")
+def ec2_key_file_name(request):
+    return request.param
+
+
+@pytest.fixture(scope="function")
+def ec2_user_name(request):
+    return request.param
+
+
+@pytest.fixture(scope="function")
+def ec2_public_ip(request):
     return request.param
 
 
@@ -425,6 +453,11 @@ def non_huggingface_only():
 
 
 @pytest.fixture(scope="session")
+def training_compiler_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def non_autogluon_only():
     pass
 
@@ -666,6 +699,8 @@ def generate_unique_values_for_fixtures(metafunc_obj, images_to_parametrize, val
         "pytorch": "pt",
         "huggingface_pytorch": "hf-pt",
         "huggingface_tensorflow": "hf-tf",
+        "huggingface_pytorch_trcomp": "hf-pt-trc",
+        "huggingface_tensorflow_trcomp": "hf-tf-trc",
         "autogluon": "ag",
     }
     fixtures_parametrized = {}
@@ -711,18 +746,24 @@ def lookup_condition(lookup, image):
     """
     Return true if the ECR repo name ends with the lookup or lookup contains job type or device type part of the image uri.
     """
-    # Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
-    repo_name = get_ecr_repo_name(image)
+    #Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
+    repo_name = image.split("/")[-1].split(":")[0]
 
-    job_types = (
-        "training",
-        "inference",
-    )
-    device_types = ("cpu", "gpu", "eia", "neuron", "hpu", "graviton")
+    job_type = ("training", "inference",)
+    device_type = ("cpu", "gpu", "eia", "neuron", "hpu")
 
     if not repo_name.endswith(lookup):
-        if (lookup in job_types or lookup in device_types) and lookup in image:
+        if (lookup in job_type or lookup in device_type) and lookup in image:
             return True
+        # Pytest does not allow usage of fixtures, specially dynamically loaded fixtures into pytest.mark.parametrize
+        # See https://github.com/pytest-dev/pytest/issues/349.
+        # Hence, explicitly setting the below fixtues to allow trcomp images to run on E3 test
+        elif "huggingface-pytorch-trcomp-training" in repo_name:
+            if lookup == "pytorch-training":
+                return True
+        elif "huggingface-tensorflow-trcomp-training" in repo_name:
+            if lookup == "tensorflow-training":
+                return True
         else:
             return False
     else:
@@ -745,8 +786,13 @@ def pytest_generate_tests(metafunc):
                 if lookup_condition(lookup, image):
                     is_example_lookup = "example_only" in metafunc.fixturenames and "example" in image
                     is_huggingface_lookup = (
-                        "huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames
-                    ) and "huggingface" in image
+                            ("huggingface_only" in metafunc.fixturenames or "huggingface" in metafunc.fixturenames)
+                            and "huggingface" in image
+                    )
+                    is_trcomp_lookup = "trcomp" in image and all(
+                        fixture_name not in metafunc.fixturenames
+                        for fixture_name in ["example_only"]
+                    )
                     is_standard_lookup = all(
                         fixture_name not in metafunc.fixturenames
                         for fixture_name in ["example_only", "huggingface_only"]
@@ -768,7 +814,9 @@ def pytest_generate_tests(metafunc):
                         continue
                     if "x86_compatible_only" in metafunc.fixturenames and "graviton" in image:
                         continue
-                    if is_example_lookup or is_huggingface_lookup or is_standard_lookup:
+                    if "training_compiler_only" in metafunc.fixturenames and not ("trcomp" in image):
+                        continue
+                    if is_example_lookup or is_huggingface_lookup or is_standard_lookup or is_trcomp_lookup:
                         if "cpu_only" in metafunc.fixturenames and "cpu" in image and "eia" not in image:
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:

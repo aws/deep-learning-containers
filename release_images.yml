@@ -10,7 +10,7 @@ release_images:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py38" ]
       os_version: "ubuntu20.04"
-      cuda_version: "cu112"
+      cuda_version: "cu113"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
       # to images being published.
