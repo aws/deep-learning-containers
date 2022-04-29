@@ -22,7 +22,7 @@ import constants
 
 from buildspec import Buildspec
 from botocore.exceptions import ClientError
-from config import is_build_enabled
+from config import is_build_enabled, is_build_nightly_images_on_pr_enabled
 from invoke.context import Context
 from packaging.version import Version
 from safety_report_generator import SafetyReportGenerator
@@ -134,7 +134,7 @@ def get_framework_version_buildspec(framework_buildspec_path, builder_mode):
     if "current_versions" not in framework_buildspec_def:
         return framework_buildspec_path
 
-    env_build_context = constants.BUILD_CONTEXT
+    is_pr_or_dev_context = constants.BUILD_CONTEXT in ["PR", "DEV"]
     version_type_key = (
         "current_ei_versions"
         if builder_mode == constants.BuilderMode.EI_BUILDER
@@ -143,7 +143,7 @@ def get_framework_version_buildspec(framework_buildspec_path, builder_mode):
         else "current_graviton_versions"
         if builder_mode == constants.BuilderMode.GRAVITON_BUILDER
         else "nightly_versions"
-        if env_build_context == "NIGHTLY"
+        if is_pr_or_dev_context and is_build_nightly_images_on_pr_enabled()
         else "current_versions"
     )
     current_framework_versions = framework_buildspec_def.get(version_type_key, [])

@@ -38,6 +38,10 @@ def is_benchmark_mode_enabled():
     return parse_dlc_developer_configs("dev", "benchmark_mode")
 
 
+def is_build_nightly_images_on_pr_enabled():
+    return parse_dlc_developer_configs("build", "build_nightly_images_on_pr")
+
+
 def is_build_enabled():
     return parse_dlc_developer_configs("build", "do_build")
 

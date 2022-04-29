@@ -20,6 +20,7 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("dev", "habana_mode") is False
 
     # Check build settings
+    assert config.parse_dlc_developer_configs("build", "build_nightly_images_on_pr") is False
     assert config.parse_dlc_developer_configs("build", "skip_frameworks") == []
     assert config.parse_dlc_developer_configs("build", "datetime_tag") is True
     assert config.parse_dlc_developer_configs("build", "do_build") is True
