@@ -255,7 +255,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 
 
 # install smdebug directly the specific branch
-ARG SMDEBUG_TAG=1.0.14
+ARG SMDEBUG_TAG=1.0.16
 RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
     && cd sagemaker-debugger \
     && git checkout tags/$SMDEBUG_TAG -b $SMDEBUG_TAG \
