@@ -2410,7 +2410,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.3"
+                    "value": "2.23-0ubuntu11.2"
                 },
                 {
                     "key": "package_name",
@@ -2469,7 +2469,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "2.23-0ubuntu11.2"
+                    "value": "2.23-0ubuntu11.3"
                 },
                 {
                     "key": "package_name",
@@ -6607,7 +6607,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.20"
+                    "value": "1.0.2g-1ubuntu4.18"
                 },
                 {
                     "key": "package_name",
@@ -6680,7 +6680,7 @@
             "attributes": [
                 {
                     "key": "package_version",
-                    "value": "1.0.2g-1ubuntu4.18"
+                    "value": "1.0.2g-1ubuntu4.20"
                 },
                 {
                     "key": "package_name",
@@ -7328,23 +7328,13 @@
                 {
                     "key": "package_name",
                     "value": "python3.5"
-                },
-                {
-                    "key": "CVSS2_VECTOR",
-                    "value": "AV:N/AC:M/Au:N/C:N/I:N/A:C"
-                },
-                {
-                    "key": "CVSS2_SCORE",
-                    "value": "7.1"
                 }
             ],
-            "description": "A flaw was found in python. An improperly handled HTTP response in the HTTP client code of python may allow a remote attacker, who controls the HTTP server, to make the client script enter an infinite loop, consuming CPU time. The highest threat from this vulnerability is to system availability.",
-            "name": "CVE-2021-3737",
+            "description": "[ftplib should not use the host from the PASV response]",
+            "name": "CVE-2021-4189",
             "scraped_data": [
                 {
-                    "notes": [
-                        "impish/devel is not affected, code supposed affected was patched already."
-                    ],
+                    "notes": [],
                     "status_table": {
                         "packages": [
                             "python3.5",
@@ -7379,18 +7369,18 @@
                             ],
                             [
                                 "upstream",
-                                "Needs triage"
+                                "Needed"
                             ],
                             [
                                 "xenial",
-                                "Released (3.5.2-2ubuntu0~16.04.13+esm1)"
+                                "Released (3.5.2-2ubuntu0~16.04.13+esm2)"
                             ]
                         ]
                     }
                 }
             ],
             "severity": "MEDIUM",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-3737"
+            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2021-4189"
         },
         {
             "attributes": [
