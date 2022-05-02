@@ -351,16 +351,16 @@ RUN apt update && apt install -y libcurl4-openssl-dev
 RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
     && cd sagemaker-tensorflow-extensions \
     && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \
-    && $PYTHON -m pip install . \
+    && pip install . \
     && cd .. && rm -rf sagemaker-tensorflow-extensions
 
 # install boost
-# tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=0"
+# tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=1"
 RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.tar.gz/download -O boost_1_73_0.tar.gz \
    && tar -xzf boost_1_73_0.tar.gz \
    && cd boost_1_73_0 \
    && ./bootstrap.sh \
-   && ./b2 define=_GLIBCXX_USE_CXX11_ABI=0 threading=multi --prefix=/usr -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
+   && ./b2 define=_GLIBCXX_USE_CXX11_ABI=1 threading=multi --prefix=/usr -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
    && cd .. \
    && rm -rf boost_1_73_0.tar.gz \
    && rm -rf boost_1_73_0 \

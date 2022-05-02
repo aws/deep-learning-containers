@@ -267,7 +267,7 @@ RUN apt update && apt install -y libcurl4-openssl-dev
 RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
     && cd sagemaker-tensorflow-extensions \
     && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \
-    && $PYTHON -m pip install . \
+    && pip install . \
     && cd .. && rm -rf sagemaker-tensorflow-extensions
 
 # remove tmp files
