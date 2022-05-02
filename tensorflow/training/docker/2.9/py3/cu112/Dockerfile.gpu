@@ -45,7 +45,7 @@ ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
 ENV PIP=${PIP}
 
-RUN sudo apt-key del 7fa2af80 \
+RUN apt-key del 7fa2af80 \
  && rm /etc/apt/sources.list.d/nvidia-ml.list \
  && apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub \
  && apt-get update \
