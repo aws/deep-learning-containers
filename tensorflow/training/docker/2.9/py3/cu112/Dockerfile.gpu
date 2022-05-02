@@ -345,8 +345,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "plotly>=5.1,<6" \
     "seaborn>=0.11,<1" \
     "numba<0.54" \
-    "shap>=0.39,<1" \
-    gin-config
+    "shap>=0.39,<1"
 
 # install smdebug directly the specific branch
 ARG SMDEBUG_TAG=1.0.13
@@ -388,6 +387,12 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.
 ENV TF_AUTOTUNE_THRESHOLD=2
 
 # ENV LD_LIBRARY_PATH="/usr/local/lib/${PYTHON}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
+
+# Add TF models and examples from the official GitHub
+RUN git clone https://github.com/tensorflow/models.git \
+ && $PYTHON -m pip install -r models/official/requirements.txt
+
+ENV PYTHONPATH="${PYTHONPATH}:$(pwd)/models"
 
 # remove tmp files
 RUN rm -rf /tmp/*
