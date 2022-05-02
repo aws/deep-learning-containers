@@ -322,7 +322,8 @@ ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/temp
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
    tensorflow-io==0.25.0 \
-   tensorflow-datasets==4.5.2
+   tensorflow-datasets==4.5.2 \
+   tensorflow-text==v2.9.0-rc1
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
