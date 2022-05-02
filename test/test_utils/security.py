@@ -387,13 +387,15 @@ def create_and_save_package_list_to_s3(old_filepath, new_packages, new_filepath,
     lines = file1.readlines()
     current_packages = [line.strip() for line in lines]
     package_list = current_packages
+    new_packages = [get_apt_package_name(new_package) for new_package in new_packages]
     union_of_old_and_new_packages = set(package_list).union(set(new_packages))
-    updated_list = list(union_of_old_and_new_packages)
-    modified_package_list = [f"{get_apt_package_name(package_name)}\n" for package_name in updated_list]
+    unified_package_list = list(union_of_old_and_new_packages)
+    unified_package_list.sort()
+    unified_package_list_for_storage = [f"{package_name}\n" for package_name in unified_package_list]
     file1.close()
     run(f"rm -rf {new_filepath}")
     with open(new_filepath, "w") as file2:
-        file2.writelines(modified_package_list)
+        file2.writelines(unified_package_list_for_storage)
     s3_client = boto3.client("s3")
     s3_client.upload_file(Filename=new_filepath, Bucket=s3_bucket_name, Key=new_filepath)
 

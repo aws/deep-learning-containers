@@ -112,6 +112,13 @@ class MissingPythonVersionException(Exception):
 
     pass
 
+class CudaVersionTagNotFoundException(Exception):
+    """
+    When none of the tags of a GPU image have a Cuda version in them
+    """
+
+    pass
+
 
 def get_dockerfile_path_for_image(image_uri):
     """
@@ -1198,6 +1205,28 @@ def get_framework_from_image_uri(image_uri):
     )
 
 
+def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
+    """
+    Uses ecr describe to generate all the tags of an image.
+
+    :param ecr_client: boto3 Client for ECR
+    :param image_uri: str Image URI
+    :return: list, All the image tags
+    """
+    account_id = get_account_id_from_image_uri(image_uri)
+    image_repo_name, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    response = ecr_client.describe_images(
+        registryId=account_id,
+        repositoryName=image_repo_name,
+        imageIds=[
+            {
+                'imageTag': image_tag
+            },
+        ]
+    )
+    return response['imageDetails'][0]['imageTags']
+
+
 def get_cuda_version_from_tag(image_uri):
     """
     Return the cuda version from the image tag as cuXXX
@@ -1205,12 +1234,20 @@ def get_cuda_version_from_tag(image_uri):
     :return: cuda version as cuXXX
     """
     cuda_framework_version = None
-
     cuda_str = ["cu", "gpu"]
-    if all(keyword in image_uri for keyword in cuda_str):
-        cuda_framework_version = re.search(r"(cu\d+)-", image_uri).groups()[0]
+    image_region = get_region_from_image_uri(image_uri)
+    ecr_client = boto3.Session(region_name=image_region).client('ecr')
+    all_image_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri)
 
-    return cuda_framework_version
+    for image_tag in all_image_tags:
+        if all(keyword in image_tag for keyword in cuda_str):
+            cuda_framework_version = re.search(r"(cu\d+)-", image_tag).groups()[0]
+            return cuda_framework_version
+
+    if "gpu" in image_uri:
+        raise CudaVersionTagNotFoundException()
+    else:
+        return None
 
 
 def get_synapseai_version_from_tag(image_uri):
@@ -1435,8 +1472,6 @@ def execute_env_variables_test(image_uri, env_vars_to_test, container_name_prefi
             assertion_error_sentence = f"It is currently set to {actual_val}."
         else:
             assertion_error_sentence = "It is currently not set."
-        assert (
-            actual_val == expected_val,
+        assert actual_val == expected_val, \
             f"Environment variable {var} is expected to be {expected_val}. {assertion_error_sentence}."
-        )
     stop_and_remove_container(container_name, ctx)
