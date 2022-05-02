@@ -369,7 +369,7 @@ def get_apt_package_name(ecr_package_name):
     :param ecr_package_name: str, name of the package in ecr scans
     :param apt_package_name: str, name of the package in apt
     """
-    name_mapper = {"cyrus-sasl2": "libsasl2-2", "glibc": "libc6"}
+    name_mapper = {"cyrus-sasl2": "libsasl2-2", "glibc": "libc6", "libopenmpt": "libopenmpt-dev"}
     return name_mapper.get(ecr_package_name, ecr_package_name)
 
 
@@ -387,13 +387,15 @@ def create_and_save_package_list_to_s3(old_filepath, new_packages, new_filepath,
     lines = file1.readlines()
     current_packages = [line.strip() for line in lines]
     package_list = current_packages
+    new_packages = [get_apt_package_name(new_package) for new_package in new_packages]
     union_of_old_and_new_packages = set(package_list).union(set(new_packages))
-    updated_list = list(union_of_old_and_new_packages)
-    modified_package_list = [f"{get_apt_package_name(package_name)}\n" for package_name in updated_list]
+    unified_package_list = list(union_of_old_and_new_packages)
+    unified_package_list.sort()
+    unified_package_list_for_storage = [f"{package_name}\n" for package_name in unified_package_list]
     file1.close()
     run(f"rm -rf {new_filepath}")
     with open(new_filepath, "w") as file2:
-        file2.writelines(modified_package_list)
+        file2.writelines(unified_package_list_for_storage)
     s3_client = boto3.client("s3")
     s3_client.upload_file(Filename=new_filepath, Bucket=s3_bucket_name, Key=new_filepath)
 
@@ -494,8 +496,11 @@ def conduct_failure_routine(
         "fixable_vulnerabilities": fixable_list,
         "non_fixable_vulnerabilities": newly_found_non_fixable_list,
     }
-    ## TODO: Remove the is_pr_context before merging ##
-    if test_utils.is_canary_context() and test_utils.is_time_for_invoking_ecr_scan_failure_routine_lambda():
+    ## TODO: Make the conditions below as if test_utils.is_canary_context() and test_utils.is_time_for_invoking_ecr_scan_failure_routine_lambda() and os.getenv("REGION") == test_utils.DEFAULT_REGION:
+    ## to make sure that we just invoke the ECR_SCAN_FAILURE_ROUTINE_LAMBDA once everyday
+    if test_utils.is_canary_context() and os.getenv("REGION") == test_utils.DEFAULT_REGION:
+        # boto3.Session().region_name == test_utils.DEFAULT_REGION helps us invoke the ECR_SCAN_FAILURE_ROUTINE_LAMBDA
+        # from just 1 account
         _invoke_lambda(function_name=test_utils.ECR_SCAN_FAILURE_ROUTINE_LAMBDA, payload_dict=message_body)
     return_dict = copy.deepcopy(message_body)
     return_dict["s3_filename_for_allowlist"] = s3_filename_for_allowlist

@@ -172,10 +172,8 @@ def test_tf_serving_version_cpu(tensorflow_inference):
     output = run_cmd_on_container(
         container_name, ctx, "tensorflow_model_server --version", executable="bash"
     )
-    assert (
-        re.match(rf"TensorFlow Model Server: {tag_framework_version}(\D+)?", output.stdout),
+    assert re.match(rf"TensorFlow ModelServer: {tag_framework_version}(\D+)?", output.stdout), \
         f"Cannot find model server version {tag_framework_version} in {output.stdout}"
-    )
 
     stop_and_remove_container(container_name, ctx)
 
@@ -320,10 +318,8 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
     if re.fullmatch(r"(pr-|beta-|nightly-)?tensorflow-inference(-eia|-graviton)?", image_repo_name):
         cmd = f"tensorflow_model_server --version"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash")
-        assert (
-            re.match(rf"TensorFlow Model Server: {tag_framework_version}(\D+)?", output.stdout),
+        assert re.match(rf"TensorFlow ModelServer: {tag_framework_version}(\D+)?", output.stdout), \
             f"Cannot find model server version {tag_framework_version} in {output.stdout}"
-        )
     else:
         # Framework name may include huggingface
         if tested_framework.startswith('huggingface_'):

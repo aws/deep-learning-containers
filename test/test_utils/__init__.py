@@ -112,6 +112,13 @@ class MissingPythonVersionException(Exception):
 
     pass
 
+class CudaVersionTagNotFoundException(Exception):
+    """
+    When none of the tags of a GPU image have a Cuda version in them
+    """
+
+    pass
+
 
 def get_dockerfile_path_for_image(image_uri):
     """
@@ -800,7 +807,7 @@ def get_canary_default_tag_py3_version(framework, version):
         if Version(version) >= Version("1.9"):
             return "py38"
 
-    if framework == "pytorch":
+    if framework == "pytorch" or framework == "huggingface_pytorch":
         if Version(version) >= Version("1.9"):
             return "py38"
 
@@ -819,12 +826,12 @@ def parse_canary_images(framework, region):
     customer_type_tag = f"-{customer_type}" if customer_type else ""
 
     version_regex = {
-        "tensorflow": rf"tf{customer_type_tag}-(\d+.\d+)",
-        "mxnet": rf"mx{customer_type_tag}-(\d+.\d+)",
-        "pytorch": rf"pt{customer_type_tag}-(\d+.\d+)",
-        "huggingface_pytorch": r"hf-\S*pt-(\d+.\d+)",
-        "huggingface_tensorflow": r"hf-\S*tf-(\d+.\d+)",
-        "autogluon": r"ag-(\d+.\d+)",
+        "tensorflow": rf"tf(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
+        "mxnet": rf"mx(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
+        "pytorch": rf"pt(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
+        "huggingface_pytorch": r"hf-\S*pt(-sagemaker)?-(\d+.\d+)",
+        "huggingface_tensorflow": r"hf-\S*tf(-sagemaker)?-(\d+.\d+)",
+        "autogluon": r"ag(-sagemaker)?-(\d+.\d+)",
     }
 
     repo = git.Repo(os.getcwd(), search_parent_directories=True)
@@ -835,7 +842,7 @@ def parse_canary_images(framework, region):
         tag_str = str(tag)
         match = re.search(version_regex[framework], tag_str)
         if match:
-            version = match.group(1)
+            version = match.group(2)
             if not versions_counter.get(version):
                 versions_counter[version] = {"tr": False, "inf": False}
             if "tr" not in tag_str and "inf" not in tag_str:
@@ -857,6 +864,7 @@ def parse_canary_images(framework, region):
 
     registry = PUBLIC_DLC_REGISTRY
     framework_versions = versions if len(versions) < 4 else versions[:3]
+    dlc_images = []
     for fw_version in framework_versions:
         py3_version = get_canary_default_tag_py3_version(framework, fw_version)
 
@@ -897,10 +905,11 @@ def parse_canary_images(framework, region):
                 f"{registry}.dkr.ecr.{region}.amazonaws.com/autogluon-training:{fw_version}-cpu-{py3_version}",
             ],
         }
-        dlc_images = images[framework]
         # E3 Images have an additional "e3" tag to distinguish them from the regular "sagemaker" tag
         if customer_type == "e3":
-            dlc_images = [f"{img}-e3" for img in dlc_images]
+            dlc_images += [f"{img}-e3" for img in images[framework]]
+        else:
+            dlc_images += images[framework]
 
     return " ".join(dlc_images)
 
@@ -1196,6 +1205,28 @@ def get_framework_from_image_uri(image_uri):
     )
 
 
+def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
+    """
+    Uses ecr describe to generate all the tags of an image.
+
+    :param ecr_client: boto3 Client for ECR
+    :param image_uri: str Image URI
+    :return: list, All the image tags
+    """
+    account_id = get_account_id_from_image_uri(image_uri)
+    image_repo_name, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    response = ecr_client.describe_images(
+        registryId=account_id,
+        repositoryName=image_repo_name,
+        imageIds=[
+            {
+                'imageTag': image_tag
+            },
+        ]
+    )
+    return response['imageDetails'][0]['imageTags']
+
+
 def get_cuda_version_from_tag(image_uri):
     """
     Return the cuda version from the image tag as cuXXX
@@ -1203,12 +1234,20 @@ def get_cuda_version_from_tag(image_uri):
     :return: cuda version as cuXXX
     """
     cuda_framework_version = None
-
     cuda_str = ["cu", "gpu"]
-    if all(keyword in image_uri for keyword in cuda_str):
-        cuda_framework_version = re.search(r"(cu\d+)-", image_uri).groups()[0]
+    image_region = get_region_from_image_uri(image_uri)
+    ecr_client = boto3.Session(region_name=image_region).client('ecr')
+    all_image_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri)
 
-    return cuda_framework_version
+    for image_tag in all_image_tags:
+        if all(keyword in image_tag for keyword in cuda_str):
+            cuda_framework_version = re.search(r"(cu\d+)-", image_tag).groups()[0]
+            return cuda_framework_version
+
+    if "gpu" in image_uri:
+        raise CudaVersionTagNotFoundException()
+    else:
+        return None
 
 
 def get_synapseai_version_from_tag(image_uri):
@@ -1433,8 +1472,6 @@ def execute_env_variables_test(image_uri, env_vars_to_test, container_name_prefi
             assertion_error_sentence = f"It is currently set to {actual_val}."
         else:
             assertion_error_sentence = "It is currently not set."
-        assert (
-            actual_val == expected_val,
+        assert actual_val == expected_val, \
             f"Environment variable {var} is expected to be {expected_val}. {assertion_error_sentence}."
-        )
     stop_and_remove_container(container_name, ctx)
