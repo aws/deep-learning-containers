@@ -124,32 +124,6 @@ def num_nodes(request):
 def ec2_key_name(request):
     return request.param
 
-@pytest.fixture(scope="function")
-def ec2_key_file_name(request):
-    return request.param
-
-@pytest.fixture(scope="function")
-def ec2_user_name(request):
-    return request.param
-
-@pytest.fixture(scope="function")
-def ec2_public_ip(request):
-    return request.param
-
-@pytest.fixture(scope="function")
-def ec2_key_file_name(request):
-    return request.param
-
-
-@pytest.fixture(scope="function")
-def ec2_user_name(request):
-    return request.param
-
-
-@pytest.fixture(scope="function")
-def ec2_public_ip(request):
-    return request.param
-
 
 @pytest.fixture(scope="function")
 def ec2_key_file_name(request):
