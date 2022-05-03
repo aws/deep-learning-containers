@@ -82,9 +82,9 @@ images:
       <<: *TRAINING_CONTEXT
   BuildSMMXNetGPUTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
-    build: &MXNET_CPU_TRAINING_PY3 false
-    image_size_baseline: 3000
-    device_type: &DEVICE_TYPE cpu
+    build: &MXNET_GPU_TRAINING_PY3 false
+    image_size_baseline: 7159
+    device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py38
     cuda_version: &CUDA_VERSION cu112

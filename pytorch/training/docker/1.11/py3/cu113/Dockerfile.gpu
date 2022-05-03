@@ -23,9 +23,10 @@ LABEL dlc_major_version="2"
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
-<<<<<<< HEAD
 ARG MAMBA_VERSION
-=======
+
+ARG CUBLAS_VERSION=11.5.1.109
+ARG EFA_PATH=/opt/amazon/efa
 ARG CUDA_HOME=/usr/local/cuda
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
@@ -51,10 +52,6 @@ ENV EFA_VERSION=1.15.1
 ENV OMPI_VERSION=4.1.1
 ENV BRANCH_OFI=1.2.0-aws
 
-<<<<<<< HEAD
-=======
-ENV CONDA_PREFIX=/opt/conda
->>>>>>> private-master
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV OPEN_MPI_PATH=/opt/amazon/openmpi
 
@@ -168,7 +165,6 @@ ENV PATH="$OPEN_MPI_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
-<<<<<<< HEAD
  && curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
@@ -192,26 +188,6 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && /opt/conda/bin/conda install -c dglteam -y dgl-cuda11.3=0.8.0 \
  && /opt/conda/bin/conda install -c pytorch magma-cuda113 \
  && /opt/conda/bin/conda clean -ya
-=======
- && curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
- && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p ${CONDA_PREFIX} \
- && rm ~/miniconda.sh \
- && ${CONDA_PREFIX}/bin/conda install -c conda-forge \
-    python=$PYTHON_VERSION \
- && ${CONDA_PREFIX}/bin/conda install -y \
-    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
-    ruamel_yaml==0.15.100 \
- && ${CONDA_PREFIX}/bin/conda install -y -c anaconda \
-    cython \
-    future \
-    mkl \
-    mkl-include \
-    "pyopenssl>=17.5.0" \
-    typing \
- && conda install -y -c dglteam dgl-cuda11.3=0.8.0 \
- && ${CONDA_PREFIX}/bin/conda clean -ya
->>>>>>> private-master
 
 # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
 # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
@@ -219,23 +195,9 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
 # once conda fixes the issue
 RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
-<<<<<<< HEAD
 RUN /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
-=======
-RUN ${CONDA_PREFIX}/bin/conda config --set ssl_verify False \
- && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s ${CONDA_PREFIX}/bin/pip /usr/local/bin/pip3
-
-RUN conda install -c pytorch \
-    magma-cuda113 \
- && conda install -y \
-    h5py \
-    requests \
-    libgcc \
- && conda clean -ya
->>>>>>> private-master
 
 WORKDIR /root
 
@@ -484,11 +446,7 @@ RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pk
 WORKDIR /
 
 # Install scikit-learn and pandas
-<<<<<<< HEAD
 RUN conda install -y -c conda-forge \
-=======
-RUN conda install -y \
->>>>>>> private-master
     scikit-learn \
     pandas
 
@@ -499,19 +457,11 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.73.0/boost_1_73_0.
  && tar -xzf boost_1_73_0.tar.gz \
  && cd boost_1_73_0 \
  && ./bootstrap.sh \
-<<<<<<< HEAD
  && ./b2 threading=multi --prefix=/opt/conda -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
  && cd .. \
  && rm -rf boost_1_73_0.tar.gz \
  && rm -rf boost_1_73_0 \
  && cd /opt/conda/include/boost
-=======
- && ./b2 threading=multi --prefix=${CONDA_PREFIX} -j 64 cxxflags=-fPIC cflags=-fPIC install || true \
- && cd .. \
- && rm -rf boost_1_73_0.tar.gz \
- && rm -rf boost_1_73_0 \
- && cd ${CONDA_PREFIX}/include/boost
->>>>>>> private-master
 
 WORKDIR /opt/pytorch
 

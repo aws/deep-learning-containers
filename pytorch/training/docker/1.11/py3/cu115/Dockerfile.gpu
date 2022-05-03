@@ -25,6 +25,10 @@ ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
 ARG MAMBA_VERSION
 
+ARG CUBLAS_VERSION=11.7.4.6
+ARG EFA_PATH=/opt/amazon/efa
+ARG CUDA_HOME=/usr/local/cuda
+
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
 
