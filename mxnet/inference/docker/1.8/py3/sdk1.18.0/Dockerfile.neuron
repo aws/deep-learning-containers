@@ -105,7 +105,7 @@ RUN ${PIP} install --no-cache-dir \
 
 RUN ${PIP} install neuron-cc[tensorflow] --extra-index-url https://pip.repos.neuron.amazonaws.com \
  && ${PIP} install --no-cache-dir -U \
-    https://aws-mx-pypi.s3-us-west-2.amazonaws.com/1.8.0/aws_mx-1.8.0-py2.py3-none-manylinux2014_x86_64.whl \
+    https://aws-mx-pypi.s3.us-west-2.amazonaws.com/1.8.0/aws_mx-1.8.0.2-py2.py3-none-manylinux2014_x86_64.whl \
  && ${PIP} install mx-neuron --extra-index-url https://pip.repos.neuron.amazonaws.com \
  # Install TF 1.15.5 to override neuron-cc[tensorflow]'s installation of tensorflow==1.15.0
  && pip install -U tensorflow==1.15.5
