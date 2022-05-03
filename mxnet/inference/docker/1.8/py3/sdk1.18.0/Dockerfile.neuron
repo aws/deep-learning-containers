@@ -1,7 +1,8 @@
 FROM ubuntu:18.04
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+#SDK 1.17.1 has version 1
+LABEL dlc_major_version="2"
 
 # Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
