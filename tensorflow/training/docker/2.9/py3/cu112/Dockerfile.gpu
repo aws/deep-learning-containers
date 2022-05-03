@@ -310,6 +310,8 @@ FROM common AS sagemaker
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.9_aws/gpu/2022-04-26-20-03/tensorflow_gpu-2.9.0rc1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
@@ -320,7 +322,7 @@ RUN ${PIP} install --no-cache-dir -U \
 
 # Install Horovod, temporarily using CUDA stubs
 RUN ldconfig /usr/local/cuda-11.2/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.23.0 \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_WITH_TENSORFLOW=1 ${PIP} install --no-cache-dir horovod==0.24.2 \
  && ldconfig
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
