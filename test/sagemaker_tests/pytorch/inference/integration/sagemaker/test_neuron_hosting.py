@@ -40,7 +40,6 @@ def test_neuron_hosting(framework_version, ecr_image, instance_type, sagemaker_r
             'resnet_script': resnet_neuron_script,
             'resnet_neuron_input': resnet_neuron_input,
             'resnet_neuron_image_list': resnet_neuron_image_list,
-            'model_name': "model-resnet",
         }
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_resnet_distributed, function_args)
 
