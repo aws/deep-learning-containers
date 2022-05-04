@@ -8,6 +8,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 ARG PYTHON=python3.7
 ARG PYTHON_VERSION=3.7.10
 ARG TS_VERSION=0.5.2
+ARG MAMBA_VERSION=4.12.0-0
 
 # See http://bugs.python.org/issue19846
 ENV LANG C.UTF-8
@@ -61,28 +62,26 @@ RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeysto
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
     /var/lib/dpkg/info/ca-certificates-java.postinst configure;
 
-RUN curl -L -o ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
- && chmod +x ~/miniconda.sh \
- && ~/miniconda.sh -b -p /opt/conda \
- && rm ~/miniconda.sh \
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda update conda \
- && /opt/conda/bin/conda install -c conda-forge \
+ && /opt/conda/bin/conda install -c conda-forge -y \
     python=$PYTHON_VERSION \
- && /opt/conda/bin/conda install -y \
-    # conda 4.10.0 requires ruamel_yaml to be installed. Currently pinned at latest.
-    ruamel_yaml==0.15.100 \
     cython \
     mkl-include \
     mkl \
     parso \
     scipy \
     typing \
+    # Below 2 are included in miniconda base, but not mamba so need to install
+    conda-content-trust \
+    charset-normalizer \
  && /opt/conda/bin/conda clean -ya
 
-RUN conda install -c \
-    conda-forge \
+RUN conda install -c conda-forge \
     opencv \
- && conda install -y \
     scikit-learn \
     pandas \
     h5py \
