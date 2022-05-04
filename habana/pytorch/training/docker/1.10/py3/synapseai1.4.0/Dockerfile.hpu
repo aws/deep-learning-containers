@@ -35,7 +35,7 @@ ARG PT_TRAINING_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/habana
 
 RUN pip --no-cache-dir install --upgrade \
     pip \
-    "setuptools==58.2.0"
+    "setuptools==58.5.0"
 
 # The following section uninstalls torch and torchvision before installing the
 # custom versions from an S3 bucket.
