@@ -157,6 +157,7 @@ def get_dockerfile_path_for_image(image_uri):
     device_type = get_processor_from_image_uri(image_uri)
     cuda_version = get_cuda_version_from_tag(image_uri)
     synapseai_version = get_synapseai_version_from_tag(image_uri)
+    neuron_sdk_version = get_neuron_sdk_version_from_tag(image_uri)
 
     dockerfile_name = get_expected_dockerfile_filename(device_type, image_uri)
 
@@ -166,7 +167,7 @@ def get_dockerfile_path_for_image(image_uri):
         if "example" not in path
     ]
 
-    if device_type in ["gpu", "hpu"]:
+    if device_type in ["gpu", "hpu", "neuron"]:
         if len(dockerfiles_list) > 1:
             if device_type == "gpu" and not cuda_version:
                 raise LookupError(
@@ -180,6 +181,12 @@ def get_dockerfile_path_for_image(image_uri):
                     f"uniquely identify the right dockerfile:\n"
                     f"{dockerfiles_list}"
                 )
+            if device_type == "neuron" and not neuron_sdk_version:
+                raise LookupError(
+                    f"dockerfiles_list has more than one result, and needs neuron_sdk_version to be in image_uri to "
+                    f"uniquely identify the right dockerfile:\n"
+                    f"{dockerfiles_list}"
+                )
         for dockerfile_path in dockerfiles_list:
             if cuda_version:
                 if cuda_version in dockerfile_path:
@@ -187,6 +194,10 @@ def get_dockerfile_path_for_image(image_uri):
             elif synapseai_version:
                 if synapseai_version in dockerfile_path:
                     return dockerfile_path
+            elif neuron_sdk_version:
+                if neuron_sdk_version in dockerfile_path:
+                    return dockerfile_path
+                raise LookupError(f"Failed to find a dockerfile path for {neuron_sdk_version} in:\n{dockerfiles_list}")
         raise LookupError(f"Failed to find a dockerfile path for {cuda_version} in:\n{dockerfiles_list}")
 
     assert len(dockerfiles_list) == 1, f"No unique dockerfile path in:\n{dockerfiles_list}\nfor image: {image_uri}"
